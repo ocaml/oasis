@@ -1,6 +1,3 @@
-#!/usr/bin/ocamlrun ocaml
-
-#use "topfind";;
 
 let create package_name package_version = 
   let write_file fn str =
