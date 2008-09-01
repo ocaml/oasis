@@ -8,11 +8,45 @@ rule "ocamlify: %.mlify.depends %.mlify -> %.ml"
   ~prod:"%.ml"
   ~deps:["%.mlify"; "%.mlify.depends"]
   begin 
-    fun env _ -> 
+    fun env build ->
+      let depends = 
+        env "%.mlify.depends"
+      in
+      let mlify = 
+        env "%.mlify"
+      in
+      let ml =
+        env "%.ml"
+      in
+      let depends_lst = 
+        let deps = 
+          ref []
+        in
+        let fd = 
+          open_in depends
+        in
+          (
+            try
+              while true; do
+                deps := (input_line fd) :: !deps
+              done;
+            with End_of_file ->
+              ()
+          );
+          List.rev !deps
+      in
+      let () = 
+        List.iter
+          (function
+             | Outcome.Good _ -> ()
+             | Outcome.Bad exn -> raise exn
+          ) 
+          (build [depends_lst])
+      in
       Cmd(S[ocamlify; 
-            T(tags_of_pathname (env "%.mlify")++"ocamlify"++"compile");
-            A"--output"; P(env "%.ml");
-            P(env "%.mlify")])
+            T(tags_of_pathname mlify++"ocamlify"++"compile");
+            A"--output"; P(ml);
+            P(mlify)])
   end
 ;;
 
@@ -24,20 +58,7 @@ rule "ocamlify: %.mlify -> %.mlify.depends"
       Cmd(S[ocamlify; 
             T(tags_of_pathname (env "%.mlify")++"ocamlify"++"depends");
             A"--depends"; 
-            A"--target"; P(env "%.ml"); 
             A"--output"; P(env "%.mlify.depends"); 
             P(env "%.mlify");])
-  end
-;;
-
-dispatch 
-  begin 
-    function
-      | After_rules ->
-          (* Depends *)
-          dep
-            ["compile"; "file:src/base/baseData.mlify"]
-            ["src/base/buildSys.ml"];
-      | _ -> ()
   end
 ;;
