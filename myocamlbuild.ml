@@ -36,12 +36,16 @@ rule "ocamlify: %.mlify.depends %.mlify -> %.ml"
           List.rev !deps
       in
       let () = 
-        List.iter
-          (function
-             | Outcome.Good _ -> ()
-             | Outcome.Bad exn -> raise exn
-          ) 
-          (build [depends_lst])
+        List.iter 
+          (fun fn ->
+             List.iter
+               (function
+                  | Outcome.Good _ -> ()
+                  | Outcome.Bad exn -> raise exn
+               ) 
+               (build [[fn]])
+          )
+          depends_lst
       in
       Cmd(S[ocamlify; 
             T(tags_of_pathname mlify++"ocamlify"++"compile");
