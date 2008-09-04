@@ -202,7 +202,7 @@ struct
     *)
   let dump env = 
     let chn =
-      open_out env.fn
+      open_out_bin env.fn
     in
       Marshal.to_channel chn env [];
       close_out chn
@@ -225,7 +225,7 @@ struct
       if Sys.file_exists fn then
         (
           let chn =
-            open_in fn
+            open_in_bin fn
           in
           let env =
             Marshal.from_channel chn
