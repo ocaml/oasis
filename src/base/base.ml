@@ -387,10 +387,17 @@ let file_generate ctxt ff =
         let ff_real = 
           file_read ff.fn ff.comment 
         in
+        let exist_digest part tags = 
+          try
+            ignore(List.assoc (digest_var part) tags);
+            true
+          with Not_found ->
+            false
+        in
         let check_digest part tags lst =
           try 
             let expected_digest =
-              List.assoc (part^"_digest") tags
+              List.assoc (digest_var part) tags
             in
             let real_digest = 
               digest_list lst
@@ -409,16 +416,36 @@ let file_generate ctxt ff =
             false
         in
         let update part tags lst new_lst =
-          if check_digest part tags lst then
+          if lst != new_lst && new_lst != [] then
             (
-              let ntags = 
-                replace_assoc (digest_var part) (digest_list new_lst) tags
-              in
-                info ctxt ("Updating "^part^" in file "^ff.fn);
-                new_lst, ntags
+              if lst = [] then
+                (
+                  info ctxt (part^" in file "^ff.fn^
+                             " is empty, replacing by automatic content.");
+                  new_lst,
+                  replace_assoc 
+                    (digest_var part) 
+                    (digest_list new_lst) 
+                    tags
+
+                )
+              else if (exist_digest part tags) && (check_digest part tags lst) then
+                (
+                  info ctxt ("Updating "^part^" in file "^ff.fn);
+                  new_lst,
+                  replace_assoc 
+                    (digest_var part) 
+                    (digest_list new_lst) 
+                    tags
+                )
+              else
+                (
+                  lst, tags
+                )
             )
           else
             (
+              info ctxt ("Nothing to update for "^part^" in file "^ff.fn);
               lst, tags
             )
         in
@@ -437,7 +464,8 @@ let file_generate ctxt ff =
             ff.footer
         in
         let () = 
-          if check_digest "content" nntags (List.flatten ff_real.contents) then
+          if not (exist_digest "content" nntags) || 
+             check_digest "content" nntags (List.flatten ff_real.contents) then
             ()
           else
             (

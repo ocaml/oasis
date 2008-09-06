@@ -1,3 +1,4 @@
+
 let () = 
   Findlib.init ()
 ;;
@@ -66,16 +67,21 @@ struct
     *)
   type env = 
       {
+        args:            (Arg.key * (env ref -> Arg.spec) * Arg.doc) list;
         vars:            var MapVar.t;
         fn:              string;
         temporary_files: SetFn.t;
       }
 
+  (** Type for transforming env
+    *)
+  type fun_env = env -> env
+
   (** Apply in turn function to modify environment
     *)
-  let chain (lst: (env -> string * env) list) (env: env) =
+  let chain (lst: (env -> env) list) (env: env) =
     List.fold_left
-      (fun env f -> snd (f env))
+      (fun env f -> f env)
       env
       lst
 
@@ -105,6 +111,23 @@ struct
           Msg.error ("variable '"^name^"' is not defined "^error_extra_message)
         else
           raise Not_found
+      )
+
+  (** Try to get a variable value from environment and if it fails
+    * compute it and store it in environment.
+    *)
+  let cache ?(no_export=false) name f env =
+    try
+      var_get name env, env
+    with Not_found ->
+      (
+        let vl, nenv =
+          f env
+        in
+        let nnenv =
+          var_add ~no_export:no_export name vl nenv
+        in
+          vl, nnenv
       )
 
   (** Expand variable that can be found in string. [multi] control
@@ -168,6 +191,57 @@ struct
             nstr
         )
 
+  (** Add a command line argument 
+    *)
+  let arg_add name default args env =
+    let nenv =
+      {
+        env with
+            args = args @ env.args
+      }
+    in
+      snd (cache name (fun env -> default, env) nenv)
+
+  (** Get command line argument 
+    *)
+  let arg_get env = 
+    let renv =
+      ref env
+    in
+      (
+        List.rev
+        (
+          List.map
+            (fun (key, fspc, doc) -> key, (fspc renv), doc)
+            env.args
+        )
+      ),
+      renv
+
+  let arg_default env =
+    {
+      env with 
+          args =
+            [
+              "--override",
+              (fun renv -> 
+                 Arg.Tuple
+                   (
+                     let rvr = ref ""
+                     in
+                     let rvl = ref ""
+                     in
+                       [
+                         Arg.Set_string rvr;
+                         Arg.Set_string rvl;
+                         Arg.Unit (fun () -> renv := var_add !rvr !rvl !renv)
+                       ]
+                   )
+              ),
+              "var\ val  Override any configuration variable"
+            ]
+    }
+
   (** Add a temporary file
     *)
   let temporary_add fn env = 
@@ -181,30 +255,13 @@ struct
   let temporary_get env =
     SetFn.elements env.temporary_files
 
-  (** Try to get a variable value from environment and if it fails
-    * compute it and store it in environment.
-    *)
-  let cache ?(no_export=false) name f env =
-    try
-      var_get name env, env
-    with Not_found ->
-      (
-        let vl, nenv =
-          f env
-        in
-        let nnenv =
-          var_add ~no_export:no_export name vl nenv
-        in
-          vl, nnenv
-      )
-
   (** Save environment on disk.
     *)
   let dump env = 
     let chn =
       open_out_bin env.fn
     in
-      Marshal.to_channel chn env [];
+      Marshal.to_channel chn {env with args = []} [];
       close_out chn
 
   (** Initialize environment.
@@ -218,7 +275,7 @@ struct
             | Some f ->
                 f
             | None ->
-                "build.data"
+                "buildsys.data"
         )
     in
     let env =
@@ -235,6 +292,7 @@ struct
         )
       else
         {
+          args            = [];
           vars            = MapVar.empty;
           fn              = fn;
           temporary_files = SetFn.empty;
@@ -246,6 +304,7 @@ struct
       [
         var_add "pkg_name" pkg_name;
         var_add "pkg_version" pkg_version;
+        arg_default;
       ]
 
   (** Display environment to user.
@@ -266,6 +325,10 @@ struct
     SetFn.iter print_endline env.temporary_files;
     print_newline ()
 
+
+  let has_changed env1 env2 =
+    (MapVar.compare (fun v1 v2 -> String.compare v1.value v2.value) env1.vars env2.vars) != 0
+
 end
 ;;
 
@@ -275,130 +338,60 @@ module BuildArg =
 struct
   open Environment
 
-  let enable name hlp default renv =
-    let () = 
-      renv := var_add name (if default then "true" else "false") !renv
+  let tr_arg str =
+    let buff =
+      Buffer.create (String.length str)
     in
-      [
-        "--enable-"^name,
-        Arg.Unit (fun () -> renv := var_add name "true" !renv),
-        " Enable "^hlp^(if default then " [default]" else "");
+      String.iter 
+        (function 
+           | '_' | ' ' | '\n' | '\r' | '\t' -> Buffer.add_char buff '-'
+           | c -> Buffer.add_char buff c
+        )
+        str;
+      Buffer.contents buff
 
-        "--disable-"^name,
-        Arg.Unit (fun () -> renv := var_add name "false" !renv),
-        " Disable "^hlp^(if not default then " [default]" else "");
-      ]
+  let enable name hlp default env =
+    arg_add
+      (* var name *)
+      name
+      (* default value *)
+      (
+        if default then
+          "true"
+        else
+          "false"
+      )
+      (* command line argument *)
+      (
+        let arg_name =
+          tr_arg name
+        in
+          [
+            "--enable-"^arg_name,
+            (fun renv -> Arg.Unit (fun () -> renv := var_add name "true" !renv)),
+            " Enable "^hlp^(if default then " [default]" else "");
+
+            "--disable-"^arg_name,
+            (fun renv -> Arg.Unit (fun () -> renv := var_add name "false" !renv)),
+            " Disable "^hlp^(if not default then " [default]" else "");
+          ]
+      )
+      env
    
-  let wth name hlp default renv =
-    let () = 
-      renv := var_add name default !renv
-    in
+  let wth name hlp default env =
+    arg_add
+      (* var name *)
+      name 
+      (* default *)
+      default
+      (* command line argument *)
       [
-        "--with-"^name,
-        Arg.String (fun str -> renv := var_add name str !renv),
+        "--with-"^(tr_arg name),
+        (fun renv -> Arg.String (fun str -> renv := var_add name str !renv)),
         hlp^" ["^default^"]"
       ]
+      env
 
-  let base renv =
-    let lst =
-      [
-        "prefix",
-        "install architecture-independent files dir",
-        (match Sys.os_type with
-           | "Win32" ->
-               "%PROGRAMFILES%\\$pkg_name"
-           | _ ->
-               "/usr/local"
-        );
-        
-        "eprefix",
-        "install architecture-dependent files in dir",
-        "$prefix";
-
-        "bindir",
-        "user executables",
-        Filename.concat "$eprefix" "bin";
-
-        "sbindir",
-        "system admin executables",
-        Filename.concat "$eprefix" "sbin";
-
-        "libexecdir",
-        "program executables",
-        Filename.concat "$eprefix" "libexec";
-
-        "sysconfdir",
-        "read-only single-machine data",
-        Filename.concat "$prefix" "etc";
-
-        "sharedstatedir",
-        "modifiable architecture-independent data",
-        Filename.concat "$prefix" "com";
-
-        "localstatedir",
-        "modifiable single-machine data",
-        Filename.concat "$prefix" "var";
-
-        "libdir",
-        "object code libraries",
-        Filename.concat "$eprefix" "lib";
-
-        "datarootdir",
-        "read-only arch.-independent data root",
-        Filename.concat "$prefix" "share";
-
-        "datadir",
-        "read-only architecture-independent data",
-        "$datarootdir";
-
-        "infodir",
-        "info documentation",
-        Filename.concat "$datarootdir" "info";
-
-        "localedir",
-        "locale-dependent data",
-        Filename.concat "$datarootdir" "locale";
-
-        "mandir",
-        "man documentation",
-        Filename.concat "$datarootdir" "man";
-
-        "docdir",
-        "documentation root",
-        Filename.concat (Filename.concat "$datarootdir" "doc") "$pkg_name";
-
-        "htmldir",
-        "html documentation",
-        "$docdir";
-
-        "dvidir",
-        "dvi documentation",
-        "$docdir";
-
-        "pdfdir",
-        "pdf documentation",
-        "$docdir";
-
-        "psdir",
-        "ps documentation",
-        "$docdir";
-      ]
-    in
-      List.rev
-        (
-          List.fold_left
-            (fun acc (name, hlp, dflt) ->
-               let () = 
-                 renv := var_add name dflt !renv
-               in
-                 ("--"^name,
-                  Arg.String (fun str -> renv := var_add name str !renv),
-                  hlp^" ["^dflt^"]"
-                 ) :: acc
-            )
-            []
-            lst
-        )
 end
 ;;
 
@@ -408,6 +401,11 @@ module Check =
 struct
   module Msg  = Message
   module Env  = Environment
+
+  (** Get only env from check result 
+    *)
+  let fenv fchk env =
+    snd (fchk env)
 
   (** Look for a program among a list of alternative program
     * the first found is returned. 
@@ -515,45 +513,6 @@ struct
                Msg.result_wrap version, env
         )
 
-  (** Return ocaml version and check against a minimal version.
-    *)
-  let ocaml_version ?min_version env = 
-    let ver, nenv =
-      Env.cache "ocaml_version"
-        (fun env ->
-           Msg.checking "ocaml version";
-           (Msg.result_wrap Sys.ocaml_version), env
-        )
-        env
-    in
-    let nnenv =
-      match min_version with 
-        | Some ver ->
-            snd (version "ocaml version" ver Sys.ocaml_version nenv)
-        | None ->
-            nenv
-    in
-      ver, nnenv
-
-  (** Check for standard program 
-    *)
-  let opt_prog prg = prog_best prg [prg^".opt"; prg]
-
-  let ocamlc     = opt_prog "ocamlc"
-  let ocamlopt   = opt_prog "ocamlopt"
-  let ocamllex   = opt_prog "ocamllex"
-  let ocamlyacc  = opt_prog "ocamlyacc"
-
-  let ocamlbuild = prog "ocamlbuild"
-  let ocamlfind  = prog "ocamlfind"
-  let camlp4     = prog "camlp4"
-  let camlidl    = prog "camlidl"
-  let ocamlmklib = prog "ocamlmklib"
-  let mkcamlp4   = prog "mkcamlp4"
-  let ocamldoc   = prog "ocamldoc"
-  let xsltproc   = prog "xsltproc"
-  let xmllint    = prog "xmllint"
-
   (** Check for findlib package
     *)
   let package ?min_version pkg =
@@ -588,110 +547,7 @@ struct
                raise Not_found
       )
 
-  (** Check what is the best target for platform (opt/byte)
-    *)
-  let ocamlbest =
-    Env.cache "ocamlbest"
-      (fun env ->
-         try 
-           let nenv = 
-             snd (ocamlopt env)
-           in
-             Msg.checking "ocamlbest";
-             (Msg.result_wrap "opt"), nenv
-         with Not_found ->
-           let nenv =
-             snd (ocamlc env)
-           in
-             Msg.checking "ocamlbest";
-             (Msg.result_wrap "byte"), nenv
-      )
-  
-  (** Compute the default suffix for link (OS dependent)
-    *)
-  let suffix_link =
-    Env.cache "suffix_link"
-      (fun env ->
-         Msg.checking "link suffix";
-         Msg.result_wrap 
-           (match Sys.os_type with 
-              | "Win32" -> ".lnk" 
-              | _ -> ""
-           ),
-         env
-      )
 
-  (** Compute the default suffix for program (OS dependent)
-    *)
-  let suffix_program =
-    Env.cache "suffix_program"
-      (fun env ->
-         Msg.checking "program suffix";
-         Msg.result_wrap 
-           (match Sys.os_type with 
-              | "Win32" -> ".exe" 
-              | _ -> ""
-           ),
-         env
-      )
-
-  (** Check for everything mandatory for building OCaml project
-    *)
-  let ocaml_base env = 
-    "", 
-    Env.chain
-      [
-        suffix_link;
-        suffix_program;
-        ocaml_version;
-        ocamlc;
-        ocamlbest;
-      ]
-      env
-
-  (** Compute the default ocamlbuild flags (OS dependent)
-    *)
-  let ocamlbuild_flags =
-    Env.cache "ocamlbuild_flags_full"
-      (fun env ->
-         Msg.checking "ocamlbuild flags";
-         Msg.result_wrap 
-           (match Sys.os_type with
-              | "Win32" ->
-                  "-classic-display -no-log -byte-plugin -install-lib-dir "^
-                  (Filename.concat (Findlib.ocaml_stdlib ()) "ocamlbuild")
-              | _ ->
-                  ""
-           ),
-         env
-      )
- 
-  (** Check for everything mandatory for building OCaml project with ocamlbuild
-    *)
-  let ocamlbuild_base env =
-    let nenv =
-      Env.chain 
-        [
-          ocaml_base;
-          ocamlbuild;
-          ocamlbuild_flags;
-        ]
-        env
-    in
-    let ocamlbest, nnenv = 
-      ocamlbest nenv
-    in
-      "",
-      match ocamlbest with 
-        | "opt" ->
-            Env.var_add "ocamlbuild_best_library" "cmxa"
-              (Env.var_add "ocamlbuild_best_program" "native" nnenv)
-        | "byte"  ->
-            Env.var_add "ocamlbuild_best_library" "cma"
-              (Env.var_add "ocamlbuild_best_program" "byte" nnenv)
-        | str ->
-            failwith 
-              ("Don't know what to when ocamlbest is '"^str^"'")
 end
 ;;
 
@@ -720,6 +576,32 @@ struct
 end
 ;;
 
+(** {1 Pack combining several args/checks} 
+  *)
+
+module Pack =
+struct
+  module Env = Environment 
+
+  type package =
+      {
+        args:     Env.fun_env;
+        checks:   Env.fun_env;
+        in_files: string list;
+        targets:  (string * (Env.env -> unit)) list;
+      }
+
+  let merge pkg1 pkg2 =
+    {
+      args     = (fun env -> pkg2.args   (pkg1.args env));
+      checks   = (fun env -> pkg2.checks (pkg1.checks env));
+      in_files = pkg1.in_files @ pkg2.in_files;
+      targets  = pkg1.targets  @ pkg2.targets;
+    }
+
+end
+;;
+
 (** {1 Act using value collected in environment}
   *)
 module Action = 
@@ -727,6 +609,7 @@ struct
   module Msg = Message
   module Env = Environment
   module RFilename = RelativeFilename
+  module Pck = Pack
 
   (** [replace fn_in env] Replace all string of the form '$(var)' where var is
     * a variable that can be found in [env]. [fn_in] must finish with '.in'.
@@ -820,16 +703,12 @@ struct
 
   (** Parse command line arguments 
     *)
-  let parse lst env =
-    let renv =
-      ref env
+  let parse env =
+    let args, renv =
+      Env.arg_get env
     in
     let rtargets = 
       ref []
-    in
-    let args =
-      List.flatten 
-        (List.map (fun f -> f renv) lst)
     in
       Arg.parse 
         (Arg.align args)
@@ -843,33 +722,6 @@ struct
            env);
       (List.rev !rtargets), !renv
 
-
-  (** Build environment using provided series of check to be done
-    * and then output corresponding file.
-    *)
-  let configure pkg_name pkg_version lst_args lst_check lst_in =
-    let env =
-        (Env.init pkg_name pkg_version)
-    in
-    let targets, nenv =
-      parse lst_args env
-    in
-    let nenv =
-      Env.chain lst_check nenv
-    in
-    let nenv =
-      List.fold_left 
-        (fun env fn_in -> replace fn_in env) 
-        nenv
-        lst_in
-    in
-      if env <> nenv then
-        (
-          Env.print nenv;
-          Env.dump  nenv
-        );
-      targets, nenv
- 
   (** Execute a command
     *)
   let exec ?(exit_on_error=true) lst env = 
@@ -887,65 +739,531 @@ struct
             else
               ()
             )
-
-  let clean_targets clean_fun clean_fns distclean_fun distclean_fns =
-    [
-      "clean",
-      (fun env ->
-         clean_fun env;
-         rm ~recurse:true clean_fns
-      );
-
-      "distclean",
-      (fun env ->
-         clean_fun env;
-         distclean_fun env;
-         rm ~recurse:true (env.Env.fn :: (clean_fns @ distclean_fns @ (Env.temporary_get env)))
-      )
-    ]
-
-  let ocamlbuild targets env =
-    exec 
-      ("ocamlbuild" :: 
-       (Env.var_get ~mandatory:true "ocamlbuild_flags_full" env) :: 
-       targets) 
-      env
-
-  let ocamlbuild_targets targets =
-    [
-      "all",
-      (ocamlbuild targets);
-    ]
-    @
-    (clean_targets (ocamlbuild ["-clean"]) [] ignore [])
-    @
-    (List.map
-       (fun tgt -> tgt, (ocamlbuild [tgt]))
-       targets
-    )
-
-  let process_targets ?default_tgt f_targets targets env =
+  (** Execute every target given on command line 
+    *)
+  let process_targets targets cli_targets (env: Env.env) =
     let process_one_target tgt =
       try
         let action = 
-          List.assoc tgt f_targets
+          List.assoc tgt targets
         in
           action env
       with Not_found ->
         failwith ("Unknown target "^tgt)
     in
-      match targets with 
-        | [] ->
-            (match default_tgt, f_targets with 
-               | Some tgt, _ 
-               | None, (tgt, _) :: _ ->
-                   Msg.info ("Using default target "^tgt);
-                   process_one_target tgt
-               | None, [] ->
-                   ()
+      match cli_targets, targets with 
+        | [], (default_target, _) :: _ ->
+            (
+              Msg.info ("Using default target "^default_target);
+              process_one_target default_target
             )
-        | lst ->
+        | lst, _ ->
             List.iter process_one_target lst
 
+  (** Build environment using provided series of check to be done
+    * and then output corresponding file.
+    *)
+  let main pkg_name pkg_version args checks in_files targets packs =
+    let pack = 
+      List.fold_left 
+        Pck.merge
+        {
+          Pck.args     = Env.chain args;
+          Pck.checks   = Env.chain checks;
+          Pck.in_files = in_files;
+          Pck.targets  = targets;
+        }
+        packs
+    in
+    let env_orig =
+      Env.init 
+        pkg_name 
+        pkg_version
+    in
+    let env =
+      pack.Pck.args env_orig
+    in
+    let cli_targets, env =
+      parse env
+    in
+    let env = 
+      pack.Pck.checks env
+    in
+    let env =
+      List.fold_left 
+        (fun env fn_in -> replace fn_in env) 
+        env
+        pack.Pck.in_files
+    in
+      if Env.has_changed env_orig env then
+        (
+          Env.print env;
+          Env.dump  env
+        );
+      process_targets 
+        pack.Pck.targets 
+        cli_targets
+        env
+end
+;;
+
+module Base = 
+struct
+  module Env = Environment
+  module Chk = Check
+  module Msg = Message
+  module Pck = Pack
+
+  open Unix
+
+  (*
+   
+     {1 Base arguments}
+   
+   *)
+
+  let args env =
+    (* Standard paths *)
+    let lst =
+      [
+        "prefix",
+        "install architecture-independent files dir",
+        (match Sys.os_type with
+           | "Win32" ->
+               "%PROGRAMFILES%\\$pkg_name"
+           | _ ->
+               "/usr/local"
+        );
+        
+        "eprefix",
+        "Install architecture-dependent files in dir",
+        "$prefix";
+
+        "bindir",
+        "User executables",
+        Filename.concat "$eprefix" "bin";
+
+        "sbindir",
+        "System admin executables",
+        Filename.concat "$eprefix" "sbin";
+
+        "libexecdir",
+        "Program executables",
+        Filename.concat "$eprefix" "libexec";
+
+        "sysconfdir",
+        "Read-only single-machine data",
+        Filename.concat "$prefix" "etc";
+
+        "sharedstatedir",
+        "Modifiable architecture-independent data",
+        Filename.concat "$prefix" "com";
+
+        "localstatedir",
+        "Modifiable single-machine data",
+        Filename.concat "$prefix" "var";
+
+        "libdir",
+        "Object code libraries",
+        Filename.concat "$eprefix" "lib";
+
+        "datarootdir",
+        "Read-only arch.-independent data root",
+        Filename.concat "$prefix" "share";
+
+        "datadir",
+        "Read-only architecture-independent data",
+        "$datarootdir";
+
+        "infodir",
+        "Info documentation",
+        Filename.concat "$datarootdir" "info";
+
+        "localedir",
+        "Locale-dependent data",
+        Filename.concat "$datarootdir" "locale";
+
+        "mandir",
+        "Man documentation",
+        Filename.concat "$datarootdir" "man";
+
+        "docdir",
+        "Documentation root",
+        Filename.concat (Filename.concat "$datarootdir" "doc") "$pkg_name";
+
+        "htmldir",
+        "HTML documentation",
+        "$docdir";
+
+        "dvidir",
+        "DVI documentation",
+        "$docdir";
+
+        "pdfdir",
+        "PDF documentation",
+        "$docdir";
+
+        "psdir",
+        "PS documentation",
+        "$docdir";
+      ]
+    in
+    let env =
+      List.fold_left
+        (fun env (name, hlp, dflt) ->
+           Env.arg_add 
+             (* var name *)
+             name
+             (* default *)
+             dflt
+             (* command line argument *)
+             [
+               "--"^name,
+               (fun renv -> Arg.String (fun str -> renv := Env.var_add name str !renv)),
+               "dir "^hlp^" ["^dflt^"]"
+             ]
+             env
+        )
+        env
+        lst
+    in
+
+    (* Build date argument *)
+    let date_R () = 
+      let string_of_mon i = 
+        [| "Jan"; "Feb"; "Mar"; "Apr"; "May"; 
+          "Jun"; "Jul"; "Aug"; "Sep"; "Oct"; 
+          "Nov"; "Dec" |].(i)
+      in
+      let string_of_wday i = 
+        [| "Sun"; "Mon"; "Thu"; "Wed"; "Tue"; 
+          "Fri"; "Sat" |].(i)
+      in
+      let tm =
+        gmtime (time ())
+      in
+        Printf.sprintf 
+          "%s, %02d %s %d %02d:%02d:%02d +0000" 
+          (string_of_wday tm.tm_wday)
+          tm.tm_mday 
+          (string_of_mon tm.tm_mon) 
+          (1900 + tm.tm_year) 
+          tm.tm_hour 
+          tm.tm_min 
+          tm.tm_sec
+    in
+    let env = 
+      BuildArg.wth 
+        "build_date"
+        "date Date of build"
+        (date_R ())
+        env
+    in
+
+    (* Result *)
+      env
+
+  (*
+    
+     {1 Base component check}
+   
+   *)
+
+  (** Return ocaml version and check against a minimal version.
+    *)
+  let ocaml_version ?min_version env = 
+    let ver, nenv =
+      Env.cache "ocaml_version"
+        (fun env ->
+           Msg.checking "ocaml version";
+           (Msg.result_wrap Sys.ocaml_version), env
+        )
+        env
+    in
+    let nnenv =
+      match min_version with 
+        | Some ver ->
+            Chk.fenv (Chk.version "ocaml version" ver Sys.ocaml_version) nenv
+        | None ->
+            nenv
+    in
+      ver, nnenv
+
+  (** Check for standard program 
+    *)
+  let opt_prog prg = Chk.prog_best prg [prg^".opt"; prg]
+
+  let ocamlc     = opt_prog "ocamlc"
+  let ocamlopt   = opt_prog "ocamlopt"
+  let ocamllex   = opt_prog "ocamllex"
+  let ocamlyacc  = opt_prog "ocamlyacc"
+  
+  let ocamldoc   = Chk.prog "ocamldoc"
+  let ocamlfind  = Chk.prog "ocamlfind"
+
+  let camlp4     = Chk.prog "camlp4"
+  let mkcamlp4   = Chk.prog "mkcamlp4"
+  
+  let ocamlmklib = Chk.prog "ocamlmklib"
+  
+  (** Check what is the best target for platform (opt/byte)
+    *)
+  let ocamlbest =
+    Env.cache "ocamlbest"
+      (fun env ->
+         try 
+           let nenv = 
+             Chk.fenv ocamlopt env
+           in
+             Msg.checking "ocamlbest";
+             (Msg.result_wrap "opt"), nenv
+         with Not_found ->
+           let nenv =
+             Chk.fenv ocamlc env
+           in
+             Msg.checking "ocamlbest";
+             (Msg.result_wrap "byte"), nenv
+      )
+  
+  (** Compute the default suffix for link (OS dependent)
+    *)
+  let suffix_link =
+    Env.cache "suffix_link"
+      (fun env ->
+         Msg.checking "link suffix";
+         Msg.result_wrap 
+           (match Sys.os_type with 
+              | "Win32" -> ".lnk" 
+              | _ -> ""
+           ),
+         env
+      )
+
+  (** Compute the default suffix for program (OS dependent)
+    *)
+  let suffix_program =
+    Env.cache "suffix_program"
+      (fun env ->
+         Msg.checking "program suffix";
+         Msg.result_wrap 
+           (match Sys.os_type with 
+              | "Win32" -> ".exe" 
+              | _ -> ""
+           ),
+         env
+      )
+
+  (** Check for everything mandatory for building OCaml project
+    *)
+  let checks env = 
+    Env.chain
+      (List.map 
+         Chk.fenv
+         [
+           suffix_link;
+           suffix_program;
+           ocaml_version;
+           ocamlc;
+           ocamlbest;
+         ]
+      )
+      env
+
+  (*
+    
+    {1 Base targets} 
+
+   *)
+
+  let targets =
+    [
+      "distclean",
+      (fun env ->
+         rm ~recurse:true (env.Env.fn :: (Env.temporary_get env))
+      );
+
+      "configure",
+      (fun env ->
+         ()
+      );
+
+      "print-configure",
+      (fun env ->
+         Env.print env
+      );
+    ]
+
+  (*
+    
+    {1 Base .in files}
+
+   *)
+
+
+  let in_files =
+    []
+
+  (*
+   
+    {1 Base package}
+   
+   *)
+
+  let package =
+    {
+      Pck.args     = args;
+      Pck.checks   = checks;
+      Pck.in_files = in_files;
+      Pck.targets  = targets;
+    }
+
+end
+;;
+
+module OCamlbuild =
+struct
+  module Env = Environment
+  module Chk = Check
+  module Msg = Message
+  module Pck = Pack
+
+  (*
+    
+    {1 Ocamlbuild arguments}
+
+   *)
+
+  let args env = 
+    Base.args env
+
+  (* 
+    
+     {1 Ocamlbuild checks}
+    
+   *)
+
+  let ocamlbuild = Chk.prog "ocamlbuild"
+  
+  (** Compute the default ocamlbuild flags (OS dependent)
+    *)
+  let ocamlbuild_flags =
+    Env.cache "ocamlbuild_flags_full"
+      (fun env ->
+         Msg.checking "ocamlbuild flags";
+         Msg.result_wrap 
+           (match Sys.os_type with
+              | "Win32" ->
+                  "-classic-display -no-log -byte-plugin -install-lib-dir "^
+                  (Filename.concat (Findlib.ocaml_stdlib ()) "ocamlbuild")
+              | _ ->
+                  ""
+           ),
+         env
+      )
+ 
+  (** Check for everything mandatory for building OCaml project with ocamlbuild
+    *)
+  let checks env =
+    let nenv =
+      Env.chain 
+        [
+          Base.checks;
+          Chk.fenv ocamlbuild;
+          Chk.fenv ocamlbuild_flags;
+        ]
+        env
+    in
+    let ocamlbest, nnenv = 
+      Base.ocamlbest nenv
+    in
+      match ocamlbest with 
+        | "opt" ->
+            Env.var_add "ocamlbuild_best_library" "cmxa"
+              (Env.var_add "ocamlbuild_best_program" "native" nnenv)
+        | "byte"  ->
+            Env.var_add "ocamlbuild_best_library" "cma"
+              (Env.var_add "ocamlbuild_best_program" "byte" nnenv)
+        | str ->
+            failwith 
+              ("Don't know what to when ocamlbest is '"^str^"'")
+
+  (*
+    
+     {1 Ocamlbuild targets}
+    
+   *)
+
+  (** Execute ocamlbuild with given target 
+    *)
+  let ocamlbuild targets env =
+    Action.exec 
+      ("ocamlbuild" :: 
+       (Env.var_get ~mandatory:true "ocamlbuild_flags_full" env) :: 
+       targets) 
+      env
+
+  (** Compute targets for ocamlbuild
+    *)
+  let targets ocamlbuild_targets =
+    Base.targets
+    @
+    [
+      "all",
+      (ocamlbuild ocamlbuild_targets);
+
+      "clean",
+      (ocamlbuild ["-clean"]);
+    ]
+    @
+    (List.map
+       (fun tgt -> tgt, (ocamlbuild [tgt]))
+       ocamlbuild_targets
+    )
+
+  (*
+   
+     {1 Ocamlbuild .in files}
+   
+   *)
+
+  let in_files =
+     "myocamlbuild.ml.in" :: Base.in_files
+
+  (*
+   
+     {1 Ocamlbuild package}
+   
+   *)
+
+  let package ~ocamlbuild_targets =
+    {
+      Pck.args     = args;
+      Pck.checks   = checks;
+      Pck.in_files = in_files;
+      Pck.targets  = targets ocamlbuild_targets;
+    }
+
+end
+;;
+
+module Docbook =
+struct
+  module Env = Environment
+  module Chk = Check
+  module Msg = Message
+
+  let xsltproc   = Chk.prog "xsltproc"
+  let xmllint    = Chk.prog "xmllint"
+
+end
+;;
+
+module Camlidl =
+struct 
+  module Env = Environment
+  module Chk = Check
+  module Msg = Message
+
+  let camlidl    = Chk.prog "camlidl"
 end
 ;;
