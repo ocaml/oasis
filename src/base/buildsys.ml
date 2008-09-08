@@ -63,14 +63,21 @@ struct
         no_export: bool;
       }
 
-  (** Environment type
+  (** Environment part that is not saved between invocation
     *)
-  type env = 
+  type env_no_dump = 
       {
         args:            (Arg.key * (env ref -> Arg.spec) * Arg.doc) list;
-        vars:            var MapVar.t;
         fn:              string;
+        print_no_export: bool;
+      }
+  (** Environment type
+    *)
+  and env = 
+      {
+        vars:            var MapVar.t;
         temporary_files: SetFn.t;
+        no_dump :        env_no_dump;
       }
 
   (** Type for transforming env
@@ -197,7 +204,11 @@ struct
     let nenv =
       {
         env with
-            args = args @ env.args
+            no_dump = 
+              {
+                env.no_dump with 
+                    args = args @ env.no_dump.args
+              }
       }
     in
       snd (cache name (fun env -> default, env) nenv)
@@ -213,7 +224,7 @@ struct
         (
           List.map
             (fun (key, fspc, doc) -> key, (fspc renv), doc)
-            env.args
+            env.no_dump.args
         )
       ),
       renv
@@ -221,25 +232,46 @@ struct
   let arg_default env =
     {
       env with 
-          args =
-            [
-              "--override",
-              (fun renv -> 
-                 Arg.Tuple
-                   (
-                     let rvr = ref ""
-                     in
-                     let rvl = ref ""
-                     in
-                       [
-                         Arg.Set_string rvr;
-                         Arg.Set_string rvl;
-                         Arg.Unit (fun () -> renv := var_add !rvr !rvl !renv)
-                       ]
-                   )
-              ),
-              "var\ val  Override any configuration variable"
-            ]
+          no_dump = 
+            {
+              env.no_dump with
+                  args =
+                    [
+                      "--override",
+                      (fun renv -> 
+                         Arg.Tuple
+                           (
+                             let rvr = ref ""
+                             in
+                             let rvl = ref ""
+                             in
+                               [
+                                 Arg.Set_string rvr;
+                                 Arg.Set_string rvl;
+                                 Arg.Unit (fun () -> renv := var_add !rvr !rvl !renv)
+                               ]
+                           )
+                      ),
+                      "var_val  Override any configuration variable";
+
+                      "--print-no-export",
+                      (fun renv ->
+                         Arg.Unit 
+                           (fun () -> 
+                              renv := 
+                                {
+                                  !renv with 
+                                      no_dump = 
+                                        {
+                                          !renv.no_dump with 
+                                              print_no_export = true
+                                        }
+                                }
+                           );
+                      ),
+                      " Print even non-printable variable (debug)";
+                    ]
+            }
     }
 
   (** Add a temporary file
@@ -259,9 +291,19 @@ struct
     *)
   let dump env = 
     let chn =
-      open_out_bin env.fn
+      open_out_bin env.no_dump.fn
     in
-      Marshal.to_channel chn {env with args = []} [];
+      Marshal.to_channel chn 
+        {
+          env with 
+              no_dump = 
+                {
+                  args            = [];
+                  fn              = "none";
+                  print_no_export = false;
+                }
+        } 
+        [];
       close_out chn
 
   (** Initialize environment.
@@ -292,10 +334,14 @@ struct
         )
       else
         {
-          args            = [];
           vars            = MapVar.empty;
-          fn              = fn;
           temporary_files = SetFn.empty;
+          no_dump =
+            {
+              args            = [];
+              fn              = fn;
+              print_no_export = false;
+            };
         }
     in
     List.fold_left
@@ -310,15 +356,34 @@ struct
   (** Display environment to user.
     *)
   let print env =
+    let printable_vars =
+      MapVar.fold
+        (fun name var acc ->
+           if var.no_export && env.no_dump.print_no_export then
+             acc
+           else
+             (name, (var_expand var.value env)) :: acc
+        )
+        env.vars
+        []
+    in
+    let max_length = 
+      List.fold_left
+        (fun mx (name, var) -> max (String.length name) mx)
+        0
+        printable_vars
+    in
     print_newline ();
     print_endline "Configuration: ";
     print_newline ();
-    MapVar.iter 
-      (fun name var ->
-         if not var.no_export then
-           print_endline (name^": "^(var_expand var.value env))
+    List.iter 
+      (fun (name,value) ->
+         let dots =
+           String.make ((max_length - (String.length name)) + 3) '.'
+         in
+           print_endline (name^": "^dots^" "^value)
       )
-      env.vars;
+      printable_vars;
     print_newline ();
     print_endline "Temporary files: ";
     print_newline ();
@@ -560,7 +625,7 @@ struct
   (** Rebase filename relative to build file
     *)
   let filename fn env =
-    Filename.concat (Filename.dirname env.Env.fn) fn
+    Filename.concat (Filename.dirname env.Env.no_dump.Env.fn) fn
 
   (** Rebase filename and add program suffix, if required
     *)
@@ -983,7 +1048,7 @@ struct
     let nnenv =
       match min_version with 
         | Some ver ->
-            Chk.fenv (Chk.version "ocaml version" ver Sys.ocaml_version) nenv
+            Chk.fenv (Chk.version "ocaml version" ver (fun () -> Sys.ocaml_version)) nenv
         | None ->
             nenv
     in
@@ -1079,7 +1144,7 @@ struct
     [
       "distclean",
       (fun env ->
-         rm ~recurse:true (env.Env.fn :: (Env.temporary_get env))
+         rm ~recurse:true (env.Env.no_dump.Env.fn :: (Env.temporary_get env))
       );
 
       "configure",
