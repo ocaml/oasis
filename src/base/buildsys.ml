@@ -361,7 +361,7 @@ struct
     let printable_vars =
       MapVar.fold
         (fun name var acc ->
-           if var.no_export && env.no_dump.print_no_export then
+           if var.no_export && not env.no_dump.print_no_export then
              acc
            else
              (name, (var_expand var.value env)) :: acc
