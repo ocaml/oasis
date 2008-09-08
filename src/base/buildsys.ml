@@ -330,7 +330,7 @@ struct
             Marshal.from_channel chn
           in
             close_in chn;
-            env
+            env 
         )
       else
         {
@@ -351,6 +351,8 @@ struct
         var_add "pkg_name" pkg_name;
         var_add "pkg_version" pkg_version;
         arg_default;
+        (fun env -> {env with no_dump = {env.no_dump with fn = fn}});
+        (fun env -> {env with no_dump = {env.no_dump with print_no_export = false}});
       ]
 
   (** Display environment to user.
