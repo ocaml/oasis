@@ -460,6 +460,259 @@ struct
 end
 ;;
 
+(** {1 Version operation}
+  *)
+module Version =
+struct
+  type version_component = 
+    | VInt of int 
+    | VString of string
+
+  type version = 
+      string * (version_component list)
+
+  type comparator = 
+    | Greater of version
+    | GreaterEqual of version
+    | Lesser of version
+    | LesserEqual of version
+    | Equal of version
+
+  (** Define version separator
+    *)
+  let version_separator =
+    function
+      | '.' | '-' | '+' | '_' -> true
+      | _ -> false
+
+  (** Define digit 
+    *)
+  let version_digit =
+    function
+      | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' -> true
+      | _ -> false
+
+  (** Define blank 
+    *)
+  let blank =
+    function
+      | ' ' | '\n' | '\t' | '\r' -> true
+      | _ -> false 
+
+  (** Extract version data
+    *)
+  let version_parse version = 
+    let strlen =
+      String.length version
+    in
+    let buff =
+      Buffer.create strlen
+    in
+    (* Extract an integer *)
+    let rec parse_int buff i =
+      if i < strlen && version_digit version.[i] then
+        (
+          Buffer.add_char buff version.[i];
+          parse_int buff (i + 1)
+        )
+      else
+        (
+          i, VInt (int_of_string (Buffer.contents buff))
+        )
+    in
+    (* Extract a string *)
+    let rec parse_string buff i =
+      if i < strlen then 
+        (
+          let c = 
+            version.[i] 
+          in
+            if version_digit c || version_separator c then
+              i, VString (Buffer.contents buff)
+            else
+              (
+                Buffer.add_char buff c;
+                parse_string buff (i + 1)
+              )
+        )
+      else
+        (
+          i, VString (Buffer.contents buff)
+        )
+    in
+    (* Extract all components *)
+    let rec parse_aux acc i =
+      if i < strlen then
+        (
+          if version_separator version.[i] then
+            parse_aux acc (i + 1)
+          else 
+            (
+              let () =
+                Buffer.clear buff
+              in
+              let (ni, cpt) = 
+                if version_digit version.[i] then
+                  parse_int buff i
+                else 
+                  parse_string buff i
+              in
+                parse_aux (cpt :: acc) (ni + 1)
+            )
+        )
+      else
+        (
+          List.rev acc
+        )
+    in
+      version, (parse_aux [] 0)
+    
+  (** Compare two versions
+    *)
+  let version_compare v1 v2 =
+    let compare_cpt cpt1 cpt2 =
+      match cpt1, cpt2 with 
+        | VString s1, VString s2 ->
+            String.compare s1 s2
+        | VInt i1, VInt i2 ->
+            i1 - i2
+        | VInt _, VString _ ->
+            -1
+        | VString _, VInt _ ->
+            1
+    in
+    let rec compare_aux lst1 lst2 =
+      match lst1, lst2 with
+        | cpt1 :: tl1, cpt2 :: tl2 ->
+            (
+              match compare_cpt cpt1 cpt2 with
+                | 0 -> compare_aux tl1 tl2
+                | i -> i
+            )
+        | [], _ ->
+            -1 
+        | _, [] ->
+            1
+    in
+      compare_aux (snd v1) (snd v2)  
+
+  (** Convert a version to string 
+    *)
+  let string_of_version v =
+    fst v
+
+  (** Convert a version to varname
+    *)
+  let varname_of_version v =
+    let to_string =
+      function
+        | VInt i -> string_of_int i
+        | VString s -> s
+    in
+      String.concat "_" (List.map to_string (snd v))
+
+  (** Apply version comparator expression
+    *)
+  let comparator_apply v op =
+    match op with
+      | Greater cversion ->
+          (version_compare v cversion) > 0
+      | GreaterEqual cversion ->
+          (version_compare v cversion) >= 0
+      | Lesser cversion ->
+          (version_compare v cversion) < 0
+      | LesserEqual cversion ->
+          (version_compare v cversion) <= 0
+      | Equal cversion ->
+          (version_compare v cversion) = 0
+
+  (** Parse a comparator string 
+    *)
+  let comparator_parse str =
+
+    (* Split a string into word *)
+    let split_blank str =
+      let strlen =
+        String.length str
+      in
+      let buff =
+        Buffer.create (((String.length str)/ 2) + 1)
+      in
+      let rec skip_blank i =
+        if i < strlen then
+          (
+            if blank str.[i] then
+              skip_blank (i + 1)
+            else
+              i
+          )
+        else
+          i
+      in
+      let buff_dump acc =
+        let nstr =
+          Buffer.contents buff
+        in
+        let () = 
+          Buffer.clear buff
+        in
+          if nstr = "" then
+            acc
+          else
+            nstr :: acc
+      in
+      let rec split_aux acc i = 
+        if i < strlen then
+          (
+            if blank str.[i] then
+              ( 
+                split_aux 
+                  (buff_dump acc)
+                  (skip_blank (i + 1))
+              )
+            else
+              (
+                Buffer.add_char buff str.[i];
+                split_aux acc (i + 1)
+              )
+          )
+        else
+          (
+            List.rev (buff_dump acc)
+          )
+      in
+        split_aux [] 0
+    in
+      match split_blank str with 
+        | [">";  v] -> Greater      (version_parse v)
+        | [">="; v] -> GreaterEqual (version_parse v)
+        | ["<";  v] -> Lesser       (version_parse v)
+        | ["<="; v] -> LesserEqual  (version_parse v)
+        | ["="; v]  -> Equal        (version_parse v)
+        | _ -> failwith ("Unrecognized comparator: "^str)
+
+  (* Convert a comparator to string *)
+  let string_of_comparator =
+    function 
+      | Greater cv      -> "> "^ (string_of_version cv)
+      | GreaterEqual cv -> ">= "^(string_of_version cv)
+      | Lesser cv       -> "< "^ (string_of_version cv)
+      | LesserEqual cv  -> "<= "^(string_of_version cv)
+      | Equal cv        -> "= "^ (string_of_version cv)
+
+  (* Convert a compartor to a varname *)
+  let varname_of_comparator =
+    function 
+      | Greater cv      -> "gt_"^(varname_of_version cv)
+      | GreaterEqual cv -> "ge_"^(varname_of_version cv)
+      | Lesser cv       -> "lt_"^(varname_of_version cv)
+      | LesserEqual cv  -> "le_"^(varname_of_version cv)
+      | Equal cv        -> "eq_"^(varname_of_version cv)
+
+
+end
+;;
+
 (** {1 Checking for particular features} 
   *)
 module Check =
@@ -504,74 +757,33 @@ struct
 
   (** Check version, following Sys.ocaml_version convention
     *)
-  let version feature min_version version = 
+  let version feature str_comparator fversion = 
     
-    (* Extract version of a string *)
-    let version_of_string ver = 
-      (* Split a string at certain char *)
-      let split_at c str conv default =
-        try 
-          let idx =
-            String.index str c
-          in
-          let before =
-            conv (String.sub str 0 idx)
-          in
-          let after =
-            if idx + 1 < String.length str then
-              String.sub str (idx + 1) ((String.length str) - idx - 1)
-            else
-              ""
-          in
-            before, after
-        with Not_found ->
-          (
-            if str = "" then
-              default, ""
-            else
-              conv str, ""
-          )
-      in
-
-      (* Extract version component *)
-      let (major, rst) = 
-        split_at '.' ver int_of_string 0
-      in
-
-      let (minor, rst) = 
-        split_at '.' rst int_of_string 0
-      in
-
-      let (patchlevel, additional_info) = 
-        split_at '+' rst int_of_string 0
-      in
-        (major, minor, patchlevel, additional_info)
-    in
-
     (* Really compare version provided *)
+    let comparator =
+      Version.comparator_parse str_comparator
+    in
     let var = 
-      feature^"_version_"^min_version
+      feature^"_version_"^(Version.varname_of_comparator comparator)
     in
       Env.cache ~no_export:true var
         (fun env ->
            let () = 
-             Msg.checking (feature^" version (>= "^min_version^")");
+             Msg.checking (feature^" version "^str_comparator);
            in
-           let v1 =
-             version_of_string min_version
-           in
-           let v2 =
-             version_of_string 
-               (
-                 if version = "[Distributed with OCaml]" then
+           let version =
+             match fversion () with 
+               | "[Distributed with OCaml]" ->
                    Sys.ocaml_version
-                 else
+               | version ->
                    version
-               )
            in
-             if v2 < v1 then
+           let pversion =
+             Version.version_parse version
+           in
+             if Version.comparator_apply pversion comparator then
                (
-                 Msg.result ("Version doesn't match ("^version^" < "^min_version^")");
+                 Msg.result (" doesn't match ("^version^" "^str_comparator^")");
                  raise Not_found
                )
              else
@@ -580,37 +792,46 @@ struct
 
   (** Check for findlib package
     *)
-  let package ?min_version pkg =
-    Env.cache ("pkg_"^pkg)
-      (fun env ->
-         try 
-           let default_msg =
-             "findlib package "^pkg
-           in
-           let () = 
-             Msg.checking default_msg
-           in
-           let dir =
-             Findlib.package_directory pkg
-           in
-           let () = 
-             Msg.result dir
-           in
-           let nenv = 
-             match min_version with 
-               | Some min_ver ->
-                   let ver =
-                     Findlib.package_property [] pkg "version"
-                   in
-                     snd (version default_msg min_ver ver env)
-               | None -> 
+  let package ?version_comparator pkg =
+    let default_msg =
+      "findlib package "^pkg
+    in
+    let fpkg =
+      Env.cache ("pkg_"^pkg)
+        (fun env ->
+           try 
+             let () = 
+               Msg.checking default_msg
+             in
+             let dir =
+               Findlib.package_directory pkg
+             in
+             let () = 
+               Msg.result dir
+             in
+               dir, env
+           with
+             | Fl_package_base.No_such_package _ ->
+                 raise Not_found
+        )
+    in
+      match version_comparator with 
+        | Some str_cmp ->
+            (fun env ->
+               let (dir, env) =
+                 fpkg env
+               in
+               let (_, env) = 
+                 version 
+                   default_msg 
+                   str_cmp 
+                   (fun () -> Findlib.package_property [] pkg "version") 
                    env
-           in
-             dir, nenv
-         with
-           | Fl_package_base.No_such_package _ ->
-               raise Not_found
-      )
+               in
+                 dir, env
+            )
+        | None -> 
+            fpkg
 
 
 end
