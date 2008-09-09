@@ -70,6 +70,7 @@ struct
         args:            (Arg.key * (env ref -> Arg.spec) * Arg.doc) list;
         fn:              string;
         print_no_export: bool;
+        print_conf_done: bool;
       }
   (** Environment type
     *)
@@ -236,6 +237,7 @@ struct
       args            = [];
       fn              = "none";
       print_no_export = false;
+      print_conf_done = false;
     }
 
   (** Default environment when there is nothing to load
@@ -290,6 +292,7 @@ struct
 
       fn = fn;
       print_no_export = false;
+      print_conf_done = false;
     }
 
   (** Add a temporary file
@@ -408,7 +411,8 @@ struct
     print_endline "Temporary files: ";
     print_newline ();
     SetFn.iter print_endline env.temporary_files;
-    print_newline ()
+    print_newline ();
+    {env with no_dump = {env.no_dump with print_conf_done = true}}
 
 
   let has_changed env1 env2 =
@@ -1119,11 +1123,17 @@ struct
         env
         pack.Pck.in_files
     in
+    let env =
       if Env.has_changed env_orig env then
         (
-          Env.print env;
-          Env.dump  env
-        );
+          Env.dump  env;
+          Env.print env
+        )
+      else
+        (
+          env
+        )
+    in
       process_targets 
         pack.Pck.targets 
         cli_targets
@@ -1419,7 +1429,8 @@ struct
 
       "print-configure",
       (fun env ->
-         Env.print env
+         if not env.Env.no_dump.Env.print_conf_done then
+           ignore(Env.print env)
       );
     ]
 
