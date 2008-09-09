@@ -229,49 +229,67 @@ struct
       ),
       renv
 
-  let arg_default env =
+  (** Default no dump environment for dumping env
+    *)
+  let env_no_dump_empty =
     {
-      env with 
-          no_dump = 
-            {
-              env.no_dump with
-                  args =
-                    [
-                      "--override",
-                      (fun renv -> 
-                         Arg.Tuple
-                           (
-                             let rvr = ref ""
-                             in
-                             let rvl = ref ""
-                             in
-                               [
-                                 Arg.Set_string rvr;
-                                 Arg.Set_string rvl;
-                                 Arg.Unit (fun () -> renv := var_add !rvr !rvl !renv)
-                               ]
-                           )
-                      ),
-                      "var_val  Override any configuration variable";
+      args            = [];
+      fn              = "none";
+      print_no_export = false;
+    }
 
-                      "--print-no-export",
-                      (fun renv ->
-                         Arg.Unit 
-                           (fun () -> 
-                              renv := 
-                                {
-                                  !renv with 
-                                      no_dump = 
-                                        {
-                                          !renv.no_dump with 
-                                              print_no_export = true
-                                        }
-                                }
-                           );
-                      ),
-                      " Print even non-printable variable (debug)";
-                    ]
-            }
+  (** Default environment when there is nothing to load
+    *)
+  let env_empty =
+    {
+      vars            = MapVar.empty;
+      temporary_files = SetFn.empty;
+      no_dump         = env_no_dump_empty
+    }
+
+  (** No dump environment to set after load
+    *)
+  let env_no_dump fn =
+    {
+      args =
+        [
+          "--override",
+          (fun renv -> 
+             Arg.Tuple
+               (
+                 let rvr = ref ""
+                 in
+                 let rvl = ref ""
+                 in
+                   [
+                     Arg.Set_string rvr;
+                     Arg.Set_string rvl;
+                     Arg.Unit (fun () -> renv := var_add !rvr !rvl !renv)
+                   ]
+               )
+          ),
+          "var_val  Override any configuration variable";
+
+          "--print-no-export",
+          (fun renv ->
+             Arg.Unit 
+               (fun () -> 
+                  renv := 
+                    {
+                      !renv with 
+                          no_dump = 
+                            {
+                              !renv.no_dump with 
+                                  print_no_export = true
+                            }
+                    }
+               );
+          ),
+          " Print even non-printable variable (debug)";
+        ];
+
+      fn = fn;
+      print_no_export = false;
     }
 
   (** Add a temporary file
@@ -287,22 +305,20 @@ struct
   let temporary_get env =
     SetFn.elements env.temporary_files
 
+  (** Env structure signature, for safe marshalling
+    *)
+  let env_sig =
+    Digest.string (Marshal.to_string env_empty [])
+
   (** Save environment on disk.
     *)
   let dump env = 
     let chn =
       open_out_bin env.no_dump.fn
     in
+      output_value chn env_sig;
       Marshal.to_channel chn 
-        {
-          env with 
-              no_dump = 
-                {
-                  args            = [];
-                  fn              = "none";
-                  print_no_export = false;
-                }
-        } 
+        {env with no_dump = env_no_dump_empty} 
         [];
       close_out chn
 
@@ -326,23 +342,27 @@ struct
           let chn =
             open_in_bin fn
           in
+          let env_sig_chn = 
+            input_value chn
+          in
           let env =
-            Marshal.from_channel chn
+            if env_sig_chn = env_sig then
+              Marshal.from_channel chn
+            else
+              (
+                Msg.warn ("Signature of environment has changed since last dump of "^fn);
+                Msg.warn "This can be due to change in the 'env' datastructure.";
+                Msg.info ("Regenerating "^fn);
+                env_empty
+              )
           in
             close_in chn;
             env 
         )
       else
-        {
-          vars            = MapVar.empty;
-          temporary_files = SetFn.empty;
-          no_dump =
-            {
-              args            = [];
-              fn              = fn;
-              print_no_export = false;
-            };
-        }
+        (
+          env_empty
+        )
     in
     List.fold_left
       (fun env f -> f env)
@@ -350,9 +370,7 @@ struct
       [
         var_add "pkg_name" pkg_name;
         var_add "pkg_version" pkg_version;
-        arg_default;
-        (fun env -> {env with no_dump = {env.no_dump with fn = fn}});
-        (fun env -> {env with no_dump = {env.no_dump with print_no_export = false}});
+        (fun env -> {env with no_dump = env_no_dump fn});
       ]
 
   (** Display environment to user.
