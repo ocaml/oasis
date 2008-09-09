@@ -774,14 +774,14 @@ struct
 
   (** Check version, following Sys.ocaml_version convention
     *)
-  let version feature str_comparator fversion = 
+  let version feature var_prefix str_comparator fversion = 
     
     (* Really compare version provided *)
     let comparator =
       Version.comparator_parse str_comparator
     in
     let var = 
-      feature^"_version_"^(Version.varname_of_comparator comparator)
+      var_prefix^"_version_"^(Version.varname_of_comparator comparator)
     in
       Env.cache ~no_export:true var
         (fun env ->
@@ -841,6 +841,7 @@ struct
                let (_, env) = 
                  version 
                    default_msg 
+                   ("pkg_"^pkg)
                    str_cmp 
                    (fun () -> Findlib.package_property [] pkg "version") 
                    env
@@ -1286,7 +1287,13 @@ struct
     let nnenv =
       match min_version with 
         | Some ver ->
-            Chk.fenv (Chk.version "ocaml version" ver (fun () -> Sys.ocaml_version)) nenv
+            Chk.fenv 
+              (Chk.version 
+                 "ocaml version" 
+                 "ocaml" 
+                 ver 
+                 (fun () -> Sys.ocaml_version)) 
+              nenv
         | None ->
             nenv
     in
