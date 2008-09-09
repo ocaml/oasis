@@ -1047,13 +1047,15 @@ struct
     *)
   let process_targets targets cli_targets (env: Env.env) =
     let process_one_target tgt =
-      try
-        let action = 
-          List.assoc tgt targets
-        in
-          action env
-      with Not_found ->
-        failwith ("Unknown target "^tgt)
+      let actions = 
+        List.map snd
+         (List.filter (fun (tgt', _) -> tgt' = tgt) targets)
+      in
+        match actions with 
+          | [] -> 
+            failwith ("Unknown target "^tgt)
+          | _ ->
+            List.iter (fun f -> f env) actions
     in
       match cli_targets, targets with 
         | [], (default_target, _) :: _ ->
@@ -1408,7 +1410,6 @@ struct
     {1 Base .in files}
 
    *)
-
 
   let in_files =
     []
