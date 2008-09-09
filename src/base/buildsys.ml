@@ -603,6 +603,21 @@ struct
   let string_of_version v =
     fst v
 
+  (** Print all component of a version 
+    *)
+  let version_dbug v =
+    Printf.sprintf "(%s, [%s])"
+      (fst v)
+      (String.concat "; "
+         (List.map
+            (function 
+               | VInt i -> Printf.sprintf "VInt %d" i
+               | VString s -> Printf.sprintf "VString %S" s
+            )
+            (snd v)
+         )
+      )
+
   (** Convert a version to varname
     *)
   let varname_of_version v =
@@ -784,12 +799,12 @@ struct
              Version.version_parse version
            in
              if Version.comparator_apply pversion comparator then
+               Msg.result_wrap version, env
+             else
                (
                  Msg.result (" doesn't match ("^version^" "^str_comparator^")");
                  raise Not_found
                )
-             else
-               Msg.result_wrap version, env
         )
 
   (** Check for findlib package
