@@ -176,25 +176,23 @@ let get_field_aux f x path tree env =
              let sub = if eval_cond env cond then iftrue else iffalse in
                Some (collect_values field sub)
          | _ -> None) l in
-  let rec loop ts = function
+  let rec loop contents = function
       [] -> x
-    | [field] -> List.fold_left f x @@ collect_values field ts
+    | [field] -> List.fold_left f x @@ collect_values field contents
     | section::tl -> match split_on_space section with
           [sname] ->
-            begin try
-              match List.find (function `Section (s, _, _) -> s = sname | _ -> false) ts with
-                  `Section (_, _, ts) -> loop ts tl
-                | _ -> x
-            with Not_found -> x end
+            let rec find_section = function
+                `Section (s, _, contents) :: _ when s = sname -> loop contents tl
+              | _::l -> find_section l
+              | [] -> x
+            in find_section contents
         | [stype; sname] ->
-            begin try
-              match List.find
-                      (function `Section (t, name, _) -> t = stype && name = Some sname
-                         | _ -> false)
-                      ts with
-                | `Section (_, _, ts) -> loop ts tl
-                | _ -> x
-            with Not_found -> x end
+            let rec find_section = function
+                `Section (t, name, contents) :: _ when t = stype && name = Some sname ->
+                  loop contents tl
+              | _::l -> find_section l
+              | [] -> x
+            in find_section contents
         | _ -> failwithfmt "Invalid field path %S." path
   in loop tree (Str.split (Str.regexp "/") path)
 
