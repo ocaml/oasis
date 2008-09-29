@@ -335,6 +335,7 @@ let packages =
 
 let ocamlfind x = S[A\"ocamlfind\"; A x]
 
+let () =
 dispatch begin function
   | Before_options ->
       (* Options.include_dirs := \"src\" :: !Options.include_dirs; *)
