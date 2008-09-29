@@ -1,0 +1,2 @@
+<{buildSys,spec}.cmx>: for-pack(Autobuild)
+<{buildSys,spec}.ml>: pkg_findlib, pkg_fileutils
