@@ -16,8 +16,8 @@ let read_file f =
   in loop ()
 
 let simple pkgname =
-  let specdata = read_file (pkgname ^ ".auto") in
-  let parsed = Spec.parse Spec.spec specdata in
+  let spec = read_file (pkgname ^ ".auto") in
+  let parsed = Spec.parse Spec.schema spec in
   let empty_flags = Spec.empty_environment () in
   let targets, env =
     Action.configure
@@ -34,7 +34,7 @@ let simple pkgname =
       (* .in files *)
       [
       ] in
-  let pkg = Spec.package_of_string (flags_of_env env) specdata in
+  let pkg = Spec.package_of_string (flags_of_env env) spec in
     (* process targets using the info from the Spec.package type *)
     ignore pkg
 

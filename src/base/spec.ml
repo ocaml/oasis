@@ -24,10 +24,15 @@ struct
 end
 
 type field =
-    Field of string * string
-  | Section of string * string option * field list
-  | IfBlock of string * field list * field list
+    [ `Field of string * string | `IfBlock of string * field list * field list ]
 (* TODO: use condition type, parse condition properly *)
+
+type section_contents =
+    [ field | `Section of string * string option * section_contents list ]
+
+type section = [ `Section of string * string option * section_contents list ]
+
+type spec = section_contents list
 
 type line = {
   lineno : int;
@@ -64,7 +69,7 @@ let lines str =
 module SMap = Map.Make(struct type t = string let compare = String.compare end)
 let failwithfmt fmt = kprintf failwith fmt
 
-type spec_schema = { sections : spec_schema SMap.t; fields : string list }
+type schema = { sections : schema SMap.t; fields : string list }
 
 let section sects fields =
   {
@@ -78,7 +83,7 @@ let skip_fst_token s =
   String.strip @@ String.sub s off (String.length s - off)
 let fst_token s = List.hd @@ split_on_space s
 
-let rec parse section_desc indent spec =
+let rec parse section_desc indent schema =
   let parse_field_lines indent lines =
     let subs_empty_line = function
         "." -> ""
@@ -93,7 +98,7 @@ let rec parse section_desc indent spec =
 
   let parse_field l tl s rest =
     let fieldname = String.rchop s in
-      if not (List.mem fieldname spec.fields) then
+      if not (List.mem fieldname schema.fields) then
         failwithfmt "Unknown field %S in %S at line %d"
           fieldname section_desc l.lineno;
       begin match rest with
@@ -103,9 +108,9 @@ let rec parse section_desc indent spec =
                         fieldname section_desc l.lineno;
               | fst::_ as tl ->
                   let data, tl = parse_field_lines fst.indent tl in
-                    (Field (fieldname, data), tl)
+                    (`Field (fieldname, data), tl)
             end
-        | _ -> (Field (fieldname, skip_fst_token l.contents), tl)
+        | _ -> (`Field (fieldname, skip_fst_token l.contents), tl)
       end in
 
   let parse_section section_desc l tl =
@@ -115,9 +120,9 @@ let rec parse section_desc indent spec =
       | [] -> failwithfmt "cannot parse (sub)section header in %S at line %d"
                 section_desc l.lineno
     in try
-      let subspec = SMap.find section spec.sections in
-      let fields, tl = parse (section_desc ^ "::" ^ section) l.indent subspec tl in
-        (Section (section, options, fields), tl)
+      let subschema = SMap.find section schema.sections in
+      let fields, tl = parse (section_desc ^ "::" ^ section) l.indent subschema tl in
+        (`Section (section, options, fields), tl)
     with Not_found ->
       failwithfmt "Unknown section %S in %S at line %d"
         section section_desc l.lineno in
@@ -132,22 +137,22 @@ let rec parse section_desc indent spec =
       if l.indent <= indent then ([], lines)
       else match split_on_space l.contents with
           s::rest when s.[String.length s - 1] = ':' -> (* field *)
-            parse_field l tl s rest >-> parse section_desc indent spec
+            parse_field l tl s rest >-> parse section_desc indent schema
         | "if"::_ ->
             let ifindent = l.indent in
             let cond = skip_fst_token l.contents in
-            let subfields, tl = parse section_desc ifindent spec tl in
+            let subfields, tl = parse section_desc ifindent schema tl in
             (match tl with
                 | l::tl' when fst_token l.contents = "else" ->
-                    let elsesubs, tl = parse section_desc l.indent spec tl' in
-                      (IfBlock (cond, subfields, elsesubs), tl)
-                | _ -> (IfBlock (cond, subfields, []), tl)) >->
-            parse section_desc indent spec
+                    let elsesubs, tl = parse section_desc l.indent schema tl' in
+                      (`IfBlock (cond, subfields, elsesubs), tl)
+                | _ -> (`IfBlock (cond, subfields, []), tl)) >->
+            parse section_desc indent schema
         | _ -> (* section *)
-            parse_section section_desc l tl >-> parse section_desc indent spec
+            parse_section section_desc l tl >-> parse section_desc indent schema
 
-let parse spec text =
-  let tree, remainder = parse "" (-1) spec (lines text) in match remainder with
+let parse schema text =
+  let tree, remainder = parse "" (-1) schema (lines text) in match remainder with
       [] -> tree
     | l::_ -> failwithfmt "EOF expected before line %d (%S)" l.lineno l.contents
 
@@ -160,14 +165,14 @@ let empty_environment () = SMap.empty
 let eval_cond env s = true (* TODO *)
 
 let get_sections stype =
-  List.filter (function Section (t, _, _) when t = stype -> true | _ -> false)
+  List.filter (function `Section (t, _, _) when t = stype -> true | _ -> false)
 
 let get_field_aux f x path tree env =
   let rec collect_values field l =
     List.concat @@ List.filter_map
       (function
-           Field (field', v) when field' = field -> Some [v]
-         | IfBlock (cond, iftrue, iffalse) ->
+           `Field (field', v) when field' = field -> Some [v]
+         | `IfBlock (cond, iftrue, iffalse) ->
              let sub = if eval_cond env cond then iftrue else iffalse in
                Some (collect_values field sub)
          | _ -> None) l in
@@ -177,17 +182,17 @@ let get_field_aux f x path tree env =
     | section::tl -> match split_on_space section with
           [sname] ->
             begin try
-              match List.find (function Section (s, _, _) -> s = sname | _ -> false) ts with
-                  Section (_, _, ts) -> loop ts tl
+              match List.find (function `Section (s, _, _) -> s = sname | _ -> false) ts with
+                  `Section (_, _, ts) -> loop ts tl
                 | _ -> x
             with Not_found -> x end
         | [stype; sname] ->
             begin try
               match List.find
-                      (function Section (t, name, _) -> t = stype && name = Some sname
+                      (function `Section (t, name, _) -> t = stype && name = Some sname
                          | _ -> false)
                       ts with
-                | Section (_, _, ts) -> loop ts tl
+                | `Section (_, _, ts) -> loop ts tl
                 | _ -> x
             with Not_found -> x end
         | _ -> failwithfmt "Invalid field path %S." path
@@ -254,7 +259,7 @@ and dependency = string * version
 
 and version = { version_branch : int list; version_tags : string list }
 
-let spec =
+let schema =
   let libsection = section [] ["Modules"; "Ocaml-Flags"]
   in section
     ["Library", libsection ]
@@ -275,7 +280,7 @@ let license_of_string s = match String.lowercase s with
   | s -> `Other s
 
 let package_of_string env s =
-  let tree = parse spec s in
+  let tree = parse schema s in
   let get ?(tree = tree) path = get_field_value path tree env in
   let get_default ?(tree = tree) f default path =
     try f @@ get_field_value path tree env with _ -> default in
@@ -284,7 +289,7 @@ let package_of_string env s =
     get_sections "Library" tree |>
     List.filter_map
       (function
-           Section(_, path, fields) ->
+           `Section(_, path, fields) ->
              Some {
                lib_buildable = get_default ~tree:fields bool_of_string true "Buildable";
                lib_path =
