@@ -15,6 +15,17 @@ let read_file f =
         | n -> Buffer.add_substring b buf 0 n; loop ()
   in loop ()
 
+let write_if_nonexistent ~dst s =
+  if not (Sys.file_exists dst) then
+    let ch = open_out dst in
+      try output_string ch s; close_out ch with e -> close_out ch; raise e
+
+let create_mllib lib = match lib.Spec.lib_buildable, lib.Spec.lib_modules with
+    true, Some mods ->
+      let dst = lib.Spec.lib_path ^ ".mllib" in
+        write_if_nonexistent ~dst (String.concat "\n" mods)
+  | _ -> ()
+
 let simple pkgname =
   let spec = read_file (pkgname ^ ".auto") in
   let parsed = Spec.parse Spec.schema spec in
@@ -36,5 +47,9 @@ let simple pkgname =
       ] in
   let pkg = Spec.package_of_string (flags_of_env env) spec in
     (* process targets using the info from the Spec.package type *)
-    ignore pkg
+    write_if_nonexistent ~dst:"myocamlbuild.ml"
+      (Spec.myocamlbuild (List.map fst pkg.Spec.build_depends));
+    List.iter create_mllib pkg.Spec.libraries;
+    (* TODO: invoke ocamlbuild to build targets. Use BuildSys.Action? *)
+    ()
 

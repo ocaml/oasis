@@ -78,6 +78,7 @@ let section sects fields =
   }
 
 let split_on_space s = Str.split (Str.regexp "[ \t\n]+") s
+let split_on_comma s = Str.split (Str.regexp ",") s
 let skip_fst_token s =
   let off = String.index s ' ' + 1 in
   String.strip @@ String.sub s off (String.length s - off)
@@ -253,9 +254,10 @@ and license = [
   | `Other of string
 ]
 
-and dependency = string * version
+and dependency = string * string option (* name, version *)
+(* FIXME: proper version handling *)
 
-and version = { version_branch : int list; version_tags : string list }
+(* and version = { version_branch : int list; version_tags : string list } *)
 
 let schema =
   let libsection = section [] ["Modules"; "Ocaml-Flags"]
@@ -264,7 +266,7 @@ let schema =
     [
       "Name"; "Version"; "Copyright"; "License"; "License-File";
       "Author"; "Maintainer"; "Homepage"; "Synopsis"; "Description";
-      "Category"; "Build-Type";
+      "Category"; "Build-Depends"; "Build-Type";
     ]
 
 let license_of_string s = match String.lowercase s with
@@ -276,6 +278,13 @@ let license_of_string s = match String.lowercase s with
   | "public-domain" -> `PublicDomain
   | "all-rights-reserved" -> `AllRightsReserved
   | s -> `Other s
+
+let dependencies_of_string s : dependency list =
+  Str.global_replace (Str.regexp "[ \t\n]+") " " s |> split_on_comma |>
+  List.map (fun dep -> match split_on_space dep with
+                [dep] -> (dep, None)
+              | [dep; version] -> (dep, Some version)
+              | _ -> failwithfmt "Invalid dependency: %S" dep)
 
 let package_of_string env s =
   let tree = parse schema s in
@@ -317,7 +326,7 @@ let package_of_string env s =
     synopsis = get "Synopsis";
     description = get "Description";
     (* category = get "Category"; *)
-    build_depends = []; (* FIXME *)
+    build_depends = get_default dependencies_of_string [] "Build-Depends";
     libraries = libs;
   }
 
@@ -373,3 +382,7 @@ dispatch begin function
   | _ -> ()
 end
 "
+
+let myocamlbuild packages =
+  let pkgs = String.concat ";\n " @@ List.map (sprintf "%S") packages in
+    Str.global_replace (Str.regexp "%%PACKAGES%%") pkgs default_myocamlbuild
