@@ -1,0 +1,18 @@
+Name:    oasis
+Version: 0.0.1
+Description: 
+ This is a test to check that everything is working great
+ with this kind of parser.
+ .
+ Coucou.
+
+# Only available on i386
+if os(hurd) && arch(i386)
+{
+  Flags: --test
+}
+
+if os(linux) && arch(i386)
+{
+  Flags: --no-test
+}
