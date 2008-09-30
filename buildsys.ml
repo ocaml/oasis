@@ -1,5 +1,6 @@
 
 #use "src/base/buildsys.ml";;
+#use "src/ocamlbuild/buildsys.ml";;
 
 let () =
   Action.main
@@ -9,7 +10,8 @@ let () =
     [
     ]
     (* Checks*)
-    [
+    [ 
+      Check.fenv (Check.package ~version_comparator:">= 1.0.1" "oUnit");
     ]
     (* .in files *)
     [
@@ -19,7 +21,11 @@ let () =
     ]
     (* Packs *)
     [
-      Base.package;
+      OCamlbuild.package 
+        ~ocamlbuild_targets:
+        [
+          "ocaml-autobuild.otarget";
+        ];
     ]
 ;;
 

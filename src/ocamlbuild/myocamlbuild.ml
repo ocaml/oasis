@@ -81,8 +81,14 @@ let dispatch_ocamlfind =
          * one approach is to add the "-thread" option when using the "threads"
          * package using the previous plugin. 
          *)
-         flag ["ocaml"; "pkg_threads"; "compile"] (S[A "-thread"]);
-         flag ["ocaml"; "pkg_threads"; "link"] (S[A "-thread"]);
+         flag ["ocaml"; "pkg_threads"; "compile"] & (S[A"-thread"]);
+         flag ["ocaml"; "pkg_threads"; "link"]    & (S[A"-thread"]);
+
+         flag ["ocaml"; "pp_camlp4o"; "compile"]  & (S[A"-pp"; A"camlp4o"]);
+         flag ["ocaml"; "pp_camlp4o"; "ocamldep"] & (S[A"-pp"; A"camlp4o"]);
+         flag ["ocaml"; "pp_camlp4o"; "doc"]      & (S[A"-pp"; A"camlp4o"]);
 
     | _ -> ()
 ;;
+
+dispatch dispatch_ocamlfind;;
