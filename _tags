@@ -3,3 +3,4 @@
 <src/ocamlbuild>: include
 <src/omake>: include
 <src/ocamlmakefile>: include
+<test/*.{ml,byte}>: pkg_oUnit, include

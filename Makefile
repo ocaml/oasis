@@ -1,3 +1,11 @@
+default: test
+	true
+
+test: all
+	cd _build/test/ && ./test.byte $(TESTFLAGS)
+
+.PHONY: test
+
 #+ AUTOBUILD_START 
 #+ DO NOT EDIT THIS PART 
 #+ tag content_digest "9c4df8fc4855b76c5bf8fabf15fd5ea8" 
@@ -18,10 +26,6 @@ distclean:
 	$(BUILD) $@
 
 install:
-	$(BUILD) $@
-
-# Catch all rule
-%:
 	$(BUILD) $@
 
 .PHONY: all clean distclean install

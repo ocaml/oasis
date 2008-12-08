@@ -1,2 +1,3 @@
 src/base/base.cma
 src/ocaml-autobuild.byte
+test/test.byte

@@ -15,8 +15,4 @@ distclean:
 install:
 	$(BUILD) $@
 
-# Catch all rule
-%:
-	$(BUILD) $@
-
 .PHONY: all clean distclean install
