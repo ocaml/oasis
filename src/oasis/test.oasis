@@ -8,11 +8,10 @@ Description:
 
 # Only available on i386
 if os(hurd) && arch(i386)
-{
-  Flags: --test
-}
+  Flag ostest
+    Description: Test on OS
 
 if os(linux) && arch(i386)
-{
-  Flags: --no-test
-}
+  Flag linuxtest
+    Description: Linux only
+
