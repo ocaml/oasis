@@ -1,6 +1,8 @@
-<src>: include
-<src/base>: include
-<src/ocamlbuild>: include
-<src/omake>: include
-<src/ocamlmakefile>: include
-<test/*.{ml,byte}>: pkg_oUnit, include
+"src": include
+"src/base": include
+"src/ocamlbuild": include
+"src/omake": include
+"src/ocamlmakefile": include
+"src/oasis": include
+<test/*.{ml,byte}>: pkg_oUnit, pkg_str
+"src/oasis/oasis.ml": syntax_camlp4o, pkg_camlp4

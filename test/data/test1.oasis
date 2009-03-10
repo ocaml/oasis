@@ -1,0 +1,28 @@
+Name:        oasis
+Version:     0.0.1
+Synopsis:    Just a test
+License:     GPL
+LicenseFile: LICENSE
+Author:      Sylvain Le Gall
+BuildType:   Simple
+Description: 
+ This is a test to check that everything is working great
+ with this kind of parser.
+ .
+ Coucou.
+
+Flag devmod
+  Description: build for developper
+
+# Only available on i386
+if system(hurd) && architecture(i386)
+  Flag ostest
+    Description: Test on OS
+
+if system(linux) && architecture(amd64)
+  Flag linuxtest64
+    Description: Linux 64bits only
+
+if system(linux) && architecture(i386)
+  Flag linuxtest32
+    Description: Linux 32bits only

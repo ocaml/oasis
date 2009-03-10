@@ -1,8 +1,7 @@
 default: test
-	true
 
 test: all
-	cd _build/test/ && ./test.byte $(TESTFLAGS)
+	cd '$(CURDIR)/test' && ../_build/test/test.byte $(TESTFLAGS)
 
 .PHONY: test
 
