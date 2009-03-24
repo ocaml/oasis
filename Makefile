@@ -3,6 +3,10 @@ default: test
 test: all
 	cd '$(CURDIR)/test' && ../_build/test/test.byte $(TESTFLAGS)
 
+test2:
+	OCAMLFLAGS=`ocamlfind query -format "-I %d %a" -separator " " -suffix "" -r -predicates byte,toploop findlib fileutils`; \
+	ocaml $$OCAMLFLAGS buildsys2.ml
+
 .PHONY: test
 
 #+ AUTOBUILD_START 

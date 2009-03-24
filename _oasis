@@ -1,0 +1,41 @@
+Package:      ocaml-autobuild
+Version:      0.0.1
+LicenseFile:  LICENSE
+License:      LGPL-link-exn
+BuildType:    ocamlbuild
+Author:       Sylvain Le Gall
+Copyright:    (C) 2008-2009 Sylvain Le Gall
+Homepage:     http://ocaml-autobuild.forge.ocamlcore.org/
+Synopsis:     generate different build system for OCaml projects
+Categories:   BuildTool 
+BuildDepends: fileutils, findlib
+Description:
+ This program and library allow to create a build system for OCaml program
+ and library.
+ .
+ It can use ocamlbuild, OCamlMakefile or OMake as the real build system and
+ ocaml-autoconf or an internal configuration system. It allow to configure,
+ build and install your program and libraries.
+ .
+ It is mainly targeted to ocamlbuild and rely on findlib for all operations.
+ .
+ Package are described through an OASIS file (OCaml Autobuild Source
+ InformationS). This file is translated into commands for the different
+ sub-system and executed.
+ . 
+ The internal configuration system allow to: check findlib package and find
+ available program.  
+
+Executable ocaml-autobuild
+  Buildable: true
+  MainIs: src/ocaml-autobuild.ml
+
+Library autobuild
+  Buildable: true
+  Module: 
+  Path: src/
+
+Executable test
+  Buildable: true
+  MainIs: test/test.ml
+
