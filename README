@@ -1,0 +1,24 @@
+
+
+OCaml-autobuild is designed to provide a standard way to setup configure, build
+and install system for OCaml project. It can be compared to automake but
+targeted to OCaml application (automake is targeted to C/C++ application). 
+
+OCaml-autobuild provide:
+- reasonable setup for sub-system (configure, build and install)
+- standard call to configure, build and install
+- description of the project and subsystem through OASIS
+
+OCaml-autobuild handle the following sub-system:
+- configure: 
+  - autoconf (TODO)
+  - default (system provided by OCaml-autobuild)
+- build:
+  - ocamlbuid
+  - OCamlMakefile (TODO)
+  - OMake (TODO)
+- install:
+  - findlib (libraries)
+  - internal (executable and data)
+
+The whole system depends on findlib.
