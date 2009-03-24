@@ -66,7 +66,7 @@ struct
               (Env.var_add "ocamlbuild_best_program" "byte" nnenv)
         | str ->
             failwith 
-              ("Don't know what to when ocamlbest is '"^str^"'")
+              ("Don't know what to do when ocamlbest is '"^str^"'")
 
   (*
     

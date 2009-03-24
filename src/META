@@ -1,4 +1,0 @@
-version="0.0.1"
-archive(byte)="autobuild.cma"
-archive(native)="autobuild.cmxa"
-requires="findlib,fileutils"
