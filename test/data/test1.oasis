@@ -1,10 +1,11 @@
-Name:        oasis
-Version:     0.0.1
-Synopsis:    Just a test
-License:     GPL
-LicenseFile: LICENSE
-Author:      Sylvain Le Gall
-BuildType:   Simple
+Name:         oasis
+Version:      0.0.1
+Synopsis:     Just a test
+License:      GPL
+LicenseFile:  LICENSE
+Author:       Sylvain Le Gall
+BuildType:    Simple
+BuildDepends: oUnit (>= 1.0.2), benchmark (>= 0.8)
 Description: 
  This is a test to check that everything is working great
  with this kind of parser.
@@ -13,16 +14,45 @@ Description:
 
 Flag devmod
   Description: build for developper
+  Default: false
+
+if architecture(amd64)
+  Author: S. Hacker
+
+if architecture(amd64)
+  Author: S. Hacker
+else
+  Author: S. Hacker 2
 
 # Only available on i386
-if system(hurd) && architecture(i386)
-  Flag ostest
-    Description: Test on OS
+Flag ostest
+  Description: Test on OS
+  Default: false
+  if system(hurd) && architecture(i386)
+    Default: true
 
-if system(linux) && architecture(amd64)
-  Flag linuxtest64
-    Description: Linux 64bits only
+Flag linuxtest64
+  Description: Linux 64bits only
+  Default: false
+  if system(linux) && architecture(amd64)
+    Default: true
+  else
+    Default: false
 
-if system(linux) && architecture(i386)
-  Flag linuxtest32
-    Description: Linux 32bits only
+Flag linuxtest32
+  Description: Linux 32bits only
+  Default: false
+  if system(linux_elf) && architecture(i386)
+    Default: true
+
+if flag(linuxtest32) || flag(linuxtest64) || flag(ostest) 
+  Author: S. Hacker
+else
+  Author: Me
+
+Library stuff
+  Path: src/stuff
+  Modules: A B C
+
+Executable toto
+  MainIs: src/toto.ml

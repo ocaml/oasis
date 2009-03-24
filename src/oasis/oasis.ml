@@ -1,6 +1,4 @@
 
-open Genlex;;
-
 type name         = string;;
 type package_name = string;;
 type url          = string;;
@@ -57,8 +55,8 @@ type package =
       categories:    url list;
       build_depends: dependency list;
       build_type:    build_type;
-      libraries:     lib list;
-      executables:   exec list;
+      libraries:     (name * lib) list;
+      executables:   (name * exec) list;
       extra:         (name * string) list;
     }
 ;;
@@ -70,27 +68,41 @@ type flag =
     }
 ;;
 
-type env = 
+type t = 
     {
-      flag: (name * bool) list;
-      test: (name * string) list;
+      oasisfn:  filename;
+      srcdir:   filename;
+      flags:    (name * bool) list;
+      tests:    (name * string) list;
     }
 ;;
 
 (** Abstract Syntax Tree *)
-type expr = env -> bool
+type expr =
+  | ETrue
+  | EFalse
+  | ENot of expr
+  | EAnd of expr * expr
+  | EOr of expr * expr
+  | EFlag of string
+  | ETest of string * string
 ;;
 
-type stmt = 
-  | ASTIfThenElse of expr * stmt * stmt
-  | ASTBlock of stmt list
-  | ASTField of name * string
-  | ASTLibrary of stmt
-  | ASTExecutable of name * stmt
-  | ASTFlag of name * stmt
-and stmt_block =
-  stmt list
+type stmt =
+  | SField of name * string
+  | SIfThenElse of expr * stmt * stmt
+  | SBlock of stmt list
+;;
+
+type top_stmt = 
+  | TSLibrary of name * stmt
+  | TSExecutable of name * stmt
+  | TSFlag of name * stmt
+  | TSStmt of stmt
+  | TSBlock of top_stmt list
 ;; 
+
+(** {2 Property list and schema checker} *)
 
 module Schema =
 struct
@@ -105,8 +117,8 @@ struct
 
   type field =
       {
-        set: string -> (unit -> unit);
-        get:   unit -> unit;                     
+        set: t -> string -> (unit -> unit);
+        get: unit -> unit;                     
       }
 
   type t = (name, field) Hashtbl.t
@@ -122,8 +134,8 @@ struct
       ref None 
     in
 
-    let set str =
-      (fun () -> v := Some (parse str))
+    let set env str =
+      (fun () -> v := Some (parse env str))
     in
 
     let get_default () = 
@@ -149,7 +161,7 @@ struct
         };
       get
 
-  let set_field t name str =
+  let set_field t name env str =
     let lname =
       String.lowercase name
     in
@@ -164,7 +176,7 @@ struct
       Hashtbl.replace 
         t
         lname 
-        {fld with get = fld.set str}
+        {fld with get = fld.set env str}
 
   let check t =
     let msgfld =
@@ -203,115 +215,131 @@ end
 
 (** {2 Schema} *)
 
-(**/**)
-let basedir =
-  ref "."
-;;
+module ValueParser =
+struct
 
-(* Provide string match a Str.regexp *)
-let match_str regexp error str = 
-  if Str.string_match regexp str 0 && 
-     (Str.match_beginning ()) = 0 &&
-     (Str.match_end ()) = (String.length str) then
-      str
-  else
-    failwith 
-      (Printf.sprintf "String '%s' is not a %s" str error)
-;;
-
-(** Check that we have an URL *)
-let match_url = 
-  match_str
-    (Str.regexp "http://[a-zA-Z0-9\\./]+")
-    "URL"
-;;
-
-(** Check that we have a version number *)
-let match_version =
-  match_str
-    (Str.regexp "[0-9]+\\(\\.[0-9]+\\)*")
-    "version"
-;;
-
-(** Check that we a (C) copyright *)
-let match_copyright str =
-  if Str.string_match 
-       (Str.regexp "\\((c)|(C)\\) * [0-9]+\\(-[0-9]+\\)? .*") 
-       str 0 then
-    str
-  else
-    failwith 
-      (Printf.sprintf
-         "Copyright must follow the convention 
-         '(C) 2008-2009 J.R. Hacker', here it is '%s"
-         str)
-;;
-
-(** String is not empty *)
-let string_not_empty str =
-  if str <> "" then
-    str
-  else
-    failwith "Expecting not empty string"
-;;
-
-(** File exists *)
-let file_exists fn = 
-  if not (Sys.file_exists (Filename.concat !basedir fn)) then
-    failwith 
-      (Printf.sprintf "File '%s' doesn't exist" fn)
-  else
-    fn
-;;
-
-(** Directory exists *)
-let directory_exists fn =
-  let rfn =
-    Filename.concat !basedir fn
-  in
-    if (Sys.file_exists rfn) && (Sys.is_directory rfn) then
-      fn
+  (* Check that string match a Str.regexp *)
+  let str_regexp regexp error _ str = 
+    if Str.string_match regexp str 0 && 
+       (Str.match_beginning ()) = 0 &&
+       (Str.match_end ()) = (String.length str) then
+        str
     else
       failwith 
-        (Printf.sprintf "Directory '%s' doesn't exist" fn)
-;;
+        (Printf.sprintf "String '%s' is not a %s" str error)
 
-(** Convert string to boolean *)
-let parse_bool str =
-  match String.lowercase str with
-    | "true"  -> true
-    | "false" -> false
-    | _ ->
+  (** Check that we have an URL *)
+  let url = 
+    str_regexp
+      (Str.regexp "http://[a-zA-Z0-9\\./]+")
+      "URL"
+
+  (** Check that we have a version number *)
+  let version =
+    str_regexp
+      (Str.regexp "[0-9]+\\(\\.[0-9]+\\)*")
+      "version"
+
+  (** Check that we a (C) copyright *)
+  let copyright _ str =
+    if Str.string_match 
+         (Str.regexp "\\((c)\\|(C)\\) * [0-9]+\\(-[0-9]+\\)?,? .*") 
+         str 0 then
+      str
+    else
+      failwith 
+        (Printf.sprintf
+           "Copyright must follow the convention \
+           '(C) 2008-2009 J.R. Hacker', here it is '%s'"
+           str)
+
+  (** String is not empty *)
+  let string_not_empty _ str =
+    if str <> "" then
+      str
+    else
+      failwith "Expecting not empty string"
+
+  (** File exists *)
+  let file_exists env fn = 
+    if not (Sys.file_exists (Filename.concat env.srcdir fn)) then
+      failwith 
+        (Printf.sprintf "File '%s' doesn't exist" fn)
+    else
+      fn
+
+  (** Directory exists *)
+  let directory_exists env fn =
+    let rfn =
+      Filename.concat env.srcdir fn
+    in
+      if (Sys.file_exists rfn) && (Sys.is_directory rfn) then
+        fn
+      else
         failwith 
-          (Printf.sprintf 
-             "Boolean value must be 'true' 
-             or 'false', not '%s'"
-             str)
+          (Printf.sprintf "Directory '%s' doesn't exist" fn)
+
+  (** Convert string to boolean *)
+  let boolean _ str =
+    match String.lowercase str with
+      | "true"  -> true
+      | "false" -> false
+      | _ ->
+          failwith 
+            (Printf.sprintf 
+               "Boolean value must be 'true' 
+               or 'false', not '%s'"
+               str)
+
+  (** Convert string to build depends *)
+  let build_depends _ str =
+    let separator =
+      Str.regexp " *, *"
+    in
+    let split_version =
+      Str.regexp "\\([^ ]*\\) *( *\\(.*\\) *)"
+    in
+    let parse_one str =
+      if Str.string_match split_version str 0 then
+        (Str.matched_group 1 str), 
+        Some (Str.matched_group 2 str)
+      else
+        str, None
+    in
+      List.map
+        parse_one
+        (Str.split separator str)
+
+  (** Convert string to module lists *)
+  let modules env str =
+    let whitespaces =
+      Str.regexp "[ \t]+"
+    in
+    let lst = 
+      Str.split whitespaces str
+    in
+      List.map 
+        (str_regexp 
+           (Str.regexp "[A-Z][A-Za-z0-9_]*")
+           "module"
+           env)
+        lst
+
+  (** Convert string to URL *)
+  let categories _ str = 
+    [str]
+
+  (** Optional value *)
+  let opt f env str =
+    Some (f env str)
+;;
+end
 ;;
 
-(** Convert string to build depends *)
-let parse_build_depends str =
-  (* TODO *)
-  [str, None]
+module VP = ValueParser
 ;;
 
-(** Convert string to module lists *)
-let match_modules str =
-  (* TODO *)
-  [str]
-;;
-
-(** Convert string to URL *)
-let urls str = 
-  (* TODO *)
-  [str]
-;;
-
-(** Optional value *)
-let opt f =
-  fun str -> Some (f str)
-;;
-(**/**)
+(** {2 Schema} *)
 
 (* Root schema *)
 let root_schema, root_gen =
@@ -319,37 +347,36 @@ let root_schema, root_gen =
     Schema.create ()
   in
   let name = 
-    Schema.new_field schm "name" string_not_empty 
+    Schema.new_field schm "name" VP.string_not_empty 
   in
   let version = 
-    Schema.new_field schm "version" match_version
+    Schema.new_field schm "version" VP.version
   in
   let license_file =
-    Schema.new_field schm "licensefile" file_exists
+    Schema.new_field schm "licensefile" VP.file_exists
   in
   let synopsis =
-    Schema.new_field schm "synopsis" string_not_empty
+    Schema.new_field schm "synopsis" VP.string_not_empty
   in
   let build_type =
-    Schema.new_field schm "buildtype" string_not_empty
+    Schema.new_field schm "buildtype" VP.string_not_empty
   in
   let author =
-    Schema.new_field schm "author" 
-      string_not_empty
+    Schema.new_field schm "author" VP.string_not_empty
   in
   let license =
     Schema.new_field schm "license"
-      (fun str ->
+      (fun env str ->
          match String.uppercase str with 
            | "GPL"   -> `GPL
            | "LGPL"  -> `LGPL
            | "BSD3"  -> `BSD3
            | "BSD4"  -> `BSD4
-           | "PublicDomain" -> `PublicDomain
-           | "LGPL-link-exn" -> `LGPL_link_exn
-           | str -> 
+           | "PUBLICDOMAIN" -> `PublicDomain
+           | "LGPL-LINK-EXN" -> `LGPL_link_exn
+           | _ -> 
                (try
-                  `Other (match_url str)
+                  `Other (VP.url env str)
                 with _ ->
                   failwith (Printf.sprintf 
                               "'%s' is not an URL or a common license name"
@@ -358,32 +385,32 @@ let root_schema, root_gen =
   let copyright =
     Schema.new_field schm "copyright" 
       ~default:None
-      (opt match_copyright)
+      (VP.opt VP.copyright)
   in
   let maintainer =
     Schema.new_field schm "maintainer"
       ~default:None
-      (opt string_not_empty)
+      (VP.opt VP.string_not_empty)
   in
   let homepage =
     Schema.new_field schm "homepage" 
       ~default:None
-      (opt match_url)
+      (VP.opt VP.url)
   in
   let description =
     Schema.new_field schm "description"
       ~default:None
-      (opt string_not_empty)
+      (VP.opt VP.string_not_empty)
   in
   let categories =
     Schema.new_field schm "categories"
       ~default:[]
-      urls
+      VP.categories
   in
   let build_depends =
     Schema.new_field schm "builddepends" 
       ~default:[]
-      parse_build_depends
+      VP.build_depends
   in
     schm,
     (fun tbl ->
@@ -415,12 +442,12 @@ let flag_schema, flag_gen =
   let descr = 
     Schema.new_field schm "description" 
       ~default:None 
-      (opt string_not_empty)
+      (VP.opt VP.string_not_empty)
   in
   let default = 
     Schema.new_field schm "default" 
       ~default:true
-      parse_bool
+      VP.boolean
   in
     schm,
     (fun tbl ->
@@ -436,17 +463,17 @@ let lib_schema, lib_gen =
     Schema.create ()
   in
   let path =
-    Schema.new_field schm "path" directory_exists
+    Schema.new_field schm "path" VP.directory_exists
   in
   let buildable = 
     Schema.new_field schm "buildable"
       ~default:true
-      parse_bool
+      VP.boolean
   in
   let modules =
     Schema.new_field schm "modules" 
       ~default:[]
-      match_modules
+      VP.modules
   in
     schm,
     (fun tbl ->
@@ -464,12 +491,17 @@ let exec_schema, exec_gen =
     Schema.create ()
   in
   let main_is =
-    Schema.new_field schm "mainis" file_exists
+    Schema.new_field schm "mainis" 
+      (fun vl ->
+         VP.str_regexp
+           (Str.regexp ".*\\.ml$")
+           ".ml file"
+           (VP.file_exists vl))
   in
   let buildable =
     Schema.new_field schm "buildable"
       ~default:true
-      parse_bool
+      VP.boolean
   in
     schm,
     (fun tbl -> 
@@ -480,525 +512,171 @@ let exec_schema, exec_gen =
        })
 ;;
 
-(** {2 Test} *)
+(** {2 Environment} *)
 
-(* Available test *)
-let tests =
-  let rec find nm lst =
-    match lst with 
-      | nm_check :: vl :: _ when nm_check = nm ->
-          vl
-      | _ :: tl ->
-          find nm tl
-      | [] ->
-          raise Not_found
-  in
-    [
-      "os_type",      find "os_type:";
-      "system",       find "system:";
-      "architecture", find "architecture:";
-      "cc",           find "native_c_compiler:";
-    ]
-;;
-
-let env_of_ocamlc ocamlc =
-  let tests = 
-    let chn =
-      Unix.open_process_in (ocamlc^" -config")
-    in
-    let lst =
-      ref []
-    in
-    let buff =
-      Buffer.create 0
-    in
-      (
-        try
-          while true do
-            match input_char chn with
-              | ' ' | '\r' | '\n' -> 
-                if Buffer.length buff > 0 then
-                  (
-                    lst := Buffer.contents buff :: !lst;
-                    Buffer.clear buff
-                  )
-              | c ->
-                  Buffer.add_char buff c
-          done
-        with End_of_file ->
-          ()
-      );
-      (
-        match Unix.close_process_in chn with
-          | Unix.WEXITED 0 -> 
-              ()
-          | _ -> 
-              failwith 
-                (Printf.sprintf 
-                   "Failed running '%s -config'" 
-                   ocamlc)
-      );
-      lst := List.rev !lst;
-      List.rev_map
-        (fun (nm, f) -> 
-           try 
-             nm, f !lst
-           with Not_found ->
-             failwith 
-               (Printf.sprintf 
-                  "Field '%s' not found in 'ocamlc -config' output"
-                  nm))
-        tests
-  in
-    {
-      flag = [];
-      test = tests;
-    }
-;;
-
-(** Parsing *)
-let parse_file fn = 
-  let chn =
-    open_in fn
-  in
-
-  let st =
-    Stream.of_channel chn
-  in
-
-  let () = 
-    basedir := Filename.dirname fn
-  in
-
-  (* Get rid of MS-DOS file format *)
-  let dos2unix st = 
-    Stream.from
-      (fun _ ->
-         try
-           match Stream.next st with 
-             | '\r' when Stream.peek st = Some '\n' ->
-                 Some ' '
-             | c ->
-                 Some c
-         with Stream.Failure ->
-           None)
-  in
-
-  (* Skip comment *)
-  let skip_comment st =
-    Stream.from
-      (fun _ ->
-         try 
-           match Stream.next st with
-             | '#' ->
-                 while Stream.next st <> '\n' do
-                   ()
-                 done;
-                 Some '\n'
-             | c -> 
-                 Some c
-         with Stream.Failure ->
-           None)
-  in
-
-  (* Regroup freeform data inside a single string *)
-  let string_of_freeform st =
-    let indent_level =
-      ref 0
-    in
-    let indent_count =
-      ref true
-    in
-    let buffer = 
-      Queue.create ()
-    in
-    let rec skip_blank () = 
-      match Stream.peek st with 
-        | Some ' ' | Some '\t' | Some '\r' ->
-            Stream.junk st;
-            skip_blank ()
-        | _ ->
-            ()
-    in
-    let rec input_line () = 
-      match Stream.peek st with 
-        | Some '\n' | None ->
-            ()
-        | Some c ->
-            Queue.push c buffer;
-            Stream.junk st;
-            input_line ()
-    in
-    let rec check_continuation () = 
-      let continuation_indent = 
-        !indent_level + 1
-      in
-      let begin_next_line =
-        Stream.npeek (continuation_indent + 1) st
-      in
-      let begin_expected =
-        '\n' :: (Array.to_list (Array.make continuation_indent ' '))
-      in
-        if begin_next_line = begin_expected then
-          (
-            for i = 0 to continuation_indent do 
-              Stream.junk st
-            done;
-            match Stream.npeek 2 st with 
-              | ['.'; '\n'] -> 
-                  Queue.push '\\' buffer;
-                  Queue.push 'n' buffer;
-                  Stream.junk st;
-                  check_continuation ()
-              | _ ->
-                  Queue.push ' ' buffer;
-                  input_line ();
-                  check_continuation ()
-          )
-        else
-          (
-            ()
-          )
-    in
-    let lookup_freeform () = 
-      Queue.push '"' buffer;
-      skip_blank ();
-      input_line ();
-      check_continuation ();
-      Queue.push '"' buffer
-    in
-      Stream.from
-        (fun _ ->
-           try
-             if Queue.is_empty buffer then
-               (
-                 match Stream.next st with
-                   | ':' ->
-                       lookup_freeform ();
-                       Some ':'
-                   | '\n' as c ->
-                       indent_count := true;
-                       indent_level := 0;
-                       Some c
-                   | ' ' | '\t' as c ->
-                       if !indent_count then
-                         incr indent_level;
-                       Some c
-                   | c ->
-                       indent_count := false;
-                       Some c
-               )
-             else
-               (
-                 Some (Queue.pop buffer)
-               )
-           with Stream.Failure ->
-             None)
-  in
-
-  (* Add required { } regarding indentation *)
-  let braces_of_indent st =
-    let former_line_indent =
-      ref 0
-    in
-    let cur_line_indent =
-      ref 0
-    in
-    let indent_count =
-      ref true
-    in
-    let last_line =
-      ref false
-    in
-    let brace_buffer =
-      Queue.create ()
-    in
-    let compensate_diff_indent () = 
-      let diff_indent =
-        !former_line_indent - !cur_line_indent
-      in
-      let brace = 
-        if diff_indent < 0 then
-          '{'
-        else
-          '}'
-      in
-        for i = 1 to abs diff_indent do 
-          Queue.push brace brace_buffer
-        done
-    in
-      Stream.from
-        (fun _ ->
-           try
-             if Queue.is_empty brace_buffer then
-               (
-                 match Stream.next st with 
-                   | '\n' as c ->
-                       (* Don't take into account blank line *)
-                       if not !indent_count then
-                         former_line_indent := !cur_line_indent;
-                       indent_count := true;
-                       cur_line_indent := 0;
-                       Some c
-                   | ' ' | '\t' as c ->
-                       if !indent_count then
-                         incr cur_line_indent;
-                       Some c
-                   | c ->
-                       if !indent_count then
-                         (
-                           indent_count := false;
-                           compensate_diff_indent ();
-                           Queue.push c brace_buffer;
-                           Some (Queue.pop brace_buffer)
-                         )
-                       else
-                         (
-                           Some c
-                         )
-               )
-             else
-               (
-                 Some (Queue.pop brace_buffer)
-               )
-           with Stream.Failure ->
-             (
-               if not !last_line then
-                 (
-                   if not !indent_count then
-                     former_line_indent := !cur_line_indent;
-                   cur_line_indent := 0;
-                   last_line := true;
-                   compensate_diff_indent ()
-                 );
-
-               if Queue.is_empty brace_buffer then
-                 None
-               else
-                 Some (Queue.pop brace_buffer)
-             )
-        )
-  in
-
-  (* Record text for debugging *)
-  let record_text rlines rflush_line st = 
-    let buff =
-      Buffer.create 32
-    in
-    let nst =
-      Stream.from
-        (fun _ ->
-           try 
-             (
-               match Stream.next st with
-                 | '\n' ->
-                     rlines := (Buffer.contents buff) :: !rlines;
-                     Buffer.clear buff;
-                     Some '\n'
-                 | c ->
-                     Buffer.add_char buff c;
-                     Some c
-             )
-           with Stream.Failure ->
-             (
-               None
-             )
-        )
-    in
-    let flush_line () = 
-      try
-        while Stream.next nst <> '\n' do 
-          ()
-        done
-      with Stream.Failure ->
-        ()
-    in
-      rflush_line := flush_line;
-      nst
-  in
-  
-  (* Rebuild stream with preprocessing *)
-  let rlines =
-    ref []
-  in
-  let rflush_line =
-    ref (fun () -> ())
-  in
-
-  let st =
-    braces_of_indent
-      (string_of_freeform
-         (skip_comment 
-            (dos2unix 
-               (record_text rlines rflush_line st))))
-  in
- 
-  let position ?(prev=false) () = 
-    let () = 
-      !rflush_line ()
-    in
-    let lines = 
-      if prev then
-        (match !rlines with 
-           | _ :: lines -> lines
-           | [] -> [])
-      else
-        !rlines
-    in
-    let linenum =
-      List.length lines
-    in
-    let line =
-      match lines with
-        | line :: _ ->
-           line
+module Env =
+struct
+  let add_ocamlc_conf ocamlc env =
+    (* Try to find the value associated with a keyword *)
+    let rec find_associated_value nm keyword lst =
+      match lst with 
+        | hd :: vl :: _ when hd = keyword ->
+            nm, vl
+        | _ :: tl ->
+            find_associated_value nm keyword tl
         | [] ->
-           ""
-    in 
-      Printf.sprintf " in file '%s' at line %d: %s" fn linenum line
-  in
+           failwith 
+             (Printf.sprintf 
+                "Field '%s' not found in '%s -config' output"
+                ocamlc
+                nm)
+    in
 
-  (* Lexer for OASIS language *)
-  let lexer = 
-    make_lexer 
-      [ 
-        (* Statement *)
-        ":"; "if"; "{"; "}"; "else"; "Flag"; "Library"; "Executable"; 
-        (* Expression *)
-        "!"; "&&"; "||"; "("; ")"; "true"; "false" 
-      ]
-  in
+    (* Extract data from ocamlc -config *)
+    let output =
+      let chn =
+        Unix.open_process_in (ocamlc^" -config")
+      in
+      let buff =
+        Buffer.create 120
+      in
+        (
+          try
+            while true do 
+              Buffer.add_char buff (input_char chn);
+            done
+          with End_of_file ->
+            ()
+        );
+        (
+          match Unix.close_process_in chn with
+            | Unix.WEXITED 0 -> 
+                ()
+            | _ -> 
+                failwith 
+                  (Printf.sprintf 
+                     "Failed running '%s -config'" 
+                     ocamlc)
+        );
+        Str.split (Str.regexp "[\r\n ]+") (Buffer.contents buff)
+    in
 
-  (* OASIS expression *)
-  let rec parse_factor =
-    parser
-      | [< 'Kwd "true" >] ->  
-          fun _ -> true
-      | [< 'Kwd "false" >] ->
-          fun _ -> false
-      | [< 'Kwd "!"; e = parse_factor >] ->
-          fun env -> not (e env)
-      | [< 'Kwd "("; e = parse_expr; 'Kwd ")" >] ->
-          e
-      | [< 'Ident nm; 'Kwd "("; 'Ident vl; 'Kwd ")" >] -> 
-          (* Check that test exist *)
-          let lnm =
-            String.lowercase nm
-          in
-            (
-              try
-                if lnm = "flag" then
-                  ()
-                else
-                  let _t : (string list -> string) = 
-                    List.assoc lnm tests
-                  in
-                    ()
-              with Not_found ->
-                failwith ("Unknown test '"^nm^"'"^(position ()))
-            );
+    (* Available test *)
+    let tests =
+      List.map 
+        (fun (nm, keyword) -> find_associated_value nm keyword output)
+        [
+          "os_type",      "os_type:";
+          "system",       "system:";
+          "architecture", "architecture:";
+          "cc",           "native_c_compiler:";
+        ]
+    in
+      {env with tests = List.rev_append tests env.tests}
 
-            if nm = "flag" then
-              (
-                fun env ->
-                  (
-                    try
-                      List.assoc (String.lowercase vl) env.flag
-                    with Not_found ->
-                      failwith ("Undefined flag '"^vl^"'")
-                  )
-              )
-            else
-              (
-                fun env ->
-                  (
-                    let rvl = 
-                      List.assoc lnm env.test
-                    in
-                      rvl = vl
-                  )
-              )
+  let create ?(ocamlc="ocamlc") fn =
+    add_ocamlc_conf 
+      ocamlc
+      {
+        oasisfn = fn;
+        srcdir  = Filename.dirname fn;
+        flags   = [];
+        tests   = [];
+      }
 
-  and parse_term_follow = 
-    parser
-      | [< 'Kwd "&&"; e1 = parse_factor; e2 = parse_term_follow >] ->
-          fun env -> (e1 env) && (e2 env)
-      | [< >] ->
-          fun _ -> true
-  and parse_term =
-    parser
-      | [< e1 = parse_factor; e2 = parse_term_follow >] ->
-          fun env -> (e1 env) && (e2 env)
+end
+;;
 
-  and parse_expr_follow = 
-    parser
-      | [< 'Kwd "||"; e1 = parse_term; e2 = parse_expr_follow >] ->
-          fun env -> (e1 env) || (e2 env)
-      | [< >] ->
-          fun _ -> false 
-  and parse_expr =
-    parser
-      | [< e1 = parse_term; e2 = parse_expr_follow >] ->
-          fun env -> (e1 env) || (e2 env)
-  in
+(** Evaluate expression *)
+let rec expr_eval env =
+  function 
+    | ETrue  ->
+        true
+    | EFalse -> 
+        false
+    | ENot e -> 
+        expr_eval env e 
+    | EAnd (e1, e2) ->
+        (expr_eval env e1) && (expr_eval env e2)
+    | EOr (e1, e2) -> 
+        (expr_eval env e1) || (expr_eval env e2)
+    | EFlag nm ->
+        (
+          try 
+            List.assoc (String.lowercase nm) env.flags
+          with Not_found ->
+            failwith 
+              (Printf.sprintf 
+                 "Unknown flag '%s'"
+                 nm)
+        )
+    | ETest (nm, vl) ->
+        (
+          try            
+            (List.assoc (String.lowercase nm) env.tests) = vl 
+          with Not_found -> 
+            failwith 
+              (Printf.sprintf 
+                 "Unknown test '%s'"
+                 nm)
+        )
+;;
 
-  (* OASIS fields and flags *)
-  let rec parse_else = 
-    parser
-      | [< 'Ident "else"; blk = parse_stmt >] ->
-          blk
-      | [< >] ->
-          ASTBlock []
-
-  and parse_stmt = 
-    parser
-      | [<'Ident nm; 'Kwd ":"; 'String str>] ->
-          ASTField(nm, str)
-
-      | [<'Kwd "Flag"; 'Ident nm; flag_blk = parse_stmt>] ->
-          ASTFlag(nm, flag_blk)
-
-      | [<'Kwd "Library"; 
-           library_blk = parse_stmt>] ->
-          ASTLibrary library_blk
-
-      | [< 'Kwd "Executable"; 'Ident nm; 
-           exec_blk = parse_stmt>] ->
-          ASTExecutable (nm, exec_blk)
-
-      | [< 'Kwd "if"; e = parse_expr; 
-           if_blk = parse_stmt; 
-           else_blk = parse_else>] ->
-          ASTIfThenElse(e, if_blk, else_blk)
-
-      | [< 'Kwd "{"; stmt_lst = parse_stmt_list; 'Kwd "}">] ->
-          ASTBlock stmt_lst
-
-  and parse_stmt_list = 
-    parser
-      | [< stmt = parse_stmt; tl = parse_stmt_list>] ->
-          stmt :: tl
-      | [< >] ->
-          []
-  in
+(** Create environment and command line flags *)
+let create ?(ocamlc) fn ast = 
 
   (* Check AST *)
-  let check ast = 
+  let check ast env = 
+    let rec check_expr =
+      function
+        | ETrue | EFalse -> 
+            ()
+        | ENot e -> 
+            check_expr e 
+        | EAnd (e1, e2) | EOr (e1, e2) -> 
+            check_expr e1; check_expr e2
+        | EFlag nm ->
+            (
+              if not (List.mem_assoc (String.lowercase nm) env.flags) then
+                failwith 
+                  (Printf.sprintf 
+                     "Unknown flag '%s'"
+                     nm)
+            )
+        | ETest (nm, vl) ->
+            (
+              if not (List.mem_assoc (String.lowercase nm) env.tests) then
+                failwith 
+                  (Printf.sprintf 
+                     "Unknown test '%s'"
+                     nm)
+            )
+    in
+
     let rec check_stmt wrtr =
       function
-        | ASTField (nm, str) -> 
-            Schema.set_field wrtr nm str
-        | ASTFlag (_, blk) -> 
-            check_schema (Schema.writer flag_schema) blk
-        | ASTLibrary blk -> 
-            check_schema (Schema.writer lib_schema)  blk
-        | ASTExecutable (_, blk) ->
-            check_schema (Schema.writer exec_schema) blk
-        | ASTIfThenElse (_, blk1, blk2) ->
+        | SField (nm, str) -> 
+            Schema.set_field wrtr nm env str
+        | SIfThenElse (e, blk1, blk2) ->
+            check_expr e;
             check_stmt wrtr blk1;
             check_stmt wrtr blk2
-        | ASTBlock lst ->
-            List.iter (check_stmt wrtr) lst
+        | SBlock blk ->
+            List.iter (check_stmt wrtr) blk
+    in
+
+    let rec check_top_stmt root_wrtr =
+      function
+        | TSFlag (_, blk) -> 
+            check_schema (Schema.writer flag_schema) blk
+        | TSLibrary (_, blk) -> 
+            check_schema (Schema.writer lib_schema)  blk
+        | TSExecutable (_, blk) ->
+            check_schema (Schema.writer exec_schema) blk
+        | TSStmt stmt ->
+            check_stmt root_wrtr stmt
+        | TSBlock lst ->
+            List.iter (check_top_stmt root_wrtr) lst
     and check_schema schm blk =
       let wrtr =
         Schema.writer schm
@@ -1006,108 +684,116 @@ let parse_file fn =
         check_stmt wrtr blk;
         Schema.check wrtr
     in
-      check_schema root_schema ast
+
+      check_top_stmt root_schema ast
+  in
+ 
+  (* Extract flags *) 
+  let flags ast env =
+    let rec flags_stmt fwrtr env =
+      function
+        | SField (nm, str) ->
+            fwrtr nm env str
+        | SIfThenElse (e, blk1, blk2) ->
+            let blk =
+              if expr_eval env e then
+                blk1
+              else
+                blk2
+            in
+              flags_stmt fwrtr env blk
+        | SBlock blk ->
+            List.iter (flags_stmt fwrtr env) blk
+    in
+          
+    let rec flags_top_stmt ((env, lst) as acc) =
+      function
+        | TSLibrary _ | TSExecutable _ | TSStmt _ ->
+            acc
+        | TSBlock blk -> 
+            List.fold_left flags_top_stmt acc blk
+        | TSFlag (nm, blk)  -> 
+            let wrtr =
+              Schema.writer flag_schema 
+            in
+            let flag =
+              flags_stmt (Schema.set_field wrtr) env blk;
+              flag_gen wrtr
+            in
+              {env with flags = (nm, flag.flag_default) :: env.flags},
+              (nm, flag) :: lst
+    in
+      flags_top_stmt (env, []) ast
   in
   
-  (* Main loop *)
-  let st_token =
-    lexer st
+  let env = 
+    Env.create ?ocamlc fn
   in
-    try 
-      let ast = 
-        ASTBlock (parse_stmt_list st_token)
-      in
-        close_in chn;
-        check ast;
-        ast
-    with 
-      | Stream.Error str ->
-        (
-          if str = "" then 
-            failwith ("Syntax error "^(position ()))
-          else
-            failwith ("Syntax error "^str^(position ()))
-        )
-      | Schema.MissingField lst ->
-          failwith ("Missing fields: "^(String.concat ", " lst))
+
+  let env, flags =
+    flags ast env
+  in
+
+    check ast env;
+    env, flags
 ;;
 
-
-let flags env ast =
-  let rec flags_rec fwrtr acc =
+let oasis (ast, env, _) =
+  let rec oasis_stmt wrtr =
     function
-      | ASTField (nm, str) -> 
-          fwrtr nm str; acc
-      | ASTLibrary blk -> 
-          flags_rec fwrtr acc blk
-      | ASTExecutable (_, blk) -> 
-          flags_rec fwrtr acc blk
-      | ASTIfThenElse (tst, blk1, blk2) -> 
-          flags_rec fwrtr acc (if tst env then blk1 else blk2)
-      | ASTBlock blk -> 
-          List.fold_left (flags_rec fwrtr) acc blk
-      | ASTFlag (nm, blk)  -> 
-          let wrtr =
-            Schema.writer flag_schema 
-          in
-          let (env, lst) = 
-            flags_rec (Schema.set_field wrtr) acc blk
-          in
-          let flag =
-            flag_gen wrtr
-          in
-            {env with flag = (nm, flag.flag_default) :: env.flag},
-            ((nm, flag) :: lst)
-  in
-  let (_, lst) = 
-    flags_rec (fun _ _ -> ()) (env, []) ast
-  in
-    lst
-;;
+      | SField (nm, str) -> 
+          Schema.set_field wrtr nm env str
 
-let oasis env ast =
-  let rec oasis_rec wrtr acc =
+      | SIfThenElse (e, blk1, blk2) -> 
+          let blk =
+            if expr_eval env e then
+              blk1 
+            else
+              blk2
+          in
+            oasis_stmt wrtr blk
+
+      | SBlock blk ->
+          List.iter (oasis_stmt wrtr) blk
+  in
+
+  let rec oasis_top_stmt root_wrtr ((libs, execs) as acc) =
     function
-      | ASTField (nm, str) -> 
-          Schema.set_field wrtr nm str;
+      | TSFlag (_, blk) -> 
           acc
 
-      | ASTFlag (_, blk) -> 
-          oasis_rec wrtr acc blk
-
-      | ASTLibrary blk -> 
+      | TSLibrary (nm, blk) -> 
           let wrtr =
             Schema.writer lib_schema
           in
-          let (libs, execs) = 
-            oasis_rec wrtr acc blk
+          let lib = 
+            oasis_stmt wrtr blk;
+            lib_gen wrtr
           in
-            ((lib_gen wrtr) :: libs), execs
+            ((nm, lib) :: libs), execs
 
-      | ASTExecutable (nm, blk) -> 
+      | TSExecutable (nm, blk) -> 
           let wrtr =
             Schema.writer exec_schema
           in
-          let (libs, execs) = 
-            oasis_rec wrtr acc blk
+          let exec = 
+            oasis_stmt wrtr blk;
+            exec_gen wrtr
           in
-            libs, ((exec_gen wrtr) :: execs)
+            libs, ((nm, exec) :: execs)
 
-      | ASTIfThenElse (tst, blk1, blk2) -> 
-          oasis_rec wrtr acc 
-            (if tst env then 
-               blk1 
-             else 
-               blk2)
+      | TSStmt stmt -> 
+          oasis_stmt root_wrtr stmt;
+          acc
 
-      | ASTBlock blk -> 
-          List.fold_left (oasis_rec wrtr) acc blk
+      | TSBlock blk -> 
+          List.fold_left (oasis_top_stmt root_wrtr) acc blk
   in
   let wrtr =
     Schema.writer root_schema 
   in
   let libs, execs =
-    oasis_rec wrtr ([], []) ast
+    oasis_top_stmt wrtr ([], []) ast
   in
     {(root_gen wrtr) with libraries = libs; executables = execs}
 ;;

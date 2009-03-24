@@ -9,61 +9,30 @@ open Oasis;;
 
 let tests ctxt =
 
-  (* Convert a flag to a string *)
-  let string_of_flag ?(indent="") flg =
-    (match flg.flag_description with
-       | Some s -> 
-           (Printf.sprintf
-              "%sDescription: %s\n"
-              indent
-              s)
-       | None ->
-           "")
-    ^
-    (Printf.sprintf 
-       "%sDefault: %b\n" 
-       indent
-       flg.flag_default)
-  in
-
-  (* Convert a list of flags to a string *)
-  let string_of_flags ?(indent="") flgs =
-    String.concat "\n"
-      (List.map
-         (fun (nm, flg) ->
-            Printf.sprintf "%sFlag %s\n%s"
-              indent
-              nm
-              (string_of_flag ~indent:(indent^" ") flg))
-      flgs)
-  in
-
   (* Convert environment to string *)
   let string_of_env env =
     String.concat "; "
       (
-        (List.map (fun (nm, b)   -> Printf.sprintf "%s = %b" nm b) env.flag)
+        (List.map (fun (nm, b)   -> Printf.sprintf "%s = %b" nm b) env.flags)
         @
-        (List.map (fun (nm, str) -> Printf.sprintf "%s = '%s'" nm str) env.test)
+        (List.map (fun (nm, str) -> Printf.sprintf "%s = '%s'" nm str) env.tests)
       )
   in
 
   (* Check flag equality *)
-  let assert_flag nm flg_exp lst =
-    let flg =
-      try
-        List.assoc nm lst 
-      with Not_found ->
-        assert_failure 
-          (Printf.sprintf 
-             "No flag '%s' defined"
-             nm)
-    in
-      assert_equal
-        ~printer:string_of_flag
-        ~msg:(Printf.sprintf "Checking flag '%s'" nm)
-        flg_exp
-        flg
+  let assert_flag nm lst =
+    try
+      let _ = 
+        List.find 
+          (fun (flg, _) -> nm = flg) 
+          lst 
+      in
+        ()
+    with Not_found ->
+      assert_failure 
+        (Printf.sprintf 
+           "No flag '%s' defined"
+           nm)
   in
 
   (* Check that at least one alternative doesn't raise an exception *)
@@ -87,58 +56,241 @@ let tests ctxt =
         assert_failure msg
   in
 
-
-  "OASIS" >:::
-  [
-    "test1.oasis" >::
+  let test_of_vector (fn, test) = 
+    fn >::
     (fun () ->
+       let fn =
+         in_data fn
+       in
        let ast =
-         parse_file (in_data "test1.oasis")
+         if ctxt.dbug then
+           OasisTools.parse_file 
+             ~fstream:OasisTools.stream_debugger 
+             fn
+         else
+           OasisTools.parse_file
+             fn
        in
-       let env =
-         env_of_ocamlc "ocamlc"
+       let (env, flags) =
+         create fn ast  
        in
-       let flags =
-         flags env ast
+       let oasis =
+         if ctxt.dbug then
+           prerr_endline (string_of_env env);
+         oasis (ast, env, flags)
        in
-       let () = 
-         prerr_endline (string_of_env env);
-         prerr_endline (string_of_flags flags);
-         assert_flag 
-           "devmod"
-           {
-             flag_description = Some "build for developper";
-             flag_default     = true;
-           }
-           flags;
-         assert_alternative
-           "At least one of ostest, linuxtest64 and linuxtest32 is defined"
-           (List.map
-              (fun (nm, flg_exp) -> (fun () -> assert_flag nm flg_exp flags))
-              [
-                "ostest",
-                {
-                  flag_description = Some "Test on OS";
-                  flag_default     = true;
-                };
-                "linuxtest64",
-                {
-                  flag_description = Some "Linux 64bits only";
-                  flag_default     = true;
-                };
-                "linuxtest32",
-                {
-                  flag_description = Some "Linux 32bits only";
-                  flag_default     = true;
-                };
-              ])
-           ()
-       in
-       let _oasis =
-         oasis env ast
-       in
-         ()
+         test env flags oasis)
+  in
+
+    "OASIS" >:::
+    (List.map test_of_vector 
+       [
+         "test1.oasis",
+         (fun env flags oasis ->
+            assert_flag "devmod" flags;
+            assert_alternative
+              "At least one of ostest, linuxtest64 and linuxtest32 is defined"
+              (List.map
+                 (fun nm -> (fun () -> assert_flag nm flags))
+                 [
+                   "ostest";
+                   "linuxtest64";
+                   "linuxtest32";
+                 ])
+              ());
+
+         "test2.oasis",
+         (fun env flags oasis ->
+            ());
+       ]
     )
-  ]
+;;
+
+let () = 
+  let tmpfiles =
+    [
+      in_data "src/toto.ml";
+      in_data "src/toto.native";
+      in_data "src/stuff/A.cmi";
+      in_data "src/stuff/B.cmi";
+      in_data "src/stuff/C.cmi";
+      in_data "src/stuff/stuff.cma";
+      in_data "src/stuff/stuff.cmxa";
+    ]
+  in
+
+  let () = 
+    (* Create temporary file *)
+    List.iter (fun fn -> close_out (open_out fn)) tmpfiles;
+
+    at_exit
+      (fun () ->
+         (* Remove temporary file *)
+         List.iter Sys.remove tmpfiles)
+  in
+
+  let fn =
+    in_data "test1.oasis"
+  in
+
+  let ast = 
+    OasisTools.parse_file fn
+  in
+
+  let env, flags =
+    create fn ast
+  in
+
+  let pkg =
+    oasis (ast, env, flags)
+  in
+
+  (* Configuration *)
+  let () = 
+    prerr_endline "*****************\n\
+                   * Configuration *\n\
+                   *****************";  
+    prerr_endline ("package_name: "^pkg.name);
+    prerr_endline ("package_version: "^pkg.version);
+    List.iter
+      (function
+         | pkg, Some ver -> Printf.eprintf "%s %s\n%!" pkg ver
+         | pkg, None     -> Printf.eprintf "%s\n%!" pkg)
+      pkg.build_depends
+  in
+
+  (* Installation *)
+
+  let srcdir = 
+    env.srcdir
+  in
+
+  let builddir =
+    Filename.concat srcdir "_build"
+  in
+
+  let bindir =
+    "/usr/bin/"
+  in
+
+  let rootdirs =
+    [srcdir; builddir]
+  in
+
+  let ( * ) lst1 lst2 = 
+    List.flatten 
+      (List.map 
+         (fun a -> 
+            List.map 
+              (fun b -> a,b) 
+              lst2) 
+         lst1)
+  in
+
+  let make_filename =
+    function
+      | [] -> "" 
+      | hd :: tl  -> List.fold_left Filename.concat hd tl
+  in
+
+  let make_module nm = 
+    [String.capitalize nm; String.uncapitalize nm]
+  in
+
+  let find_file f lst = 
+    List.find 
+      Sys.file_exists
+      (List.map (fun e -> make_filename (f e)) lst)
+  in
+
+  let find_build_file dir fn =
+    find_file
+      (fun rootdir -> [rootdir; dir; fn])
+      rootdirs
+  in
+
+  let install_lib (name, lib) = 
+    if lib.lib_buildable then
+      (
+        let find_build_file =
+          find_build_file lib.lib_path
+        in
+
+        let module_to_cmi modul =
+          find_file 
+             (fun (rootdir, fn) -> [rootdir; lib.lib_path; (fn^".cmi")])
+             (rootdirs * (make_module modul))
+        in
+
+        let module_to_header modul =
+          assert(modul <> "");
+          find_file 
+             (fun ((rootdir, fn), ext) -> [rootdir; lib.lib_path; fn^ext])
+             (rootdirs * (make_module modul) * [".mli"; ".ml"])
+        in
+          
+        let cmdline =
+          List.flatten
+            (
+              [
+                "ocamlfind"; "install"; name; 
+                find_build_file "META";
+                find_build_file (name^".cma");
+              ]
+              :: 
+              (
+                try 
+                  [find_build_file (name^".cmxa")]
+                with Not_found ->
+                  []
+              )
+              ::
+              (
+                List.rev_map
+                  (fun modul -> [module_to_cmi modul; module_to_header modul])
+                  lib.lib_modules
+              )
+            )
+        in
+          prerr_endline (String.concat " " cmdline)
+      )
+  in
+
+  let install_exec (name, exec) =
+    if exec.exec_buildable then
+      (
+        let exec_file =
+          find_file
+            (fun ((rootdir, name), ext) -> [rootdir; name^ext])
+            (
+              rootdirs *
+              [name; Filename.chop_extension exec.exec_main_is] *
+              [""; ".native"; ".byte"; ".p.native"; ".d.byte"]
+            )
+        in
+        let cmdline =
+          [
+            "cp"; 
+            exec_file; 
+            Filename.concat 
+              bindir
+              name
+          ]
+        in
+          prerr_endline (String.concat " " cmdline)
+      )
+  in
+
+    prerr_endline "****************\n\
+                   * Installation *\n\
+                   ****************";  
+    List.iter 
+      install_lib
+      pkg.libraries;
+
+    List.iter
+      install_exec
+      pkg.executables;
+
 ;;
 

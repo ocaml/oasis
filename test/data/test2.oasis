@@ -1,0 +1,22 @@
+
+Name: Stuff
+Version: 1.2.3.0
+Copyright: (C) 2003-2008, J. R. Hacker
+Homepage: http://foo.com
+Author: J. R. Hacker <hacker@example.com>
+Maintainer: J. R. Hacker <hacker@example.com>
+LicenseFile: LICENSE
+License: LGPL-link-exn
+Buildtype: Simple
+
+# blank lines are ignored, as are comments
+
+Synopsis: some stuff
+Description:
+  This is a rather short desc.
+  .
+  (with an empty line)
+
+Library stuff
+  Path: src/stuff
+  Modules: A B C
