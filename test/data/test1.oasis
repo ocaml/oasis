@@ -5,7 +5,7 @@ License:      GPL
 LicenseFile:  LICENSE
 Author:       Sylvain Le Gall
 BuildType:    Simple
-BuildDepends: oUnit (>= 1.0.2), benchmark (>= 0.8)
+BuildDepends: oUnit (>= 1.0.2), benchmark (>= 0.6)
 Description: 
  This is a test to check that everything is working great
  with this kind of parser.
