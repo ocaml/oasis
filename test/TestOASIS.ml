@@ -146,17 +146,46 @@ let () =
   in
 
   (* Configuration *)
+
+  let checks pkg = 
+    let depends =
+      pkg.build_depends
+    in
+      List.map
+        (function
+           | pkg, Some ver -> 
+               BaseCheck.fenv (BaseCheck.package ~version_comparator:ver pkg)
+           | pkg, None ->
+               BaseCheck.fenv (BaseCheck.package pkg))
+        depends
+  in
+
   let () = 
     prerr_endline "*****************\n\
                    * Configuration *\n\
                    *****************";  
-    prerr_endline ("package_name: "^pkg.name);
-    prerr_endline ("package_version: "^pkg.version);
-    List.iter
-      (function
-         | pkg, Some ver -> Printf.eprintf "%s %s\n%!" pkg ver
-         | pkg, None     -> Printf.eprintf "%s\n%!" pkg)
-      pkg.build_depends
+
+    try
+      BaseAction.main
+        pkg.name
+        pkg.version
+        (* Command line argument *)
+        [
+        ]
+        (* Checks*)
+        (checks pkg)
+        (* .in files *)
+        [
+        ]
+        (* Targets *)
+        [
+        ]
+        (* Packs *)
+        [
+          BasePack.default
+        ]
+    with e ->
+      prerr_endline (Printexc.to_string e)
   in
 
   (* Installation *)
