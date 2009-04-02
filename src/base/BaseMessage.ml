@@ -27,13 +27,15 @@ let info str =
 let checking str =
   print_string "checking for ";
   print_string str;
-  print_string "... "
+  print_string "... ";
+  flush stdout
 ;;
 
 (** Print end of line when checking for a feature.
   *)
 let result str =
-  print_endline str
+  print_endline str;
+  flush stdout
 ;;
 
 (** Print result and return it.
