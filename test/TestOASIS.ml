@@ -102,6 +102,10 @@ let tests ctxt =
          "test2.oasis",
          (fun env flags oasis ->
             ());
+
+         "test3.oasis",
+         (fun env flags oasis ->
+            ());
        ]
     )
 ;;

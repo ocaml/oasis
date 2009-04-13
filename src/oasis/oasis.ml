@@ -287,7 +287,7 @@ struct
       | _ ->
           failwith 
             (Printf.sprintf 
-               "Boolean value must be 'true' 
+               "Boolean value must be 'true' \
                or 'false', not '%s'"
                str)
 
@@ -296,6 +296,9 @@ struct
     let separator =
       Str.regexp " *, *"
     in
+    let strip_whitespace =
+      Str.regexp " *\\([^ ]*\\) *"
+    in
     let split_version =
       Str.regexp "\\([^ ]*\\) *( *\\(.*\\) *)"
     in
@@ -303,8 +306,12 @@ struct
       if Str.string_match split_version str 0 then
         (Str.matched_group 1 str), 
         Some (Str.matched_group 2 str)
+      else if Str.string_match strip_whitespace str 0 then
+        (Str.matched_group 1 str),
+        None
       else
-        str, None
+        str, 
+        None
     in
       List.map
         parse_one

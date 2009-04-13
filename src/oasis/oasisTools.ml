@@ -42,6 +42,20 @@ let parse_file ?(fstream) fn =
            None)
   in
 
+  (* Get rid of '\t' for indent *)
+  let notab st =
+    Stream.from
+      (fun _ ->
+         try
+           match Stream.next st with 
+             | '\t' ->
+                 Some ' '
+             | c ->
+                 Some c
+         with Stream.Failure ->
+           None)
+  in
+
   (* Skip comment *)
   let skip_comment st =
     Stream.from
@@ -263,10 +277,11 @@ let parse_file ?(fstream) fn =
       (string_of_freeform
          (skip_comment 
             (dos2unix 
-               (count_line 
-                  (match fstream with
-                     | Some f -> f st
-                     | None -> st)))))
+               (notab
+                 (count_line 
+                    (match fstream with
+                       | Some f -> f st
+                       | None -> st))))))
   in
 
   let position () = 
