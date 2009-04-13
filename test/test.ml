@@ -15,7 +15,8 @@ let _res: test_result list =
     run_test_tt_main
       ("ocaml-autobuild">:::
        [
-         TestOASIS.tests   ctxt;
-         TestVersion.tests ctxt;
+         TestOASIS.tests        ctxt;
+         TestVersion.tests      ctxt;
+         TestFileGenerate.tests ctxt;
        ])
 ;;
