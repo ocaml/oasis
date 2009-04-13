@@ -1,0 +1,132 @@
+
+Architecture
+============
+
+The first goal is to be able to generate most of the required file for
+ocamlbuild. The build tool of choice for ocaml-autobuild will be ocamlbuild.
+Other build tools like OCamlMakefile and OMake should also be used, but this
+will be only secondary goals.
+
+The minimum requirement for using ocaml-autobuild is to use findlib. It is used
+to detect package installation and install own package.
+
+We consider that the minimum requirement for a build system is to be able to
+configure, build and install. 
+
+configure
+---------
+
+The configure phase provide a way to set various option of the build system
+depending of software/hardware configuration and user choice. A project has
+some requirement regarding third party software to be installed, this is "build
+dependencies". Depending on what the user want, it should be possible to have
+the choice on some build scheme: don't build a module, use an alternate
+implementation for another... These are "user choices". The configure step try
+to auto detect various parameter and see if they match with "build dependencies" 
+and "user choices". At the end the configure scheme should create various file
+reprensenting its result. Files are created through replacement of variable in
+files (%.in -> %).
+
+We rely on OASIS file to describe "user choices" (Flag) and "build
+dependencies" (BuildDepends). 
+
+OCaml-autobuild provide 2 choices for configure:
+- internal (default): an OCaml module is embeded in the project that perform all
+  this checks, use translated OASIS in BasePack structure. 
+- ocaml-autoconf: use translated OASIS in configure.ac
+
+build
+-----
+
+The build phase should build all the project objects. It should take care of
+building native and bytecode object depending on the target system. 
+
+OCaml-autobuild provides 3 choices for build:
+- ocamlbuild (default): use translated OASIS files (.mllib, .itarget...) and
+  ocamlbuild shipped with ocaml, add ocamlbuild detection to configure
+- OCamlMakefile: use translated OASIS files (Makefile) and OCamlMakefile shipped
+  externaly, add OCamlMakefile user choice and detection
+- OMake: use translated OASIS files (TODO)
+
+build phase use configure phase result through a generated file that list
+important variable regarding build process. 
+
+test
+----
+
+The test phase is optional. 
+TODO
+
+doc
+---
+
+The doc phase is optional.
+TODO
+
+install
+-------
+
+The install phase install all generated objects into the target system.
+
+OCaml-autobuild provides 1 choice for install:
+- internal (default): use ocamlfind to install library FileUtils to install
+  data and executable.
+
+install phase use configure phase result through a generated file that list
+important variable regarding build process.
+
+OASIS files
+-----------
+
+TODO
+
+Generating project skeleton
+---------------------------
+
+TODO
+
+External tools
+==============
+
+
+ocamlconf
+---------
+
+yam
+---
+
+ocamlbuild
+----------
+
+OCamlMakefile
+-------------
+
+OMake
+-----
+
+godiva
+------
+
+ocaml-autoconf
+--------------
+
+ocamake
+-------
+
+Target system
+=============
+
+GODI
+----
+
+Debian
+------
+
+Fedora
+------
+
+Developper
+----------
+
+
+
