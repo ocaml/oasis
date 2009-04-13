@@ -3,9 +3,13 @@
     @author Sylvain Le Gall
   *)
 
+let verbose =
+  ref true
+;;
+
 (** Print a warning message 
   *)
-let warn str =
+let warning str =
   prerr_endline str
 ;;
 
@@ -19,23 +23,33 @@ let error str =
 (** Print information message.
   *)
 let info str = 
-  print_endline str
+  if !verbose then
+    (
+      print_endline str;
+      flush stdout
+    )
 ;;
 
 (** Print begin of line when checking for a feature.
   *)
 let checking str =
-  print_string "checking for ";
-  print_string str;
-  print_string "... ";
-  flush stdout
+  if !verbose then
+    (
+      print_string "checking for ";
+      print_string str;
+      print_string "... ";
+      flush stdout
+    )
 ;;
 
 (** Print end of line when checking for a feature.
   *)
 let result str =
-  print_endline str;
-  flush stdout
+  if !verbose then
+    (
+      print_endline str;
+      flush stdout
+    )
 ;;
 
 (** Print result and return it.

@@ -1,11 +1,10 @@
 
-(** Act using value collected in environment
+(** Configure using OCaml-autobuild
     @author Sylvain Le Gall
   *)
 
 module Msg = BaseMessage;;
 module Env = BaseEnvironment;;
-module Pck = BasePack;;
 
 (** {1 Filename using environment}
   *)
@@ -126,115 +125,65 @@ let replace fn_in env =
 
 (** Parse command line arguments 
   *)
-let parse env =
+let parse argv env =
+
+  (* Simulate command line for Arg *)
+  let current =
+    ref 0
+  in
+
   let args, renv =
     Env.arg_get env
   in
-  let rtargets = 
-    ref []
-  in
-    Arg.parse 
-      (Arg.align args)
-      (fun str -> rtargets := str :: !rtargets)
-      (Env.var_expand 
-         "\
-         Build system for $pkg_name v$pkg_version\n\
-         \n\
-         Options: \n\n\
-         " 
-         env);
-    (List.rev !rtargets), !renv
-;;
-
-(** Execute a command
-  *)
-let exec ?(exit_on_error=true) lst env = 
-  let cmd = 
-    String.concat " " lst 
-  in
-    Msg.info ("+ "^cmd);
-    match Sys.command cmd with
-      | 0 ->
-          ()
-      | i ->
-          Msg.warn ("'"^cmd^"' exit with status "^(string_of_int i));
-          (if exit_on_error then 
-            exit i
-          else
-            ()
-          )
-(** Execute every target given on command line 
-  *)
-let process_targets targets cli_targets (env: Env.env) =
-  let process_one_target tgt =
-    let actions = 
-      List.map snd
-       (List.filter (fun (tgt', _) -> tgt' = tgt) targets)
-    in
-      match actions with 
-        | [] -> 
-          failwith ("Unknown target "^tgt)
-        | _ ->
-          List.iter (fun f -> f env) actions
-  in
-    match cli_targets, targets with 
-      | [], (default_target, _) :: _ ->
-          (
-            Msg.info ("Using default target "^default_target);
-            process_one_target default_target
-          )
-      | lst, _ ->
-          List.iter process_one_target lst
+    (
+      try
+        Arg.parse_argv
+          ~current:current
+          (Array.concat [[|"toto"|]; argv])
+          (Arg.align args)
+          (fun str -> 
+             failwith 
+               ("Don't know what to do with arguments: '"^str^"'"))
+          "configure options:"
+      with Arg.Help txt ->
+        (
+          prerr_endline txt;
+          exit 1
+        )
+    );
+      !renv
 ;;
 
 (** Build environment using provided series of check to be done
   * and then output corresponding file.
   *)
-let main pkg_name pkg_version args checks in_files targets packs =
-  let pack = 
-    List.fold_left 
-      Pck.merge
-      {
-        Pck.args     = Env.chain args;
-        Pck.checks   = Env.chain checks;
-        Pck.in_files = in_files;
-        Pck.targets  = targets;
-      }
+let configure dirname pkg_name pkg_version packs argv =
+  let {BasePack.args     = args;
+       BasePack.checks   = checks; 
+       BasePack.in_files = in_files} = 
+    List.fold_left
+      BasePack.merge
+      BasePack.default
       packs
   in
   let env_orig =
     Env.init 
+      dirname
       pkg_name 
       pkg_version
   in
   let env =
-    pack.Pck.args env_orig
-  in
-  let cli_targets, env =
-    parse env
-  in
-  let env = 
-    pack.Pck.checks env
+    checks (parse argv (args env_orig))
   in
   let env =
     List.fold_left 
       (fun env fn_in -> replace fn_in env) 
       env
-      pack.Pck.in_files
+      in_files
   in
-  let env =
     if Env.has_changed env_orig env then
       (
         Env.dump  env;
         Env.print env
       )
-    else
-      (
-        env
-      )
-  in
-    process_targets 
-      pack.Pck.targets 
-      cli_targets
-      env
 ;;

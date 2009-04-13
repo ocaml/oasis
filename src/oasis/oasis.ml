@@ -5,7 +5,6 @@ type url          = string;;
 type version      = string;;
 type dirname      = string;;
 type filename     = string;;
-type build_type   = string;;
 
 type license = 
     [
@@ -54,7 +53,11 @@ type package =
       description:   string option;
       categories:    url list;
       build_depends: dependency list;
-      build_type:    build_type;
+      conf_type:     string;
+      build_type:    string;
+      doc_type:      string;
+      test_type:     string;
+      install_type:  string;
       libraries:     (name * lib) list;
       executables:   (name * exec) list;
       extra:         (name * string) list;
@@ -365,9 +368,6 @@ let root_schema, root_gen =
   let synopsis =
     Schema.new_field schm "synopsis" VP.string_not_empty
   in
-  let build_type =
-    Schema.new_field schm "buildtype" VP.string_not_empty
-  in
   let author =
     Schema.new_field schm "author" VP.string_not_empty
   in
@@ -388,6 +388,31 @@ let root_schema, root_gen =
                   failwith (Printf.sprintf 
                               "'%s' is not an URL or a common license name"
                               str)))
+  in
+  let conf_type =
+    Schema.new_field schm "conftype" 
+      ~default:"autobuild"
+      VP.string_not_empty
+  in
+  let build_type =
+    Schema.new_field schm "buildtype" 
+      ~default:"ocamlbuild"
+      VP.string_not_empty
+  in
+  let doc_type =
+    Schema.new_field schm "doctype" 
+      ~default:"none"
+      VP.string_not_empty
+  in
+  let test_type =
+    Schema.new_field schm "testtype" 
+      ~default:"none"
+      VP.string_not_empty
+  in
+  let install_type =
+    Schema.new_field schm "installtype"
+      ~default:"autobuild"
+      VP.string_not_empty
   in
   let copyright =
     Schema.new_field schm "copyright" 
@@ -434,7 +459,11 @@ let root_schema, root_gen =
         description   = description tbl;
         categories    = categories tbl;
         build_depends = build_depends tbl;
+        conf_type     = conf_type tbl;
         build_type    = build_type tbl;
+        doc_type      = doc_type tbl;
+        test_type     = test_type tbl;
+        install_type  = install_type tbl;
         libraries     = [];
         executables   = [];
         extra         = [];

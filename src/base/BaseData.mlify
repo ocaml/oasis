@@ -1,4 +1,2 @@
-VarStringList buildsys_ml "buildsys.ml"
-VarStringList buildsys_sh "buildsys.sh"
-VarStringList buildsys_bat "buildsys.bat"
-VarStringList makefile "Makefile"
+VarString      basesys_ml "BaseSys.ml"
+VarStringList  makefile   "Makefile"

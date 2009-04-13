@@ -17,7 +17,6 @@ type package =
       args:     Env.fun_env;
       checks:   Env.fun_env;
       in_files: string list;
-      targets:  (string * (Env.env -> unit)) list;
     }
 ;;
 
@@ -26,7 +25,6 @@ let merge pkg1 pkg2 =
     args     = (fun env -> pkg2.args   (pkg1.args env));
     checks   = (fun env -> pkg2.checks (pkg1.checks env));
     in_files = pkg1.in_files @ pkg2.in_files;
-    targets  = pkg1.targets  @ pkg2.targets;
   }
 ;;
 
@@ -220,24 +218,9 @@ let default =
   in
   let ocamlopt   = opt_prog "ocamlopt"
   in
-  let ocamllex   = opt_prog "ocamllex"
-  in
-  let ocamlyacc  = opt_prog "ocamlyacc"
-  in
-  
-  let ocamldoc   = Chk.prog "ocamldoc"
-  in
   let ocamlfind  = Chk.prog "ocamlfind"
   in
 
-  let camlp4     = Chk.prog "camlp4"
-  in
-  let mkcamlp4   = Chk.prog "mkcamlp4"
-  in
-  
-  let ocamlmklib = Chk.prog "ocamlmklib"
-  in
-  
   (** Check what is the best target for platform (opt/byte)
     *)
   let ocamlbest =
@@ -300,35 +283,10 @@ let default =
            ocaml_version;
            ocamlc;
            ocamlbest;
+           ocamlfind;
          ]
       )
       env
-  in
-
-  (*
-    
-    Base targets
-
-   *)
-
-  let targets =
-    [
-      "distclean",
-      (fun env ->
-         rm ~recurse:true (env.Env.no_dump.Env.fn :: (Env.temporary_get env))
-      );
-
-      "configure",
-      (fun env ->
-         ()
-      );
-
-      "print-configure",
-      (fun env ->
-         if not env.Env.no_dump.Env.print_conf_done then
-           ignore(Env.print env)
-      );
-    ]
   in
 
   (*
@@ -341,7 +299,6 @@ let default =
       args     = args;
       checks   = checks;
       in_files = [];
-      targets  = targets;
     }
 ;;
 

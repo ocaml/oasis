@@ -4,7 +4,7 @@ Synopsis:     Just a test
 License:      GPL
 LicenseFile:  LICENSE
 Author:       Sylvain Le Gall
-BuildType:    Simple
+BuildType:    None
 BuildDepends: oUnit (>= 1.0.2), benchmark (>= 0.6)
 Description: 
  This is a test to check that everything is working great

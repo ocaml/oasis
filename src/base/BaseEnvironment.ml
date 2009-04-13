@@ -297,10 +297,10 @@ let dump env =
 
 (** Initialize environment.
   *)
-let init ?filename pkg_name pkg_version = 
+let init ?filename dirname pkg_name pkg_version = 
   let fn = 
     Filename.concat 
-      (Filename.dirname Sys.argv.(0))
+      dirname
       (
         match filename with 
           | Some f ->
@@ -323,8 +323,8 @@ let init ?filename pkg_name pkg_version =
             Marshal.from_channel chn
           else
             (
-              Msg.warn ("Signature of environment has changed since last dump of "^fn);
-              Msg.warn "This can be due to change in the 'env' datastructure.";
+              Msg.warning ("Signature of environment has changed since last dump of "^fn);
+              Msg.warning "This can be due to change in the 'env' datastructure.";
               Msg.info ("Regenerating "^fn);
               env_empty
             )
@@ -382,8 +382,7 @@ let print env =
   print_endline "Temporary files: ";
   print_newline ();
   SetFn.iter print_endline env.temporary_files;
-  print_newline ();
-  {env with no_dump = {env.no_dump with print_conf_done = true}}
+  print_newline ()
 ;;
 
 

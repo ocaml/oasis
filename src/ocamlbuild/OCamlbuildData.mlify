@@ -1,0 +1,2 @@
+VarStringList myocamlbuild_ml  "myocamlbuild.ml"
+VarString     ocamlbuildsys_ml "OCamlbuildSys.ml"

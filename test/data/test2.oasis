@@ -7,7 +7,7 @@ Author: J. R. Hacker <hacker@example.com>
 Maintainer: J. R. Hacker <hacker@example.com>
 LicenseFile: LICENSE
 License: LGPL-link-exn
-Buildtype: Simple
+Buildtype: None
 
 # blank lines are ignored, as are comments
 

@@ -15,6 +15,7 @@ let dump_ml chn_out fn =
   in
     Printf.fprintf chn_out "module %s =\n" modname;
     Printf.fprintf chn_out "struct\n";
+    Printf.fprintf chn_out "# 1 %S\n" fn;
     (
       try
         while true do
@@ -29,18 +30,20 @@ let dump_ml chn_out fn =
 
 let process chn_in curdir chn_out =
   try
-    let fn =
-      input_line chn_in
-    in
-    let real_fn =
-      if Filename.is_relative fn then
-        Filename.concat curdir fn
-      else
-        fn
-    in
-      if not (Sys.file_exists real_fn) then
-        failwith ("Cannot find file '"^real_fn^"'");
-      dump_ml chn_out real_fn
+    while true do 
+      let fn =
+        input_line chn_in
+      in
+      let real_fn =
+        if Filename.is_relative fn then
+          Filename.concat curdir fn
+        else
+          fn
+      in
+        if not (Sys.file_exists real_fn) then
+          failwith ("Cannot find file '"^real_fn^"'");
+        dump_ml chn_out real_fn
+    done
   with End_of_file ->
     ()
 ;;
