@@ -2,9 +2,10 @@ Name: simplelib
 Version: 0.0.1
 Author: Mauricio Fernandez <mfp@acm.org>
 Maintainer: Mauricio Fernandez <mfp@acm.org>
-Copyright: 2008 Mauricio Fernandez
-License-File: LICENSE
+Copyright: (C) 2008 Mauricio Fernandez
+LicenseFile: LICENSE
 License: LGPL-link-exn
+BuildType: None
 
 Synopsis: Minimal ADT just to illustrate how libs work.
 Description: 
@@ -13,9 +14,10 @@ Description:
   Not much more to say
 
 Homepage: http://example.com
-Build-Depends:
+BuildDepends:
 	extlib
 
 Library simplelib
-  Modules: src/Foo src/Bar
+  Path: src
+  Modules: Foo Bar
 

@@ -1,0 +1,22 @@
+Name:         flags
+Version:      0.0.1
+Author:       Sylvain Le Gall
+LicenseFile:  LICENSE
+License:      LGPL-link-exn
+Synopsis:     Demonstrate the use of Flag.
+BuildDepends: extlib
+
+Flag buildext
+  Description: build simplelibext
+
+Library simplelib
+  Path: src/simplelib
+  Modules: Foo Bar
+
+Library simplelibext
+  Buildable: false
+  if flag(buildext) 
+    Buildable: true
+  Path: src/simplelibext
+  Modules: FooExt BarExt
+
