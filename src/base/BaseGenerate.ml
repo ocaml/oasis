@@ -255,31 +255,37 @@ let generate data =
     (* Generate setup.ml *)
     BaseFileGenerate.file_generate
       "setup.ml"
-      (List.flatten 
-         [
-           [
-             "(* AUTOBUILD_START *)";
-             "";
-             "#use \"topfind\";;";
-             "#require \"findlib\";;";
-             "#require \"fileutils\";;";
-             "";
-           ];
-           moduls;
-           [
-             setup_fun;
-             "(* AUTOBUILD_STOP *)";
-             "";
-             "setup ();;";
-           ]
-         ])
-      BaseFileGenerate.comment_ml;
+      BaseFileGenerate.comment_ml
+      (BaseFileGenerate.Split
+         (
+           (* Header *)
+           [],
+           (* Body *)
+           (List.flatten 
+              [
+                [
+                  "";
+                  "#use \"topfind\";;";
+                  "#require \"findlib\";;";
+                  "#require \"fileutils\";;";
+                  "";
+                ];
+                moduls;
+                [
+                  setup_fun;
+                ]
+              ]),
+           (* Footer *)
+           [""; "setup ();;"]
+         )
+      );
 
     (* Generate Makefile (for standard dev. env.) *)
     BaseFileGenerate.file_generate
       "Makefile"
-      BaseData.makefile
-      BaseFileGenerate.comment_sh;
+      BaseFileGenerate.comment_sh
+      (BaseFileGenerate.NeedSplit
+         BaseData.makefile);
 
     (* Generate other files *)
     List.iter

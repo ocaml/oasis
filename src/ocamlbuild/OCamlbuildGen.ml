@@ -51,8 +51,8 @@ let build data =
          let () =
            file_generate
              fn_mllib
-             ("# AUTOBUILD_START " :: lib.lib_modules)
-             comment_sh
+             comment_ocamlbuild
+             (Split ([], lib.lib_modules, []))
          in
 
            ())
@@ -61,29 +61,31 @@ let build data =
     (* Generates toplevel .itarget *)
     file_generate
       fn_itarget
-      (
-        "# AUTOBUILD_START "
-        ::
-        List.flatten
-          [
-            List.map
-              (fun (nm, lib) -> Filename.concat lib.lib_path (nm^".cma"))
-              data.pre_pkg.libraries;
-            List.map
-              (fun (nm, lib) -> Filename.concat lib.lib_path (nm^".cmxa"))
-              data.pre_pkg.libraries;
-            List.map
-              (fun (nm, exec) -> (Filename.chop_extension exec.exec_main_is)^".byte")
-              data.pre_pkg.executables
-          ]
-      )
-      comment_sh;
+      comment_ocamlbuild
+      (Split
+         (
+           [],
+           List.flatten
+             [
+               List.map
+                 (fun (nm, lib) -> Filename.concat lib.lib_path (nm^".cma"))
+                 data.pre_pkg.libraries;
+               List.map
+                 (fun (nm, lib) -> Filename.concat lib.lib_path (nm^".cmxa"))
+                 data.pre_pkg.libraries;
+               List.map
+                 (fun (nm, exec) -> (Filename.chop_extension exec.exec_main_is)^".byte")
+                 data.pre_pkg.executables
+             ],
+           []
+         )
+      );
 
     (* Generate myocamlbuild.ml *)
     file_generate 
       "myocamlbuild.ml"
-      OCamlbuildData.myocamlbuild_ml
       comment_ml
+      (NeedSplit OCamlbuildData.myocamlbuild_ml)
   in
     {
       moduls = 

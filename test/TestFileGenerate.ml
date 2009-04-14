@@ -50,8 +50,8 @@ let tests ctxt =
          file_generate 
            ~target:target_fn
            real_fn
-           content_lst
-           comment_fmt;
+           comment_fmt
+           (NeedSplit content_lst);
          BaseMessage.verbose := verbosity;
 
 

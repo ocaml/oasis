@@ -10,296 +10,308 @@ open BaseMessage;;
 (** Type to describe comment *)
 type comment_format =
     {
-      comment_begin: string;
-      comment_end:   string;
+      of_string: string -> string;
+      regexp:    string -> Str.regexp;
+      start:     string;
+      stop:      string;
     }
 ;;
 
+type content =
+  (* Use header * body * footer without start/stop comment *)
+  | Split of (string list) * (string list) * (string list)
+  (* Look for start/stop comment and split *)
+  | NeedSplit of string list
+;;
+
+(**/**)
+let (start_msg, stop_msg) =
+  "AUTOBUILD_START",
+  "AUTOBUILD_STOP"
+;;
+
+let white_space =
+  "[ \t]*"
+;;
+
+let comment cmt_beg cmt_end =
+  let of_string =
+      match cmt_end with
+        | None ->
+            Printf.sprintf "%s %s" cmt_beg 
+        | Some cmt_end ->
+            (fun str ->
+               Printf.sprintf "%s %s %s" cmt_beg str cmt_end)
+  in
+  let regexp str = 
+    match cmt_end with 
+      | Some cmt_end ->
+          Str.regexp ("^"^white_space^
+                      (Str.quote cmt_beg)^
+                      white_space^
+                      (Str.quote str)^
+                      white_space^
+                      (Str.quote cmt_end)^
+                      white_space^"$")
+      | None ->
+          Str.regexp ("^"^white_space^
+                      (Str.quote cmt_beg)^
+                      white_space^
+                      (Str.quote str)^
+                      white_space^"$")
+  in
+    {
+      of_string = of_string;
+      regexp    = regexp;
+      start     = of_string start_msg;
+      stop      = of_string stop_msg;
+    }
+;;
+
+(**/**)
+
 let comment_ml =
-  {
-    comment_begin = "(*";
-    comment_end   = "*)";
-  }
+  comment "(*" (Some "*)")
 ;;
 
 let comment_sh = 
-  {
-    comment_begin = "#";
-    comment_end   = "";
-  }
+  comment "#" None
 ;;
 
 let comment_makefile = 
   comment_sh
 ;;
 
+let comment_ocamlbuild =
+  comment_sh
+;;
+
 let comment_bat = 
-  {
-    comment_begin = "rem";
-    comment_end   = "";
-  }
+  comment "rem" None
 ;;
 
 (** Generate a file using a template. Only the part between AUTOBUILD_START and 
     AUTOBUILD_END will really be replaced if the file exist. If file doesn't exist
     use the whole template.
  *)
-let file_generate ?(target) fn content_lst comment = 
-  let {comment_begin = comment_begin; comment_end = comment_end} =
-    comment
-  in
+let file_generate ?(target) fn comment content = 
 
-  let start_replace =
-    comment_begin ^ " AUTOBUILD_START " ^ comment_end
+  (* Match start and stop comment
+   *)
+  let is_start, is_stop =
+    let match_regexp msg =
+      let rgxp =
+        comment.regexp msg
+      in
+        fun str ->
+          Str.string_match rgxp str 0
+    in
+      (match_regexp start_msg),
+      (match_regexp stop_msg)
   in
 
   let do_not_edit =
-    Str.regexp (comment_begin ^ " DO NOT EDIT (digest: \\(.*\\)) " ^ comment_end)
+    comment.regexp "DO NOT EDIT (digest: \\(.*\\))"
   in
 
-  let stop_replace =
-    comment_begin ^ " AUTOBUILD_STOP " ^ comment_end
+  (* Compute the digest of a list
+   *)
+  let digest_of_list lst =
+    Digest.to_hex 
+      (Digest.string 
+         (String.concat "\n" lst))
   in
 
-  let output_file buff_begin buff_replace buff_end =
+  (* Write body, header and footer to output file. Separate
+   * each part by appropriate comment and digest.
+   *)
+  let output_file lst_header lst_body lst_footer =
     let chn_out =
       open_out_bin 
         (match target with 
            | Some fn -> fn
            | None    -> fn)
     in
-      Buffer.output_buffer chn_out buff_begin;
-      output_string chn_out start_replace;
-      output_char   chn_out '\n';
-      output_string chn_out 
-        (Printf.sprintf 
-           "%s DO NOT EDIT (digest: %s) %s\n"
-           comment_begin 
-           (Digest.to_hex (Digest.string (Buffer.contents buff_replace)))
-           comment_end);
-      Buffer.output_buffer chn_out buff_replace;
-      output_string chn_out stop_replace;
-      output_char   chn_out '\n';
-      Buffer.output_buffer chn_out buff_end;
+    let output_line str =
+      output_string chn_out str;
+      output_char   chn_out '\n'
+    in
+    let output_lst =
+      List.iter
+        output_line
+    in
+
+      output_lst   lst_header;
+      output_line  comment.start;
+      output_line 
+        (comment.of_string 
+           (Printf.sprintf 
+              "DO NOT EDIT (digest: %s)"
+              (digest_of_list lst_body)));
+      output_lst   lst_body;
+      output_line  comment.stop;
+      output_lst   lst_footer;
       close_out chn_out
   in
 
-
-  let template_begin,
-      template_replace,
-      template_end =
-
-    let buff_begin,
-        buff_replace,
-        buff_end = 
-      Buffer.create 13,
-      Buffer.create 13,
-      Buffer.create 13
+  (* Separate a list into three part: header, body and footer.
+   * Each part is separated by the appropriate start/stop comment.
+   *)
+  let split_header_body_footer lst = 
+    (* Extract elem until the first that match condition.
+     * The element that matched is removed 
+     *)
+    let rec split_cond cond acc lst =
+      match lst with 
+        | hd :: tl ->
+            if cond hd then
+              split_cond cond (hd :: acc) tl
+            else
+              (List.rev acc), tl
+        | [] ->
+            raise Not_found
     in
-
-    let buff_cur =
-      ref buff_begin
-    in
-    let section_replace_found =
-      ref false
-    in
-
-      List.iter 
-        (fun str ->
-           if str = start_replace then
-             (
-               buff_cur := buff_replace;
-               section_replace_found := true
-             )
-           else if str = stop_replace then
-             (
-               buff_cur := buff_end
-             )
-           else
-             (
-               Buffer.add_string !buff_cur str;
-               Buffer.add_char   !buff_cur '\n'
-             ))
-        content_lst;
-
-      if not !section_replace_found then
-        warning 
-          (Printf.sprintf 
-             "No replace section found in template for file %s" 
-             fn);
-
-      buff_begin, buff_replace, buff_end
+      (* Begin by extracting header, if that fail there
+       * is no body/footer.
+       *)
+      try
+        let lst_header, tl =
+          split_cond 
+            (fun str -> not (is_start str))
+            []
+            lst
+        in
+        let lst_body, lst_footer =
+          try
+            split_cond 
+              (fun str -> not (is_stop str))
+              []
+              tl
+          with Not_found ->
+            tl, []
+        in
+          lst_header, Some (lst_body, lst_footer)
+      with Not_found ->
+        lst, None
   in
 
-  let input_line_cond buff chn cond = 
-    let str =
-      input_line chn
-    in
-      if cond str then
-        (
-          Buffer.add_string buff str;
-          Buffer.add_char buff '\n';
-          true
-        )
-      else
-        (
-          false
-        )
-  in
+  (* Split content
+   *)
+  let content_header,
+      content_body,
+      content_footer =
 
+    match content with
+      | Split (lst_header, lst_body, lst_footer) ->
+          lst_header, lst_body, lst_footer
+      | NeedSplit lst ->
+          (
+            match split_header_body_footer lst with
+              | lst_header, Some (lst_body, lst_footer) ->
+                  lst_header, lst_body, lst_footer
+              | lst_header, None ->
+                  warning 
+                    (Printf.sprintf 
+                       "No replace section found in template for file %s" 
+                       fn);
+                  lst_header, [], []
+          )
+  in
 
     if Sys.file_exists fn then
       (
-        let chn_in =
-          open_in_bin fn 
-        in
-        let size_in =
-          in_channel_length chn_in
-        in
-        let buff_begin, 
-            buff_replace,
-            buff_end = 
-          Buffer.create size_in,
-          Buffer.create size_in,
-          Buffer.create size_in
-        in
-
-        let no_replace_section =
-          (* Find begin of replace section *)
-          try
-            while 
-              input_line_cond
-                buff_begin
-                chn_in 
-                (fun str -> str <> start_replace) do
-              ()
-            done;
-            false
-          with End_of_file ->
-            true
-        in
-
-          if not no_replace_section then
+        let lst_fn =
+          let chn_in =
+            open_in_bin fn 
+          in
+          let lst =
+            ref []
+          in
             (
-              let read_replace () = 
-                (* Read the whole replace section *)
-                try
-                  while 
-                    input_line_cond
-                      buff_replace
-                      chn_in
-                      (fun str -> str <> stop_replace) do
-                    ()
-                  done
-                with End_of_file ->
-                  ()
-              in
+              try
+                while true do
+                  lst := (input_line chn_in) :: !lst
+                done
+              with End_of_file ->
+                ()
+            );
+            close_in chn_in;
+            List.rev !lst
+        in
 
-              let check_digest =
-                try
-                  let str =
-                    input_line chn_in 
-                  in
-                    (* Following line should be "DO NOT EDIT" + digest *)
-                    if Str.string_match do_not_edit str 0 then
-                      (
-                        let res = 
-                          Some (Str.matched_group 1 str)
-                        in
-                          read_replace ();
-                          res
-                      )
-                    else if str <> stop_replace then
-                      (
-                        (* The line is not what we expect, just
-                         * add it to buffer replace 
-                         *)
-                        Buffer.add_string buff_replace str;
-                        Buffer.add_char buff_replace '\n';
-                        read_replace ();
-
-                        (* Nothing to check *)
-                        None
-                      )
-                    else 
-                      (
-                        (* Nothing to check *)
-                        None
-                      )
-                with End_of_file ->
-                  (
-                    None
-                  )
-              in
-
-                (* Verify digest of the replace section *)
+        (* Actual split file content
+         *)
+          match split_header_body_footer lst_fn with 
+            | fn_header, Some (fn_body, fn_footer) ->
                 (
-                  match check_digest with
-                    | Some hex ->
-                        let real_hex =
-                          Digest.to_hex (Digest.string (Buffer.contents buff_replace))
-                        in
-                          if hex <> real_hex then 
-                            failwith 
-                              (Printf.sprintf 
-                                 "Digest sum for replace section of file %s \
-                                  has changed (%s <> %s). Remove digest line first!"
-                                 fn
-                                 hex 
-                                 real_hex)
+                  (* Strip "do not digest" message
+                   *)
+                  let fn_body =
+                    match fn_body with
+                      | hd :: tl when Str.string_match do_not_edit hd 0 -> 
+                          (
+                            let expected_digest =
+                              Str.matched_group 1 hd
+                            in
+                            let digest =
+                              digest_of_list tl
+                            in
+                              if expected_digest <> digest then 
+                                failwith 
+                                  (Printf.sprintf 
+                                     "Digest sum for replace section of file %s \
+                                      has changed (%s <> %s). Remove digest line first!"
+                                     fn
+                                     expected_digest
+                                     digest)
+                              else
+                                tl
+                          )
+                      | lst ->
+                          lst
+                  in
+                    (* Regenerate if required *)
+                    if target <> None ||
+                       (fn_body <> content_body) then
+                      (
+                        info (Printf.sprintf "Regenerating file %s" fn);
+                        output_file 
+                          fn_header
+                          content_body
+                          fn_footer
+                      )
+                    else
+                      (
+                        info (Printf.sprintf "Nothing to update for file %s" fn);
+                      )
+                )
+            | fn_header, None ->
+                (
+                  info (Printf.sprintf "No replace section in file %s" fn);
+                  match target with
+                    | Some fn ->
+                        (
+                          (* We still generate file since it is not source file *)
+                          let chn =
+                            open_out_bin fn
+                          in
+                            List.iter
+                              (fun str ->
+                                 output_string chn str;
+                                 output_char   chn '\n')
+                              fn_header;
+                            close_out chn
+                        )
                     | None ->
                         ()
-                );
-
-                (* Read until end of file *)
-                (
-                  try
-                    while 
-                      input_line_cond
-                        buff_end
-                        chn_in
-                        (fun _ -> true) do
-                      ()
-                    done
-                  with End_of_file ->
-                    ()
-                );
-
-                close_in chn_in;
-
-                (* Regenerate if required *)
-                if target <> None ||
-                   ((Buffer.contents template_replace) 
-                      <> (Buffer.contents buff_replace)) then
-                  (
-                    info (Printf.sprintf "Regenerating file %s" fn);
-                    output_file buff_begin template_replace buff_end
-                  )
-                else
-                  (
-                    info (Printf.sprintf "Nothing to update for file %s" fn);
-                  )
-            )
-          else
-            (
-              info (Printf.sprintf "No replace section in file %s" fn);
-              match target with
-                | Some fn ->
-                    (
-                      (* We still generate file since it is not source file *)
-                      let chn =
-                        open_out_bin fn
-                      in
-                        Buffer.output_buffer chn buff_begin;
-                        close_out chn
-                    )
-                | None ->
-                    ()
-            )
+                )
       )
     else
       (
         info (Printf.sprintf "File %s doesn't exist, creating it." fn);
-        output_file template_begin template_replace template_end
+        output_file 
+          content_header 
+          content_body
+          content_footer
       )
 ;;
