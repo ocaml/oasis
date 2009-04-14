@@ -9,10 +9,15 @@ open OASISTypes;;
   *)
 type ctxt = 
     {
-      oasisfn:      filename;
-      srcdir:       dirname;
-      valid_tests:  name list;
-      valid_flags:  name list;
+      oasisfn:      filename;    (* Location of OASIS file *)
+      srcdir:       dirname;     (* Toplevel source directory *)
+      cond:         expr option; (* Condition for this context
+                                    can be used with certain
+                                    field.
+                                    By default ETrue (no condition)
+                                  *)
+      valid_tests:  name list; (* Which tests are valid *)
+      valid_flags:  name list; (* Which flags are valid *)
     }
 ;;
 

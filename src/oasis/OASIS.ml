@@ -21,9 +21,6 @@ let from_file fn ?(srcdir) ?(debug=false) valid_tests =
   let ast = 
     OASISRecDescParser.parse_file ~debug fn
   in
-  let ctxt = 
-    OASISAst.check valid_tests fn srcdir ast
-  in
-    OASISAst.oasis (ast, ctxt)
+    OASISAst.to_package fn srcdir valid_tests ast
 ;;
 

@@ -6,48 +6,40 @@
 open OASISTypes;;
 open OASISAstTypes;;
 
-(** Evaluate expression *)
-let rec expr_eval ctxt =
-  function 
-    | ETrue  ->
-        true
-    | EFalse -> 
-        false
-    | ENot e -> 
-        expr_eval ctxt e 
-    | EAnd (e1, e2) ->
-        (expr_eval ctxt e1) && (expr_eval ctxt e2)
-    | EOr (e1, e2) -> 
-        (expr_eval ctxt e1) || (expr_eval ctxt e2)
-    | EFlag nm ->
-        (
-          (* TODO *)
-          false
-        )
-    | ETest (nm, vl) ->
-        (
-          (* TODO *)
-          false
-        )
-;;
-
-(** Check oasis AST *)
-let check valid_tests fn srcdir ast = 
+(** Convert oasis AST into package 
+  *)
+let to_package fn srcdir valid_tests ast = 
 
   let lowercase_eq str1 str2 =
     (String.lowercase str1) = (String.lowercase str2)
   in
 
-  (* Check AST *)
-  let rec check_expr ctxt =
+  let default_ctxt =
+    {
+      oasisfn     = fn;
+      srcdir      = Filename.dirname fn;
+      cond        = None;
+      valid_flags = [];
+      valid_tests = valid_tests;
+    }
+  in
+
+  (* Convert flags into ctxt *)
+  let ctxt_of_flags flags =
+    {default_ctxt with 
+         valid_flags = List.map fst flags}
+  in
+
+  (* Check that expression only use valid tests/flags *)
+  let rec expr_check ctxt =
     function
       | ETrue | EFalse -> 
           ()
       | ENot e -> 
-          check_expr ctxt e 
+          expr_check ctxt e 
       | EAnd (e1, e2) | EOr (e1, e2) -> 
-          check_expr ctxt e1; 
-          check_expr ctxt e2
+          expr_check ctxt e1; 
+          expr_check ctxt e2
       | EFlag nm ->
           (
             if not (List.exists (lowercase_eq nm) ctxt.valid_flags) then
@@ -66,120 +58,112 @@ let check valid_tests fn srcdir ast =
           )
   in
 
-  let rec check_stmt wrtr ctxt =
+  (* Merge an expresion with a condition in a ctxt *)
+  let ctxt_add_expr ctxt e =
+    match ctxt with 
+      | {cond = None} ->
+          {ctxt with cond = Some e}
+      | {cond = Some e'} ->
+          {ctxt with cond = Some (EAnd (e', e))}
+  in
+
+  (* Explore statement, at this level it is possible that value
+   * depends from condition (if expression is possible
+   *)
+  let rec stmt wrtr ctxt =
     function
       | SField (nm, str) -> 
           OASISSchema.set_field wrtr nm ctxt str
-      | SIfThenElse (e, blk1, blk2) ->
-          check_expr ctxt e;
-          check_stmt wrtr ctxt blk1;
-          check_stmt wrtr ctxt blk2
+
+      | SIfThenElse (e, stmt1, stmt2) -> 
+          (* Check that we have a valid expression *)
+          expr_check ctxt e;
+          (* Explore if branch *)
+          stmt 
+            wrtr 
+            (ctxt_add_expr ctxt e)
+            stmt1;
+          (* Explore then branch *)
+          stmt 
+            wrtr 
+            (ctxt_add_expr ctxt (ENot e))
+            stmt2
+
       | SBlock blk ->
-          List.iter (check_stmt wrtr ctxt) blk
+          List.iter (stmt wrtr ctxt) blk
   in
 
-  let rec check_top_stmt root_wrtr ctxt =
-    function
-      | TSFlag (nm, blk) -> 
-          let ctxt = 
-            check_schema OASISFlag.schema ctxt blk
-          in
-            {ctxt with valid_flags = nm :: ctxt.valid_flags}
-      | TSLibrary (_, blk) -> 
-          check_schema OASISLibrary.schema ctxt blk
-      | TSExecutable (_, blk) ->
-          check_schema OASISExecutable.schema ctxt blk
-      | TSStmt stmt ->
-          check_stmt root_wrtr ctxt stmt; 
-          ctxt
-      | TSBlock lst ->
-          List.fold_left 
-            (check_top_stmt root_wrtr) 
-            ctxt
-            lst
-  and check_schema schm ctxt blk =
+  (* Explore statement and register data into a newly created
+   * Schema.writer.
+   *)
+  let schema_stmt gen schm flags stmt' = 
     let wrtr =
       OASISSchema.writer schm
     in
-      check_stmt wrtr ctxt blk;
+    let ctxt =
+      ctxt_of_flags flags
+    in
+      stmt wrtr ctxt stmt';
       OASISSchema.check wrtr;
-      ctxt
+      gen wrtr
   in
 
-    check_top_stmt 
-      (OASISSchema.writer OASISPackage.schema)
-      {
-        oasisfn     = fn;
-        srcdir      = Filename.dirname fn;
-        valid_flags = [];
-        valid_tests = valid_tests;
-      }
-      ast
-;;
-
-let oasis (ast, ctxt) =
-  let rec oasis_stmt wrtr =
+  (* Recurse into top-level statement. At this level there is 
+   * no conditional expression but there is Flag, Library and
+   * Executable structure defined.
+   *) 
+  let rec top_stmt root_wrtr ((libs, execs, flags) as acc) =
     function
-      | SField (nm, str) -> 
-          OASISSchema.set_field wrtr nm ctxt str
-
-      | SIfThenElse (e, blk1, blk2) -> 
-          let blk =
-            if expr_eval ctxt e then
-              blk1 
-            else
-              blk2
-          in
-            oasis_stmt wrtr blk
-
-      | SBlock blk ->
-          List.iter (oasis_stmt wrtr) blk
-  in
-
-  let rec oasis_top_stmt root_wrtr ((libs, execs, flags) as acc) =
-    function
-      | TSFlag (nm, blk) -> 
-          let wrtr =
-            OASISSchema.writer OASISFlag.schema
-          in
+      | TSFlag (nm, stmt) -> 
           let flag =
-            oasis_stmt wrtr blk;
-            OASISFlag.generator wrtr
+            schema_stmt 
+              OASISFlag.generator 
+              OASISFlag.schema 
+              flags
+              stmt
           in
             libs, execs, (nm, flag) :: flags
 
-      | TSLibrary (nm, blk) -> 
-          let wrtr =
-            OASISSchema.writer OASISLibrary.schema
-          in
+      | TSLibrary (nm, stmt) -> 
           let lib = 
-            oasis_stmt wrtr blk;
-            OASISLibrary.generator wrtr
+            schema_stmt 
+              OASISLibrary.generator
+              OASISLibrary.schema 
+              flags 
+              stmt
           in
             ((nm, lib) :: libs), execs, flags
 
-      | TSExecutable (nm, blk) -> 
-          let wrtr =
-            OASISSchema.writer OASISExecutable.schema
-          in
-          let exec = 
-            oasis_stmt wrtr blk;
-            OASISExecutable.generator wrtr
+      | TSExecutable (nm, stmt) -> 
+          let exec =
+            schema_stmt
+              OASISExecutable.generator
+              OASISExecutable.schema
+              flags
+              stmt
           in
             libs, ((nm, exec) :: execs), flags
 
-      | TSStmt stmt -> 
-          oasis_stmt root_wrtr stmt;
+      | TSStmt stmt' -> 
+          stmt 
+            root_wrtr 
+            (ctxt_of_flags flags) 
+            stmt';
           acc
 
       | TSBlock blk -> 
-          List.fold_left (oasis_top_stmt root_wrtr) acc blk
+          List.fold_left 
+            (top_stmt root_wrtr) 
+            acc 
+            blk
   in
+
+  (* Start with package schema/writer *)
   let wrtr =
     OASISSchema.writer OASISPackage.schema 
   in
   let libs, execs, flags =
-    oasis_top_stmt wrtr ([], [], []) ast
+    top_stmt wrtr ([], [], []) ast
   in
     OASISPackage.generator wrtr libs execs flags
 ;;
