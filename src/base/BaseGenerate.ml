@@ -13,9 +13,6 @@ type target_data =
       (* OASIS abstract syntax tree *)
       ast: Oasis.top_stmt;
 
-      (* OASIS flags, TODO: remove in favor of a field in pre_pkg *)
-      flags: (Oasis.name * Oasis.flag) list;
-
       (* OASIS package as interpreted at generation time *)
       pre_pkg: Oasis.package;
     }

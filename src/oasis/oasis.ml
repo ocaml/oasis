@@ -39,6 +39,13 @@ type exec =
     }
 ;;
 
+type flag = 
+    {
+      flag_description: string option;
+      flag_default:     bool;
+    }
+;;
+
 type package = 
     {
       name:          package_name;
@@ -60,14 +67,8 @@ type package =
       install_type:  string;
       libraries:     (name * lib) list;
       executables:   (name * exec) list;
+      flags:         (name * flag) list;
       extra:         (name * string) list;
-    }
-;;
-
-type flag = 
-    {
-      flag_description: string option;
-      flag_default:     bool;
     }
 ;;
 
@@ -75,7 +76,6 @@ type t =
     {
       oasisfn:  filename;
       srcdir:   filename;
-      flags:    (name * bool) list;
       tests:    (name * string) list;
     }
 ;;
@@ -146,7 +146,7 @@ struct
         | Some x ->
             x
         | None ->
-            raise (MissingField [lname])
+            raise (MissingField [name])
     in
 
     let get t =
@@ -155,7 +155,7 @@ struct
         | Some x -> 
             x
         | None -> 
-            raise (MissingField [lname])
+            raise (MissingField [name])
     in
       Hashtbl.replace t lname 
         {
@@ -299,11 +299,19 @@ struct
     let separator =
       Str.regexp " *, *"
     in
+    let white_spaces =
+      "[ \t]*"
+    in
+    let not_white_spaces =
+      "[^ \t]*"
+     in
     let strip_whitespace =
-      Str.regexp " *\\([^ ]*\\) *"
+      Str.regexp (white_spaces^"\\("^not_white_spaces^"\\)"^white_spaces)
     in
     let split_version =
-      Str.regexp "\\([^ ]*\\) *( *\\(.*\\) *)"
+      Str.regexp ("\\("^not_white_spaces^"\\)"^
+                  white_spaces^
+                  "("^white_spaces^"\\(.*\\)"^white_spaces^")")
     in
     let parse_one str =
       if Str.string_match split_version str 0 then
@@ -445,7 +453,7 @@ let root_schema, root_gen =
       VP.build_depends
   in
     schm,
-    (fun tbl ->
+    (fun tbl libs execs flags ->
       {
         name          = name tbl;
         version       = version tbl;
@@ -464,8 +472,9 @@ let root_schema, root_gen =
         doc_type      = doc_type tbl;
         test_type     = test_type tbl;
         install_type  = install_type tbl;
-        libraries     = [];
-        executables   = [];
+        libraries     = libs;
+        executables   = execs;
+        flags         = flags;
         extra         = [];
       })
 ;;
@@ -616,7 +625,6 @@ struct
       {
         oasisfn = fn;
         srcdir  = Filename.dirname fn;
-        flags   = [];
         tests   = [];
       }
 
@@ -638,13 +646,8 @@ let rec expr_eval env =
         (expr_eval env e1) || (expr_eval env e2)
     | EFlag nm ->
         (
-          try 
-            List.assoc (String.lowercase nm) env.flags
-          with Not_found ->
-            failwith 
-              (Printf.sprintf 
-                 "Unknown flag '%s'"
-                 nm)
+          (* TODO *)
+          false
         )
     | ETest (nm, vl) ->
         (
@@ -661,19 +664,23 @@ let rec expr_eval env =
 (** Create environment and command line flags *)
 let create ?(ocamlc) fn ast = 
 
+  let lowercase_eq str1 str2 =
+    (String.lowercase str1) = (String.lowercase str2)
+  in
+
   (* Check AST *)
   let check ast env = 
-    let rec check_expr =
+    let rec check_expr flags =
       function
         | ETrue | EFalse -> 
             ()
         | ENot e -> 
-            check_expr e 
+            check_expr flags e 
         | EAnd (e1, e2) | EOr (e1, e2) -> 
-            check_expr e1; check_expr e2
+            check_expr flags e1; check_expr flags e2
         | EFlag nm ->
             (
-              if not (List.mem_assoc (String.lowercase nm) env.flags) then
+              if not (List.exists (lowercase_eq nm) flags) then
                 failwith 
                   (Printf.sprintf 
                      "Unknown flag '%s'"
@@ -689,92 +696,57 @@ let create ?(ocamlc) fn ast =
             )
     in
 
-    let rec check_stmt wrtr =
+    let rec check_stmt wrtr flags =
       function
         | SField (nm, str) -> 
             Schema.set_field wrtr nm env str
         | SIfThenElse (e, blk1, blk2) ->
-            check_expr e;
-            check_stmt wrtr blk1;
-            check_stmt wrtr blk2
+            check_expr flags e;
+            check_stmt wrtr flags blk1;
+            check_stmt wrtr flags blk2
         | SBlock blk ->
-            List.iter (check_stmt wrtr) blk
+            List.iter (check_stmt wrtr flags) blk
     in
 
-    let rec check_top_stmt root_wrtr =
+    let rec check_top_stmt root_wrtr flags =
       function
-        | TSFlag (_, blk) -> 
-            check_schema (Schema.writer flag_schema) blk
+        | TSFlag (nm, blk) -> 
+            let flags = 
+              check_schema (Schema.writer flag_schema) flags blk
+            in
+              nm :: flags
         | TSLibrary (_, blk) -> 
-            check_schema (Schema.writer lib_schema)  blk
+            check_schema (Schema.writer lib_schema)  flags blk
         | TSExecutable (_, blk) ->
-            check_schema (Schema.writer exec_schema) blk
+            check_schema (Schema.writer exec_schema) flags blk
         | TSStmt stmt ->
-            check_stmt root_wrtr stmt
+            check_stmt root_wrtr flags stmt; flags
         | TSBlock lst ->
-            List.iter (check_top_stmt root_wrtr) lst
-    and check_schema schm blk =
+            List.fold_left (check_top_stmt root_wrtr) flags lst
+    and check_schema schm flags blk =
       let wrtr =
         Schema.writer schm
       in
-        check_stmt wrtr blk;
-        Schema.check wrtr
+        check_stmt wrtr flags blk;
+        Schema.check wrtr;
+        flags
     in
 
-      check_top_stmt root_schema ast
+    let _flags : string list =
+      check_top_stmt root_schema [] ast
+    in
+      ()
   in
  
-  (* Extract flags *) 
-  let flags ast env =
-    let rec flags_stmt fwrtr env =
-      function
-        | SField (nm, str) ->
-            fwrtr nm env str
-        | SIfThenElse (e, blk1, blk2) ->
-            let blk =
-              if expr_eval env e then
-                blk1
-              else
-                blk2
-            in
-              flags_stmt fwrtr env blk
-        | SBlock blk ->
-            List.iter (flags_stmt fwrtr env) blk
-    in
-          
-    let rec flags_top_stmt ((env, lst) as acc) =
-      function
-        | TSLibrary _ | TSExecutable _ | TSStmt _ ->
-            acc
-        | TSBlock blk -> 
-            List.fold_left flags_top_stmt acc blk
-        | TSFlag (nm, blk)  -> 
-            let wrtr =
-              Schema.writer flag_schema 
-            in
-            let flag =
-              flags_stmt (Schema.set_field wrtr) env blk;
-              flag_gen wrtr
-            in
-              {env with flags = (nm, flag.flag_default) :: env.flags},
-              (nm, flag) :: lst
-    in
-      flags_top_stmt (env, []) ast
-  in
-  
   let env = 
     Env.create ?ocamlc fn
   in
 
-  let env, flags =
-    flags ast env
-  in
-
     check ast env;
-    env, flags
+    env
 ;;
 
-let oasis (ast, env, _) =
+let oasis (ast, env) =
   let rec oasis_stmt wrtr =
     function
       | SField (nm, str) -> 
@@ -793,10 +765,17 @@ let oasis (ast, env, _) =
           List.iter (oasis_stmt wrtr) blk
   in
 
-  let rec oasis_top_stmt root_wrtr ((libs, execs) as acc) =
+  let rec oasis_top_stmt root_wrtr ((libs, execs, flags) as acc) =
     function
-      | TSFlag (_, blk) -> 
-          acc
+      | TSFlag (nm, blk) -> 
+          let wrtr =
+            Schema.writer flag_schema 
+          in
+          let flag =
+            oasis_stmt wrtr blk;
+            flag_gen wrtr
+          in
+            libs, execs, (nm, flag) :: flags
 
       | TSLibrary (nm, blk) -> 
           let wrtr =
@@ -806,7 +785,7 @@ let oasis (ast, env, _) =
             oasis_stmt wrtr blk;
             lib_gen wrtr
           in
-            ((nm, lib) :: libs), execs
+            ((nm, lib) :: libs), execs, flags
 
       | TSExecutable (nm, blk) -> 
           let wrtr =
@@ -816,7 +795,7 @@ let oasis (ast, env, _) =
             oasis_stmt wrtr blk;
             exec_gen wrtr
           in
-            libs, ((nm, exec) :: execs)
+            libs, ((nm, exec) :: execs), flags
 
       | TSStmt stmt -> 
           oasis_stmt root_wrtr stmt;
@@ -828,8 +807,8 @@ let oasis (ast, env, _) =
   let wrtr =
     Schema.writer root_schema 
   in
-  let libs, execs =
-    oasis_top_stmt wrtr ([], []) ast
+  let libs, execs, flags =
+    oasis_top_stmt wrtr ([], [], []) ast
   in
-    {(root_gen wrtr) with libraries = libs; executables = execs}
+    root_gen wrtr libs execs flags
 ;;

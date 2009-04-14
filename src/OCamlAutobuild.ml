@@ -30,18 +30,17 @@ let () =
     OasisTools.parse_file !oasis_fn
   in
 
-  let env, flags =
+  let env =
     Oasis.create !oasis_fn ast
   in
 
   let pkg =
-    Oasis.oasis (ast, env, flags)
+    Oasis.oasis (ast, env)
   in
 
     generate
       {
         ast     = ast;
-        flags   = flags;
         pre_pkg = pkg;
       }
 ;;

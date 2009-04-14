@@ -9,23 +9,13 @@ open Oasis;;
 
 let tests ctxt =
 
-  (* Convert environment to string *)
-  let string_of_env env =
-    String.concat "; "
-      (
-        (List.map (fun (nm, b)   -> Printf.sprintf "%s = %b" nm b) env.flags)
-        @
-        (List.map (fun (nm, str) -> Printf.sprintf "%s = '%s'" nm str) env.tests)
-      )
-  in
-
   (* Check flag equality *)
-  let assert_flag nm lst =
+  let assert_flag nm oasis =
     try
       let _ = 
         List.find 
           (fun (flg, _) -> nm = flg) 
-          lst 
+          oasis.flags
       in
         ()
     with Not_found ->
@@ -71,27 +61,25 @@ let tests ctxt =
            OasisTools.parse_file
              fn
        in
-       let (env, flags) =
+       let env =
          create fn ast  
        in
        let oasis =
-         if ctxt.dbug then
-           prerr_endline (string_of_env env);
-         oasis (ast, env, flags)
+         oasis (ast, env)
        in
-         test env flags oasis)
+         test env oasis)
   in
 
     "OASIS" >:::
     (List.map test_of_vector 
        [
          "test1.oasis",
-         (fun env flags oasis ->
-            assert_flag "devmod" flags;
+         (fun env oasis ->
+            assert_flag "devmod" oasis;
             assert_alternative
               "At least one of ostest, linuxtest64 and linuxtest32 is defined"
               (List.map
-                 (fun nm -> (fun () -> assert_flag nm flags))
+                 (fun nm -> (fun () -> assert_flag nm oasis))
                  [
                    "ostest";
                    "linuxtest64";
@@ -100,11 +88,11 @@ let tests ctxt =
               ());
 
          "test2.oasis",
-         (fun env flags oasis ->
+         (fun env oasis ->
             ());
 
          "test3.oasis",
-         (fun env flags oasis ->
+         (fun env oasis ->
             ());
        ]
     )

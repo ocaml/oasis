@@ -52,7 +52,7 @@ let configure data =
 
   let pp_packs fmt data = 
     pp_record_open fmt ();
-    pp_record_field fmt "BasePack.args" pp_print_args data.flags;
+    pp_record_field fmt "BasePack.args" pp_print_args data.pre_pkg.flags;
     pp_record_sep fmt ();
     pp_record_field fmt "BasePack.checks" pp_print_checks data.pre_pkg;
     pp_record_sep fmt ();
