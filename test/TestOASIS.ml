@@ -5,7 +5,8 @@
 
 open OUnit;;
 open TestCommon;;
-open Oasis;;
+open OASISTypes;;
+open OASIS;;
 
 let tests ctxt =
 
@@ -52,29 +53,20 @@ let tests ctxt =
        let fn =
          in_data fn
        in
-       let ast =
-         if ctxt.dbug then
-           OasisTools.parse_file 
-             ~fstream:OasisTools.stream_debugger 
-             fn
-         else
-           OasisTools.parse_file
-             fn
-       in
-       let ctxt =
-         check ["architecture"; "system"] fn ast  
-       in
        let oasis =
-         oasis (ast, ctxt)
+         from_file 
+           ~debug:ctxt.dbug
+           fn
+           ["architecture"; "system"]
        in
-         test ctxt oasis)
+         test oasis)
   in
 
     "OASIS" >:::
     (List.map test_of_vector 
        [
          "test1.oasis",
-         (fun env oasis ->
+         (fun oasis ->
             assert_flag "devmod" oasis;
             assert_alternative
               "At least one of ostest, linuxtest64 and linuxtest32 is defined"
@@ -88,15 +80,15 @@ let tests ctxt =
               ());
 
          "test2.oasis",
-         (fun env oasis ->
+         (fun oasis ->
             ());
 
          "test3.oasis",
-         (fun env oasis ->
+         (fun oasis ->
             ());
 
          "test4.oasis",
-         (fun env oasis ->
+         (fun oasis ->
             assert_equal 
               ~msg:"XTest"
               ~printer:(fun lst ->

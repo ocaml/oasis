@@ -13,7 +13,7 @@
            ),
  *)
 
-open Oasis;;
+open OASISTypes;;
 open Format;;
 open BaseGenerate;;
 open BaseFileGenerate;;

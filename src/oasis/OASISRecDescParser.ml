@@ -3,7 +3,8 @@
     @author Sylvain Le Gall
   *)
 
-open Oasis;;
+open OASISTypes;;
+open OASISAstTypes;;
 open Genlex;;
 
 let stream_debugger st = 
@@ -19,7 +20,7 @@ let stream_debugger st =
          None)
 ;;
 
-let parse_file ?(fstream) fn = 
+let parse_file ~debug fn = 
   let chn =
     open_in fn
   in
@@ -279,9 +280,10 @@ let parse_file ?(fstream) fn =
             (dos2unix 
                (notab
                  (count_line 
-                    (match fstream with
-                       | Some f -> f st
-                       | None -> st))))))
+                    (if debug then
+                       stream_debugger st
+                     else
+                       st))))))
   in
 
   let position () = 
@@ -397,20 +399,6 @@ let parse_file ?(fstream) fn =
       | [< >] ->
           []
   in
-  (* Parse file using ocamllex/ocamlyacc 
-  let chn =
-    open_in_bin fn
-  in
-  let lexbuf = 
-    Lexing.from_channel chn
-  in
-  let ast =
-    OasisParser.main OasisLexer.token lexbuf 
-  in
-    close_in chn;
-    ast
-   *)
-
     (* Main loop *)
     try 
       let st_token =
@@ -429,6 +417,6 @@ let parse_file ?(fstream) fn =
           else
             failwith ("Syntax error "^str^(position ()))
         )
-      | Schema.MissingField lst ->
+      | OASISSchema.MissingField lst ->
           failwith ("Missing fields: "^(String.concat ", " lst))
 ;;

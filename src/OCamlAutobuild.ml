@@ -26,21 +26,12 @@ let () =
        ocaml-autobuild [options*] -action [action-options*]\n\n";
   in
 
-  let ast = 
-    OasisTools.parse_file !oasis_fn
-  in
-
-  let ctxt =
-    Oasis.check [] !oasis_fn ast
-  in
-
   let pkg =
-    Oasis.oasis (ast, ctxt)
+    OASIS.from_file !oasis_fn []
   in
 
     generate
       {
-        ast     = ast;
         pre_pkg = pkg;
       }
 ;;

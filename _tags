@@ -6,5 +6,5 @@
 "src/oasis": include
 <test/*.{ml,byte}>: pkg_oUnit, pkg_str, pkg_findlib, pkg_fileutils
 <src/base/*.ml>: pkg_findlib, pkg_fileutils
-"src/oasis/oasisTools.ml": syntax_camlp4o, pkg_camlp4
+"src/oasis/OASISRecDescParser.ml": syntax_camlp4o, pkg_camlp4
 "src/OCamlAutobuild.byte": pkg_unix, pkg_str, pkg_findlib, pkg_fileutils

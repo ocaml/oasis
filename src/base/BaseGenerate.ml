@@ -4,17 +4,14 @@
   *)
 
 open Format;;
-open Oasis;;
+open OASISTypes;;
 open BaseUtils;;
 
-(* TODO: replace this by only ast *)
+(* TODO: replace this by only pre_pkg *)
 type target_data =
     {
-      (* OASIS abstract syntax tree *)
-      ast: Oasis.top_stmt;
-
       (* OASIS package as interpreted at generation time *)
-      pre_pkg: Oasis.package;
+      pre_pkg: OASISTypes.package;
     }
 ;;
 
