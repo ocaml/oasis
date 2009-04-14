@@ -72,11 +72,12 @@ type package =
     }
 ;;
 
-type t = 
+type ctxt = 
     {
-      oasisfn:  filename;
-      srcdir:   filename;
-      tests:    (name * string) list;
+      oasisfn:      filename;
+      srcdir:       filename;
+      valid_tests:  name list;
+      valid_flags:  name list;
     }
 ;;
 
@@ -120,7 +121,7 @@ struct
 
   type field =
       {
-        set: t -> string -> (unit -> unit);
+        set: ctxt -> string -> (unit -> unit);
         get: unit -> unit;                     
       }
 
@@ -137,8 +138,8 @@ struct
       ref None 
     in
 
-    let set env str =
-      (fun () -> v := Some (parse env str))
+    let set ctxt str =
+      (fun () -> v := Some (parse ctxt str))
     in
 
     let get_default () = 
@@ -164,7 +165,7 @@ struct
         };
       get
 
-  let set_field t name env str =
+  let set_field t name ctxt str =
     let lname =
       String.lowercase name
     in
@@ -179,7 +180,7 @@ struct
       Hashtbl.replace 
         t
         lname 
-        {fld with get = fld.set env str}
+        {fld with get = fld.set ctxt str}
 
   let check t =
     let msgfld =
@@ -264,17 +265,17 @@ struct
       failwith "Expecting not empty string"
 
   (** File exists *)
-  let file_exists env fn = 
-    if not (Sys.file_exists (Filename.concat env.srcdir fn)) then
+  let file_exists ctxt fn = 
+    if not (Sys.file_exists (Filename.concat ctxt.srcdir fn)) then
       failwith 
         (Printf.sprintf "File '%s' doesn't exist" fn)
     else
       fn
 
   (** Directory exists *)
-  let directory_exists env fn =
+  let directory_exists ctxt fn =
     let rfn =
-      Filename.concat env.srcdir fn
+      Filename.concat ctxt.srcdir fn
     in
       if (Sys.file_exists rfn) && (Sys.is_directory rfn) then
         fn
@@ -329,7 +330,7 @@ struct
         (Str.split separator str)
 
   (** Convert string to module lists *)
-  let modules env str =
+  let modules ctxt str =
     let whitespaces =
       Str.regexp "[ \t]+"
     in
@@ -340,7 +341,7 @@ struct
         (str_regexp 
            (Str.regexp "[A-Z][A-Za-z0-9_]*")
            "module"
-           env)
+           ctxt)
         lst
 
   (** Convert string to URL *)
@@ -348,8 +349,8 @@ struct
     [str]
 
   (** Optional value *)
-  let opt f env str =
-    Some (f env str)
+  let opt f ctxt str =
+    Some (f ctxt str)
 ;;
 end
 ;;
@@ -381,7 +382,7 @@ let root_schema, root_gen =
   in
   let license =
     Schema.new_field schm "license"
-      (fun env str ->
+      (fun ctxt str ->
          match String.uppercase str with 
            | "GPL"   -> `GPL
            | "LGPL"  -> `LGPL
@@ -391,7 +392,7 @@ let root_schema, root_gen =
            | "LGPL-LINK-EXN" -> `LGPL_link_exn
            | _ -> 
                (try
-                  `Other (VP.url env str)
+                  `Other (VP.url ctxt str)
                 with _ ->
                   failwith (Printf.sprintf 
                               "'%s' is not an URL or a common license name"
@@ -557,93 +558,19 @@ let exec_schema, exec_gen =
        })
 ;;
 
-(** {2 Environment} *)
-
-module Env =
-struct
-  let add_ocamlc_conf ocamlc env =
-    (* Try to find the value associated with a keyword *)
-    let rec find_associated_value nm keyword lst =
-      match lst with 
-        | hd :: vl :: _ when hd = keyword ->
-            nm, vl
-        | _ :: tl ->
-            find_associated_value nm keyword tl
-        | [] ->
-           failwith 
-             (Printf.sprintf 
-                "Field '%s' not found in '%s -config' output"
-                ocamlc
-                nm)
-    in
-
-    (* Extract data from ocamlc -config *)
-    let output =
-      let chn =
-        Unix.open_process_in (ocamlc^" -config")
-      in
-      let buff =
-        Buffer.create 120
-      in
-        (
-          try
-            while true do 
-              Buffer.add_char buff (input_char chn);
-            done
-          with End_of_file ->
-            ()
-        );
-        (
-          match Unix.close_process_in chn with
-            | Unix.WEXITED 0 -> 
-                ()
-            | _ -> 
-                failwith 
-                  (Printf.sprintf 
-                     "Failed running '%s -config'" 
-                     ocamlc)
-        );
-        Str.split (Str.regexp "[\r\n ]+") (Buffer.contents buff)
-    in
-
-    (* Available test *)
-    let tests =
-      List.map 
-        (fun (nm, keyword) -> find_associated_value nm keyword output)
-        [
-          "os_type",      "os_type:";
-          "system",       "system:";
-          "architecture", "architecture:";
-          "cc",           "native_c_compiler:";
-        ]
-    in
-      {env with tests = List.rev_append tests env.tests}
-
-  let create ?(ocamlc="ocamlc") fn =
-    add_ocamlc_conf 
-      ocamlc
-      {
-        oasisfn = fn;
-        srcdir  = Filename.dirname fn;
-        tests   = [];
-      }
-
-end
-;;
-
 (** Evaluate expression *)
-let rec expr_eval env =
+let rec expr_eval ctxt =
   function 
     | ETrue  ->
         true
     | EFalse -> 
         false
     | ENot e -> 
-        expr_eval env e 
+        expr_eval ctxt e 
     | EAnd (e1, e2) ->
-        (expr_eval env e1) && (expr_eval env e2)
+        (expr_eval ctxt e1) && (expr_eval ctxt e2)
     | EOr (e1, e2) -> 
-        (expr_eval env e1) || (expr_eval env e2)
+        (expr_eval ctxt e1) || (expr_eval ctxt e2)
     | EFlag nm ->
         (
           (* TODO *)
@@ -651,110 +578,106 @@ let rec expr_eval env =
         )
     | ETest (nm, vl) ->
         (
-          try            
-            (List.assoc (String.lowercase nm) env.tests) = vl 
-          with Not_found -> 
-            failwith 
-              (Printf.sprintf 
-                 "Unknown test '%s'"
-                 nm)
+          (* TODO *)
+          false
         )
 ;;
 
-(** Create environment and command line flags *)
-let create ?(ocamlc) fn ast = 
+(** Check oasis AST *)
+let check valid_tests fn ast = 
 
   let lowercase_eq str1 str2 =
     (String.lowercase str1) = (String.lowercase str2)
   in
 
   (* Check AST *)
-  let check ast env = 
-    let rec check_expr flags =
-      function
-        | ETrue | EFalse -> 
-            ()
-        | ENot e -> 
-            check_expr flags e 
-        | EAnd (e1, e2) | EOr (e1, e2) -> 
-            check_expr flags e1; check_expr flags e2
-        | EFlag nm ->
-            (
-              if not (List.exists (lowercase_eq nm) flags) then
-                failwith 
-                  (Printf.sprintf 
-                     "Unknown flag '%s'"
-                     nm)
-            )
-        | ETest (nm, vl) ->
-            (
-              if not (List.mem_assoc (String.lowercase nm) env.tests) then
-                failwith 
-                  (Printf.sprintf 
-                     "Unknown test '%s'"
-                     nm)
-            )
-    in
-
-    let rec check_stmt wrtr flags =
-      function
-        | SField (nm, str) -> 
-            Schema.set_field wrtr nm env str
-        | SIfThenElse (e, blk1, blk2) ->
-            check_expr flags e;
-            check_stmt wrtr flags blk1;
-            check_stmt wrtr flags blk2
-        | SBlock blk ->
-            List.iter (check_stmt wrtr flags) blk
-    in
-
-    let rec check_top_stmt root_wrtr flags =
-      function
-        | TSFlag (nm, blk) -> 
-            let flags = 
-              check_schema (Schema.writer flag_schema) flags blk
-            in
-              nm :: flags
-        | TSLibrary (_, blk) -> 
-            check_schema (Schema.writer lib_schema)  flags blk
-        | TSExecutable (_, blk) ->
-            check_schema (Schema.writer exec_schema) flags blk
-        | TSStmt stmt ->
-            check_stmt root_wrtr flags stmt; flags
-        | TSBlock lst ->
-            List.fold_left (check_top_stmt root_wrtr) flags lst
-    and check_schema schm flags blk =
-      let wrtr =
-        Schema.writer schm
-      in
-        check_stmt wrtr flags blk;
-        Schema.check wrtr;
-        flags
-    in
-
-    let _flags : string list =
-      check_top_stmt root_schema [] ast
-    in
-      ()
-  in
- 
-  let env = 
-    Env.create ?ocamlc fn
+  let rec check_expr ctxt =
+    function
+      | ETrue | EFalse -> 
+          ()
+      | ENot e -> 
+          check_expr ctxt e 
+      | EAnd (e1, e2) | EOr (e1, e2) -> 
+          check_expr ctxt e1; 
+          check_expr ctxt e2
+      | EFlag nm ->
+          (
+            if not (List.exists (lowercase_eq nm) ctxt.valid_flags) then
+              failwith 
+                (Printf.sprintf 
+                   "Unknown flag '%s'"
+                   nm)
+          )
+      | ETest (nm, vl) ->
+          (
+            if not (List.exists (lowercase_eq nm) ctxt.valid_tests) then
+              failwith 
+                (Printf.sprintf 
+                   "Unknown test '%s'"
+                   nm)
+          )
   in
 
-    check ast env;
-    env
+  let rec check_stmt wrtr ctxt =
+    function
+      | SField (nm, str) -> 
+          Schema.set_field wrtr nm ctxt str
+      | SIfThenElse (e, blk1, blk2) ->
+          check_expr ctxt e;
+          check_stmt wrtr ctxt blk1;
+          check_stmt wrtr ctxt blk2
+      | SBlock blk ->
+          List.iter (check_stmt wrtr ctxt) blk
+  in
+
+  let rec check_top_stmt root_wrtr ctxt =
+    function
+      | TSFlag (nm, blk) -> 
+          let ctxt = 
+            check_schema (Schema.writer flag_schema) ctxt blk
+          in
+            {ctxt with valid_flags = nm :: ctxt.valid_flags}
+      | TSLibrary (_, blk) -> 
+          check_schema (Schema.writer lib_schema) ctxt blk
+      | TSExecutable (_, blk) ->
+          check_schema (Schema.writer exec_schema) ctxt blk
+      | TSStmt stmt ->
+          check_stmt root_wrtr ctxt stmt; 
+          ctxt
+      | TSBlock lst ->
+          List.fold_left 
+            (check_top_stmt root_wrtr) 
+            ctxt
+            lst
+  and check_schema schm ctxt blk =
+    let wrtr =
+      Schema.writer schm
+    in
+      check_stmt wrtr ctxt blk;
+      Schema.check wrtr;
+      ctxt
+  in
+
+    check_top_stmt 
+      root_schema 
+      {
+        oasisfn     = fn;
+        srcdir      = Filename.dirname fn;
+        valid_flags = [];
+        valid_tests = valid_tests;
+      }
+      ast
 ;;
 
-let oasis (ast, env) =
+let oasis (ast, ctxt) =
   let rec oasis_stmt wrtr =
     function
       | SField (nm, str) -> 
-          Schema.set_field wrtr nm env str
+          Schema.set_field wrtr nm ctxt str
 
       | SIfThenElse (e, blk1, blk2) -> 
           let blk =
-            if expr_eval env e then
+            if expr_eval ctxt e then
               blk1 
             else
               blk2

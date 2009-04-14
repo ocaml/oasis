@@ -61,13 +61,13 @@ let tests ctxt =
            OasisTools.parse_file
              fn
        in
-       let env =
-         create fn ast  
+       let ctxt =
+         check ["architecture"; "system"] fn ast  
        in
        let oasis =
-         oasis (ast, env)
+         oasis (ast, ctxt)
        in
-         test env oasis)
+         test ctxt oasis)
   in
 
     "OASIS" >:::

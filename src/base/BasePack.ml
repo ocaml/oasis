@@ -302,3 +302,78 @@ let default =
     }
 ;;
 
+(* TODO: include in standard check 
+(** {2 Environment} *)
+
+module Env =
+struct
+  let add_ocamlc_conf ocamlc env =
+    (* Try to find the value associated with a keyword *)
+    let rec find_associated_value nm keyword lst =
+      match lst with 
+        | hd :: vl :: _ when hd = keyword ->
+            nm, vl
+        | _ :: tl ->
+            find_associated_value nm keyword tl
+        | [] ->
+           failwith 
+             (Printf.sprintf 
+                "Field '%s' not found in '%s -config' output"
+                ocamlc
+                nm)
+    in
+
+    (* Extract data from ocamlc -config *)
+    let output =
+      let chn =
+        Unix.open_process_in (ocamlc^" -config")
+      in
+      let buff =
+        Buffer.create 120
+      in
+        (
+          try
+            while true do 
+              Buffer.add_char buff (input_char chn);
+            done
+          with End_of_file ->
+            ()
+        );
+        (
+          match Unix.close_process_in chn with
+            | Unix.WEXITED 0 -> 
+                ()
+            | _ -> 
+                failwith 
+                  (Printf.sprintf 
+                     "Failed running '%s -config'" 
+                     ocamlc)
+        );
+        Str.split (Str.regexp "[\r\n ]+") (Buffer.contents buff)
+    in
+
+    (* Available test *)
+    let tests =
+      List.map 
+        (fun (nm, keyword) -> find_associated_value nm keyword output)
+        [
+          "os_type",      "os_type:";
+          "system",       "system:";
+          "architecture", "architecture:";
+          "cc",           "native_c_compiler:";
+        ]
+    in
+      {env with tests = List.rev_append tests env.tests}
+
+  let create ?(ocamlc="ocamlc") fn =
+    add_ocamlc_conf 
+      ocamlc
+      {
+        oasisfn = fn;
+        srcdir  = Filename.dirname fn;
+        tests   = [];
+      }
+
+end
+;;
+ *)
