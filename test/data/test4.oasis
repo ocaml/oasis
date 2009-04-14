@@ -1,0 +1,31 @@
+Name:         oasis
+Version:      0.0.1
+Synopsis:     Just a test
+License:      GPL
+LicenseFile:  LICENSE
+Author:       Sylvain Le Gall
+BuildType:    None
+XTest:        true
+Description: 
+ This is a test to check that everything is working great
+ with this kind of parser.
+ .
+ Coucou.
+
+BuildDepends:
+	extlib
+
+Library stuff
+  Path: src/stuff
+  Modules: A B C
+  XTest: true
+
+Flag devmod
+  Description: build for developper
+  Default: false
+  XToto: true
+
+if architecture(amd64)
+  Author: S. Hacker
+
+

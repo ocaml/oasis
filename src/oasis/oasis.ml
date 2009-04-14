@@ -43,6 +43,7 @@ type flag =
     {
       flag_description: string option;
       flag_default:     bool;
+      flag_extra:       (name * string) list;
     }
 ;;
 
@@ -111,7 +112,7 @@ type top_stmt =
 module Schema =
 struct
 
-  module SSet = Set.Make(String)
+  module NameMap = Map.Make(String)
 
   exception MissingField of name list
 
@@ -125,12 +126,19 @@ struct
         get: unit -> unit;                     
       }
 
-  type t = (name, field) Hashtbl.t
+  type schema = 
+      (name, field) Hashtbl.t
 
-  let create () = 
+  type writer = 
+      {
+        defined:       (name, field) Hashtbl.t;
+        mutable extra: string NameMap.t;
+      }
+
+  let schema () = 
     Hashtbl.create 13
 
-  let new_field t name ?default parse =
+  let new_field schm name ?default parse =
     let lname =
       String.lowercase name
     in
@@ -150,39 +158,48 @@ struct
             raise (MissingField [name])
     in
 
-    let get t =
-      (Hashtbl.find t lname).get ();
+    let get wrtr =
+      (Hashtbl.find wrtr.defined lname).get ();
       match !v with
         | Some x -> 
             x
         | None -> 
             raise (MissingField [name])
     in
-      Hashtbl.replace t lname 
+      Hashtbl.replace schm lname 
         {
           get = (fun () -> v := Some (get_default ())); 
           set = set
         };
       get
 
-  let set_field t name ctxt str =
+  let set_field wrtr name ctxt str =
     let lname =
       String.lowercase name
     in
-    let fld =
       try
-        Hashtbl.find 
-          t 
-          lname
+        let fld =
+          Hashtbl.find 
+            wrtr.defined
+            lname
+        in
+          Hashtbl.replace 
+            wrtr.defined
+            lname 
+            {fld with get = fld.set ctxt str}
       with Not_found ->
-        raise (UnknownField name)
-    in
-      Hashtbl.replace 
-        t
-        lname 
-        {fld with get = fld.set ctxt str}
+        (
+          if String.length lname > 0 && lname.[0] = 'x' then
+            (* This is an extra field *)
+            wrtr.extra <- NameMap.add
+                            lname 
+                            str
+                            wrtr.extra
+          else
+              raise (UnknownField name)
+        )
 
-  let check t =
+  let check wrtr =
     let msgfld =
       Hashtbl.fold
         (fun nm fld msgfld -> 
@@ -194,26 +211,24 @@ struct
                  hd :: msgfld 
              | MissingField lst ->
                  lst @ msgfld)
-        t
+        wrtr.defined
         []
     in
       if msgfld <> [] then
         raise (MissingField msgfld)
 
-  let writer =
-    Hashtbl.copy
+  let writer schm =
+    {
+      defined = Hashtbl.copy schm;
+      extra   = NameMap.empty;
+    }
 
-  (* TODO:
-   * X-field
-  let extra_options nm str =
-    if (String.length str) > 0 && (str.[0] = 'x' || str.[0] = 'X') then
-      (String.lowercase nm), str
-    else
-      failwith 
-        (Printf.sprintf "Unrecognized option '%s'" nm)
-  in
+  let extra wrtr =
+    NameMap.fold
+      (fun k e acc -> (k, e) :: acc)
+      wrtr.extra
+      []
 
-   *)
 end
 ;;
 
@@ -363,7 +378,7 @@ module VP = ValueParser
 (* Root schema *)
 let root_schema, root_gen =
   let schm =
-    Schema.create ()
+    Schema.schema ()
   in
   let name = 
     Schema.new_field schm "name" VP.string_not_empty 
@@ -454,36 +469,36 @@ let root_schema, root_gen =
       VP.build_depends
   in
     schm,
-    (fun tbl libs execs flags ->
+    (fun wrtr libs execs flags ->
       {
-        name          = name tbl;
-        version       = version tbl;
-        license       = license tbl;
-        license_file  = license_file tbl;
-        copyright     = copyright tbl;
-        maintainer    = maintainer tbl;
-        author        = author tbl;
-        homepage      = homepage tbl;
-        synopsis      = synopsis tbl;
-        description   = description tbl;
-        categories    = categories tbl;
-        build_depends = build_depends tbl;
-        conf_type     = conf_type tbl;
-        build_type    = build_type tbl;
-        doc_type      = doc_type tbl;
-        test_type     = test_type tbl;
-        install_type  = install_type tbl;
+        name          = name wrtr;
+        version       = version wrtr;
+        license       = license wrtr;
+        license_file  = license_file wrtr;
+        copyright     = copyright wrtr;
+        maintainer    = maintainer wrtr;
+        author        = author wrtr;
+        homepage      = homepage wrtr;
+        synopsis      = synopsis wrtr;
+        description   = description wrtr;
+        categories    = categories wrtr;
+        build_depends = build_depends wrtr;
+        conf_type     = conf_type wrtr;
+        build_type    = build_type wrtr;
+        doc_type      = doc_type wrtr;
+        test_type     = test_type wrtr;
+        install_type  = install_type wrtr;
         libraries     = libs;
         executables   = execs;
         flags         = flags;
-        extra         = [];
+        extra         = Schema.extra wrtr;
       })
 ;;
 
 (** Flag schema and generator *)
 let flag_schema, flag_gen = 
   let schm =
-    Schema.create ()
+    Schema.schema ()
   in
   let descr = 
     Schema.new_field schm "description" 
@@ -496,17 +511,18 @@ let flag_schema, flag_gen =
       VP.boolean
   in
     schm,
-    (fun tbl ->
+    (fun wrtr ->
        {
-         flag_description = descr tbl;
-         flag_default     = default tbl;
+         flag_description = descr wrtr;
+         flag_default     = default wrtr;
+         flag_extra       = Schema.extra wrtr;
        })
 ;;
 
 (** Library schema and generator *)
 let lib_schema, lib_gen =
   let schm =
-    Schema.create ()
+    Schema.schema ()
   in
   let path =
     Schema.new_field schm "path" VP.directory_exists
@@ -522,19 +538,19 @@ let lib_schema, lib_gen =
       VP.modules
   in
     schm,
-    (fun tbl ->
+    (fun wrtr ->
        {
-         lib_buildable = buildable tbl;
-         lib_path      = path tbl;
-         lib_modules   = modules tbl;
-         lib_extra     = [];
+         lib_buildable = buildable wrtr;
+         lib_path      = path wrtr;
+         lib_modules   = modules wrtr;
+         lib_extra     = Schema.extra wrtr;
        })
 ;;
 
 (** Executable schema and generator *)
 let exec_schema, exec_gen =
   let schm =
-    Schema.create ()
+    Schema.schema ()
   in
   let main_is =
     Schema.new_field schm "mainis" 
@@ -550,11 +566,11 @@ let exec_schema, exec_gen =
       VP.boolean
   in
     schm,
-    (fun tbl -> 
+    (fun wrtr -> 
        {
-         exec_buildable = buildable tbl;
-         exec_main_is   = main_is tbl;
-         exec_extra     = [];
+         exec_buildable = buildable wrtr;
+         exec_main_is   = main_is wrtr;
+         exec_extra     = Schema.extra wrtr;
        })
 ;;
 
@@ -634,13 +650,13 @@ let check valid_tests fn ast =
     function
       | TSFlag (nm, blk) -> 
           let ctxt = 
-            check_schema (Schema.writer flag_schema) ctxt blk
+            check_schema flag_schema ctxt blk
           in
             {ctxt with valid_flags = nm :: ctxt.valid_flags}
       | TSLibrary (_, blk) -> 
-          check_schema (Schema.writer lib_schema) ctxt blk
+          check_schema lib_schema ctxt blk
       | TSExecutable (_, blk) ->
-          check_schema (Schema.writer exec_schema) ctxt blk
+          check_schema exec_schema ctxt blk
       | TSStmt stmt ->
           check_stmt root_wrtr ctxt stmt; 
           ctxt
@@ -659,7 +675,7 @@ let check valid_tests fn ast =
   in
 
     check_top_stmt 
-      root_schema 
+      (Schema.writer root_schema)
       {
         oasisfn     = fn;
         srcdir      = Filename.dirname fn;

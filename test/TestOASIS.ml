@@ -94,6 +94,18 @@ let tests ctxt =
          "test3.oasis",
          (fun env oasis ->
             ());
+
+         "test4.oasis",
+         (fun env oasis ->
+            assert_equal 
+              ~msg:"XTest"
+              ~printer:(fun lst ->
+                          String.concat "; " 
+                            (List.map 
+                               (fun (k, v) -> Printf.sprintf "%S, %S" k v)
+                               lst))
+              ["xtest", "true"]
+              oasis.extra)
        ]
     )
 ;;
