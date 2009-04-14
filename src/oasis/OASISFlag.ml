@@ -17,7 +17,7 @@ let schema, generator =
       (opt string_not_empty)
   in
   let default = 
-    new_field schm "default" 
+    new_field_conditional schm "default" 
       ~default:true
       boolean
   in

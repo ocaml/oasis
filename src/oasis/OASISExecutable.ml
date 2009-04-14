@@ -21,7 +21,7 @@ let schema, generator =
            (file_exists ctxt vl))
   in
   let buildable =
-    new_field schm "buildable"
+    new_field_conditional schm "buildable"
       ~default:true
       boolean
   in

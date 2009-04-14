@@ -15,7 +15,7 @@ let schema, generator =
     new_field schm "path" directory_exists
   in
   let buildable = 
-    new_field schm "buildable"
+    new_field_conditional schm "buildable"
       ~default:true
       boolean
   in

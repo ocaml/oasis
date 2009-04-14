@@ -46,7 +46,9 @@ let configure data =
            (match flg.flag_description with
               | Some hlp -> hlp
               | None -> "")
-           flg.flag_default)
+           true
+           (* TODO: reactivate *)
+           (*flg.flag_default*))
       flags
   in
 

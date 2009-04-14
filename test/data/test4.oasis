@@ -24,8 +24,7 @@ Flag devmod
   Description: build for developper
   Default: false
   XToto: true
-
-if architecture(amd64)
-  Author: S. Hacker
+  if architecture(amd64)
+    Default: true
 
 

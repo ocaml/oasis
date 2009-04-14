@@ -48,10 +48,16 @@ type expr =
   | ETest of string * string
 ;;
 
+(** Conditional value
+  *)
+type 'a conditional =
+    (expr * 'a) list
+;;
+
 (** Library definition 
   *)
 type library = {
-  lib_buildable:  bool;
+  lib_buildable:  bool conditional;
   lib_path:       dirname;
   lib_modules:    string list;
   lib_extra:      (name * string) list;
@@ -61,7 +67,7 @@ type library = {
 (** Executable definition 
   *)
 type executable = {
-  exec_buildable:  bool;
+  exec_buildable:  bool conditional;
   exec_main_is:    filename;
   exec_extra:      (name * string) list;
 }
@@ -71,7 +77,7 @@ type executable = {
   *)
 type flag = {
   flag_description:  string option;
-  flag_default:      bool;
+  flag_default:      bool conditional;
   flag_extra:        (name * string) list;
 }
 ;;
