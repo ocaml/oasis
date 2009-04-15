@@ -315,3 +315,76 @@ let file_generate ?(target) fn comment content =
           content_footer
       )
 ;;
+
+let mlfile_generate ?(target) fn content = 
+
+  let rec count_line str line_cur str_start =
+    if str_start < String.length str then 
+      (
+        try 
+          count_line 
+            str
+            (line_cur + 1)
+            ((String.index_from str str_start '\n') + 1)
+        with Not_found ->
+          (line_cur + 1)
+      )
+    else
+      (
+        line_cur + 1
+      )
+  in
+
+  let contains_line_modifier =
+    let rgxp =
+      Str.regexp "^#[ \\t]*[0-9]+[ \\t]"
+    in
+      fun str -> 
+        try
+          let _i : int =
+            Str.search_forward rgxp str 0
+          in
+            true
+        with Not_found ->
+          false
+  in
+
+  let insert_line_modifier lst line_start = 
+    let rlst, line_end =
+      List.fold_left
+        (fun (acc, line_cur) str ->
+           let line_cur =
+             count_line str line_cur 0
+           in
+             if contains_line_modifier str then
+               ((Printf.sprintf "# %d %S" line_cur fn) :: str :: acc), (line_cur + 1)
+             else
+               (str :: acc), line_cur)
+        ([], line_start)
+        lst
+    in
+      List.rev rlst, line_end
+  in
+
+  let content =
+    match content with 
+      | Split (lst_header, lst_body, lst_footer) ->
+          let lst_header, line_end =
+            insert_line_modifier lst_header 1
+          in
+          let lst_body, line_end =
+            (* Will add 2 lines of comments: start + digest *)
+            insert_line_modifier lst_body (line_end + 2)  
+          in
+          let lst_footer, _ =
+            (* Will add 1 line of comments: stop *)
+            insert_line_modifier lst_footer (line_end + 1)
+          in
+            Split (lst_header, lst_body, lst_footer)
+          
+      | NeedSplit lst ->  
+          NeedSplit (fst (insert_line_modifier lst 0))
+  in
+
+    file_generate ?target fn comment_ml content
+;;

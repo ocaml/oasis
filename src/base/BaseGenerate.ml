@@ -6,6 +6,7 @@
 open Format;;
 open OASISTypes;;
 open BaseUtils;;
+open BaseFileGenerate;;
 
 (* TODO: replace this by only pre_pkg *)
 type target_data =
@@ -247,10 +248,9 @@ let generate data =
   in
 
     (* Generate setup.ml *)
-    BaseFileGenerate.file_generate
+    mlfile_generate
       "setup.ml"
-      BaseFileGenerate.comment_ml
-      (BaseFileGenerate.Split
+      (Split
          (
            (* Header *)
            [],
@@ -275,10 +275,10 @@ let generate data =
       );
 
     (* Generate Makefile (for standard dev. env.) *)
-    BaseFileGenerate.file_generate
+    file_generate
       "Makefile"
-      BaseFileGenerate.comment_sh
-      (BaseFileGenerate.NeedSplit
+      comment_sh
+      (NeedSplit
          BaseData.makefile);
 
     (* Generate other files *)
