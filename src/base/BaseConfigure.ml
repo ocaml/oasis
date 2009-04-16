@@ -33,32 +33,6 @@ let rec expr_eval ctxt =
 ;;
  *)
 
-(** {1 Filename using environment}
-  *)
-module RelativeFilename =
-struct
-  module Env = BaseEnvironment
-
-  (** Rebase filename relative to build file
-    *)
-  let filename fn env =
-    Filename.concat (Filename.dirname env.Env.no_dump.Env.fn) fn
-
-  (** Rebase filename and add program suffix, if required
-    *)
-  let program fn env =
-    (filename fn env)^(Env.var_get ~mandatory:true "suffix_program" env)
-
-  (** Rebase filename and add link suffix, if required
-    *)
-  let link fn env =
-    (filename fn env)^(Env.var_get ~mandatory:true "suffix_link" env)
-
-  (* TODO: check for suffix *)
-end
-;;
-
-
 (** [replace fn_in env] Replace all string of the form '$(var)' where var is
   * a variable that can be found in [env]. [fn_in] must finish with '.in'.
   * The target file is the source filename without the ending '.in'. The file
@@ -75,14 +49,11 @@ let replace fn_in env =
     if not (Filename.check_suffix fn_in ".in") then
       failwith ("File "^fn_in^" doesn't end with '.in'")
   in
-  let fn_in_rebase =
-    RelativeFilename.filename fn_in env 
-  in
   let fn_rebase =
-    Filename.chop_suffix fn_in_rebase ".in"
+    Filename.chop_suffix fn_in ".in"
   in
   let chn_in =
-    open_in fn_in_rebase
+    open_in fn_in
   in
   let equal_cur, close_cur, size_cur =
     if Sys.file_exists fn_rebase then
@@ -118,7 +89,7 @@ let replace fn_in env =
       let line_replaced =
         Env.var_expand 
           ~error_extra_message:("at line "^(string_of_int line_num)^
-                                " file "^(fn_in_rebase))
+                                " file "^fn_in)
           line
           env
       in
