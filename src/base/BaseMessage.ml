@@ -24,32 +24,21 @@ let error str =
   *)
 let info str = 
   if !verbose then
-    (
-      print_endline str;
-      flush stdout
-    )
+    Printf.printf "%s\n%!" str
 ;;
 
 (** Print begin of line when checking for a feature.
   *)
 let checking str =
   if !verbose then
-    (
-      print_string "checking for ";
-      print_string str;
-      print_string "... ";
-      flush stdout
-    )
+    Printf.printf "checking for %s... %!" str
 ;;
 
 (** Print end of line when checking for a feature.
   *)
 let result str =
   if !verbose then
-    (
-      print_endline str;
-      flush stdout
-    )
+    Printf.printf "%s\n%!" str
 ;;
 
 (** Print result and return it.
