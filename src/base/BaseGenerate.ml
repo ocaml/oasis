@@ -242,9 +242,23 @@ let generate data =
   in
 
   let moduls =
-    (* TODO: don't include module twice *)
-    List.flatten
-      (List.map (fun act -> act.moduls) all_actions)
+    let module SSet = Set.Make(String)
+    in
+    let moduls = 
+      List.flatten
+        (List.map (fun act -> act.moduls) all_actions)
+    in
+    let (rmoduls, _) =
+      List.fold_left
+        (fun ((moduls, moduls_seen) as acc) modul ->
+           if SSet.mem modul moduls_seen then
+             acc
+           else
+             (modul :: moduls, SSet.add modul moduls_seen))
+        ([], SSet.empty)
+        moduls
+    in
+      List.rev rmoduls
   in
 
     (* Generate setup.ml *)
