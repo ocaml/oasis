@@ -37,18 +37,21 @@ let configure data =
   in
 
   let pp_print_args fmt flags =
-    pp_compose_lst
-      fmt
-      (fun fmt (nm, flg) ->
-         fprintf fmt 
-           "@[<hv>BaseArgExt.enable@, %S@, %S@, %B@]"
-           nm 
-           (match flg.flag_description with
-              | Some hlp -> hlp
-              | None -> "")
-           true
-           (* TODO: reactivate *)
-           (*flg.flag_default*))
+    fprintf fmt 
+      "@[<hv>BaseArgExt.merge@, \
+        @[[@[@,%a@]@,]@]@]"
+      (pp_list
+         (fun fmt (nm, flg) ->
+            fprintf fmt 
+              "@[<hv>BaseArgExt.enable@, %S@, %S@, %B@]"
+              nm 
+              (match flg.flag_description with
+                 | Some hlp -> hlp
+                 | None -> "")
+              true
+         (* TODO: reactivate *)
+         (*flg.flag_default*))
+         ";@ ")
       flags
   in
 
@@ -65,7 +68,6 @@ let configure data =
   let pp_gen fmt () = 
     fprintf fmt
       "@[<hv>BaseConfigure.configure@, \
-         (Filename.dirname Sys.argv.(0))@, \
          %S@, \
          %S@, \
          @[(@[<hv>@,%a@ ::@ []@]@,)@]@]"

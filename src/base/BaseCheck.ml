@@ -64,7 +64,7 @@ let version feature var_prefix str_comparator fversion =
   let var = 
     var_prefix^"_version_"^(BaseVersionTools.varname_of_comparator comparator)
   in
-    Env.cache ~no_export:true var
+    Env.cache ~hide:true var
       (fun env ->
          let () = 
            Msg.checking (feature^" version "^str_comparator);

@@ -5,34 +5,23 @@
 
 module Msg    = BaseMessage;;
 module MapVar = Map.Make(String);;
-module SetFn  = Set.Make(String);;
+module SetVar = Set.Make(String);;
 
 (** Variable type
   *)
-type var =
+type definition =
     {
-      value:     string;
-      no_export: bool;
-    }
-;;
-
-(** Environment part that is not saved between invocation
-  *)
-type env_no_dump = 
-    {
-      args:            (Arg.key * (env ref -> Arg.spec) * Arg.doc) list;
-      fn:              string;
-      print_no_export: bool;
-      print_conf_done: bool;
+      default: env -> string;
+      hidden:  bool;
     }
 
 (** Environment type
   *)
 and env = 
     {
-      vars:            var MapVar.t;
-      temporary_files: SetFn.t;
-      no_dump :        env_no_dump;
+      defined:      definition MapVar.t;
+      value:        string MapVar.t;
+      print_hidden: bool;
     }
 ;;
 
@@ -43,59 +32,128 @@ type fun_env = env -> env
 
 (** Apply in turn function to modify environment
   *)
-let chain (lst: (env -> env) list) (env: env) =
+let chain lst env =
   List.fold_left
     (fun env f -> f env)
     env
     lst
 ;;
 
-(** Add a variable to environment. [no_export] allow to store
+(** Add a variable to environment. [hide] allow to store
   * a variable that will be hidden to user (not printed).
   *)
-let var_add ?(no_export=false) name vl env =
-  let nvars =
-    MapVar.add 
-      name 
-      {value = vl; no_export = no_export} 
-      env.vars
-  in
+let var_define ?(hide=false) name dflt env =
+  if not (MapVar.mem name env.defined) then
     {
       env with 
-          vars  = nvars;
+          defined = MapVar.add 
+                      name 
+                      {default = dflt; hidden = hide} 
+                      env.defined;
     }
+  else
+    failwith 
+      (Printf.sprintf
+         "Variable %S is already defined"
+         name)
 ;;
 
-(** Retrieve a variable value from environment
+(** Set value of a variable 
+  *)
+let var_set name value env =
+  if MapVar.mem name env.defined then
+    {
+      env with
+          value = MapVar.add name value env.value;     
+    }
+  else
+    failwith 
+      (Printf.sprintf 
+         "Cannot set variable %S because it is not defined" 
+         name)
+;;
+
+(** Retrieve the value of a variabe
   *)
 let var_get ?(mandatory=false) ?(error_extra_message="") name env =
   try 
-    (MapVar.find name env.vars).value
+    MapVar.find name env.value
   with Not_found ->
     (
-      if mandatory then
-        Msg.error ("variable '"^name^"' is not defined "^error_extra_message)
-      else
-        raise Not_found
+      try
+        (MapVar.find name env.defined).default env
+      with Not_found ->
+        (
+          if mandatory then
+            failwith
+              (Printf.sprintf 
+                 "Variable %S not defined %S"
+                 name
+                 error_extra_message)
+          else
+            raise Not_found
+        )
     )
 ;;
 
 (** Try to get a variable value from environment and if it fails
   * compute it and store it in environment.
   *)
-let cache ?(no_export=false) name f env =
-  try
-    var_get name env, env
+let cache ?(hide) name dflt env =
+  try 
+    (var_get name env), env
   with Not_found ->
     (
-      let vl, nenv =
-        f env
+      let v, env =
+        dflt env
       in
-      let nnenv =
-        var_add ~no_export:no_export name vl nenv
-      in
-        vl, nnenv
+        v,
+        var_set 
+          name 
+          v 
+          (var_define ?hide name (fun _ -> v) env)
     )
+;;
+
+(** Get all variable
+  *)
+let var_all ?(include_hidden=false) env =
+  (* Extract variable that have been set and return
+   * a map containing defined value that have not 
+   * been set yet.
+   *)
+  let varset_lst, vardflt_mp =
+    MapVar.fold
+      (fun name value (varset_lst, vardflt_mp) ->
+         (* We look if each var is hidden or not *)
+         try
+           let def =
+             MapVar.find name vardflt_mp
+           in
+           let vardflt_mp =
+             (* We won't need this var in the future *)
+             MapVar.remove name vardflt_mp
+           in
+             if include_hidden || (not def.hidden) then
+               (name, lazy value) :: varset_lst, vardflt_mp
+             else
+               varset_lst, vardflt_mp
+         with Not_found ->
+           (* No definition we display it *)
+           (name, lazy value) :: varset_lst, vardflt_mp)
+      env.value
+      ([], env.defined)
+  in
+
+    (* Combine set var with defaulted var *)
+    MapVar.fold
+      (fun name def lst ->
+         if include_hidden || (not def.hidden) then
+           (name, lazy (def.default env)) :: lst
+         else
+           lst)
+      vardflt_mp
+      varset_lst
 ;;
 
 (** Expand variable that can be found in string. [multi] control
@@ -103,14 +161,9 @@ let cache ?(no_export=false) name f env =
   * expand anymore. Variable follow definition of variable for 
   * {!Buffer.substitute}. To escape '$', you must use '$_'.
   *)
-let rec var_expand ?(multi=true) ?(error_extra_message="") str env =
-  let all_vars =
-    String.concat ", "
-      (MapVar.fold 
-         (fun k v acc -> if v.no_export then acc else k :: acc)
-         env.vars 
-         []
-      )
+let rec var_expand ?(deep=true) ?(error_extra_message="") str env =
+  let all_vars () =
+    String.concat ", " (List.map fst (var_all env))
   in
   let subst f str =
     let buffer_replaced =
@@ -130,17 +183,20 @@ let rec var_expand ?(multi=true) ?(error_extra_message="") str env =
          else
            var_get 
              ~mandatory:true
-             ~error_extra_message:("in '"^str^"' "^error_extra_message^
-                                   "; available variables: "^all_vars)
+             ~error_extra_message:(Printf.sprintf
+                                     "in %S %s; available variables: %s"
+                                     str
+                                     error_extra_message
+                                     (all_vars ()))
              varname 
              env
       )
       str
   in
-    if multi && nstr <> str then
+    if deep && nstr <> str then
       (
         var_expand 
-          ~multi:multi 
+          ~deep:deep
           ~error_extra_message:error_extra_message 
           nstr
           env
@@ -160,233 +216,138 @@ let rec var_expand ?(multi=true) ?(error_extra_message="") str env =
       )
 ;;
 
-(** Add a command line argument 
-  *)
-let arg_add name default args env =
-  let nenv =
-    {
-      env with
-          no_dump = 
-            {
-              env.no_dump with 
-                  args = args @ env.no_dump.args
-            }
-    }
-  in
-    snd (cache name (fun env -> default, env) nenv)
-;;
-
-(** Get command line argument 
-  *)
-let arg_get env = 
-  let renv =
-    ref env
-  in
-    (
-      List.rev
-      (
-        List.map
-          (fun (key, fspc, doc) -> key, (fspc renv), doc)
-          env.no_dump.args
-      )
-    ),
-    renv
-;;
-
-(** Default no dump environment for dumping env
-  *)
-let env_no_dump_empty =
-  {
-    args            = [];
-    fn              = "none";
-    print_no_export = false;
-    print_conf_done = false;
-  }
-;;
-
-(** Default environment when there is nothing to load
-  *)
-let env_empty =
-  {
-    vars            = MapVar.empty;
-    temporary_files = SetFn.empty;
-    no_dump         = env_no_dump_empty
-  }
-;;
-
-(** No dump environment to set after load
-  *)
-let env_no_dump fn =
-  {
-    args =
-      [
-        "--override",
-        (fun renv -> 
-           Arg.Tuple
-             (
-               let rvr = ref ""
-               in
-               let rvl = ref ""
-               in
-                 [
-                   Arg.Set_string rvr;
-                   Arg.Set_string rvl;
-                   Arg.Unit (fun () -> renv := var_add !rvr !rvl !renv)
-                 ]
-             )
-        ),
-        "var_val  Override any configuration variable";
-
-        "--print-no-export",
-        (fun renv ->
-           Arg.Unit 
-             (fun () -> 
-                renv := 
-                  {
-                    !renv with 
-                        no_dump = 
-                          {
-                            !renv.no_dump with 
-                                print_no_export = true
-                          }
-                  }
-             );
-        ),
-        " Print even non-printable variable (debug)";
-      ];
-
-    fn = fn;
-    print_no_export = false;
-    print_conf_done = false;
-  }
-;;
-
-(** Add a temporary file
-  *)
-let temporary_add fn env = 
-  {
-    env with 
-        temporary_files = SetFn.add fn env.temporary_files
-  }
-;;
-
-(** Get temporary file list
-  *)
-let temporary_get env =
-  SetFn.elements env.temporary_files
-;;
-
-(** Env structure signature, for safe marshalling
-  *)
-let env_sig =
-  Digest.string (Marshal.to_string env_empty [])
-;;
-
 (** Save environment on disk.
   *)
-let dump env = 
+let dump fn env = 
   let chn =
-    open_out_bin env.no_dump.fn
+    open_out_bin fn
   in
-    output_value chn env_sig;
-    Marshal.to_channel chn 
-      {env with no_dump = env_no_dump_empty} 
-      [];
+    List.iter 
+      (fun (nm,vl) -> 
+         Printf.fprintf chn "%s = %S\n" nm (Lazy.force vl))
+      (var_all ~include_hidden:true env);
     close_out chn
 ;;
 
 (** Initialize environment.
   *)
-let init ?filename dirname pkg_name pkg_version = 
-  let fn = 
-    Filename.concat 
-      dirname
-      (
-        match filename with 
-          | Some f ->
-              f
-          | None ->
-              "buildsys.data"
-      )
+let init fn pkg_name pkg_version = 
+  let default =
+    chain
+      [
+        var_define "pkg_name" (fun _ -> pkg_name);
+        var_define "pkg_version" (fun _ -> pkg_version);
+      ]
+      {
+        defined      = MapVar.empty;
+        value        = MapVar.empty;
+        print_hidden = false;
+      }
   in
-  let env =
     if Sys.file_exists fn then
       (
         let chn =
           open_in_bin fn
         in
-        let env_sig_chn = 
-          input_value chn
+        let st =
+          Stream.of_channel chn
         in
-        let env =
-          if env_sig_chn = env_sig then
-            Marshal.from_channel chn
-          else
-            (
-              Msg.warning ("Signature of environment has changed since last dump of "^fn);
-              Msg.warning "This can be due to change in the 'env' datastructure.";
-              Msg.info ("Regenerating "^fn);
-              env_empty
-            )
+        let line =
+          ref 1
+        in
+        let st_line = 
+          Stream.from
+            (fun _ ->
+               try
+                 match Stream.next st with 
+                   | '\n' -> incr line; Some '\n'
+                   | c -> Some c
+               with Stream.Failure -> None)
+        in
+        let lexer = 
+          Genlex.make_lexer ["="] st_line
+        in
+        let rec read_file mp =
+          match Stream.npeek 3 lexer with 
+            | [Genlex.Ident nm; Genlex.Kwd "="; Genlex.String vl] ->
+                Stream.junk lexer; 
+                Stream.junk lexer; 
+                Stream.junk lexer;
+                read_file (MapVar.add nm vl mp)
+            | [] ->
+                mp
+            | _ ->
+                failwith 
+                  (Printf.sprintf 
+                     "Malformed data file '%s' line %d"
+                     fn !line)
+        in
+        let mp =
+          read_file default.value
         in
           close_in chn;
-          env 
+          {default with value = mp}
       )
     else
       (
-        env_empty
+        default
       )
-  in
-  List.fold_left
-    (fun env f -> f env)
-    env
-    [
-      var_add "pkg_name" pkg_name;
-      var_add "pkg_version" pkg_version;
-      (fun env -> {env with no_dump = env_no_dump fn});
-    ]
 ;;
 
 (** Display environment to user.
   *)
 let print env =
   let printable_vars =
-    MapVar.fold
-      (fun name var acc ->
-         if var.no_export && not env.no_dump.print_no_export then
-           acc
-         else
-           (name, (var_expand var.value env)) :: acc
-      )
-      env.vars
-      []
+    var_all ~include_hidden:env.print_hidden env
   in
   let max_length = 
     List.fold_left
-      (fun mx (name, var) -> max (String.length name) mx)
+      (fun mx (name, _) -> max (String.length name) mx)
       0
       printable_vars
   in
+  let dot_pad str =
+    String.make ((max_length - (String.length str)) + 3) '.'
+  in
+
   print_newline ();
   print_endline "Configuration: ";
   print_newline ();
   List.iter 
-    (fun (name,value) ->
-       let dots =
-         String.make ((max_length - (String.length name)) + 3) '.'
-       in
-         print_endline (name^": "^dots^" "^value)
-    )
+    (fun (name,value) -> 
+       Printf.printf "%s: %s %s\n" name (dot_pad name) (Lazy.force value))
     printable_vars;
   print_newline ();
-  print_endline "Temporary files: ";
-  print_newline ();
-  SetFn.iter print_endline env.temporary_files;
-  print_newline ()
 ;;
 
+(** Equality between two environment 
+  *)
+let equal env1 env2 =
+  (MapVar.equal (=) env1.value env2.value)
+;;
 
-let has_changed env1 env2 =
-  (MapVar.compare (fun v1 v2 -> String.compare v1.value v2.value) env1.vars env2.vars) != 0
+(** Default command line arguments 
+  *)
+let args renv =
+  [
+    "--override",
+     Arg.Tuple
+       (
+         let rvr = ref ""
+         in
+         let rvl = ref ""
+         in
+           [
+             Arg.Set_string rvr;
+             Arg.Set_string rvl;
+             Arg.Unit (fun () -> renv := var_set !rvr !rvl !renv)
+           ]
+       ),
+    "var+val  Override any configuration variable";
+
+    "--print-hidden",
+    Arg.Unit (fun () -> renv := {!renv with print_hidden = true}),
+    " Print even non-printable variable (debug)";
+  ]
 ;;
 

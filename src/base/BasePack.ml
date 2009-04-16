@@ -14,17 +14,17 @@ open FilePath.DefaultPath;;
 
 type package =
     {
-      args:     Env.fun_env;
+      args:     Env.env ref -> (string * Arg.spec * string) list;
       checks:   Env.fun_env;
       in_files: string list;
     }
 ;;
 
-let merge pkg1 pkg2 =
+let merge lst =
   {
-    args     = (fun env -> pkg2.args   (pkg1.args env));
-    checks   = (fun env -> pkg2.checks (pkg1.checks env));
-    in_files = pkg1.in_files @ pkg2.in_files;
+    args     = BaseArgExt.merge (List.map (fun pkg -> pkg.args) lst);
+    checks   = List.fold_left (fun f pkg env -> f (pkg.checks env)) (fun x -> x) lst;
+    in_files = List.flatten (List.map (fun pkg -> pkg.in_files) lst);
   }
 ;;
 
@@ -36,7 +36,7 @@ let default =
      Base arguments
    *)
 
-  let args env =
+  let args =
     (* Standard paths *)
     let lst =
       [
@@ -122,26 +122,6 @@ let default =
         "$docdir";
       ]
     in
-    let env =
-      List.fold_left
-        (fun env (name, hlp, dflt) ->
-           Env.arg_add 
-             (* var name *)
-             name
-             (* default *)
-             dflt
-             (* command line argument *)
-             [
-               "--"^name,
-               (fun renv -> Arg.String (fun str -> renv := Env.var_add name str !renv)),
-               "dir "^hlp^" ["^dflt^"]"
-             ]
-             env
-        )
-        env
-        lst
-    in
-
     (* Build date argument *)
     let date_R () = 
       let string_of_mon i = 
@@ -166,16 +146,28 @@ let default =
           tm.tm_min 
           tm.tm_sec
     in
-    let env = 
+    let arg_date = 
       BaseArgExt.wth 
         "build_date"
         "date Date of build"
-        (date_R ())
-        env
+        (fun _ -> date_R ())
     in
 
-    (* Result *)
-      env
+    let args renv =
+      List.fold_left
+        (fun acc (name, hlp, dflt) ->
+           renv := Env.var_define name (Env.var_expand dflt) !renv;
+           (
+             "--"^name,
+             Arg.String (fun str -> renv := Env.var_set name str !renv),
+             "dir "^hlp^" ["^(Env.var_get name !renv)^"]"
+           ) :: acc
+        )
+        ((BaseArgExt.merge [arg_date; Env.args]) renv)
+        lst
+    in
+
+      args
   in
 
   (*

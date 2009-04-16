@@ -12,6 +12,7 @@ all:
 clean:
 	-$(RM) examples/flags/myocamlbuild.ml
 	-$(RM) examples/flags/setup.ml
+	-$(RM) examples/flags/setup.data
 	-$(RM) examples/flags/Makefile
 	-$(RM) examples/flags/src/simplelibext/simplelibext.mllib
 	-$(RM) examples/flags/src/simplelib/simplelib.mllib

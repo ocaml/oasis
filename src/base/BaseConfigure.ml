@@ -118,70 +118,51 @@ let replace fn_in env =
       )
   in
     read_check_replace 1 false;
-    Env.temporary_add fn_rebase env
-;;
-
-(** Parse command line arguments 
-  *)
-let parse argv env =
-
-  (* Simulate command line for Arg *)
-  let current =
-    ref 0
-  in
-
-  let args, renv =
-    Env.arg_get env
-  in
-    (
-      try
-        Arg.parse_argv
-          ~current:current
-          (Array.concat [[|"toto"|]; argv])
-          (Arg.align args)
-          (fun str -> 
-             failwith 
-               ("Don't know what to do with arguments: '"^str^"'"))
-          "configure options:"
-      with Arg.Help txt ->
-        (
-          prerr_endline txt;
-          exit 1
-        )
-    );
-      !renv
+    env
 ;;
 
 (** Build environment using provided series of check to be done
   * and then output corresponding file.
   *)
-let configure dirname pkg_name pkg_version packs argv =
+let configure pkg_name pkg_version packs argv =
   let {BasePack.args     = args;
        BasePack.checks   = checks; 
        BasePack.in_files = in_files} = 
-    List.fold_left
-      BasePack.merge
-      BasePack.default
-      packs
+      BasePack.merge (BasePack.default :: packs)
   in
-  let env_orig =
+
+  (* Data file for setup.ml *)
+  let fn =
+    (Filename.chop_extension Sys.argv.(0))^".data"
+  in
+
+  (* Build initial environment *)
+  let env_org =
     Env.init 
-      dirname
+      fn
       pkg_name 
       pkg_version
   in
+  (* Parse command line *)
   let env =
-    checks (parse argv (args env_orig))
+    BaseArgExt.parse argv args env_org
   in
+
+  (* Do some check *)
+  let env =
+    checks env
+  in
+
+  (* Replace data in file *)
   let env =
     List.fold_left 
       (fun env fn_in -> replace fn_in env) 
       env
       in_files
   in
-    if Env.has_changed env_orig env then
+    if not (Env.equal env_org env) then
       (
-        Env.dump  env;
+        Env.dump  fn env;
         Env.print env
       )
 ;;
