@@ -73,7 +73,7 @@ let var_set name value env =
          name)
 ;;
 
-(** Retrieve the value of a variabe
+(** Retrieve the value of a variable
   *)
 let var_get ?(mandatory=false) ?(error_extra_message="") name env =
   try 
@@ -156,64 +156,29 @@ let var_all ?(include_hidden=false) env =
       varset_lst
 ;;
 
-(** Expand variable that can be found in string. [multi] control
-  * wether the variable will be expanded until there is nothing to 
-  * expand anymore. Variable follow definition of variable for 
-  * {!Buffer.substitute}. To escape '$', you must use '$_'.
+(** Expand variable that can be found in string. Variable follow definition of
+  * variable for {!Buffer.add_substitute}.
   *)
-let rec var_expand ?(deep=true) ?(error_extra_message="") str env =
+let rec var_expand str env =
   let all_vars () =
     String.concat ", " (List.map fst (var_all env))
   in
-  let subst f str =
-    let buffer_replaced =
-      Buffer.create ((String.length str) * 2)
-    in
-      Buffer.add_substitute 
-        buffer_replaced
-        f
-        str;
-      Buffer.contents buffer_replaced
+  let buff =
+    Buffer.create ((String.length str) * 2)
   in
-  let nstr =
-    subst 
-      (fun varname ->
-         if varname = "_" then
-           "$_"
-         else
-           var_get 
-             ~mandatory:true
-             ~error_extra_message:(Printf.sprintf
-                                     "in %S %s; available variables: %s"
-                                     str
-                                     error_extra_message
-                                     (all_vars ()))
-             varname 
-             env
-      )
-      str
-  in
-    if deep && nstr <> str then
-      (
-        var_expand 
-          ~deep:deep
-          ~error_extra_message:error_extra_message 
-          nstr
-          env
-      )
-    else
-      (
-        (* Proceed with the final replacement of $_ by $ *)
-        subst
-          (function 
-             | "_" ->
-                 "$"
-             | str ->
-                 failwith 
-                   ("Unknown replacement "^str^" "^error_extra_message)
-          )
-          nstr
-      )
+    Buffer.add_substitute 
+      buff
+      (fun var -> 
+         try 
+           var_expand (var_get var env) env
+         with Not_found ->
+           failwith 
+             (Printf.sprintf 
+                "No variable %s defined when trying to expand %S \
+                 (available: %s)"
+                str var (all_vars ()))) 
+      str;
+    Buffer.contents buff
 ;;
 
 (** Save environment on disk.
