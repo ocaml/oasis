@@ -244,9 +244,9 @@ let file_generate ?(target) fn comment content =
           match split_header_body_footer lst_fn with 
             | fn_header, Some (fn_body, fn_footer) ->
                 (
-                  (* Strip "do not digest" message
+                  (* Check "do not digest" value
                    *)
-                  let fn_body =
+                  let () =
                     match fn_body with
                       | hd :: tl when Str.string_match do_not_edit hd 0 -> 
                           (
@@ -264,26 +264,16 @@ let file_generate ?(target) fn comment content =
                                      fn
                                      expected_digest
                                      digest)
-                              else
-                                tl
                           )
                       | lst ->
-                          lst
+                          ()
                   in
-                    (* Regenerate if required *)
-                    if target <> None ||
-                       (fn_body <> content_body) then
-                      (
-                        info (Printf.sprintf "Regenerating file %s" fn);
-                        output_file 
-                          fn_header
-                          content_body
-                          fn_footer
-                      )
-                    else
-                      (
-                        info (Printf.sprintf "Nothing to update for file %s" fn);
-                      )
+                    (* Regenerate *)
+                    info (Printf.sprintf "Regenerating file %s" fn);
+                    output_file 
+                      fn_header
+                      content_body
+                      fn_footer
                 )
             | fn_header, None ->
                 (
