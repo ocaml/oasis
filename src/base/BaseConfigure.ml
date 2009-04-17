@@ -136,14 +136,20 @@ let configure pkg_name pkg_version args checks ab_files argv =
 
   (* Build initial environment *)
   let env_org =
-    Env.init 
-      fn
-      pkg_name 
-      pkg_version
+    Env.load fn
+  in
+  let env = 
+    List.fold_left
+      (fun env (nm, vl) -> Env.var_define nm (fun env -> vl, env) env)
+      env_org
+      [
+        "pkg_name", pkg_name;
+        "pkg_version", pkg_version;
+      ]
   in
   (* Parse command line *)
   let env =
-    BaseArgExt.parse argv (BaseArgExt.default :: args) env_org
+    BaseArgExt.parse argv (BaseArgExt.default :: args) env
   in
 
   (* Do some check *)

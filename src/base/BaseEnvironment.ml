@@ -25,20 +25,6 @@ and env =
     }
 ;;
 
-(** Type for transforming env
-  *)
-type fun_env = env -> env
-;;
-
-(** Apply in turn function to modify environment
-  *)
-let chain lst env =
-  List.fold_left
-    (fun env f -> f env)
-    env
-    lst
-;;
-
 (** Add a variable to environment. [hide] allow to store
   * a variable that will be hidden to user (not printed).
   *)
@@ -221,13 +207,8 @@ let dump fn env =
 
 (** Initialize environment.
   *)
-let init fn pkg_name pkg_version = 
+let load fn = 
   let default =
-    chain
-      [
-        var_define "pkg_name" (fun env -> pkg_name, env);
-        var_define "pkg_version" (fun env -> pkg_version, env);
-      ]
       {
         defined      = MapVar.empty;
         value        = MapVar.empty;
