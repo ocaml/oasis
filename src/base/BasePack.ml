@@ -174,33 +174,6 @@ let default =
      Base component check
    *)
 
-  (** Return ocaml version and check against a minimal version.
-    *)
-  let ocaml_version ?min_version env = 
-    let ver, nenv =
-      Env.cache "ocaml_version"
-        (fun env ->
-           Msg.checking "ocaml version";
-           (Msg.result_wrap Sys.ocaml_version), env
-        )
-        env
-    in
-    let nnenv =
-      match min_version with 
-        | Some ver ->
-            Chk.fenv 
-              (Chk.version 
-                 "ocaml version" 
-                 "ocaml" 
-                 ver 
-                 (fun () -> Sys.ocaml_version)) 
-              nenv
-        | None ->
-            nenv
-    in
-      ver, nnenv
-  in
-
   (** Check for standard program 
     *)
   let opt_prog prg = Chk.prog_best prg [prg^".opt"; prg]
@@ -211,6 +184,28 @@ let default =
   let ocamlopt   = opt_prog "ocamlopt"
   in
   let ocamlfind  = Chk.prog "ocamlfind"
+  in
+
+  (** Return ocaml version and check against a minimal version.
+    *)
+  let ocaml_min_version ?min_version env = 
+    let ver =
+      Env.var_get "ocaml_version" env
+    in
+    let nnenv =
+      match min_version with 
+        | Some ver ->
+            Chk.fenv 
+              (Chk.version 
+                 "ocaml version" 
+                 "ocaml" 
+                 ver 
+                 (fun () -> Sys.ocaml_version)) 
+              env
+        | None ->
+            env
+    in
+      ver, nnenv
   in
 
   (** Check what is the best target for platform (opt/byte)
@@ -267,16 +262,22 @@ let default =
     *)
   let checks env = 
     Env.chain
-      (List.map 
-         Chk.fenv
-         [
-           suffix_link;
-           suffix_program;
-           ocaml_version;
-           ocamlc;
-           ocamlbest;
-           ocamlfind;
-         ]
+      (
+        (Chk.fenv ocamlc)
+        ::
+        (BaseOCamlcConfig.init (Env.var_get "ocamlc"))
+        ::
+        (List.map 
+           Chk.fenv
+           [
+             suffix_link;
+             suffix_program;
+             ocaml_min_version;
+             ocamlc;
+             ocamlbest;
+             ocamlfind;
+           ]
+        )
       )
       env
   in
@@ -294,78 +295,3 @@ let default =
     }
 ;;
 
-(* TODO: include in standard check 
-(** {2 Environment} *)
-
-module Env =
-struct
-  let add_ocamlc_conf ocamlc env =
-    (* Try to find the value associated with a keyword *)
-    let rec find_associated_value nm keyword lst =
-      match lst with 
-        | hd :: vl :: _ when hd = keyword ->
-            nm, vl
-        | _ :: tl ->
-            find_associated_value nm keyword tl
-        | [] ->
-           failwith 
-             (Printf.sprintf 
-                "Field '%s' not found in '%s -config' output"
-                ocamlc
-                nm)
-    in
-
-    (* Extract data from ocamlc -config *)
-    let output =
-      let chn =
-        Unix.open_process_in (ocamlc^" -config")
-      in
-      let buff =
-        Buffer.create 120
-      in
-        (
-          try
-            while true do 
-              Buffer.add_char buff (input_char chn);
-            done
-          with End_of_file ->
-            ()
-        );
-        (
-          match Unix.close_process_in chn with
-            | Unix.WEXITED 0 -> 
-                ()
-            | _ -> 
-                failwith 
-                  (Printf.sprintf 
-                     "Failed running '%s -config'" 
-                     ocamlc)
-        );
-        Str.split (Str.regexp "[\r\n ]+") (Buffer.contents buff)
-    in
-
-    (* Available test *)
-    let tests =
-      List.map 
-        (fun (nm, keyword) -> find_associated_value nm keyword output)
-        [
-          "os_type",      "os_type:";
-          "system",       "system:";
-          "architecture", "architecture:";
-          "cc",           "native_c_compiler:";
-        ]
-    in
-      {env with tests = List.rev_append tests env.tests}
-
-  let create ?(ocamlc="ocamlc") fn =
-    add_ocamlc_conf 
-      ocamlc
-      {
-        oasisfn = fn;
-        srcdir  = Filename.dirname fn;
-        tests   = [];
-      }
-
-end
-;;
- *)
