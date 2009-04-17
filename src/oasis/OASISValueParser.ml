@@ -87,11 +87,16 @@ let boolean _ str =
              str)
 ;;
 
-(** Convert string to build depends *)
-let build_depends _ str =
+(** Convert a comma separated string into list *)
+let comma_separated _ =
   let separator =
     Str.regexp " *, *"
   in
+    Str.split separator 
+;;
+
+(** Convert string to build depends *)
+let build_depends ctxt str =
   let white_spaces =
     "[ \t]*"
   in
@@ -119,7 +124,7 @@ let build_depends _ str =
   in
     List.map
       parse_one
-      (Str.split separator str)
+      (comma_separated ctxt str)
 ;;
 
 (** Convert string to module lists *)

@@ -11,7 +11,7 @@ module SetVar = Set.Make(String);;
   *)
 type definition =
     {
-      default: env -> string;
+      default: env -> string * env;
       hidden:  bool;
     }
 
@@ -77,11 +77,22 @@ let var_set name value env =
   *)
 let var_get ?(mandatory=false) name env =
   try 
-    MapVar.find name env.value
+    MapVar.find name env.value, env
   with Not_found ->
     (
       try
-        (MapVar.find name env.defined).default env
+        let def = 
+          MapVar.find name env.defined
+        in
+        let advertise = 
+          not def.hidden 
+        in
+        let dflt, env = 
+          if advertise then Msg.checking name;
+          def.default env
+        in
+          if advertise then Msg.result dflt;
+          dflt, var_set name dflt env
       with Not_found ->
         (
           if mandatory then
@@ -98,25 +109,16 @@ let var_get ?(mandatory=false) name env =
 (** Try to get a variable value from environment and if it fails
   * compute it and store it in environment.
   *)
-let cache ?(hide) name dflt env =
+let var_cache ?(hide) name dflt env =
   try 
-    (var_get name env), env
+    var_get name env
   with Not_found ->
-    (
-      let v, env =
-        dflt env
-      in
-        v,
-        var_set 
-          name 
-          v 
-          (var_define ?hide name (fun _ -> v) env)
-    )
+    var_get name (var_define ?hide name dflt env)
 ;;
 
 (** Get all variable
   *)
-let var_all ?(include_hidden=false) env =
+let var_all ?(include_hidden=false) ~include_unset env =
   (* Extract variable that have been set and return
    * a map containing defined value that have not 
    * been set yet.
@@ -134,25 +136,32 @@ let var_all ?(include_hidden=false) env =
              MapVar.remove name vardflt_mp
            in
              if include_hidden || (not def.hidden) then
-               (name, lazy value) :: varset_lst, vardflt_mp
+               name :: varset_lst, vardflt_mp
              else
                varset_lst, vardflt_mp
          with Not_found ->
            (* No definition we display it *)
-           (name, lazy value) :: varset_lst, vardflt_mp)
+           name :: varset_lst, vardflt_mp)
       env.value
       ([], env.defined)
   in
 
-    (* Combine set var with defaulted var *)
-    MapVar.fold
-      (fun name def lst ->
-         if include_hidden || (not def.hidden) then
-           (name, lazy (def.default env)) :: lst
-         else
-           lst)
-      vardflt_mp
-      varset_lst
+    if include_unset then
+      (
+        (* Combine set var with defaulted var *)
+        MapVar.fold
+          (fun name def lst ->
+             if include_hidden || (not def.hidden) then
+               name :: lst
+             else
+               lst)
+          vardflt_mp
+          varset_lst
+      )
+    else
+      (
+        varset_lst
+      )
 ;;
 
 (** Expand variable that can be found in string. Variable follow definition of
@@ -160,16 +169,26 @@ let var_all ?(include_hidden=false) env =
   *)
 let rec var_expand str env =
   let all_vars () =
-    String.concat ", " (List.map fst (var_all env))
+    String.concat ", " (var_all ~include_unset:true env)
   in
   let buff =
     Buffer.create ((String.length str) * 2)
+  in
+  let renv =
+    ref env
   in
     Buffer.add_substitute 
       buff
       (fun var -> 
          try 
-           var_expand (var_get var env) env
+           let value, env = 
+             var_get var !renv
+           in
+           let exp_value, env = 
+             var_expand value env
+           in
+             renv := env;
+             exp_value
          with Not_found ->
            failwith 
              (Printf.sprintf 
@@ -177,7 +196,7 @@ let rec var_expand str env =
                  (available: %s)"
                 str var (all_vars ()))) 
       str;
-    Buffer.contents buff
+    Buffer.contents buff, !renv
 ;;
 
 (** Save environment on disk.
@@ -186,10 +205,17 @@ let dump fn env =
   let chn =
     open_out_bin fn
   in
-    List.iter 
-      (fun (nm,vl) -> 
-         Printf.fprintf chn "%s = %S\n" nm (Lazy.force vl))
-      (var_all ~include_hidden:true env);
+  let _env: env =
+    List.fold_left 
+      (fun env nm -> 
+         let vl, env = 
+           var_get nm env 
+         in
+           Printf.fprintf chn "%s = %S\n" nm vl;
+           env)
+      env
+      (var_all ~include_hidden:true ~include_unset:false env)
+  in
     close_out chn
 ;;
 
@@ -199,8 +225,8 @@ let init fn pkg_name pkg_version =
   let default =
     chain
       [
-        var_define "pkg_name" (fun _ -> pkg_name);
-        var_define "pkg_version" (fun _ -> pkg_version);
+        var_define "pkg_name" (fun env -> pkg_name, env);
+        var_define "pkg_version" (fun env -> pkg_version, env);
       ]
       {
         defined      = MapVar.empty;
@@ -261,8 +287,15 @@ let init fn pkg_name pkg_version =
 (** Display environment to user.
   *)
 let print env =
-  let printable_vars =
-    var_all ~include_hidden:env.print_hidden env
+  let printable_vars, env =
+    List.fold_left
+      (fun (acc, env) nm ->
+         let vl, env =
+           var_get nm env
+         in
+           ((nm, vl) ::  acc), env)
+      ([], env)
+      (var_all ~include_hidden:env.print_hidden ~include_unset:false env)
   in
   let max_length = 
     List.fold_left
@@ -279,7 +312,7 @@ let print env =
   print_newline ();
   List.iter 
     (fun (name,value) -> 
-       Printf.printf "%s: %s %s\n" name (dot_pad name) (Lazy.force value))
+       Printf.printf "%s: %s %s\n" name (dot_pad name) value)
     printable_vars;
   print_newline ();
 ;;

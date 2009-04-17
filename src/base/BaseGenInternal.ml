@@ -7,39 +7,35 @@ open BaseUtils;;
 (* Configuration *)
 let configure data =
 
-  let pp_compose_lst fmt pp_elem lst =
-      fprintf fmt 
-        "@[<hv>List.fold_left@, \
-          (fun f1 f2 x -> f1 (f2 x))@, \
-          (fun x -> x)@, \
-          @[[@[@,%a@]@,]@]@]"
-        (pp_list pp_elem ";@ ") lst
-  in
-
   let pp_print_checks fmt pkg = 
-    pp_compose_lst
-      fmt
-      (fun fmt e ->
-         match e with
-           | pkg, Some ver -> 
-               fprintf fmt
-                 "@[<hv>BaseCheck.fenv@, \
-                    (@[BaseCheck.package@, \
-                      ~version_comparator:%S@, %S@])@]"
-                 pkg
-                 ver
-           | pkg, None ->
-               fprintf fmt
-                 "@[<hv>BaseCheck.fenv@, \
-                    (@[BaseCheck.package@, %S@])@]"
-                 pkg)
-      pkg.build_depends
+    fprintf fmt "[@[<hv2>@,%a@]@,]"
+      (pp_list
+         (fun fmt e -> e fmt)
+         ";@ ")
+      (List.flatten 
+         [
+           List.map 
+             (fun e fmt ->
+                match e with
+                  | pkg, Some ver -> 
+                      fprintf fmt
+                        "@[<hv2>BaseCheck.package@ ~version_comparator:%S@ %S@]"
+                        pkg
+                        ver
+                  | pkg, None ->
+                      fprintf fmt
+                        "@[<hv2>BaseCheck.package@, %S@]"
+                        pkg)
+             pkg.build_depends;
+           List.map
+             (fun e fmt ->
+                fprintf fmt "BaseCheck.prog %S" e)
+             pkg.build_tools;
+         ])
   in
 
   let pp_print_args fmt flags =
-    fprintf fmt 
-      "@[<hv>BaseArgExt.merge@, \
-        @[[@[@,%a@]@,]@]@]"
+    fprintf fmt "[@[<hv2>@,%a@]@,]"
       (pp_list
          (fun fmt (nm, flg) ->
             fprintf fmt 
@@ -55,25 +51,14 @@ let configure data =
       flags
   in
 
-  let pp_packs fmt data = 
-    pp_record_open fmt ();
-    pp_record_field fmt "BasePack.args" pp_print_args data.pre_pkg.flags;
-    pp_record_sep fmt ();
-    pp_record_field fmt "BasePack.checks" pp_print_checks data.pre_pkg;
-    pp_record_sep fmt ();
-    pp_record_field fmt "BasePack.in_files" pp_print_string "[]";
-    pp_record_close fmt ()
-  in
-  
   let pp_gen fmt () = 
     fprintf fmt
-      "@[<hv>BaseConfigure.configure@, \
-         %S@, \
-         %S@, \
-         @[(@[<hv>@,%a@ ::@ []@]@,)@]@]"
+      "@[<hv2>BaseConfigure.configure@ %S@ %S@ %a@ %a@ %a@]"
       data.pre_pkg.name
       data.pre_pkg.version
-      pp_packs data
+      pp_print_args data.pre_pkg.flags
+      pp_print_checks data.pre_pkg
+      pp_print_string "[]"
   in
 
     {

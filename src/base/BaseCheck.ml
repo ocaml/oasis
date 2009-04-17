@@ -6,7 +6,6 @@ open FileUtil;;
 open FileUtil.StrUtil;;
 open FilePath.DefaultPath;;
 
-module Msg = BaseMessage;;
 module Env = BaseEnvironment;;
 module Ver = BaseVersion;;
 
@@ -14,48 +13,42 @@ let () =
   Findlib.init ()
 ;;
 
-(** Get only env from check result 
-  *)
-let fenv fchk env =
-  snd (fchk env)
-;;
-
 (** Look for a program among a list of alternative program
   * the first found is returned. 
   *)
 let prog_best prg prg_lst =
-  Env.cache prg
+  Env.var_cache prg
     (fun env ->
-       let () = 
-         Msg.checking prg
-       in
-         try 
-           let alternate = 
-             List.find 
-               (fun prg -> try ignore(which prg); true with Not_found -> false)
-               prg_lst
-           in
-             Msg.result_wrap (which alternate), env
-         with Not_found ->
-           (
-             Msg.result "Not found";
-             raise Not_found
-           )
+       try 
+         let alternate = 
+           (* TODO: don't ignore result *)
+           List.find 
+             (fun prg -> try ignore(which prg); true with Not_found -> false)
+             prg_lst
+         in
+           (which alternate), env
+       with Not_found ->
+         (
+           raise Not_found
+         )
     )
 ;;
 
 (** Check the presence of a particular program.
   *)
-let prog ?if_not_found prg =
-  prog_best 
-    prg 
-    [prg]
+let prog prg =
+  prog_best prg [prg]
+;;
+
+(** Check the presenc of a program or its native version
+  *)
+let prog_opt prg = 
+  prog_best prg [prg^".opt"; prg]
 ;;
 
 (** Check version, following Sys.ocaml_version convention
   *)
 let version feature var_prefix str_comparator fversion = 
-  
   (* Really compare version provided *)
   let comparator =
     (* TODO: remove *)
@@ -64,70 +57,71 @@ let version feature var_prefix str_comparator fversion =
   let var = 
     var_prefix^"_version_"^(BaseVersionTools.varname_of_comparator comparator)
   in
-    Env.cache ~hide:true var
+    Env.var_cache ~hide:true var
       (fun env ->
+         (* TODO: provide description to variable definition 
          let () = 
            Msg.checking (feature^" version "^str_comparator);
          in
-         let version =
-           match fversion () with 
-             | "[Distributed with OCaml]" ->
-                 Sys.ocaml_version
-             | version ->
-                 version
+          *)
+         let version, env =
+           match fversion env with 
+             | "[Distributed with OCaml]", env ->
+                 (* TODO: this is not sure ! *)
+                 Sys.ocaml_version, env
+             | res ->
+                 res
          in
            if Ver.comparator_apply version comparator then
-             Msg.result_wrap version, env
+             version, env
            else
-             (
-               Msg.result (" doesn't match ("^version^" "^str_comparator^")");
-               raise Not_found
-             )
+             raise Not_found
       )
 ;;
 
 (** Check for findlib package
   *)
 let package ?version_comparator pkg =
-  let default_msg =
-    "findlib package "^pkg
-  in
-  let fpkg =
-    Env.cache ("pkg_"^pkg)
-      (fun env ->
-         try 
-           let () = 
-             Msg.checking default_msg
-           in
-           let dir =
-             Findlib.package_directory pkg
-           in
-           let () = 
-             Msg.result dir
-           in
-             dir, env
-         with
-           | Fl_package_base.No_such_package _ ->
-               raise Not_found
-      )
-  in
-    match version_comparator with 
-      | Some str_cmp ->
-          (fun env ->
-             let (dir, env) =
-               fpkg env
-             in
-             let (_, env) = 
-               version 
-                 default_msg 
-                 ("pkg_"^pkg)
-                 str_cmp 
-                 (fun () -> Findlib.package_property [] pkg "version") 
-                 env
-             in
-               dir, env
-          )
-      | None -> 
-          fpkg
+  Env.var_cache ("pkg_"^pkg)
+    (fun env ->
+       try 
+         let default_msg =
+           "findlib package "^pkg
+         in
+         (* TODO: provide description to variable definition + error
+          * reporting
+         let () = 
+           Msg.checking default_msg
+         in
+          *) 
+         let dir =
+           Findlib.package_directory pkg
+         in
+           match version_comparator with 
+             | Some str_cmp ->
+                 (
+                   let _, env = 
+                     version 
+                       default_msg 
+                       ("pkg_"^pkg)
+                       str_cmp 
+                       (fun env -> 
+                          Findlib.package_property [] pkg "version", env)
+                       env
+                   in
+                     dir, env
+                 )
+             | None -> 
+                 dir, env
+       with Fl_package_base.No_such_package _ ->
+         raise Not_found
+    )
 ;;
 
+(** Run checks *)
+let run checks env =
+  List.fold_left
+    (fun env chk -> snd (chk env))
+    env
+    checks
+;;

@@ -86,7 +86,8 @@ let replace fn_in env =
       let line =
         input_line chn_in
       in
-      let line_replaced =
+      (* TODO: take into account following redef of env for next recursion *)
+      let line_replaced, env =
         Env.var_expand 
           (* TODO: do something
           ~error_extra_message:("at line "^(string_of_int line_num)^
@@ -126,12 +127,7 @@ let replace fn_in env =
 (** Build environment using provided series of check to be done
   * and then output corresponding file.
   *)
-let configure pkg_name pkg_version packs argv =
-  let {BasePack.args     = args;
-       BasePack.checks   = checks; 
-       BasePack.in_files = in_files} = 
-      BasePack.merge (BasePack.default :: packs)
-  in
+let configure pkg_name pkg_version args checks ab_files argv =
 
   (* Data file for setup.ml *)
   let fn =
@@ -147,12 +143,12 @@ let configure pkg_name pkg_version packs argv =
   in
   (* Parse command line *)
   let env =
-    BaseArgExt.parse argv args env_org
+    BaseArgExt.parse argv (BaseArgExt.default :: args) env_org
   in
 
   (* Do some check *)
   let env =
-    checks env
+    BaseCheck.run checks env
   in
 
   (* Replace data in file *)
@@ -160,7 +156,7 @@ let configure pkg_name pkg_version packs argv =
     List.fold_left 
       (fun env fn_in -> replace fn_in env) 
       env
-      in_files
+      ab_files
   in
     if not (Env.equal env_org env) then
       (

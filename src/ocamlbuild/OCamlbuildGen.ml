@@ -98,7 +98,10 @@ let build data =
       pp_distclean_fun = None;
       other_action     = other_action;
     },
-    data 
+    {data with 
+         pre_pkg = 
+           {data.pre_pkg with 
+                build_tools = "ocamlbuild" :: data.pre_pkg.build_tools}}
 ;;
 
 generator_register

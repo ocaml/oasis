@@ -12,6 +12,7 @@ type version      = string;;
 type dirname      = string;;
 type filename     = string;;
 type test         = string;;
+type prog         = string;;
 
 (** A mandatory field is not defined *)
 exception MissingField of name list;;
@@ -97,6 +98,7 @@ type package = {
   description:    string option;
   categories:     url list;
   build_depends:  dependency list;
+  build_tools:    prog list;
   conf_type:      string;
   build_type:     string;
   doc_type:       string;

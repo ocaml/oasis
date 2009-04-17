@@ -54,6 +54,11 @@ let schema, generator =
       ~default:"ocamlbuild"
       string_not_empty
   in
+  let build_tools =
+    new_field schm "buildtools"
+      ~default:[]
+      comma_separated
+  in
   let doc_type =
     new_field schm "doctype" 
       ~default:"none"
@@ -114,6 +119,7 @@ let schema, generator =
         description   = description wrtr;
         categories    = categories wrtr;
         build_depends = build_depends wrtr;
+        build_tools   = build_tools wrtr;
         conf_type     = conf_type wrtr;
         build_type    = build_type wrtr;
         doc_type      = doc_type wrtr;
