@@ -8,14 +8,6 @@ open OASISTypes;;
 open BaseUtils;;
 open BaseFileGenerate;;
 
-(* TODO: replace this by only pre_pkg *)
-type target_data =
-    {
-      (* OASIS package as interpreted at generation time *)
-      pre_pkg: OASISTypes.package;
-    }
-;;
-
 (** Type for OCaml module embedded code
   *)
 type modul = string;;
@@ -99,17 +91,17 @@ let string_of_generator_kind =
 
 (** Generate autobuild system 
   *)
-let generate data = 
+let generate pkg = 
 
-  let get_generator knd fnm data =
+  let get_generator knd fnm pkg =
     let nm =
-      fnm data
+      fnm pkg
     in
       try
         let fact =
           MapGenerator.find (knd, nm) !allkind_generators 
         in
-          fact data
+          fact pkg
       with Not_found ->
         (
           let availables =
@@ -131,28 +123,28 @@ let generate data =
         )
   in
 
-  let generators, data =
+  let generators, pkg =
     List.fold_left
-      (fun (generators, data) (setup_nm, knd, fnm) ->
-         let act, data =
-           get_generator knd fnm data
+      (fun (generators, pkg) (setup_nm, knd, fnm) ->
+         let act, pkg =
+           get_generator knd fnm pkg
          in
-           ((setup_nm, act) :: generators), data)
-      ([], data)
+           ((setup_nm, act) :: generators), pkg)
+      ([], pkg)
       [
-        "build",     Build,   (fun data -> data.pre_pkg.build_type);
-        "doc",       Doc,     (fun data -> data.pre_pkg.doc_type);
-        "test",      Test,    (fun data -> data.pre_pkg.test_type);
-        "install",   Install, (fun data -> data.pre_pkg.install_type);
+        "build",     Build,   (fun pkg -> pkg.build_type);
+        "doc",       Doc,     (fun pkg -> pkg.doc_type);
+        "test",      Test,    (fun pkg -> pkg.test_type);
+        "install",   Install, (fun pkg -> pkg.install_type);
       ]
   in
 
   let configure =
     try
       let fact =
-        MapString.find data.pre_pkg.conf_type !configure_generators
+        MapString.find pkg.conf_type !configure_generators
       in
-        fact data
+        fact pkg
     with Not_found ->
       (
         let availables =
@@ -164,7 +156,7 @@ let generate data =
           failwith
             (Printf.sprintf
                "Unknow configure scheme '%s' (available: %s)"
-               data.pre_pkg.conf_type
+               pkg.conf_type
                (String.concat ", " availables))
       )
   in

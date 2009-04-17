@@ -5,7 +5,7 @@ open BaseGenerate;;
 open BaseUtils;;
 
 (* Configuration *)
-let configure data =
+let configure pkg =
 
   let pp_print_checks fmt pkg = 
     fprintf fmt "[@[<hv2>@,%a@]@,]"
@@ -54,10 +54,10 @@ let configure data =
   let pp_gen fmt () = 
     fprintf fmt
       "@[<hv2>BaseConfigure.configure@ %S@ %S@ %a@ %a@ %a@]"
-      data.pre_pkg.name
-      data.pre_pkg.version
-      pp_print_args data.pre_pkg.flags
-      pp_print_checks data.pre_pkg
+      pkg.name
+      pkg.version
+      pp_print_args pkg.flags
+      pp_print_checks pkg
       pp_print_string "[]"
   in
 

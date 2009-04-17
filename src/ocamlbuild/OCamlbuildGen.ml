@@ -18,13 +18,13 @@ open Format;;
 open BaseGenerate;;
 open BaseFileGenerate;;
 
-let build data =
+let build pkg =
 
   let fn_itarget =
-    data.pre_pkg.name^".itarget"
+    pkg.name^".itarget"
   in
   let fn_otarget =
-    data.pre_pkg.name^".otarget"
+    pkg.name^".otarget"
   in
 
   let pp_clean fmt () = 
@@ -56,7 +56,7 @@ let build data =
          in
 
            ())
-      data.pre_pkg.libraries;
+      pkg.libraries;
 
     (* Generates toplevel .itarget *)
     file_generate
@@ -69,13 +69,13 @@ let build data =
              [
                List.map
                  (fun (nm, lib) -> Filename.concat lib.lib_path (nm^".cma"))
-                 data.pre_pkg.libraries;
+                 pkg.libraries;
                List.map
                  (fun (nm, lib) -> Filename.concat lib.lib_path (nm^".cmxa"))
-                 data.pre_pkg.libraries;
+                 pkg.libraries;
                List.map
                  (fun (nm, exec) -> (Filename.chop_extension exec.exec_main_is)^".byte")
-                 data.pre_pkg.executables
+                 pkg.executables
              ],
            []
          )
@@ -98,10 +98,7 @@ let build data =
       pp_distclean_fun = None;
       other_action     = other_action;
     },
-    {data with 
-         pre_pkg = 
-           {data.pre_pkg with 
-                build_tools = "ocamlbuild" :: data.pre_pkg.build_tools}}
+    {pkg with build_tools = "ocamlbuild" :: pkg.build_tools}
 ;;
 
 generator_register

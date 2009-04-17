@@ -30,8 +30,5 @@ let () =
     OASIS.from_file !oasis_fn BaseOCamlcConfig.config
   in
 
-    generate
-      {
-        pre_pkg = pkg;
-      }
+    generate pkg
 ;;
