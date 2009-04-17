@@ -75,7 +75,7 @@ let var_set name value env =
 
 (** Retrieve the value of a variable
   *)
-let var_get ?(mandatory=false) ?(error_extra_message="") name env =
+let var_get ?(mandatory=false) name env =
   try 
     MapVar.find name env.value
   with Not_found ->
@@ -87,9 +87,8 @@ let var_get ?(mandatory=false) ?(error_extra_message="") name env =
           if mandatory then
             failwith
               (Printf.sprintf 
-                 "Variable %S not defined %S"
-                 name
-                 error_extra_message)
+                 "Variable %S not defined"
+                 name)
           else
             raise Not_found
         )
