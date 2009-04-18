@@ -130,6 +130,20 @@ let () =
       ~printer:string_of_int 
       0
       (Sys.command 
-         "../_build/src/OCamlAutobuild.byte -C ../examples/flags")
+         "../_build/src/OCamlAutobuild.byte -C ../examples/flags");
+
+    assert_equal
+      ~msg:"exit code"
+      ~printer:string_of_int
+      0
+      (Sys.command
+         "cd ../examples/flags && ocaml setup.ml -configure");
+
+    assert_equal
+      ~msg:"exit code"
+      ~printer:string_of_int
+      0
+      (Sys.command
+         "cd ../examples/flags && ocaml setup.ml -build");
 ;;
 

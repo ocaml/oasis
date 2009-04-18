@@ -209,7 +209,7 @@ let default =
     fun renv ->
       List.fold_left
         (fun acc (name, hlp, dflt) ->
-           renv := var_define name (var_expand dflt) !renv;
+           renv := var_define name (fun env -> dflt, env) !renv;
            (
              "--"^name,
              Arg.String (fun str -> renv := var_set name str !renv),

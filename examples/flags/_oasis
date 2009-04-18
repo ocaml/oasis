@@ -5,6 +5,7 @@ LicenseFile:  LICENSE
 License:      LGPL-link-exn
 Synopsis:     Demonstrate the use of Flag.
 BuildDepends: extlib
+FilesAB:      src/simplelib/Conf.ml.ab
 
 Flag buildext
   Description: build simplelibext

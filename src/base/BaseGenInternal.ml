@@ -51,6 +51,11 @@ let configure pkg =
       flags
   in
 
+  let pp_print_files_ab fmt =
+    fprintf fmt "[@[<hv2>@,%a@]@,]"
+      (pp_list pp_print_ostring ";@ ")
+  in     
+
   let pp_gen fmt () = 
     fprintf fmt
       "@[<hv2>BaseConfigure.configure@ %S@ %S@ %a@ %a@ %a@]"
@@ -58,7 +63,7 @@ let configure pkg =
       pkg.version
       pp_print_args pkg.flags
       pp_print_checks pkg
-      pp_print_string "[]"
+      pp_print_files_ab pkg.files_ab
   in
 
     {

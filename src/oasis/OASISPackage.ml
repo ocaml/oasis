@@ -104,6 +104,14 @@ let schema, generator =
       ~default:[]
       build_depends
   in
+  let files_ab =
+    new_field schm "filesab"
+      ~default:[]
+      (fun ctxt str ->
+         List.map 
+           (file_exists ctxt) 
+           (comma_separated ctxt str))
+  in
     schm,
     (fun wrtr libs execs flags ->
       {
@@ -125,6 +133,7 @@ let schema, generator =
         doc_type      = doc_type wrtr;
         test_type     = test_type wrtr;
         install_type  = install_type wrtr;
+        files_ab      = files_ab wrtr;
         libraries     = libs;
         executables   = execs;
         flags         = flags;

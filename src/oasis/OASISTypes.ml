@@ -104,6 +104,7 @@ type package = {
   doc_type:       string;
   test_type:      string;
   install_type:   string;
+  files_ab:       filename list;
   libraries:      (name * library) list;
   executables:    (name * executable) list;
   flags:          (name * flag) list;

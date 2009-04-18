@@ -16,5 +16,6 @@ clean:
 	-$(RM) examples/flags/Makefile
 	-$(RM) examples/flags/src/simplelibext/simplelibext.mllib
 	-$(RM) examples/flags/src/simplelib/simplelib.mllib
+	-$(RM) examples/flags/src/simplelib/Conf.ml
 	-$(RM) examples/flags/flags.itarget
 	-ocamlbuild -classic-display -clean

@@ -7,5 +7,6 @@ BaseVersionTools.ml
 BaseCheck.ml
 BaseOCamlcConfig.ml
 BaseStandardVar.ml
+BaseFileAB.ml
 BaseConfigure.ml
 BaseSetup.ml
