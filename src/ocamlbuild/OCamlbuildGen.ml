@@ -97,6 +97,7 @@ let build pkg =
       pp_clean_fun     = Some pp_clean;
       pp_distclean_fun = None;
       other_action     = other_action;
+      files_generated  = [];
     },
     {pkg with build_tools = "ocamlbuild" :: pkg.build_tools}
 ;;

@@ -7,14 +7,27 @@ type action_fun = string array -> unit;;
 
 type t =
     {
-      configure:   action_fun;
-      build:       action_fun;
-      doc:         action_fun;
-      test:        action_fun;
-      install:     action_fun;
-      clean:       action_fun;
-      distclean:   action_fun;
+      configure:       action_fun;
+      build:           action_fun;
+      doc:             action_fun;
+      test:            action_fun;
+      install:         action_fun;
+      clean:           action_fun;
+      distclean:       action_fun;
+      files_generated: string list;
     }
+;;
+
+let distclean t argv =
+  (* Remove generated file *)
+  List.iter
+    (fun fn ->
+       if Sys.file_exists fn then
+         (BaseMessage.info 
+            (Printf.sprintf "Remove '%s'" fn);
+          Sys.remove fn))
+    t.files_generated;
+  t.distclean argv
 ;;
 
 let setup t = 
@@ -65,7 +78,7 @@ let setup t =
           "[options*] Clean build environment.";
 
           "-distclean",
-          arg_rest t.distclean,
+          arg_rest (distclean t),
           "[options*] Clean build and configure environment.";
         ]
         (fun str -> failwith ("Don't know what to do with "^str))

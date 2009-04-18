@@ -30,6 +30,9 @@ type generator_action =
 
       (** Write extra files *)
       other_action: unit -> unit; 
+
+      (** Files generated *)
+      files_generated: filename list;
     }
 ;;
 
@@ -215,6 +218,15 @@ let generate pkg =
     pp_commonclean (fun act -> act.pp_distclean_fun)
   in
 
+  let pp_files_generated fmt () =
+    fprintf fmt "[@[<hv2>%a@]]"
+      (pp_list pp_print_ostring ";@ ")
+      (List.flatten
+         (List.map 
+            (fun act -> act.files_generated)
+            all_actions))
+  in
+
   let pp_setup_t fmt () =
       pp_record_open fmt ();
       List.iter
@@ -223,6 +235,7 @@ let generate pkg =
       pp_setup_field "configure" configure.pp_setup_fun fmt ();
       pp_setup_field "clean" pp_clean fmt ();
       pp_setup_field "distclean" pp_distclean fmt ();
+      pp_setup_field "files_generated"  pp_files_generated fmt ();
       pp_record_close fmt ()
   in
 

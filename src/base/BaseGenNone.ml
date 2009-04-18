@@ -17,6 +17,7 @@ let no_generate knd data =
     pp_clean_fun     = None;
     pp_distclean_fun = None;
     other_action     = ignore;
+    files_generated  = [];
   },
   data
 ;;
@@ -32,17 +33,14 @@ List.iter
 
 configure_generator_register
   "none"
-  (fun _ ->
-    {
-      moduls           = [];
-      pp_setup_fun     = (fun fmt _ -> 
-                            Format.fprintf 
-                              fmt
-                              "@[fun _ ->@, @[failwith@, \
-                                  \"No implementation for configure\"@]@]");
-      pp_clean_fun     = None;
-      pp_distclean_fun = None;
-      other_action     = ignore;
-    })
+  (fun data ->
+     {
+       (fst (no_generate Build data)) with 
+           pp_setup_fun = (fun fmt _ -> 
+                             Format.fprintf 
+                               fmt
+                               "@[fun _ ->@, @[failwith@, \
+                                                 \"No implementation for configure\"@]@]");
+     })
 ;;
 

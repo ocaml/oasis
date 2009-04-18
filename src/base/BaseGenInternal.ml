@@ -72,6 +72,8 @@ let configure pkg =
       pp_clean_fun     = None;
       pp_distclean_fun = None;
       other_action     = (fun _ -> ());
+      files_generated  = "setup.data" :: (List.map BaseFileAB.to_filename
+                                            pkg.files_ab);
     }
 ;;
 
