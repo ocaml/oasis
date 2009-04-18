@@ -69,7 +69,6 @@
 ^_build$
 ^doc/ext/x611.html$
 ^buildsys.data$
-^myocamlbuild.ml$
 \.cmo$
 \.cmx$
 \.cmi$
