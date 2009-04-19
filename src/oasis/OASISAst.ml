@@ -33,7 +33,7 @@ let to_package fn srcdir valid_tests ast =
   (* Check that expression only use valid tests/flags *)
   let rec expr_check ctxt =
     function
-      | ETrue | EFalse -> 
+      | EBool _ -> 
           ()
       | ENot e -> 
           expr_check ctxt e 

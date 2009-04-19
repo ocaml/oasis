@@ -17,23 +17,37 @@ open OASISTypes;;
 open Format;;
 open BaseGenerate;;
 open BaseFileGenerate;;
+open BaseUtils;;
+open BaseExprTools;;
 
 let build pkg =
-
-  let fn_itarget =
-    pkg.name^".itarget"
-  in
-  let fn_otarget =
-    pkg.name^".otarget"
-  in
 
   let pp_clean fmt () = 
     fprintf fmt "OCamlbuildBuild.clean ()"
   in
 
   let pp_setup fmt () = 
-    fprintf fmt "OCamlbuildBuild.build %S"
-      fn_otarget
+    fprintf fmt 
+      "@[<hv2>OCamlbuildBuild.build %a@]"
+      (pp_ocaml_list (fun fmt e -> e fmt))
+      (List.flatten 
+         [
+           List.map
+             (fun (nm, lib) fmt ->
+                fprintf fmt "%a, %S"
+                  (pp_code_expr_choices pp_print_bool) 
+                  (of_oasis_choices lib.lib_buildable)
+                  (Filename.concat lib.lib_path (nm^".cma")))
+             pkg.libraries;
+           List.map
+             (fun (nm, lib) fmt ->
+                fprintf fmt "%a, %S"
+                  (pp_code_expr_choices pp_print_bool) 
+                  (of_oasis_choices lib.lib_buildable)
+                  (Filename.concat lib.lib_path (nm^".cmxa")))
+             pkg.libraries;
+           (* TODO: exec *)
+         ])
   in
 
   let other_action () = 
@@ -57,29 +71,6 @@ let build pkg =
 
            ())
       pkg.libraries;
-
-    (* Generates toplevel .itarget *)
-    file_generate
-      fn_itarget
-      comment_ocamlbuild
-      (Split
-         (
-           [],
-           List.flatten
-             [
-               List.map
-                 (fun (nm, lib) -> Filename.concat lib.lib_path (nm^".cma"))
-                 pkg.libraries;
-               List.map
-                 (fun (nm, lib) -> Filename.concat lib.lib_path (nm^".cmxa"))
-                 pkg.libraries;
-               List.map
-                 (fun (nm, exec) -> (Filename.chop_extension exec.exec_main_is)^".byte")
-                 pkg.executables
-             ],
-           []
-         )
-      );
 
     (* Generate myocamlbuild.ml *)
     file_generate 

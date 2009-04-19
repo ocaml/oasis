@@ -6,33 +6,6 @@
 module Msg = BaseMessage;;
 module Env = BaseEnvironment;;
 
-(* TODO: use it
-(** Evaluate expression *)
-let rec expr_eval ctxt =
-  function 
-    | ETrue  ->
-        true
-    | EFalse -> 
-        false
-    | ENot e -> 
-        expr_eval ctxt e 
-    | EAnd (e1, e2) ->
-        (expr_eval ctxt e1) && (expr_eval ctxt e2)
-    | EOr (e1, e2) -> 
-        (expr_eval ctxt e1) || (expr_eval ctxt e2)
-    | EFlag nm ->
-        (
-          (* TODO *)
-          false
-        )
-    | ETest (nm, vl) ->
-        (
-          (* TODO *)
-          false
-        )
-;;
- *)
-
 (** Build environment using provided series of check to be done
   * and then output corresponding file.
   *)

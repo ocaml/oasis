@@ -309,9 +309,9 @@ let parse_file ~debug fn =
   let rec parse_factor =
     parser
       | [< 'Kwd "true" >] ->  
-          ETrue
+          EBool true
       | [< 'Kwd "false" >] ->
-          EFalse
+          EBool false
       | [< 'Kwd "!"; e = parse_factor >] ->
           ENot e
       | [< 'Kwd "("; e = parse_expr; 'Kwd ")" >] ->
@@ -326,7 +326,7 @@ let parse_file ~debug fn =
       | [< 'Kwd "&&"; e1 = parse_factor; e2 = parse_term_follow >] ->
           EAnd (e1, e2)
       | [< >] ->
-          ETrue 
+          EBool true
   and parse_term =
     parser
       | [< e1 = parse_factor; e2 = parse_term_follow >] ->
@@ -337,7 +337,7 @@ let parse_file ~debug fn =
       | [< 'Kwd "||"; e1 = parse_term; e2 = parse_expr_follow >] ->
           EOr (e1, e2)
       | [< >] ->
-          EFalse
+          EBool false
   and parse_expr =
     parser
       | [< e1 = parse_term; e2 = parse_expr_follow >] ->

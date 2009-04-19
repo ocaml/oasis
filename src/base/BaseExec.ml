@@ -3,6 +3,24 @@
     @author Sylvain Le Gall
   *)
 
+(** Run a command 
+  *)
+let run cmd args =
+  let cmdline =
+    String.concat " " (cmd :: args)
+  in
+    BaseMessage.info 
+      (Printf.sprintf "Running command '%s'" cmdline);
+    match Sys.command cmdline with 
+      | 0 ->
+          ()
+      | i ->
+          failwith 
+            (Printf.sprintf 
+               "Command '%s' terminated with error code %d"
+               cmdline i)
+;;
+
 (** Run a command and returns its output
   *)
 let run_read_output cmd args =
@@ -32,17 +50,17 @@ let run_read_output cmd args =
         | Unix.WEXITED i ->
             failwith 
               (Printf.sprintf
-                 "Process '%s' terminated with error code %d"
+                 "Command '%s' terminated with error code %d"
                  cmdline i)
         | Unix.WSIGNALED i ->
             failwith
               (Printf.sprintf
-                 "Process '%s' has been killed by signal %d"
+                 "Command '%s' has been killed by signal %d"
                  cmdline i)
         | Unix.WSTOPPED i  -> 
             failwith
               (Printf.sprintf
-                 "Process '%s' has been stopped by signal %d"
+                 "Command '%s' has been stopped by signal %d"
                  cmdline i)
     );
     List.rev !routput

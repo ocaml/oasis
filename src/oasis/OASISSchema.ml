@@ -79,7 +79,7 @@ let new_field_conditional schm name ?default parse =
        let real_cond =
          match ctxt.OASISAstTypes.cond with 
            | Some e -> e
-           | None -> ETrue
+           | None -> EBool true
        in
          v := Some ((real_cond, parse ctxt str) :: frmr_values))
   in
@@ -87,7 +87,7 @@ let new_field_conditional schm name ?default parse =
   let default =
     match default with 
       | Some x ->
-          [ETrue, x]
+          [EBool true, x]
       | None ->
           []
   in

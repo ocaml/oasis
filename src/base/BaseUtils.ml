@@ -48,6 +48,11 @@ let pp_list pp_elem lst_sep fmt =
           tl
 ;;
 
+let pp_ocaml_list pp_elem fmt =
+  fprintf fmt "[@[<hv2>@,%a@]@,]"
+    (pp_list pp_elem ";@ ")
+;;
+
 let pp_record_open fmt () = 
   fprintf fmt "@[{@[<hv>@,"
 ;;

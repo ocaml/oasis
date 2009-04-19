@@ -8,10 +8,9 @@ open BaseUtils;;
 let configure pkg =
 
   let pp_print_checks fmt pkg = 
-    fprintf fmt "[@[<hv2>@,%a@]@,]"
-      (pp_list
-         (fun fmt e -> e fmt)
-         ";@ ")
+    pp_ocaml_list
+      (fun fmt e -> e fmt)
+      fmt
       (List.flatten 
          [
            List.map 
@@ -34,26 +33,26 @@ let configure pkg =
          ])
   in
 
-  let pp_print_args fmt flags =
-    fprintf fmt "[@[<hv2>@,%a@]@,]"
-      (pp_list
-         (fun fmt (nm, flg) ->
-            fprintf fmt 
-              "@[<hv>BaseArgExt.enable@, %S@, %S@, %B@]"
-              nm 
-              (match flg.flag_description with
-                 | Some hlp -> hlp
-                 | None -> "")
-              true
-         (* TODO: reactivate *)
-         (*flg.flag_default*))
-         ";@ ")
-      flags
+  let pp_print_args =
+    pp_ocaml_list
+      (fun fmt (nm, flg) ->
+         fprintf fmt 
+           "@[<hv>BaseArgExt.enable@, %S@, %S@, %a@]"
+           nm 
+           (match flg.flag_description with
+              | Some hlp -> hlp
+              | None -> "")
+           (pp_ocaml_list
+              (fun fmt (expr, vl) ->
+                 fprintf fmt "%a,@ %B"
+                   BaseExprTools.pp_code_expr 
+                   (BaseExprTools.of_oasis expr)
+                   vl))
+           flg.flag_default)
   in
 
-  let pp_print_files_ab fmt =
-    fprintf fmt "[@[<hv2>@,%a@]@,]"
-      (pp_list pp_print_ostring ";@ ")
+  let pp_print_files_ab =
+    pp_ocaml_list pp_print_ostring
   in     
 
   let pp_gen fmt () = 

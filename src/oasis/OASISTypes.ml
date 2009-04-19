@@ -40,8 +40,7 @@ type dependency = package_name * version option
 (** Boolean expression to express condition on values
   *)
 type expr =
-    ETrue
-  | EFalse
+  | EBool of bool
   | ENot of expr
   | EAnd of expr * expr
   | EOr of expr * expr

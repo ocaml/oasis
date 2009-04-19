@@ -19,20 +19,26 @@ let tr_arg str =
     Buffer.contents buff
 ;;
 
-let enable name hlp default renv =
+let enable name hlp default_choices renv =
   let arg_name =
     tr_arg name
+  in
+  let env =
+    !renv
+  in
+  let default, env =
+    BaseExpr.choose default_choices env
   in
   let default_str =
     if default then "true" else "false"
   in
-    renv := var_set
-              name
-              default_str
-              (var_define 
-                 name 
-                 (fun env -> default_str, env)
-                 !renv);
+  let env =
+    var_set
+      name
+      default_str
+      (var_define name (fun env -> default_str, env) env)
+  in
+    renv := env;
     [
       "--enable-"^arg_name,
       Arg.Unit (fun () -> renv := var_set name "true" !renv),
