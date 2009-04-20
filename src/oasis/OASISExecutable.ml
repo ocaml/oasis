@@ -25,12 +25,18 @@ let schema, generator =
       ~default:true
       boolean
   in
+  let compiled_object =
+    new_field schm "compiledobject"
+      ~default:Byte
+      compiled_object
+  in
     schm,
     (fun wrtr -> 
        {
-         exec_buildable = buildable wrtr;
-         exec_main_is   = main_is wrtr;
-         exec_extra     = extra wrtr;
+         exec_buildable       = buildable wrtr;
+         exec_main_is         = main_is wrtr;
+         exec_extra           = extra wrtr;
+         exec_compiled_object = compiled_object wrtr;
        })
 ;;
 

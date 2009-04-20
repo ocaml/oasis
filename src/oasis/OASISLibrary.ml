@@ -24,12 +24,18 @@ let schema, generator =
       ~default:[]
       modules
   in
+  let compiled_object =
+    new_field schm "compiledobject"
+      ~default:Best
+      compiled_object
+  in
     schm,
     (fun wrtr ->
        {
-         lib_buildable = buildable wrtr;
-         lib_path      = path wrtr;
-         lib_modules   = modules wrtr;
-         lib_extra     = extra wrtr;
+         lib_buildable       = buildable wrtr;
+         lib_path            = path wrtr;
+         lib_modules         = modules wrtr;
+         lib_compiled_object = compiled_object wrtr;
+         lib_extra           = extra wrtr;
        })
 ;;

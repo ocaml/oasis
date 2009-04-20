@@ -148,6 +148,20 @@ let categories _ str =
   [str]
 ;;
 
+(** Compilation types
+  *)
+let compiled_object _ str =
+  match (String.lowercase str) with 
+    | "byte"   -> Byte
+    | "native" -> Native
+    | "best"   -> Best
+    | _ -> 
+        failwith 
+          (Printf.sprintf 
+             "Unknown compiled object %S (possible: byte, native and best"
+             str)
+;;
+
 (** Optional value *)
 let opt f ctxt str =
   Some (f ctxt str)

@@ -32,6 +32,14 @@ type license =
     | `PublicDomain ]
 ;;
 
+(** Compilation type
+  *)
+type compiled_object =
+  | Byte
+  | Native
+  | Best
+;;
+
 (** Package dependency
   *)
 type dependency = package_name * version option
@@ -57,19 +65,21 @@ type 'a conditional =
 (** Library definition 
   *)
 type library = {
-  lib_buildable:  bool conditional;
-  lib_path:       dirname;
-  lib_modules:    string list;
-  lib_extra:      (name * string) list;
+  lib_buildable:       bool conditional;
+  lib_path:            dirname;
+  lib_modules:         string list;
+  lib_compiled_object: compiled_object;
+  lib_extra:           (name * string) list;
 }
 ;;
 
 (** Executable definition 
   *)
 type executable = {
-  exec_buildable:  bool conditional;
-  exec_main_is:    filename;
-  exec_extra:      (name * string) list;
+  exec_buildable:       bool conditional;
+  exec_main_is:         filename;
+  exec_compiled_object: compiled_object;
+  exec_extra:           (name * string) list;
 }
 ;;
 

@@ -32,27 +32,60 @@ let build pkg =
          [
            List.map
              (fun (nm, lib) fmt ->
-                pp_choices_target fmt
-                  lib.lib_buildable 
-                  [] 
-                  (Filename.concat lib.lib_path (nm^".cma"));
-                fprintf fmt ";@ ";
-                pp_choices_target fmt
-                  lib.lib_buildable
-                  [Test ("ocamlbest", "byte"), false]
-                  (Filename.concat lib.lib_path (nm^".cmxa")))
+
+                let byte cond =
+                  pp_choices_target fmt
+                    lib.lib_buildable 
+                    cond
+                    (Filename.concat lib.lib_path (nm^".cma"))
+                in
+
+                let native cond = 
+                  pp_choices_target fmt
+                    lib.lib_buildable
+                    cond
+                    (Filename.concat lib.lib_path (nm^".cmxa"))
+                in
+
+                  match lib.lib_compiled_object with 
+                    | Byte ->
+                        byte []
+                    | Native ->
+                        byte []; 
+                        fprintf fmt ";@ "; 
+                        native []
+                    | Best -> 
+                        byte []; 
+                        fprintf fmt ";@ "; 
+                        native [Test ("ocamlbest", "byte"), false])
              pkg.libraries;
+
            List.map 
              (fun (nm, exec) fmt ->
-                pp_choices_target fmt
-                  exec.exec_buildable
-                  [Test ("ocamlbest", "native"), false]
-                  ((Filename.chop_extension exec.exec_main_is)^".byte");
-                fprintf fmt ";@ ";
-                pp_choices_target fmt
-                  exec.exec_buildable
-                  [Test ("ocamlbest", "byte"), false]
-                  ((Filename.chop_extension exec.exec_main_is)^".native"))
+
+                let byte cond = 
+                  pp_choices_target fmt
+                    exec.exec_buildable
+                    cond
+                    ((Filename.chop_extension exec.exec_main_is)^".byte");
+                in
+
+                let native cond = 
+                  pp_choices_target fmt
+                    exec.exec_buildable
+                    cond
+                    ((Filename.chop_extension exec.exec_main_is)^".native")
+                in
+
+                  match exec.exec_compiled_object with
+                    | Byte ->
+                        byte []
+                    | Native ->
+                        native []
+                    | Best ->
+                        byte [Test ("ocamlbest", "native"), false];
+                        fprintf fmt ";@ ";
+                        native [Test ("ocamlbest", "byte"), false])
              pkg.executables;
          ])
   in
