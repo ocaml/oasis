@@ -11,14 +11,9 @@ module Env = BaseEnvironment;;
   *)
 let configure pkg_name pkg_version args checks ab_files argv =
 
-  (* Data file for setup.ml *)
-  let fn =
-    (Filename.chop_extension Sys.argv.(0))^".data"
-  in
-
   (* Build initial environment *)
   let env_org =
-    Env.load fn
+    Env.load ~allow_empty:true ()
   in
   let env = 
     List.fold_left
@@ -48,7 +43,7 @@ let configure pkg_name pkg_version args checks ab_files argv =
 
     if not (Env.equal env_org env) then
       (
-        Env.dump  fn env;
+        Env.dump env;
         Env.print env
       )
 ;;

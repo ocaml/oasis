@@ -202,11 +202,19 @@ let get env nm =
     vl
 ;;
 
+(** Environment file 
+  *)
+let filename =
+  Filename.concat 
+    (Filename.dirname Sys.argv.(0))
+    "setup.data"
+;;
+
 (** Save environment on disk.
   *)
-let dump fn env = 
+let dump env = 
   let chn =
-    open_out_bin fn
+    open_out_bin filename
   in
   let _env: env =
     List.fold_left 
@@ -224,7 +232,7 @@ let dump fn env =
 
 (** Initialize environment.
   *)
-let load fn = 
+let load ?(allow_empty=false) () = 
   let default =
       {
         defined      = MapVar.empty;
@@ -232,10 +240,10 @@ let load fn =
         print_hidden = false;
       }
   in
-    if Sys.file_exists fn then
+    if Sys.file_exists filename then
       (
         let chn =
-          open_in_bin fn
+          open_in_bin filename
         in
         let st =
           Stream.of_channel chn
@@ -268,7 +276,7 @@ let load fn =
                 failwith 
                   (Printf.sprintf 
                      "Malformed data file '%s' line %d"
-                     fn !line)
+                     filename !line)
         in
         let mp =
           read_file default.value
@@ -276,9 +284,17 @@ let load fn =
           close_in chn;
           {default with value = mp}
       )
-    else
+    else if allow_empty then
       (
         default
+      )
+    else
+      (
+        failwith 
+          (Printf.sprintf 
+             "Unable to load environment file '%s', maybe run '%s -configure'"
+             filename
+             Sys.argv.(0))
       )
 ;;
 

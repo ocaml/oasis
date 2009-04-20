@@ -8,7 +8,7 @@ module Env = BaseEnvironment
 
 let build cond_targets argv =
   let env =
-    Env.load "setup.data"
+    Env.load ()
   in
   let rtargets, env =
     List.fold_left

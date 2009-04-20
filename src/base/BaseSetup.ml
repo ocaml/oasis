@@ -26,7 +26,7 @@ let distclean t argv =
          (BaseMessage.info 
             (Printf.sprintf "Remove '%s'" fn);
           Sys.remove fn))
-    t.files_generated;
+    (BaseEnvironment.filename :: t.files_generated);
   t.distclean argv
 ;;
 

@@ -107,8 +107,7 @@ let configure pkg standard_vars =
       pp_clean_fun     = None;
       pp_distclean_fun = None;
       other_action     = (fun _ -> ());
-      files_generated  = "setup.data" :: (List.map BaseFileAB.to_filename
-                                            pkg.files_ab);
+      files_generated  = (List.map BaseFileAB.to_filename pkg.files_ab);
       standard_vars    = [];
     }
 ;;
