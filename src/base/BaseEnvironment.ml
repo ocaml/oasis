@@ -185,6 +185,23 @@ let rec var_expand str env =
     Buffer.contents buff, !renv
 ;;
 
+(** Retrieve a variable value, without taking into account
+    environment modification (even warning about it). Variable
+    must be defined.
+  *)
+let get env nm = 
+  let vl, env' =
+    var_get ~mandatory:true nm env
+  in
+    if env <> env' then
+      Msg.warning 
+        (Printf.sprintf 
+           "Evaluation of variable '%s' lead to unexpected \
+            environment modification"
+           nm);
+    vl
+;;
+
 (** Save environment on disk.
   *)
 let dump fn env = 

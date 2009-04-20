@@ -3,16 +3,6 @@
     @author Sylvain Le Gall
   *)
 
-(*
-           (match Sys.os_type with
-              | "Win32" ->
-                  "-classic-display -no-log -byte-plugin -install-lib-dir "^
-                  (Filename.concat (Findlib.ocaml_stdlib ()) "ocamlbuild")
-              | _ ->
-                  ""
-           ),
- *)
-
 open OASISTypes;;
 open Format;;
 open BaseGenerate;;
@@ -27,6 +17,13 @@ let build pkg =
     fprintf fmt "OCamlbuildBuild.clean ()"
   in
 
+  let pp_choices_target fmt oasis_choices extra_choices target =
+    fprintf fmt "%a, %S"
+      (pp_code_expr_choices pp_print_bool) 
+      ((of_oasis_choices oasis_choices) @ extra_choices)
+      target
+  in
+
   let pp_setup fmt () = 
     fprintf fmt 
       "@[<hv2>OCamlbuildBuild.build@ %a@]"
@@ -35,23 +32,28 @@ let build pkg =
          [
            List.map
              (fun (nm, lib) fmt ->
-                fprintf fmt "%a, %S"
-                  (pp_code_expr_choices pp_print_bool) 
-                  (of_oasis_choices lib.lib_buildable)
-                  (Filename.concat lib.lib_path (nm^".cma")))
-             pkg.libraries;
-           List.map
-             (fun (nm, lib) fmt ->
-                fprintf fmt "%a, %S"
-                  (pp_code_expr_choices pp_print_bool) 
-                  (
-                    (of_oasis_choices lib.lib_buildable)
-                    @
-                    [Test ("ocamlbest", "byte"), false]
-                  )
+                pp_choices_target fmt
+                  lib.lib_buildable 
+                  [] 
+                  (Filename.concat lib.lib_path (nm^".cma"));
+                fprintf fmt ";@ ";
+                pp_choices_target fmt
+                  lib.lib_buildable
+                  [Test ("ocamlbest", "byte"), false]
                   (Filename.concat lib.lib_path (nm^".cmxa")))
              pkg.libraries;
-           (* TODO: exec *)
+           List.map 
+             (fun (nm, exec) fmt ->
+                pp_choices_target fmt
+                  exec.exec_buildable
+                  [Test ("ocamlbest", "native"), false]
+                  ((Filename.chop_extension exec.exec_main_is)^".byte");
+                fprintf fmt ";@ ";
+                pp_choices_target fmt
+                  exec.exec_buildable
+                  [Test ("ocamlbest", "byte"), false]
+                  ((Filename.chop_extension exec.exec_main_is)^".native"))
+             pkg.executables;
          ])
   in
 
@@ -94,6 +96,7 @@ let build pkg =
       pp_distclean_fun = None;
       other_action     = other_action;
       files_generated  = [];
+      standard_vars    = [SVocamlbest; SVos_type; SVstandard_library];
     },
     {pkg with build_tools = "ocamlbuild" :: pkg.build_tools}
 ;;

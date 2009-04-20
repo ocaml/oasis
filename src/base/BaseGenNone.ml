@@ -18,6 +18,7 @@ let no_generate knd data =
     pp_distclean_fun = None;
     other_action     = ignore;
     files_generated  = [];
+    standard_vars    = [];
   },
   data
 ;;
@@ -33,9 +34,9 @@ List.iter
 
 configure_generator_register
   "none"
-  (fun data ->
+  (fun pkg standard_vars ->
      {
-       (fst (no_generate Build data)) with 
+       (fst (no_generate Build pkg)) with 
            pp_setup_fun = (fun fmt _ -> 
                              Format.fprintf 
                                fmt

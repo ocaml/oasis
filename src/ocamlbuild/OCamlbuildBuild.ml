@@ -3,9 +3,12 @@
     @author Sylvain Le Gall
   *)
 
+module Env = BaseEnvironment 
+;;
+
 let build cond_targets argv =
   let env =
-    BaseEnvironment.load "setup.data"
+    Env.load "setup.data"
   in
   let rtargets, env =
     List.fold_left
@@ -17,9 +20,33 @@ let build cond_targets argv =
       ([], env)
       cond_targets
   in
-    BaseExec.run 
-      "ocamlbuild" 
-      (List.rev_append rtargets (Array.to_list argv))
+  let eget =
+    Env.get env
+  in
+  let ocamlbuild = 
+    eget "ocamlbuild"
+  in
+  let args = 
+    List.rev_append rtargets (Array.to_list argv)
+  in
+  let args =
+    if (eget "os_type") = "Win32" then
+      [
+        "-classic-display"; 
+        "-no-log"; 
+        "-install-lib-dir"; 
+        (Filename.concat (eget "ocaml_stdlib") "ocamlbuild")
+      ] @ args
+    else
+      args
+  in
+  let args =
+    if (eget "ocamlbest") = "byte" || (eget "os_type") = "Win32" then
+      "-byte-plugin" :: args
+    else
+      args
+  in
+    BaseExec.run ocamlbuild args
 ;;
 
 let clean () = 

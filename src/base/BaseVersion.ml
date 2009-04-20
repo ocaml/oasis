@@ -3,15 +3,15 @@
     @author Sylvain Le Gall
   *)
 
-type version = string
+type t = string
 ;;
 
-type version_comparator = 
-  | VGreater of version
-  | VEqual of version
-  | VLesser of version
-  | VOr of  version_comparator * version_comparator
-  | VAnd of version_comparator * version_comparator
+type comparator = 
+  | VGreater of t
+  | VEqual of t
+  | VLesser of t
+  | VOr of  comparator * comparator
+  | VAnd of comparator * comparator
 ;;
 
 (** Compare versions
