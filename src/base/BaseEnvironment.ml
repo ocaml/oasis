@@ -70,14 +70,14 @@ let var_get ?(mandatory=false) name env =
         let def = 
           MapVar.find name env.defined
         in
-        let advertise = 
-          not def.hidden 
-        in
         let dflt, env = 
-          if advertise then Msg.checking name;
           def.default env
         in
-          if advertise then Msg.result dflt;
+          if not def.hidden then 
+            (
+              Msg.checking name;
+              Msg.result dflt
+            );
           dflt, var_set name dflt env
       with Not_found ->
         (
