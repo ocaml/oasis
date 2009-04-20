@@ -56,7 +56,7 @@ let rec eval env =
         let v, env =
           var_expand v env
         in
-          (v = nm), env
+          (v = vl), env
 ;;
 
 let choose lst env =

@@ -92,7 +92,11 @@ let new_field_conditional schm name ?default parse =
           []
   in
 
-    new_field_low schm name set (Some default) List.rev v 
+  let post_process lst =
+    OASISExpr.reduce_choices (List.rev lst)
+  in
+
+    new_field_low schm name set (Some default) post_process v 
 ;;
 
 

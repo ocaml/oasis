@@ -10,10 +10,6 @@ open OASISAstTypes;;
   *)
 let to_package fn srcdir valid_tests ast = 
 
-  let lowercase_eq str1 str2 =
-    (String.lowercase str1) = (String.lowercase str2)
-  in
-
   let default_ctxt =
     {
       oasisfn     = fn;
@@ -28,34 +24,6 @@ let to_package fn srcdir valid_tests ast =
   let ctxt_of_flags flags =
     {default_ctxt with 
          valid_flags = List.map fst flags}
-  in
-
-  (* Check that expression only use valid tests/flags *)
-  let rec expr_check ctxt =
-    function
-      | EBool _ -> 
-          ()
-      | ENot e -> 
-          expr_check ctxt e 
-      | EAnd (e1, e2) | EOr (e1, e2) -> 
-          expr_check ctxt e1; 
-          expr_check ctxt e2
-      | EFlag nm ->
-          (
-            if not (List.exists (lowercase_eq nm) ctxt.valid_flags) then
-              failwith 
-                (Printf.sprintf 
-                   "Unknown flag '%s'"
-                   nm)
-          )
-      | ETest (nm, vl) ->
-          (
-            if not (List.exists (lowercase_eq nm) ctxt.valid_tests) then
-              failwith 
-                (Printf.sprintf 
-                   "Unknown test '%s'"
-                   nm)
-          )
   in
 
   (* Merge an expresion with a condition in a ctxt *)
@@ -77,7 +45,7 @@ let to_package fn srcdir valid_tests ast =
 
       | SIfThenElse (e, stmt1, stmt2) -> 
           (* Check that we have a valid expression *)
-          expr_check ctxt e;
+          OASISExpr.check ctxt e;
           (* Explore if branch *)
           stmt 
             wrtr 

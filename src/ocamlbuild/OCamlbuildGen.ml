@@ -18,6 +18,7 @@ open Format;;
 open BaseGenerate;;
 open BaseFileGenerate;;
 open BaseUtils;;
+open BaseExpr;;
 open BaseExprTools;;
 
 let build pkg =
@@ -28,7 +29,7 @@ let build pkg =
 
   let pp_setup fmt () = 
     fprintf fmt 
-      "@[<hv2>OCamlbuildBuild.build %a@]"
+      "@[<hv2>OCamlbuildBuild.build@ %a@]"
       (pp_ocaml_list (fun fmt e -> e fmt))
       (List.flatten 
          [
@@ -43,7 +44,11 @@ let build pkg =
              (fun (nm, lib) fmt ->
                 fprintf fmt "%a, %S"
                   (pp_code_expr_choices pp_print_bool) 
-                  (of_oasis_choices lib.lib_buildable)
+                  (
+                    (of_oasis_choices lib.lib_buildable)
+                    @
+                    [Test ("ocamlbest", "byte"), false]
+                  )
                   (Filename.concat lib.lib_path (nm^".cmxa")))
              pkg.libraries;
            (* TODO: exec *)

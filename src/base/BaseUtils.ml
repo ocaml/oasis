@@ -49,16 +49,16 @@ let pp_list pp_elem lst_sep fmt =
 ;;
 
 let pp_ocaml_list pp_elem fmt =
-  fprintf fmt "[@[<hv2>@,%a@]@,]"
+  fprintf fmt "@[[@[<hv1>@,%a@]@,]@]"
     (pp_list pp_elem ";@ ")
 ;;
 
 let pp_record_open fmt () = 
-  fprintf fmt "@[{@[<hv>@,"
+  fprintf fmt "@[{@[<hv1>@,"
 ;;
 
 let pp_record_field fmt nm pp_value value =
-    fprintf fmt "@[%s = %a@]" nm pp_value value
+    fprintf fmt "@[<hv2>%s =@ %a@]" nm pp_value value
 ;;
 
 let pp_record_sep fmt () = 
