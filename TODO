@@ -1,7 +1,2 @@
 * Finish guess-cmx to install all files for libraries, integrate it in buildsys
-* Use "# line_num file" in OCaml generated file to locate real source (in
-  particular in myocamlbuild.ml.in)
-* Find why sometimes file get erased when updated
-* Stop using buildsys.ml as central point, split it to provide configure and
-  install, build is handled by ocamlbuild. Still provide Makefile, setup.sh and
-  setup.bat (+autobuild.ml for internal system)
+* Remove BaseVersionTools from BaseSys

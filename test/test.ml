@@ -18,5 +18,6 @@ let _res: test_result list =
          TestOASIS.tests        ctxt;
          TestVersion.tests      ctxt;
          TestFileGenerate.tests ctxt;
+         TestFull.tests         ctxt;
        ])
 ;;
