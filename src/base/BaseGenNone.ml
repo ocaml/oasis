@@ -11,7 +11,7 @@ let no_generate knd data =
     pp_setup_fun     = (fun fmt _ -> 
                           Format.fprintf 
                             fmt
-                            "@[fun _ ->@, @[failwith@, \
+                            "@[fun _ _ ->@, @[failwith@, \
                               \"No implementation for %s\"@]@]"
                             (string_of_generator_kind knd));
     pp_clean_fun     = None;
@@ -40,8 +40,8 @@ configure_generator_register
            pp_setup_fun = (fun fmt _ -> 
                              Format.fprintf 
                                fmt
-                               "@[fun _ ->@, @[failwith@, \
-                                                 \"No implementation for configure\"@]@]");
+                               "@[fun _ _ ->@, @[failwith@, \
+                                 \"No implementation for configure\"@]@]");
      })
 ;;
 

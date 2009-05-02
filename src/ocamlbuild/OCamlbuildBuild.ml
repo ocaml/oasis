@@ -6,10 +6,7 @@
 module Env = BaseEnvironment 
 ;;
 
-let build cond_targets argv =
-  let env =
-    Env.load ()
-  in
+let build cond_targets env argv =
   let rtargets, env =
     List.fold_left
       (fun (acc, env) (choices, tgt) ->

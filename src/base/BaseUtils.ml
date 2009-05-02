@@ -58,10 +58,7 @@ let pp_record_open fmt () =
 ;;
 
 let pp_record_field fmt nm pp_value value =
-    fprintf fmt "@[<hv2>%s =@ %a@]" nm pp_value value
-;;
-
-let pp_record_sep fmt () = 
+  fprintf fmt "@[<hv2>%s =@ %a@]" nm pp_value value;
   fprintf fmt ";@ "
 ;;
 
@@ -69,6 +66,6 @@ let pp_record_close fmt () =
   fprintf fmt "@]@,}@]"
 ;;
 
-let pp_print_ostring fmt str =
+let pp_ocaml_string fmt str =
   fprintf fmt "%S" str
 ;;

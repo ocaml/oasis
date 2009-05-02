@@ -236,8 +236,7 @@ let generate pkg =
          pp_parent_protect pp_elem
        else
          pp_elem) 
-      elem;
-    pp_record_sep fmt ();
+      elem
   in
 
   let pp_commonclean get_pp_fun fmt () = 
@@ -274,7 +273,7 @@ let generate pkg =
 
   let pp_files_generated fmt () =
     fprintf fmt "[@[<hv2>%a@]]"
-      (pp_list pp_print_ostring ";@ ")
+      (pp_list pp_ocaml_string ";@ ")
       (List.flatten
          (List.map 
             (fun act -> act.files_generated)

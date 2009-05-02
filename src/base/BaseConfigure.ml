@@ -1,5 +1,5 @@
 
-(** Configure using OCaml-autobuild
+(** Configure using ocaml-autobuild internal scheme
     @author Sylvain Le Gall
   *)
 
@@ -9,12 +9,8 @@ module Env = BaseEnvironment;;
 (** Build environment using provided series of check to be done
   * and then output corresponding file.
   *)
-let configure pkg_name pkg_version args checks ab_files argv =
+let configure pkg_name pkg_version args checks ab_files env_org argv =
 
-  (* Build initial environment *)
-  let env_org =
-    Env.load ~allow_empty:true ()
-  in
   let env = 
     List.fold_left
       (fun env (nm, vl) -> Env.var_define nm (fun env -> vl, env) env)

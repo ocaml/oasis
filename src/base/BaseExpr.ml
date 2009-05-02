@@ -14,6 +14,9 @@ type t =
   | Test of string * string
 ;;
 
+type 'a choices = (t * 'a) list
+;;
+
 (** Evaluate expression *)
 let rec eval env =
   function

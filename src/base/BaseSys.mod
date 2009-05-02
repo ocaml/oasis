@@ -10,4 +10,5 @@ BaseOCamlcConfig.ml
 BaseStandardVar.ml
 BaseFileAB.ml
 BaseConfigure.ml
+BaseInstall.ml
 BaseSetup.ml

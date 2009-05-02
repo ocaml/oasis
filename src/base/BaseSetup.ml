@@ -3,7 +3,10 @@
     @author Sylvain Le Gall
   *)
 
-type action_fun = string array -> unit;;
+module Env = BaseEnvironment
+;;
+
+type action_fun = Env.env -> string array -> unit;;
 
 type t =
     {
@@ -12,13 +15,15 @@ type t =
       doc:             action_fun;
       test:            action_fun;
       install:         action_fun;
-      clean:           action_fun;
-      distclean:       action_fun;
+      clean:           unit -> unit;
+      distclean:       unit -> unit;
       files_generated: string list;
     }
 ;;
 
-let distclean t argv =
+let distclean t =
+  (* Call clean *)
+  t.clean ();
   (* Remove generated file *)
   List.iter
     (fun fn ->
@@ -26,14 +31,14 @@ let distclean t argv =
          (BaseMessage.info 
             (Printf.sprintf "Remove '%s'" fn);
           Sys.remove fn))
-    (BaseEnvironment.filename :: t.files_generated);
-  t.distclean argv
+    (Env.filename :: t.files_generated);
+  t.distclean ()
 ;;
 
 let setup t = 
   try
     let act =
-      ref (fun _ -> 
+      ref (fun _ _ -> 
              failwith
                (Printf.sprintf
                   "No action defined, run '%s %s -help'"
@@ -41,20 +46,25 @@ let setup t =
                   Sys.argv.(0)))
 
     in
+    let is_configure =
+      ref false
+    in
     let args =
       ref []
     in
-    let arg_rest a =
+    let arg_rest ?(configure=false) a =
       Arg.Tuple
         [
           Arg.Rest (fun str -> args := str :: !args);
-          Arg.Unit (fun () -> act := a; args := List.rev !args);
+          Arg.Unit (fun () -> is_configure := configure;
+                              act := a; 
+                              args := List.rev !args);
         ]
     in
       Arg.parse 
         [
           "-configure",
-          arg_rest t.configure,
+          arg_rest ~configure:true t.configure,
           "[options*] Configure build process.";
 
           "-build",
@@ -74,17 +84,21 @@ let setup t =
           "[options*] Install library, data, executable and documentation.";
 
           "-clean",
-          arg_rest t.clean,
+          arg_rest (fun _ _ -> t.clean ()),
           "[options*] Clean build environment.";
 
           "-distclean",
-          arg_rest (distclean t),
+          arg_rest (fun _ _ -> distclean t),
           "[options*] Clean build and configure environment.";
         ]
         (fun str -> failwith ("Don't know what to do with "^str))
         "Setup and run build process current package\n";
 
-      !act (Array.of_list !args)
+      (* Build initial environment *)
+      let env_org =
+        Env.load ~allow_empty:!is_configure ()
+      in
+        !act env_org (Array.of_list !args)
   with e ->
     BaseMessage.error (Printexc.to_string e);
 ;;

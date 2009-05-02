@@ -151,6 +151,13 @@ let () =
       ~printer:string_of_int
       0
       (Sys.command
+         "cd ../examples/flags && ocaml setup.ml -install");
+
+    assert_equal
+      ~msg:"exit code"
+      ~printer:string_of_int
+      0
+      (Sys.command
          "cd ../examples/flags && ocaml setup.ml -clean");
 
     assert_equal
