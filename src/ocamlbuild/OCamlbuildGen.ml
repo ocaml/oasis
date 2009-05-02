@@ -4,90 +4,98 @@
   *)
 
 open OASISTypes;;
-open Format;;
 open BaseGenerate;;
 open BaseFileGenerate;;
 open BaseUtils;;
 open BaseExpr;;
 open BaseExprTools;;
+open BaseGenCode;;
 
 let build pkg =
 
-  let pp_clean fmt () = 
-    fprintf fmt "OCamlbuildBuild.clean ()"
+  let clean_code = 
+    APP ("OCamlbuildBuild.clean", [UNT])
   in
 
-  let pp_choices_target fmt oasis_choices extra_choices target =
-    fprintf fmt "%a, %S"
-      (pp_code_expr_choices pp_print_bool) 
-      ((of_oasis_choices oasis_choices) @ extra_choices)
-      target
+  let code_choices_target oasis_choices extra_choices target =
+    TPL
+      [
+        code_of_bool_choices 
+          ((choices_of_oasis oasis_choices) @ extra_choices);
+        STR target
+      ]
   in
 
-  let pp_setup fmt () = 
-    fprintf fmt 
-      "@[<hv2>OCamlbuildBuild.build@ %a@]"
-      (pp_ocaml_list (fun fmt e -> e fmt))
-      (List.flatten 
-         [
-           List.map
-             (fun (nm, lib) fmt ->
+  let setup_code = 
+    APP
+      ("OCamlbuildBuild.build",
+       [
+         LST
+           (List.flatten 
+              [
+                List.fold_left
+                  (fun acc (nm, lib) ->
 
-                let byte cond =
-                  pp_choices_target fmt
-                    lib.lib_buildable 
-                    cond
-                    (Filename.concat lib.lib_path (nm^".cma"))
-                in
+                     let byte cond =
+                       code_choices_target
+                         lib.lib_buildable 
+                         cond
+                         (Filename.concat lib.lib_path (nm^".cma"))
+                     in
 
-                let native cond = 
-                  pp_choices_target fmt
-                    lib.lib_buildable
-                    cond
-                    (Filename.concat lib.lib_path (nm^".cmxa"))
-                in
+                     let native cond = 
+                       code_choices_target
+                         lib.lib_buildable
+                         cond
+                         (Filename.concat lib.lib_path (nm^".cmxa"))
+                     in
 
-                  match lib.lib_compiled_object with 
-                    | Byte ->
-                        byte []
-                    | Native ->
-                        byte []; 
-                        fprintf fmt ";@ "; 
-                        native []
-                    | Best -> 
-                        byte []; 
-                        fprintf fmt ";@ "; 
-                        native [Test ("ocamlbest", "byte"), false])
-             pkg.libraries;
+                       match lib.lib_compiled_object with 
+                         | Byte ->
+                             byte [] :: acc
+                         | Native ->
+                             byte [] :: native [] :: acc
+                         | Best -> 
+                             byte []
+                             ::
+                             native [Test ("ocamlbest", "byte"), false]
+                             ::
+                             acc)
+                  []
+                  pkg.libraries;
 
-           List.map 
-             (fun (nm, exec) fmt ->
+                List.fold_left
+                  (fun acc (nm, exec) ->
 
-                let byte cond = 
-                  pp_choices_target fmt
-                    exec.exec_buildable
-                    cond
-                    ((Filename.chop_extension exec.exec_main_is)^".byte");
-                in
+                     let byte cond = 
+                       code_choices_target
+                         exec.exec_buildable
+                         cond
+                         ((Filename.chop_extension exec.exec_main_is)^".byte");
+                     in
 
-                let native cond = 
-                  pp_choices_target fmt
-                    exec.exec_buildable
-                    cond
-                    ((Filename.chop_extension exec.exec_main_is)^".native")
-                in
+                     let native cond = 
+                       code_choices_target
+                         exec.exec_buildable
+                         cond
+                         ((Filename.chop_extension exec.exec_main_is)^".native")
+                     in
 
-                  match exec.exec_compiled_object with
-                    | Byte ->
-                        byte []
-                    | Native ->
-                        native []
-                    | Best ->
-                        byte [Test ("ocamlbest", "native"), false];
-                        fprintf fmt ";@ ";
-                        native [Test ("ocamlbest", "byte"), false])
-             pkg.executables;
-         ])
+                       match exec.exec_compiled_object with
+                         | Byte ->
+                             byte [] :: acc
+                         | Native ->
+                             native [] :: acc
+                         | Best ->
+                             byte [Test ("ocamlbest", "native"), false]
+                             ::
+                             native [Test ("ocamlbest", "byte"), false]
+                             ::
+                             acc)
+                  []
+                  pkg.executables;
+              ])
+       ])
   in
 
   let other_action () = 
@@ -124,9 +132,9 @@ let build pkg =
           BaseData.basesys_ml;
           OCamlbuildData.ocamlbuildsys_ml;
         ];
-      pp_setup_fun     = pp_setup;
-      pp_clean_fun     = Some pp_clean;
-      pp_distclean_fun = None;
+      setup_code       = setup_code;
+      clean_code       = [clean_code];
+      distclean_code   = [];
       other_action     = other_action;
       files_generated  = [];
       standard_vars    = [SVocamlbest; SVos_type; SVstandard_library];

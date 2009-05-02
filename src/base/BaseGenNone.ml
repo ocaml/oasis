@@ -4,18 +4,20 @@
   *)
 
 open BaseGenerate;;
+open BaseGenCode;;
 
 let no_generate knd data =
   {
     moduls           = [];
-    pp_setup_fun     = (fun fmt _ -> 
-                          Format.fprintf 
-                            fmt
-                            "@[fun _ _ ->@, @[failwith@, \
-                              \"No implementation for %s\"@]@]"
-                            (string_of_generator_kind knd));
-    pp_clean_fun     = None;
-    pp_distclean_fun = None;
+    setup_code       = FUN
+                         (["_"; "_"],
+                          [APP 
+                             ("failwith",
+                              [STR
+                                 ("No implementation for "^
+                                  (string_of_generator_kind knd))])]);
+    clean_code       = [];
+    distclean_code   = [];
     other_action     = ignore;
     files_generated  = [];
     standard_vars    = [];
@@ -37,11 +39,11 @@ configure_generator_register
   (fun pkg standard_vars ->
      {
        (fst (no_generate Build pkg)) with 
-           pp_setup_fun = (fun fmt _ -> 
-                             Format.fprintf 
-                               fmt
-                               "@[fun _ _ ->@, @[failwith@, \
-                                 \"No implementation for configure\"@]@]");
+           setup_code = FUN
+                          (["_"; "_"],
+                           [APP
+                              ("failwith",
+                               [STR "No implementation for configure"])]);
      })
 ;;
 

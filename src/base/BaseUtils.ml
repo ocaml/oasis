@@ -33,39 +33,3 @@ let strip_whitespace str =
       ""
 ;;
 
-open Format;;
-
-let pp_list pp_elem lst_sep fmt =
-  function
-    | [] ->
-        ()
-    | hd :: tl ->
-        pp_elem fmt hd;
-        List.iter
-          (fun e ->
-             fprintf fmt lst_sep;
-             pp_elem fmt e)
-          tl
-;;
-
-let pp_ocaml_list pp_elem fmt =
-  fprintf fmt "@[[@[<hv1>@,%a@]@,]@]"
-    (pp_list pp_elem ";@ ")
-;;
-
-let pp_record_open fmt () = 
-  fprintf fmt "@[{@[<hv1>@,"
-;;
-
-let pp_record_field fmt nm pp_value value =
-  fprintf fmt "@[<hv2>%s =@ %a@]" nm pp_value value;
-  fprintf fmt ";@ "
-;;
-
-let pp_record_close fmt () =
-  fprintf fmt "@]@,}@]"
-;;
-
-let pp_ocaml_string fmt str =
-  fprintf fmt "%S" str
-;;

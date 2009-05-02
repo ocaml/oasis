@@ -5,54 +5,61 @@
 
 open BaseExpr;;
 open OASISTypes;;
-open Format;;
-open BaseUtils;;
+open BaseGenCode;;
 
 (** Convert OASIS expression 
   *)
-let rec of_oasis =
+let rec expr_of_oasis =
   function 
     | EBool b -> Bool b
-    | ENot e -> Not (of_oasis e)
-    | EAnd (e1, e2) -> And(of_oasis e1, of_oasis e2)
-    | EOr (e1, e2) -> Or(of_oasis e1, of_oasis e2)
+    | ENot e -> Not (expr_of_oasis e)
+    | EAnd (e1, e2) -> And(expr_of_oasis e1, expr_of_oasis e2)
+    | EOr (e1, e2) -> Or(expr_of_oasis e1, expr_of_oasis e2)
     | EFlag s -> Flag s
     | ETest (s1, s2) -> Test (s1, s2)
 ;;
 
-(** Convert an OASIS choice list to BaseExpr
+(** Convert an OASIS choice list to BaseExpr.choices
   *)
-let of_oasis_choices lst =
+let choices_of_oasis lst =
   List.map
-    (fun (e, v) -> of_oasis e, v)
+    (fun (e, v) -> expr_of_oasis e, v)
     lst
 ;;
 
-(** Pretty BaseExpr code 
+(** Convert BaseExpr.t to pseudo OCaml code 
   *)
-let rec pp_code_expr fmt =
-  function
-    | Bool b ->
-        fprintf fmt "BaseExpr.Bool %b" b
-    | Not e ->
-        fprintf fmt "@[<hv2>BaseExpr.Not@ (@[%a@])@]" pp_code_expr e 
-    | And (e1, e2) ->
-        fprintf fmt "@[<hv2>BaseExpr.And@ (@[%a,@ %a@])@]" pp_code_expr e1 pp_code_expr e2
-    | Or (e1, e2) ->
-        fprintf fmt "@[<hv2>BaseExpr.Or@ (@[%a,@ %a@])@]" pp_code_expr e1 pp_code_expr e2
-    | Flag nm ->
-        fprintf fmt "BaseExpr.Flag %S" nm
-    | Test (nm, vl) ->
-        fprintf fmt "@[<hv2>BaseExpr.Test (@[%S,@ %S@])@]" nm vl
+let rec code_of_expr e =
+  let cstr, args =
+    match e with 
+      | Bool b ->
+          "Bool", [BOO b]
+      | Not e ->
+          "Not", [code_of_expr e]
+      | And (e1, e2) ->
+          "And", [code_of_expr e1; code_of_expr e2]
+      | Or (e1, e2) ->
+          "Or", [code_of_expr e1; code_of_expr e2]
+      | Flag nm ->
+          "Flag", [STR nm]
+      | Test (nm, vl) ->
+          "Test", [STR nm; STR vl]
+  in
+    VRT ("BaseExpr."^cstr, args)
 ;;
 
-(** Pretty print conditional list 
+(** Convert BaseExpr.choices to pseudo OCaml code
   *)
-let pp_code_expr_choices pp_elem =
-  pp_ocaml_list
-    (fun fmt (cond, e) ->
-       fprintf fmt "%a,@ %a"
-         pp_code_expr cond
-         pp_elem  e)
+let code_of_choices code_of_elem lst =
+  LST
+    (List.map
+       (fun (expr, elem) ->
+          TPL [code_of_expr expr; code_of_elem elem])
+       lst)
 ;;
 
+(** Convert "bool BaseExpr.choices" to pseudo OCaml code
+  *)
+let code_of_bool_choices =
+  code_of_choices (fun v -> BOO v) 
+;;

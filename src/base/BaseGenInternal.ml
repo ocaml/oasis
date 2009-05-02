@@ -1,38 +1,38 @@
 
 open OASISTypes;;
-open Format;;
 open BaseGenerate;;
 open BaseUtils;;
+open BaseGenCode;;
 
 (* Configuration *)
 let configure pkg standard_vars =
 
-  let pp_print_checks fmt pkg = 
-    pp_ocaml_list
-      (fun fmt e -> e fmt)
-      fmt
+  let code_checks = 
+    LST
       (List.flatten 
          [
            List.map 
-             (fun e fmt ->
-                match e with
-                  | pkg, Some ver -> 
-                      fprintf fmt
-                        "@[<hv2>BaseCheck.package@ ~version_comparator:%S@ %S@]"
-                        pkg
-                        ver
-                  | pkg, None ->
-                      fprintf fmt
-                        "@[<hv2>BaseCheck.package@, %S@]"
-                        pkg)
+             (function
+                | pkg, Some ver -> 
+                    APP
+                      ("BaseCheck.package",
+                       [
+                         STR (Printf.sprintf "~version_comparator:%S" pkg);
+                         STR ver
+                       ]
+                      )
+                | pkg, None ->
+                    APP
+                      ("BaseCheck.package",
+                       [STR pkg]))
              pkg.build_depends;
+
            List.map
-             (fun e fmt ->
-                fprintf fmt "BaseCheck.prog %S" e)
+             (fun e -> APP ("BaseCheck.prog", [STR e]))
              pkg.build_tools;
 
            List.map
-             (fun e fmt ->
+             (fun e ->
                 let var = 
                   match e with 
                     | SVocamlc -> "ocamlc"
@@ -64,48 +64,49 @@ let configure pkg standard_vars =
                     | SVdefault_executable_name -> "default_executable_name"
                     | SVsysthread_supported -> "systhread_supported"
                 in
-                  fprintf fmt "BaseStandardVar.%s" var)
+                  VAR ("BaseStandardVar."^var))
              standard_vars;
          ])
   in
 
-  let pp_print_args =
-    pp_ocaml_list
-      (fun fmt (nm, flg) ->
-         fprintf fmt 
-           "@[<hv>BaseArgExt.enable@, %S@, %S@, %a@]"
-           nm 
-           (match flg.flag_description with
-              | Some hlp -> hlp
-              | None -> "")
-           (pp_ocaml_list
-              (fun fmt (expr, vl) ->
-                 fprintf fmt "%a,@ %B"
-                   BaseExprTools.pp_code_expr 
-                   (BaseExprTools.of_oasis expr)
-                   vl))
-           flg.flag_default)
+  let code_args =
+    LST
+      (List.map 
+         (fun (nm, flg) ->
+            APP
+              ("BaseArgExt.enable",
+               [
+                 STR nm; 
+                 STR 
+                   (match flg.flag_description with
+                      | Some hlp -> hlp
+                      | None -> "");
+                 BaseExprTools.code_of_bool_choices
+                   (BaseExprTools.choices_of_oasis flg.flag_default)]))
+         pkg.flags)
   in
 
-  let pp_print_files_ab =
-    pp_ocaml_list pp_ocaml_string
+  let code_files_ab =
+    LST (List.map (fun f -> STR f) pkg.files_ab)
   in     
 
-  let pp_gen fmt () = 
-    fprintf fmt
-      "@[<hv2>BaseConfigure.configure@ %S@ %S@ %a@ %a@ %a@]"
-      pkg.name
-      pkg.version
-      pp_print_args pkg.flags
-      pp_print_checks pkg
-      pp_print_files_ab pkg.files_ab
+  let code = 
+    APP
+      ("BaseConfigure.configure",
+       [
+         STR pkg.name;
+         STR pkg.version;
+         code_args;
+         code_checks;
+         code_files_ab
+       ])
   in
 
     {
       moduls           = [BaseData.basesys_ml];
-      pp_setup_fun     = pp_gen;
-      pp_clean_fun     = None;
-      pp_distclean_fun = None;
+      setup_code       = code;
+      clean_code       = [];
+      distclean_code   = [];
       other_action     = (fun _ -> ());
       files_generated  = (List.map BaseFileAB.to_filename pkg.files_ab);
       standard_vars    = [];
@@ -122,20 +123,18 @@ open BaseInstallTools;;
 (* Installation *)
 let install pkg =
 
-  let pp_gen fmt () =
-
-    pp_ocaml_expr fmt
-      (APP 
-         ("BaseInstall.install",
-          [LST (List.map library_code_of_oasis pkg.libraries);
-           LST (List.map executable_code_of_oasis pkg.executables)]))
+  let code =
+    APP 
+      ("BaseInstall.install",
+       [LST (List.map library_code_of_oasis pkg.libraries);
+        LST (List.map executable_code_of_oasis pkg.executables)])
   in
 
     {
       moduls           = [BaseData.basesys_ml];
-      pp_setup_fun     = pp_gen;
-      pp_clean_fun     = None;
-      pp_distclean_fun = None;
+      setup_code       = code;
+      clean_code       = [];
+      distclean_code   = [];
       other_action     = (fun _ -> ());
       files_generated  = [];
       standard_vars    = [];

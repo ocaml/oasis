@@ -7,6 +7,7 @@ open Format;;
 open OASISTypes;;
 open BaseUtils;;
 open BaseFileGenerate;;
+open BaseGenCode;;
 
 (** Type for OCaml module embedded code
   *)
@@ -53,13 +54,13 @@ type generator_action =
       moduls: modul list;
 
       (** Function to be added to BaseSetup.t *)
-      pp_setup_fun: formatter -> unit -> unit;
+      setup_code: BaseGenCode.ocaml_expr;
 
       (** Function to be called when cleaning *)
-      pp_clean_fun: (formatter -> unit -> unit) option;
+      clean_code: BaseGenCode.ocaml_stmts;
 
       (** Function to be called when distcleaning *)
-      pp_distclean_fun: (formatter -> unit -> unit) option;
+      distclean_code: BaseGenCode.ocaml_stmts;
 
       (** Write extra files *)
       other_action: unit -> unit; 
@@ -224,78 +225,45 @@ let generate pkg =
     (List.map snd generators)
   in
 
-  let pp_parent_protect pp_elem fmt elem =
-     fprintf fmt "@[(@[@,%a@]@,)@]" pp_elem elem
+  let clean_code =
+    FUN 
+      (["()"],
+       (List.flatten (List.map (fun act -> act.clean_code) all_actions)))
   in
 
-  let pp_setup_field ?(parent=true) nm pp_elem fmt elem =
-    pp_record_field 
-      fmt 
-      ("BaseSetup."^nm)
-      (if parent then
-         pp_parent_protect pp_elem
-       else
-         pp_elem) 
-      elem
+  let distclean_code =
+    FUN 
+      (["()"],
+       (List.flatten (List.map (fun act -> act.distclean_code) all_actions)))
   in
 
-  let pp_commonclean get_pp_fun fmt () = 
-    let () = 
-      fprintf fmt "fun _ ->@, "
-    in
-    let output_smthg =
-      List.fold_left 
-        (fun output_smthg act ->
-           let pp_fun =
-             get_pp_fun act
-           in
-             match pp_fun with 
-               | Some pp_fun -> 
-                   pp_parent_protect pp_fun fmt ();
-                   fprintf fmt ";@, ";
-                   true
-               | _ ->
-                   output_smthg)
-        false
-        all_actions
-    in
-      if not output_smthg then
-        pp_print_string fmt "()"
+  let files_generated_code =
+    LST
+      (List.map 
+         (fun f -> STR f)
+         (List.flatten (List.map (fun act -> act.files_generated) all_actions)))
   in
 
-  let pp_clean =
-    pp_commonclean (fun act -> act.pp_clean_fun) 
-  in
-
-  let pp_distclean =
-    pp_commonclean (fun act -> act.pp_distclean_fun)
-  in
-
-  let pp_files_generated fmt () =
-    fprintf fmt "[@[<hv2>%a@]]"
-      (pp_list pp_ocaml_string ";@ ")
-      (List.flatten
-         (List.map 
-            (fun act -> act.files_generated)
-            all_actions))
-  in
-
-  let pp_setup_t fmt () =
-      pp_record_open fmt ();
-      List.iter
-        (fun (nm, act) -> pp_setup_field nm act.pp_setup_fun fmt ())
-        generators;
-      pp_setup_field "configure" configure.pp_setup_fun fmt ();
-      pp_setup_field "clean" pp_clean fmt ();
-      pp_setup_field "distclean" pp_distclean fmt ();
-      pp_setup_field "files_generated"  pp_files_generated fmt ();
-      pp_record_close fmt ()
+  let setup_t_code =
+    REC
+      ("BaseSetup",
+       (
+         (List.map (fun (nm, act) -> nm, act.setup_code) generators)
+         @
+         [
+           "configure",       configure.setup_code;
+           "clean",           clean_code;
+           "distclean",       distclean_code;
+           "files_generated", files_generated_code;
+         ]
+       )
+      )
   in
 
   let setup_fun =
     fprintf str_formatter
-      "@[<hv>let setup () =@, @[<hv>BaseSetup.setup@, %a@]@,@];;"
-      pp_setup_t ();
+      "@[<hv2>let setup () =@ %a@,@];;"
+      pp_ocaml_expr (APP ("BaseSetup.setup", [setup_t_code]));
     flush_str_formatter ()
   in
 
