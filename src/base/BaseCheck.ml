@@ -8,6 +8,7 @@ open FilePath.DefaultPath;;
 
 module Env = BaseEnvironment;;
 module Ver = BaseVersion;;
+module Msg = BaseMessage;;
 
 let () = 
   Findlib.init ()
@@ -59,11 +60,9 @@ let version feature var_prefix str_comparator fversion =
   in
     Env.var_cache ~hide:true var
       (fun env ->
-         (* TODO: provide description to variable definition 
          let () = 
            Msg.checking (feature^" version "^str_comparator);
          in
-          *)
          let version, env =
            match fversion env with 
              | "[Distributed with OCaml]", env ->
@@ -88,12 +87,9 @@ let package ?version_comparator pkg =
          let default_msg =
            "findlib package "^pkg
          in
-         (* TODO: provide description to variable definition + error
-          * reporting
          let () = 
            Msg.checking default_msg
          in
-          *) 
          let dir =
            Findlib.package_directory pkg
          in
