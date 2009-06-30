@@ -38,16 +38,13 @@ let distclean t =
 let setup t = 
   try
     let act =
-      ref (fun _ _ -> 
+      ref (fun () -> 
              failwith
                (Printf.sprintf
                   "No action defined, run '%s %s -help'"
                   Sys.executable_name
                   Sys.argv.(0)))
 
-    in
-    let is_configure =
-      ref false
     in
     let args =
       ref []
@@ -56,10 +53,18 @@ let setup t =
       Arg.Tuple
         [
           Arg.Rest (fun str -> args := str :: !args);
-          Arg.Unit (fun () -> is_configure := configure;
-                              act := a; 
-                              args := List.rev !args);
+          Arg.Unit 
+            (fun () ->
+               (* Build initial environment *)
+               let env_org =
+                 Env.load ~allow_empty:configure ()
+               in
+                 act  := (fun () -> a env_org (Array.of_list (List.rev !args)));
+                 args := []); 
         ]
+    in
+    let arg_clean a =
+      Arg.Unit (fun () -> act := a);
     in
       Arg.parse 
         [
@@ -84,21 +89,17 @@ let setup t =
           "[options*] Install library, data, executable and documentation.";
 
           "-clean",
-          arg_rest (fun _ _ -> t.clean ()),
+          arg_clean t.clean,
           "[options*] Clean build environment.";
 
           "-distclean",
-          arg_rest (fun _ _ -> distclean t),
+          arg_clean (fun () -> distclean t),
           "[options*] Clean build and configure environment.";
         ]
         (fun str -> failwith ("Don't know what to do with "^str))
         "Setup and run build process current package\n";
 
-      (* Build initial environment *)
-      let env_org =
-        Env.load ~allow_empty:!is_configure ()
-      in
-        !act env_org (Array.of_list !args)
+        !act ()
   with e ->
     BaseMessage.error (Printexc.to_string e);
 ;;
