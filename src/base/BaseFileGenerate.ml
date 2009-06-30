@@ -11,7 +11,7 @@ open BaseMessage;;
 type comment_format =
     {
       of_string: string -> string;
-      regexp:    string -> Str.regexp;
+      regexp:    quote:bool -> string -> Str.regexp;
       start:     string;
       stop:      string;
     }
@@ -43,13 +43,13 @@ let comment cmt_beg cmt_end =
             (fun str ->
                Printf.sprintf "%s %s %s" cmt_beg str cmt_end)
   in
-  let regexp str = 
+  let regexp ~quote str = 
     match cmt_end with 
       | Some cmt_end ->
           Str.regexp ("^"^white_space^
                       (Str.quote cmt_beg)^
                       white_space^
-                      (Str.quote str)^
+                      (if quote then Str.quote str else str)^
                       white_space^
                       (Str.quote cmt_end)^
                       white_space^"$")
@@ -57,7 +57,7 @@ let comment cmt_beg cmt_end =
           Str.regexp ("^"^white_space^
                       (Str.quote cmt_beg)^
                       white_space^
-                      (Str.quote str)^
+                      (if quote then Str.quote str else str)^
                       white_space^"$")
   in
     {
@@ -101,7 +101,7 @@ let file_generate ?(target) fn comment content =
   let is_start, is_stop =
     let match_regexp msg =
       let rgxp =
-        comment.regexp msg
+        comment.regexp ~quote:true msg
       in
         fun str ->
           Str.string_match rgxp str 0
@@ -111,7 +111,7 @@ let file_generate ?(target) fn comment content =
   in
 
   let do_not_edit =
-    comment.regexp "DO NOT EDIT (digest: \\(.*\\))"
+    comment.regexp ~quote:false "DO NOT EDIT (digest: \\(.*\\))"
   in
 
   (* Compute the digest of a list
@@ -248,7 +248,7 @@ let file_generate ?(target) fn comment content =
                    *)
                   let () =
                     match fn_body with
-                      | hd :: tl when Str.string_match do_not_edit hd 0 -> 
+                      | hd :: tl  when Str.string_match do_not_edit hd 0 ->
                           (
                             let expected_digest =
                               Str.matched_group 1 hd
@@ -257,13 +257,20 @@ let file_generate ?(target) fn comment content =
                               digest_of_list tl
                             in
                               if expected_digest <> digest then 
-                                failwith 
-                                  (Printf.sprintf 
-                                     "Digest sum for replace section of file %s \
-                                      has changed (%s <> %s). Remove digest line first!"
-                                     fn
-                                     expected_digest
-                                     digest)
+                                (
+                                  let fn_backup =
+                                    fn^".bak"
+                                  in
+                                    warning 
+                                      (Printf.sprintf 
+                                         "File %s has changed, doing a backup in %s"
+                                         fn fn_backup);
+                                    if not (Sys.file_exists fn_backup) then
+                                      FileUtil.StrUtil.cp [fn] fn_backup
+                                    else
+                                      failwith "File %s already exists" fn_backup
+                                )
+
                           )
                       | lst ->
                           ()
