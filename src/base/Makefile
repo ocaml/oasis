@@ -4,19 +4,19 @@
 SETUP = ocaml setup.ml
 
 BUILDFLAGS     =
-DOCFLAGSi      =
+DOCFLAGS       =
 TESTFLAGS      =
 CLEANFLAGS     =
 DISTCLEANFLAGS =
+CONFIGUREFLAGS =
 
-
-build:
+build: setup.data
 	$(SETUP) -build $(BUILDFLAGS)
 
-doc:
+doc: setup.data
 	$(SETUP) -doc $(DOCFLAGS)
 
-test:
+test: setup.data
 	$(SETUP) -test $(TESTFLAGS)
 
 clean:
@@ -24,5 +24,11 @@ clean:
 
 distclean:
 	$(SETUP) -distclean $(DISTCLEANFLAGS)
+
+setup.data: configure
+configure: 
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+.PHONY: build doc test clean distclean configure 
 
 # AUTOBUILD_STOP 
