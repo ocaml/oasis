@@ -9,6 +9,7 @@ TESTFLAGS      =
 CLEANFLAGS     =
 DISTCLEANFLAGS =
 CONFIGUREFLAGS =
+INSTALLFLAGS   =
 
 build: setup.data
 	$(SETUP) -build $(BUILDFLAGS)
@@ -19,16 +20,18 @@ doc: setup.data
 test: setup.data
 	$(SETUP) -test $(TESTFLAGS)
 
+install: setup.data
+	$(SETUP) -install $(INSTALLFLAGS)
+
 clean:
 	$(SETUP) -clean $(CLEANFLAGS)
 
 distclean:
 	$(SETUP) -distclean $(DISTCLEANFLAGS)
 
-setup.data: configure
-configure: 
+setup.data: 
 	$(SETUP) -configure $(CONFIGUREFLAGS)
 
-.PHONY: build doc test clean distclean configure 
+.PHONY: build doc test clean distclean install
 
 # AUTOBUILD_STOP 
