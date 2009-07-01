@@ -321,6 +321,14 @@ let generate pkg =
       (NeedSplit
          BaseData.makefile);
 
+    (* Generate configure (for standard dev. env.) *)
+    file_generate
+      "configure"
+      comment_sh
+      (NeedSplit
+         BaseData.configure);
+    Unix.chmod "configure" 0o755;
+
     (* Generate other files *)
     List.iter
       (fun act -> act.other_action ())

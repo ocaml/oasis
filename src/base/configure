@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# AUTOBUILD_START
+set -e
+
+ocaml setup.ml -configure $*
+# AUTOBUILD_STOP
