@@ -90,7 +90,8 @@ let replace fn_lst env =
                      in
                        renv := env;
                        vl_exp)
-                  (input_line chn_in)
+                  (input_line chn_in);
+                Buffer.add_char buff '\n'
                done
              with End_of_file ->
                ()

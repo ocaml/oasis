@@ -1,6 +1,4 @@
 * Finish guess-cmx to install all files for libraries, integrate it in buildsys
 * Remove BaseVersionTools from BaseSys
 * "..." in freeform doesn't work
-* missing .PHONY in makefile
 * config_map reappears when reconfiguring
-* missing CR/LF in file.ab
