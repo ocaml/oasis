@@ -77,10 +77,11 @@ let tests ctxt =
     srcdir >::
     (fun () ->
        Sys.chdir curdir;
-
        assert_command "../_build/src/OCamlAutobuild.byte" ["-C"; srcdir];
-
        Sys.chdir srcdir;
+
+       if Sys.file_exists "setup.data" then
+         Sys.remove "setup.data";
 
        assert_command "ocaml" ["setup.ml"; "-configure"];
        assert_command "ocaml" ["setup.ml"; "-build"];
@@ -96,5 +97,6 @@ let tests ctxt =
        [
          "../examples/flags";
          "../examples/simplelib";
+         "../examples/findlib";
        ])
 ;;
