@@ -4,7 +4,6 @@
   *)
 
 open BaseEnvironment;;
-open Unix;;
 
 let tr_arg str =
   let buff =
@@ -181,37 +180,6 @@ let default =
       "$docdir";
     ]
   in
-  (* Build date argument *)
-  let date_R () = 
-    let string_of_mon i = 
-      [| "Jan"; "Feb"; "Mar"; "Apr"; "May"; 
-        "Jun"; "Jul"; "Aug"; "Sep"; "Oct"; 
-        "Nov"; "Dec" |].(i)
-    in
-    let string_of_wday i = 
-      [| "Sun"; "Mon"; "Thu"; "Wed"; "Tue"; 
-        "Fri"; "Sat" |].(i)
-    in
-    let tm =
-      gmtime (time ())
-    in
-      Printf.sprintf 
-        "%s, %02d %s %d %02d:%02d:%02d +0000" 
-        (string_of_wday tm.tm_wday)
-        tm.tm_mday 
-        (string_of_mon tm.tm_mon) 
-        (1900 + tm.tm_year) 
-        tm.tm_hour 
-        tm.tm_min 
-        tm.tm_sec
-  in
-  let arg_date = 
-    wth 
-      "build_date"
-      "date Date of build"
-      (date_R ())
-  in
-
     fun renv ->
       List.fold_left
         (fun acc (name, hlp, dflt) ->
@@ -222,6 +190,6 @@ let default =
              "dir "^hlp^" ["^dflt^"]"
            ) :: acc
         )
-        ((arg_date renv) @ (BaseEnvironment.args renv))
+        (BaseEnvironment.args renv)
         lst
 ;;

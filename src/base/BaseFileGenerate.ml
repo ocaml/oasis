@@ -268,7 +268,10 @@ let file_generate ?(target) fn comment content =
                                     if not (Sys.file_exists fn_backup) then
                                       FileUtil.StrUtil.cp [fn] fn_backup
                                     else
-                                      failwith "File %s already exists" fn_backup
+                                      failwith 
+                                        (Printf.sprintf 
+                                           "File %s already exists" 
+                                           fn_backup)
                                 )
 
                           )

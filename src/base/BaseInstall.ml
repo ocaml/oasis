@@ -111,11 +111,10 @@ let install libs execs env argv =
                (rootdirs * (make_module modul) * [".mli"; ".ml"])
           in
             
-          let cmdline =
+          let files =
             List.flatten
               (
                 [
-                  "ocamlfind"; "install"; lib.lib_name; 
                   find_build_file "META";
                   find_build_file (lib.lib_name^".cma");
                 ]
@@ -134,9 +133,8 @@ let install libs execs env argv =
                 )
               )
           in
-            prerr_endline (String.concat " " cmdline)
-        );
-      env
+            BaseExec.run "ocamlfind" ("install" :: lib.lib_name :: files)
+        )
   in
 
   let install_exec env exec =
@@ -150,34 +148,21 @@ let install libs execs env argv =
               (fun (rootdir, name) -> [rootdir; name^exec_ext])
               (rootdirs * [exec.exec_name])
           in
-          let cmdline =
-            [
-              "cp"; 
-              exec_file; 
-              Filename.concat 
-                bindir
-                exec.exec_name
-            ]
+          let tgt_file =
+            Filename.concat 
+              bindir
+              exec.exec_name
           in
-            prerr_endline (String.concat " " cmdline)
-        );
-      env
+            BaseMessage.info 
+              (Printf.sprintf 
+                 "Copying file %s to %s"
+                 exec_file
+                 tgt_file);
+            BaseFileUtil.cp exec_file tgt_file
+        )
   in
 
-  let env =
-    List.fold_left 
-      install_lib
-      env
-      libs
-  in
-
-  let _env = 
-    List.fold_left
-      install_exec
-      env
-      execs
-  in
-
-    ()
+    List.iter (install_lib env) libs;
+    List.iter (install_exec env) execs
 ;;
 

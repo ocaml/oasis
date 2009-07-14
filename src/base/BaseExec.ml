@@ -24,13 +24,18 @@ let run cmd args =
 (** Run a command and returns its output
   *)
 let run_read_output cmd args =
-  let cmdline =
-    String.concat " " (cmd :: args)
+  let fn = 
+    Filename.temp_file "ocaml-autobuild" ".txt"
+  in
+  let () = 
+    try
+      run cmd (args @ [">"; fn])
+    with e ->
+      Sys.remove fn;
+      raise e
   in
   let chn =
-    BaseMessage.info 
-      (Printf.sprintf "Running command '%s'" cmdline);
-    Unix.open_process_in cmdline
+    open_in fn
   in
   let routput =
     ref []
@@ -43,26 +48,21 @@ let run_read_output cmd args =
       with End_of_file ->
         ()
     );
-    (
-      match Unix.close_process_in chn with
-        | Unix.WEXITED 0 -> 
-            ()
-        | Unix.WEXITED i ->
-            failwith 
-              (Printf.sprintf
-                 "Command '%s' terminated with error code %d"
-                 cmdline i)
-        | Unix.WSIGNALED i ->
-            failwith
-              (Printf.sprintf
-                 "Command '%s' has been killed by signal %d"
-                 cmdline i)
-        | Unix.WSTOPPED i  -> 
-            failwith
-              (Printf.sprintf
-                 "Command '%s' has been stopped by signal %d"
-                 cmdline i)
-    );
+    close_in chn;
+    Sys.remove fn;
     List.rev !routput
+;;
+
+(** Run a command and returns only first line 
+  *)
+let run_read_one_line cmd args = 
+  match run_read_output cmd args with 
+    | [fst] -> 
+        fst
+    | lst -> 
+        failwith 
+          (Printf.sprintf
+             "Command return unexpected output %S"
+             (String.concat "\n" lst))
 ;;
 

@@ -297,20 +297,11 @@ let generate pkg =
            (* Body *)
            (List.flatten 
               [
-                [
-                  "";
-                  "#use \"topfind\";;";
-                  "#require \"findlib\";;";
-                  "#require \"fileutils\";;";
-                  "";
-                ];
                 moduls;
-                [
-                  setup_fun;
-                ]
+                [setup_fun]
               ]),
            (* Footer *)
-           [""; "setup ();;"]
+           ["setup ();;"]
          )
       );
 
