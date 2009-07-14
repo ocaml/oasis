@@ -5,19 +5,27 @@
 
 type library =
     {
-      lib_name:      string;
-      lib_buildable: bool BaseExpr.choices;
-      lib_modules:   string list;
-      lib_path:      string;
+      lib_name:        string;
+      lib_installable: bool BaseExpr.choices;
+      lib_modules:     string list;
+      lib_path:        string;
     }
 ;;
 
 type executable =
     {
-      exec_name:      string;
-      exec_buildable: bool BaseExpr.choices;
-      exec_path:      string;
+      exec_name:        string;
+      exec_installable: bool BaseExpr.choices;
+      exec_path:        string;
     }
+;;
+
+let exec_hook =
+  ref (fun env exec -> exec)
+;;
+
+let lib_hook =
+  ref (fun env lib -> lib)
 ;;
 
 let install libs execs env argv =
@@ -89,10 +97,13 @@ let install libs execs env argv =
   in
 
   let install_lib env lib = 
-    let (buildable, env) =
-      BaseExpr.choose lib.lib_buildable env
+    let lib =
+      !lib_hook env lib
     in
-      if buildable then
+    let (installable, _) =
+      BaseExpr.choose lib.lib_installable env
+    in
+      if installable then
         (
           let find_build_file =
             find_build_file lib.lib_path
@@ -138,10 +149,13 @@ let install libs execs env argv =
   in
 
   let install_exec env exec =
-    let (buildable, env) = 
-      BaseExpr.choose exec.exec_buildable env
+    let exec =
+      !exec_hook env exec
     in
-      if buildable then
+    let (installable, _) = 
+      BaseExpr.choose exec.exec_installable env
+    in
+      if installable then
         (
           let exec_file =
             find_file

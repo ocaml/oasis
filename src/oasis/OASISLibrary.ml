@@ -19,6 +19,11 @@ let schema, generator =
       ~default:true
       boolean
   in
+  let installable =
+    new_field_conditional schm "installable"
+      ~default:true
+      boolean
+  in
   let modules =
     new_field schm "modules" 
       ~default:[]
@@ -33,6 +38,7 @@ let schema, generator =
     (fun wrtr ->
        {
          lib_buildable       = buildable wrtr;
+         lib_installable     = installable wrtr;
          lib_path            = path wrtr;
          lib_modules         = modules wrtr;
          lib_compiled_object = compiled_object wrtr;

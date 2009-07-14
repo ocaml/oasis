@@ -66,6 +66,7 @@ type 'a conditional =
   *)
 type library = {
   lib_buildable:       bool conditional;
+  lib_installable:     bool conditional;
   lib_path:            dirname;
   lib_modules:         string list;
   lib_compiled_object: compiled_object;
@@ -77,6 +78,7 @@ type library = {
   *)
 type executable = {
   exec_buildable:       bool conditional;
+  exec_installable:     bool conditional;
   exec_main_is:         filename;
   exec_compiled_object: compiled_object;
   exec_extra:           (name * string) list;
