@@ -6,34 +6,24 @@
 open OASISTypes;;
 open OASISSchema;;
 open OASISValueParser;;
+open CommonGettext;;
 
 let schema, generator =
   let schm =
-    schema ()
+    schema "executable" 
   in
   let main_is =
     new_field schm "mainis" 
       (fun ctxt vl ->
          str_regexp
            (Str.regexp ".*\\.ml$")
-           ".ml file"
+           (s_ ".ml file")
            ctxt
            (file_exists ctxt vl))
+      (s_ "OCaml file (.ml) containing main procedure for the executable.")
   in
-  let buildable =
-    new_field_conditional schm "buildable"
-      ~default:true
-      boolean
-  in
-  let installable =
-    new_field_conditional schm "installable"
-      ~default:true
-      boolean
-  in
-  let compiled_object =
-    new_field schm "compiledobject"
-      ~default:Byte
-      compiled_object
+  let buildable, installable, compiled_object = 
+    OASISUtils.std_field (s_ "executable") Byte schm
   in
     schm,
     (fun wrtr -> 

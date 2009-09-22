@@ -1,4 +1,5 @@
 "src": include
+"src/common": include
 "src/base": include
 "src/ocamlbuild": include
 "src/omake": include

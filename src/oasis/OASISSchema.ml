@@ -18,10 +18,17 @@ type field =
     {
       set:  ctxt -> (unit -> unit) -> string -> (unit -> unit);
       get:  unit -> unit;                     
+      help: string;
     }
 ;;
 
-type schema = (name, field) Hashtbl.t;;
+type schema = 
+    {
+      name:          string;
+      fields:        (name, field) Hashtbl.t;
+      mutable order: name list;
+    }
+;;
 
 type writer = 
     {
@@ -30,11 +37,15 @@ type writer =
     }
 ;;
 
-let schema () = 
-  Hashtbl.create 13
+let schema nm = 
+  {
+    name   = nm;
+    fields = Hashtbl.create 13;
+    order  = [];
+  }
 ;;
 
-let new_field_low schm name set default getmod v =
+let new_field_low schm name set default getmod v help =
   let get_default () = 
     match default with
       | Some x ->
@@ -55,11 +66,13 @@ let new_field_low schm name set default getmod v =
       | None -> 
           raise (MissingField [name])
   in
-    Hashtbl.replace schm lname 
+    Hashtbl.replace schm.fields lname 
       {
         get  = (fun () -> v := Some (get_default ())); 
         set  = set;
+        help = help;
       };
+    schm.order <- name :: schm.order;
     get
 ;;
 
@@ -167,7 +180,7 @@ let check wrtr =
 
 let writer schm =
   {
-    defined = Hashtbl.copy schm;
+    defined = Hashtbl.copy schm.fields;
     extra   = NameMap.empty;
   }
 ;;
@@ -179,3 +192,41 @@ let extra wrtr =
     []
 ;;
 
+open CommonGettext;;
+open Format;;
+
+let pp_string_spaced fmt str =
+  String.iter
+    (function
+       | ' ' -> Format.pp_print_space fmt ()
+       | c -> Format.pp_print_char fmt c)
+    str
+;;
+
+let pp_help fmt schm = 
+  fprintf fmt (f_ "@\n== %s description ==@\n@\n") 
+    (String.capitalize schm.name);
+  List.iter
+    (fun key ->
+       let {get = get; help = help} =
+         try 
+           Hashtbl.find schm.fields key
+         with Not_found ->
+           failwith 
+             (Printf.sprintf
+                (f_ "Field %s not found")
+                key)
+       in
+         fprintf fmt " * @[";
+         (
+           try 
+             get ()
+           with (MissingField _) ->
+             pp_print_string fmt (s_ "mandatory ")
+         );
+         fprintf fmt (f_ "%s: %a@]@\n") 
+           (String.capitalize key)
+           pp_string_spaced help
+    )
+    (List.rev schm.order)
+;;

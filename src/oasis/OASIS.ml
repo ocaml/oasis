@@ -24,3 +24,16 @@ let from_file fn ?(srcdir) ?(debug=false) valid_tests =
     OASISAst.to_package fn srcdir valid_tests ast
 ;;
 
+
+(** Print help about OASIS fields.
+  *)
+let pp_help fmt () = 
+  List.iter 
+    (OASISSchema.pp_help fmt) 
+    [
+      OASISPackage.schema;
+      OASISFlag.schema;
+      OASISLibrary.schema;
+      OASISExecutable.schema;
+    ]
+;;
