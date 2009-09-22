@@ -12,30 +12,27 @@ let configure pkg standard_vars =
       (List.flatten 
          [
            List.map 
-             (function
-                | pkg, Some ver -> 
-                    APP
-                      ("BaseCheck.package",
-                       let cmp = 
-                         BaseVersion.comparator_of_string ver
-                       in
-                         [
-                           STR pkg;
-                           VAR (Printf.sprintf 
-                                  "~version_comparator:(%S, %s, %S)" 
-                                  ver
-                                  (BaseVersion.code_of_comparator cmp)
-                                  (BaseVersion.varname_of_comparator cmp));
-                         ]
-                      )
-                | pkg, None ->
-                    APP
-                      ("BaseCheck.package",
-                       [STR pkg]))
+             (fun (pkg, ver_opt) -> 
+                let version_arg = 
+                  match ver_opt with
+                    | Some ver ->
+                        let cmp = 
+                          BaseVersion.comparator_of_string ver
+                        in
+                          [
+                            "version_comparator",
+                            TPL [STR ver; 
+                                 BaseVersion.code_of_comparator cmp;
+                                 STR (BaseVersion.varname_of_comparator cmp)];
+                          ]
+                    | None ->
+                        []
+                in
+                  APP ("BaseCheck.package", version_arg, [STR pkg]))
              pkg.build_depends;
 
            List.map
-             (fun e -> APP ("BaseCheck.prog", [STR e]))
+             (fun e -> APP ("BaseCheck.prog", [], [STR e]))
              pkg.build_tools;
 
            List.map
@@ -82,6 +79,7 @@ let configure pkg standard_vars =
          (fun (nm, flg) ->
             APP
               ("BaseArgExt.enable",
+               [],
                [
                  STR nm; 
                  STR 
@@ -100,6 +98,7 @@ let configure pkg standard_vars =
   let code = 
     APP
       ("BaseConfigure.configure",
+       [],
        [
          STR pkg.name;
          STR pkg.version;
@@ -133,6 +132,7 @@ let install pkg =
   let code =
     APP 
       ("BaseInstall.install",
+       [],
        [LST (List.map library_code_of_oasis pkg.libraries);
         LST (List.map executable_code_of_oasis pkg.executables)])
   in

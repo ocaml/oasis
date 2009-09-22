@@ -199,21 +199,26 @@ let rec string_of_comparator =
         (string_of_comparator c1)^" && "^(string_of_comparator c2)
 ;;
 
+open BaseGenCode;;
+
 (** Conver a comparator to its code representation for inclusion
   *)
-let rec code_of_comparator =
-  function
-    | VGreater v  -> Printf.sprintf "BaseVersion.VGreater(%S)" v
-    | VEqual v    -> Printf.sprintf "BaseVersion.VEqual(%S)" v
-    | VLesser v   -> Printf.sprintf "BaseVersion.VLesser(%S)" v
-    | VOr (c1, c2)  -> 
-        Printf.sprintf "BaseVersion.VOr(%s, %s)"
-          (code_of_comparator c1)
-          (code_of_comparator c2)
-    | VAnd (c1, c2) -> 
-        Printf.sprintf "BaseVersion.VAnd(%s, %s)"
-          (code_of_comparator c1)
-          (code_of_comparator c2)
+let rec code_of_comparator cmp =
+  let variant vrt args =
+    VRT (("BaseVersion."^vrt), args)
+  in
+    match cmp with
+      | VGreater v  -> variant "VGreater" [STR v]
+      | VEqual v    -> variant "VEqual" [STR v]
+      | VLesser v   -> variant "VLesser" [STR v]
+      | VOr (c1, c2)  -> 
+          variant "VOr" 
+            [code_of_comparator c1; 
+             code_of_comparator c2]
+      | VAnd (c1, c2) -> 
+          variant "VAnd" 
+            [code_of_comparator c1; 
+             code_of_comparator c2]
 ;;
 
 (** Convert a version to a varname 

@@ -13,7 +13,7 @@ open BaseGenCode;;
 let build pkg =
 
   let clean_code = 
-    APP ("OCamlbuildBuild.clean", [UNT])
+    APP ("OCamlbuildBuild.clean", [], [UNT])
   in
 
   let code_choices_target oasis_choices extra_choices target =
@@ -28,6 +28,7 @@ let build pkg =
   let setup_code = 
     APP
       ("OCamlbuildBuild.build",
+       [],
        [
          LST
            (List.flatten 

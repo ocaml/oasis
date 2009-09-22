@@ -13,6 +13,7 @@ let no_generate knd data =
                          (["_"; "_"],
                           [APP 
                              ("failwith",
+                              [],
                               [STR
                                  ("No implementation for "^
                                   (string_of_generator_kind knd))])]);
@@ -43,6 +44,7 @@ configure_generator_register
                           (["_"; "_"],
                            [APP
                               ("failwith",
+                               [],
                                [STR "No implementation for configure"])]);
      })
 ;;

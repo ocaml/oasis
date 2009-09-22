@@ -263,7 +263,7 @@ let generate pkg =
   let setup_fun =
     fprintf str_formatter
       "@[<hv2>let setup () =@ %a@,@];;"
-      pp_ocaml_expr (APP ("BaseSetup.setup", [setup_t_code]));
+      pp_ocaml_expr (APP ("BaseSetup.setup", [], [setup_t_code]));
     flush_str_formatter ()
   in
 

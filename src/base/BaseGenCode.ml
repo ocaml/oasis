@@ -1,5 +1,5 @@
 
-(** OCaml code generation 
+(** OCaml code generation and pretty printing
     @author Sylvain Le Gall
   *)
 
@@ -12,15 +12,25 @@ type field       = string;;
 type var_name    = string;;
 
 type ocaml_expr = 
+  (** Record *)
   | REC of module_name * (field * ocaml_expr) list
+  (** List *)
   | LST of ocaml_expr list
+  (** String *)
   | STR of string
-  | APP of fun_name * ocaml_expr list
+  (** Function application *)
+  | APP of fun_name * (var_name * ocaml_expr) list * ocaml_expr list 
+  (** Variant type constructor *)
   | VRT of string * ocaml_expr list
+  (** Boolean *)
   | BOO of bool
+  (** Tuple *)
   | TPL of ocaml_expr list
+  (** Variable *)
   | VAR of string
+  (** Function definition *)
   | FUN of var_name list * ocaml_stmts
+  (** Unit () *)
   | UNT
 and ocaml_stmts =
   ocaml_expr list
@@ -54,9 +64,15 @@ let rec pp_ocaml_expr fmt =
           (pp_list pp_ocaml_expr ";@ ") lst
     | STR str ->
         fprintf fmt "%S" str
-    | APP (fnm, args) ->
+    | APP (fnm, named_args, args) ->
         pp_open_hvbox fmt 2;
         pp_print_string fmt fnm;
+        List.iter
+          (fun (nm, e) ->
+             fprintf fmt "@ ~%s:%a" 
+               nm
+               pp_ocaml_expr e)
+          named_args;
         List.iter
           (fun e ->
              pp_print_space fmt ();
