@@ -133,7 +133,10 @@ let install libs execs env argv =
                 :: 
                 (
                   try 
-                    [find_build_file (lib.lib_name^".cmxa")]
+                    [
+                      find_build_file (lib.lib_name^".cmxa");
+                      find_build_file (lib.lib_name^".a");
+                    ]
                   with Not_found ->
                     []
                 )
