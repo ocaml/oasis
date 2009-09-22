@@ -20,7 +20,8 @@ let library_code_of_oasis (nm, lib) =
       "lib_modules",     LST (List.map 
                                 (fun s -> STR s) 
                                 lib.OASIS.lib_modules);
-      "lib_path",        STR lib.OASIS.lib_path])
+      "lib_path",        STR lib.OASIS.lib_path;
+      "lib_extra",       LST []])
 ;;
 
 let executable_code_of_oasis (nm, exec) = 

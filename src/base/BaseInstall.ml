@@ -9,6 +9,7 @@ type library =
       lib_installable: bool BaseExpr.choices;
       lib_modules:     string list;
       lib_path:        string;
+      lib_extra:       string list;
     }
 ;;
 
@@ -136,6 +137,8 @@ let install libs execs env argv =
                   with Not_found ->
                     []
                 )
+                ::
+                lib.lib_extra
                 ::
                 (
                   List.rev_map
