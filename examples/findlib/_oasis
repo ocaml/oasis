@@ -6,5 +6,5 @@ Homepage: http://example.com
 LicenseFile: LICENSE
 License: LGPL-link-exn
 Synopsis: Minimal ADT just to illustrate how libs work.
-BuildDepends: oUnit
+BuildDepends: oUnit (>= 1.0.1)
 

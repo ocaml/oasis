@@ -1,4 +1,3 @@
 * Finish guess-cmx to install all files for libraries, integrate it in buildsys
-* Remove BaseVersionTools from BaseSys
 * "..." in freeform doesn't work
 * config_map reappears when reconfiguring

@@ -16,10 +16,17 @@ let configure pkg standard_vars =
                 | pkg, Some ver -> 
                     APP
                       ("BaseCheck.package",
-                       [
-                         STR (Printf.sprintf "~version_comparator:%S" pkg);
-                         STR ver
-                       ]
+                       let cmp = 
+                         BaseVersion.comparator_of_string ver
+                       in
+                         [
+                           STR pkg;
+                           VAR (Printf.sprintf 
+                                  "~version_comparator:(%S, %s, %S)" 
+                                  ver
+                                  (BaseVersion.code_of_comparator cmp)
+                                  (BaseVersion.varname_of_comparator cmp));
+                         ]
                       )
                 | pkg, None ->
                     APP

@@ -45,20 +45,15 @@ let prog_opt prg =
 
 (** Check version, following Sys.ocaml_version convention
   *)
-let version feature var_prefix str_comparator fversion = 
+let version feature var_prefix (str_cmp, cmp, var_cmp) fversion = 
   (* Really compare version provided *)
-  let comparator =
-    (* TODO: remove *)
-    BaseVersion.comparator_of_string str_comparator
-  in
   let var = 
-    (* TODO: remove *)
-    var_prefix^"_version_"^(BaseVersion.varname_of_comparator comparator)
+    var_prefix^"_version_"^var_cmp
   in
     Env.var_cache ~hide:true var
       (fun env ->
          let () = 
-           Msg.checking (feature^" version "^str_comparator);
+           Msg.checking (feature^" version "^str_cmp);
          in
          let version, env =
            match fversion env with 
@@ -68,7 +63,7 @@ let version feature var_prefix str_comparator fversion =
              | res ->
                  res
          in
-           if Ver.comparator_apply version comparator then
+           if Ver.comparator_apply version cmp then
              version, env
            else
              raise Not_found
@@ -110,13 +105,13 @@ let package ?version_comparator pkg =
          findlib_dir pkg
        in
          match version_comparator with 
-           | Some str_cmp ->
+           | Some ver_cmp ->
                (
                  let _, env = 
                    version 
                      default_msg 
                      ("pkg_"^pkg)
-                     str_cmp 
+                     ver_cmp
                      (fun env -> 
                         findlib_version pkg, env)
                      env

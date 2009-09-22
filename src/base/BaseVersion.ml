@@ -107,7 +107,7 @@ let rec comparator_apply v op =
         (comparator_apply v op1) && (comparator_apply v op2)
 ;;
 
-(* TODO: END EXPORT *)
+(* END EXPORT *)
 
 (** Parse a comparator string 
   *)
@@ -199,10 +199,46 @@ let rec string_of_comparator =
         (string_of_comparator c1)^" && "^(string_of_comparator c2)
 ;;
 
+(** Conver a comparator to its code representation for inclusion
+  *)
+let rec code_of_comparator =
+  function
+    | VGreater v  -> Printf.sprintf "BaseVersion.VGreater(%S)" v
+    | VEqual v    -> Printf.sprintf "BaseVersion.VEqual(%S)" v
+    | VLesser v   -> Printf.sprintf "BaseVersion.VLesser(%S)" v
+    | VOr (c1, c2)  -> 
+        Printf.sprintf "BaseVersion.VOr(%s, %s)"
+          (code_of_comparator c1)
+          (code_of_comparator c2)
+    | VAnd (c1, c2) -> 
+        Printf.sprintf "BaseVersion.VAnd(%s, %s)"
+          (code_of_comparator c1)
+          (code_of_comparator c2)
+;;
+
 (** Convert a version to a varname 
   *)
 let varname_of_version v =
-  v
+  let buff = 
+    Buffer.create (String.length v)
+  in
+    String.iter 
+      (fun c ->
+         let code = 
+           Char.code
+         in
+         let code_c =
+           code c
+         in
+           if (code 'a' <= code_c && code_c <= code 'z') ||
+              (code 'A' <= code_c && code_c <= code 'Z') ||
+              (code '0' <= code_c && code_c <= code '9') ||
+              (c = '_') then
+             Buffer.add_char buff c
+           else
+             Buffer.add_char buff '_')
+      v;
+    Buffer.contents buff 
 ;;
 
 (** Convert a comparator to a varname 
