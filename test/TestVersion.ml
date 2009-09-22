@@ -6,7 +6,6 @@
 open OUnit;;
 open TestCommon;;
 open BaseVersion;;
-open BaseVersionTools;;
 
 let tests ctxt =
 

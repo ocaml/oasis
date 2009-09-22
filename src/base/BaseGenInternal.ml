@@ -81,8 +81,8 @@ let configure pkg standard_vars =
                    (match flg.flag_description with
                       | Some hlp -> hlp
                       | None -> "");
-                 BaseExprTools.code_of_bool_choices
-                   (BaseExprTools.choices_of_oasis flg.flag_default)]))
+                 BaseExpr.code_of_bool_choices
+                   (BaseExpr.choices_of_oasis flg.flag_default)]))
          pkg.flags)
   in
 
@@ -118,7 +118,7 @@ configure_generator_register
   configure
 ;;
 
-open BaseInstallTools;;
+open BaseInstall;;
 
 (* Installation *)
 let install pkg =

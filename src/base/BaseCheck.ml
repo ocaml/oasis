@@ -49,10 +49,11 @@ let version feature var_prefix str_comparator fversion =
   (* Really compare version provided *)
   let comparator =
     (* TODO: remove *)
-    BaseVersionTools.comparator_of_string str_comparator
+    BaseVersion.comparator_of_string str_comparator
   in
   let var = 
-    var_prefix^"_version_"^(BaseVersionTools.varname_of_comparator comparator)
+    (* TODO: remove *)
+    var_prefix^"_version_"^(BaseVersion.varname_of_comparator comparator)
   in
     Env.var_cache ~hide:true var
       (fun env ->

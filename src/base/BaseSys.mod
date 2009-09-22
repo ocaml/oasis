@@ -6,7 +6,6 @@ BaseEnvironment.ml
 BaseExpr.ml
 BaseArgExt.ml
 BaseVersion.ml
-BaseVersionTools.ml
 BaseCheck.ml
 BaseOCamlcConfig.ml
 BaseStandardVar.ml

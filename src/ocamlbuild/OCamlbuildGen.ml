@@ -8,7 +8,6 @@ open BaseGenerate;;
 open BaseFileGenerate;;
 open BaseUtils;;
 open BaseExpr;;
-open BaseExprTools;;
 open BaseGenCode;;
 
 let build pkg =
