@@ -266,7 +266,7 @@ let file_generate ?(target) fn comment content =
                                          "File %s has changed, doing a backup in %s"
                                          fn fn_backup);
                                     if not (Sys.file_exists fn_backup) then
-                                      FileUtil.StrUtil.cp [fn] fn_backup
+                                      FileUtil.cp [fn] fn_backup
                                     else
                                       failwith 
                                         (Printf.sprintf 
