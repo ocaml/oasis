@@ -9,7 +9,7 @@ test: all
 all:
 	ocamlbuild -classic-display ocaml-autobuild.otarget
 
-EXAMPLES=examples/flags examples/simplelib examples/findlib
+EXAMPLES=examples/flags examples/simplelib examples/findlib examples/custom
 STD_FILES=myocamlbuild.ml setup.ml setup.date Makefile configure
 
 GENERATED_FILES += $(foreach example,$(EXAMPLES), $(addprefix $(example)/,$(STD_FILES)))

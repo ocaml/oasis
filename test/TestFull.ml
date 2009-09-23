@@ -100,5 +100,6 @@ let tests ctxt =
          "../examples/flags";
          "../examples/simplelib";
          "../examples/findlib";
+         "../examples/custom";
        ])
 ;;

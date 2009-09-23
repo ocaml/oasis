@@ -3,7 +3,10 @@
 
 open BaseGenNone;;
 open BaseGenInternal;;
+
 open OCamlbuildGen;;
+open CustomGen;;
+
 open BaseGenerate;;
 open CommonGettext;;
 
