@@ -153,15 +153,12 @@ let var_all ?(include_hidden=false) ~include_unset env =
 (** Expand variable that can be found in string. Variable follow definition of
   * variable for {!Buffer.add_substitute}.
   *)
-let rec var_expand str env =
+let rec var_expand renv str =
   let all_vars () =
-    String.concat ", " (var_all ~include_unset:true env)
+    String.concat ", " (var_all ~include_unset:true !renv)
   in
   let buff =
     Buffer.create ((String.length str) * 2)
-  in
-  let renv =
-    ref env
   in
     Buffer.add_substitute 
       buff
@@ -170,11 +167,8 @@ let rec var_expand str env =
            let value, env = 
              var_get var !renv
            in
-           let exp_value, env = 
-             var_expand value env
-           in
              renv := env;
-             exp_value
+             var_expand renv value
          with Not_found ->
            failwith 
              (Printf.sprintf 
@@ -182,7 +176,7 @@ let rec var_expand str env =
                  (available: %s)"
                 str var (all_vars ()))) 
       str;
-    Buffer.contents buff, !renv
+    Buffer.contents buff
 ;;
 
 (** Retrieve a variable value, without taking into account

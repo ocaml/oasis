@@ -47,8 +47,14 @@ let rec eval env =
         let v, env =
           var_get nm env
         in
-        let v, env =
-          var_expand v env
+        let renv =
+          ref env
+        in
+        let v =
+          var_expand renv v
+        in
+        let env = 
+          !renv
         in
           assert(v = "true" || v = "false");
           (v = "true"), env
@@ -56,8 +62,14 @@ let rec eval env =
         let v, env =
           var_get nm env
         in
-        let v, env =
-          var_expand v env
+        let renv =
+          ref env
+        in
+        let v =
+          var_expand renv v
+        in
+        let env = 
+          !renv
         in
           (v = vl), env
 ;;

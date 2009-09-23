@@ -50,17 +50,24 @@ let enable name hlp default_choices renv =
 ;;
  
 let wth name hlp default renv =
-  renv := var_set
-            name
-            default
-            (var_define name 
-               (var_expand default) 
-               !renv);
-  [
-    "--with-"^(tr_arg name),
-    Arg.String (fun str -> renv := var_set name str !renv),
-    hlp^" ["^default^"]"
-  ]
+  let dflt env = 
+    let renv' =
+      ref env
+    in
+    let v =
+      var_expand renv' default
+    in
+      v, !renv'
+  in
+    renv := var_set
+              name
+              default
+              (var_define name dflt !renv); 
+    [
+      "--with-"^(tr_arg name),
+      Arg.String (fun str -> renv := var_set name str !renv),
+      hlp^" ["^default^"]"
+    ]
 ;;
 
 let parse argv args env =

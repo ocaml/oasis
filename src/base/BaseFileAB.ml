@@ -20,45 +20,6 @@ let to_filename fn =
   Filename.chop_extension fn
 ;;
 
-(** Analyze replaced file to know what variable are used in it
-  *)
-let extract_variable fn_lst =
-  let module SSet = 
-    Set.Make(String)
-  in
-  let extract_variable_fn sset fn =
-    let chn =
-      open_in fn
-    in
-    let buff = 
-      Buffer.create (in_channel_length chn)
-    in
-    let rsset =
-      ref sset
-    in
-      (
-        try
-          while true do
-            Buffer.add_substitute
-              buff
-              (fun var ->
-                 rsset := SSet.add var !rsset;
-                 "")
-              (input_line chn)
-          done
-        with End_of_file ->
-          ()
-      );
-      close_in chn;
-      !rsset
-  in
-    SSet.elements
-      (List.fold_left 
-         extract_variable_fn
-         SSet.empty
-         fn_lst)
-;;
-
 (** Replace variable in file %.ab to generate %
   *)
 let replace fn_lst env =
@@ -79,18 +40,7 @@ let replace fn_lst env =
            (
              try
                while true do
-                Buffer.add_substitute
-                  buff
-                  (fun nm -> 
-                     let vl, env =
-                       var_get nm env
-                     in
-                     let vl_exp, env =
-                       var_expand vl env
-                     in
-                       renv := env;
-                       vl_exp)
-                  (input_line chn_in);
+                Buffer.add_string buff (var_expand renv (input_line chn_in));
                 Buffer.add_char buff '\n'
                done
              with End_of_file ->
