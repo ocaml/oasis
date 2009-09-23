@@ -1,0 +1,3 @@
+#!/bin/sh
+
+echo 'ocamlc="/usr/bin/ocamlc"' > setup.data

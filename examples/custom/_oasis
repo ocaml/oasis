@@ -6,11 +6,11 @@ Copyright: (C) 2008 Mauricio Fernandez
 LicenseFile: LICENSE
 License: LGPL-link-exn
 ConfType:              custom
-XCustomConf:           ./configure
+XCustomConf:           ./myconfigure
 BuildType:             custom
-XCustomBuild:          make all OCAMLC=${ocamlc}
-XCustomBuildClean:     make clean
-XCustomBuildDistclean: make distclean
+XCustomBuild:          make -f TopMakefile all OCAMLC=${ocamlc}
+XCustomBuildClean:     make -f TopMakefile clean
+XCustomBuildDistclean: make -f TopMakefile distclean
 
 Synopsis: Minimal ADT just to illustrate how libs work.
 Description: 
