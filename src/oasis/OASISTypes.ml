@@ -64,39 +64,39 @@ type 'a conditional =
 
 (** Library definition 
   *)
-type library = {
+type 'a library = {
   lib_buildable:       bool conditional;
   lib_installable:     bool conditional;
   lib_path:            dirname;
   lib_modules:         string list;
   lib_compiled_object: compiled_object;
-  lib_extra:           (name * string) list;
+  lib_schema_data:     'a;
 }
 ;;
 
 (** Executable definition 
   *)
-type executable = {
+type 'a executable = {
   exec_buildable:       bool conditional;
   exec_installable:     bool conditional;
   exec_main_is:         filename;
   exec_compiled_object: compiled_object;
-  exec_extra:           (name * string) list;
+  exec_schema_data:     'a;
 }
 ;;
 
 (** Command line flag defintion 
   *)
-type flag = {
+type 'a flag = {
   flag_description:  string option;
   flag_default:      bool conditional;
-  flag_extra:        (name * string) list;
+  flag_schema_data:  'a;
 }
 ;;
 
 (** OASIS file whole content
   *)
-type package = {
+type 'a package = {
   name:           package_name;
   version:        version;
   license:        license;
@@ -116,10 +116,10 @@ type package = {
   test_type:      string;
   install_type:   string;
   files_ab:       filename list;
-  libraries:      (name * library) list;
-  executables:    (name * executable) list;
-  flags:          (name * flag) list;
-  extra:          (name * string) list;
+  libraries:      (name * 'a library) list;
+  executables:    (name * 'a executable) list;
+  flags:          (name * 'a flag) list;
+  schema_data:    'a;
 }
 ;;
 

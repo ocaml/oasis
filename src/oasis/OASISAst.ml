@@ -8,7 +8,7 @@ open OASISAstTypes;;
 
 (** Convert oasis AST into package 
   *)
-let to_package fn srcdir valid_tests ast = 
+let to_package fn ignore_unknown srcdir valid_tests ast = 
 
   let default_ctxt =
     {
@@ -41,7 +41,15 @@ let to_package fn srcdir valid_tests ast =
   let rec stmt wrtr ctxt =
     function
       | SField (nm, str) -> 
-          OASISSchema.set_field wrtr nm ctxt str
+          (
+            try
+              OASISSchema.set_field wrtr nm ctxt str
+            with (UnknownField _) as exc ->
+              if ignore_unknown then
+                ()
+              else
+                raise exc
+          )
 
       | SIfThenElse (e, stmt1, stmt2) -> 
           (* Check that we have a valid expression *)

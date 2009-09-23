@@ -5,24 +5,19 @@
 
 open OASISTypes;;
 open OASISAstTypes;;
-
-module NameMap = Map.Make(String);;
-
-exception MissingField of name list;;
-
-exception UnknownField of name;;
-
-type name = string;;
+open CommonGettext;;
+open Format;;
 
 type field =
     {
-      set:  ctxt -> (unit -> unit) -> string -> (unit -> unit);
-      get:  unit -> unit;                     
-      help: string;
+      set:    ctxt -> (unit -> unit) -> string -> (unit -> unit);
+      get:    unit -> unit;                     
+      help:   string;
+      plugin: string option;
     }
 ;;
 
-type schema = 
+type schema_t = 
     {
       name:          string;
       fields:        (name, field) Hashtbl.t;
@@ -30,10 +25,9 @@ type schema =
     }
 ;;
 
-type writer = 
+type schema_reader_t = 
     {
       defined:       (name, field) Hashtbl.t;
-      mutable extra: string NameMap.t;
     }
 ;;
 
@@ -45,7 +39,7 @@ let schema nm =
   }
 ;;
 
-let new_field_low schm name set default getmod v help =
+let new_field_low schm name set plugin default getmod v help =
   let get_default () = 
     match default with
       | Some x ->
@@ -68,15 +62,16 @@ let new_field_low schm name set default getmod v help =
   in
     Hashtbl.replace schm.fields lname 
       {
-        get  = (fun () -> v := Some (get_default ())); 
-        set  = set;
-        help = help;
+        get    = (fun () -> v := Some (get_default ())); 
+        set    = set;
+        help   = help;
+        plugin = plugin;
       };
     schm.order <- name :: schm.order;
     get
 ;;
 
-let new_field_conditional schm name ?default parse =
+let new_field_conditional schm name ?plugin ?default parse =
   let v =
     ref None
   in
@@ -90,7 +85,7 @@ let new_field_conditional schm name ?default parse =
            | None -> []
        in
        let real_cond =
-         match ctxt.OASISAstTypes.cond with 
+         match ctxt.cond with 
            | Some e -> e
            | None -> EBool true
        in
@@ -109,11 +104,11 @@ let new_field_conditional schm name ?default parse =
     OASISExpr.reduce_choices (List.rev lst)
   in
 
-    new_field_low schm name set (Some default) post_process v 
+    new_field_low schm name set plugin (Some default) post_process v 
 ;;
 
 
-let new_field schm name ?default parse =
+let new_field schm name ?plugin ?default parse =
   let v = 
     ref None 
   in
@@ -129,7 +124,7 @@ let new_field schm name ?default parse =
          v := Some (parse ctxt str))
   in
 
-    new_field_low schm name set default (fun x -> x) v
+    new_field_low schm name set plugin default (fun x -> x) v
 ;;
 
 let set_field wrtr name ctxt str =
@@ -148,14 +143,7 @@ let set_field wrtr name ctxt str =
           {fld with get = fld.set ctxt fld.get str}
     with Not_found ->
       (
-        if String.length lname > 0 && lname.[0] = 'x' then
-          (* This is an extra field *)
-          wrtr.extra <- NameMap.add
-                          lname 
-                          str
-                          wrtr.extra
-        else
-            raise (UnknownField name)
+        raise (UnknownField name)
       )
 ;;
 
@@ -181,19 +169,8 @@ let check wrtr =
 let writer schm =
   {
     defined = Hashtbl.copy schm.fields;
-    extra   = NameMap.empty;
   }
 ;;
-
-let extra wrtr =
-  NameMap.fold
-    (fun k e acc -> (k, e) :: acc)
-    wrtr.extra
-    []
-;;
-
-open CommonGettext;;
-open Format;;
 
 let pp_string_spaced fmt str =
   String.iter
@@ -208,9 +185,9 @@ let pp_help fmt schm =
     (String.capitalize schm.name);
   List.iter
     (fun key ->
-       let {get = get; help = help} =
+       let {get = get; help = help; plugin = plugin} =
          try 
-           Hashtbl.find schm.fields key
+           Hashtbl.find schm.fields (String.lowercase key)
          with Not_found ->
            failwith 
              (Printf.sprintf
@@ -219,13 +196,20 @@ let pp_help fmt schm =
        in
          fprintf fmt " * @[";
          (
+           match plugin with
+             | Some plg ->
+                 fprintf fmt (f_ "plugin %s ") plg
+             | None ->
+                 ()
+         );
+         (
            try 
              get ()
            with (MissingField _) ->
              pp_print_string fmt (s_ "mandatory ")
          );
          fprintf fmt (f_ "%s: %a@]@\n") 
-           (String.capitalize key)
+           key
            pp_string_spaced help
     )
     (List.rev schm.order)

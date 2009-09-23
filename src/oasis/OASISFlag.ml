@@ -29,6 +29,6 @@ let schema, generator =
        {
          flag_description = descr wrtr;
          flag_default     = default wrtr;
-         flag_extra       = extra wrtr;
+         flag_schema_data = wrtr;
        })
 ;;

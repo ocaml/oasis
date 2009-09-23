@@ -34,6 +34,6 @@ let schema, generator =
          lib_path            = path wrtr;
          lib_modules         = modules wrtr;
          lib_compiled_object = compiled_object wrtr;
-         lib_extra           = extra wrtr;
+         lib_schema_data     = wrtr;
        })
 ;;

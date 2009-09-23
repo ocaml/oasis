@@ -9,7 +9,7 @@
     file/dir existence, consider that root of the project is located in 
     [srcdir].
   *)
-let from_file fn ?(srcdir) ?(debug=false) valid_tests = 
+let from_file fn ?(srcdir) ?(debug=false) ?(ignore_unknown=false) valid_tests = 
   let srcdir =
     match srcdir with 
       | Some fn ->
@@ -21,7 +21,7 @@ let from_file fn ?(srcdir) ?(debug=false) valid_tests =
   let ast = 
     OASISRecDescParser.parse_file ~debug fn
   in
-    OASISAst.to_package fn srcdir valid_tests ast
+    OASISAst.to_package fn ignore_unknown srcdir valid_tests ast
 ;;
 
 
@@ -37,3 +37,26 @@ let pp_help fmt () =
       OASISExecutable.schema;
     ]
 ;;
+
+(** Add a new field to schema
+  *)
+let new_field schm plugin nm ?default parse =
+  OASISSchema.new_field 
+    schm 
+    ("x"^plugin^nm) 
+    ?default
+    ~plugin:plugin
+    parse
+;;
+
+(** Add a new field to schema which can be conditional
+  *)
+let new_field_conditional schm plugin nm ?default parse =
+  OASISSchema.new_field_conditional 
+    schm 
+    ("x"^plugin^nm) 
+    ?default 
+    ~plugin:plugin
+    parse 
+;;
+

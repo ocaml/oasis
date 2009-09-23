@@ -56,6 +56,7 @@ let tests ctxt =
        let oasis =
          from_file 
            ~debug:ctxt.dbug
+           ~ignore_unknown:true
            fn
            ["architecture"; "system"]
        in
@@ -89,15 +90,7 @@ let tests ctxt =
 
          "test4.oasis",
          (fun oasis ->
-            assert_equal 
-              ~msg:"XTest"
-              ~printer:(fun lst ->
-                          String.concat "; " 
-                            (List.map 
-                               (fun (k, v) -> Printf.sprintf "%S, %S" k v)
-                               lst))
-              ["xtest", "true"]
-              oasis.extra)
+            ());
        ]
     )
 ;;

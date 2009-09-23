@@ -157,6 +157,6 @@ let schema, generator =
         libraries     = libs;
         executables   = execs;
         flags         = flags;
-        extra         = extra wrtr;
+        schema_data   = wrtr;
       })
 ;;

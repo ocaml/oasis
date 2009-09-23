@@ -82,6 +82,12 @@ type generator_kind =
   | Install
 ;;
 
+(** Package type
+  *)
+type package = 
+    OASISSchema.schema_reader_t OASISTypes.package
+;;
+
 module MapGenerator = Map.Make (
 struct 
   type t = generator_kind * string 
@@ -97,7 +103,7 @@ struct
 end)
 ;; 
 
-let allkind_generators =
+let allkind_generators : ((package -> generator_action * package) MapGenerator.t) ref =
   ref MapGenerator.empty
 ;;
 

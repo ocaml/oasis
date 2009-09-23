@@ -31,8 +31,8 @@ let schema, generator =
          exec_buildable       = buildable wrtr;
          exec_installable     = installable wrtr;
          exec_main_is         = main_is wrtr;
-         exec_extra           = extra wrtr;
          exec_compiled_object = compiled_object wrtr;
+         exec_schema_data     = wrtr;
        })
 ;;
 
