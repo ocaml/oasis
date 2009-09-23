@@ -195,7 +195,7 @@ module OASIS = OASISTypes;;
 
 let library_code_of_oasis (nm, lib) =
   REC 
-    ("BaseInstall",
+    ("InternalInstall",
      ["lib_name",        STR nm;
       "lib_installable", code_of_bool_choices 
                            ((choices_of_oasis lib.OASIS.lib_buildable)
@@ -210,7 +210,7 @@ let library_code_of_oasis (nm, lib) =
 
 let executable_code_of_oasis (nm, exec) = 
   REC 
-    ("BaseInstall",
+    ("InternalInstall",
      ["exec_name",        STR nm;
       "exec_installable", code_of_bool_choices 
                             ((choices_of_oasis exec.OASIS.exec_buildable)

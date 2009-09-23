@@ -97,7 +97,7 @@ let configure pkg standard_vars =
 
   let code = 
     APP
-      ("BaseConfigure.configure",
+      ("InternalConfigure.configure",
        [],
        [
          STR pkg.name;
@@ -109,7 +109,11 @@ let configure pkg standard_vars =
   in
 
     {
-      moduls           = [BaseData.basesys_ml];
+      moduls = 
+        [
+          BaseData.basesys_ml; 
+          InternalData.internalsys_ml
+        ];
       setup_code       = code;
       clean_code       = [];
       distclean_code   = [];
@@ -124,21 +128,32 @@ configure_generator_register
   configure
 ;;
 
-open BaseInstall;;
-
 (* Installation *)
 let install pkg =
 
   let code =
     APP 
-      ("BaseInstall.install",
+      ("InternalInstall.install",
        [],
-       [LST (List.map library_code_of_oasis pkg.libraries);
-        LST (List.map executable_code_of_oasis pkg.executables)])
+       [
+         LST 
+           (List.map 
+              InternalInstall.library_code_of_oasis 
+              pkg.libraries);
+         LST 
+           (List.map 
+              InternalInstall.executable_code_of_oasis 
+              pkg.executables);
+       ]
+      )
   in
 
     {
-      moduls           = [BaseData.basesys_ml];
+      moduls = 
+        [
+          BaseData.basesys_ml; 
+          InternalData.internalsys_ml
+        ];
       setup_code       = code;
       clean_code       = [];
       distclean_code   = [];

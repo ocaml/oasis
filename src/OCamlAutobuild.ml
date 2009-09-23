@@ -1,9 +1,8 @@
 
 (** Main for OCaml-autobuild *)
 
-open BaseGenNone;;
-open BaseGenInternal;;
-
+open NoneGen;;
+open InternalGen;;
 open OCamlbuildGen;;
 open CustomGen;;
 

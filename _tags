@@ -1,6 +1,8 @@
 "src": include
 "src/common": include
 "src/base": include
+"src/none": include
+"src/internal": include
 "src/custom": include
 "src/ocamlbuild": include
 "src/omake": include
