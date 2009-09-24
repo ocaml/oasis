@@ -4,7 +4,7 @@
   *)
 
 open CommonGettext;;
-open BaseGenerate;;
+open BasePlugin;;
 open BaseGenCode;;
 open OASISTypes;;
 open OASISValueParser;;
@@ -132,20 +132,12 @@ let main (fld, fld_clean, fld_distclean) pkg =
 ;;
 
 List.iter 
- (fun (knd, fld) ->
-   generator_register
-     knd
-     plugin_id
-     (main fld))
+  (plugin_register plugin_id)
   [
-    Build,   build; 
-    Doc,     doc; 
-    Test,    test; 
-    Install, install;
+    Configure (fun pkg standard_vars -> fst (main conf pkg));
+    Build     (main build); 
+    Doc       (main doc); 
+    Test      (main test); 
+    Install   (main install);
   ]
-;;
-
-configure_generator_register
-  plugin_id
-  (fun pkg standard_vars -> fst (main conf pkg))
 ;;

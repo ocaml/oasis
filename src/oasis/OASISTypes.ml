@@ -116,6 +116,7 @@ type 'a package = {
   test_type:      string;
   install_type:   string;
   files_ab:       filename list;
+  plugins:        string list;
   libraries:      (name * 'a library) list;
   executables:    (name * 'a executable) list;
   flags:          (name * 'a flag) list;

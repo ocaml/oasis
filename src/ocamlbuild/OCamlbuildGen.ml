@@ -4,13 +4,17 @@
   *)
 
 open OASISTypes;;
-open BaseGenerate;;
+open BasePlugin;;
 open BaseFileGenerate;;
 open BaseUtils;;
 open BaseExpr;;
 open BaseGenCode;;
 open BaseMessage;;
 open CommonGettext;;
+
+let plugin_id =
+  "ocamlbuild"
+;;
 
 let build pkg =
 
@@ -149,8 +153,4 @@ let build pkg =
     {pkg with build_tools = "ocamlbuild" :: pkg.build_tools}
 ;;
 
-generator_register
-  Build
-  "ocamlbuild"
-  build
-;;
+plugin_register plugin_id (Build build);;

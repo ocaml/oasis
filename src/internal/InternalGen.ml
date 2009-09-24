@@ -1,8 +1,14 @@
 
+(** Internal configure and install scheme for AutoBuild
+    @author Sylvain Le Gall
+  *)
+
 open OASISTypes;;
-open BaseGenerate;;
+open BasePlugin;;
 open BaseUtils;;
 open BaseGenCode;;
+
+let plugin_id = "internal";;
 
 (* Configuration *)
 let configure pkg standard_vars =
@@ -123,10 +129,7 @@ let configure pkg standard_vars =
     }
 ;;
 
-configure_generator_register
-  "autobuild"
-  configure
-;;
+plugin_register plugin_id (Configure configure);;
 
 (* Installation *)
 let install pkg =
@@ -164,9 +167,5 @@ let install pkg =
     pkg
 ;;
 
-generator_register
-  Install
-  "autobuild"
-  install
-;;
+plugin_register plugin_id (Install install);;
 

@@ -3,10 +3,12 @@
     @author Sylvain Le Gall
   *)
 
-open BaseGenerate;;
+open BasePlugin;;
 open BaseGenCode;;
 
-let no_generate knd data =
+let plugin_id = "None";;
+
+let no_generate str data =
   {
     moduls           = [];
     setup_code       = FUN
@@ -15,8 +17,7 @@ let no_generate knd data =
                              ("failwith",
                               [],
                               [STR
-                                 ("No implementation for "^
-                                  (string_of_generator_kind knd))])]);
+                                 ("No implementation for "^str)])]);
     clean_code       = [];
     distclean_code   = [];
     other_action     = ignore;
@@ -27,25 +28,12 @@ let no_generate knd data =
 ;;
 
 List.iter
-  (fun knd -> 
-     generator_register 
-       knd
-       "none"
-       (no_generate knd))
-  [Build; Doc; Test; Install;]
+  (plugin_register plugin_id)
+  [
+    Configure (fun pkg standard_vars -> (fst (no_generate "configure" pkg)));
+    Build     (no_generate "build"); 
+    Doc       (no_generate "doc"); 
+    Test      (no_generate "test"); 
+    Install   (no_generate "install");
+  ]
 ;;
-
-configure_generator_register
-  "none"
-  (fun pkg standard_vars ->
-     {
-       (fst (no_generate Build pkg)) with 
-           setup_code = FUN
-                          (["_"; "_"],
-                           [APP
-                              ("failwith",
-                               [],
-                               [STR "No implementation for configure"])]);
-     })
-;;
-

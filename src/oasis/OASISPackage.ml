@@ -53,7 +53,7 @@ let schema, generator =
   in
   let conf_type =
     new_field schm "conftype" 
-      ~default:"autobuild"
+      ~default:"internal"
       string_not_empty
       (s_ "Configuration system.")
   in
@@ -83,7 +83,7 @@ let schema, generator =
   in
   let install_type =
     new_field schm "installtype"
-      ~default:"autobuild"
+      ~default:"internal"
       string_not_empty
       (s_ "Install/uninstall system.")
   in
@@ -132,6 +132,12 @@ let schema, generator =
            (comma_separated ctxt str))
       (s_ "Files to generate using environment variable substitution.")
   in
+  let plugins =
+    new_field schm "Plugins"
+      ~default:[]
+      comma_separated
+      (s_ "Extra plugins to use")
+  in
     schm,
     (fun wrtr libs execs flags ->
       {
@@ -154,6 +160,7 @@ let schema, generator =
         test_type     = test_type wrtr;
         install_type  = install_type wrtr;
         files_ab      = files_ab wrtr;
+        plugins       = plugins wrtr;
         libraries     = libs;
         executables   = execs;
         flags         = flags;
