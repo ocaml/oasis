@@ -5,6 +5,7 @@ open NoneGen;;
 open InternalGen;;
 open OCamlbuildGen;;
 open CustomGen;;
+open METAGen;;
 
 open BaseGenerate;;
 open CommonGettext;;

@@ -90,6 +90,10 @@ let comment_bat =
   comment "rem" None
 ;;
 
+let comment_meta = 
+  comment_sh
+;;
+
 (** Generate a file using a template. Only the part between AUTOBUILD_START and 
     AUTOBUILD_END will really be replaced if the file exist. If file doesn't exist
     use the whole template.
