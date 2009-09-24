@@ -19,4 +19,4 @@ Description:
 
 Library stuff
   Path: src/stuff
-  Modules: A B C
+  Modules: A, B, C

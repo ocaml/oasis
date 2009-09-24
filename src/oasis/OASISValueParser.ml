@@ -129,23 +129,19 @@ let build_depends ctxt str =
 
 (** Convert string to module lists *)
 let modules ctxt str =
-  let whitespaces =
-    Str.regexp "[ \t]+"
-  in
-  let lst = 
-    Str.split whitespaces str
-  in
-    List.map 
-      (str_regexp 
-         (Str.regexp "[A-Z][A-Za-z0-9_]*")
-         "module"
-         ctxt)
-      lst
+  List.map 
+    (str_regexp 
+       (Str.regexp "[A-Z][A-Za-z0-9_]*")
+       "module"
+       ctxt)
+    (comma_separated ctxt str)
 ;;
 
 (** Convert string to URL *)
-let categories _ str = 
-  [str]
+let categories ctxt str = 
+  List.map
+    (url ctxt)
+    (comma_separated ctxt str)
 ;;
 
 (** Compilation types

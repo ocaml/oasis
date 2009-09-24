@@ -16,7 +16,7 @@ BuildDepends:
 
 Library stuff
   Path: src/stuff
-  Modules: A B C
+  Modules: A, B, C
 
 Flag devmod
   Description: build for developper

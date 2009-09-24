@@ -12,12 +12,12 @@ Flag buildext
 
 Library simplelib
   Path: src/simplelib
-  Modules: Foo Bar
+  Modules: Foo, Bar
 
 Library simplelibext
   Build: false
   if flag(buildext) 
     Build: true
   Path: src/simplelibext
-  Modules: FooExt BarExt
+  Modules: FooExt, BarExt
 

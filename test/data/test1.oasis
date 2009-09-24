@@ -54,7 +54,7 @@ Library toto
 
 Library stuff
   Path: src/stuff
-  Modules: A B C
+  Modules: A, B, C
 
 Executable toto
   MainIs: src/toto.ml

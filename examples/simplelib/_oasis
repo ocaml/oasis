@@ -18,5 +18,5 @@ BuildDepends:
 
 Library simplelib
   Path: src
-  Modules: Foo Bar
+  Modules: Foo, Bar
 

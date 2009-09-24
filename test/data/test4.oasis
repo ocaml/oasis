@@ -17,7 +17,7 @@ BuildDepends:
 
 Library stuff
   Path: src/stuff
-  Modules: A B C
+  Modules: A, B, C
   XTest: true
 
 Flag devmod
