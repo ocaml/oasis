@@ -15,9 +15,9 @@ Library simplelib
   Modules: Foo Bar
 
 Library simplelibext
-  Buildable: false
+  Build: false
   if flag(buildext) 
-    Buildable: true
+    Build: true
   Path: src/simplelibext
   Modules: FooExt BarExt
 

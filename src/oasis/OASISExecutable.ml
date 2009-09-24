@@ -22,14 +22,14 @@ let schema, generator =
            (file_exists ctxt vl))
       (s_ "OCaml file (.ml) containing main procedure for the executable.")
   in
-  let buildable, installable, compiled_object = 
+  let build, install, compiled_object = 
     OASISUtils.std_field (s_ "executable") Byte schm
   in
     schm,
     (fun wrtr -> 
        {
-         exec_buildable       = buildable wrtr;
-         exec_installable     = installable wrtr;
+         exec_build           = build wrtr;
+         exec_install         = install wrtr;
          exec_main_is         = main_is wrtr;
          exec_compiled_object = compiled_object wrtr;
          exec_schema_data     = wrtr;

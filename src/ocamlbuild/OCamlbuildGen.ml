@@ -38,14 +38,14 @@ let build pkg =
 
                      let byte cond =
                        code_choices_target
-                         lib.lib_buildable 
+                         lib.lib_build 
                          cond
                          (Filename.concat lib.lib_path (nm^".cma"))
                      in
 
                      let native cond = 
                        code_choices_target
-                         lib.lib_buildable
+                         lib.lib_build
                          cond
                          (Filename.concat lib.lib_path (nm^".cmxa"))
                      in
@@ -69,14 +69,14 @@ let build pkg =
 
                      let byte cond = 
                        code_choices_target
-                         exec.exec_buildable
+                         exec.exec_build
                          cond
                          ((Filename.chop_extension exec.exec_main_is)^".byte");
                      in
 
                      let native cond = 
                        code_choices_target
-                         exec.exec_buildable
+                         exec.exec_build
                          cond
                          ((Filename.chop_extension exec.exec_main_is)^".native")
                      in

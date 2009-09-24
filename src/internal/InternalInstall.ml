@@ -5,19 +5,19 @@
 
 type library =
     {
-      lib_name:        string;
-      lib_installable: bool BaseExpr.choices;
-      lib_modules:     string list;
-      lib_path:        string;
-      lib_extra:       string list;
+      lib_name:    string;
+      lib_install: bool BaseExpr.choices;
+      lib_modules: string list;
+      lib_path:    string;
+      lib_extra:   string list;
     }
 ;;
 
 type executable =
     {
-      exec_name:        string;
-      exec_installable: bool BaseExpr.choices;
-      exec_path:        string;
+      exec_name:    string;
+      exec_install: bool BaseExpr.choices;
+      exec_path:    string;
     }
 ;;
 
@@ -101,10 +101,10 @@ let install libs execs env argv =
     let lib =
       !lib_hook env lib
     in
-    let (installable, _) =
-      BaseExpr.choose lib.lib_installable env
+    let (install, _) =
+      BaseExpr.choose lib.lib_install env
     in
-      if installable then
+      if install then
         (
           let find_build_file =
             find_build_file lib.lib_path
@@ -158,10 +158,10 @@ let install libs execs env argv =
     let exec =
       !exec_hook env exec
     in
-    let (installable, _) = 
-      BaseExpr.choose exec.exec_installable env
+    let (install, _) = 
+      BaseExpr.choose exec.exec_install env
     in
-      if installable then
+      if install then
         (
           let exec_file =
             find_file
@@ -196,25 +196,25 @@ module OASIS = OASISTypes;;
 let library_code_of_oasis (nm, lib) =
   REC 
     ("InternalInstall",
-     ["lib_name",        STR nm;
-      "lib_installable", code_of_bool_choices 
-                           ((choices_of_oasis lib.OASIS.lib_buildable)
-                           @
-                            (choices_of_oasis lib.OASIS.lib_installable));
-      "lib_modules",     LST (List.map 
-                                (fun s -> STR s) 
-                                lib.OASIS.lib_modules);
-      "lib_path",        STR lib.OASIS.lib_path;
-      "lib_extra",       LST []])
+     ["lib_name",    STR nm;
+      "lib_install", code_of_bool_choices 
+                       ((choices_of_oasis lib.OASIS.lib_build)
+                       @
+                        (choices_of_oasis lib.OASIS.lib_install));
+      "lib_modules", LST (List.map 
+                            (fun s -> STR s) 
+                            lib.OASIS.lib_modules);
+      "lib_path",    STR lib.OASIS.lib_path;
+      "lib_extra",   LST []])
 ;;
 
 let executable_code_of_oasis (nm, exec) = 
   REC 
     ("InternalInstall",
-     ["exec_name",        STR nm;
-      "exec_installable", code_of_bool_choices 
-                            ((choices_of_oasis exec.OASIS.exec_buildable)
-                            @
-                             (choices_of_oasis exec.OASIS.exec_installable));
-      "exec_path",        STR (Filename.dirname exec.OASIS.exec_main_is)])
+     ["exec_name",    STR nm;
+      "exec_install", code_of_bool_choices 
+                        ((choices_of_oasis exec.OASIS.exec_build)
+                        @
+                         (choices_of_oasis exec.OASIS.exec_install));
+      "exec_path",    STR (Filename.dirname exec.OASIS.exec_main_is)])
 ;;
