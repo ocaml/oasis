@@ -20,7 +20,7 @@ let str_regexp regexp error (_ : ctxt) str =
 (** Check that we have an URL *)
 let url = 
   str_regexp
-    (Str.regexp "http://[a-zA-Z0-9\\./]+")
+    (Str.regexp "http://[a-zA-Z0-9\\./_-]+")
     "URL"
 ;;
 

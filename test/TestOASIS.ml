@@ -81,16 +81,19 @@ let tests ctxt =
               ());
 
          "test2.oasis",
-         (fun oasis ->
-            ());
+         ignore;
 
          "test3.oasis",
-         (fun oasis ->
-            ());
+         ignore;
 
          "test4.oasis",
-         (fun oasis ->
-            ());
+         ignore;
+         
+         "test5.oasis",
+         ignore;
+         
+         "test6.oasis",
+         ignore;
        ]
     )
 ;;
