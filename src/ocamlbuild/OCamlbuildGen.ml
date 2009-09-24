@@ -9,6 +9,8 @@ open BaseFileGenerate;;
 open BaseUtils;;
 open BaseExpr;;
 open BaseGenCode;;
+open BaseMessage;;
+open CommonGettext;;
 
 let build pkg =
 
@@ -111,6 +113,11 @@ let build pkg =
            fn_base ^ ".mllib"
          in
          let () =
+           if lib.lib_modules = [] then
+             warning 
+               (Printf.sprintf
+                  (f_ "No module defined for library %s")
+                  nm);
            file_generate
              fn_mllib
              comment_ocamlbuild

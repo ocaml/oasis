@@ -10,13 +10,15 @@ let verbose =
 (** Print a warning message 
   *)
 let warning str =
-  prerr_endline str
+  if !verbose then
+    prerr_endline str
 ;;
 
 (** Print an error message and exit.
   *)
 let error str =
-  prerr_endline str;
+  if !verbose then 
+    prerr_endline str;
   exit 1
 ;;
 
