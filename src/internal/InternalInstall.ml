@@ -165,8 +165,8 @@ let install libs execs env argv =
         (
           let exec_file =
             find_file
-              (fun (rootdir, name) -> [rootdir; name^exec_ext])
-              (rootdirs * [exec.exec_name])
+              (fun ((rootdir, name), ext) -> [rootdir; name^ext])
+              (rootdirs * [exec.exec_name] * [".native"; ".byte"; ""; exec_ext])
           in
           let tgt_file =
             Filename.concat 
