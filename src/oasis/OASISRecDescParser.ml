@@ -93,12 +93,38 @@ let parse_file ~debug fn =
         | _ ->
             ()
     in
+    let line_buffer =
+      Stack.create ()
+    in
+    let line_buffer2 =
+      Stack.create ()
+    in
     let rec input_line () = 
       match Stream.peek st with 
         | Some '\n' | None ->
-            ()
+            (
+              try 
+                let rec skip_end_blank () = 
+                  match Stack.pop line_buffer with 
+                    | ' ' ->
+                        skip_end_blank ()
+                    | c -> 
+                        Stack.push c line_buffer
+                in
+                  skip_end_blank ();
+                  Stack.iter
+                    (fun c -> Stack.push c line_buffer2)
+                    line_buffer;
+                  Stack.clear line_buffer;
+                  Stack.iter
+                    (fun c -> Queue.push c buffer)
+                    line_buffer2;
+                  Stack.clear line_buffer2
+              with Stack.Empty ->
+                ()
+            )
         | Some c ->
-            Queue.push c buffer;
+            Stack.push c line_buffer;
             Stream.junk st;
             input_line ()
     in
