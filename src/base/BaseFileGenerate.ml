@@ -158,6 +158,18 @@ let file_generate ?(target) fn comment content =
       close_out chn_out
   in
 
+  (* Check that file has changed 
+   *)
+  let file_has_changed (old_header, old_body, old_footer) (new_header, new_body, new_footer) = 
+    let old_fn =
+      String.concat "\n" (List.flatten [old_header; old_body; old_footer])
+    in
+    let new_fn = 
+      String.concat "\n" (List.flatten [new_header; new_body; new_footer])
+    in
+      (String.compare old_fn new_fn) <> 0
+  in
+
   (* Separate a list into three part: header, body and footer.
    * Each part is separated by the appropriate start/stop comment.
    *)
@@ -185,6 +197,16 @@ let file_generate ?(target) fn comment content =
             []
             lst
         in
+        let digest_body, tl = 
+          match tl with 
+            | hd :: tl when Str.string_match do_not_edit hd 0 ->
+                let digest =
+                  Str.matched_group 1 hd
+                in
+                  Some digest, tl
+            | lst ->
+                None, lst
+        in
         let lst_body, lst_footer =
           try
             split_cond 
@@ -194,7 +216,7 @@ let file_generate ?(target) fn comment content =
           with Not_found ->
             tl, []
         in
-          lst_header, Some (lst_body, lst_footer)
+          lst_header, Some (digest_body, lst_body, lst_footer)
       with Not_found ->
         lst, None
   in
@@ -211,7 +233,7 @@ let file_generate ?(target) fn comment content =
       | NeedSplit lst ->
           (
             match split_header_body_footer lst with
-              | lst_header, Some (lst_body, lst_footer) ->
+              | lst_header, Some (_, lst_body, lst_footer) ->
                   lst_header, lst_body, lst_footer
               | lst_header, None ->
                   warning 
@@ -246,19 +268,16 @@ let file_generate ?(target) fn comment content =
         (* Actual split file content
          *)
           match split_header_body_footer lst_fn with 
-            | fn_header, Some (fn_body, fn_footer) ->
+            | fn_header, Some (digest_body, fn_body, fn_footer) ->
                 (
                   (* Check "do not digest" value
                    *)
                   let () =
-                    match fn_body with
-                      | hd :: tl  when Str.string_match do_not_edit hd 0 ->
+                    match digest_body with
+                      | Some expected_digest ->
                           (
-                            let expected_digest =
-                              Str.matched_group 1 hd
-                            in
                             let digest =
-                              digest_of_list tl
+                              digest_of_list fn_body
                             in
                               if expected_digest <> digest then 
                                 (
@@ -282,12 +301,19 @@ let file_generate ?(target) fn comment content =
                       | lst ->
                           ()
                   in
-                    (* Regenerate *)
-                    info (Printf.sprintf "Regenerating file %s" fn);
-                    output_file 
-                      fn_header
-                      content_body
-                      fn_footer
+                    if target <> None || file_has_changed ([], fn_body, []) ([], content_body, []) then
+                      (
+                        (* Regenerate *)
+                        info (Printf.sprintf "Regenerating file %s" fn);
+                        output_file 
+                          fn_header
+                          content_body
+                          fn_footer
+                      )
+                    else
+                      (
+                        info (Printf.sprintf "File %s has not changed, skipping" fn)
+                      )
                 )
             | fn_header, None ->
                 (
@@ -295,7 +321,9 @@ let file_generate ?(target) fn comment content =
                   match target with
                     | Some fn ->
                         (
-                          (* We still generate file since it is not source file *)
+                          (* We still generate file since it is not the same as
+                           * source file 
+                           *)
                           let chn =
                             open_out_bin fn
                           in
