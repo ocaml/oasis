@@ -9,10 +9,12 @@
 "src/ocamlmakefile": include
 "src/oasis": include
 "src/extra": include
+"src/extra/devfiles": include
 <test/*.{ml,byte}>: pkg_oUnit, pkg_str, pkg_findlib, pkg_fileutils
 <src/base/*.ml>: pkg_findlib, pkg_fileutils
 <src/ocamlbuild/*.ml>: pkg_fileutils
 <src/extra/*.ml>: pkg_fileutils
+<src/extra/devfiles/*.ml>: pkg_fileutils
 "src/oasis/OASISRecDescParser.ml": syntax_camlp4o, pkg_camlp4
 "src/OCamlAutobuild.byte": pkg_unix, pkg_str, pkg_findlib, pkg_fileutils
 <src/tools/ocamlmod.{byte,cmo,cmx}>: pkg_str

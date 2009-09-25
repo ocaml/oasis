@@ -145,21 +145,6 @@ let generate pkg =
          )
       );
 
-    (* Generate Makefile (for standard dev. env.) *)
-    file_generate
-      "Makefile"
-      comment_sh
-      (NeedSplit
-         BaseData.makefile);
-
-    (* Generate configure (for standard dev. env.) *)
-    file_generate
-      "configure"
-      comment_sh
-      (NeedSplit
-         BaseData.configure);
-    Unix.chmod "configure" 0o755;
-
     (* Generate other files *)
     List.iter
       (fun act -> act.other_action ())

@@ -1,3 +1,1 @@
 VarString      basesys_ml "BaseSys.ml"
-VarStringList  makefile   "Makefile"
-VarStringList  configure  "configure"
