@@ -3,8 +3,8 @@ Name: Stuff
 Version: 1.2.3.0
 Copyright: (C) 2003-2008, J. R. Hacker
 Homepage: http://foo.com
-Author: J. R. Hacker <hacker@example.com>
-Maintainer: J. R. Hacker <hacker@example.com>
+Authors: J. R. Hacker <hacker@example.com>
+Maintainers: J. R. Hacker <hacker@example.com>
 LicenseFile: LICENSE
 License: LGPL-link-exn
 Buildtype: None

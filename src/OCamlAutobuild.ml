@@ -7,6 +7,7 @@ open OCamlbuildGen;;
 open CustomGen;;
 open METAGen;;
 open DevFilesGen;;
+open StdFilesGen;;
 
 open BaseGenerate;;
 open CommonGettext;;

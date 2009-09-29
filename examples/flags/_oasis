@@ -1,6 +1,6 @@
 Name:         flags
 Version:      0.0.1
-Author:       Sylvain Le Gall
+Authors:      Sylvain Le Gall
 LicenseFile:  LICENSE
 License:      LGPL-link-exn
 Synopsis:     Demonstrate the use of Flag.

@@ -83,98 +83,151 @@ let parse_file ~debug fn =
       ref true
     in
     let buffer = 
-      Queue.create ()
+      Stack.create ()
     in
-    let rec skip_blank () = 
+    let buffer_rev =
+      Stack.create ()
+    in
+
+    (* Blank skipping *)
+    let rec skip_begin_blank () = 
       match Stream.peek st with 
         | Some ' ' | Some '\t' | Some '\r' ->
             Stream.junk st;
-            skip_blank ()
+            skip_begin_blank ()
         | _ ->
             ()
     in
-    let line_buffer =
-      Stack.create ()
+    let rec skip_end_blank () = 
+      if not (Stack.is_empty buffer_rev) then
+        (
+          match Stack.pop buffer_rev with 
+            | ' ' | '\t' | '\r' ->
+                skip_end_blank ()
+            | c -> 
+                Stack.push c buffer_rev
+        )
+      else
+        ()
     in
-    let line_buffer2 =
-      Stack.create ()
-    in
+
     let rec input_line () = 
-      match Stream.peek st with 
-        | Some '\n' | None ->
-            (
-              try 
-                let rec skip_end_blank () = 
-                  match Stack.pop line_buffer with 
-                    | ' ' ->
-                        skip_end_blank ()
-                    | c -> 
-                        Stack.push c line_buffer
-                in
-                  skip_end_blank ();
-                  Stack.iter
-                    (fun c -> Stack.push c line_buffer2)
-                    line_buffer;
-                  Stack.clear line_buffer;
-                  Stack.iter
-                    (fun c -> Queue.push c buffer)
-                    line_buffer2;
-                  Stack.clear line_buffer2
-              with Stack.Empty ->
-                ()
-            )
-        | Some c ->
-            Stack.push c line_buffer;
-            Stream.junk st;
-            input_line ()
-    in
-    let rec check_continuation () = 
+      let rec input_line_aux () = 
+        match Stream.peek st with 
+          | Some '\n' ->
+              skip_end_blank ();
+              Stack.push '\n' buffer_rev;
+              Stream.junk st;
+              check_continuation ()
+          | Some c ->
+              Stack.push c buffer_rev;
+              Stream.junk st;
+              input_line_aux ()
+          | None ->
+              skip_end_blank ()
+      in
+        skip_begin_blank ();
+        input_line_aux ()
+
+    and check_continuation () = 
       let continuation_indent = 
         !indent_level + 1
       in
-      let begin_next_line =
-        Stream.npeek (continuation_indent + 1) st
+      let begin_new_line =
+        Stream.npeek continuation_indent st
       in
-      let begin_expected =
-        '\n' :: (Array.to_list (Array.make continuation_indent ' '))
+      let all_is_blank =
+        List.fold_left 
+          (fun all_blank c -> all_blank && c = ' ') 
+          true
+          begin_new_line 
       in
-        if begin_next_line = begin_expected then
-          (
-            for i = 0 to continuation_indent do 
-              Stream.junk st
-            done;
-            match Stream.npeek 2 st with 
-              | ['.'; '\n'] -> 
-                  Queue.push '\\' buffer;
-                  Queue.push 'n' buffer;
-                  Stream.junk st;
-                  check_continuation ()
-              | _ ->
-                  Queue.push ' ' buffer;
-                  input_line ();
-                  check_continuation ()
-          )
-        else
-          (
-            ()
-          )
+        if all_is_blank then
+          input_line ()
     in
     let lookup_freeform () = 
-      Queue.push '"' buffer;
-      skip_blank ();
-      input_line ();
-      check_continuation ();
-      Queue.push '"' buffer
+      (* Empty buffer_rev and fill buffer *)
+      Stack.push '\n' buffer;
+      Stack.push '"' buffer;
+      (
+        let npeek stk n = 
+          let rec npeek_aux acc n = 
+            if n > 0 then
+              (
+                try
+                  let c = 
+                    Stack.pop stk
+                  in
+                    npeek_aux (c :: acc) (n - 1)
+                with Stack.Empty ->
+                  npeek_aux acc 0
+              )
+            else
+              (
+                (* Refill stack *)
+                List.iter (fun c -> Stack.push c stk) acc;
+                List.rev acc
+              )
+          in
+            npeek_aux [] n
+        in
+
+        let rec njunk stk n =
+          if n > 0 then 
+            (
+              try 
+                ignore (Stack.pop stk);
+                njunk stk (n - 1)
+              with Stack.Empty ->
+                ()
+            )
+          else
+            ()
+        in
+
+        let is_blank =
+          function 
+            | ' ' | '\r' | '\t' -> true
+            | _ -> false
+        in
+
+          input_line ();
+          while not (Stack.is_empty buffer_rev) do 
+            match npeek buffer_rev 4 with 
+              | '\n' :: '.' :: '\n' :: _ ->
+                  njunk buffer_rev 3;
+                  Stack.push 'n'  buffer;
+                  Stack.push '\\' buffer
+              | a :: '\n' :: b :: c :: _ when 
+                  not (is_blank a) && 
+                  not (is_blank b) && 
+                  not (b = '.' && c = '\n') ->
+                  njunk buffer_rev 3;
+                  Stack.push a   buffer;
+                  Stack.push ' ' buffer;
+                  Stack.push b   buffer
+              | '\n' :: _ ->
+                  njunk buffer_rev 1
+              | c :: _ ->
+                  njunk buffer_rev 1;
+                  Stack.push c buffer
+              | [] ->
+                  ()
+          done
+      );
+      Stack.push '"' buffer
     in
       Stream.from
         (fun _ ->
            try
-             if Queue.is_empty buffer then
+             if Stack.is_empty buffer then
                (
                  match Stream.next st with
                    | ':' ->
                        lookup_freeform ();
                        Some ':'
+
+                   (* Indent level counting *)
                    | '\n' as c ->
                        indent_count := true;
                        indent_level := 0;
@@ -189,7 +242,7 @@ let parse_file ~debug fn =
                )
              else
                (
-                 Some (Queue.pop buffer)
+                 Some (Stack.pop buffer)
                )
            with Stream.Failure ->
              None)

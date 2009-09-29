@@ -3,7 +3,7 @@ Version:      0.0.1
 Synopsis:     Just a test
 License:      GPL
 LicenseFile:  LICENSE
-Author:       Sylvain Le Gall
+Authors:      Sylvain Le Gall
 BuildType:    None
 XTest:        true
 Description: 

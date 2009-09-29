@@ -3,7 +3,7 @@ Version:      0.0.1
 Synopsis:     Just a test
 License:      GPL
 LicenseFile:  LICENSE
-Author:       Sylvain Le Gall
+Authors:      Sylvain Le Gall
 BuildType:    None
 BuildDepends: oUnit (>= 1.0.2), benchmark (>= 0.6)
 Description: 

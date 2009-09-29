@@ -101,9 +101,9 @@ type 'a package = {
   version:        version;
   license:        license;
   license_file:   filename;
-  copyright:      string option;
-  maintainer:     string option;
-  author:         string;
+  copyrights:     string list;
+  maintainers:    string list;
+  authors:        string list;
   homepage:       url option;
   synopsis:       string;
   description:    string option;

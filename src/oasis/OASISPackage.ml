@@ -28,8 +28,9 @@ let schema, generator =
     new_field schm "synopsis" string_not_empty
       (s_ "Short description of the purpose of this package.")
   in
-  let author =
-    new_field schm "author" string_not_empty
+  let authors =
+    new_field schm "authors" 
+      comma_separated
       (s_ "Real person that has contributed to the package.")
   in
   let license =
@@ -87,16 +88,19 @@ let schema, generator =
       string_not_empty
       (s_ "Install/uninstall system.")
   in
-  let copyright =
-    new_field schm "copyright" 
-      ~default:None
-      (opt copyright)
+  let copyrights =
+    new_field schm "copyrights" 
+      ~default:[]
+      (fun ctxt str ->
+         List.map 
+           (copyright ctxt)
+           (comma_separated ctxt str))
       (s_ "Copyright owners.")
   in
-  let maintainer =
-    new_field schm "maintainer"
-      ~default:None
-      (opt string_not_empty)
+  let maintainers =
+    new_field schm "maintainers"
+      ~default:[]
+      comma_separated
       (s_ "Current maintainers of the package")
   in
   let homepage =
@@ -145,9 +149,9 @@ let schema, generator =
         version       = version wrtr;
         license       = license wrtr;
         license_file  = license_file wrtr;
-        copyright     = copyright wrtr;
-        maintainer    = maintainer wrtr;
-        author        = author wrtr;
+        copyrights    = copyrights wrtr;
+        maintainers   = maintainers wrtr;
+        authors       = authors wrtr;
         homepage      = homepage wrtr;
         synopsis      = synopsis wrtr;
         description   = description wrtr;
