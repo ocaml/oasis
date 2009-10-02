@@ -6,9 +6,19 @@
 open OASISTypes;;
 open OASISAstTypes;;
 
+let valid_tests = 
+  [ 
+    "os_type";
+    "system";
+    "architecture";
+    "ccomp_type";
+    "ocaml_version";
+  ]
+;;
+ 
 (** Convert oasis AST into package 
   *)
-let to_package fn ignore_unknown srcdir valid_tests ast = 
+let to_package fn ignore_unknown srcdir ast = 
 
   let default_ctxt =
     {

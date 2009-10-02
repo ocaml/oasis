@@ -21,73 +21,42 @@ type 'a choices = (t * 'a) list
 let rec eval env =
   function
     | Bool b ->
-        b, env
+        b
+
     | Not e -> 
-        let v, env =
-          eval env e 
-        in
-          not v, env
+        not (eval env e)
+
     | And (e1, e2) ->
-        let (v1, env) as res =
-          eval env e1
-        in
-          if v1 then
-            eval env e2
-          else
-            res
+        (eval env e1) && (eval env e2)
+
     | Or (e1, e2) -> 
-        let (v1, env) as res =
-          eval env e1
-        in
-          if not v1 then
-            eval env e2
-          else
-            res
+        (eval env e1) || (eval env e2)
+
     | Flag nm ->
-        let v, env =
-          var_get nm env
-        in
-        let renv =
-          ref env
-        in
         let v =
-          var_expand renv v
-        in
-        let env = 
-          !renv
+          var_get nm env
         in
           assert(v = "true" || v = "false");
-          (v = "true"), env
+          (v = "true")
+
     | Test (nm, vl) ->
-        let v, env =
+        let v =
           var_get nm env
         in
-        let renv =
-          ref env
-        in
-        let v =
-          var_expand renv v
-        in
-        let env = 
-          !renv
-        in
-          (v = vl), env
+          (v = vl)
 ;;
 
 let choose lst env =
-  let res, env =
+  let res =
     List.fold_left
-      (fun (res, env) (cond, vl) ->
-         let res_cond, env =
-           eval env cond
-         in
-           (if res_cond then Some vl else res), env)
-      (None, env)
+      (fun res (cond, vl) ->
+         if eval env cond then Some vl else res)
+      None
       lst
   in
     match res with 
       | Some vl ->
-          vl, env
+          vl
       | None ->
           failwith "No result for a choice list"
 ;;

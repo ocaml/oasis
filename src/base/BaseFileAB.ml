@@ -23,9 +23,6 @@ let to_filename fn =
 (** Replace variable in file %.ab to generate %
   *)
 let replace fn_lst env =
-  let renv =
-    ref env
-  in
   let buff =
     Buffer.create 13
   in
@@ -40,7 +37,7 @@ let replace fn_lst env =
            (
              try
                while true do
-                Buffer.add_string buff (var_expand renv (input_line chn_in));
+                Buffer.add_string buff (var_expand env (input_line chn_in));
                 Buffer.add_char buff '\n'
                done
              with End_of_file ->
@@ -50,6 +47,5 @@ let replace fn_lst env =
            Buffer.clear buff;
            close_in chn_in;
            close_out chn_out)
-      fn_lst;
-    !renv
+      fn_lst
 ;;

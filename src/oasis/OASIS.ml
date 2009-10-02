@@ -9,7 +9,7 @@
     file/dir existence, consider that root of the project is located in 
     [srcdir].
   *)
-let from_file fn ?(srcdir) ?(debug=false) ?(ignore_unknown=false) valid_tests = 
+let from_file ?(srcdir) ?(debug=false) ?(ignore_unknown=false) fn = 
   let srcdir =
     match srcdir with 
       | Some fn ->
@@ -21,7 +21,7 @@ let from_file fn ?(srcdir) ?(debug=false) ?(ignore_unknown=false) valid_tests =
   let ast = 
     OASISRecDescParser.parse_file ~debug fn
   in
-    OASISAst.to_package fn ignore_unknown srcdir valid_tests ast
+    OASISAst.to_package fn ignore_unknown srcdir ast
 ;;
 
 

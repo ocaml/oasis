@@ -58,7 +58,6 @@ let tests ctxt =
            ~debug:ctxt.dbug
            ~ignore_unknown:true
            fn
-           ["architecture"; "system"]
        in
          test oasis)
   in

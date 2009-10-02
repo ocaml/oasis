@@ -18,54 +18,33 @@ let tr_arg str =
     Buffer.contents buff
 ;;
 
-let enable name hlp default_choices renv =
+let enable name hlp default_choices env =
   let arg_name =
     tr_arg name
   in
-  let env =
-    !renv
-  in
-  let default, env =
+  let default = 
     BaseExpr.choose default_choices env
   in
-  let default_str =
-    if default then "true" else "false"
-  in
-  let env =
-    var_set
-      name
-      default_str
-      (var_define name (fun env -> default_str, env) env)
-  in
-    renv := env;
+    var_set 
+      name 
+      (lazy (if default then "true" else "false"))
+      env;
     [
       "--enable-"^arg_name,
-      Arg.Unit (fun () -> renv := var_set name "true" !renv),
+      Arg.Unit (fun () -> var_set name (lazy "true") env),
       " Enable "^hlp^(if default then " [default]" else "");
 
       "--disable-"^arg_name,
-      Arg.Unit (fun () -> renv := var_set name "false" !renv),
+      Arg.Unit (fun () -> var_set name (lazy "false") env),
       " Disable "^hlp^(if not default then " [default]" else "");
     ]
 ;;
  
-let wth name hlp default renv =
-  let dflt env = 
-    let renv' =
-      ref env
-    in
-    let v =
-      var_expand renv' default
-    in
-      v, !renv'
-  in
-    renv := var_set
-              name
-              default
-              (var_define name dflt !renv); 
+let wth name hlp default env =
+    var_set name (lazy default) env; 
     [
       "--with-"^(tr_arg name),
-      Arg.String (fun str -> renv := var_set name str !renv),
+      Arg.String (fun str -> var_set name (lazy str) env),
       hlp^" ["^default^"]"
     ]
 ;;
@@ -76,29 +55,23 @@ let parse argv args env =
       ref 0
     in
 
-    let renv = 
-      ref env
-    in
     let args =
       List.flatten
         (List.map 
-           (fun fargs -> fargs renv)
+           (fun fargs -> fargs env)
            args)
     in
-      (
-        try
-          Arg.parse_argv
-            ~current:current
-            (Array.concat [[|"none"|]; argv])
-            (Arg.align args)
-            (fun str -> 
-               failwith 
-                 ("Don't know what to do with arguments: '"^str^"'"))
-            "configure options:"
-        with Arg.Help txt | Arg.Bad txt ->
-          BaseMessage.error txt
-      );
-      !renv
+      try
+        Arg.parse_argv
+          ~current:current
+          (Array.concat [[|"none"|]; argv])
+          (Arg.align args)
+          (fun str -> 
+             failwith 
+               ("Don't know what to do with arguments: '"^str^"'"))
+          "configure options:"
+      with Arg.Help txt | Arg.Bad txt ->
+        BaseMessage.error txt
 ;;
 
 let default =
@@ -187,16 +160,36 @@ let default =
       "$docdir";
     ]
   in
-    fun renv ->
+    fun env ->
       List.fold_left
         (fun acc (name, hlp, dflt) ->
-           renv := var_define name (fun env -> dflt, env) !renv;
+           var_set name (lazy dflt) env;
            (
              "--"^name,
-             Arg.String (fun str -> renv := var_set name str !renv),
+             Arg.String (fun str -> var_set name (lazy str) env),
              "dir "^hlp^" ["^dflt^"]"
            ) :: acc
         )
-        (BaseEnvironment.args renv)
+        (BaseEnvironment.args env)
         lst
 ;;
+
+let prefix         = var_get "prefix"
+let eprefix        = var_get "eprefix"
+let bindir         = var_get "bindir"
+let sbindir        = var_get "sbindir"
+let libexecdir     = var_get "libexecdir"
+let sysconfdir     = var_get "sysconfdir"
+let sharedstatedir = var_get "sharedstatedir"
+let localstatedir  = var_get "localstatedir"
+let libdir         = var_get "libdir"
+let datarootdir    = var_get "datarootdir"
+let datadir        = var_get "datadir"
+let infodir        = var_get "infodir"
+let localedir      = var_get "localedir"
+let mandir         = var_get "mandir"
+let docdir         = var_get "docdir"
+let htmldir        = var_get "htmldir"
+let dvidir         = var_get "dvidir"
+let pdfdir         = var_get "pdfdir"
+let psdir          = var_get "psdir"

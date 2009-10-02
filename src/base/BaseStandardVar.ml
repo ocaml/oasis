@@ -4,9 +4,12 @@
   *)
 
 open BaseCheck;;
+open BaseEnvironment;;
 
-let ocamlc   = prog_opt "ocamlc";;
-let ocamlopt = prog_opt "ocamlopt";;
+let ocamlfind  = BaseCheck.ocamlfind;;
+let ocamlc     = BaseOCamlcConfig.ocamlc;;
+let ocamlopt   = prog_opt "ocamlopt";;
+let ocamlbuild = prog "ocamlbuild";;
 
 let (ocaml_version,
      standard_library_default,
@@ -33,7 +36,7 @@ let (ocaml_version,
      default_executable_name,
      systhread_supported) =
   let c = 
-    BaseOCamlcConfig.var_cache ocamlc
+    BaseOCamlcConfig.var_cache 
   in
     c "version",
     c "standard_library_default",
@@ -63,29 +66,34 @@ let (ocaml_version,
 
 (** Check what is the best target for platform (opt/byte)
   *)
-let ocamlbest =
-  Env.var_cache "ocamlbest"
-    (fun env ->
-       try
-         "native", snd (ocamlopt env)
-       with Not_found ->
-         "byte", snd (ocamlc env))
+let ocamlbest env =
+  let ignore_string: string -> unit =
+    ignore
+  in
+    var_define
+      "ocamlbest"
+      (lazy 
+         (try
+            ignore_string (ocamlopt env);
+            "native"
+          with Not_found ->
+            (
+              ignore_string (ocamlc env);
+              "byte")))
+      env
 ;;
 
 (** Compute the default suffix for program (target OS dependent)
   *)
-let suffix_program =
-  Env.var_cache "suffix_program"
-    (fun env ->
-       let os_type, env =
-         os_type env
-       in
-         (match os_type with 
-            | "Win32" -> ".exe" 
-            | _ -> ""
-         ),
-         env
-    )
+let suffix_program env =
+  var_define
+    "suffix_program"
+    (lazy
+       (match os_type env with 
+          | "Win32" -> ".exe" 
+          | _ -> ""
+       ))
+    env
 ;;
 
 (** Check against a minimal version.
@@ -95,5 +103,6 @@ let ocaml_version_constraint version_cmp env =
     "ocaml version constraint" 
     "ocaml" 
     version_cmp 
-    ocaml_version
+    (fun () -> ocaml_version env)
+    env
 ;;

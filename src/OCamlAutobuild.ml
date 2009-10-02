@@ -45,7 +45,7 @@ let () =
   in
 
   let pkg =
-    OASIS.from_file !oasis_fn BaseOCamlcConfig.config
+    OASIS.from_file !oasis_fn 
   in
 
     generate pkg;

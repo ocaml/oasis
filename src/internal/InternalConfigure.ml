@@ -4,42 +4,29 @@
   *)
 
 module Msg = BaseMessage;;
-module Env = BaseEnvironment;;
+open BaseEnvironment;;
 
 (** Build environment using provided series of check to be done
   * and then output corresponding file.
   *)
-let configure pkg_name pkg_version args checks ab_files env_org argv =
+let configure pkg_name pkg_version args checks ab_files env argv =
 
-  let env = 
-    List.fold_left
-      (fun env (nm, vl) -> Env.var_define nm (fun env -> vl, env) env)
-      env_org
-      [
-        "pkg_name", pkg_name;
-        "pkg_version", pkg_version;
-      ]
-  in
+  List.iter
+    (fun (nm, vl) -> var_set nm vl env)
+    [
+      "pkg_name", (lazy pkg_name);
+      "pkg_version", (lazy pkg_version);
+    ];
+
   (* Parse command line *)
-  let env =
-    BaseArgExt.parse argv (BaseArgExt.default :: args) env
-  in
+  BaseArgExt.parse argv (BaseArgExt.default :: args) env;
 
   (* Do some check *)
-  let env =
-    BaseCheck.run checks env
-  in
+  BaseCheck.run checks env;
 
   (* Replace data in file *)
-  let env =
-    BaseFileAB.replace
-      ab_files
-      env
-  in
+  BaseFileAB.replace ab_files env;
 
-    if not (Env.equal env_org env) then
-      (
-        Env.dump env;
-        Env.print env
-      )
+  dump env;
+  print env
 ;;

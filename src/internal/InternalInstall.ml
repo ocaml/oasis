@@ -21,6 +21,19 @@ type executable =
     }
 ;;
 
+let srcdir =
+  BaseEnvironment.var_define
+    "srcdir"
+    (lazy ".")
+;;
+
+let builddir env =
+  BaseEnvironment.var_define
+    "builddir"
+    (lazy (Filename.concat (srcdir env) "_build"))
+    env
+;;
+
 let exec_hook =
   ref (fun env exec -> exec)
 ;;
@@ -31,28 +44,8 @@ let lib_hook =
 
 let install libs execs env argv =
   
-  let srcdir = 
-    (* TODO: don't hardcode this *)
-    "."
-  in
-
-  let builddir =
-    (* TODO: don't hardcode this *)
-    Filename.concat srcdir "_build"
-  in
-
-  let exec_ext =
-    (* TODO: don't hardcode this *)
-    ""
-  in
-
-  let bindir =
-    (* TODO: don't hardcode this *)
-    "/usr/bin"
-  in
-
   let rootdirs =
-    [srcdir; builddir]
+    [srcdir env; builddir env]
   in
 
   let ( * ) lst1 lst2 = 
@@ -101,7 +94,7 @@ let install libs execs env argv =
     let lib =
       !lib_hook env lib
     in
-    let (install, _) =
+    let install =
       BaseExpr.choose lib.lib_install env
     in
       if install then
@@ -158,7 +151,7 @@ let install libs execs env argv =
     let exec =
       !exec_hook env exec
     in
-    let (install, _) = 
+    let install = 
       BaseExpr.choose exec.exec_install env
     in
       if install then
@@ -166,11 +159,13 @@ let install libs execs env argv =
           let exec_file =
             find_file
               (fun ((rootdir, name), ext) -> [rootdir; name^ext])
-              (rootdirs * [exec.exec_name] * [".native"; ".byte"; ""; exec_ext])
+              (rootdirs * 
+               [exec.exec_name] * 
+               [".native"; ".byte"; ""; BaseStandardVar.suffix_program env])
           in
           let tgt_file =
             Filename.concat 
-              bindir
+              (BaseArgExt.bindir env)
               exec.exec_name
           in
             BaseMessage.info 

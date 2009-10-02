@@ -3,54 +3,48 @@
     @author Sylvain Le Gall
   *)
 
-module Env = BaseEnvironment 
-;;
+open BaseStandardVar;;
 
 let cond_targets_hook =
   ref (fun lst -> lst)
 ;;
 
 let build cond_targets env argv =
-  let rtargets, env =
+  let rtargets =
     List.fold_left
-      (fun (acc, env) (choices, tgt) ->
-         let choice, env =
-           BaseExpr.choose choices env
-         in
-           (if choice then tgt :: acc else acc), env)
-      ([], env)
+      (fun acc (choices, tgt) ->
+         if BaseExpr.choose choices env then 
+           tgt :: acc
+         else
+           acc)
+      []
       (!cond_targets_hook cond_targets)
-  in
-  let eget =
-    Env.get env
-  in
-  let ocamlbuild = 
-    eget "ocamlbuild"
   in
   let args = 
     List.rev_append rtargets (Array.to_list argv)
   in
   let args =
-    if (eget "os_type") = "Win32" then
+    if (os_type env) = "Win32" then
       [
         "-classic-display"; 
         "-no-log"; 
         "-install-lib-dir"; 
-        (Filename.concat (eget "ocaml_stdlib") "ocamlbuild")
+        (Filename.concat (standard_library env) "ocamlbuild")
       ] @ args
     else
       args
   in
   let args =
-    if (eget "ocamlbest") = "byte" || (eget "os_type") = "Win32" then
+    if (ocamlbest env) = "byte" || (os_type env) = "Win32" then
       "-byte-plugin" :: args
     else
       args
   in
-    BaseExec.run ocamlbuild args
+    BaseExec.run (ocamlbuild env) args
 ;;
 
 let clean () = 
+  (* TODO use ocamlbuild *)
   BaseExec.run "ocamlbuild" ["-clean"]
 ;;
 
