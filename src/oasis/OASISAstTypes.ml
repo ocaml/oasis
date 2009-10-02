@@ -16,7 +16,6 @@ type ctxt =
                                     field.
                                     By default ETrue (no condition)
                                   *)
-      valid_tests:  name list; (* Which tests are valid *)
       valid_flags:  name list; (* Which flags are valid *)
     }
 ;;

@@ -11,7 +11,6 @@ type url          = string;;
 type version      = string;;
 type dirname      = string;;
 type filename     = string;;
-type test         = string;;
 type prog         = string;;
 
 (** A mandatory field is not defined *)
@@ -45,6 +44,16 @@ type compiled_object =
 type dependency = package_name * version option
 ;;
 
+(** Available test 
+  *)
+type test = 
+  | TOs_type
+  | TSystem
+  | TArchitecture
+  | TCcomp_type
+  | TOCaml_version
+;;
+
 (** Boolean expression to express condition on values
   *)
 type expr =
@@ -53,7 +62,7 @@ type expr =
   | EAnd of expr * expr
   | EOr of expr * expr
   | EFlag of string
-  | ETest of string * string
+  | ETest of test * string
 ;;
 
 (** Conditional value

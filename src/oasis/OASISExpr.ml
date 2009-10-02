@@ -28,14 +28,8 @@ let check ctxt =
                    "Unknown flag '%s'"
                    nm)
           )
-      | ETest (nm, vl) ->
-          (
-            if not (List.exists (lowercase_eq nm) ctxt.valid_tests) then
-              failwith 
-                (Printf.sprintf 
-                   "Unknown test '%s'"
-                   nm)
-          )
+      | ETest (_, _) ->
+          ()
   in
     check_aux ctxt 
 ;;

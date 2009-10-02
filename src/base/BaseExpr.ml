@@ -10,6 +10,7 @@ type t =
   | Not of t
   | And of t * t
   | Or of t * t
+  (* TODO: use a var here *)
   | Flag of string
   | Test of string * string
 ;;
@@ -70,12 +71,16 @@ open BaseGenCode;;
   *)
 let rec expr_of_oasis =
   function 
-    | EBool b -> Bool b
-    | ENot e -> Not (expr_of_oasis e)
+    | EBool b       -> Bool b
+    | ENot e        -> Not (expr_of_oasis e)
     | EAnd (e1, e2) -> And(expr_of_oasis e1, expr_of_oasis e2)
-    | EOr (e1, e2) -> Or(expr_of_oasis e1, expr_of_oasis e2)
-    | EFlag s -> Flag s
-    | ETest (s1, s2) -> Test (s1, s2)
+    | EOr (e1, e2)  -> Or(expr_of_oasis e1, expr_of_oasis e2)
+    | EFlag s       -> Flag s
+    | ETest (TOs_type, s)       -> Test("os_type", s)
+    | ETest (TSystem, s)        -> Test("system", s)
+    | ETest (TArchitecture, s)  -> Test("architecture", s)
+    | ETest (TCcomp_type, s)    -> Test("ccomp_type", s)
+    | ETest (TOCaml_version, s) -> Test("ocaml_version", s)
 ;;
 
 (** Convert an OASIS choice list to BaseExpr.choices

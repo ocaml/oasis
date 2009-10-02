@@ -6,16 +6,6 @@
 open OASISTypes;;
 open OASISAstTypes;;
 
-let valid_tests = 
-  [ 
-    "os_type";
-    "system";
-    "architecture";
-    "ccomp_type";
-    "ocaml_version";
-  ]
-;;
- 
 (** Convert oasis AST into package 
   *)
 let to_package fn ignore_unknown srcdir ast = 
@@ -26,7 +16,6 @@ let to_package fn ignore_unknown srcdir ast =
       srcdir      = Filename.dirname fn;
       cond        = None;
       valid_flags = [];
-      valid_tests = valid_tests;
     }
   in
 

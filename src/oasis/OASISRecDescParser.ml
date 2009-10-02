@@ -399,7 +399,18 @@ let parse_file ~debug fn =
           if nm = "flag" then
             EFlag vl
           else
-            ETest (nm, vl)
+            (let test = 
+               match String.lowercase nm with 
+                 | "os_type"       -> TOs_type
+                 | "system"        -> TSystem
+                 | "architecture"  -> TArchitecture
+                 | "ccomp_type"    -> TCcomp_type
+                 | "ocaml_version" -> TOCaml_version
+                 | _ ->
+                     failwith 
+                       (Printf.sprintf "Unknown test %s" nm)
+             in
+               ETest (test, vl))
   and parse_term_follow = 
     parser
       | [< 'Kwd "&&"; e1 = parse_factor; e2 = parse_term_follow >] ->
