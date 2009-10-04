@@ -79,21 +79,20 @@ let configure pkg standard_vars =
          ])
   in
 
-  let code_args =
+  let code_flags =
     LST
       (List.map 
          (fun (nm, flg) ->
-            APP
-              ("BaseArgExt.enable",
-               [],
-               [
-                 STR nm; 
-                 STR 
-                   (match flg.flag_description with
-                      | Some hlp -> hlp
-                      | None -> "");
-                 BaseExpr.code_of_bool_choices
-                   (BaseExpr.choices_of_oasis flg.flag_default)]))
+            TPL
+              [STR nm; 
+               (match flg.flag_description with
+                  | Some hlp -> VRT("Some", [STR hlp])
+                  | None     -> VRT("None", []));
+               BaseExpr.code_of_choices
+                 (function 
+                    | true  -> STR "true"
+                    | false -> STR "false")
+                 (BaseExpr.choices_of_oasis flg.flag_default)])
          pkg.flags)
   in
 
@@ -108,7 +107,7 @@ let configure pkg standard_vars =
        [
          STR pkg.name;
          STR pkg.version;
-         code_args;
+         code_flags;
          code_checks;
          code_files_ab
        ])

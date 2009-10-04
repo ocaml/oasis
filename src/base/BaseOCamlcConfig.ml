@@ -57,6 +57,7 @@ let ocamlc_config_map env =
     var_define
       "ocamlc_config_map"
       ~hide:true
+      ~dump:false
       (lazy
          (var_protect
             (Marshal.to_string

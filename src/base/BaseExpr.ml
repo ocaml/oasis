@@ -62,6 +62,10 @@ let choose lst env =
           failwith "No result for a choice list"
 ;;
 
+let singleton e = 
+  [Bool true, e]
+;;
+
 (* END EXPORT *)
 
 open OASISTypes;;

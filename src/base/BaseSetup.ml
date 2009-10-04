@@ -59,7 +59,11 @@ let setup t =
                let env_org =
                  Env.load ~allow_empty:configure ()
                in
-                 act  := (fun () -> a env_org (Array.of_list (List.rev !args)));
+                 act :=
+                 (let args =
+                    !args 
+                  in
+                    fun () -> a env_org (Array.of_list (List.rev args)));
                  args := []); 
         ]
     in

@@ -3,23 +3,42 @@
     @author Sylvain Le Gall
   *)
 
-module Msg = BaseMessage;;
 open BaseEnvironment;;
+open BaseExpr;;
 
 (** Build environment using provided series of check to be done
   * and then output corresponding file.
   *)
-let configure pkg_name pkg_version args checks ab_files env argv =
+let configure pkg_name pkg_version flags checks ab_files env argv =
 
-  List.iter
-    (fun (nm, vl) -> var_set nm vl env)
-    [
-      "pkg_name", (lazy pkg_name);
-      "pkg_version", (lazy pkg_version);
-    ];
+  (** Initialize flags *)
+  List.iter 
+    (fun (nm, hlp, choices) ->
+       let apply ?short_desc () = 
+           var_set
+             ?short_desc
+             ~cli:CLIAuto
+             ODefault
+             nm 
+             (lazy (choose choices env))
+             env
+       in
+         match hlp with 
+           | Some hlp ->
+               apply ~short_desc:hlp ()
+           | None ->
+               apply ())
+    (("pkg_name",    Some "Package name", (singleton pkg_name)) :: 
+     ("pkg_version", Some "Package version", (singleton pkg_version)) ::
+     flags);
+
+  (** Initialize standard variables *)
+  List.iter 
+    (fun v -> var_ignore (v env))
+    BaseStandardVar.all;
 
   (* Parse command line *)
-  BaseArgExt.parse argv (BaseArgExt.default :: args) env;
+  BaseArgExt.parse argv (args env) env;
 
   (* Do some check *)
   BaseCheck.run checks env;

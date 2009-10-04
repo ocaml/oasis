@@ -3,6 +3,9 @@
     @author Sylvain Le Gall
   *)
 
+open BaseEnvironment;;
+open BaseStandardVar;;
+
 type library =
     {
       lib_name:    string;
@@ -22,13 +25,13 @@ type executable =
 ;;
 
 let srcdir =
-  BaseEnvironment.var_define
+  var_define
     "srcdir"
     (lazy ".")
 ;;
 
 let builddir env =
-  BaseEnvironment.var_define
+  var_define
     "builddir"
     (lazy (Filename.concat (srcdir env) "_build"))
     env
@@ -161,11 +164,11 @@ let install libs execs env argv =
               (fun ((rootdir, name), ext) -> [rootdir; name^ext])
               (rootdirs * 
                [exec.exec_name] * 
-               [".native"; ".byte"; ""; BaseStandardVar.suffix_program env])
+               [".native"; ".byte"; ""; suffix_program env])
           in
           let tgt_file =
             Filename.concat 
-              (BaseArgExt.bindir env)
+              (bindir env)
               exec.exec_name
           in
             BaseMessage.info 

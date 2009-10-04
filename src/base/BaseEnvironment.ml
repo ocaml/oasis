@@ -6,61 +6,164 @@
 module Msg    = BaseMessage;;
 module MapVar = Map.Make(String);;
 
-type var = string
+type var_t = string
+
+(** Origin of the variable, if a variable has been already set
+    with a higher origin, it won't be set again
+  *)
+type origin_t = 
+  | ODefault     (** Default computed value *)
+  | OGetEnv      (** Extracted from environment, using Sys.getenv *)
+  | OFileLoad    (** From loading file setup.data *)
+  | OCommandLine (** Set on command line *)
+;;
+
+(** Command line handling for variable 
+  *)
+type cli_handle_t =
+  (** No command line argument *)
+  | CLINone
+  (** Build using variable name and help text *)
+  | CLIAuto
+   (** Use prefix --with- *)
+  | CLIWith
+  (** Use --enable/--disable *)
+  | CLIEnable
+  (** Fully define the command line arguments *)
+  | CLIUser of (Arg.key * Arg.spec * Arg.doc) list
+;;
 
 (** Variable type
   *)
-type definition =
+type definition_t =
     {
-      value:   string;
-      hidden:  bool;
+      value:      string;
+      origin:     origin_t;   
+      hide:       bool;
+      dump:       bool;
+      short_desc: string option;
+      cli:        cli_handle_t;
+      arg_help:   string option;
+      group:      string option;
+      order:      int;
     }
 ;;
 
 (** Environment type
   *)
-type env = (var, definition) Hashtbl.t
-;;
+type env = 
+    {
+      vars:   (var_t, definition_t) Hashtbl.t;
 
+      mutable last_order:   int;
+      mutable print_hidden: bool;
+    }
+;;
 
 (** Get all variable
   *)
 let var_all ?(include_hidden=false) env =
-  Hashtbl.fold 
-    (fun var def acc ->
-       if not def.hidden || include_hidden then
-         var :: acc
-       else
-         acc)
-    env 
-    []
+  List.rev_map
+    snd
+    (List.sort
+       (fun (i1, _) (i2, _) -> i2 - i1)
+       (Hashtbl.fold 
+          (fun var def acc ->
+             if not def.hide || include_hidden then
+               (def.order, var) :: acc
+             else
+               acc)
+          env.vars 
+          []))
 ;;
 
 (** Set a variable 
   *)
-let var_set ?(hide=false) name dflt env =
-  let def = 
+let var_set 
+      ?(hide=false) 
+      ?(dump=true) 
+      ?short_desc
+      ?(cli=CLINone)
+      ?arg_help
+      ?group 
+      origin 
+      name
+      dflt
+      env =
     try 
       (* Use directly definition if it exists *)
-      Hashtbl.find env name
+      let def = 
+        Hashtbl.find env.vars name
+      in
+      let no_default default v def_v =
+        if v <> default then
+          v
+        else
+          def_v
+      in
+      let new_def = 
+        {
+           value = 
+             (if origin > def.origin then 
+                Lazy.force dflt 
+              else 
+                def.value);
+           origin     = max origin def.origin;
+           short_desc = no_default None short_desc def.short_desc;
+           cli        = no_default CLINone cli def.cli;
+           arg_help   = no_default None arg_help def.arg_help;
+           hide       = hide || def.hide;
+           dump       = dump && def.dump;
+           group      = no_default None group def.group;
+           order      = def.order;
+        }
+      in
+        if def <> new_def then
+          Hashtbl.replace env.vars name new_def
+        else
+          ()
     with Not_found ->
       (
         (* Build one definition using either value from 
          * env or default definition
          *)
-        let from_env =
+        let lzy, origin =
+          (* Use env or default value, depending what is available 
+             and their priority
+           *)
           try 
-            Sys.getenv name 
+            List.find
+              (fun (lzy, _) -> 
+                 try 
+                   ignore (Lazy.force lzy); 
+                   true 
+                 with _ -> 
+                   false)
+              (List.sort
+                 (fun (_, org1) (_, org2) -> compare org1 org2)
+                 [lazy (Sys.getenv name), OGetEnv; dflt, origin])
           with Not_found ->
-            Lazy.force dflt
+            failwith 
+              (Printf.sprintf 
+                 "No default value for variable %s"
+                 name)
         in
-          {value = from_env; hidden = hide}
+          env.last_order <- env.last_order + 1;
+          Hashtbl.add
+            env.vars
+            name
+            {
+              value      = Lazy.force lzy;
+              origin     = origin;
+              hide       = hide;
+              dump       = dump;
+              short_desc = short_desc;
+              cli        = cli;
+              arg_help   = arg_help;
+              group      = group;
+              order      = env.last_order;
+            }
       )
-  in
-    Hashtbl.replace 
-      env 
-      name 
-      {value = def.value; hidden = hide};
 ;;
 
 (** Expand variable that can be found in string. Variable follow definition of
@@ -90,7 +193,7 @@ let rec var_expand env str =
   *)
 and var_get name env =
   let vl = 
-    (Hashtbl.find env name).value
+    (Hashtbl.find env.vars name).value
   in
     var_expand env vl
 ;;
@@ -98,8 +201,8 @@ and var_get name env =
 (** Add a variable to environment and return its value. [hide] allow to store
     a variable that will be hidden to user (not printed).
   *)
-let var_define ?hide name dflt env =
-  var_set ?hide name dflt env;
+let var_define ?hide ?dump ?short_desc ?cli ?arg_help ?group name dflt env =
+  var_set ?hide ?dump ?short_desc ?cli ?arg_help ?group ODefault name dflt env;
   var_get name env 
 ;;
 
@@ -138,8 +241,10 @@ let dump env =
     open_out_bin filename
   in
     Hashtbl.iter
-      (fun nm def -> Printf.fprintf chn "%s=%S\n" nm def.value)
-      env;
+      (fun nm def -> 
+         if def.dump then
+           Printf.fprintf chn "%s=%S\n" nm def.value)
+      env.vars;
     close_out chn
 ;;
 
@@ -147,7 +252,11 @@ let dump env =
   *)
 let load ?(allow_empty=false) () = 
   let env =
-    Hashtbl.create 13
+    {
+      vars         = Hashtbl.create 13;
+      print_hidden = false;
+      last_order   = 0;
+    }
   in
     if Sys.file_exists filename then
       (
@@ -178,7 +287,7 @@ let load ?(allow_empty=false) () =
                 Stream.junk lexer; 
                 Stream.junk lexer; 
                 Stream.junk lexer;
-                var_set nm (lazy vl) env;
+                var_set OFileLoad nm (lazy vl) env;
                 read_file ()
             | [] ->
                 ()
@@ -210,14 +319,18 @@ let load ?(allow_empty=false) () =
   *)
 let print env =
   let printable_vars =
-    Hashtbl.fold
-      (fun nm def acc ->
-         if def.hidden then
-           acc
-         else
-           (nm, def.value) :: acc)
-      env
-      []
+    List.map 
+      (fun var -> 
+         let def = 
+           Hashtbl.find env.vars var
+         in
+         let txt =
+           match def.short_desc with 
+             | Some s -> s
+             | None   -> var
+         in
+           txt, def.value)
+      (var_all ~include_hidden:env.print_hidden env)
   in
   let max_length = 
     List.fold_left
@@ -243,27 +356,93 @@ let print env =
 (** Default command line arguments 
   *)
 let args env =
-  [
-    "--override",
-     Arg.Tuple
-       (
-         let rvr = ref ""
-         in
-         let rvl = ref ""
-         in
-           [
-             Arg.Set_string rvr;
-             Arg.Set_string rvl;
-             Arg.Unit (fun () -> var_set !rvr (lazy !rvl) env)
-           ]
-       ),
-    "var+val  Override any configuration variable";
+  let tr_arg str =
+    let buff =
+      Buffer.create (String.length str)
+    in
+      String.iter 
+        (function 
+           | '_' | ' ' | '\n' | '\r' | '\t' -> Buffer.add_char buff '-'
+           | c -> Buffer.add_char buff c
+        )
+        str;
+      Buffer.contents buff
+  in
+    [
+      "--override",
+       Arg.Tuple
+         (
+           let rvr = ref ""
+           in
+           let rvl = ref ""
+           in
+             [
+               Arg.Set_string rvr;
+               Arg.Set_string rvl;
+               Arg.Unit (fun () -> var_set OCommandLine !rvr (lazy !rvl) env)
+             ]
+         ),
+      "var+val  Override any configuration variable.";
 
-    (* TODO: reactivate 
-    "--print-hidden",
-    Arg.Unit (fun () -> renv := {!renv with print_hidden = true}),
-    " Print even non-printable variable (debug)";
-     *)
-  ]
+      "--print-hidden",
+      Arg.Unit (fun () -> env.print_hidden <- true),
+      " Print even non-printable variable. (debug)";
+    ]
+    @
+    List.flatten 
+      (Hashtbl.fold
+        (fun name def acc ->
+           let var_set s = 
+             var_set OCommandLine name (lazy s) env
+           in
+
+           let arg_name = 
+             tr_arg name
+           in
+
+           let hlp =
+             match def.short_desc with 
+               | Some txt -> txt
+               | None -> ""
+           in
+
+           let arg_hlp =
+             match def.arg_help with 
+               | Some s -> s
+               | None   -> "str"
+           in
+
+           let args = 
+             match def.cli with 
+               | CLINone -> 
+                   []
+               | CLIAuto -> 
+                   [
+                     "--"^arg_name,
+                     Arg.String var_set,
+                     arg_hlp^" "^hlp^" ["^def.value^"]"
+                   ]
+               | CLIWith ->
+                   [
+                     "--with-"^arg_name,
+                     Arg.String var_set,
+                     arg_hlp^" "^hlp^" ["^def.value^"]"
+                   ]
+               | CLIEnable ->
+                   [
+                     "--enable-"^arg_name,
+                     Arg.Unit (fun () -> var_set "true"),
+                     " "^hlp^(if def.value = "true" then " [default]" else "");
+
+                     "--disable-"^arg_name,
+                     Arg.Unit (fun () -> var_set "false"),
+                     " "^hlp^(if def.value <> "true" then " [default]" else "");
+                   ]
+               | CLIUser lst ->
+                   lst
+           in
+             args :: acc)
+         env.vars
+         [])
 ;;
 

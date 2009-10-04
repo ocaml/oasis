@@ -48,27 +48,23 @@ let ocamlfind = prog "ocamlfind";;
 (** Check version, following Sys.ocaml_version convention
   *)
 let version 
-      feature 
       var_prefix 
       (str_cmp, cmp, var_cmp) 
-      fversion = 
+      fversion 
+      env = 
   (* Really compare version provided *)
   let var = 
     var_prefix^"_version_"^var_cmp
   in
     var_set 
       ~hide:true 
+      ODefault
       var
-      (lazy (* TODO: re-enable
-          let () = 
-            Msg.checking (feature^" version "^str_cmp);
-          in
-           *)
+      (lazy
          (let version =
             match fversion () with 
               | "[Distributed with OCaml]" ->
-                  (* TODO: this is not sure ! *)
-                  Sys.ocaml_version
+                  (var_get "ocaml_version" env)
               | res ->
                   res
           in
@@ -76,6 +72,7 @@ let version
               version
             else
               raise Not_found))
+      env
 ;;
 
 (** Check for findlib package
@@ -101,14 +98,6 @@ let package ?version_comparator pkg env =
       (ocamlfind env)
       ["query"; "-format"; "%v"; pkg]
   in
-    (* TODO re-enable
-      let default_msg =
-        "findlib package "^pkg
-      in
-      let () = 
-        Msg.checking default_msg
-      in
-     *)
   let vl =
     var_define
       ("pkg_"^pkg)
@@ -119,7 +108,6 @@ let package ?version_comparator pkg env =
       match version_comparator with 
         | Some ver_cmp ->
             version 
-              (*default_msg *) ""
               ("pkg_"^pkg)
               ver_cmp
               (fun () -> findlib_version pkg)
