@@ -133,7 +133,7 @@ let generate pkg =
       (Split
          (
            (* Header *)
-           [],
+           ["#!/usr/bin/ocamlrun ocaml"],
            (* Body *)
            (List.flatten 
               [
@@ -144,6 +144,7 @@ let generate pkg =
            ["setup ();;"]
          )
       );
+    Unix.chmod "setup.ml" 0o755;
 
     (* Generate other files *)
     List.iter
