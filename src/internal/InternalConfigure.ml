@@ -9,7 +9,7 @@ open BaseExpr;;
 (** Build environment using provided series of check to be done
   * and then output corresponding file.
   *)
-let configure pkg_name pkg_version flags checks ab_files env argv =
+let configure pkg_name pkg_version flags cond_checks ab_files env argv =
 
   (** Initialize flags *)
   List.iter 
@@ -41,7 +41,11 @@ let configure pkg_name pkg_version flags checks ab_files env argv =
   BaseArgExt.parse argv (args env) env;
 
   (* Do some check *)
-  BaseCheck.run checks env;
+  List.iter
+    (fun (cond, checks) ->
+       if BaseExpr.choose cond env then
+         BaseCheck.run checks env)
+    cond_checks;
 
   (* Replace data in file *)
   BaseFileAB.replace ab_files env;

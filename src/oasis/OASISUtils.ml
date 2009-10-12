@@ -9,7 +9,7 @@ open CommonGettext;;
 
 let std_field nm comp_dflt schm = 
   let build = 
-    new_field_conditional schm "build"
+    new_field_conditional schm "Build"
       ~default:true
       boolean
       (Printf.sprintf 
@@ -17,7 +17,7 @@ let std_field nm comp_dflt schm =
          nm)
   in
   let install =
-    new_field_conditional schm "install"
+    new_field_conditional schm "Install"
       ~default:true
       boolean
       (Printf.sprintf
@@ -25,7 +25,7 @@ let std_field nm comp_dflt schm =
          nm)
   in
   let compiled_object =
-    new_field schm "compiledobject"
+    new_field schm "CompiledObject"
       ~default:comp_dflt
       compiled_object
       (Printf.sprintf 
@@ -37,3 +37,18 @@ let std_field nm comp_dflt schm =
     compiled_object
 ;;
 
+let depends_field schm = 
+  let build_depends = 
+    new_field schm "builddepends" 
+      ~default:[]
+      build_depends
+      (s_ "Dependencies on external libraries (findlib).")
+  in
+  let build_tools =
+    new_field schm "buildtools"
+      ~default:[]
+      comma_separated
+      (s_ "Executables require to compile.")
+  in
+    build_depends, build_tools
+;;

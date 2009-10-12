@@ -64,12 +64,6 @@ let schema, generator =
       string_not_empty
       (s_ "Build system.")
   in
-  let build_tools =
-    new_field schm "buildtools"
-      ~default:[]
-      comma_separated
-      (s_ "Executables require to compile.")
-  in
   let doc_type =
     new_field schm "doctype" 
       ~default:"none"
@@ -121,12 +115,6 @@ let schema, generator =
       categories
       (s_ "URL(s) describing categories of the package.")
   in
-  let build_depends =
-    new_field schm "builddepends" 
-      ~default:[]
-      build_depends
-      (s_ "Dependencies on external libraries (findlib).")
-  in
   let files_ab =
     new_field schm "filesab"
       ~default:[]
@@ -141,6 +129,9 @@ let schema, generator =
       ~default:[]
       comma_separated
       (s_ "Extra plugins to use")
+  in
+  let build_depends, build_tools =
+    OASISUtils.depends_field schm
   in
     schm,
     (fun wrtr libs execs flags ->

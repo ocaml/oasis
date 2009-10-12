@@ -131,3 +131,15 @@ let code_of_choices code_of_elem lst =
 let code_of_bool_choices =
   code_of_choices (fun v -> BOO v) 
 ;;
+
+(** Always true condition 
+  *)
+let condition_true =
+  [Bool true, true]
+;;
+
+(** Code of always true condition
+  *)
+let code_condition_true =
+  code_of_bool_choices condition_true
+;;

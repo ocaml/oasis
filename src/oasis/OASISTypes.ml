@@ -79,6 +79,8 @@ type 'a library = {
   lib_path:            dirname;
   lib_modules:         string list;
   lib_compiled_object: compiled_object;
+  lib_build_depends:   dependency list;
+  lib_build_tools:     prog list;
   lib_schema_data:     'a;
 }
 ;;
@@ -90,6 +92,8 @@ type 'a executable = {
   exec_install:         bool conditional;
   exec_main_is:         filename;
   exec_compiled_object: compiled_object;
+  exec_build_depends:   dependency list;
+  exec_build_tools:     prog list;
   exec_schema_data:     'a;
 }
 ;;

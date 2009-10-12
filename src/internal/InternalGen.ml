@@ -13,70 +13,105 @@ let plugin_id = "internal";;
 (* Configuration *)
 let configure pkg standard_vars =
 
+  let build_depends_check (findlib_pkg, ver_opt) = 
+    let version_arg = 
+      match ver_opt with
+        | Some ver ->
+            let cmp = 
+              BaseVersion.comparator_of_string ver
+            in
+              [
+                "version_comparator",
+                TPL [STR ver; 
+                     BaseVersion.code_of_comparator cmp;
+                     STR (BaseVersion.varname_of_comparator cmp)];
+              ]
+        | None ->
+            []
+    in
+      APP ("BaseCheck.package", version_arg, [STR findlib_pkg])
+  in
+
+  let build_tools_check prog =
+    APP ("BaseCheck.prog", [], [STR prog])
+  in
+
+  let build_checks cond tools depends =
+    TPL
+      [
+        (BaseExpr.code_of_bool_choices cond);
+        LST
+          ((List.map build_tools_check tools)
+           @
+           (List.map build_depends_check depends))
+      ]
+  in
+
+  let build_depends_collect pkg =
+   (build_checks 
+      BaseExpr.condition_true
+      pkg.build_tools 
+      pkg.build_depends)
+   ::
+   (List.map 
+     (fun (_, lib) -> 
+        build_checks
+          (BaseExpr.choices_of_oasis lib.lib_build)
+          lib.lib_build_tools
+          lib.lib_build_depends)
+     pkg.libraries)
+   @
+   (List.map 
+      (fun (_, exec) -> 
+         build_checks 
+           (BaseExpr.choices_of_oasis exec.exec_build)
+           exec.exec_build_tools
+           exec.exec_build_depends)
+      pkg.executables)
+  in
+
+  let standard_vars_collect pkg = 
+    TPL
+      [BaseExpr.code_condition_true;
+       LST
+         (List.map
+            (fun e ->
+               let var = 
+                 match e with 
+                   | SVocamlc -> "ocamlc"
+                   | SVocamlopt -> "ocamlopt"
+                   | SVocamlbest -> "ocamlbest"
+                   | SVsuffix_program -> "suffix_program"
+                   | SVocaml_version -> "ocaml_version"
+                   | SVstandard_library_default -> "standard_library_default"
+                   | SVstandard_library -> "standard_library"
+                   | SVstandard_runtime -> "standard_runtime"
+                   | SVccomp_type -> "ccomp_type"
+                   | SVbytecomp_ccompiler -> "bytecomp_ccompiler"
+                   | SVbytecomp_c_linker -> "bytecomp_c_linker"
+                   | SVbytecomp_c_libraries -> "bytecomp_c_libraries"
+                   | SVnative_c_compiler -> "native_c_compiler"
+                   | SVnative_c_linker -> "native_c_linker"
+                   | SVnative_c_libraries -> "native_c_libraries"
+                   | SVnative_partial_linker -> "native_partial_linker"
+                   | SVranlib -> "ranlib"
+                   | SVcc_profile -> "cc_profile"
+                   | SVarchitecture -> "architecture"
+                   | SVmodel -> "model"
+                   | SVsystem -> "system"
+                   | SVext_obj -> "ext_obj"
+                   | SVext_asm -> "ext_asm"
+                   | SVext_lib -> "ext_lib"
+                   | SVext_dll -> "ext_dll"
+                   | SVos_type -> "os_type"
+                   | SVdefault_executable_name -> "default_executable_name"
+                   | SVsysthread_supported -> "systhread_supported"
+               in
+                 VAR ("BaseStandardVar."^var))
+            standard_vars)]
+  in
   let code_checks = 
-    LST
-      (List.flatten 
-         [
-           List.map 
-             (fun (pkg, ver_opt) -> 
-                let version_arg = 
-                  match ver_opt with
-                    | Some ver ->
-                        let cmp = 
-                          BaseVersion.comparator_of_string ver
-                        in
-                          [
-                            "version_comparator",
-                            TPL [STR ver; 
-                                 BaseVersion.code_of_comparator cmp;
-                                 STR (BaseVersion.varname_of_comparator cmp)];
-                          ]
-                    | None ->
-                        []
-                in
-                  APP ("BaseCheck.package", version_arg, [STR pkg]))
-             pkg.build_depends;
-
-           List.map
-             (fun e -> APP ("BaseCheck.prog", [], [STR e]))
-             pkg.build_tools;
-
-           List.map
-             (fun e ->
-                let var = 
-                  match e with 
-                    | SVocamlc -> "ocamlc"
-                    | SVocamlopt -> "ocamlopt"
-                    | SVocamlbest -> "ocamlbest"
-                    | SVsuffix_program -> "suffix_program"
-                    | SVocaml_version -> "ocaml_version"
-                    | SVstandard_library_default -> "standard_library_default"
-                    | SVstandard_library -> "standard_library"
-                    | SVstandard_runtime -> "standard_runtime"
-                    | SVccomp_type -> "ccomp_type"
-                    | SVbytecomp_ccompiler -> "bytecomp_ccompiler"
-                    | SVbytecomp_c_linker -> "bytecomp_c_linker"
-                    | SVbytecomp_c_libraries -> "bytecomp_c_libraries"
-                    | SVnative_c_compiler -> "native_c_compiler"
-                    | SVnative_c_linker -> "native_c_linker"
-                    | SVnative_c_libraries -> "native_c_libraries"
-                    | SVnative_partial_linker -> "native_partial_linker"
-                    | SVranlib -> "ranlib"
-                    | SVcc_profile -> "cc_profile"
-                    | SVarchitecture -> "architecture"
-                    | SVmodel -> "model"
-                    | SVsystem -> "system"
-                    | SVext_obj -> "ext_obj"
-                    | SVext_asm -> "ext_asm"
-                    | SVext_lib -> "ext_lib"
-                    | SVext_dll -> "ext_dll"
-                    | SVos_type -> "os_type"
-                    | SVdefault_executable_name -> "default_executable_name"
-                    | SVsysthread_supported -> "systhread_supported"
-                in
-                  VAR ("BaseStandardVar."^var))
-             standard_vars;
-         ])
+    LST (standard_vars_collect pkg :: build_depends_collect pkg)
   in
 
   let code_flags =

@@ -25,6 +25,9 @@ let schema, generator =
   let build, install, compiled_object = 
     OASISUtils.std_field (s_ "executable") Byte schm
   in
+  let build_depends, build_tools =
+    OASISUtils.depends_field schm
+  in
     schm,
     (fun wrtr -> 
        {
@@ -32,6 +35,8 @@ let schema, generator =
          exec_install         = install wrtr;
          exec_main_is         = main_is wrtr;
          exec_compiled_object = compiled_object wrtr;
+         exec_build_depends   = build_depends wrtr;
+         exec_build_tools     = build_tools wrtr;
          exec_schema_data     = wrtr;
        })
 ;;

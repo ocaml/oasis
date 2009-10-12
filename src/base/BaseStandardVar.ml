@@ -214,6 +214,7 @@ let all =
     ocamlc;
     ocamlopt;
     ocamlbuild;
+    ocamlbest;
     ocaml_version;
     standard_library_default;
     standard_library;
@@ -231,6 +232,5 @@ let all =
     os_type;
     default_executable_name;
     systhread_supported;
-    ocamlbest;
     suffix_program;
   ]
