@@ -1,5 +1,6 @@
 Name:         flags
 Version:      0.0.1
+OASISFormat: 1.0
 Authors:      Sylvain Le Gall
 LicenseFile:  LICENSE
 License:      LGPL-link-exn

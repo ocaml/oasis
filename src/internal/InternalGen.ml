@@ -110,8 +110,34 @@ let configure pkg standard_vars =
                  VAR ("BaseStandardVar."^var))
             standard_vars)]
   in
+
+  let ocaml_version_check pkg = 
+    match pkg.ocaml_version with 
+      | Some ver -> 
+          (
+            let cmp = 
+              BaseVersion.comparator_of_string ver
+            in
+              [TPL
+                 [BaseExpr.code_condition_true;
+                  LST
+                    [
+                      APP ("BaseCheck.version",
+                           [],
+                           [
+                             STR "ocaml";
+                             TPL [STR ver; 
+                                  BaseVersion.code_of_comparator cmp;
+                                  STR (BaseVersion.varname_of_comparator cmp)];
+                             VAR "BaseStandardVar.ocaml_version";
+                           ])]]]
+          )
+      | None ->
+          []
+  in
+
   let code_checks = 
-    LST (standard_vars_collect pkg :: build_depends_collect pkg)
+    LST (standard_vars_collect pkg :: build_depends_collect pkg @ ocaml_version_check pkg)
   in
 
   let code_flags =

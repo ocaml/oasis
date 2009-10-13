@@ -12,6 +12,18 @@ let schema, generator =
   let schm =
     schema "package"
   in
+  let oasis_version = 
+    new_field schm "OASISFormat" 
+      (fun ctxt str -> 
+         match str with 
+           | "1.0" -> "1.0"
+           | str ->
+               failwith 
+                 (Printf.sprintf 
+                    "OASIS format version '%s' is not supported"
+                    str))
+      (s_ "OASIS format version used to write file _oasis.")
+  in
   let name = 
     new_field schm "name" string_not_empty 
       (s_ "Name of the package.")
@@ -51,6 +63,12 @@ let schema, generator =
                               "'%s' is not an URL or a common license name"
                               str)))
       (s_ "License type of the package.")
+  in
+  let ocaml_version =
+    new_field schm "OCamlVersion"
+      ~default:None
+      (opt version_constraint)
+      (s_ "Version constraint on OCaml.")
   in
   let conf_type =
     new_field schm "conftype" 
@@ -136,6 +154,8 @@ let schema, generator =
     schm,
     (fun wrtr libs execs flags ->
       {
+        oasis_version = oasis_version wrtr;
+        ocaml_version = ocaml_version wrtr;
         name          = name wrtr;
         version       = version wrtr;
         license       = license wrtr;

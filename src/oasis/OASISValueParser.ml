@@ -6,6 +6,23 @@
 open OASISTypes;;
 open OASISAstTypes;;
 
+module StdRegexp = 
+struct 
+  let r = Str.regexp
+
+  let s_version = "[0-9]+\\(\\.[0-9]+\\)*"
+
+  let url       = r "http://[a-zA-Z0-9\\./_-]+"
+  let version   = r s_version
+  let copyright = r "\\((c)\\|(C)\\) * [0-9]+\\(-[0-9]+\\)?,? .*" 
+  let modul     = r "[A-Z][A-Za-z0-9_]*"
+
+  let version_constraint = 
+    r 
+      ("\\(\\(\\(>=?\\|<=?\\|=\\) *"^s_version^"\\|&&\\|||\\) *\\)*")
+end
+;;
+
 (* Check that string match a Str.regexp *)
 let str_regexp regexp error (_ : ctxt) str = 
   if Str.string_match regexp str 0 && 
@@ -20,22 +37,26 @@ let str_regexp regexp error (_ : ctxt) str =
 (** Check that we have an URL *)
 let url = 
   str_regexp
-    (Str.regexp "http://[a-zA-Z0-9\\./_-]+")
+    StdRegexp.url
     "URL"
 ;;
 
 (** Check that we have a version number *)
 let version =
   str_regexp
-    (Str.regexp "[0-9]+\\(\\.[0-9]+\\)*")
+    StdRegexp.version
     "version"
+;;
+
+let version_constraint = 
+  str_regexp 
+    StdRegexp.version_constraint
+    "version constraint"
 ;;
 
 (** Check that we a (C) copyright *)
 let copyright _ str =
-  if Str.string_match 
-       (Str.regexp "\\((c)\\|(C)\\) * [0-9]+\\(-[0-9]+\\)?,? .*") 
-       str 0 then
+  if Str.string_match StdRegexp.copyright str 0 then
     str
   else
     failwith 
@@ -104,7 +125,10 @@ let build_depends ctxt str =
     "[^ \t]*"
    in
   let strip_whitespace =
-    Str.regexp (white_spaces^"\\("^not_white_spaces^"\\)"^white_spaces)
+    Str.global_replace 
+      (Str.regexp 
+         (Printf.sprintf "^%s|%s$" white_spaces white_spaces))
+      ""
   in
   let split_version =
     Str.regexp ("\\("^not_white_spaces^"\\)"^
@@ -113,13 +137,24 @@ let build_depends ctxt str =
   in
   let parse_one str =
     if Str.string_match split_version str 0 then
-      (Str.matched_group 1 str), 
-      Some (Str.matched_group 2 str)
-    else if Str.string_match strip_whitespace str 0 then
-      (Str.matched_group 1 str),
-      None
-    else
-      str, 
+      (
+        let pkg, ver_constr = 
+          Str.matched_group 1 str,
+          Str.matched_group 2 str
+        in
+        let pkg = 
+          strip_whitespace pkg
+        in
+        let ver_constr =
+          version_constraint
+            ctxt
+            (strip_whitespace ver_constr)
+        in
+          pkg, 
+          Some ver_constr
+      )
+    else 
+      (strip_whitespace str),
       None
   in
     List.map
@@ -131,7 +166,7 @@ let build_depends ctxt str =
 let modules ctxt str =
   List.map 
     (str_regexp 
-       (Str.regexp "[A-Z][A-Za-z0-9_]*")
+       StdRegexp.modul
        "module"
        ctxt)
     (comma_separated ctxt str)

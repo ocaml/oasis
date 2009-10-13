@@ -47,7 +47,7 @@ let tests ctxt =
         assert_failure msg
   in
 
-  let test_of_vector (fn, test) = 
+  let test_file_of_vector (fn, test) = 
     fn >::
     (fun () ->
        let fn =
@@ -62,37 +62,83 @@ let tests ctxt =
          test oasis)
   in
 
+  let test_value_parser_of_vector (str, value_parse, fail) = 
+    str >::
+    (fun () ->
+       let ctxt =
+         {OASISAstTypes.oasisfn = "null";
+          srcdir                = "";
+          cond                  = None;
+          valid_flags           = []}
+       in
+         try
+           ( 
+             let _s : string = 
+               value_parse ctxt str
+             in
+               if fail then
+                 assert_failure 
+                   (Printf.sprintf "Parsing '%s' should have failed" str)
+           )
+         with _ ->
+           (
+             if not fail then
+               assert_failure
+                 (Printf.sprintf "Parsing '%s' should not have failed" str)
+           ))
+  in
+
     "OASIS" >:::
-    (List.map test_of_vector 
-       [
-         "test1.oasis",
-         (fun oasis ->
-            assert_flag "devmod" oasis;
-            assert_alternative
-              "At least one of ostest, linuxtest64 and linuxtest32 is defined"
-              (List.map
-                 (fun nm -> (fun () -> assert_flag nm oasis))
-                 [
-                   "ostest";
-                   "linuxtest64";
-                   "linuxtest32";
-                 ])
-              ());
+    [
+      "ValueParser" >:::
+      (List.map test_value_parser_of_vector 
+         (List.map 
+            (fun (v, f) -> (v, OASISValueParser.version_constraint, f))
+            [
+              ">= 3.11.1", false;
+              ">= 3.11",   false;
+              "<= 3.11.1", false;
+              "> 3.11.1",  false;
+              "< 3.11.1",  false;
+              "= 3.11.1",  false;
+              ">= 3.11 && <= 3.12", false;
+              "= 3.11 || = 3.12", false;
+              "= || = 3.12", true;
+            ])
+      );
 
-         "test2.oasis",
-         ignore;
+      "File" >:::
+      (List.map test_file_of_vector 
+         [
+           "test1.oasis",
+           (fun oasis ->
+              assert_flag "devmod" oasis;
+              assert_alternative
+                "At least one of ostest, linuxtest64 and linuxtest32 is defined"
+                (List.map
+                   (fun nm -> (fun () -> assert_flag nm oasis))
+                   [
+                     "ostest";
+                     "linuxtest64";
+                     "linuxtest32";
+                   ])
+                ());
 
-         "test3.oasis",
-         ignore;
+           "test2.oasis",
+           ignore;
 
-         "test4.oasis",
-         ignore;
-         
-         "test5.oasis",
-         ignore;
-         
-         "test6.oasis",
-         ignore;
-       ]
-    )
+           "test3.oasis",
+           ignore;
+
+           "test4.oasis",
+           ignore;
+           
+           "test5.oasis",
+           ignore;
+           
+           "test6.oasis",
+           ignore;
+         ]
+      );
+    ]
 ;;

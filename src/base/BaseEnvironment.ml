@@ -127,6 +127,9 @@ let var_set
         (* Build one definition using either value from 
          * env or default definition
          *)
+        let raised_exn = 
+          ref None
+        in
         let lzy, origin =
           (* Use env or default value, depending what is available 
              and their priority
@@ -137,16 +140,27 @@ let var_set
                  try 
                    ignore (Lazy.force lzy); 
                    true 
-                 with _ -> 
-                   false)
+                 with 
+                   | Not_found -> 
+                       false
+                   | e ->
+                       (* Remember unusual exception *)
+                       raised_exn := Some e;
+                       false)
               (List.sort
                  (fun (_, org1) (_, org2) -> compare org1 org2)
                  [lazy (Sys.getenv name), OGetEnv; dflt, origin])
           with Not_found ->
-            failwith 
-              (Printf.sprintf 
-                 "No default value for variable %s"
-                 name)
+            (
+              match !raised_exn with 
+                | Some e ->
+                    raise e
+                | None ->
+                    failwith 
+                      (Printf.sprintf 
+                         "No default value for variable %s"
+                         name)
+            )
         in
           env.last_order <- env.last_order + 1;
           Hashtbl.add
@@ -177,7 +191,7 @@ let rec var_expand env str =
       buff
       (fun var -> 
          try 
-           var_get var env
+           var_get ~handle_not_found:false var env
          with Not_found ->
            failwith 
              (Printf.sprintf 
@@ -191,9 +205,16 @@ let rec var_expand env str =
 
 (** Get variable 
   *)
-and var_get name env =
+and var_get ?(handle_not_found=true) name env =
   let vl = 
-    (Hashtbl.find env.vars name).value
+    try 
+      (Hashtbl.find env.vars name).value
+    with Not_found when handle_not_found ->
+      failwith 
+        (Printf.sprintf 
+           "No variable %s defined (available: %s)"
+           name
+           (String.concat ", " (var_all env)))
   in
     var_expand env vl
 ;;

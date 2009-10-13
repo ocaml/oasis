@@ -5,13 +5,14 @@
 
 (** Alias type
   *)
-type name         = string;;
-type package_name = string;;
-type url          = string;;
-type version      = string;;
-type dirname      = string;;
-type filename     = string;;
-type prog         = string;;
+type name               = string;;
+type package_name       = string;;
+type url                = string;;
+type version            = string;;
+type version_constraint = string;;
+type dirname            = string;;
+type filename           = string;;
+type prog               = string;;
 
 (** A mandatory field is not defined *)
 exception MissingField of name list;;
@@ -41,7 +42,7 @@ type compiled_object =
 
 (** Package dependency
   *)
-type dependency = package_name * version option
+type dependency = package_name * version_constraint option
 ;;
 
 (** Available test 
@@ -110,6 +111,8 @@ type 'a flag = {
 (** OASIS file whole content
   *)
 type 'a package = {
+  oasis_version:  version;
+  ocaml_version:  version_constraint option;
   name:           package_name;
   version:        version;
   license:        license;

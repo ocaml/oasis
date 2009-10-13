@@ -178,15 +178,6 @@ let suffix_program env =
        ))
     env
 
-(** Check against a minimal version.
-  *)
-let ocaml_version_constraint version_cmp env = 
-  version 
-    "ocaml" 
-    version_cmp 
-    (fun () -> ocaml_version env)
-    env
-
 (** All variables 
   *)
 let all = 

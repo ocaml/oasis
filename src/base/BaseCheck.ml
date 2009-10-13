@@ -56,22 +56,27 @@ let version
   let var = 
     var_prefix^"_version_"^var_cmp
   in
-    var_set 
+    var_define 
       ~hide:true 
-      ODefault
       var
       (lazy
          (let version =
-            match fversion () with 
+            match fversion env with 
               | "[Distributed with OCaml]" ->
                   (var_get "ocaml_version" env)
               | res ->
                   res
           in
+            prerr_endline version;
             if Ver.comparator_apply version cmp then
               version
             else
-              raise Not_found))
+              failwith 
+                (Printf.sprintf
+                   "Cannot satisfy version constraint on %s: %s (version: %s)"
+                   var_prefix
+                   str_cmp
+                   version)))
       env
 ;;
 
@@ -107,11 +112,12 @@ let package ?version_comparator pkg env =
     (
       match version_comparator with 
         | Some ver_cmp ->
-            version 
-              ("pkg_"^pkg)
-              ver_cmp
-              (fun () -> findlib_version pkg)
-              env
+            var_ignore
+              (version 
+                 ("pkg_"^pkg)
+                 ver_cmp
+                 (fun _ -> findlib_version pkg)
+                 env)
         | None -> 
             ()
     );

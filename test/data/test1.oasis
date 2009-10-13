@@ -1,5 +1,6 @@
 Name:         oasis
 Version:      0.0.1
+OASISFormat: 1.0
 Synopsis:     Just a test
 License:      GPL
 LicenseFile:  LICENSE
