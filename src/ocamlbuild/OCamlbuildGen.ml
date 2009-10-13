@@ -105,7 +105,102 @@ let build pkg =
   in
 
   let other_action () = 
-    (* Generate a files for library *)
+
+    let tags_of_package pkg =
+      let tags_of_build_depends target deps acc = 
+        List.fold_left 
+          (fun acc (findlib_pkg, _) ->
+             (target ^": pkg_"^findlib_pkg) :: acc)
+          acc
+          deps
+      in
+
+      let target_ml dir = 
+        Printf.sprintf "<%s/*.ml>" dir
+      in
+
+      let target_exec dir name comp =
+        let ext =
+          match comp with 
+            | Best ->
+                "{native,byte}"
+            | Byte -> 
+                "byte"
+            | Native ->
+                "native"
+        in
+          Printf.sprintf "<%s/%s.%s>" dir name ext
+      in
+
+      let rev_content = 
+        (* Extract content for libraries *)
+        List.fold_left 
+          (fun acc (nm, lib) ->
+             let all_path = 
+               List.fold_left
+                 (fun st modul ->
+                    SetString.add
+                      (FilePath.dirname 
+                         (FilePath.concat lib.lib_path modul))
+                      st)
+                 SetString.empty
+                 lib.lib_modules
+             in
+             let acc = 
+               (Printf.sprintf "# Library %s" nm) :: acc
+             in
+               SetString.fold
+                 (fun dir ->
+                    tags_of_build_depends 
+                      (target_ml dir) 
+                      (lib.lib_build_depends @ pkg.build_depends))
+                 all_path
+                 acc)
+          []
+          pkg.libraries
+      in
+
+      let rev_content =
+        (* Extract content for executables *)
+        List.fold_left
+          (fun acc (nm, exec) ->
+             let dir = 
+               FilePath.dirname exec.exec_main_is
+             in
+             let acc = 
+               (Printf.sprintf "# Executable %s" nm) :: acc
+             in
+             let acc =
+               tags_of_build_depends
+                 (target_ml dir)
+                 (exec.exec_build_depends @ pkg.build_depends)
+                 acc
+             in
+               tags_of_build_depends
+                 (target_exec dir nm exec.exec_compiled_object)
+                 (exec.exec_build_depends @ pkg.build_depends)
+                 acc)
+          rev_content
+          pkg.executables
+      in
+
+        (* Filter duplicate and reverse content *)
+        snd
+          (List.fold_left
+             (fun (prev_tag, acc) tag ->
+                if (String.length tag > 0 && tag.[0] = '#') || (* Don't remove comment *)
+                   not (SetString.mem tag prev_tag) then (* Remove already seen tag *)
+                  (
+                    SetString.add tag prev_tag,
+                    tag :: acc
+                  )
+                else
+                    (prev_tag, acc))
+             (SetString.empty, [])
+             rev_content)
+    in
+
+    (* Generate files for OCaml library (.mllib) *)
     List.iter
       (fun (nm, lib) ->
          let fn_base =
@@ -130,6 +225,15 @@ let build pkg =
 
            ())
       pkg.libraries;
+
+    (* Generate _tags *)
+    file_generate
+      "_tags"
+      comment_ocamlbuild
+      (Split
+         ([],
+          tags_of_package pkg,
+          []));
 
     (* Generate myocamlbuild.ml *)
     file_generate 

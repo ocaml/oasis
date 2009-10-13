@@ -1,4 +1,9 @@
 
+
+(** Set for String 
+  *)
+module SetString = Set.Make(String)
+
 (** Remove trailing whitespace *)
 let strip_whitespace str =
   let strlen = 
