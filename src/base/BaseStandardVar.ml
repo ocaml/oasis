@@ -30,25 +30,25 @@ let prefix =
        | _ ->
            "/usr/local")
       
-let eprefix = 
-  p "eprefix"
+let exec_prefix = 
+  p "exec_prefix"
     "Install architecture-dependent files in dir"
     "$prefix"
 
 let bindir =
   p "bindir"
     "User executables"
-    ("$eprefix"/"bin")
+    ("$exec_prefix"/"bin")
 
 let sbindir =
   p "sbindir"
     "System admin executables"
-    ("$eprefix"/"sbin")
+    ("$exec_prefix"/"sbin")
 
 let libexecdir =
   p "libexecdir"
     "Program executables"
-    ("$eprefix"/"libexec")
+    ("$exec_prefix"/"libexec")
 
 let sysconfdir =
   p "sysconfdir"
@@ -68,7 +68,7 @@ let localstatedir =
 let libdir =
   p "libdir"
     "Object code libraries"
-    ("$eprefix"/"lib")
+    ("$exec_prefix"/"lib")
 
 let datarootdir =
   p "datarootdir"
@@ -183,7 +183,7 @@ let suffix_program env =
 let all = 
   [
     prefix;
-    eprefix;
+    exec_prefix;
     bindir;
     sbindir;
     libexecdir;
