@@ -243,7 +243,52 @@ let build pkg =
     file_generate 
       "myocamlbuild.ml"
       comment_ml
-      (NeedSplit OCamlbuildData.myocamlbuild_ml)
+      (let myocamlbuild_t = 
+         REC
+           ("OCamlAutobuild",
+            [
+              "lib_ocaml",
+              (LST
+                 (List.map 
+                    (fun (nm, lib) ->
+                       let dirs = 
+                         List.map 
+                           (fun s -> STR s)
+                           (SetString.elements
+                              (set_string_of_list
+                                 (lib.lib_path
+                                  ::
+                                  List.rev_map
+                                    FilePath.UnixPath.dirname
+                                    (List.rev_map
+                                       (FilePath.UnixPath.concat lib.lib_path)
+                                       lib.lib_modules))))
+                       in
+                         TPL 
+                           [STR (lib.lib_path^"/"^nm); 
+                            LST dirs])
+                    pkg.libraries))
+            ])
+       in
+       let content = 
+         OCamlbuildData.myocamlbuild_ml
+         @
+         [
+           (
+             Format.fprintf Format.str_formatter
+               "@[<hv2>let package_default =@ %a@,@];;"
+               pp_ocaml_expr myocamlbuild_t;
+             Format.flush_str_formatter ()
+           );
+           "";
+           "let dispatch_default = \
+                  OCamlAutobuild.dispatch_default package_default;;"; 
+           "";
+         ]
+        in
+          Split ([], 
+                 content, 
+                 ["Ocamlbuild_plugin.dispatch dispatch_default;;"]))
   in
     {
       moduls = 

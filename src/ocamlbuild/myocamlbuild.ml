@@ -1,20 +1,10 @@
-
-(* AUTOBUILD_START *)
-
-(*
-(* Win32/Unix env *)
-let () = 
-  match Sys.os_type with 
-    | "Win32" ->
-        Options.ext_obj := "obj"
-    | _ ->
-        ()
- *)
 module OCamlfind =
 struct
   (** OCamlbuild extension, copied from 
     * http://brion.inria.fr/gallium/index.php/Using_ocamlfind_with_ocamlbuild
     * by N. Pouillard and others
+    *
+    * Updated on 2009/02/28
     *
     * Modified by Sylvain Le Gall 
     *)
@@ -113,6 +103,52 @@ struct
       | _ -> 
           ()
 end;;
-(* AUTOBUILD_STOP *)
 
-Ocamlbuild_plugin.dispatch OCamlfind.dispatch;;
+module OCamlAutobuild =
+struct
+  open Ocamlbuild_plugin
+
+  type dir = string
+  type name = string
+
+  type t =
+      {
+        lib_ocaml: (name * dir list) list;
+      }
+
+  let dispatch_combine lst =
+    fun e ->
+      List.iter 
+        (fun dispatch -> dispatch e)
+        lst 
+
+  let dispatch t = 
+    function
+      | After_rules -> 
+          (* Declare OCaml libraries *)
+          List.iter 
+            (function
+               | lib, [] ->
+                   ocaml_lib lib;
+               | lib, dir :: tl ->
+                   ocaml_lib ~dir:dir lib;
+                   List.iter 
+                     (fun dir -> 
+                        flag 
+                          ["ocaml"; "use_"^lib; "compile"] 
+                          (S[A"-I"; P dir]))
+                     tl)
+            t.lib_ocaml
+
+      | _ -> 
+          ()
+
+  let dispatch_default t =
+    dispatch_combine 
+      [
+        dispatch t;
+        OCamlfind.dispatch;
+      ]
+
+end
+

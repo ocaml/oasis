@@ -4,6 +4,14 @@
   *)
 module SetString = Set.Make(String)
 
+(** Build a set out of list 
+  *)
+let set_string_of_list =
+  List.fold_left
+    (fun st e -> SetString.add e st)
+    SetString.empty
+
+
 (** Remove trailing whitespace *)
 let strip_whitespace str =
   let strlen = 
