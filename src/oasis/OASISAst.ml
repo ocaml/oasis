@@ -25,7 +25,7 @@ let to_package fn ignore_unknown srcdir ast =
          valid_flags = List.map fst flags}
   in
 
-  (* Merge an expresion with a condition in a ctxt *)
+  (* Merge an expression with a condition in a ctxt *)
   let ctxt_add_expr ctxt e =
     match ctxt with 
       | {cond = None} ->
@@ -140,6 +140,56 @@ let to_package fn ignore_unknown srcdir ast =
   let libs, execs, flags =
     top_stmt wrtr ([], [], []) ast
   in
+  let pkg = 
     OASISPackage.generator wrtr libs execs flags
+  in
+
+  (* Fix build depends to reflect internal dependencies *)
+  let pkg = 
+    let map_internal_libraries what =
+      List.map
+        (function
+           | (FindlibPackage (lnm, None)) as bd ->
+               if List.mem_assoc lnm pkg.libraries then
+                 InternalLibrary lnm
+               else
+                 bd
+           | (FindlibPackage (lnm, Some _)) as bd ->
+               if List.mem_assoc lnm pkg.libraries then
+                 failwith 
+                   (Printf.sprintf
+                      "Cannot use versioned build depends \
+                       on internal library %s in %s"
+                      lnm
+                      what)
+               else
+                 bd
+           | (InternalLibrary _) as bd ->
+               bd)
+    in
+      {pkg with 
+           libraries = 
+             List.map 
+               (fun (nm, lib) ->
+                  nm,
+                  {lib with 
+                       lib_build_depends = 
+                         map_internal_libraries
+                           ("library "^nm)
+                           lib.lib_build_depends})
+               pkg.libraries;
+           executables =
+             List.map 
+               (fun (nm, exec) ->
+                  nm,
+                  {exec with 
+                       exec_build_depends =
+                         map_internal_libraries
+                           ("executable "^nm)
+                           exec.exec_build_depends})
+               pkg.executables}
+  in
+    (* TODO: check recursion and re-order library/tools using ocamlgraph *)
+    pkg
 ;;
 

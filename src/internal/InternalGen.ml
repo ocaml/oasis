@@ -13,27 +13,33 @@ let plugin_id = "internal";;
 (* Configuration *)
 let configure pkg standard_vars =
 
-  let build_depends_check (findlib_pkg, ver_opt) = 
-    let version_arg = 
-      match ver_opt with
-        | Some ver ->
-            let cmp = 
-              BaseVersion.comparator_of_string ver
+  let build_depends_check acc = 
+    function
+      | FindlibPackage (findlib_pkg, ver_opt) ->
+          (
+            let version_arg = 
+              match ver_opt with
+                | Some ver ->
+                    let cmp = 
+                      BaseVersion.comparator_of_string ver
+                    in
+                      [
+                        "version_comparator",
+                        TPL [STR ver; 
+                             BaseVersion.code_of_comparator cmp;
+                             STR (BaseVersion.varname_of_comparator cmp)];
+                      ]
+                | None ->
+                    []
             in
-              [
-                "version_comparator",
-                TPL [STR ver; 
-                     BaseVersion.code_of_comparator cmp;
-                     STR (BaseVersion.varname_of_comparator cmp)];
-              ]
-        | None ->
-            []
-    in
-      APP ("BaseCheck.package", version_arg, [STR findlib_pkg])
+              APP ("BaseCheck.package", version_arg, [STR findlib_pkg]) :: acc
+          )
+      | InternalLibrary _ ->
+          acc
   in
 
-  let build_tools_check prog =
-    APP ("BaseCheck.prog", [], [STR prog])
+  let build_tools_check acc prog =
+    APP ("BaseCheck.prog", [], [STR prog]) :: acc
   in
 
   let build_checks cond tools depends =
@@ -41,9 +47,14 @@ let configure pkg standard_vars =
       [
         (BaseExpr.code_of_bool_choices cond);
         LST
-          ((List.map build_tools_check tools)
-           @
-           (List.map build_depends_check depends))
+          (List.rev
+             (List.fold_left 
+                build_depends_check
+                (List.fold_left
+                   build_tools_check
+                   []
+                   tools)
+                depends))
       ]
   in
 

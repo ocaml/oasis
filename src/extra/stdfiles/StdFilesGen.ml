@@ -150,8 +150,13 @@ let main pkg =
            pkg.build_tools;
          List.iter 
            (function
-              | lib, Some ver -> fprintf fmt "* findlib package %s (%s)\n" lib ver
-              | lib, None -> fprintf fmt "* findlib package %s\n" lib)
+              | FindlibPackage (lib, Some ver) -> 
+                  fprintf fmt "* findlib package %s (%s)\n" lib ver
+              | FindlibPackage (lib, None) -> 
+                  fprintf fmt "* findlib package %s\n" lib
+              | InternalLibrary _ ->
+                  ())
+           (* TODO: include depends for each package *)
            pkg.build_depends;
 
          pp_print_string fmt StdFilesGenData.install);

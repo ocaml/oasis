@@ -42,7 +42,9 @@ type compiled_object =
 
 (** Package dependency
   *)
-type dependency = package_name * version_constraint option
+type dependency = 
+  | FindlibPackage of package_name * version_constraint option
+  | InternalLibrary of name
 ;;
 
 (** Available test 

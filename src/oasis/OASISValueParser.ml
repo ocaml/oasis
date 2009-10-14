@@ -150,12 +150,10 @@ let build_depends ctxt str =
             ctxt
             (strip_whitespace ver_constr)
         in
-          pkg, 
-          Some ver_constr
+          FindlibPackage (pkg, Some ver_constr)
       )
     else 
-      (strip_whitespace str),
-      None
+      FindlibPackage (strip_whitespace str, None)
   in
     List.map
       parse_one

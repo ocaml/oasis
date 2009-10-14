@@ -109,8 +109,12 @@ let build pkg =
     let tags_of_package pkg =
       let tags_of_build_depends target deps acc = 
         List.fold_left 
-          (fun acc (findlib_pkg, _) ->
-             (target ^": pkg_"^findlib_pkg) :: acc)
+          (fun acc dep ->
+             match dep with 
+               | FindlibPackage (findlib_pkg, _) ->
+                   (target^": pkg_"^findlib_pkg) :: acc
+               | InternalLibrary nm ->
+                   (target^": use_"^nm) :: acc)
           acc
           deps
       in

@@ -59,7 +59,11 @@ let main pkg =
   in
 
   let requires lib =
-    List.map fst pkg.build_depends 
+    List.map
+      (function
+         | FindlibPackage (nm, _) 
+         | InternalLibrary nm -> nm)
+      pkg.build_depends 
   in
 
   let archives lib nm = 

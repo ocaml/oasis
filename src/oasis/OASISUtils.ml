@@ -42,7 +42,7 @@ let depends_field schm =
     new_field schm "builddepends" 
       ~default:[]
       build_depends
-      (s_ "Dependencies on external libraries (findlib).")
+      (s_ "Dependencies on findlib packages and internal libraries.")
   in
   let build_tools =
     new_field schm "buildtools"
