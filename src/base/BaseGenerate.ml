@@ -30,26 +30,8 @@ let generate pkg =
       ]
   in
 
-  let standard_vars =
-    let module SVSet = 
-      Set.Make
-        (struct 
-           type t = standard_var 
-           let compare = compare
-         end)
-    in
-      SVSet.elements
-        (List.fold_left
-           (fun set e -> SVSet.add e set)
-           SVSet.empty
-           (List.flatten 
-              (List.map 
-                 (fun (_, act) -> act.standard_vars)
-                 generators)))
-  in
-
   let configure =
-     (plugin_configure pkg.conf_type) pkg standard_vars
+     (plugin_configure pkg.conf_type) pkg
   in
 
   let () = 

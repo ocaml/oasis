@@ -10,39 +10,6 @@ open CommonGettext;;
   *)
 type modul = string;;
 
-(** Standard variables 
-  *)
-type standard_var = 
-  | SVocamlc
-  | SVocamlopt
-  | SVocamlbest
-  | SVsuffix_program
-  | SVocaml_version
-  | SVstandard_library_default
-  | SVstandard_library
-  | SVstandard_runtime
-  | SVccomp_type
-  | SVbytecomp_ccompiler
-  | SVbytecomp_c_linker
-  | SVbytecomp_c_libraries
-  | SVnative_c_compiler
-  | SVnative_c_linker
-  | SVnative_c_libraries
-  | SVnative_partial_linker
-  | SVranlib
-  | SVcc_profile
-  | SVarchitecture
-  | SVmodel
-  | SVsystem
-  | SVext_obj
-  | SVext_asm
-  | SVext_lib
-  | SVext_dll
-  | SVos_type
-  | SVdefault_executable_name
-  | SVsysthread_supported
-;;
-
 (** Describe action made by a target
   *)
 type generator_action =
@@ -64,9 +31,6 @@ type generator_action =
 
       (** Files generated *)
       files_generated: filename list;
-
-      (** Standard variable used *)
-      standard_vars: standard_var list;
     }
 ;;
 
@@ -85,7 +49,7 @@ type std_act_t =
 (** Configure step action
   *)
 type conf_act_t = 
-    package -> standard_var list -> generator_action
+    package -> generator_action
 ;;
 
 (** Kind of plugin 

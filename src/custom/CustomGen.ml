@@ -126,7 +126,6 @@ let main (fld, fld_clean, fld_distclean) pkg =
       distclean_code  = distclean_code;
       other_action    = ignore;
       files_generated = [];
-      standard_vars   = [];
     },
     pkg
 ;;
@@ -134,7 +133,7 @@ let main (fld, fld_clean, fld_distclean) pkg =
 List.iter 
   (plugin_register plugin_id)
   [
-    Configure (fun pkg standard_vars -> fst (main conf pkg));
+    Configure (fun pkg -> fst (main conf pkg));
     Build     (main build); 
     Doc       (main doc); 
     Test      (main test); 

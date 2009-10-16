@@ -22,7 +22,6 @@ let no_generate str data =
     distclean_code   = [];
     other_action     = ignore;
     files_generated  = [];
-    standard_vars    = [];
   },
   data
 ;;
@@ -30,7 +29,7 @@ let no_generate str data =
 List.iter
   (plugin_register plugin_id)
   [
-    Configure (fun pkg standard_vars -> (fst (no_generate "configure" pkg)));
+    Configure (fun pkg -> (fst (no_generate "configure" pkg)));
     Build     (no_generate "build"); 
     Doc       (no_generate "doc"); 
     Test      (no_generate "test"); 

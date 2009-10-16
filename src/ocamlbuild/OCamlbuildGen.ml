@@ -301,7 +301,6 @@ let build pkg =
       distclean_code   = [];
       other_action     = other_action;
       files_generated  = [];
-      standard_vars    = [SVocamlbest; SVos_type; SVstandard_library];
     },
     {pkg with build_tools = "ocamlbuild" :: pkg.build_tools}
 ;;
