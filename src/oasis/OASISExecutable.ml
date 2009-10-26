@@ -29,7 +29,7 @@ let schema, generator =
     OASISUtils.depends_field schm
   in
     schm,
-    (fun wrtr -> 
+    (fun nm wrtr -> 
        {
          exec_build           = build wrtr;
          exec_install         = install wrtr;
@@ -37,6 +37,9 @@ let schema, generator =
          exec_compiled_object = compiled_object wrtr;
          exec_build_depends   = build_depends wrtr;
          exec_build_tools     = build_tools wrtr;
+         exec_is              = FilePath.concat 
+                                  (FilePath.dirname (main_is wrtr))
+                                  nm;
          exec_schema_data     = wrtr;
        })
 ;;

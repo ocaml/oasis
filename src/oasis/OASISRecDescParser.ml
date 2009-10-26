@@ -463,17 +463,23 @@ let parse_file ~debug fn =
           []
   in
 
+  let id_or_string =
+    parser
+      | [<'Ident nm>] ->
+          nm
+      | [<'String nm>] ->
+          nm
+  in
+
   let rec parse_top_stmt =
     parser
       | [<'Kwd "Flag"; 'Ident nm; flag_blk = parse_stmt>] ->
           TSFlag(nm, flag_blk)
 
-      | [<'Kwd "Library"; 'Ident nm;
-           library_blk = parse_stmt>] ->
+      | [<'Kwd "Library"; nm = id_or_string; library_blk = parse_stmt>] ->
           TSLibrary (nm, library_blk)
 
-      | [< 'Kwd "Executable"; 'Ident nm; 
-           exec_blk = parse_stmt>] ->
+      | [< 'Kwd "Executable"; nm = id_or_string; exec_blk = parse_stmt>] ->
           TSExecutable (nm, exec_blk)
 
       | [< 'Kwd "{"; lst = parse_top_stmt_list; 'Kwd "}">] ->

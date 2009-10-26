@@ -25,7 +25,7 @@ let schema, generator =
       (s_ "Default value for the flag")
   in
     schm,
-    (fun wrtr ->
+    (fun (_: string) wrtr ->
        {
          flag_description = descr wrtr;
          flag_default     = default wrtr;

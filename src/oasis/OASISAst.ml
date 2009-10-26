@@ -71,7 +71,7 @@ let to_package fn ignore_unknown srcdir ast =
   (* Explore statement and register data into a newly created
    * Schema.writer.
    *)
-  let schema_stmt gen schm flags stmt' = 
+  let schema_stmt gen nm schm flags stmt' = 
     let wrtr =
       OASISSchema.writer schm
     in
@@ -80,7 +80,7 @@ let to_package fn ignore_unknown srcdir ast =
     in
       stmt wrtr ctxt stmt';
       OASISSchema.check wrtr;
-      gen wrtr
+      gen nm wrtr
   in
 
   (* Recurse into top-level statement. At this level there is 
@@ -93,6 +93,7 @@ let to_package fn ignore_unknown srcdir ast =
           let flag =
             schema_stmt 
               OASISFlag.generator 
+              nm
               OASISFlag.schema 
               flags
               stmt
@@ -103,6 +104,7 @@ let to_package fn ignore_unknown srcdir ast =
           let lib = 
             schema_stmt 
               OASISLibrary.generator
+              nm
               OASISLibrary.schema 
               flags 
               stmt
@@ -113,6 +115,7 @@ let to_package fn ignore_unknown srcdir ast =
           let exec =
             schema_stmt
               OASISExecutable.generator
+              nm
               OASISExecutable.schema
               flags
               stmt

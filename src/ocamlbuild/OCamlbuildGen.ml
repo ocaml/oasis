@@ -22,13 +22,27 @@ let build pkg =
     APP ("OCamlbuildBuild.clean", [], [UNT])
   in
 
-  let code_choices_target oasis_choices extra_choices target =
+  let code_choices_target oasis_choices extra_choices tgt =
     TPL
       [
         code_of_bool_choices 
           ((choices_of_oasis oasis_choices) @ extra_choices);
-        STR target
+        tgt
       ]
+  in
+
+  let code_choices_std_target oasis_choices extra_choices target =
+    code_choices_target
+      oasis_choices
+      extra_choices
+      (VRT ("OCamlbuildBuild.Std", [STR target]))
+  in
+
+  let code_choices_rename_target oasis_choices extra_choices source target =
+    code_choices_target
+      oasis_choices
+      extra_choices
+      (VRT ("OCamlbuildBuild.Rename", [STR source; STR target]))
   in
 
   let setup_code = 
@@ -41,19 +55,19 @@ let build pkg =
               [
                 List.fold_left
                   (fun acc (nm, lib) ->
-
-                     let byte cond =
-                       code_choices_target
+                     let target ext cond =
+                       code_choices_std_target
                          lib.lib_build 
                          cond
-                         (Filename.concat lib.lib_path (nm^".cma"))
+                         (Filename.concat lib.lib_path (nm^ext))
                      in
 
-                     let native cond = 
-                       code_choices_target
-                         lib.lib_build
-                         cond
-                         (Filename.concat lib.lib_path (nm^".cmxa"))
+                     let byte =
+                       target ".cma"
+                     in
+
+                     let native = 
+                       target ".cmxa"
                      in
 
                        match lib.lib_compiled_object with 
@@ -72,19 +86,20 @@ let build pkg =
 
                 List.fold_left
                   (fun acc (nm, exec) ->
-
-                     let byte cond = 
-                       code_choices_target
+                     let target ext cond =
+                       code_choices_rename_target
                          exec.exec_build
                          cond
-                         ((Filename.chop_extension exec.exec_main_is)^".byte");
+                         ((Filename.chop_extension exec.exec_main_is)^ext)
+                         exec.exec_is
                      in
 
-                     let native cond = 
-                       code_choices_target
-                         exec.exec_build
-                         cond
-                         ((Filename.chop_extension exec.exec_main_is)^".native")
+                     let byte = 
+                       target ".byte" 
+                     in
+
+                     let native = 
+                       target ".native"
                      in
 
                        match exec.exec_compiled_object with
@@ -123,7 +138,7 @@ let build pkg =
         Printf.sprintf "<%s/*.ml>" dir
       in
 
-      let target_exec dir name comp =
+      let target_exec main_is comp =
         let ext =
           match comp with 
             | Best ->
@@ -133,7 +148,7 @@ let build pkg =
             | Native ->
                 "native"
         in
-          Printf.sprintf "<%s/%s.%s>" dir name ext
+          Printf.sprintf "<%s.%s>" (FilePath.chop_extension main_is) ext
       in
 
       let rev_content = 
@@ -181,7 +196,7 @@ let build pkg =
                  acc
              in
                tags_of_build_depends
-                 (target_exec dir nm exec.exec_compiled_object)
+                 (target_exec exec.exec_main_is exec.exec_compiled_object)
                  (exec.exec_build_depends @ pkg.build_depends)
                  acc)
           rev_content

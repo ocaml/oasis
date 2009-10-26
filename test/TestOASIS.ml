@@ -138,6 +138,9 @@ let tests ctxt =
            
            "test6.oasis",
            ignore;
+
+           "test7.oasis",
+           ignore;
          ]
       );
     ]

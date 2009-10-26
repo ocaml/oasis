@@ -18,9 +18,8 @@ type library =
 
 type executable =
     {
-      exec_name:    string;
-      exec_install: bool BaseExpr.choices;
-      exec_path:    string;
+      exec_filename: string;
+      exec_install:  bool BaseExpr.choices;
     }
 ;;
 
@@ -161,15 +160,13 @@ let install libs execs env argv =
         (
           let exec_file =
             find_file
-              (fun ((rootdir, name), ext) -> [rootdir; name^ext])
-              (rootdirs * 
-               [exec.exec_name] * 
-               [".native"; ".byte"; ""; suffix_program env])
+              (fun rootdir -> [rootdir; exec.exec_filename^(suffix_program env)])
+              rootdirs
           in
           let tgt_file =
             Filename.concat 
               (bindir env)
-              exec.exec_name
+              (Filename.basename exec.exec_filename)
           in
             BaseMessage.info 
               (Printf.sprintf 
@@ -209,10 +206,9 @@ let library_code_of_oasis (nm, lib) =
 let executable_code_of_oasis (nm, exec) = 
   REC 
     ("InternalInstall",
-     ["exec_name",    STR nm;
-      "exec_install", code_of_bool_choices 
-                        ((choices_of_oasis exec.OASIS.exec_build)
-                        @
-                         (choices_of_oasis exec.OASIS.exec_install));
-      "exec_path",    STR (Filename.dirname exec.OASIS.exec_main_is)])
+     ["exec_filename", STR exec.OASIS.exec_is;
+      "exec_install",  code_of_bool_choices 
+                         ((choices_of_oasis exec.OASIS.exec_build)
+                         @
+                          (choices_of_oasis exec.OASIS.exec_install))]);
 ;;

@@ -30,7 +30,7 @@ let schema, generator =
     OASISUtils.depends_field schm
   in
     schm,
-    (fun wrtr ->
+    (fun (_: string) wrtr ->
        {
          lib_build           = build wrtr;
          lib_install         = install wrtr;

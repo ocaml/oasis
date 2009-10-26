@@ -97,6 +97,7 @@ type 'a executable = {
   exec_compiled_object: compiled_object;
   exec_build_depends:   dependency list;
   exec_build_tools:     prog list;
+  exec_is:              filename; (* Real executable *)
   exec_schema_data:     'a;
 }
 ;;
