@@ -4,7 +4,7 @@
   *)
 
 open BaseCheck;;
-open BaseEnvironment;;
+open BaseEnvRW;;
 
 (** {2 Paths} *)
 

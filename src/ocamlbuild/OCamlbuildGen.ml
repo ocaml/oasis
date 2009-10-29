@@ -286,6 +286,8 @@ let build pkg =
             ])
        in
        let content = 
+         BaseData.basesysenvironment_ml
+         @
          OCamlbuildData.myocamlbuild_ml
          @
          [

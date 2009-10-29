@@ -9,7 +9,7 @@
     @author Sylvain Le Gall
   *)
 
-open BaseEnvironment;;
+open BaseEnvRW;;
 
 let to_filename fn =
   if not (Filename.check_suffix fn ".ab") then

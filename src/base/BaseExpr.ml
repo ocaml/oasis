@@ -3,7 +3,7 @@
     @author Sylvain Le Gall
   *)
 
-open BaseEnvironment;;
+open BaseEnvRW;;
 
 type t =
   | Bool of bool

@@ -2,7 +2,7 @@
 (** {1 Checking for particular features} 
   *)
 
-open BaseEnvironment;;
+open BaseEnvRW;;
 module Ver = BaseVersion;;
 module Msg = BaseMessage;;
 

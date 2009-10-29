@@ -3,10 +3,9 @@
     @author Sylvain Le Gall
   *)
 
-module Env = BaseEnvironment
-;;
+open BaseEnvRW;;
 
-type action_fun = Env.env -> string array -> unit;;
+type action_fun = env_t -> string array -> unit;;
 
 type t =
     {
@@ -31,7 +30,7 @@ let distclean t =
          (BaseMessage.info 
             (Printf.sprintf "Remove '%s'" fn);
           Sys.remove fn))
-    (Env.filename :: t.files_generated);
+    (BaseEnvRO.default_filename :: t.files_generated);
   t.distclean ()
 ;;
 
@@ -57,7 +56,7 @@ let setup t =
             (fun () ->
                (* Build initial environment *)
                let env_org =
-                 Env.load ~allow_empty:configure ()
+                 load ~allow_empty:configure ()
                in
                  act :=
                  (let args =

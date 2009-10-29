@@ -3,7 +3,7 @@
   * into enviornment variable
   *)
 
-open BaseEnvironment;;
+open BaseEnvRW;;
 
 module SMap = Map.Make(String);;
 

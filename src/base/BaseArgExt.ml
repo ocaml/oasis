@@ -3,7 +3,7 @@
     @author Sylvain Le Gall
   *)
 
-open BaseEnvironment;;
+open BaseEnvRW;;
 
 let parse argv args env =
     (* Simulate command line for Arg *)

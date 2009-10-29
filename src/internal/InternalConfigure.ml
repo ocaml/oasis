@@ -3,7 +3,7 @@
     @author Sylvain Le Gall
   *)
 
-open BaseEnvironment;;
+open BaseEnvRW;;
 open BaseExpr;;
 
 (** Build environment using provided series of check to be done
