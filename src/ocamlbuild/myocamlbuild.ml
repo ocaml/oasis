@@ -124,6 +124,14 @@ struct
 
   let dispatch t = 
     function
+      | Before_options ->
+          let env = 
+            BaseEnvRO.load ~filename:(Pathname.basename BaseEnvRO.default_filename) ()
+          in
+            Options.ext_obj := BaseEnvRO.var_get "ext_obj" env;
+            Options.ext_lib := BaseEnvRO.var_get "ext_lib" env;
+            Options.ext_dll := BaseEnvRO.var_get "ext_dll" env;
+
       | After_rules -> 
           (* Declare OCaml libraries *)
           List.iter 
