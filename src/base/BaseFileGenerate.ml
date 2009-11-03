@@ -367,31 +367,83 @@ let mlfile_generate ?(target) fn content =
       )
   in
 
-  let contains_line_modifier =
+  (* Make sure that line modifier contains reference to file that
+   * really exists. If not modify the matching string.
+   *)
+  let check_line_modifier str =
     let rgxp =
-      Str.regexp "^#[ \\t]*[0-9]+[ \\t]"
+      Str.regexp "^#[ \\t]*[0-9]+[ \\t]+\"\\([^\"]*\\)\""
     in
-      fun str -> 
-        try
-          let _i : int =
-            Str.search_forward rgxp str 0
-          in
-            true
-        with Not_found ->
-          false
+    let rec check_line_modifier_aux (prev_find, prev_str, prev_idx) = 
+      try
+        let idx =
+          Str.search_forward rgxp prev_str prev_idx
+        in
+        let line_modifier =
+          Str.matched_string prev_str
+        in
+        let line_modifier_fn = 
+          Str.matched_group 1 prev_str
+        in
+        let acc = 
+          if Sys.file_exists line_modifier_fn then
+            (
+              (* We found a valid match, continue to search
+               *)
+              true, prev_str, idx + (String.length line_modifier)
+            )
+          else
+            (
+              (* The line modifier filename is not available, better
+               * comment it
+               *)
+              let replace_regexp = 
+                Str.regexp 
+                  ("^"^(Str.quote line_modifier))
+              in
+              let line_modifier_commented =
+                "(* "^line_modifier^" *)"
+              in
+              let str = 
+                Str.global_replace 
+                  replace_regexp 
+                  line_modifier_commented
+                  prev_str
+              in
+                (* Restart search before we replace the string, at this
+                 * point index has not been modified.
+                 *)
+                prev_find, str, prev_idx
+            )
+        in
+          check_line_modifier_aux acc
+      with Not_found ->
+        prev_find, prev_str, (String.length prev_str)
+    in
+
+    let find, str, _ = 
+      check_line_modifier_aux (false, str, 0)
+    in
+      find, str
   in
 
   let insert_line_modifier lst line_start = 
     let rlst, line_end =
       List.fold_left
         (fun (acc, line_cur) str ->
-           let line_cur =
-             count_line str line_cur 0
+           (* Comment useless line modifier *)
+           let contains_line_modifier, validated_str =
+             check_line_modifier str
            in
-             if contains_line_modifier str then
-               ((Printf.sprintf "# %d %S" line_cur fn) :: str :: acc), (line_cur + 1)
+           let line_cur =
+             count_line validated_str line_cur 0
+           in
+             if contains_line_modifier then
+               ((Printf.sprintf "# %d %S" line_cur fn) :: validated_str :: acc), 
+               (line_cur + 1)
              else
-               (str :: acc), line_cur)
+               (validated_str :: acc), 
+               line_cur)
         ([], line_start)
         lst
     in

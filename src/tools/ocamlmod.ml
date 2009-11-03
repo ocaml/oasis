@@ -1,4 +1,7 @@
 
+(** Tool to transform a source module into an OCaml module
+    @author Sylvain Le Gall
+  *)
 
 let dump_ml chn_out fn =
   let () = 
@@ -38,9 +41,22 @@ let dump_ml chn_out fn =
       close_in chn_in
   in
 
+  let real_fn =
+    let pwd = 
+      FileUtil.pwd () 
+    in
+    let pwd =
+      if FilePath.basename pwd = "_build" then
+        FilePath.dirname pwd
+      else
+        pwd
+    in
+      FileUtil.readlink (FilePath.make_absolute pwd fn)
+  in
+
     Printf.fprintf chn_out "module %s =\n" modname;
     Printf.fprintf chn_out "struct\n";
-    Printf.fprintf chn_out "# 1 %S\n" fn;
+    Printf.fprintf chn_out "# 1 %S\n" real_fn;
     export_extract chn_out fn;
     Printf.fprintf chn_out "end;;\n\n";
 ;;

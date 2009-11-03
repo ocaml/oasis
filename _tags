@@ -18,7 +18,8 @@
 <src/extra/devfiles/*.ml>: pkg_fileutils
 "src/oasis/OASISRecDescParser.ml": syntax_camlp4o, pkg_camlp4
 "src/OCamlAutobuild.byte": pkg_unix, pkg_str, pkg_fileutils
-<src/tools/ocamlmod.{byte,cmo,cmx}>: pkg_str
+
+<src/tools/ocamlmod.{ml,byte,cmo,cmx}>: pkg_str, pkg_fileutils
 
 "src/extra/stdfiles": include
 <src/extra/stdfiles/*.ml>: pkg_fileutils

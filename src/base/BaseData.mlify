@@ -1,2 +1,2 @@
-VarString     basesys_ml            "BaseSys.ml"
-VarStringList basesysenvironment_ml "BaseSysEnvironment.ml"
+VarString basesys_ml            "BaseSys.ml"
+VarString basesysenvironment_ml "BaseSysEnvironment.ml"

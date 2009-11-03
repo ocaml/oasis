@@ -255,12 +255,11 @@ let build pkg =
           []));
 
     (* Generate myocamlbuild.ml *)
-    file_generate 
+    mlfile_generate 
       "myocamlbuild.ml"
-      comment_ml
       (let myocamlbuild_t = 
          REC
-           ("OCamlAutobuild",
+           ("OCamlbuildBase",
             [
               "lib_ocaml",
               (LST
@@ -286,11 +285,9 @@ let build pkg =
             ])
        in
        let content = 
-         BaseData.basesysenvironment_ml
-         @
-         OCamlbuildData.myocamlbuild_ml
-         @
          [
+           BaseData.basesysenvironment_ml;
+           OCamlbuildData.myocamlbuild_ml;
            (
              Format.fprintf Format.str_formatter
                "@[<hv2>let package_default =@ %a@,@];;"
@@ -299,7 +296,7 @@ let build pkg =
            );
            "";
            "let dispatch_default = \
-                  OCamlAutobuild.dispatch_default package_default;;"; 
+                  OCamlbuildBase.dispatch_default package_default;;"; 
            "";
          ]
         in
