@@ -1,6 +1,8 @@
 
 all:
+	cd src && $(OCAMLC) -c foo.mli bar.mli && $(OCAMLC) -a -o simplelib.cma foo.mli foo.ml bar.ml
 
 clean:
+	$(RM) src/foo.cm[xoi] src/bar.cm[xoi] src/simplelib.cma
 
 distclean:

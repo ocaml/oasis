@@ -132,7 +132,12 @@ let install libs execs env argv =
                       find_build_file (lib.lib_name^".cmxa");
                       find_build_file (lib.lib_name^".a");
                     ]
-                  with Not_found ->
+                  with Failure txt ->
+                    BaseMessage.warning 
+                      (Printf.sprintf
+                         "Cannot install native library %s: %s"
+                         lib.lib_name
+                         txt);
                     []
                 )
                 ::

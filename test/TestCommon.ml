@@ -3,9 +3,13 @@
     @author Sylvain Le Gall
   *)
 
+module MapString = Map.Make(String);;
+module SetString = Set.Make(String);;
+
 type context =
     {
-      dbug: bool;
+      dbug:         bool;
+      has_ocamlopt: bool;
     }
 ;;
 
