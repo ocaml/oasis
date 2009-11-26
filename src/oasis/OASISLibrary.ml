@@ -29,6 +29,9 @@ let schema, generator =
   let build_depends, build_tools =
     OASISUtils.depends_field schm
   in
+  let c_sources = 
+    OASISUtils.c_field schm
+  in
     schm,
     (fun (_: string) wrtr ->
        {
@@ -39,6 +42,7 @@ let schema, generator =
          lib_compiled_object = compiled_object wrtr;
          lib_build_depends   = build_depends wrtr;
          lib_build_tools     = build_tools wrtr;
+         lib_c_sources       = c_sources wrtr;
          lib_schema_data     = wrtr;
        })
 ;;

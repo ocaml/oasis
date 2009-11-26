@@ -1,0 +1,32 @@
+OASISFormat: 1.0
+Name:        with-c
+Version:     0.0.1
+Authors:     Sylvain Le Gall
+LicenseFile: LICENSE
+License:     LGPL-link-exn
+Synopsis:    Minimal project with C file.
+Plugins:     META
+
+Library "with-c"
+  Path: src
+  Modules: A
+  CSources: A_stub.c
+
+Executable "test-with-c"
+  MainIs: src/main.ml
+  CompiledObject: byte
+  BuildDepends: with-c 
+  CSources: main_stub.c
+
+Executable "test-with-c-custom"
+  MainIs: src/main_custom.ml
+  CompiledObject: byte
+  Custom: true
+  BuildDepends: with-c 
+  CSources: main_custom_stub.c
+
+Executable "test-with-c-native"
+  MainIs: src/main_native.ml
+  CompiledObject: best
+  BuildDepends: with-c 
+  CSources: main_native_stub.c

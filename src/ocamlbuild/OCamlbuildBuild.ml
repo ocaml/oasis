@@ -7,6 +7,7 @@ open BaseStandardVar;;
 
 type target =
   | Std of string
+  | CLibrary  of string * string
   | Rename of string * string
 ;;
 
@@ -60,6 +61,12 @@ let build cond_targets env argv =
            match tgt with 
              | Std nm -> 
                  nm :: acc
+             | CLibrary (dir, nm) ->
+                 (dir^"/lib"^nm^(ext_lib env)) 
+                 ::
+                 (dir^"/dll"^nm^(ext_dll env))
+                 ::
+                 acc
              | Rename (src, tgt) ->
                  ocamlbuild_run (src :: acc);
                  BaseFileUtil.cp 
@@ -71,7 +78,8 @@ let build cond_targets env argv =
       []
       (!cond_targets_hook cond_targets)
   in
-    ocamlbuild_run last_rtargets
+    if last_rtargets <> [] then
+      ocamlbuild_run last_rtargets
 ;;
 
 let clean () = 

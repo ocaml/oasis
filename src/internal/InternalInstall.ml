@@ -6,20 +6,33 @@
 open BaseEnvRW;;
 open BaseStandardVar;;
 
+type comp_type =
+  | Byte
+  | Native
+  | Best 
+;;
+
 type library =
     {
-      lib_name:    string;
-      lib_install: bool BaseExpr.choices;
-      lib_modules: string list;
-      lib_path:    string;
-      lib_extra:   string list;
+      lib_name:            string;
+      lib_install:         bool BaseExpr.choices;
+      lib_modules:         string list;
+      lib_path:            string;
+      lib_extra:           string list;
+      lib_c_sources:       bool;
+      lib_compiled_object: comp_type;
     }
 ;;
 
 type executable =
     {
-      exec_filename: string;
-      exec_install:  bool BaseExpr.choices;
+      exec_path:            string;
+      exec_name:            string;
+      exec_filename:        string;
+      exec_install:         bool BaseExpr.choices;
+      exec_c_sources:       bool;
+      exec_custom:          bool;
+      exec_compiled_object: comp_type; 
     }
 ;;
 
@@ -34,6 +47,14 @@ let builddir env =
     "builddir"
     (lazy (Filename.concat (srcdir env) "_build"))
     env
+;;
+
+let dllfn path name env = 
+  Filename.concat path ("dll"^name^(ext_dll env))
+;;
+
+let libfn path name env =
+  Filename.concat path ("lib"^name^(ext_lib env))
 ;;
 
 let exec_hook =
@@ -86,10 +107,17 @@ let install libs execs env argv =
                    alternatives)))
   in
 
-  let find_build_file dir fn =
+  let find_build_file fn =
     find_file
-      (fun rootdir -> [rootdir; dir; fn])
+      (fun rootdir -> [rootdir; fn])
       rootdirs
+  in
+
+  let is_native comp_type env =
+    match comp_type with 
+      | Best -> (ocamlbest env) = "native" 
+      | Byte -> false
+      | Native -> true
   in
 
   let install_lib env lib = 
@@ -101,8 +129,10 @@ let install libs execs env argv =
     in
       if install then
         (
-          let find_build_file =
-            find_build_file lib.lib_path
+          let find_lib_file fn =
+            find_file
+              (fun rootdir -> [rootdir; lib.lib_path; fn])
+              rootdirs
           in
 
           let module_to_cmi modul =
@@ -122,26 +152,54 @@ let install libs execs env argv =
             List.flatten
               (
                 [
-                  find_build_file "META";
-                  find_build_file (lib.lib_name^".cma");
+                  find_lib_file "META";
+                  find_lib_file (lib.lib_name^".cma");
                 ]
                 :: 
-                (
-                  try 
-                    [
-                      find_build_file (lib.lib_name^".cmxa");
-                      find_build_file (lib.lib_name^".a");
-                    ]
-                  with Failure txt ->
-                    BaseMessage.warning 
-                      (Printf.sprintf
-                         "Cannot install native library %s: %s"
-                         lib.lib_name
-                         txt);
-                    []
+                (if is_native lib.lib_compiled_object env then
+                   (
+                     try 
+                       [
+                         find_lib_file (lib.lib_name^".cmxa");
+                         find_lib_file (lib.lib_name^(ext_lib env));
+                       ]
+                     with Failure txt ->
+                       BaseMessage.warning 
+                         (Printf.sprintf
+                            "Cannot install native library %s: %s"
+                            lib.lib_name
+                            txt);
+                       []
+                   )
+                 else
+                   []
                 )
                 ::
                 lib.lib_extra
+                ::
+                (if lib.lib_c_sources then
+                   [
+                     find_build_file (libfn lib.lib_path lib.lib_name env);
+                   ]
+                 else
+                   [])
+                ::
+                (* Some architecture doesn't allow shared library (Cygwin, AIX) *)
+                (if lib.lib_c_sources then
+                   (try 
+                     [
+                       find_build_file (dllfn lib.lib_path lib.lib_name env);
+                     ]
+                    with Failure txt ->
+                      if (os_type env ) <> "Cygwin" then
+                        BaseMessage.warning
+                          (Printf.sprintf
+                             "Cannot install C static library %s: %s"
+                             lib.lib_name
+                             txt);
+                      [])
+                 else
+                   [])
                 ::
                 (
                   List.rev_map
@@ -158,27 +216,38 @@ let install libs execs env argv =
     let exec =
       !exec_hook env exec
     in
-    let install = 
-      BaseExpr.choose exec.exec_install env
+    let install src_file envdir = 
+      let tgt_file =
+        Filename.concat 
+          (envdir env)
+          (Filename.basename src_file)
+      in
+        BaseMessage.info 
+          (Printf.sprintf 
+             "Copying file %s to %s"
+             src_file
+             tgt_file);
+        BaseFileUtil.cp src_file tgt_file
     in
-      if install then
+      if BaseExpr.choose exec.exec_install env then
         (
-          let exec_file =
-            find_file
-              (fun rootdir -> [rootdir; exec.exec_filename^(suffix_program env)])
-              rootdirs
+          let () = 
+            install 
+              (find_build_file
+                 (exec.exec_filename^(suffix_program env)))
+              bindir
           in
-          let tgt_file =
-            Filename.concat 
-              (bindir env)
-              (Filename.basename exec.exec_filename)
-          in
-            BaseMessage.info 
-              (Printf.sprintf 
-                 "Copying file %s to %s"
-                 exec_file
-                 tgt_file);
-            BaseFileUtil.cp exec_file tgt_file
+            if exec.exec_c_sources && 
+               not exec.exec_custom && 
+               not (is_native exec.exec_compiled_object env) then
+              (
+                install
+                  (find_build_file
+                     (dllfn exec.exec_path exec.exec_name env))
+                  libdir
+              )
+            else
+              ()
         )
   in
 
@@ -193,27 +262,47 @@ open BaseGenCode;;
 
 module OASIS = OASISTypes;;
 
+let compiled_object_of_oasis comp_obj = 
+  let vrt = 
+    match comp_obj with
+      | OASIS.Best -> "Best"
+      | OASIS.Byte -> "Byte"
+      | OASIS.Native -> "Native"
+  in
+    VRT ("InternalInstall."^vrt, [])
+;;
+
 let library_code_of_oasis (nm, lib) =
   REC 
     ("InternalInstall",
-     ["lib_name",    STR nm;
-      "lib_install", code_of_bool_choices 
-                       ((choices_of_oasis lib.OASIS.lib_build)
-                       @
-                        (choices_of_oasis lib.OASIS.lib_install));
-      "lib_modules", LST (List.map 
-                            (fun s -> STR s) 
-                            lib.OASIS.lib_modules);
-      "lib_path",    STR lib.OASIS.lib_path;
-      "lib_extra",   LST []])
+     ["lib_name",             STR nm;
+      "lib_install",          code_of_bool_choices 
+                                ((choices_of_oasis lib.OASIS.lib_build)
+                                @
+                                 (choices_of_oasis lib.OASIS.lib_install));
+      "lib_modules",          LST (List.map 
+                                     (fun s -> STR s) 
+                                     lib.OASIS.lib_modules);
+      "lib_path",             STR lib.OASIS.lib_path;
+      "lib_extra",            LST [];
+      "lib_c_sources",        BOO (lib.OASIS.lib_c_sources <> []);
+      "lib_compiled_object",  compiled_object_of_oasis 
+                                lib.OASIS.lib_compiled_object];
+    );
 ;;
 
 let executable_code_of_oasis (nm, exec) = 
   REC 
     ("InternalInstall",
-     ["exec_filename", STR exec.OASIS.exec_is;
-      "exec_install",  code_of_bool_choices 
-                         ((choices_of_oasis exec.OASIS.exec_build)
-                         @
-                          (choices_of_oasis exec.OASIS.exec_install))]);
+     ["exec_path",            STR (Filename.dirname exec.OASIS.exec_is);
+      "exec_name",            STR nm;
+      "exec_filename",        STR exec.OASIS.exec_is;
+      "exec_install",         code_of_bool_choices 
+                                ((choices_of_oasis exec.OASIS.exec_build)
+                                @
+                                 (choices_of_oasis exec.OASIS.exec_install));
+      "exec_c_sources",       BOO (exec.OASIS.exec_c_sources <> []);
+      "exec_custom",          BOO exec.OASIS.exec_custom;
+      "exec_compiled_object", compiled_object_of_oasis 
+                                exec.OASIS.exec_compiled_object;])
 ;;

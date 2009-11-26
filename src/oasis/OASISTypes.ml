@@ -84,6 +84,7 @@ type 'a library = {
   lib_compiled_object: compiled_object;
   lib_build_depends:   dependency list;
   lib_build_tools:     prog list;
+  lib_c_sources:       filename list;
   lib_schema_data:     'a;
 }
 ;;
@@ -97,6 +98,8 @@ type 'a executable = {
   exec_compiled_object: compiled_object;
   exec_build_depends:   dependency list;
   exec_build_tools:     prog list;
+  exec_c_sources:       filename list;
+  exec_custom:          bool;
   exec_is:              filename; (* Real executable *)
   exec_schema_data:     'a;
 }

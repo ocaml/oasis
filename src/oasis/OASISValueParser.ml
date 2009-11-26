@@ -160,7 +160,7 @@ let build_depends ctxt str =
       (comma_separated ctxt str)
 ;;
 
-(** Convert string to module lists *)
+(** Convert string to module list *)
 let modules ctxt str =
   List.map 
     (str_regexp 
@@ -170,6 +170,11 @@ let modules ctxt str =
     (comma_separated ctxt str)
 ;;
 
+(** Convert string to file list *)
+let files = 
+  comma_separated
+;;
+
 (** Convert string to URL *)
 let categories ctxt str = 
   List.map
@@ -177,18 +182,33 @@ let categories ctxt str =
     (comma_separated ctxt str)
 ;;
 
+(** Choices 
+  *)
+let choices nm lst _ str =
+  try 
+    List.assoc 
+      (String.lowercase str)
+      (List.map 
+        (fun (k, v) ->
+           String.lowercase k, v)
+           lst)
+  with Not_found ->
+    failwith 
+      (Printf.sprintf 
+         "Unknown %s %S (possible: %s)"
+         nm
+         str
+         (String.concat ", " (List.map fst lst)))
+;;
+
 (** Compilation types
   *)
-let compiled_object _ str =
-  match (String.lowercase str) with 
-    | "byte"   -> Byte
-    | "native" -> Native
-    | "best"   -> Best
-    | _ -> 
-        failwith 
-          (Printf.sprintf 
-             "Unknown compiled object %S (possible: byte, native and best"
-             str)
+let compiled_object ctxt str =
+  choices
+    "compiled object"
+    ["byte", Byte; "native", Native; "best", Best]
+    ctxt
+    str
 ;;
 
 (** Optional value *)

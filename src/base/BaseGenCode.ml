@@ -79,6 +79,8 @@ let rec pp_ocaml_expr fmt =
              pp_ocaml_expr fmt e)
           args;
         pp_close_box fmt ()
+    | VRT (nm, []) ->
+        pp_print_string fmt nm
     | VRT (nm, lst) ->
         pp_open_hvbox fmt 2;
         pp_print_string fmt nm;

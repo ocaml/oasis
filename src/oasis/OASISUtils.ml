@@ -39,16 +39,23 @@ let std_field nm comp_dflt schm =
 
 let depends_field schm = 
   let build_depends = 
-    new_field schm "builddepends" 
+    new_field schm "BuildDepends" 
       ~default:[]
       build_depends
       (s_ "Dependencies on findlib packages and internal libraries.")
   in
   let build_tools =
-    new_field schm "buildtools"
+    new_field schm "BuildTools"
       ~default:[]
       comma_separated
       (s_ "Executables require to compile.")
   in
     build_depends, build_tools
+;;
+
+let c_field schm = 
+  new_field schm "CSources"
+    ~default:[]
+    files
+    (s_ "C source files")
 ;;
