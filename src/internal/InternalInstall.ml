@@ -14,25 +14,29 @@ type comp_type =
 
 type library =
     {
-      lib_name:            string;
-      lib_install:         bool BaseExpr.choices;
       lib_modules:         string list;
-      lib_path:            string;
       lib_extra:           string list;
+
+      lib_name:            string;
+      lib_path:            string;
+      lib_install:         bool BaseExpr.choices;
       lib_c_sources:       bool;
       lib_compiled_object: comp_type;
+      lib_data_files:      (string * string) list;
     }
 ;;
 
 type executable =
     {
-      exec_path:            string;
-      exec_name:            string;
       exec_filename:        string;
+      exec_custom:          bool;
+
+      exec_name:            string;
+      exec_path:            string;
       exec_install:         bool BaseExpr.choices;
       exec_c_sources:       bool;
-      exec_custom:          bool;
       exec_compiled_object: comp_type; 
+      exec_data_files:      (string * string) list;
     }
 ;;
 
@@ -118,6 +122,76 @@ let install libs execs env argv =
       | Best -> (ocamlbest env) = "native" 
       | Byte -> false
       | Native -> true
+  in
+
+  let install_data env path files_targets = 
+    List.iter
+      (fun (src, tgt) ->
+         let real_tgt =
+           var_expand env tgt
+         in
+         let real_srcs = 
+           let real_src = 
+             Filename.concat path src
+           in
+           (* Glob the src expression *)
+           let filename = 
+             Filename.basename real_src
+           in
+             if String.contains filename '*' then
+               (
+                 let ext = 
+                   match BaseUtils.split '.' filename with 
+                     | [a; b] when a = "*" -> 
+                         "."^b
+                     | _ ->
+                         failwith 
+                           (Printf.sprintf 
+                              "Invalid file wildcard in '%s'"
+                              src)
+                 in
+                 let ext_len =
+                   String.length ext
+                 in
+                 let dirname =
+                   Filename.dirname real_src
+                 in
+                 let res =
+                   Array.fold_left
+                     (fun acc fn ->
+                        try 
+                          let fn_ext = 
+                            String.sub 
+                              fn 
+                              ((String.length fn) - ext_len) 
+                              ext_len
+                          in
+                            if fn_ext = ext then
+                              (Filename.concat dirname fn) :: acc
+                            else
+                              acc
+                        with Invalid_argument "String.sub" ->
+                          acc)
+                     []
+                     (Sys.readdir dirname)
+                 in
+                   if res = [] then
+                     failwith 
+                       (Printf.sprintf 
+                          "Wildcard '%s' doesn't match any files"
+                          src);
+                   res
+               )
+             else
+               (
+                 [real_src]
+               )
+         in
+         (* Check that target directory exist *)
+         if not (Sys.file_exists real_tgt) then
+           BaseFileUtil.mkdir real_tgt;
+         List.iter (fun fn -> BaseFileUtil.cp fn real_tgt) real_srcs)
+      files_targets
   in
 
   let install_lib env lib = 
@@ -208,7 +282,8 @@ let install libs execs env argv =
                 )
               )
           in
-            BaseExec.run "ocamlfind" ("install" :: lib.lib_name :: files)
+            BaseExec.run "ocamlfind" ("install" :: lib.lib_name :: files);
+            install_data env lib.lib_path lib.lib_data_files;
         )
   in
 
@@ -235,7 +310,8 @@ let install libs execs env argv =
             install 
               (find_build_file
                  (exec.exec_filename^(suffix_program env)))
-              bindir
+              bindir;
+            install_data env exec.exec_path exec.exec_data_files 
           in
             if exec.exec_c_sources && 
                not exec.exec_custom && 
@@ -287,7 +363,11 @@ let library_code_of_oasis (nm, lib) =
       "lib_extra",            LST [];
       "lib_c_sources",        BOO (lib.OASIS.lib_c_sources <> []);
       "lib_compiled_object",  compiled_object_of_oasis 
-                                lib.OASIS.lib_compiled_object];
+                                lib.OASIS.lib_compiled_object;
+      "lib_data_files",       LST (List.rev_map 
+                                     (fun (src, tgt) -> TPL [STR src; STR tgt])
+                                     lib.OASIS.lib_data_files)
+     ]
     );
 ;;
 
@@ -304,5 +384,9 @@ let executable_code_of_oasis (nm, exec) =
       "exec_c_sources",       BOO (exec.OASIS.exec_c_sources <> []);
       "exec_custom",          BOO exec.OASIS.exec_custom;
       "exec_compiled_object", compiled_object_of_oasis 
-                                exec.OASIS.exec_compiled_object;])
+                                exec.OASIS.exec_compiled_object;
+      "exec_data_files",      LST (List.rev_map 
+                                     (fun (src, tgt) -> TPL [STR src; STR tgt])
+                                     exec.OASIS.exec_data_files)
+     ])
 ;;

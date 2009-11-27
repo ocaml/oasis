@@ -82,6 +82,8 @@ let which prg =
     find_file [path_lst; [prg]] exec_ext;  
 ;;
 
+(** Copy a file 
+  *)
 let cp src tgt = 
   match Sys.os_type with 
     | "Win32" ->
@@ -89,3 +91,14 @@ let cp src tgt =
     | _ ->
         BaseExec.run "cp" [src; tgt]
 ;;
+
+(** Create a directory recursively
+  *)
+let mkdir tgt =
+  match Sys.os_type with 
+    | "Win32" ->
+        BaseExec.run "md" [tgt]
+    | _ ->
+        BaseExec.run "mkdir" [tgt]
+;;
+

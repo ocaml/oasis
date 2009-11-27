@@ -25,6 +25,8 @@ type location_t =
       ocaml_lib_dir: filename;
       bin_dir:       filename;
       lib_dir:       filename;
+      data_dir:      filename;
+      doc_dir:       filename;
     }
 ;;
 
@@ -264,7 +266,7 @@ let tests ctxt =
     ]
   in
 
-  (* Set all file location into build_dir + lib_dir *)
+  (* Set all files location into build_dir + lib_dir *)
   let in_library files loc acc =
     List.fold_left
       (fun acc fn ->
@@ -275,13 +277,22 @@ let tests ctxt =
       files
   in
 
-  (* Set all file location into build_dir + ocaml_lib_dir + library *) 
+  (* Set all files location into build_dir + ocaml_lib_dir + library *) 
   let in_ocaml_library lib files loc acc = 
     List.fold_left
       (fun acc fn ->
          (FilePath.make_filename [loc.ocaml_lib_dir; lib; fn])
          ::
          acc)
+      acc
+      files
+  in
+
+  (* Set all files location into buid_dir + data *)
+  let in_data_dir files loc acc =
+    List.fold_left
+      (fun acc fn ->
+         (FilePath.concat loc.data_dir fn) :: acc)
       acc
       files
   in
@@ -506,6 +517,8 @@ let tests ctxt =
              ocaml_lib_dir = mkdir_return ["lib"; "ocaml"];
              bin_dir       = mkdir_return ["bin"];
              lib_dir       = mkdir_return ["lib"];
+             data_dir      = mkdir_return ["share"];
+             doc_dir       = mkdir_return ["share"; "doc"];
            }, 
            pristine)
 
@@ -749,7 +762,7 @@ let tests ctxt =
          ];
 
 
-         (* Library using C files *)
+         (* Library/executable using C files *)
          "../examples/with-c",
          [
            "src/META"; 
@@ -779,6 +792,27 @@ let tests ctxt =
            try_installed_exec "test-with-c-custom" [];
            try_installed_exec "test-with-c" [];
            try_installed_library "with-c" ["A"];
+         ];
+
+         (* Library/executable using data files *)
+         "../examples/with-data",
+         [
+           "src/META";
+           "src/test.mllib";
+         ] @ autobuild_ocamlbuild_files,
+         [
+           in_bin ["test"];
+           in_ocaml_library "test"
+             [
+               "test.ml"; "test.cmi"; "META"; "test.cma";
+             ];
+           in_data_dir 
+             ["with-data/test.txt"; 
+              "doc/with-data/test.html";
+              "with-data-0.1/test.txt"];
+         ],
+         [
+           try_installed_library "test" ["Test"];
          ];
        ]
     )

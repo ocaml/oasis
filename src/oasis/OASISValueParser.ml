@@ -116,8 +116,8 @@ let comma_separated _ =
     Str.split separator 
 ;;
 
-(** Convert string to build depends *)
-let build_depends ctxt str =
+(** Split a string that with an optional value: "e1 (e2)" *)
+let optional_parent value_parse option_parse option_default ctxt =
   let white_spaces =
     "[ \t]*"
   in
@@ -135,29 +135,60 @@ let build_depends ctxt str =
                 white_spaces^
                 "("^white_spaces^"\\(.*\\)"^white_spaces^")")
   in
-  let parse_one str =
-    if Str.string_match split_version str 0 then
+    fun str ->
       (
-        let pkg, ver_constr = 
-          Str.matched_group 1 str,
-          Str.matched_group 2 str
-        in
-        let pkg = 
-          strip_whitespace pkg
-        in
-        let ver_constr =
-          version_constraint
-            ctxt
-            (strip_whitespace ver_constr)
-        in
-          FindlibPackage (pkg, Some ver_constr)
+        if Str.string_match split_version str 0 then
+          (
+            let s1, s2 = 
+              Str.matched_group 1 str,
+              Str.matched_group 2 str
+            in
+            let e1 = 
+              value_parse 
+                ctxt 
+                (strip_whitespace s1)
+            in
+            let e2 =
+              option_parse
+                ctxt
+                (strip_whitespace s2)
+            in
+              e1, e2
+          )
+        else 
+          value_parse ctxt str, option_default
       )
-    else 
-      FindlibPackage (strip_whitespace str, None)
-  in
-    List.map
-      parse_one
-      (comma_separated ctxt str)
+;;
+
+(** Optional value *)
+let opt f ctxt str =
+  Some (f ctxt str)
+;;
+
+(** Convert string to build depends *)
+let build_depends ctxt str =
+  List.rev_map 
+    (fun (pkg, ver_constr_opt) -> 
+       FindlibPackage (pkg, ver_constr_opt))
+    (List.rev_map
+       (optional_parent 
+          string_not_empty 
+          (opt version_constraint)
+          None
+          ctxt)
+       (comma_separated ctxt str))
+;;
+
+(** Convert string to data files specification *)
+let data_files ctxt str =
+  List.map
+    (optional_parent
+       (* TODO: match constraint for wildcard *)
+       string_not_empty
+       string_not_empty
+       "$datarootdir/$pkg_name"
+       ctxt)
+    (comma_separated ctxt str)
 ;;
 
 (** Convert string to module list *)
@@ -211,8 +242,4 @@ let compiled_object ctxt str =
     str
 ;;
 
-(** Optional value *)
-let opt f ctxt str =
-  Some (f ctxt str)
-;;
 

@@ -1,0 +1,19 @@
+OASISFormat: 1.0
+Name:        with-data
+Version:     0.1
+License:     GPL
+LicenseFile: LICENSE.txt
+Authors:     Sylvain Le Gall
+Synopsis:    Library and executable with extra data
+Plugins:     META
+
+Executable test
+ MainIs: src/test.ml
+ DataFiles: *.txt, test.html ($htmldir)
+
+Library test
+ CompiledObject: Byte
+ Path: src/
+ Modules: Test
+ DataFiles: test.txt ($datarootdir/$pkg_name-$pkg_version)
+

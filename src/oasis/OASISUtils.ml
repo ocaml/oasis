@@ -57,5 +57,17 @@ let c_field schm =
   new_field schm "CSources"
     ~default:[]
     files
-    (s_ "C source files")
+    (s_ "C source files.")
+;;
+
+let data_field schm =
+  new_field schm "DataFiles"
+    ~default:[]
+    data_files
+    (s_ "Comma separated list of files to be installed for run-time use by \
+         the package. Install by default in '$datadir/$pkg_name', you can \
+         override using 'fn ($datadir/other_location)'. You can use \
+         wildcard '*' but only for filename and followed by a single dot \
+         extension: 'dir/*.html' is valid but 'dir/*' and 'dir/*.tar.gz' are \
+         not valid.")
 ;;

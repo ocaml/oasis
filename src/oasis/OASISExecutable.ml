@@ -37,6 +37,9 @@ let schema, generator =
   let c_sources = 
     OASISUtils.c_field schm
   in
+  let data_files =
+    OASISUtils.data_field schm
+  in
     schm,
     (fun nm wrtr -> 
        {
@@ -48,6 +51,7 @@ let schema, generator =
          exec_build_tools     = build_tools wrtr;
          exec_c_sources       = c_sources wrtr;
          exec_custom          = custom wrtr;
+         exec_data_files      = data_files wrtr;
          exec_is              = FilePath.concat 
                                   (FilePath.dirname (main_is wrtr))
                                   nm;
