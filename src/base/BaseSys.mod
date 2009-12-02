@@ -11,4 +11,5 @@ BaseCheck.ml
 BaseOCamlcConfig.ml
 BaseStandardVar.ml
 BaseFileAB.ml
+BaseLog.ml
 BaseSetup.ml

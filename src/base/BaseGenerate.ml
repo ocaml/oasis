@@ -23,10 +23,11 @@ let generate pkg =
            ((setup_nm, act) :: generators), pkg)
       ([], pkg)
       [
-        "build",   (plugin_build   pkg.build_type);
-        "doc",     (plugin_doc     pkg.doc_type);
-        "test",    (plugin_test    pkg.test_type);
-        "install", (plugin_install pkg.install_type);
+        "build",     (plugin_build     pkg.build_type);
+        "doc",       (plugin_doc       pkg.doc_type);
+        "test",      (plugin_test      pkg.test_type);
+        "install",   (plugin_install   pkg.install_type);
+        "uninstall", (plugin_uninstall pkg.install_type);
       ]
   in
 

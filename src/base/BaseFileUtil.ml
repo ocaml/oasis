@@ -92,7 +92,7 @@ let cp src tgt =
         BaseExec.run "cp" [src; tgt]
 ;;
 
-(** Create a directory recursively
+(** Create a directory
   *)
 let mkdir tgt =
   match Sys.os_type with 
@@ -102,3 +102,15 @@ let mkdir tgt =
         BaseExec.run "mkdir" [tgt]
 ;;
 
+(** Remove a directory
+  *)
+let rmdir tgt =
+  if Sys.readdir tgt = [||] then
+    (
+      match Sys.os_type with 
+        | "Win32" ->
+            BaseExec.run "rd" [tgt]
+        | _ ->
+            BaseExec.run "rm" ["-r"; tgt]
+    )
+;;

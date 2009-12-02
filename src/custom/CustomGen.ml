@@ -76,6 +76,14 @@ let install =
     (s_ "Run command to distclean install step.")
 ;;
 
+let uninstall =
+  new_field
+    "Uninstall"
+    (s_ "Run command to uninstall.")
+    (s_ "Run command to clean uninstall step.")
+    (s_ "Run command to distclean uninstall step.")
+;;
+
 let main (fld, fld_clean, fld_distclean) pkg = 
   let code func str =
     let cmd, args =
@@ -137,6 +145,6 @@ List.iter
     Build     (main build); 
     Doc       (main doc); 
     Test      (main test); 
-    Install   (main install);
+    Install   (main install, main uninstall);
   ]
 ;;

@@ -14,6 +14,7 @@ type t =
       doc:             action_fun;
       test:            action_fun;
       install:         action_fun;
+      uninstall:       action_fun;
       clean:           unit -> unit;
       distclean:       unit -> unit;
       files_generated: string list;
@@ -30,7 +31,11 @@ let distclean t =
          (BaseMessage.info 
             (Printf.sprintf "Remove '%s'" fn);
           Sys.remove fn))
-    (BaseEnvRO.default_filename :: t.files_generated);
+    (BaseEnvRO.default_filename 
+     :: 
+     BaseLog.default_filename
+     ::
+     t.files_generated);
   t.distclean ()
 ;;
 
@@ -90,6 +95,10 @@ let setup t =
           "-install",
           arg_rest t.install,
           "[options*] Install library, data, executable and documentation.";
+
+          "-uninstall",
+          arg_rest t.uninstall,
+          "[options*] Uninstall library, data, executable and documentation.";
 
           "-clean",
           arg_clean t.clean,

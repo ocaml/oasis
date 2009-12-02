@@ -33,6 +33,6 @@ List.iter
     Build     (no_generate "build"); 
     Doc       (no_generate "doc"); 
     Test      (no_generate "test"); 
-    Install   (no_generate "install");
+    Install   (no_generate "install", no_generate "uninstall");
   ]
 ;;

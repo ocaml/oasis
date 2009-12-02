@@ -195,5 +195,24 @@ let install pkg =
     pkg
 ;;
 
-plugin_register plugin_id (Install install);;
+(* Uninstall *)
+let uninstall pkg = 
+  {
+    moduls = 
+        [
+          BaseData.basesys_ml; 
+          InternalData.internalsys_ml
+        ];
+    setup_code       = APP ("InternalInstall.uninstall", [], []);
+    clean_code       = [];
+    distclean_code   = [];
+    other_action     = (fun _ -> ());
+    files_generated  = [];
+  },
+  pkg
+;;
+
+plugin_register plugin_id 
+  (Install (install, uninstall))
+;;
 

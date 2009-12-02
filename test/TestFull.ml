@@ -590,36 +590,37 @@ let tests ctxt =
                   []
                   installed_files)
            in
-
-           let () =
              assert_run_setup
                ~extra_env:["OCAMLFIND_DESTDIR", loc.ocaml_lib_dir]
                ["-install"];
-           in
 
              (* Check that we have installed everything as expected *)
              OUnitSetString.assert_equal
                ~msg:"Installed files"
                ~printer:(fn_printer ~root:loc.build_dir)
                expected_installed_files
-               (all_files loc.build_dir)
-         in
+               (all_files loc.build_dir);
 
-         (* Test that installed files are working *)
-         let () =
-           List.iter 
-             (fun f -> f ())
-             (List.fold_left
-                (fun acc f -> f loc acc)
-                []
-                post_install_runs)
+             (* Test that installed files are working *)
+             List.iter 
+               (fun f -> f ())
+               (List.fold_left
+                  (fun acc f -> f loc acc)
+                  []
+                  post_install_runs)
          in
 
          (* Run uninstall target *)
          let () = 
-           (* TODO: activate and check *)
-           (*assert_run_setup ["-uninstall"]*)
-           ()
+           assert_run_setup 
+               ~extra_env:["OCAMLFIND_DESTDIR", loc.ocaml_lib_dir]
+               ["-uninstall"];
+           (* Check that no more files present in build_dir *)
+           OUnitSetString.assert_equal
+             ~msg:"Build directory is empty after uninstall"
+             ~printer:(fn_printer ~root:loc.build_dir)
+             SetString.empty
+             (all_files loc.build_dir)
          in
 
          (* Run clean target *)

@@ -59,7 +59,7 @@ type plugin_t =
   | Build     of std_act_t 
   | Doc       of std_act_t
   | Test      of std_act_t
-  | Install   of std_act_t
+  | Install   of std_act_t * std_act_t (* Install and uninstall data *)
   | Extra     of (package -> unit)
 ;;
 
@@ -79,10 +79,12 @@ let (configure_plugins,
      doc_plugins,
      test_plugins,
      install_plugins,
+     uninstall_plugins,
      extra_plugins) =
   let p () = 
     ref MapPlugin.empty
   in
+    p (),
     p (),
     p (),
     p (),
@@ -101,8 +103,10 @@ let plugin_register nm =
       | Build e     -> padd build_plugins     e
       | Doc e       -> padd doc_plugins       e
       | Test e      -> padd test_plugins      e
-      | Install e   -> padd install_plugins   e
       | Extra e     -> padd extra_plugins     e
+      | Install (i, u) -> 
+          padd install_plugins i;
+          padd uninstall_plugins u
 ;;
 
 (**/**)
@@ -161,6 +165,14 @@ let plugin_install =
   plugin_get 
     install_plugins
     (f_ "Unkown install plugin '%s' (available: %s)")
+;;
+
+(** Get an uninstall plugin
+  *)
+let plugin_uninstall = 
+  plugin_get 
+    uninstall_plugins 
+    (f_ "Unknown uninstall plugin '%s' (available: %s)")
 ;;
 
 (** Get a extra plugin 

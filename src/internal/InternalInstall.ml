@@ -69,6 +69,18 @@ let lib_hook =
   ref (fun env lib -> lib)
 ;;
 
+let install_file_ev = 
+  "install-file"
+;;
+
+let install_dir_ev =
+  "install-dir"
+;;
+
+let install_findlib_ev =
+  "install-findlib"
+;;
+
 let install libs execs env argv =
   
   let rootdirs =
@@ -124,12 +136,39 @@ let install libs execs env argv =
       | Native -> true
   in
 
+  let install_file src_file envdir = 
+    let tgt_dir = 
+      envdir env
+    in
+    let tgt_file =
+      Filename.concat 
+        tgt_dir
+        (Filename.basename src_file)
+    in
+      (* Check that target directory exist *)
+      if not (Sys.file_exists tgt_dir) then
+        (
+          BaseMessage.info 
+            (Printf.sprintf 
+               "Creating directory '%s'"
+               tgt_dir);
+          BaseFileUtil.mkdir tgt_dir;
+          BaseLog.register install_dir_ev tgt_dir
+        );
+
+      (* Really install files *)
+      BaseMessage.info 
+        (Printf.sprintf 
+           "Copying file '%s' to '%s'"
+           src_file
+           tgt_file);
+      BaseFileUtil.cp src_file tgt_file;
+      BaseLog.register install_file_ev tgt_file
+  in
+
   let install_data env path files_targets = 
     List.iter
       (fun (src, tgt) ->
-         let real_tgt =
-           var_expand env tgt
-         in
          let real_srcs = 
            let real_src = 
              Filename.concat path src
@@ -187,10 +226,10 @@ let install libs execs env argv =
                  [real_src]
                )
          in
-         (* Check that target directory exist *)
-         if not (Sys.file_exists real_tgt) then
-           BaseFileUtil.mkdir real_tgt;
-         List.iter (fun fn -> BaseFileUtil.cp fn real_tgt) real_srcs)
+           List.iter 
+             (fun fn -> install_file fn (fun env -> var_expand env tgt)) 
+             real_srcs)
+           
       files_targets
   in
 
@@ -282,7 +321,12 @@ let install libs execs env argv =
                 )
               )
           in
+            BaseMessage.info 
+              (Printf.sprintf
+                 "Installing findlib library '%s'"
+                 lib.lib_name);
             BaseExec.run "ocamlfind" ("install" :: lib.lib_name :: files);
+            BaseLog.register install_findlib_ev lib.lib_name;
             install_data env lib.lib_path lib.lib_data_files;
         )
   in
@@ -291,23 +335,10 @@ let install libs execs env argv =
     let exec =
       !exec_hook env exec
     in
-    let install src_file envdir = 
-      let tgt_file =
-        Filename.concat 
-          (envdir env)
-          (Filename.basename src_file)
-      in
-        BaseMessage.info 
-          (Printf.sprintf 
-             "Copying file %s to %s"
-             src_file
-             tgt_file);
-        BaseFileUtil.cp src_file tgt_file
-    in
       if BaseExpr.choose exec.exec_install env then
         (
           let () = 
-            install 
+            install_file
               (find_build_file
                  (exec.exec_filename^(suffix_program env)))
               bindir;
@@ -317,7 +348,7 @@ let install libs execs env argv =
                not exec.exec_custom && 
                not (is_native exec.exec_compiled_object env) then
               (
-                install
+                install_file
                   (find_build_file
                      (dllfn exec.exec_path exec.exec_name env))
                   libdir
@@ -329,6 +360,67 @@ let install libs execs env argv =
 
     List.iter (install_lib env) libs;
     List.iter (install_exec env) execs
+;;
+
+(* Uninstall already installed data *)
+let uninstall env argv =
+  List.iter 
+    (fun (ev, data) ->
+       if ev = install_file_ev then
+         (
+           if Sys.file_exists data then
+             (
+               BaseMessage.info
+                 (Printf.sprintf 
+                    "Removing file '%s'"
+                    data);
+               Sys.remove data
+             )
+         )
+       else if ev = install_dir_ev then
+         (
+           if Sys.file_exists data && Sys.is_directory data then
+             (
+               if Sys.readdir data = [||] then
+                 (
+                   BaseMessage.info
+                     (Printf.sprintf 
+                        "Removing directory '%s'"
+                        data);
+                   BaseFileUtil.rmdir data
+                 )
+               else
+                 (
+                   BaseMessage.warning 
+                     (Printf.sprintf
+                        "Directory '%s' is not empty (%s)"
+                        data
+                        (String.concat 
+                           ", " 
+                           (Array.to_list 
+                              (Sys.readdir data))))
+                 )
+             )
+         )
+       else if ev = install_findlib_ev then
+         (
+           BaseMessage.info
+             (Printf.sprintf
+                "Removing findlib library '%s'"
+                data);
+           BaseExec.run (ocamlfind env) ["remove"; data]
+         )
+       else
+         (
+           failwith (Printf.sprintf "Unknown log event '%s'" ev)
+         );
+       BaseLog.unregister ev data)
+    (* We process event in reverse order *)
+    (List.rev 
+       (BaseLog.filter 
+          [install_file_ev; 
+           install_dir_ev;
+           install_findlib_ev;]))
 ;;
 
 (* END EXPORT *)
