@@ -31,6 +31,7 @@ type top_stmt =
   | TSLibrary of name * stmt
   | TSExecutable of name * stmt
   | TSFlag of name * stmt
+  | TSSourceRepository of name * stmt
   | TSStmt of stmt
   | TSBlock of top_stmt list
 ;; 

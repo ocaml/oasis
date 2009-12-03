@@ -47,6 +47,19 @@ type dependency =
   | InternalLibrary of name
 ;;
 
+(** Possible VCS 
+  *)
+type vcs_t = 
+  | Darcs 
+  | Git 
+  | Svn 
+  | Cvs 
+  | Hg 
+  | Bzr 
+  | Arch 
+  | Monotone
+;;
+
 (** Available test 
   *)
 type test = 
@@ -116,6 +129,21 @@ type 'a flag = {
 }
 ;;
 
+(** Source repository definition
+  *)
+type 'a source_repository = {
+  src_repo_type:      vcs_t;
+  src_repo_location:  url;
+  src_repo_browser:   url option;
+  src_repo_module:    string option;
+  src_repo_branch:    string option;
+  src_repo_tag:       string option;
+  src_repo_subdir:    filename option;
+}
+;;
+
+
+
 (** OASIS file whole content
   *)
 type 'a package = {
@@ -144,6 +172,7 @@ type 'a package = {
   libraries:      (name * 'a library) list;
   executables:    (name * 'a executable) list;
   flags:          (name * 'a flag) list;
+  src_repos:      (name * 'a source_repository) list;
   schema_data:    'a;
 }
 ;;

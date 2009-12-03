@@ -87,7 +87,7 @@ let to_package fn ignore_unknown srcdir ast =
    * no conditional expression but there is Flag, Library and
    * Executable structure defined.
    *) 
-  let rec top_stmt root_wrtr ((libs, execs, flags) as acc) =
+  let rec top_stmt root_wrtr ((libs, execs, flags, src_repos) as acc) =
     function
       | TSFlag (nm, stmt) -> 
           let flag =
@@ -98,7 +98,7 @@ let to_package fn ignore_unknown srcdir ast =
               flags
               stmt
           in
-            libs, execs, (nm, flag) :: flags
+            libs, execs, (nm, flag) :: flags, src_repos
 
       | TSLibrary (nm, stmt) -> 
           let lib = 
@@ -109,7 +109,7 @@ let to_package fn ignore_unknown srcdir ast =
               flags 
               stmt
           in
-            ((nm, lib) :: libs), execs, flags
+            ((nm, lib) :: libs), execs, flags, src_repos
 
       | TSExecutable (nm, stmt) -> 
           let exec =
@@ -120,7 +120,18 @@ let to_package fn ignore_unknown srcdir ast =
               flags
               stmt
           in
-            libs, ((nm, exec) :: execs), flags
+            libs, ((nm, exec) :: execs), flags, src_repos
+
+      | TSSourceRepository (nm, stmt) ->
+          let src_repo =
+            schema_stmt
+              OASISSourceRepository.generator
+              nm
+              OASISSourceRepository.schema
+              flags
+              stmt
+          in
+            libs, execs, flags, ((nm, src_repo) :: src_repos)
 
       | TSStmt stmt' -> 
           stmt 
@@ -140,11 +151,11 @@ let to_package fn ignore_unknown srcdir ast =
   let wrtr =
     OASISSchema.writer OASISPackage.schema 
   in
-  let libs, execs, flags =
-    top_stmt wrtr ([], [], []) ast
+  let libs, execs, flags, src_repos =
+    top_stmt wrtr ([], [], [], []) ast
   in
   let pkg = 
-    OASISPackage.generator wrtr libs execs flags
+    OASISPackage.generator wrtr libs execs flags src_repos
   in
 
   (* Fix build depends to reflect internal dependencies *)

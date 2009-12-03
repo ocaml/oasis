@@ -378,7 +378,9 @@ let parse_file ~debug fn =
     make_lexer 
       [ 
         (* Statement *)
-        ":"; "if"; "{"; "}"; "else"; "Flag"; "Library"; "Executable"; 
+        ":"; "if"; "{"; "}"; "else"; 
+        (* Section *)
+        "Flag"; "Library"; "Executable"; "SourceRepository";
         (* Expression *)
         "!"; "&&"; "||"; "("; ")"; "true"; "false" 
       ]
@@ -481,6 +483,10 @@ let parse_file ~debug fn =
 
       | [< 'Kwd "Executable"; nm = id_or_string; exec_blk = parse_stmt>] ->
           TSExecutable (nm, exec_blk)
+
+      | [< 'Kwd "SourceRepository"; nm = id_or_string; 
+                        src_repo_blk = parse_stmt>] ->
+          TSSourceRepository (nm, src_repo_blk)
 
       | [< 'Kwd "{"; lst = parse_top_stmt_list; 'Kwd "}">] ->
           TSBlock lst

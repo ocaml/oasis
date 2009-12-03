@@ -152,7 +152,7 @@ let schema, generator =
     OASISUtils.depends_field schm
   in
     schm,
-    (fun wrtr libs execs flags ->
+    (fun wrtr libs execs flags src_repos ->
       {
         oasis_version = oasis_version wrtr;
         ocaml_version = ocaml_version wrtr;
@@ -179,6 +179,7 @@ let schema, generator =
         libraries     = libs;
         executables   = execs;
         flags         = flags;
+        src_repos     = src_repos;
         schema_data   = wrtr;
       })
 ;;

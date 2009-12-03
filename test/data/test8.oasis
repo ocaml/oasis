@@ -1,0 +1,17 @@
+OASISFormat:  1.0
+Name:         foo
+Version:      0.0.1
+Synopsis:     Just a test
+License:      GPL
+LicenseFile:  LICENSE
+Authors:      Sylvain Le Gall
+
+SourceRepository head
+  Type: darcs
+  Location: http://darcs.ocamlcore.org/repos/foo
+  Browser: http://darcs.ocamlcore.org/cgi-bin/darcsweb.cgi?r=foo
+
+SourceRepository this
+  Type: darcs
+  Location: http://darcs.ocamlcore.org/repos/foo
+  Tag: $version

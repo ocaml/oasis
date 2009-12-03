@@ -12,7 +12,7 @@ struct
 
   let s_version = "[0-9]+\\(\\.[0-9]+\\)*"
 
-  let url       = r "http://[a-zA-Z0-9\\./_-]+"
+  let url       = r "http://[a-zA-Z0-9\\./_?&;=-]+"
   let version   = r s_version
   let copyright = r "\\((c)\\|(C)\\) * [0-9]+\\(-[0-9]+\\)?,? .*" 
   let modul     = r "[A-Z][A-Za-z0-9_]*"
