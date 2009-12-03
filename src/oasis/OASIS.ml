@@ -27,15 +27,8 @@ let from_file ?(srcdir) ?(debug=false) ?(ignore_unknown=false) fn =
 
 (** Print help about OASIS fields.
   *)
-let pp_help fmt () = 
-  List.iter 
-    (OASISSchema.pp_help fmt) 
-    [
-      OASISPackage.schema;
-      OASISFlag.schema;
-      OASISLibrary.schema;
-      OASISExecutable.schema;
-    ]
+let pp_help = 
+  OASISHelp.pp_help
 ;;
 
 (** Add a new field to schema
@@ -43,7 +36,7 @@ let pp_help fmt () =
 let new_field schm plugin nm ?default parse =
   OASISSchema.new_field 
     schm 
-    ("x"^plugin^nm) 
+    ("X"^plugin^nm) 
     ?default
     ~plugin:plugin
     parse
@@ -54,7 +47,7 @@ let new_field schm plugin nm ?default parse =
 let new_field_conditional schm plugin nm ?default parse =
   OASISSchema.new_field_conditional 
     schm 
-    ("x"^plugin^nm) 
+    ("X"^plugin^nm) 
     ?default 
     ~plugin:plugin
     parse 

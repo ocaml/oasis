@@ -8,7 +8,7 @@ open BasePlugin;;
 open BaseUtils;;
 open BaseGenCode;;
 
-let plugin_id = "internal";;
+let plugin_id = "Internal";;
 
 (* Configuration *)
 let configure pkg =

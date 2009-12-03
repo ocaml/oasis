@@ -12,9 +12,7 @@ open BaseGenCode;;
 open BaseMessage;;
 open CommonGettext;;
 
-let plugin_id =
-  "ocamlbuild"
-;;
+let plugin_id = "OCamlbuild";;
 
 let build pkg =
 

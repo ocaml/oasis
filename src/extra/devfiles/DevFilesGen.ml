@@ -6,9 +6,7 @@
 open BasePlugin;;
 open BaseFileGenerate;;
 
-let plugin_id = 
-  "DevFiles"
-;;
+let plugin_id = "DevFiles";;
 
 let main pkg = 
   (* Generate Makefile (for standard dev. env.) *)

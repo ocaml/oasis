@@ -95,13 +95,6 @@ let tests ctxt =
       res
   in
 
-  let add_list_to_set_string st lst =
-    List.fold_left 
-      (fun acc e -> SetString.add e acc)
-      st
-      lst
-  in
-
   let set_string_of_file_digest st =
     SetFileDigest.fold
       (fun (fn, _) st ->
@@ -529,7 +522,7 @@ let tests ctxt =
          in
 
          let expected_post_autobuild_files = 
-           add_list_to_set_string
+           BaseUtils.set_string_add_list
              (set_string_of_file_digest pristine)
              (List.rev_map 
                 (FilePath.make_absolute (pwd ()))
@@ -582,8 +575,7 @@ let tests ctxt =
          let () = 
            let expected_installed_files = 
              (* Gather all file into a set *)
-             add_list_to_set_string
-               SetString.empty
+             BaseUtils.set_string_of_list
                (* Compute all file that should have been installed *)
                (List.fold_left
                   (fun acc f -> f loc acc)

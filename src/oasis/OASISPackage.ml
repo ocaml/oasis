@@ -25,11 +25,11 @@ let schema, generator =
       (s_ "OASIS format version used to write file _oasis.")
   in
   let name = 
-    new_field schm "name" string_not_empty 
+    new_field schm "Name" string_not_empty 
       (s_ "Name of the package.")
   in
   let version = 
-    new_field schm "version" version
+    new_field schm "Version" version
       (s_ "Version of the package.")
   in
   let license_file =
@@ -37,16 +37,16 @@ let schema, generator =
       (s_ "File containing license.");
   in
   let synopsis =
-    new_field schm "synopsis" string_not_empty
+    new_field schm "Synopsis" string_not_empty
       (s_ "Short description of the purpose of this package.")
   in
   let authors =
-    new_field schm "authors" 
+    new_field schm "Authors" 
       comma_separated
       (s_ "Real person that has contributed to the package.")
   in
   let license =
-    new_field schm "license"
+    new_field schm "License"
       (fun ctxt str ->
          match String.uppercase str with 
            | "GPL"   -> `GPL
@@ -71,37 +71,37 @@ let schema, generator =
       (s_ "Version constraint on OCaml.")
   in
   let conf_type =
-    new_field schm "conftype" 
+    new_field schm "ConfType" 
       ~default:"internal"
       string_not_empty
       (s_ "Configuration system.")
   in
   let build_type =
-    new_field schm "buildtype" 
+    new_field schm "BuildType" 
       ~default:"ocamlbuild"
       string_not_empty
       (s_ "Build system.")
   in
   let doc_type =
-    new_field schm "doctype" 
+    new_field schm "DocType" 
       ~default:"none"
       string_not_empty
       (s_ "Documentation build system.")
   in
   let test_type =
-    new_field schm "testtype" 
+    new_field schm "TestType" 
       ~default:"none"
       string_not_empty
       (s_ "Test suite system.")
   in
   let install_type =
-    new_field schm "installtype"
+    new_field schm "InstallType"
       ~default:"internal"
       string_not_empty
       (s_ "Install/uninstall system.")
   in
   let copyrights =
-    new_field schm "copyrights" 
+    new_field schm "Copyrights" 
       ~default:[]
       (fun ctxt str ->
          List.map 
@@ -110,31 +110,31 @@ let schema, generator =
       (s_ "Copyright owners.")
   in
   let maintainers =
-    new_field schm "maintainers"
+    new_field schm "Maintainers"
       ~default:[]
       comma_separated
       (s_ "Current maintainers of the package")
   in
   let homepage =
-    new_field schm "homepage" 
+    new_field schm "Homepage" 
       ~default:None
       (opt url)
       (s_ "URL of the package homepage.")
   in
   let description =
-    new_field schm "description"
+    new_field schm "Description"
       ~default:None
       (opt string_not_empty)
       (s_ "Long description of the package purpose.")
   in
   let categories =
-    new_field schm "categories"
+    new_field schm "Categories"
       ~default:[]
       categories
       (s_ "URL(s) describing categories of the package.")
   in
   let files_ab =
-    new_field schm "filesab"
+    new_field schm "FilesAB"
       ~default:[]
       (fun ctxt str ->
          List.map 

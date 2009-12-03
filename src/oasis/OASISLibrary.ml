@@ -10,15 +10,15 @@ open CommonGettext;;
 
 let schema, generator =
   let schm =
-    schema "library"
+    schema "Library"
   in
   let path =
-    new_field schm "path" 
+    new_field schm "Path" 
       directory_exists
       (s_ "Directory containing the library")
   in
   let modules =
-    new_field schm "modules" 
+    new_field schm "Modules" 
       ~default:[]
       modules
       (s_ "List of modules to compile.") 

@@ -125,6 +125,14 @@ let plugin_get rmp err_fmt nm =
              (String.concat ", " availables))
     )
 ;;
+
+let plugin_ls rmp = 
+  List.rev
+    (MapPlugin.fold 
+       (fun k _ lst -> k :: lst)
+       !rmp
+       [])
+;;
 (**/**)
 
 (** Get configure plugin 

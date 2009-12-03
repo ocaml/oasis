@@ -9,9 +9,7 @@ open OASISValueParser;;
 open BasePlugin;;
 open BaseFileGenerate;;
 
-let plugin_id = 
-  "META"
-;;
+let plugin_id = "META";;
 
 let description =
   OASIS.new_field

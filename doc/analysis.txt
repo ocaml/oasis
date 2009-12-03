@@ -24,7 +24,7 @@ the choice on some build scheme: don't build a module, use an alternate
 implementation for another... These are "user choices". The configure step try
 to auto detect various parameter and see if they match with "build dependencies" 
 and "user choices". At the end the configure scheme should create various file
-reprensenting its result. Files are created through replacement of variable in
+representing its result. Files are created through replacement of variable in
 files (%.in -> %).
 
 We rely on OASIS file to describe "user choices" (Flag) and "build

@@ -13,13 +13,13 @@ let schema, generator =
     schema "flag" 
   in
   let descr = 
-    new_field schm "description" 
+    new_field schm "Description" 
       ~default:None 
       (opt string_not_empty)
       (s_ "Help for the flag")
   in
   let default = 
-    new_field_conditional schm "default" 
+    new_field_conditional schm "Default" 
       ~default:true
       boolean
       (s_ "Default value for the flag")

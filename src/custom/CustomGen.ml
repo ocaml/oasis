@@ -9,9 +9,7 @@ open BaseGenCode;;
 open OASISTypes;;
 open OASISValueParser;;
 
-let plugin_id = 
-  "custom"
-;;
+let plugin_id = "Custom";;
 
 let new_field nm hlp hlp_clean hlp_distclean =
   OASIS.new_field

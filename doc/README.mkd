@@ -1,0 +1,499 @@
+
+Introduction
+============
+
+OCamlAutobuild and OASIS are two tools to help OCaml developers to integrate
+configure, build and install systems in their projects. They should help to 
+create standard entry points in the source code, allowing external tools to
+analyse projects content easily.
+
+These tools are freely inspired by [Cabal][] which is the same kind of tools for
+[Haskell][].
+
+  [Cabal]: http://www.haskell.org/cabal
+  [Haskell]: http://www.haskell.org
+
+OASIS stands for "OCaml Autobuild Source Information System". It is a simple
+file, named `_oasis`, at the root of the project source directory. It contains
+semi-colon separated fields and sections that describe what is contained in the
+project and what to do with it.
+
+OCamlAutobuild used the `_oasis` files to generate a skeleton for build,
+configure and install systems. It can be customized through extra fields in
+`_oasis` or directly inside generated files, if specific code is located outside
+OCamlAutobuild generated section. It generates a toplevel OCaml script
+`setup.ml` which can be used as a standard entry point for building project.
+`setup.ml` is self contained. Once generated there is no additional dependencies
+on OCamlAutobuild (just like an autoconf `configure` script).
+
+OCamlAutobuild/OASIS has been created with OCamlbuild in mind. So there is
+probably some features/bugs that are oriented toward this build system.
+
+Features:
+
+ * OCamlbuild support ([see here](#plugin-OCamlbuild))
+ * Standard files auto-generation (see here [1](#plugin-DevFiles),
+   [2](#plugin-META), [3](#plugin-StdFiles))
+ * Generic support for all step ([see here](#plugin-Custom))
+ * Internal configure/install ([see here](#plugin-Internal))
+
+Planned features:
+
+ * [OCaml autoconf](http://ocaml-autoconf.forge.ocamlcore.org)
+ * [OCamlMakefile](http://ocaml.info/home/ocaml_sources.html)
+ * [OMake](http://omake.metaprl.org)
+
+Writing `_oasis` file
+=====================
+
+Syntax
+------
+
+The `_oasis` must be a valid UTF-8 text file. This file identify the toplevel
+directory of the project.
+
+Identifiers are just like variable names in OCaml, it cannot contains "-" or
+numbers at the beginning. Strings follow OCaml convention. For extra
+information on the parser/lexer see [Genlex][].
+
+ [Genlex]: http://caml.inria.fr/pub/docs/manual-ocaml/libref/Genlex.html
+
+A line beginning by `#` is a comment and is ignored. Blank line are ignored.
+
+The file contains semi-colon fields and sections.
+
+### Fields
+
+Fields follow are `field_name: field_value`:
+ 
+ * Field name is an identifier.
+ * Field name is case insensitive.
+ * Field value follow string convention (without ").
+ * Leading and trailing blanks of field value are removed.
+ * A field value can continue on several lines, indent the next line relative to
+   the field name.
+ * A blank line in field\_name is represented by `.`.
+
+### Sections
+
+Sections can be an identifier or a string:
+
+    Library foo
+
+or 
+
+    Library "foo".
+
+Section name can be : `Library`, `Executable`, `Document`, `Test` and
+`SourceRepository`. Content of a section is indented relative to the section
+begin.
+
+Example:
+    # Toplevel fields
+    OASISFormat:  1.0
+    
+    Library "foo"
+      # Library fields 
+      Path: src/
+    
+    # Back to toplevel fields
+    Synopsis: bar
+
+### Conditional value
+
+It is possible to define some fields conditionally. Not all fields can be
+specified this way, only fields that have no good default values and that must
+be evaluated at runtime is defined.
+
+For example: 
+ * Toplevel fields `Name` and `Version` cannot be conditional.
+ * Library fields `Build` and `Install` can be conditional.
+
+A condition is defined using a `if ... else ...` construct.
+
+Example:
+    Library bar
+      if os\_type(Win32) 
+        Build: true
+      else 
+        Build: false
+
+Available tests are :
+
+* `os_type(X)`
+* `ocaml_version(X)`
+* `system(X)`
+* `architecture(X)`
+* `ccomp_type(X)`
+
+All tests check that the value `X` match the value defined in the output of: 
+
+    ocamlc -config
+
+
+An additional `flag` test is available which check that the flag `X` is defined,
+
+Tests and flags can be combined using standard boolean operation:
+
+* `(expr)`
+* `! expr`: negation of `expr`.
+* `expr1 && expr2`: boolean and.
+* `expr1 || expr2`: boolean or.
+* `true` and `false`.
+
+Toplevel
+--------
+
+Toplevel fields are the defined outside sections. They apply to the whole
+project.
+
+Fields:
+
+ * `OASISFormat`: OASIS format version used to write file `_oasis`. (__mandatory__)
+ * `Name`: Name of the package. (__mandatory__)
+ * `Version`: Version of the package. (__mandatory__)
+ * `LicenseFile`: File containing license. (__mandatory__)
+ * `Synopsis`:Short fields:of the purpose of this package. (__mandatory__)
+ * `Authors`: Real person that has contributed to the package. (__mandatory__)
+ * `License`: License type of the package. (__mandatory__)
+ * `OCamlVersion`: Version constraint on OCaml.
+ * `ConfType`: Configuration system.
+ * `BuildType`: Build system.
+ * `InstallType`: Install/uninstall system.
+ * `Copyrights`: Copyright owners.
+ * `Maintainers`: Current maintainers of the package
+ * `Homepage`: URL of the package homepage.
+ * `Description`:Long fields:of the package purpose.
+ * `Categories`: URL(s) describing categories of the package.
+ * `FilesAB`: Files to generate using environment variable substitution.
+ * `Plugins`: Extra plugins to use.
+ * `BuildDepends`: Dependencies on findlib packages and internal libraries.
+ * `BuildTools`: Executables require to compile.
+
+`BuildDepends` and `BuildTools` are appended to all sections and not used
+directly at toplevel.
+
+Sections
+--------
+
+There are 6 possible sections:
+
+ * `Flag`: a command line flag.
+ * `Library`: an OCaml library.
+ * `Executable`: an OCaml executable.
+ * `Document`: a document.
+ * `Test`: a test.
+ * `SourceRepository`: version control system information.
+
+None of these sections are mandatory. `Library`, `Executable`, `Document` and
+`Test` can be dependent on each other. This not a problem as long as there is no
+cycle inside the dependency graph. Dependencies can be expressed through
+`BuildDepends` and `BuildTools` fields.
+
+### Flag
+
+A flag section defines a configure command line option. It will be translated to
+to `--enable-XXX` and `--disable-XXX` for the command line. It can be used
+inside conditional fields.
+
+Fields:
+
+ * `Description`: Help for the flag
+ * `Default`: Default value for the flag
+
+### Common fields
+
+These fields are used inside `Library` and `Executable`. 
+
+Fields: 
+
+ * `Path`: Toplevel directory for component.
+ * `Build`: Set if the component should be built.
+ * `Install`: Set if the component should be distributed.
+ * `CompiledObject`: Define the compilation type: byte, native or best
+ * `BuildDepends`: Dependencies on findlib packages and internal libraries.
+ * `BuildTools`: Tools require to compile.
+ * `CSources`: C source files.
+ * `DataFiles`: List of files to be installed for run-time use 
+   ([see here](#data-files))
+
+
+### Library 
+
+Define an OCaml library. OCaml API is generated using `ocamldoc` applied to
+`Modules` with `BuildDepends` required flags.
+
+Fields:
+
+ * `Modules`: List of modules to compile.
+ * Include all common fields.
+
+### Executable 
+
+Define an OCaml executable. If the executable is a bytecode that use internal
+library, an helper script can be generated to set library path.
+
+Fields:
+
+ * `MainIs`: OCaml file (.ml) containing main procedure for the executable
+   relative to `Path`.  (__mandatory__)
+ * `Custom`: Create custom bytecode executable.
+ * Include all common fields.
+
+### Document 
+
+Define a generated document. 
+
+Fields:
+
+ * `Type`: Plugin to use for creating document.
+ * Include `Path`, `Build`, `Install`, `BuildDepends`, `BuildTools` and
+   `DataFiles` from common fields.
+
+### Test 
+
+Define a test to run.
+
+Fields:
+
+ * `Type`: Plugin to use to run test.
+ * `Command`: Command to run for the test. (__mandatory__)
+ * `WorkingDirectory`: Directory to run the test.
+ * Include `BuildTools` and `DataFiles` from common fields.
+
+### SourceRepository 
+
+Define VCS informations.
+
+Fields:
+
+ * `Type`: VCS type (darcs, git, svn, cvs, hg, bzr, arch, monotone).
+   (__mandatory__)
+ * `Location`: URL of the repository. The exact form of this field depends on
+   the repository type. (__mandatory__)
+ * `Browser`: URL where the repository can be navigated using a web browser.
+ * `Module`: CVS requires a named module, as each CVS server can host multiple
+   named repositories. (__mandatory__ for CVS)
+ * `Branch`: Define a meaningful branch for this repository. 
+ * `Tag`: Identify a state corresponding to this particular package version
+   or release. 
+ * `Subdir`: Define the relative path from the root of the repository to the top
+   directory for the package, i.e. the directory containing the package's
+   `_oasis` file. 
+ 
+Data files <a id="data-files" />
+----------
+
+`DataFiles` fields help to install extra data inside `$datadir/$pkg_name`. This
+field is a comma separated list of file, with optional value inside parenthesis. 
+You can override target directory using `fn ($datadir/other_location)`. 
+
+You can use wildcard `*` but only for a filename and followed by a single dot
+extension: `dir/*.html` is valid but `dir/*` and `dir/*.tar.gz` are not valid.
+
+Substitution inside text <a id="substitution" />
+------------------------
+
+Substitution is performed using [Buffer.add\_substitute][].
+
+ [Buffer.add\_substitute]: http://caml.inria.fr/pub/docs/manual-ocaml/libref/Buffer.html#VALadd_substitute
+
+Variable are evaluated using environment. This is a mix of various data coming
+from `_oasis` file, `ocamlc -config` output and configure tests. So environment
+variables depends of each project. You can have a precise idea of what variables
+is available looking at the file `setup.data`. 
+
+TODO: standard variables.
+
+Plugins 
+-------
+
+OCamlAutobuild is basically built around plugins. They are used to define
+specific behavior for generating files and including their own code in `setup.ml`.
+
+There are 6 categories of plugin:
+ 
+ * Conf: apply to configure step
+ * Build: apply to build step
+ * Test: apply to test sections
+ * Doc: apply to documentation sections
+ * Install: apply to install and uninstall steps
+ * Extra: everything else
+
+### Plugin Custom (conf, build, test, doc, install) <a id="plugin-Custom" />
+
+This plugin allow to define a set of three commands to perform each steps,
+associated with the following fields:
+
+ * `XCustomXXX`: main action to run.
+ * `XCustomXXXClean`: action to run when clean is invoked.
+ * `XCustomXXXDistclean`: action to run when distclean is invoked.
+
+`XXX` stands for `Conf`, `Build`, `Doc`, `Test`, `Install` or `Uninstall`.
+
+Action to run is a simple shell command. It can contain substitution variables as
+defined in [this section][#substitution].
+
+Toplevel fields:
+
+ * `XCustomConfDistclean`: Run command to distclean configure step.
+ * `XCustomConfClean`: Run command to clean configure step.
+ * `XCustomConf`: Run command to configure. (__mandatory__)
+ * `XCustomBuildDistclean`: Run command to distclean build step.
+ * `XCustomBuildClean`: Run command to clean build step.
+ * `XCustomBuild`: Run command to build. (__mandatory__)
+ * `XCustomDocDistclean`: Run command to distclean build documentation step.
+ * `XCustomDocClean`: Run command to clean build documentation step.
+ * `XCustomDoc`: Run command to build documentation. (__mandatory__)
+ * `XCustomTestDistclean`: Run command to distclean test step.
+ * `XCustomTestClean`: Run command to clean test step.
+ * `XCustomTest`: Run command to test. (__mandatory__)
+ * `XCustomInstallDistclean`: Run command to distclean install step.
+ * `XCustomInstallClean`: Run command to clean install step.
+ * `XCustomInstall`: Run command to install. (__mandatory__)
+ * `XCustomUninstallDistclean`: Run command to distclean uninstall step.
+ * `XCustomUninstallClean`: Run command to clean uninstall step.
+ * `XCustomUninstall`: Run command to uninstall. (__mandatory__)
+
+### Plugin None (conf, build, install) <a id="plugin-None" />
+
+This plugin basically does nothing. It helps to replace mandatory step by nothing.
+
+
+### Plugin OCamlbuild (build) <a id="plugin-OCamlbuild" />
+
+This plugin uses OCamlbuild to generate a build system. It is the default value
+for `BuildType`.
+
+
+### Plugin Internal (conf, install) <a id="plugin-Internal" />
+
+This plugin is the default value for the `ConfType` and `InstallType`. It
+represents a default behavior for configuring and installing OCaml project.
+
+The configure part take care of checking:
+
+ * Tools availability (ocamlfind, ocamlc et al)
+ * OCaml version
+ * Findlib packages 
+
+The install part take care of installing executables, libraries and data files
+using standard environment variable (`$bindir`, `$datadir` et al).
+
+### Plugin META (extra) <a id="plugin-META" />
+
+This plugin is an helper to generate a `META` files that can be distributed and
+install with a library. It uses library name, version, synopsis and dependencies
+to generate matching fields in `META`.
+
+Library fields:
+
+ * `XMETADescription`: META package description
+ * `XMETAEnable`: Enable META generation
+
+
+### Plugin StdFiles (extra) <a id="plugin-StdFiles" />
+
+This plugin generates standard files like `README.txt`, `INSTALL.txt` and
+`AUTHORS.txt`. These files will summarize data contains in `_oasis`. 
+
+The `.txt` extension has been added to allow easy editing/viewing under Windows
+and other system that look for extension to determine file type.
+
+Toplevel fields:
+
+ * `XStdFilesREADMEFilename`: Real filename to use for file README.
+ * `XStdFilesREADME`: Enable README file generation.
+ * `XStdFilesINSTALLFilename`: Real filename to use for file INSTALL.
+ * `XStdFilesINSTALL`: Enable INSTALL file generation.
+ * `XStdFilesAUTHORSFilename`: Real filename to use for file AUTHORS.
+ * `XStdFilesAUTHORS`: Enable AUTHORS file generation.
+
+### Plugin DevFiles (extra) <a id="plugin-DevFiles" />
+
+It helps to generate a toplevel `Makefile` and `configure` files which only
+invoke `setup.ml`. It aims to provide good old entry points.
+
+Building and installing
+=======================
+
+The file `setup.ml` is the base system to run every targets. It contains a
+self contained OCaml script, that only depends on OCaml standard installation
+that doesn't require using stublibs (no Str or Unix). This constraint is
+required to be fully portable even on system that doesn't support dynamic
+loading.
+
+The file `setup.data` is the result of the configure step and contains data that
+can be used for other step. It is removed only in `distclean` target. The format
+of this file is on variable and values per line: `var="value"`. The value is an 
+OCaml string. The file in this form can be read by `make` and `sh`. Once
+generated this file should not be modified.
+
+The file `setup.log` contains a list of action done and is used and updated by
+action done and cancel (e.g. action `install` log files installed which action
+`uninstall` remove).
+
+ocaml setup.ml -configure
+-------------------------
+
+This is the first step to perform. It is mandatory. It runs various test of the
+build environment to check that everything required is installed. 
+
+
+ocaml setup.ml -build
+---------------------
+
+This step is mandatory. Build libraries and executables.
+
+ocaml setup.ml -test
+--------------------
+
+This step is optional. Run defined test. Need the build step before.
+
+ocaml setup.ml -doc
+-------------------
+
+This step is optional. It builds API documentation for library and extra
+documentation as defined in `Document`.
+
+ocaml setup.ml -install 
+-----------------------
+
+This step is mandatory. Install what has been built in build and doc step. Also
+install data files as defined in `DataFiles` fields.
+
+ocaml setup.ml -uninstall
+-------------------------
+
+This step is optional. Remove files and libraries installed. 
+
+ocaml setup.ml -clean
+---------------------
+
+This step is optional. Clean generated files during build and doc steps.
+
+ocaml setup.ml -distclean
+-------------------------
+
+This step is optional. Try to go back to pristine source state.
+
+OCamlAutobuild usage
+===================
+
+Command line
+------------
+
+    OCamlAutobuild [options*]
+
+`-C dir`: Change directory before running.
+
+`--dev`: Generate a setup.ml for development. 
+
+`--dev-internal`: Internal flag, don't use.
+
+`--apply plugin`: Apply an extra plugin and do nothing else.
+
+`--quickstart`: Start an `_oasis` file creation tools.
+
+`-help|--help`: Display list of options.
+

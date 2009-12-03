@@ -4,12 +4,22 @@
   *)
 module SetString = Set.Make(String)
 
+
+(** Add a list to a SetString
+  *)
+let set_string_add_list st lst =
+  List.fold_left 
+    (fun acc e -> SetString.add e acc)
+    st
+    lst
+;;
+
 (** Build a set out of list 
   *)
 let set_string_of_list =
-  List.fold_left
-    (fun st e -> SetString.add e st)
+  set_string_add_list
     SetString.empty
+;;
 
 
 (** Remove trailing whitespace *)

@@ -6,7 +6,6 @@
 open OASISTypes;;
 open OASISAstTypes;;
 open CommonGettext;;
-open Format;;
 
 type field =
     {
@@ -172,45 +171,3 @@ let writer schm =
   }
 ;;
 
-let pp_string_spaced fmt str =
-  String.iter
-    (function
-       | ' ' -> Format.pp_print_space fmt ()
-       | c -> Format.pp_print_char fmt c)
-    str
-;;
-
-let pp_help fmt schm = 
-  fprintf fmt (f_ "@\n== %s description ==@\n@\n") 
-    (String.capitalize schm.name);
-  List.iter
-    (fun key ->
-       let {get = get; help = help; plugin = plugin} =
-         try 
-           Hashtbl.find schm.fields (String.lowercase key)
-         with Not_found ->
-           failwith 
-             (Printf.sprintf
-                (f_ "Field %s not found")
-                key)
-       in
-         fprintf fmt " * @[";
-         (
-           match plugin with
-             | Some plg ->
-                 fprintf fmt (f_ "plugin %s ") plg
-             | None ->
-                 ()
-         );
-         (
-           try 
-             get ()
-           with (MissingField _) ->
-             pp_print_string fmt (s_ "mandatory ")
-         );
-         fprintf fmt (f_ "%s: %a@]@\n") 
-           key
-           pp_string_spaced help
-    )
-    (List.rev schm.order)
-;;
