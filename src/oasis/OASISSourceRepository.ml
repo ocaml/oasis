@@ -38,29 +38,27 @@ let schema, generator =
       (opt url)
       (s_ "URL where the repository can be navigated using a web browser.")
   in
-  let modul =
-    new_field schm "Module"
+  let new_field_opt nm hlp =
+    new_field schm nm
       ~default:None
       (opt string_not_empty)
+      hlp
+  in
+  let modul =
+    new_field_opt "Module"
       (s_ "CVS requires a named module, as each CVS server can host multiple \
            named repositories. (__mandatory__ for CVS)")
   in
   let branch =
-    new_field schm "Branch"
-      ~default:None
-      (opt string_not_empty)
+    new_field_opt "Branch"
       (s_ "Define a meaningful branch for this repository.")
   in
   let tag =
-    new_field schm "Tag"
-      ~default:None
-      (opt string_not_empty)
+    new_field_opt "Tag"
       (s_ "Identify a state corresponding to this particular package version")
   in
   let subdir = 
-    new_field schm "Subdir"
-      ~default:None
-      (opt string_not_empty)
+    new_field_opt "Subdir"
       (s_ "Define the relative path from the root of the repository to the \
            top directory for the package, i.e. the directory containing the \
            package's `_oasis` file.")
@@ -68,12 +66,13 @@ let schema, generator =
     schm,
     (fun (_: string) wrtr ->
        {
-         src_repo_type     = typ wrtr;
-         src_repo_location = location wrtr;
-         src_repo_browser  = browser wrtr;
-         src_repo_module   = modul wrtr;
-         src_repo_branch   = branch wrtr;
-         src_repo_tag      = tag wrtr;
-         src_repo_subdir   = subdir wrtr;
+         src_repo_type        = typ wrtr;
+         src_repo_location    = location wrtr;
+         src_repo_browser     = browser wrtr;
+         src_repo_module      = modul wrtr;
+         src_repo_branch      = branch wrtr;
+         src_repo_tag         = tag wrtr;
+         src_repo_subdir      = subdir wrtr;
+         src_repo_schema_data = wrtr;
        })
 ;;

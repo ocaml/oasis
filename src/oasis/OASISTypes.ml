@@ -132,13 +132,14 @@ type 'a flag = {
 (** Source repository definition
   *)
 type 'a source_repository = {
-  src_repo_type:      vcs_t;
-  src_repo_location:  url;
-  src_repo_browser:   url option;
-  src_repo_module:    string option;
-  src_repo_branch:    string option;
-  src_repo_tag:       string option;
-  src_repo_subdir:    filename option;
+  src_repo_type:        vcs_t;
+  src_repo_location:    url;
+  src_repo_browser:     url option;
+  src_repo_module:      string option;
+  src_repo_branch:      string option;
+  src_repo_tag:         string option;
+  src_repo_subdir:      filename option;
+  src_repo_schema_data: 'a;
 }
 ;;
 
