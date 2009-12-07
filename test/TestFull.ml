@@ -559,9 +559,7 @@ let tests ctxt =
 
          (* Run test target *)
          let () = 
-           (* TODO: activate *)
-           (*assert_run_setup ["-test"];*)
-           ()
+           assert_run_setup ["-test"];
          in
 
          (* Run documentation target *)
@@ -807,6 +805,12 @@ let tests ctxt =
          [
            try_installed_library "test" ["Test"];
          ];
+
+         (* Test executable *)
+         "../examples/with-test",
+         autobuild_ocamlbuild_files,
+         [],
+         [];
        ]
     )
 ;;

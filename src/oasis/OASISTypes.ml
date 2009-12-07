@@ -142,7 +142,17 @@ type 'a source_repository = {
 }
 ;;
 
-
+(** Test definition
+  *)
+type 'a test_t = {
+  test_type:               string;
+  test_command:            string;
+  test_working_directory:  filename option;
+  test_run:                bool conditional;
+  test_build_tools:        prog list;
+  test_schema_data:        'a;
+}
+;;
 
 (** OASIS file whole content
   *)
@@ -164,8 +174,6 @@ type 'a package = {
   build_tools:    prog list;
   conf_type:      string;
   build_type:     string;
-  doc_type:       string;
-  test_type:      string;
   install_type:   string;
   files_ab:       filename list;
   plugins:        string list;
@@ -173,6 +181,7 @@ type 'a package = {
   executables:    (name * 'a executable) list;
   flags:          (name * 'a flag) list;
   src_repos:      (name * 'a source_repository) list;
+  tests:          (name * 'a test_t) list;
   schema_data:    'a;
 }
 ;;

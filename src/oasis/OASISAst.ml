@@ -6,6 +6,16 @@
 open OASISTypes;;
 open OASISAstTypes;;
 
+type 'a acc_sections_t =
+    {
+      execs:      (name * ('a executable)) list;
+      libs:       (name * ('a library)) list;
+      flags:      (name * ('a flag)) list;
+      src_repos:  (name * ('a source_repository)) list;
+      tests:      (name * ('a test_t)) list;
+    }
+;;
+
 (** Convert oasis AST into package 
   *)
 let to_package fn ignore_unknown srcdir ast = 
@@ -87,29 +97,18 @@ let to_package fn ignore_unknown srcdir ast =
    * no conditional expression but there is Flag, Library and
    * Executable structure defined.
    *) 
-  let rec top_stmt root_wrtr ((libs, execs, flags, src_repos) as acc) =
+  let rec top_stmt root_wrtr acc =
     function
-      | TSFlag (nm, stmt) -> 
-          let flag =
-            schema_stmt 
-              OASISFlag.generator 
-              nm
-              OASISFlag.schema 
-              flags
-              stmt
-          in
-            libs, execs, (nm, flag) :: flags, src_repos
-
       | TSLibrary (nm, stmt) -> 
           let lib = 
             schema_stmt 
               OASISLibrary.generator
               nm
               OASISLibrary.schema 
-              flags 
+              acc.flags 
               stmt
           in
-            ((nm, lib) :: libs), execs, flags, src_repos
+            {acc with libs = (nm, lib) :: acc.libs}
 
       | TSExecutable (nm, stmt) -> 
           let exec =
@@ -117,10 +116,21 @@ let to_package fn ignore_unknown srcdir ast =
               OASISExecutable.generator
               nm
               OASISExecutable.schema
-              flags
+              acc.flags
               stmt
           in
-            libs, ((nm, exec) :: execs), flags, src_repos
+            {acc with execs = (nm, exec) :: acc.execs}
+
+      | TSFlag (nm, stmt) -> 
+          let flag =
+            schema_stmt 
+              OASISFlag.generator 
+              nm
+              OASISFlag.schema 
+              acc.flags
+              stmt
+          in
+            {acc with flags = (nm, flag) :: acc.flags}
 
       | TSSourceRepository (nm, stmt) ->
           let src_repo =
@@ -128,15 +138,26 @@ let to_package fn ignore_unknown srcdir ast =
               OASISSourceRepository.generator
               nm
               OASISSourceRepository.schema
-              flags
+              acc.flags
               stmt
           in
-            libs, execs, flags, ((nm, src_repo) :: src_repos)
+            {acc with src_repos = (nm, src_repo) :: acc.src_repos}
+
+      | TSTest (nm, stmt) ->
+          let test =
+            schema_stmt
+              OASISTest.generator
+              nm
+              OASISTest.schema
+              acc.flags
+              stmt
+          in
+            {acc with tests = (nm, test) :: acc.tests}
 
       | TSStmt stmt' -> 
           stmt 
             root_wrtr 
-            (ctxt_of_flags flags) 
+            (ctxt_of_flags acc.flags) 
             stmt';
           acc
 
@@ -151,11 +172,26 @@ let to_package fn ignore_unknown srcdir ast =
   let wrtr =
     OASISSchema.writer OASISPackage.schema 
   in
-  let libs, execs, flags, src_repos =
-    top_stmt wrtr ([], [], [], []) ast
+  let acc =
+    top_stmt 
+      wrtr 
+      {
+        libs      = [];
+        execs     = [];
+        flags     = [];
+        src_repos = [];
+        tests     = [];
+      }
+      ast
   in
   let pkg = 
-    OASISPackage.generator wrtr libs execs flags src_repos
+    OASISPackage.generator 
+      wrtr 
+      acc.libs 
+      acc.execs 
+      acc.flags 
+      acc.src_repos
+      acc.tests
   in
 
   (* Fix build depends to reflect internal dependencies *)

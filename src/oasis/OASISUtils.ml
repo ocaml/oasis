@@ -37,6 +37,13 @@ let std_field nm comp_dflt schm =
     compiled_object
 ;;
 
+let build_tools_fields schm =
+  new_field schm "BuildTools"
+    ~default:[]
+    comma_separated
+    (s_ "Executables require to compile.")
+;;
+
 let depends_field schm = 
   let build_depends = 
     new_field schm "BuildDepends" 
@@ -44,13 +51,7 @@ let depends_field schm =
       build_depends
       (s_ "Dependencies on findlib packages and internal libraries.")
   in
-  let build_tools =
-    new_field schm "BuildTools"
-      ~default:[]
-      comma_separated
-      (s_ "Executables require to compile.")
-  in
-    build_depends, build_tools
+    build_depends, (build_tools_fields schm)
 ;;
 
 let c_field schm = 

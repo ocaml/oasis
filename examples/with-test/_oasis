@@ -1,0 +1,18 @@
+OASISFormat: 1.0
+Name:        with-data
+Version:     0.1
+License:     GPL
+LicenseFile: LICENSE.txt
+Authors:     Sylvain Le Gall
+Synopsis:    Library and executable with test
+Plugins:     META
+
+Executable test
+ Install: false
+ MainIs: src/test.ml
+ BuildDepends: oUnit
+
+Test "main"
+ Type: Custom
+ Command: ../_build/src/test
+ WorkingDirectory: src/

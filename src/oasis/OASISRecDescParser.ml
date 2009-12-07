@@ -380,7 +380,8 @@ let parse_file ~debug fn =
         (* Statement *)
         ":"; "if"; "{"; "}"; "else"; 
         (* Section *)
-        "Flag"; "Library"; "Executable"; "SourceRepository";
+        "Flag"; "Library"; "Executable"; 
+        "SourceRepository"; "Test";
         (* Expression *)
         "!"; "&&"; "||"; "("; ")"; "true"; "false" 
       ]
@@ -487,6 +488,9 @@ let parse_file ~debug fn =
       | [< 'Kwd "SourceRepository"; nm = id_or_string; 
                         src_repo_blk = parse_stmt>] ->
           TSSourceRepository (nm, src_repo_blk)
+
+      | [< 'Kwd "Test"; nm = id_or_string; test_blk = parse_stmt>] ->
+          TSTest (nm, test_blk)
 
       | [< 'Kwd "{"; lst = parse_top_stmt_list; 'Kwd "}">] ->
           TSBlock lst

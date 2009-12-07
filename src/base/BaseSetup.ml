@@ -11,10 +11,11 @@ type t =
     {
       configure:       action_fun;
       build:           action_fun;
-      doc:             action_fun;
-      test:            action_fun;
+      doc:             action_fun list;
+      test:            BaseTest.t list;
       install:         action_fun;
       uninstall:       action_fun;
+      (* TODO: use lists *)
       clean:           unit -> unit;
       distclean:       unit -> unit;
       files_generated: string list;
@@ -53,7 +54,7 @@ let setup t =
     let args =
       ref []
     in
-    let arg_rest ?(configure=false) a =
+    let arg_rest ?(configure=false) lst =
       Arg.Tuple
         [
           Arg.Rest (fun str -> args := str :: !args);
@@ -67,7 +68,11 @@ let setup t =
                  (let args =
                     !args 
                   in
-                    fun () -> a env_org (Array.of_list (List.rev args)));
+                    fun () ->
+                      List.iter
+                        (fun f -> 
+                           f env_org (Array.of_list (List.rev args)))
+                        lst);
                  args := []); 
         ]
     in
@@ -77,11 +82,11 @@ let setup t =
       Arg.parse 
         [
           "-configure",
-          arg_rest ~configure:true t.configure,
+          arg_rest ~configure:true [t.configure],
           "[options*] Configure build process.";
 
           "-build",
-          arg_rest t.build,
+          arg_rest [t.build],
           "[options*] Run build process.";
 
           "-doc",
@@ -89,15 +94,15 @@ let setup t =
           "[options*] Build documentation.";
 
           "-test",
-          arg_rest t.test,
+          arg_rest [BaseTest.test t.test],
           "[options*] Build and run tests.";
 
           "-install",
-          arg_rest t.install,
+          arg_rest [t.install],
           "[options*] Install library, data, executable and documentation.";
 
           "-uninstall",
-          arg_rest t.uninstall,
+          arg_rest [t.uninstall],
           "[options*] Uninstall library, data, executable and documentation.";
 
           "-clean",

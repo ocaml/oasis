@@ -10,3 +10,12 @@ let run_and_replace cmd args env extra_args =
        (BaseEnvRW.var_expand env)
        (args @ (Array.to_list extra_args)))
 ;;
+
+let run_and_replace_test cmd args env =
+  try
+    BaseExec.run cmd args;
+    0.0
+  with Failure _ ->
+    1.0
+;;
+

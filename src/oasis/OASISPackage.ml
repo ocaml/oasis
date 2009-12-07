@@ -82,18 +82,6 @@ let schema, generator =
       string_not_empty
       (s_ "Build system.")
   in
-  let doc_type =
-    new_field schm "DocType" 
-      ~default:"none"
-      string_not_empty
-      (s_ "Documentation build system.")
-  in
-  let test_type =
-    new_field schm "TestType" 
-      ~default:"none"
-      string_not_empty
-      (s_ "Test suite system.")
-  in
   let install_type =
     new_field schm "InstallType"
       ~default:"internal"
@@ -152,7 +140,7 @@ let schema, generator =
     OASISUtils.depends_field schm
   in
     schm,
-    (fun wrtr libs execs flags src_repos ->
+    (fun wrtr libs execs flags src_repos tests ->
       {
         oasis_version = oasis_version wrtr;
         ocaml_version = ocaml_version wrtr;
@@ -171,8 +159,6 @@ let schema, generator =
         build_tools   = build_tools wrtr;
         conf_type     = conf_type wrtr;
         build_type    = build_type wrtr;
-        doc_type      = doc_type wrtr;
-        test_type     = test_type wrtr;
         install_type  = install_type wrtr;
         files_ab      = files_ab wrtr;
         plugins       = plugins wrtr;
@@ -180,6 +166,7 @@ let schema, generator =
         executables   = execs;
         flags         = flags;
         src_repos     = src_repos;
+        tests         = tests;
         schema_data   = wrtr;
       })
 ;;

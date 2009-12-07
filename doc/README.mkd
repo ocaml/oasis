@@ -259,7 +259,8 @@ Fields:
  * `Type`: Plugin to use to run test.
  * `Command`: Command to run for the test. (__mandatory__)
  * `WorkingDirectory`: Directory to run the test.
- * Include `BuildTools` and `DataFiles` from common fields.
+ * `Run`: Enable this test.
+ * Include `BuildTools` from common fields.
 
 ### SourceRepository 
 
