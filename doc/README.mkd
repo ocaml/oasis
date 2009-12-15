@@ -2,32 +2,34 @@
 Introduction
 ============
 
-OCamlAutobuild and OASIS are two tools to help OCaml developers to integrate
-configure, build and install systems in their projects. They should help to 
-create standard entry points in the source code, allowing external tools to
-analyse projects content easily.
+OASIS is a tool to help OCaml developers to integrate configure, build and
+install systems in their projects. It should help to create standard entry
+points in the source code build system, allowing external tools to analyse
+projects easily.
 
-These tools are freely inspired by [Cabal][] which is the same kind of tools for
+This tool is freely inspired by [Cabal][] which is the same kind of tools for
 [Haskell][].
 
   [Cabal]: http://www.haskell.org/cabal
   [Haskell]: http://www.haskell.org
 
-OASIS stands for "OCaml Autobuild Source Information System". It is a simple
-file, named `_oasis`, at the root of the project source directory. It contains
-semi-colon separated fields and sections that describe what is contained in the
-project and what to do with it.
+Everything starts with a single text file, named `_oasis`, at the root of the
+project source directory. It contains semi-colon separated fields and sections
+that describe what is contained in the project and what to do with it.
 
-OCamlAutobuild used the `_oasis` files to generate a skeleton for build,
-configure and install systems. It can be customized through extra fields in
-`_oasis` or directly inside generated files, if specific code is located outside
-OCamlAutobuild generated section. It generates a toplevel OCaml script
-`setup.ml` which can be used as a standard entry point for building project.
-`setup.ml` is self contained. Once generated there is no additional dependencies
-on OCamlAutobuild (just like an autoconf `configure` script).
+This file is used to generate a skeleton for build, configure and install
+systems. Generation can be customized through extra fields or directly inside
+generated files.
 
-OCamlAutobuild/OASIS has been created with OCamlbuild in mind. So there is
-probably some features/bugs that are oriented toward this build system.
+The main entry point is a toplevel OCaml script `setup.ml` which can be used as
+a standard entry point for building project.  It is self contained.  Once
+generated there is no additional dependencies (just like an autoconf
+`configure` script).
+
+OASIS has been created with [OCamlbuild][] in mind. So there is probably some
+features/bugs that are oriented toward this build system.
+ 
+  [OCamlbuild]: http://brion.inria.fr/gallium/index.php/Ocamlbuild
 
 Features:
 
@@ -308,6 +310,27 @@ variables depends of each project. You can have a precise idea of what variables
 is available looking at the file `setup.data`. 
 
 TODO: standard variables.
+
+Customization of generated files
+--------------------------------
+
+When OASIS generates file, it always replace only lines between
+`AUTOBUILD_START` and `AUTOBUILD_STOP`. These keywords are commented and
+followed by data to check that content is unchanged.
+
+If the file doesn't exist, OASIS will create the whole file using default
+header and footer.
+
+If OASIS detects a change inside the section being replaced, it will create a
+backup of the file and issue a warning.
+
+Customization of setup.ml
+-------------------------
+
+`setup.ml` as any generated files can be customized in its header and footer.
+Moreover it can be customized through hook in the code directly.
+
+TODO: explains hook.
 
 Plugins 
 -------
