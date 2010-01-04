@@ -4,7 +4,7 @@
   *)
 
 open BaseCheck;;
-open BaseEnvRW;;
+open BaseEnv;;
 
 (** {2 Paths} *)
 
@@ -130,7 +130,7 @@ let ocamlbuild = prog "ocamlbuild"
 
 (** {2 OCaml config variable} *) 
 
-let c = BaseOCamlcConfig.var_cache 
+let c = BaseOCamlcConfig.var_define 
 
 let ocaml_version            = c "version"
 let standard_library_default = c "standard_library_default"
@@ -154,74 +154,61 @@ let systhread_supported      = c "systhread_supported"
 
 (** Check what is the best target for platform (opt/byte)
   *)
-let ocamlbest env =
+let ocamlbest =
   var_define
     "ocamlbest"
     (lazy 
        (try
-          var_ignore (ocamlopt env);
-          "native"
+          let _s : string = 
+            ocamlopt ()
+          in
+            "native"
         with Not_found ->
-          (var_ignore (ocamlc env);
-           "byte")))
-    env
+          let _s : string = 
+            ocamlc ()
+          in
+           "byte"))
 
 (** Compute the default suffix for program (target OS dependent)
   *)
-let suffix_program env =
+let suffix_program =
   var_define
     "suffix_program"
     (lazy
-       (match os_type env with 
+       (match os_type () with 
           | "Win32" -> ".exe" 
           | _ -> ""
        ))
-    env
 
-(** All variables 
+(** {2 Variables from OASIS package} 
   *)
-let all = 
-  [
-    prefix;
-    exec_prefix;
-    bindir;
-    sbindir;
-    libexecdir;
-    sysconfdir;
-    sharedstatedir;
-    localstatedir;
-    libdir;
-    datarootdir;
-    datadir;
-    infodir;
-    localedir;
-    mandir;
-    docdir;
-    htmldir;
-    dvidir;
-    pdfdir;
-    psdir;
-    ocamlfind;
-    ocamlc;
-    ocamlopt;
-    ocamlbuild;
-    ocamlbest;
-    ocaml_version;
-    standard_library_default;
-    standard_library;
-    standard_runtime;
-    ccomp_type;
-    bytecomp_c_compiler;
-    native_c_compiler;
-    architecture;
-    model;
-    system;
-    ext_obj;
-    ext_asm;
-    ext_lib;
-    ext_dll;
-    os_type;
-    default_executable_name;
-    systhread_supported;
-    suffix_program;
-  ]
+
+(**/**)
+let rpkg = 
+  ref None
+
+let pkg_get () =
+  match !rpkg with 
+    | Some pkg -> pkg
+    | None -> 
+        failwith 
+          "OASIS Package is not set"
+(**/**)
+
+let pkg_name = 
+  var_define
+    ~short_desc:"Package name"
+    "pkg_name"
+    (lazy (fst (pkg_get ())))
+
+let pkg_version =
+  var_define
+    ~short_desc:"Package version"
+    "pkg_version"
+    (lazy (snd (pkg_get ())))
+
+(** Initialize some variables 
+  *)
+let init pkg = 
+  rpkg := Some pkg
+

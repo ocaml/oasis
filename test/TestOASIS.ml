@@ -65,27 +65,21 @@ let tests ctxt =
   let test_value_parser_of_vector (str, value_parse, fail) = 
     str >::
     (fun () ->
-       let ctxt =
-         {OASISAstTypes.oasisfn = "null";
-          srcdir                = "";
-          cond                  = None;
-          valid_flags           = []}
-       in
-         try
-           ( 
-             let _s : string = 
-               value_parse ctxt str
-             in
-               if fail then
-                 assert_failure 
-                   (Printf.sprintf "Parsing '%s' should have failed" str)
-           )
-         with _ ->
-           (
-             if not fail then
-               assert_failure
-                 (Printf.sprintf "Parsing '%s' should not have failed" str)
-           ))
+       try
+         ( 
+           let _s : string = 
+             value_parse str
+           in
+             if fail then
+               assert_failure 
+                 (Printf.sprintf "Parsing '%s' should have failed" str)
+         )
+       with _ ->
+         (
+           if not fail then
+             assert_failure
+               (Printf.sprintf "Parsing '%s' should not have failed" str)
+         ))
   in
 
     "OASIS" >:::

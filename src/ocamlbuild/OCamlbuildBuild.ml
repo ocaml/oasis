@@ -19,22 +19,22 @@ let cond_targets_hook =
   ref (fun lst -> lst)
 ;;
 
-let build cond_targets env argv =
+let build cond_targets argv =
   (* Fix special arguments depending on environment *)
   let env_args =
     List.flatten
       [
-        if (os_type env) = "Win32" then
+        if (os_type ()) = "Win32" then
           [
             "-classic-display"; 
             "-no-log"; 
             "-install-lib-dir"; 
-            (Filename.concat (standard_library env) "ocamlbuild")
+            (Filename.concat (standard_library ()) "ocamlbuild")
           ] 
         else
           [];
     
-        if (ocamlbest env) = "byte" || (os_type env) = "Win32" then
+        if (ocamlbest ()) = "byte" || (os_type ()) = "Win32" then
           [
             "-byte-plugin" 
           ]
@@ -47,7 +47,7 @@ let build cond_targets env argv =
     let args = 
       List.rev_append rtargets (Array.to_list argv)
     in
-      BaseExec.run (ocamlbuild env) (env_args @ args)
+      BaseExec.run (ocamlbuild ()) (env_args @ args)
   in
 
   let in_build_dir fn =
@@ -57,14 +57,14 @@ let build cond_targets env argv =
   let last_rtargets =
     List.fold_left
       (fun acc (choices, tgt) ->
-         if BaseExpr.choose choices env then 
+         if BaseExpr.choose choices then 
            match tgt with 
              | Std nm -> 
                  nm :: acc
              | CLibrary (dir, nm) ->
-                 (dir^"/lib"^nm^(ext_lib env)) 
+                 (dir^"/lib"^nm^(ext_lib ())) 
                  ::
-                 (dir^"/dll"^nm^(ext_dll env))
+                 (dir^"/dll"^nm^(ext_dll ()))
                  ::
                  acc
              | Rename (src, tgt) ->

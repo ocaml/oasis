@@ -3,13 +3,13 @@
   * into enviornment variable
   *)
 
-open BaseEnvRW;;
+open BaseEnv;;
 
 module SMap = Map.Make(String);;
 
 let ocamlc = BaseCheck.prog_opt "ocamlc";;
 
-let ocamlc_config_map env =
+let ocamlc_config_map =
   (* Map name to value for ocamlc -config output 
      (name ^": "^value) 
    *)
@@ -54,7 +54,7 @@ let ocamlc_config_map env =
           mp
   in
 
-    var_define
+    var_redefine
       "ocamlc_config_map"
       ~hide:true
       ~dump:false
@@ -63,30 +63,29 @@ let ocamlc_config_map env =
             (Marshal.to_string
                (split_field 
                   SMap.empty
-                  (BaseExec.run_read_output (ocamlc env) ["-config"]))
+                  (BaseExec.run_read_output 
+                     (ocamlc ()) ["-config"]))
                [])))
-      env
 ;;
 
-let var_cache nm env =
+let var_define nm =
   (* Extract data from ocamlc -config *)
-  let avlbl_config_get env = 
-    let map_marshal =
-      ocamlc_config_map env
-    in
-      Marshal.from_string map_marshal 0
+  let avlbl_config_get () = 
+    Marshal.from_string 
+      (ocamlc_config_map ())
+      0
   in
   let nm_config =
     match nm with 
       | "ocaml_version" -> "version"
       | _ -> nm
   in
-    var_define
+    var_redefine
       nm 
       (lazy
         (try
             let map =
-              avlbl_config_get env
+              avlbl_config_get ()
             in
             let value = 
               SMap.find nm_config map
@@ -97,7 +96,6 @@ let var_cache nm env =
               (Printf.sprintf 
                  "Cannot find field '%s' in '%s -config' output"
                  nm
-                 (ocamlc env))))
-      env
+                 (ocamlc ()))))
 ;;
 

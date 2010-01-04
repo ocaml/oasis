@@ -4,6 +4,7 @@
   *)
 
 open BaseExpr;;
+open BaseEnv;;
 
 type t = 
     {
@@ -11,13 +12,13 @@ type t =
       test_command:            string * string list;
       test_working_directory:  string option;
       test_run:                bool choices;
-      test_plugin:             string -> string list -> BaseEnvRW.env_t -> float;
+      test_plugin:             string -> string list -> float;
     }
 ;;
 
-let test lst env extra_args =
+let test lst extra_args =
   let one_test t =
-    if BaseExpr.choose t.test_run env then
+    if BaseExpr.choose t.test_run then
       begin
         let () = 
           BaseMessage.info 
@@ -45,11 +46,10 @@ let test lst env extra_args =
             in
             let failure_percent =
               t.test_plugin
-                (BaseEnvRW.var_expand env cmd)
+                (var_expand cmd)
                 (List.map 
-                   (BaseEnvRW.var_expand env)
-                   args @ (Array.to_list extra_args))
-                env
+                   var_expand
+                   (args @ (Array.to_list extra_args)))
             in
               back_cwd ();
               failure_percent

@@ -3,15 +3,17 @@
     @author Sylvain Le Gall
   *)
 
-let run_and_replace cmd args env extra_args =
+open BaseEnv;;
+
+let run_and_replace cmd args extra_args =
   BaseExec.run 
-    (BaseEnvRW.var_expand env cmd)
+    (var_expand cmd)
     (List.map 
-       (BaseEnvRW.var_expand env)
+       var_expand
        (args @ (Array.to_list extra_args)))
 ;;
 
-let run_and_replace_test cmd args env =
+let run_and_replace_test cmd args =
   try
     BaseExec.run cmd args;
     0.0

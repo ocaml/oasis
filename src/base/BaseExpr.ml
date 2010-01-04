@@ -3,7 +3,7 @@
     @author Sylvain Le Gall
   *)
 
-open BaseEnvRW;;
+open BaseEnv;;
 
 type t =
   | Bool of bool
@@ -19,47 +19,47 @@ type 'a choices = (t * 'a) list
 ;;
 
 (** Evaluate expression *)
-let rec eval env =
+let rec eval =
   function
     | Bool b ->
         b
 
     | Not e -> 
-        not (eval env e)
+        not (eval e)
 
     | And (e1, e2) ->
-        (eval env e1) && (eval env e2)
+        (eval e1) && (eval e2)
 
     | Or (e1, e2) -> 
-        (eval env e1) || (eval env e2)
+        (eval e1) || (eval e2)
 
     | Flag nm ->
         let v =
-          var_get nm env
+          var_get nm
         in
           assert(v = "true" || v = "false");
           (v = "true")
 
     | Test (nm, vl) ->
         let v =
-          var_get nm env
+          var_get nm
         in
           (v = vl)
 ;;
 
-let choose lst env =
-  let res =
-    List.fold_left
-      (fun res (cond, vl) ->
-         if eval env cond then Some vl else res)
-      None
-      lst
+let choose lst =
+  let rec choose_aux = 
+    function
+      | (cond, vl) :: tl ->
+          if eval cond then 
+            vl 
+          else
+            choose_aux tl
+      | [] ->
+          failwith 
+            "No result for a choice list"
   in
-    match res with 
-      | Some vl ->
-          vl
-      | None ->
-          failwith "No result for a choice list"
+    choose_aux (List.rev lst)
 ;;
 
 let singleton e = 

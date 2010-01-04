@@ -523,6 +523,4 @@ let parse_file ~debug fn =
           else
             failwith ("Syntax error "^str^(position ()))
         )
-      | MissingField lst ->
-          failwith ("Missing fields: "^(String.concat ", " lst))
 ;;

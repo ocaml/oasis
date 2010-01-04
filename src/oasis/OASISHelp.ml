@@ -18,39 +18,41 @@ let pp_string_spaced fmt str =
 
 let pp_section ?plugin ?(section_txt="==") fmt schm = 
   let fields =
-    List.fold_left 
-      (fun acc key ->
-         let descr = 
-           try 
-             Hashtbl.find schm.fields (String.lowercase key)
-           with Not_found ->
-             failwith 
-               (Printf.sprintf
-                  (f_ "Field %s not found")
-                  key)
-         in
-           if descr.plugin = plugin then
-             (key, descr) :: acc
-           else
-             acc)
+    PropList.Schema.fold
+      (fun acc key plg help ->
+         if plugin = plg then
+           (key, help) :: acc
+         else
+           acc)
       []
-      schm.order
+      schm
+  in
+  let fake_data =
+    PropList.Data.create ()
   in
     if fields <> [] then
       (
         fprintf fmt "@\n%s " section_txt;
-        fprintf fmt (f_ "%s description") (String.capitalize schm.name);
+        fprintf fmt (f_ "%s description") 
+          (String.capitalize schm.PropList.Schema.name);
         fprintf fmt " %s@\n@\n" section_txt;
         List.iter
-          (fun (key, descr) ->
+          (fun (key, help) ->
              let help = 
-               descr.help ^
+               (match help with
+                  | Some h -> h ()
+                  | None -> "<No help>")^
                (
                  try 
-                   descr.get ();
-                   ""
-                 with (MissingField _) ->
-                   s_ " (mandatory)"
+                   let _s : string = 
+                     PropList.Schema.get schm fake_data key
+                   in
+                     ""
+                 with 
+                   | PropList.Not_set _ ->
+                       s_ " (mandatory)"
+                   | PropList.No_printer _ ->
+                       ""
                )
              in
                fprintf fmt 

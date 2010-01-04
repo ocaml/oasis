@@ -433,6 +433,7 @@ let build pkg =
     {
       moduls = 
         [
+          CommonData.commonsys_ml;
           BaseData.basesys_ml;
           OCamlbuildData.ocamlbuildsys_ml;
         ];

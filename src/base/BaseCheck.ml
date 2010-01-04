@@ -2,22 +2,21 @@
 (** {1 Checking for particular features} 
   *)
 
-open BaseEnvRW;;
-module Ver = BaseVersion;;
-module Msg = BaseMessage;;
+open BaseEnv;;
 
 (** Look for a program among a list of alternative program
   * the first found is returned. 
   *)
 let prog_best prg prg_lst =
-  var_define
+  var_redefine
     prg 
     (lazy 
        (let alternate = 
           List.fold_left 
             (fun res e ->
                match res with 
-                 | Some _ -> res
+                 | Some _ -> 
+                     res
                  | None ->
                      try
                        Some (BaseFileUtil.which e)
@@ -37,7 +36,7 @@ let prog prg =
   prog_best prg [prg]
 ;;
 
-(** Check the presenc of a program or its native version
+(** Check the presence of a program or its native version
   *)
 let prog_opt prg = 
   prog_best prg [prg^".opt"; prg]
@@ -51,24 +50,31 @@ let version
       var_prefix 
       (str_cmp, cmp, var_cmp) 
       fversion 
-      env = 
+      () = 
   (* Really compare version provided *)
   let var = 
     var_prefix^"_version_"^var_cmp
   in
-    var_define 
+    var_redefine 
       ~hide:true 
       var
       (lazy
          (let version =
-            match fversion env with 
+            match fversion () with 
               | "[Distributed with OCaml]" ->
-                  (var_get "ocaml_version" env)
+                  begin
+                    try 
+                      (var_get "ocaml_version")
+                    with Not_found ->
+                      BaseMessage.warning 
+                        "Variable ocaml_version not defined, fallback to default";
+                      Sys.ocaml_version
+                  end
               | res ->
                   res
           in
             prerr_endline version;
-            if Ver.comparator_apply version cmp then
+            if BaseVersion.comparator_apply version cmp then
               version
             else
               failwith 
@@ -77,16 +83,16 @@ let version
                    var_prefix
                    str_cmp
                    version)))
-      env
+      ()
 ;;
 
 (** Check for findlib package
   *)
-let package ?version_comparator pkg env =
+let package ?version_comparator pkg () =
   let findlib_dir pkg = 
     let dir = 
       BaseExec.run_read_one_line
-        (ocamlfind env)
+        (ocamlfind ())
         ["query"; "-format"; "%d"; pkg]
     in
       if Sys.is_directory dir then
@@ -100,14 +106,14 @@ let package ?version_comparator pkg env =
   in
   let findlib_version pkg =
     BaseExec.run_read_one_line 
-      (ocamlfind env)
+      (ocamlfind ())
       ["query"; "-format"; "%v"; pkg]
   in
   let vl =
-    var_define
+    var_redefine
       ("pkg_"^pkg)
       (lazy (findlib_dir pkg))
-      env
+      ()
   in
     (
       match version_comparator with 
@@ -116,8 +122,7 @@ let package ?version_comparator pkg env =
               (version 
                  ("pkg_"^pkg)
                  ver_cmp
-                 (fun _ -> findlib_version pkg)
-                 env)
+                 (fun _ -> findlib_version pkg))
         | None -> 
             ()
     );
@@ -125,8 +130,12 @@ let package ?version_comparator pkg env =
 ;;
 
 (** Run checks *)
-let run checks env =
+let run checks =
   List.iter
-    (fun chk -> var_ignore (chk env))
+    (fun chk -> 
+       let _s : string = 
+         chk ()
+       in 
+         ())
     checks
 ;;

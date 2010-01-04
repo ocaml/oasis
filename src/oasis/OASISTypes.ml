@@ -14,11 +14,6 @@ type dirname            = string;;
 type filename           = string;;
 type prog               = string;;
 
-(** A mandatory field is not defined *)
-exception MissingField of name list;;
-(** Unable to recognize one field *)
-exception UnknownField of name;;
-
 (** Valid licenses
   *)
 type license =
@@ -49,7 +44,7 @@ type dependency =
 
 (** Possible VCS 
   *)
-type vcs_t = 
+type vcs = 
   | Darcs 
   | Git 
   | Svn 
@@ -62,7 +57,7 @@ type vcs_t =
 
 (** Available test 
   *)
-type test = 
+type expr_test = 
   | TOs_type
   | TSystem
   | TArchitecture
@@ -78,7 +73,7 @@ type expr =
   | EAnd of expr * expr
   | EOr of expr * expr
   | EFlag of string
-  | ETest of test * string
+  | ETest of expr_test * string
 ;;
 
 (** Conditional value
@@ -89,101 +84,107 @@ type 'a conditional =
 
 (** Library definition 
   *)
-type 'a library = {
-  lib_build:           bool conditional;
-  lib_install:         bool conditional;
-  lib_path:            dirname;
-  lib_modules:         string list;
-  lib_compiled_object: compiled_object;
-  lib_build_depends:   dependency list;
-  lib_build_tools:     prog list;
-  lib_c_sources:       filename list;
-  lib_data_files:      (filename * filename) list;
-  lib_schema_data:     'a;
-}
+type library = 
+    {
+      lib_build:           bool conditional;
+      lib_install:         bool conditional;
+      lib_path:            dirname;
+      lib_modules:         string list;
+      lib_compiled_object: compiled_object;
+      lib_build_depends:   dependency list;
+      lib_build_tools:     prog list;
+      lib_c_sources:       filename list;
+      lib_data_files:      (filename * filename) list;
+      lib_schema_data:     PropList.Data.t;
+    }
 ;;
 
 (** Executable definition 
   *)
-type 'a executable = {
-  exec_build:           bool conditional;
-  exec_install:         bool conditional;
-  exec_main_is:         filename;
-  exec_compiled_object: compiled_object;
-  exec_build_depends:   dependency list;
-  exec_build_tools:     prog list;
-  exec_c_sources:       filename list;
-  exec_custom:          bool;
-  exec_data_files:      (filename * filename) list;
-  exec_is:              filename; (* Real executable *)
-  exec_schema_data:     'a;
-}
+type executable = 
+    {
+      exec_build:           bool conditional;
+      exec_install:         bool conditional;
+      exec_main_is:         filename;
+      exec_compiled_object: compiled_object;
+      exec_build_depends:   dependency list;
+      exec_build_tools:     prog list;
+      exec_c_sources:       filename list;
+      exec_custom:          bool;
+      exec_data_files:      (filename * filename) list;
+      exec_is:              filename; (* Real executable *)
+      exec_schema_data:     PropList.Data.t;
+    }
 ;;
 
 (** Command line flag defintion 
   *)
-type 'a flag = {
-  flag_description:  string option;
-  flag_default:      bool conditional;
-  flag_schema_data:  'a;
-}
+type flag = 
+    {
+      flag_description:  string option;
+      flag_default:      bool conditional;
+      flag_schema_data:  PropList.Data.t;
+    }
 ;;
 
 (** Source repository definition
   *)
-type 'a source_repository = {
-  src_repo_type:        vcs_t;
-  src_repo_location:    url;
-  src_repo_browser:     url option;
-  src_repo_module:      string option;
-  src_repo_branch:      string option;
-  src_repo_tag:         string option;
-  src_repo_subdir:      filename option;
-  src_repo_schema_data: 'a;
-}
+type source_repository = 
+    {
+      src_repo_type:        vcs;
+      src_repo_location:    url;
+      src_repo_browser:     url option;
+      src_repo_module:      string option;
+      src_repo_branch:      string option;
+      src_repo_tag:         string option;
+      src_repo_subdir:      filename option;
+      src_repo_schema_data: PropList.Data.t;
+    }
 ;;
 
 (** Test definition
   *)
-type 'a test_t = {
-  test_type:               string;
-  test_command:            string;
-  test_working_directory:  filename option;
-  test_run:                bool conditional;
-  test_build_tools:        prog list;
-  test_schema_data:        'a;
-}
+type test = 
+    {
+      test_type:               string;
+      test_command:            string;
+      test_working_directory:  filename option;
+      test_run:                bool conditional;
+      test_build_tools:        prog list;
+      test_schema_data:        PropList.Data.t;
+    }
 ;;
 
 (** OASIS file whole content
   *)
-type 'a package = {
-  oasis_version:  version;
-  ocaml_version:  version_constraint option;
-  name:           package_name;
-  version:        version;
-  license:        license;
-  license_file:   filename;
-  copyrights:     string list;
-  maintainers:    string list;
-  authors:        string list;
-  homepage:       url option;
-  synopsis:       string;
-  description:    string option;
-  categories:     url list;
-  build_depends:  dependency list;
-  build_tools:    prog list;
-  conf_type:      string;
-  build_type:     string;
-  install_type:   string;
-  files_ab:       filename list;
-  plugins:        string list;
-  libraries:      (name * 'a library) list;
-  executables:    (name * 'a executable) list;
-  flags:          (name * 'a flag) list;
-  src_repos:      (name * 'a source_repository) list;
-  tests:          (name * 'a test_t) list;
-  schema_data:    'a;
-}
+type package = 
+    {
+      oasis_version:  version;
+      ocaml_version:  version_constraint option;
+      name:           package_name;
+      version:        version;
+      license:        license;
+      license_file:   filename;
+      copyrights:     string list;
+      maintainers:    string list;
+      authors:        string list;
+      homepage:       url option;
+      synopsis:       string;
+      description:    string option;
+      categories:     url list;
+      build_depends:  dependency list;
+      build_tools:    prog list;
+      conf_type:      string;
+      build_type:     string;
+      install_type:   string;
+      files_ab:       filename list;
+      plugins:        string list;
+      libraries:      (name * library) list;
+      executables:    (name * executable) list;
+      flags:          (name * flag) list;
+      src_repos:      (name * source_repository) list;
+      tests:          (name * test) list;
+      schema_data:    PropList.Data.t;
+    }
 ;;
 

@@ -19,14 +19,16 @@ let fn_enable fn =
     fn 
     ~default:true 
     boolean
-    (Printf.sprintf (f_ "Enable %s file generation.") fn),
+    (fun () ->
+       Printf.sprintf (f_ "Enable %s file generation.") fn),
   new_field 
     OASISPackage.schema
     plugin_id 
     (fn^"Filename")
     ~default:(fn^".txt")
     string_not_empty
-    (Printf.sprintf (f_ "Real filename to use for file %s.") fn)
+    (fun () -> 
+       Printf.sprintf (f_ "Real filename to use for file %s.") fn)
 ;;
 
 let readme =

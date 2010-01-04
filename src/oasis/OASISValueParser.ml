@@ -4,7 +4,7 @@
   *)
 
 open OASISTypes;;
-open OASISAstTypes;;
+open CommonGettext;;
 
 module StdRegexp = 
 struct 
@@ -24,92 +24,75 @@ end
 ;;
 
 (* Check that string match a Str.regexp *)
-let str_regexp regexp error (_ : ctxt) str = 
+let str_regexp regexp error str = 
   if Str.string_match regexp str 0 && 
      (Str.match_beginning ()) = 0 &&
      (Str.match_end ()) = (String.length str) then
       str
   else
     failwith 
-      (Printf.sprintf "String '%s' is not a %s" str error)
+      (Printf.sprintf 
+         (f_ "String '%s' is not a %s")
+         str 
+         error)
 ;;
 
 (** Check that we have an URL *)
-let url = 
+let url str = 
   str_regexp
     StdRegexp.url
-    "URL"
+    (s_ "URL")
+    str
 ;;
 
 (** Check that we have a version number *)
-let version =
+let version str =
   str_regexp
     StdRegexp.version
-    "version"
+    (s_ "version")
+    str
 ;;
 
-let version_constraint = 
+(** Check that we have a version constraint *)
+let version_constraint str = 
   str_regexp 
     StdRegexp.version_constraint
-    "version constraint"
+    (s_ "version constraint")
+    str
 ;;
 
 (** Check that we a (C) copyright *)
-let copyright _ str =
+let copyright str =
   if Str.string_match StdRegexp.copyright str 0 then
     str
   else
     failwith 
       (Printf.sprintf
-         "Copyright must follow the convention \
-         '(C) 2008-2009 J.R. Hacker', here it is '%s'"
+         (f_ "Copyright must follow the convention \
+              '(C) 2008-2009 J.R. Hacker', here it is '%s'")
          str)
 ;;
 
 (** String is not empty *)
-let string_not_empty _ str =
+let string_not_empty str =
   if str <> "" then
     str
   else
-    failwith "Expecting not empty string"
+    failwith (s_ "Expecting not empty string")
 ;;
 
-(** File exists *)
-let file_exists ctxt fn = 
-  if not (Sys.file_exists (Filename.concat ctxt.srcdir fn)) then
-    failwith 
-      (Printf.sprintf "File '%s' doesn't exist" fn)
-  else
-    fn
+(** File *)
+let file fn = 
+  fn
 ;;
 
-(** Directory exists *)
-let directory_exists ctxt fn =
-  let rfn =
-    Filename.concat ctxt.srcdir fn
-  in
-    if (Sys.file_exists rfn) && (Sys.is_directory rfn) then
-      fn
-    else
-      failwith 
-        (Printf.sprintf "Directory '%s' doesn't exist" fn)
-;;
-
-(** Convert string to boolean *)
-let boolean _ str =
-  match String.lowercase str with
-    | "true"  -> true
-    | "false" -> false
-    | _ ->
-        failwith 
-          (Printf.sprintf 
-             "Boolean value must be 'true' \
-             or 'false', not '%s'"
-             str)
+(** Directory *)
+let directory fn =
+  fn
 ;;
 
 (** Convert a comma separated string into list *)
-let comma_separated _ =
+let comma_separated =
   let separator =
     Str.regexp " *, *"
   in
@@ -117,7 +100,7 @@ let comma_separated _ =
 ;;
 
 (** Split a string that with an optional value: "e1 (e2)" *)
-let optional_parent value_parse option_parse option_default ctxt =
+let optional_parent value_parse option_parse option_default =
   let white_spaces =
     "[ \t]*"
   in
@@ -145,28 +128,26 @@ let optional_parent value_parse option_parse option_default ctxt =
             in
             let e1 = 
               value_parse 
-                ctxt 
                 (strip_whitespace s1)
             in
             let e2 =
               option_parse
-                ctxt
                 (strip_whitespace s2)
             in
               e1, e2
           )
         else 
-          value_parse ctxt str, option_default
+          value_parse str, option_default
       )
 ;;
 
 (** Optional value *)
-let opt f ctxt str =
-  Some (f ctxt str)
+let opt f str =
+  Some (f str)
 ;;
 
 (** Convert string to build depends *)
-let build_depends ctxt str =
+let build_depends str =
   List.rev_map 
     (fun (pkg, ver_constr_opt) -> 
        FindlibPackage (pkg, ver_constr_opt))
@@ -174,31 +155,28 @@ let build_depends ctxt str =
        (optional_parent 
           string_not_empty 
           (opt version_constraint)
-          None
-          ctxt)
-       (comma_separated ctxt str))
+          None)
+       (comma_separated str))
 ;;
 
 (** Convert string to data files specification *)
-let data_files ctxt str =
+let data_files str =
   List.map
     (optional_parent
        (* TODO: match constraint for wildcard *)
        string_not_empty
        string_not_empty
-       "$datarootdir/$pkg_name"
-       ctxt)
-    (comma_separated ctxt str)
+       "$datarootdir/$pkg_name")
+    (comma_separated str)
 ;;
 
 (** Convert string to module list *)
-let modules ctxt str =
+let modules str =
   List.map 
     (str_regexp 
        StdRegexp.modul
-       "module"
-       ctxt)
-    (comma_separated ctxt str)
+       (s_ "module"))
+    (comma_separated str)
 ;;
 
 (** Convert string to file list *)
@@ -207,15 +185,15 @@ let files =
 ;;
 
 (** Convert string to URL *)
-let categories ctxt str = 
+let categories str = 
   List.map
-    (url ctxt)
-    (comma_separated ctxt str)
+    url
+    (comma_separated str)
 ;;
 
 (** Choices 
   *)
-let choices nm lst _ str =
+let choices nm lst str =
   try 
     List.assoc 
       (String.lowercase str)
@@ -226,7 +204,7 @@ let choices nm lst _ str =
   with Not_found ->
     failwith 
       (Printf.sprintf 
-         "Unknown %s %S (possible: %s)"
+         (f_ "Unknown %s %S (possible: %s)")
          nm
          str
          (String.concat ", " (List.map fst lst)))
@@ -234,12 +212,18 @@ let choices nm lst _ str =
 
 (** Compilation types
   *)
-let compiled_object ctxt str =
+let compiled_object str =
   choices
-    "compiled object"
+    (s_ "compiled object")
     ["byte", Byte; "native", Native; "best", Best]
-    ctxt
     str
 ;;
 
+(** Convert string to boolean *)
+let boolean str =
+  choices 
+    (s_ "boolean")
+    ["true", true; "false", false]
+    str
+;;
 

@@ -34,19 +34,6 @@ type generator_action =
     }
 ;;
 
-(** Package type
-  *)
-type package = 
-    OASISSchema.schema_reader_t OASISTypes.package
-;;
-
-(** Test type
-  *)
-type test_t =
-    OASISSchema.schema_reader_t OASISTypes.test_t
-;;
-
-
 (** Standard steps action
   *)
 type std_act_t = 
@@ -62,7 +49,7 @@ type conf_act_t =
 (** Test step action
   *)
 type test_act_t =
-    test_t -> generator_action * test_t
+    test -> generator_action * test
 ;;
 
 (** Kind of plugin 

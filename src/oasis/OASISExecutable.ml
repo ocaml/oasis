@@ -7,6 +7,7 @@ open OASISTypes;;
 open OASISSchema;;
 open OASISValueParser;;
 open CommonGettext;;
+open PropList.Field;;
 
 let schema, generator =
   let schm =
@@ -14,19 +15,20 @@ let schema, generator =
   in
   let main_is =
     new_field schm "MainIs" 
-      (fun ctxt vl ->
+      (fun vl ->
          str_regexp
            (Str.regexp ".*\\.ml$")
            (s_ ".ml file")
-           ctxt
-           (file_exists ctxt vl))
-      (s_ "OCaml file (.ml) containing main procedure for the executable.")
+           (file vl))
+      (fun () -> 
+         s_ "OCaml file (.ml) containing main procedure for the executable.")
   in
   let custom =
     new_field schm "Custom"
       ~default:false
       boolean
-      (s_ "Create custom bytecode executable.")
+      (fun () ->
+         s_ "Create custom bytecode executable.")
   in
   let build, install, compiled_object = 
     OASISUtils.std_field (s_ "executable") Byte schm
@@ -41,21 +43,21 @@ let schema, generator =
     OASISUtils.data_field schm
   in
     schm,
-    (fun nm wrtr -> 
+    (fun nm data -> 
        {
-         exec_build           = build wrtr;
-         exec_install         = install wrtr;
-         exec_main_is         = main_is wrtr;
-         exec_compiled_object = compiled_object wrtr;
-         exec_build_depends   = build_depends wrtr;
-         exec_build_tools     = build_tools wrtr;
-         exec_c_sources       = c_sources wrtr;
-         exec_custom          = custom wrtr;
-         exec_data_files      = data_files wrtr;
+         exec_build           = build data;
+         exec_install         = install data;
+         exec_main_is         = main_is data;
+         exec_compiled_object = compiled_object data;
+         exec_build_depends   = build_depends data;
+         exec_build_tools     = build_tools data;
+         exec_c_sources       = c_sources data;
+         exec_custom          = custom data;
+         exec_data_files      = data_files data;
          exec_is              = FilePath.concat 
-                                  (FilePath.dirname (main_is wrtr))
+                                  (FilePath.dirname (main_is data))
                                   nm;
-         exec_schema_data     = wrtr;
+         exec_schema_data     = data;
        })
 ;;
 

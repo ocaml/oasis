@@ -15,7 +15,7 @@ Description:
 
 Library "toto-test"
   Path: src/stuff
-  Buildable: true
+  Build: true
 
 Executable "toto-test"
   MainIs: src/toto.ml

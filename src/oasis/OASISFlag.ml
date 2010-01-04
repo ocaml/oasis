@@ -7,6 +7,7 @@ open OASISTypes;;
 open OASISSchema;;
 open OASISValueParser;;
 open CommonGettext;;
+open PropList.Field;;
 
 let schema, generator = 
   let schm =
@@ -16,19 +17,21 @@ let schema, generator =
     new_field schm "Description" 
       ~default:None 
       (opt string_not_empty)
-      (s_ "Help for the flag")
+      (fun () -> 
+         s_ "Help for the flag")
   in
   let default = 
     new_field_conditional schm "Default" 
       ~default:true
       boolean
-      (s_ "Default value for the flag")
+      (fun () ->
+         s_ "Default value for the flag")
   in
     schm,
-    (fun (_: string) wrtr ->
+    (fun (_: string) data ->
        {
-         flag_description = descr wrtr;
-         flag_default     = default wrtr;
-         flag_schema_data = wrtr;
+         flag_description = descr data;
+         flag_default     = default data;
+         flag_schema_data = data;
        })
 ;;

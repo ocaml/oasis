@@ -21,35 +21,25 @@ let from_file ?(srcdir) ?(debug=false) ?(ignore_unknown=false) fn =
   let ast = 
     OASISRecDescParser.parse_file ~debug fn
   in
+  let pkg = 
     OASISAst.to_package fn ignore_unknown srcdir ast
+  in
+    pkg
 ;;
 
+(** Add a new field to schema
+  *)
+let new_field = OASISPlugin.new_field
+;;
+
+(** Add a new field to schema which can be conditional
+  *)
+let new_field_conditional = OASISPlugin.new_field_conditional
+;;
 
 (** Print help about OASIS fields.
   *)
 let pp_help = 
   OASISHelp.pp_help
-;;
-
-(** Add a new field to schema
-  *)
-let new_field schm plugin nm ?default parse =
-  OASISSchema.new_field 
-    schm 
-    ("X"^plugin^nm) 
-    ?default
-    ~plugin:plugin
-    parse
-;;
-
-(** Add a new field to schema which can be conditional
-  *)
-let new_field_conditional schm plugin nm ?default parse =
-  OASISSchema.new_field_conditional 
-    schm 
-    ("X"^plugin^nm) 
-    ?default 
-    ~plugin:plugin
-    parse 
 ;;
 

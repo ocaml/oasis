@@ -3,7 +3,7 @@
     @author Sylvain Le Gall
   *)
 
-open BaseEnvRW;;
+open BaseEnv;;
 open BaseStandardVar;;
 
 type comp_type =
@@ -46,27 +46,26 @@ let srcdir =
     (lazy ".")
 ;;
 
-let builddir env =
+let builddir =
   var_define
     "builddir"
-    (lazy (Filename.concat (srcdir env) "_build"))
-    env
+    (lazy (Filename.concat (srcdir ()) "_build"))
 ;;
 
-let dllfn path name env = 
-  Filename.concat path ("dll"^name^(ext_dll env))
+let dllfn path name = 
+  Filename.concat path ("dll"^name^(ext_dll ()))
 ;;
 
-let libfn path name env =
-  Filename.concat path ("lib"^name^(ext_lib env))
+let libfn path name =
+  Filename.concat path ("lib"^name^(ext_lib ()))
 ;;
 
 let exec_hook =
-  ref (fun env exec -> exec)
+  ref (fun exec -> exec)
 ;;
 
 let lib_hook =
-  ref (fun env lib -> lib)
+  ref (fun lib -> lib)
 ;;
 
 let install_file_ev = 
@@ -81,10 +80,10 @@ let install_findlib_ev =
   "install-findlib"
 ;;
 
-let install libs execs env argv =
+let install libs execs argv =
   
   let rootdirs =
-    [srcdir env; builddir env]
+    [srcdir (); builddir ()]
   in
 
   let ( * ) lst1 lst2 = 
@@ -129,16 +128,16 @@ let install libs execs env argv =
       rootdirs
   in
 
-  let is_native comp_type env =
+  let is_native comp_type =
     match comp_type with 
-      | Best -> (ocamlbest env) = "native" 
+      | Best -> (ocamlbest ()) = "native" 
       | Byte -> false
       | Native -> true
   in
 
   let install_file src_file envdir = 
     let tgt_dir = 
-      envdir env
+      envdir ()
     in
     let tgt_file =
       Filename.concat 
@@ -166,7 +165,7 @@ let install libs execs env argv =
       BaseLog.register install_file_ev tgt_file
   in
 
-  let install_data env path files_targets = 
+  let install_data path files_targets = 
     List.iter
       (fun (src, tgt) ->
          let real_srcs = 
@@ -227,18 +226,18 @@ let install libs execs env argv =
                )
          in
            List.iter 
-             (fun fn -> install_file fn (fun env -> var_expand env tgt)) 
+             (fun fn -> install_file fn (fun () -> var_expand tgt)) 
              real_srcs)
            
       files_targets
   in
 
-  let install_lib env lib = 
+  let install_lib lib = 
     let lib =
-      !lib_hook env lib
+      !lib_hook lib
     in
     let install =
-      BaseExpr.choose lib.lib_install env
+      BaseExpr.choose lib.lib_install
     in
       if install then
         (
@@ -269,12 +268,12 @@ let install libs execs env argv =
                   find_lib_file (lib.lib_name^".cma");
                 ]
                 :: 
-                (if is_native lib.lib_compiled_object env then
+                (if is_native lib.lib_compiled_object then
                    (
                      try 
                        [
                          find_lib_file (lib.lib_name^".cmxa");
-                         find_lib_file (lib.lib_name^(ext_lib env));
+                         find_lib_file (lib.lib_name^(ext_lib ()));
                        ]
                      with Failure txt ->
                        BaseMessage.warning 
@@ -292,7 +291,7 @@ let install libs execs env argv =
                 ::
                 (if lib.lib_c_sources then
                    [
-                     find_build_file (libfn lib.lib_path lib.lib_name env);
+                     find_build_file (libfn lib.lib_path lib.lib_name);
                    ]
                  else
                    [])
@@ -301,10 +300,10 @@ let install libs execs env argv =
                 (if lib.lib_c_sources then
                    (try 
                      [
-                       find_build_file (dllfn lib.lib_path lib.lib_name env);
+                       find_build_file (dllfn lib.lib_path lib.lib_name);
                      ]
                     with Failure txt ->
-                      if (os_type env ) <> "Cygwin" then
+                      if (os_type ()) <> "Cygwin" then
                         BaseMessage.warning
                           (Printf.sprintf
                              "Cannot install C static library %s: %s"
@@ -327,30 +326,30 @@ let install libs execs env argv =
                  lib.lib_name);
             BaseExec.run "ocamlfind" ("install" :: lib.lib_name :: files);
             BaseLog.register install_findlib_ev lib.lib_name;
-            install_data env lib.lib_path lib.lib_data_files;
+            install_data lib.lib_path lib.lib_data_files;
         )
   in
 
-  let install_exec env exec =
+  let install_exec exec =
     let exec =
-      !exec_hook env exec
+      !exec_hook exec
     in
-      if BaseExpr.choose exec.exec_install env then
+      if BaseExpr.choose exec.exec_install then
         (
           let () = 
             install_file
               (find_build_file
-                 (exec.exec_filename^(suffix_program env)))
+                 (exec.exec_filename^(suffix_program ())))
               bindir;
-            install_data env exec.exec_path exec.exec_data_files 
+            install_data exec.exec_path exec.exec_data_files 
           in
             if exec.exec_c_sources && 
                not exec.exec_custom && 
-               not (is_native exec.exec_compiled_object env) then
+               not (is_native exec.exec_compiled_object) then
               (
                 install_file
                   (find_build_file
-                     (dllfn exec.exec_path exec.exec_name env))
+                     (dllfn exec.exec_path exec.exec_name))
                   libdir
               )
             else
@@ -358,12 +357,12 @@ let install libs execs env argv =
         )
   in
 
-    List.iter (install_lib env) libs;
-    List.iter (install_exec env) execs
+    List.iter install_lib libs;
+    List.iter install_exec execs
 ;;
 
 (* Uninstall already installed data *)
-let uninstall env argv =
+let uninstall argv =
   List.iter 
     (fun (ev, data) ->
        if ev = install_file_ev then
@@ -408,7 +407,7 @@ let uninstall env argv =
              (Printf.sprintf
                 "Removing findlib library '%s'"
                 data);
-           BaseExec.run (ocamlfind env) ["remove"; data]
+           BaseExec.run (ocamlfind ()) ["remove"; data]
          )
        else
          (

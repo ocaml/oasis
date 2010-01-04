@@ -57,7 +57,7 @@ rule "ocamlmod: %.mod -> %.ml"
         depends_from_file 
           env 
           build
-          ~fmod:(fun fn -> Filename.concat dirname fn)
+          ~fmod:(fun fn -> dirname/fn)
           modfn;
         Cmd(S[ocamlmod;
               P(modfn)])

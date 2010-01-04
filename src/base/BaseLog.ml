@@ -7,7 +7,7 @@ open BaseUtils;;
 
 let default_filename =
   Filename.concat 
-    (Filename.dirname BaseEnvRO.default_filename)
+    (Filename.dirname BaseEnv.default_filename)
     "setup.log"
 ;;
 

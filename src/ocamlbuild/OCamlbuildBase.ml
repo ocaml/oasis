@@ -26,7 +26,7 @@ let dispatch t =
   function
     | Before_options ->
         let env = 
-          BaseEnvRO.load ~filename:(Pathname.basename BaseEnvRO.default_filename) ()
+          BaseEnvLight.load ~filename:(Pathname.basename BaseEnvLight.default_filename) ()
         in
         let no_trailing_dot s =
           if String.length s >= 1 && s.[0] = '.' then
@@ -36,7 +36,7 @@ let dispatch t =
         in
           List.iter
             (fun (opt, var) ->
-               opt := no_trailing_dot (BaseEnvRO.var_get var env))
+               opt := no_trailing_dot (BaseEnvLight.var_get var env))
             [
               Options.ext_obj, "ext_obj";
               Options.ext_lib, "ext_lib";

@@ -8,11 +8,11 @@ open OASISAstTypes;;
 
 type 'a acc_sections_t =
     {
-      execs:      (name * ('a executable)) list;
-      libs:       (name * ('a library)) list;
-      flags:      (name * ('a flag)) list;
-      src_repos:  (name * ('a source_repository)) list;
-      tests:      (name * ('a test_t)) list;
+      execs:      (name * executable) list;
+      libs:       (name * library) list;
+      flags:      (name * flag) list;
+      src_repos:  (name * source_repository) list;
+      tests:      (name * test) list;
     }
 ;;
 
@@ -47,14 +47,14 @@ let to_package fn ignore_unknown srcdir ast =
   (* Explore statement, at this level it is possible that value
    * depends from condition (if expression is possible
    *)
-  let rec stmt wrtr ctxt =
+  let rec stmt schm data ctxt =
     function
       | SField (nm, str) -> 
           (
             try
-              OASISSchema.set_field wrtr nm ctxt str
-            with (UnknownField _) as exc ->
-              if ignore_unknown then
+              PropList.Schema.set schm data nm ~context:ctxt str
+            with (PropList.Unknown_field _) as exc ->
+              if OASISPlugin.test_field_name nm && ignore_unknown then
                 ()
               else
                 raise exc
@@ -65,39 +65,41 @@ let to_package fn ignore_unknown srcdir ast =
           OASISExpr.check ctxt e;
           (* Explore if branch *)
           stmt 
-            wrtr 
+            schm
+            data
             (ctxt_add_expr ctxt e)
             stmt1;
           (* Explore then branch *)
           stmt 
-            wrtr 
+            schm
+            data 
             (ctxt_add_expr ctxt (ENot e))
             stmt2
 
       | SBlock blk ->
-          List.iter (stmt wrtr ctxt) blk
+          List.iter (stmt schm data ctxt) blk
   in
 
   (* Explore statement and register data into a newly created
    * Schema.writer.
    *)
   let schema_stmt gen nm schm flags stmt' = 
-    let wrtr =
-      OASISSchema.writer schm
+    let data =
+      PropList.Data.create ()
     in
     let ctxt =
       ctxt_of_flags flags
     in
-      stmt wrtr ctxt stmt';
-      OASISSchema.check wrtr;
-      gen nm wrtr
+      stmt schm data ctxt stmt';
+      OASISCheck.check_schema schm data;
+      gen nm data
   in
 
   (* Recurse into top-level statement. At this level there is 
    * no conditional expression but there is Flag, Library and
    * Executable structure defined.
    *) 
-  let rec top_stmt root_wrtr acc =
+  let rec top_stmt pkg_data acc =
     function
       | TSLibrary (nm, stmt) -> 
           let lib = 
@@ -156,25 +158,26 @@ let to_package fn ignore_unknown srcdir ast =
 
       | TSStmt stmt' -> 
           stmt 
-            root_wrtr 
+            OASISPackage.schema
+            pkg_data 
             (ctxt_of_flags acc.flags) 
             stmt';
           acc
 
       | TSBlock blk -> 
           List.fold_left 
-            (top_stmt root_wrtr) 
+            (top_stmt pkg_data) 
             acc 
             blk
   in
 
   (* Start with package schema/writer *)
-  let wrtr =
-    OASISSchema.writer OASISPackage.schema 
+  let data =
+    PropList.Data.create ()
   in
   let acc =
     top_stmt 
-      wrtr 
+      data
       {
         libs      = [];
         execs     = [];
@@ -185,8 +188,11 @@ let to_package fn ignore_unknown srcdir ast =
       ast
   in
   let pkg = 
+    OASISCheck.check_schema 
+      OASISPackage.schema 
+      data;
     OASISPackage.generator 
-      wrtr 
+      data
       acc.libs 
       acc.execs 
       acc.flags 

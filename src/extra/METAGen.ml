@@ -18,7 +18,8 @@ let description =
     "Description"
     ~default:None
     (opt string_not_empty)
-    (s_ "META package description")
+    (fun () ->
+       s_ "META package description")
 ;;
 
 let enable = 
@@ -28,7 +29,8 @@ let enable =
     "Enable"
     ~default:true
     boolean
-    (s_ "Enable META generation")
+    (fun () ->
+       s_ "Enable META generation")
 ;;
 
 type predicate = string 

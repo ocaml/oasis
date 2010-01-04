@@ -9,7 +9,7 @@
     @author Sylvain Le Gall
   *)
 
-open BaseEnvRW;;
+open BaseEnv;;
 
 let to_filename fn =
   if not (Filename.check_suffix fn ".ab") then
@@ -22,7 +22,7 @@ let to_filename fn =
 
 (** Replace variable in file %.ab to generate %
   *)
-let replace fn_lst env =
+let replace fn_lst =
   let buff =
     Buffer.create 13
   in
@@ -37,7 +37,7 @@ let replace fn_lst env =
            (
              try
                while true do
-                Buffer.add_string buff (var_expand env (input_line chn_in));
+                Buffer.add_string buff (var_expand (input_line chn_in));
                 Buffer.add_char buff '\n'
                done
              with End_of_file ->

@@ -8,6 +8,7 @@ open BasePlugin;;
 open BaseGenCode;;
 open OASISTypes;;
 open OASISValueParser;;
+open PropList.FieldRO;;
 
 let plugin_id = "Custom";;
 
@@ -43,6 +44,7 @@ let common cmd cmd_clean cmd_distclean =
     {
       moduls = 
         [
+          CommonData.commonsys_ml;
           BaseData.basesys_ml;
           CustomData.customsys_ml;
         ];
@@ -80,33 +82,33 @@ let new_field nm hlp hlp_clean hlp_distclean =
 let build = 
   new_field
     "Build"
-    (s_ "Run command to build.")
-    (s_ "Run command to clean build step.")
-    (s_ "Run command to distclean build step.")
+    (fun () -> s_ "Run command to build.")
+    (fun () -> s_ "Run command to clean build step.")
+    (fun () -> s_ "Run command to distclean build step.")
 ;;
 
 let doc =
   new_field 
     "Doc"
-    (s_ "Run command to build documentation.")
-    (s_ "Run command to clean build documentation step.")
-    (s_ "Run command to distclean build documentation step.")
+    (fun () -> s_ "Run command to build documentation.")
+    (fun () -> s_ "Run command to clean build documentation step.")
+    (fun () -> s_ "Run command to distclean build documentation step.")
 ;;
 
 let install =
   new_field
     "Install"
-    (s_ "Run command to install.")
-    (s_ "Run command to clean install step.")
-    (s_ "Run command to distclean install step.")
+    (fun () -> s_ "Run command to install.")
+    (fun () -> s_ "Run command to clean install step.")
+    (fun () -> s_ "Run command to distclean install step.")
 ;;
 
 let uninstall =
   new_field
     "Uninstall"
-    (s_ "Run command to uninstall.")
-    (s_ "Run command to clean uninstall step.")
-    (s_ "Run command to distclean uninstall step.")
+    (fun () -> s_ "Run command to uninstall.")
+    (fun () -> s_ "Run command to clean uninstall step.")
+    (fun () -> s_ "Run command to distclean uninstall step.")
 ;;
 
 
@@ -125,7 +127,8 @@ let test_clean =
     "Clean"
     ~default:None
     (opt string_not_empty)
-    (s_ "Run command to clean test step.")
+    (fun () ->
+       s_ "Run command to clean test step.")
 ;;
 
 let test_distclean =
@@ -135,7 +138,8 @@ let test_distclean =
     "Distclean"
     ~default:None
     (opt string_not_empty)
-    (s_ "Run command to distclean test step.")
+    (fun () ->
+       s_ "Run command to distclean test step.")
 ;;
 
 let test tst =
@@ -151,9 +155,9 @@ let test tst =
 let conf, conf_clean, conf_distclean = 
   new_field 
     "Conf"
-    (s_ "Run command to configure.")
-    (s_ "Run command to clean configure step.")
-    (s_ "Run command to distclean configure step.")
+    (fun () -> s_ "Run command to configure.")
+    (fun () -> s_ "Run command to clean configure step.")
+    (fun () -> s_ "Run command to distclean configure step.")
 ;;
 
 let conf pkg = 

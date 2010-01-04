@@ -3,9 +3,9 @@
     @author Sylvain Le Gall
   *)
 
-open BaseEnvRW;;
+open BaseEnv;;
 
-let parse argv args env =
+let parse argv args =
     (* Simulate command line for Arg *)
     let current =
       ref 0
