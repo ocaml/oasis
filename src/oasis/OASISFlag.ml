@@ -5,7 +5,8 @@
 
 open OASISTypes;;
 open OASISSchema;;
-open OASISValueParser;;
+open OASISValues;;
+open OASISUtils;;
 open CommonGettext;;
 open PropList.Field;;
 

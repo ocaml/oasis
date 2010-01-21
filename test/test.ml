@@ -20,6 +20,11 @@ let _res: test_result list =
           with Not_found ->
             false
         );
+      ocaml_autobuild =
+        FilePath.concat
+          (FileUtil.pwd ())
+          "../_build/src/OCamlAutobuild.byte";
+      ocaml_autobuild_args = [];
     }
   in
     run_test_tt_main
@@ -29,6 +34,7 @@ let _res: test_result list =
          TestOASIS.tests        ctxt;
          TestVersion.tests      ctxt;
          TestFileGenerate.tests ctxt;
+         TestBasic.tests        ctxt;
          TestFull.tests         ctxt;
        ])
 ;;

@@ -22,7 +22,7 @@ type library =
       lib_install:         bool BaseExpr.choices;
       lib_c_sources:       bool;
       lib_compiled_object: comp_type;
-      lib_data_files:      (string * string) list;
+      lib_data_files:      (string * string option) list;
     }
 ;;
 
@@ -36,7 +36,7 @@ type executable =
       exec_install:         bool BaseExpr.choices;
       exec_c_sources:       bool;
       exec_compiled_object: comp_type; 
-      exec_data_files:      (string * string) list;
+      exec_data_files:      (string * string option) list;
     }
 ;;
 
@@ -167,7 +167,7 @@ let install libs execs argv =
 
   let install_data path files_targets = 
     List.iter
-      (fun (src, tgt) ->
+      (fun (src, tgt_opt) ->
          let real_srcs = 
            let real_src = 
              Filename.concat path src
@@ -226,7 +226,13 @@ let install libs execs argv =
                )
          in
            List.iter 
-             (fun fn -> install_file fn (fun () -> var_expand tgt)) 
+             (fun fn -> 
+                install_file 
+                  fn 
+                  (fun () -> 
+                     match tgt_opt with 
+                       | Some s -> var_expand s
+                       | None -> var_expand "$datarootdir/$pkg_name")) 
              real_srcs)
            
       files_targets
@@ -456,7 +462,11 @@ let library_code_of_oasis (nm, lib) =
       "lib_compiled_object",  compiled_object_of_oasis 
                                 lib.OASIS.lib_compiled_object;
       "lib_data_files",       LST (List.rev_map 
-                                     (fun (src, tgt) -> TPL [STR src; STR tgt])
+                                     (function
+                                        | (src, Some tgt) -> 
+                                            TPL [STR src; VRT("Some", [STR tgt])]
+                                        | (src, None) -> 
+                                            TPL [STR src; VRT("None", [])])
                                      lib.OASIS.lib_data_files)
      ]
     );
@@ -477,7 +487,11 @@ let executable_code_of_oasis (nm, exec) =
       "exec_compiled_object", compiled_object_of_oasis 
                                 exec.OASIS.exec_compiled_object;
       "exec_data_files",      LST (List.rev_map 
-                                     (fun (src, tgt) -> TPL [STR src; STR tgt])
+                                     (function
+                                        | (src, Some tgt) -> 
+                                            TPL [STR src; VRT("Some", [STR tgt])]
+                                        | (src, None) ->
+                                            TPL [STR src; VRT("None", [])])
                                      exec.OASIS.exec_data_files)
      ])
 ;;

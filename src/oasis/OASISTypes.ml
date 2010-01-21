@@ -94,7 +94,7 @@ type library =
       lib_build_depends:   dependency list;
       lib_build_tools:     prog list;
       lib_c_sources:       filename list;
-      lib_data_files:      (filename * filename) list;
+      lib_data_files:      (filename * filename option) list;
       lib_schema_data:     PropList.Data.t;
     }
 ;;
@@ -111,7 +111,7 @@ type executable =
       exec_build_tools:     prog list;
       exec_c_sources:       filename list;
       exec_custom:          bool;
-      exec_data_files:      (filename * filename) list;
+      exec_data_files:      (filename * filename option) list;
       exec_is:              filename; (* Real executable *)
       exec_schema_data:     PropList.Data.t;
     }
@@ -164,7 +164,7 @@ type package =
       name:           package_name;
       version:        version;
       license:        license;
-      license_file:   filename;
+      license_file:   filename option;
       copyrights:     string list;
       maintainers:    string list;
       authors:        string list;
@@ -188,3 +188,30 @@ type package =
     }
 ;;
 
+(** Definition of a value in OASIS file
+  *)
+type 'a value =
+    {
+      parse: string -> 'a;
+      print: 'a -> string;
+    }
+;;
+
+(** Quickstart level
+  *)
+type 'a quickstart_level =
+  | NoChoice of 'a (* Don't ask question, use provided value *)
+  | Beginner
+  | Intermediate
+  | Expert
+;;
+
+(** Howto ask questions in quickstart 
+  *)
+type 'a quickstart_question =
+  | YesNo
+  | Field
+  | Text
+  | Choices of 'a list
+  | ExclusiveChoices of 'a list
+;;

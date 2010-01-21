@@ -5,7 +5,8 @@
 
 open OASISTypes;;
 open OASISSchema;;
-open OASISValueParser;;
+open OASISValues;;
+open OASISUtils;;
 open CommonGettext;;
 open PropList.Field;;
 
@@ -41,7 +42,7 @@ let schema, generator =
          s_ "Enable this test.")
   in
   let build_tools = 
-    OASISUtils.build_tools_fields schm
+    build_tools_fields schm
   in
     schm,
     (fun (_: string) data ->

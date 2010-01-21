@@ -5,6 +5,7 @@
 
 open BaseUtils;;
 open Format;;
+open FormatExt;;
 
 type module_name = string;;
 type fun_name    = string;;
@@ -36,19 +37,6 @@ and ocaml_stmts =
   ocaml_expr list
 ;;
 
-let pp_list pp_elem lst_sep fmt =
-  function
-    | [] ->
-        ()
-    | hd :: tl ->
-        pp_elem fmt hd;
-        List.iter
-          (fun e ->
-             fprintf fmt lst_sep;
-             pp_elem fmt e)
-          tl
-;;
-
 let rec pp_ocaml_expr fmt =
   function
     | REC (mod_nm, lst) ->
@@ -61,7 +49,7 @@ let rec pp_ocaml_expr fmt =
         fprintf fmt "@]@,}@]"
     | LST lst ->
         fprintf fmt "@[[@[<hv1>@,%a@]@,]@]"
-          (pp_list pp_ocaml_expr ";@ ") lst
+          (pp_print_list pp_ocaml_expr ";@ ") lst
     | STR str ->
         fprintf fmt "%S" str
     | APP (fnm, named_args, args) ->
@@ -113,7 +101,7 @@ let rec pp_ocaml_expr fmt =
         pp_open_hvbox fmt 2;
         pp_print_string fmt "fun";
         pp_print_space fmt ();
-        pp_list (fun fmt nm -> pp_ocaml_expr fmt (VAR nm)) "@ " fmt var_lst;
+        pp_print_list (fun fmt nm -> pp_ocaml_expr fmt (VAR nm)) "@ " fmt var_lst;
         pp_print_space fmt ();
         pp_print_string fmt "->";
         pp_close_box fmt ();
@@ -130,7 +118,7 @@ and pp_ocaml_stmts fmt =
         pp_ocaml_expr fmt UNT
     | lst ->
         pp_open_hvbox fmt 0;
-        pp_list pp_ocaml_expr ";@ " fmt lst;
+        pp_print_list pp_ocaml_expr ";@ " fmt lst;
         pp_close_box fmt ()
 ;;
 

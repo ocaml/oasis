@@ -7,20 +7,13 @@ open OASISTypes;;
 open OASISSchema;;
 open CommonGettext;;
 open Format;;
-
-let pp_string_spaced fmt str =
-  String.iter
-    (function
-       | ' ' -> Format.pp_print_space fmt ()
-       | c -> Format.pp_print_char fmt c)
-    str
-;;
+open FormatExt;;
 
 let pp_section ?plugin ?(section_txt="==") fmt schm = 
   let fields =
     PropList.Schema.fold
-      (fun acc key plg help ->
-         if plugin = plg then
+      (fun acc key extra help ->
+         if plugin = extra.plugin then
            (key, help) :: acc
          else
            acc)
@@ -53,13 +46,14 @@ let pp_section ?plugin ?(section_txt="==") fmt schm =
                        s_ " (mandatory)"
                    | PropList.No_printer _ ->
                        ""
+                   | OASISValues.Not_printable ->
+                       ""
                )
              in
                fprintf fmt 
                  (f_ " * @[%s: %a@]@\n") 
                  key
-                 pp_string_spaced help
-          )
+                 pp_print_string_spaced help)
           fields
       )
 ;;

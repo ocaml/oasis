@@ -5,7 +5,8 @@
 
 open OASISTypes;;
 open OASISSchema;;
-open OASISValueParser;;
+open OASISValues;;
+open OASISUtils;;
 open CommonGettext;;
 open PropList.Field;;
 
@@ -15,11 +16,15 @@ let schema, generator =
   in
   let main_is =
     new_field schm "MainIs" 
-      (fun vl ->
-         str_regexp
+      (let base_value =
+         regexp
            (Str.regexp ".*\\.ml$")
-           (s_ ".ml file")
-           (file vl))
+           (fun () -> s_ ".ml file")
+       in
+         {
+           parse = (fun str -> file.parse (base_value.parse str));
+           print = (fun fn -> file.print (base_value.print fn));
+         })
       (fun () -> 
          s_ "OCaml file (.ml) containing main procedure for the executable.")
   in
@@ -31,16 +36,16 @@ let schema, generator =
          s_ "Create custom bytecode executable.")
   in
   let build, install, compiled_object = 
-    OASISUtils.std_field (s_ "executable") Byte schm
+    std_field (s_ "executable") Byte schm
   in
   let build_depends, build_tools =
-    OASISUtils.depends_field schm
+    depends_field schm
   in
   let c_sources = 
-    OASISUtils.c_field schm
+    c_field schm
   in
   let data_files =
-    OASISUtils.data_field schm
+    data_field schm
   in
     schm,
     (fun nm data -> 
@@ -60,4 +65,3 @@ let schema, generator =
          exec_schema_data     = data;
        })
 ;;
-

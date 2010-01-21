@@ -14,11 +14,25 @@ open BasePlugin;;
 open BaseUtils;;
 open CommonGettext;;
 open Format;;
+open OASISTypes;;
+
+type action_t =
+  | Generate 
+  | Quickstart
+;;
 
 let () =
 
+  let action =
+    ref Generate
+  in
+
   let oasis_fn =
     ref "_oasis"
+  in
+
+  let qckstrt_lvl =
+    ref Beginner
   in
 
   let () = 
@@ -28,8 +42,27 @@ let () =
         (Arg.align 
            [
              "-C",
-             (Arg.String (fun str -> Sys.chdir str)),
+             Arg.String (fun str -> Sys.chdir str),
              (s_ "dir Change directory before running.");
+
+             "--quickstart",
+             Arg.Unit (fun () -> action := Quickstart),
+             (s_ " Launch an helper to write _oasis file.");
+
+             (
+               let lvls =
+                 [
+                   s_ "beginner", Beginner; 
+                   s_ "intermediate", Intermediate; 
+                   s_ "expert", Expert;
+                 ]
+               in
+                 "--quickstart-level",
+                 Arg.Symbol
+                   ((List.map fst lvls),
+                    (fun s -> qckstrt_lvl := List.assoc s lvls)),
+                 (s_ " Quickstart level, skip questions according to this level.")
+             );
            ])
         (fun str -> 
            failwith 
@@ -87,9 +120,33 @@ let () =
 
   in
 
-  let pkg =
-    OASIS.from_file !oasis_fn 
-  in
-
-    generate pkg;
+    match !action with 
+      | Generate ->
+          begin
+            let pkg =
+              OASIS.from_file !oasis_fn 
+            in
+              generate pkg
+          end
+      | Quickstart ->
+          begin
+            let fn =
+              "_oasis"
+            in
+            let chn = 
+              open_out_gen 
+                [Open_wronly; Open_creat; Open_excl; Open_text] 
+                0o644
+                "_oasis"
+            in
+            let fmt = 
+              Format.formatter_of_out_channel chn
+            in
+              Printf.printf "Creating %s file\n%!" fn;
+              OASISQuickstart.quickstart 
+                fmt
+                !qckstrt_lvl;
+              Format.pp_print_flush fmt ();
+              close_out chn
+          end
 ;;

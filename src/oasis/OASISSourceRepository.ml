@@ -5,7 +5,8 @@
 
 open OASISTypes;;
 open OASISSchema;;
-open OASISValueParser;;
+open OASISValues;;
+open OASISUtils;;
 open CommonGettext;;
 open PropList.Field;;
 
@@ -16,7 +17,7 @@ let schema, generator =
   let typ = 
     new_field schm "Type"
       (choices 
-         "source repository type"
+         (fun () -> s_ "source repository type")
          ["darcs",    Darcs; 
           "git",      Git; 
           "svn",      Svn; 
@@ -25,8 +26,7 @@ let schema, generator =
           "bzr",      Bzr; 
           "arch",     Arch; 
           "monotone", Monotone])
-      (fun () ->
-         s_ "VCS type")
+      (fun () -> s_ "VCS type")
   in
   let location =
     new_field schm "Location"

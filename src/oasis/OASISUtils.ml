@@ -4,7 +4,7 @@
 
 open OASISTypes;;
 open OASISSchema;;
-open OASISValueParser;;
+open OASISValues;;
 open CommonGettext;;
 
 let std_field nm comp_dflt schm = 
@@ -41,9 +41,12 @@ let std_field nm comp_dflt schm =
 ;;
 
 let build_tools_fields schm =
+  (* TODO: this field should look like depends_field, especially be able to 
+   * define internal tools to use
+   *)
   new_field schm "BuildTools"
     ~default:[]
-    comma_separated
+    (comma_separated string_not_empty)
     (fun () -> s_ "Executables require to compile.")
 ;;
 

@@ -7,7 +7,7 @@ open CommonGettext;;
 open BasePlugin;;
 open BaseGenCode;;
 open OASISTypes;;
-open OASISValueParser;;
+open OASISValues;;
 open PropList.FieldRO;;
 
 let plugin_id = "Custom";;

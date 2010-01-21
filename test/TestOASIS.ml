@@ -87,7 +87,7 @@ let tests ctxt =
       "ValueParser" >:::
       (List.map test_value_parser_of_vector 
          (List.map 
-            (fun (v, f) -> (v, OASISValueParser.version_constraint, f))
+            (fun (v, f) -> (v, OASISValues.version_constraint.parse, f))
             [
               ">= 3.11.1", false;
               ">= 3.11",   false;

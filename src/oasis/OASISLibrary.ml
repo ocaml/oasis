@@ -5,7 +5,8 @@
 
 open OASISTypes;;
 open OASISSchema;;
-open OASISValueParser;;
+open OASISValues;;
+open OASISUtils;;
 open CommonGettext;;
 open PropList.Field;;
 
@@ -22,21 +23,22 @@ let schema, generator =
   let modules =
     new_field schm "Modules" 
       ~default:[]
+      ~quickstart_level:Beginner
       modules
       (fun () ->
          s_ "List of modules to compile.") 
   in
   let build, install, compiled_object = 
-    OASISUtils.std_field (s_ "library") Best schm
+    std_field (s_ "library") Best schm
   in
   let build_depends, build_tools =
-    OASISUtils.depends_field schm
+    depends_field schm
   in
   let c_sources = 
-    OASISUtils.c_field schm
+    c_field schm
   in
   let data_files = 
-    OASISUtils.data_field schm
+    data_field schm
   in
     schm,
     (fun (_: string) data ->

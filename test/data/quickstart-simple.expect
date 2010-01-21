@@ -1,0 +1,45 @@
+#!/usr/bin/expect -f
+set timeout 1
+spawn OCamlAutobuild --quickstart
+expect {
+  "Value of Name?"     {send -- "test\r"; exp_continue}
+  "Value of Version?"  {send -- "0.1\r"; exp_continue}
+  "Value of Synopsis?" {send -- "test package\r"; exp_continue}
+  "Value of Authors?"  {send -- "me\r"; exp_continue}
+  "Value of License?"  {send -- "GPL\r"; exp_continue}
+  "Create a section?"
+  {
+    send -- "l\r"
+    expect {
+      "Library name?"     {send -- "testlib\r"; exp_continue}
+      "Value of Path?"    {send -- "src\r"; exp_continue}
+      "Value of Modules?" {send -- "A, B\r"; exp_continue}
+
+      "Create another section?" 
+      {
+        send -- "e\r"
+        expect {
+          "Executable name?" {send -- "testexec\r"; exp_continue}
+          "Value of MainIs?" {send -- "test/main.ml\r"; exp_continue}
+
+          "Create another section?" 
+          {
+            send -- "t\r"
+            expect {
+              "Test name?"              {send -- "testexec\r"; exp_continue}
+              "Value of Command?"       {send -- "\$testexec\r"; exp_continue}
+              "Create another section?" 
+              {
+                send -- "?\r"
+                expect "Create another section?" 
+                send -- "n\r"
+                expect eof
+                exit
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

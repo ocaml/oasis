@@ -5,7 +5,7 @@
 
 open CommonGettext;;
 open OASISTypes;;
-open OASISValueParser;;
+open OASISValues;;
 open BasePlugin;;
 open BaseFileGenerate;;
 

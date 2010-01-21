@@ -7,7 +7,7 @@ test: all
 
 # Default target
 all:
-	ocamlbuild -classic-display ocaml-autobuild.otarget
+	ocamlbuild -tag debug -classic-display ocaml-autobuild.otarget
 
 clean:
 	-ocamlbuild -classic-display -clean

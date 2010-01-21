@@ -5,7 +5,7 @@
 
 open OASISTypes;;
 open OASIS;;
-open OASISValueParser;;
+open OASISValues;;
 open BasePlugin;;
 open BaseFileGenerate;;
 open CommonGettext;;
@@ -130,7 +130,11 @@ let main pkg =
             | None ->
                 ());
 
-         fprintf fmt "See the file %s for copying conditions." pkg.license_file);
+         (match pkg.license_file with 
+            | Some fn ->
+                fprintf fmt "See the file %s for copying conditions." fn
+            | None ->
+                ()));
 
     (* Generate INSTALL.txt *)
     file_generate install
