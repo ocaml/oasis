@@ -66,5 +66,7 @@ let pp_help ?plugin ?section_txt fmt () =
       OASISFlag.schema;
       OASISLibrary.schema;
       OASISExecutable.schema;
+      OASISSourceRepository.schema;
+      OASISTest.schema;
     ]
 ;;
