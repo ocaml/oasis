@@ -85,8 +85,8 @@ let test lst extra_args =
      else
        BaseMessage.info)
       (Printf.sprintf 
-         "Tests has a %.2f%% failure rate"
-         failure_percent)
+         "Tests had a %.2f%% failure rate"
+         (100. *. failure_percent))
 ;;
 
 (* END EXPORT *)
