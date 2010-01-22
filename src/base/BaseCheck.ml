@@ -89,6 +89,26 @@ let version
 (** Check for findlib package
   *)
 let package ?version_comparator pkg () =
+  let var =
+    let buff = 
+      Buffer.create ((String.length pkg) + 4)
+    in
+      Buffer.add_string buff "pkg_";
+      String.iter
+        (fun c ->
+           if ('a' <= c && c <= 'z') 
+             || 
+              ('A' <= c && c <= 'Z') 
+             || 
+              ('0' <= c && c <= '9')
+             ||
+              c = '_' then
+             Buffer.add_char buff c
+           else
+             Buffer.add_char buff '_')
+        pkg;
+      Buffer.contents buff
+  in
   let findlib_dir pkg = 
     let dir = 
       BaseExec.run_read_one_line
@@ -111,7 +131,7 @@ let package ?version_comparator pkg () =
   in
   let vl =
     var_redefine
-      ("pkg_"^pkg)
+      var
       (lazy (findlib_dir pkg))
       ()
   in
@@ -120,7 +140,7 @@ let package ?version_comparator pkg () =
         | Some ver_cmp ->
             var_ignore
               (version 
-                 ("pkg_"^pkg)
+                 var
                  ver_cmp
                  (fun _ -> findlib_version pkg))
         | None -> 

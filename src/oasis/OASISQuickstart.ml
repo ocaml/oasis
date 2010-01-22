@@ -436,17 +436,14 @@ let quickstart fmt lvl =
        in
        let pp_id_or_string fmt id =
          let is_id str =
-           let is strt nd c = 
-             Char.code strt <= Char.code c && Char.code c <= Char.code nd
-           in
            let is_alpha c = 
-             is 'a' 'z' c ||  is 'A' 'Z' c
+             ('a' <= c && c <= 'z') ||  ('A' <= c && c <= 'Z')
            in
            let res =
              ref (String.length str > 0 && is_alpha str.[0])
            in
              String.iter
-               (fun c -> res := !res && (is_alpha c || is '0' '9' c || c = '_'))
+               (fun c -> res := !res && (is_alpha c || '0' <= c && c <= '9' || c = '_'))
                str;
              !res
          in
