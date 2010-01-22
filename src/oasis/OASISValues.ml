@@ -5,6 +5,7 @@
 
 open OASISTypes;;
 open CommonGettext;;
+open ExtString;;
 
 (** The value exist but there is no easy way to represent it
   *)
@@ -118,49 +119,34 @@ let directory =
 
 (** Convert a comma separated string into list *)
 let comma_separated value =
-  (* TODO create and use StringExt.strip_whitespace and StringExt.split *)
-  let separator =
-    Str.regexp " *, *"
-  in
-    { 
-      parse = 
-        (fun s ->
-           List.map 
-             value.parse 
-             (Str.split separator s));
-      print = 
-        (fun lst ->
-           String.concat ", "
-             (List.map 
-                value.print
-                lst));
-    }
+  { 
+    parse = 
+      (fun s ->
+         List.map 
+           (fun s -> 
+              value.parse 
+                (String.strip s))
+           (String.nsplit 
+              s 
+              ","));
+    print = 
+      (fun lst ->
+         String.concat ", "
+           (List.map 
+              value.print
+              lst));
+  }
 ;;
 
 (** Split a string that with an optional value: "e1 (e2)" *)
 let with_optional_parentheses main_value optional_value =
-  (* TODO StringExt.strip_whitespace *)
-  let white_spaces =
-    "[ \t]*"
-  in
-  let not_white_spaces =
-    "[^ \t]*"
-   in
-  let strip_whitespace =
-    Str.global_replace 
-      (Str.regexp 
-         (Printf.sprintf "^%s|%s$" white_spaces white_spaces))
-      ""
-  in
-  let split_version =
-    Str.regexp ("\\("^not_white_spaces^"\\)"^
-                white_spaces^
-                "("^white_spaces^"\\(.*\\)"^white_spaces^")")
+  let split_parentheses =
+    Str.regexp "\\([^(]*\\)(\\([^)]*\\))"
   in
     {
       parse = 
         (fun str ->
-           if Str.string_match split_version str 0 then
+           if Str.string_match split_parentheses str 0 then
              begin
                let s1, s2 = 
                  Str.matched_group 1 str,
@@ -168,11 +154,11 @@ let with_optional_parentheses main_value optional_value =
                in
                let e1 = 
                  main_value.parse
-                   (strip_whitespace s1)
+                   (String.strip s1)
                in
                let e2 =
                  optional_value.parse
-                   (strip_whitespace s2)
+                   (String.strip s2)
                in
                  e1, Some e2
              end
@@ -307,4 +293,3 @@ let boolean =
     (fun () -> s_ "boolean")
     ["true", true; "false", false]
 ;;
-

@@ -28,6 +28,16 @@ let schema, generator =
       (fun () ->
          s_ "List of modules to compile.") 
   in
+  (*
+  let parent =
+    new_field schm "ParentLibrary"
+      ~default:None
+      pkgname
+      (fun () ->
+         s_ "Library which includes the current library. The current library \
+             will be built as its parents and installed along it.")
+  in
+   *)  
   let build, install, compiled_object = 
     std_field (s_ "library") Best schm
   in
