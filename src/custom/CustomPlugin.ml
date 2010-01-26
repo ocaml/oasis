@@ -59,8 +59,6 @@ let common cmd cmd_clean cmd_distclean =
     {
       moduls = 
         [
-          CommonData.commonsys_ml;
-          BaseData.basesys_ml;
           CustomData.customsys_ml;
         ];
       setup_code      = setup_code;

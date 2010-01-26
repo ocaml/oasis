@@ -5,27 +5,26 @@
 
 (** Alias type
   *)
-type name               = string;;
-type package_name       = string;;
-type url                = string;;
-type version            = string;;
-type version_constraint = string;;
-type dirname            = string;;
-type filename           = string;;
-type prog               = string;;
+type name               = string
+type package_name       = string
+type url                = string
+type version            = string
+type version_constraint = string
+type dirname            = string
+type filename           = string
+type prog               = string
 
 (** Valid licenses
   *)
 type license =
-    [ `AllRightsReserved
-    | `BSD3
-    | `BSD4
-    | `GPL
-    | `LGPL
-    | `LGPL_link_exn
-    | `Other of url
-    | `PublicDomain ]
-;;
+  | AllRightsReserved
+  | BSD3
+  | BSD4
+  | GPL
+  | LGPL
+  | LGPL_link_exn
+  | PublicDomain
+  | OtherLicense of url
 
 (** Compilation type
   *)
@@ -33,14 +32,12 @@ type compiled_object =
   | Byte
   | Native
   | Best
-;;
 
 (** Package dependency
   *)
 type dependency = 
   | FindlibPackage of package_name * version_constraint option
   | InternalLibrary of name
-;;
 
 (** Possible VCS 
   *)
@@ -53,7 +50,6 @@ type vcs =
   | Bzr 
   | Arch 
   | Monotone
-;;
 
 (** Available test 
   *)
@@ -63,7 +59,6 @@ type expr_test =
   | TArchitecture
   | TCcomp_type
   | TOCaml_version
-;;
 
 (** Boolean expression to express condition on values
   *)
@@ -74,13 +69,11 @@ type expr =
   | EOr of expr * expr
   | EFlag of string
   | ETest of expr_test * string
-;;
 
 (** Conditional value
   *)
 type 'a conditional =
     (expr * 'a) list
-;;
 
 (** Library definition 
   *)
@@ -99,7 +92,6 @@ type library =
       lib_findlib_name:    name option;
       lib_schema_data:     PropList.Data.t;
     }
-;;
 
 (** Executable definition 
   *)
@@ -117,7 +109,6 @@ type executable =
       exec_is:              filename; (* Real executable *)
       exec_schema_data:     PropList.Data.t;
     }
-;;
 
 (** Command line flag defintion 
   *)
@@ -127,7 +118,6 @@ type flag =
       flag_default:      bool conditional;
       flag_schema_data:  PropList.Data.t;
     }
-;;
 
 (** Source repository definition
   *)
@@ -142,7 +132,6 @@ type source_repository =
       src_repo_subdir:      filename option;
       src_repo_schema_data: PropList.Data.t;
     }
-;;
 
 (** Test definition
   *)
@@ -155,7 +144,6 @@ type test =
       test_build_tools:        prog list;
       test_schema_data:        PropList.Data.t;
     }
-;;
 
 (** OASIS file whole content
   *)
@@ -188,7 +176,8 @@ type package =
       tests:          (name * test) list;
       schema_data:    PropList.Data.t;
     }
-;;
+
+(* END EXPORT *)
 
 (** Definition of a value in OASIS file
   *)
@@ -197,7 +186,6 @@ type 'a value =
       parse: string -> 'a;
       print: 'a -> string;
     }
-;;
 
 (** Quickstart level
   *)
@@ -206,7 +194,6 @@ type 'a quickstart_level =
   | Beginner
   | Intermediate
   | Expert
-;;
 
 (** Howto ask questions in quickstart 
   *)
@@ -216,4 +203,3 @@ type 'a quickstart_question =
   | Text
   | Choices of 'a list
   | ExclusiveChoices of 'a list
-;;

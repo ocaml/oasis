@@ -2,8 +2,11 @@
 (** OASIS expression manipulation
   *)
 
-open OASISTypes;;
-open OASISAstTypes;;
+open OASISTypes
+
+(* END EXPORT *)
+
+open OASISAstTypes
 
 (* Check that expression only use valid tests/flags *)
 let check ctxt =
@@ -32,7 +35,6 @@ let check ctxt =
           ()
   in
     check_aux ctxt 
-;;
 
 (** Reduce expression 
   *)
@@ -64,7 +66,6 @@ let rec reduce e =
           e
       | (ENot _ | EAnd (_, _) | EOr (_, _) | EFlag _ | ETest (_, _) | (EBool _)) as e ->
           e
-;;
 
 (** Reduce choices
   *)
@@ -95,5 +96,3 @@ let reduce_choices choices =
     reduce_choices_aux 
       []
       (List.map (fun (cond, vl) -> reduce cond, vl) choices)
-;;
-

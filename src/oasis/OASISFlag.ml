@@ -3,12 +3,15 @@
     @author Sylvain Le Gall
   *)
 
-open OASISTypes;;
-open OASISSchema;;
-open OASISValues;;
-open OASISUtils;;
-open CommonGettext;;
-open PropList.Field;;
+open OASISTypes
+
+(* END EXPORT *)
+
+open OASISSchema
+open OASISValues
+open OASISUtils
+open CommonGettext
+open PropList.Field
 
 let schema, generator = 
   let schm =
@@ -35,4 +38,3 @@ let schema, generator =
          flag_default     = default data;
          flag_schema_data = data;
        })
-;;

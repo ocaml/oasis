@@ -35,8 +35,6 @@ let install pkg =
     {
       moduls = 
         [
-          CommonData.commonsys_ml;
-          BaseData.basesys_ml; 
           InternalData.internalsys_ml
         ];
       setup_code       = code;
@@ -53,8 +51,6 @@ let uninstall pkg =
   {
     moduls = 
         [
-          CommonData.commonsys_ml;
-          BaseData.basesys_ml; 
           InternalData.internalsys_ml
         ];
     setup_code       = APP ("InternalInstall.uninstall", [], []);

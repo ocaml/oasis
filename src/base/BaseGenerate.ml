@@ -10,6 +10,15 @@ open BaseFileGenerate;;
 open ODN;;
 open BasePlugin;;
 
+let required_modules =
+  [
+    CommonData.commonsys_ml;
+    OASISData.oasissys_ml;
+    BaseData.basesysenvironment_ml;
+    (* TODO: is this module really required ? *)
+    BaseData.basesys_ml;
+  ]
+
 (** Generate autobuild system 
   *)
 let generate pkg = 
@@ -30,7 +39,9 @@ let generate pkg =
     in
     let moduls = 
       List.flatten
-        (List.map (fun act -> act.moduls) all_actions)
+        (required_modules 
+         ::
+         (List.map (fun act -> act.moduls) all_actions))
     in
     let (rmoduls, _) =
       List.fold_left

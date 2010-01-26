@@ -141,8 +141,6 @@ let plugin_main pkg =
     {
       moduls = 
         [
-          CommonData.commonsys_ml;
-          BaseData.basesys_ml; 
           InternalData.internalsys_ml
         ];
       setup_code       = code;

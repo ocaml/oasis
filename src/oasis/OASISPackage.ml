@@ -3,12 +3,14 @@
     @author Sylvain Le Gall
   *)
 
-open OASISSchema;;
-open OASISValues;;
-open OASISTypes;;
-open OASISUtils;;
-open CommonGettext;;
-open PropList.Field;;
+open OASISTypes
+
+(* END EXPORT *)
+
+open OASISValues
+open OASISUtils
+open OASISSchema
+open CommonGettext
 
 let schema, generator =
   let schm =
@@ -85,12 +87,12 @@ let schema, generator =
       (
         let std_licenses = 
           [
-            "GPL", `GPL;
-            "LGPL", `LGPL;
-            "BSD3", `BSD3;
-            "BSD4", `BSD4;
-            "PUBLICDOMAIN", `PublicDomain;
-            "LGPL-LINK-EXN", `LGPL_link_exn;
+            "GPL", GPL;
+            "LGPL", LGPL;
+            "BSD3", BSD3;
+            "BSD4", BSD4;
+            "PUBLICDOMAIN", PublicDomain;
+            "LGPL-LINK-EXN", LGPL_link_exn;
           ]
         in
         let base_value = 
@@ -104,7 +106,7 @@ let schema, generator =
                  with _ ->
                    begin
                      try
-                       `Other (url.parse str)
+                       OtherLicense (url.parse str)
                      with _ ->
                        failwith 
                          (Printf.sprintf 
@@ -114,7 +116,7 @@ let schema, generator =
                    end);
             print = 
               (function
-                 | `Other v -> url.print v
+                 | OtherLicense v -> url.print v
                  | v -> base_value.print v);
           })
       (fun () ->
@@ -213,5 +215,3 @@ let schema, generator =
         tests         = tests;
         schema_data   = data;
       })
-;;
-

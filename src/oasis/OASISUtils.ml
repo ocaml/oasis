@@ -2,12 +2,9 @@
 (** Various utilities for OASIS.
   *)
 
-open OASISTypes;;
-open OASISSchema;;
-open OASISValues;;
-open CommonGettext;;
+open OASISTypes
 
-module MapString = Map.Make(String);;
+module MapString = Map.Make(String)
 
 (** Build a MapString with an association list 
   *)
@@ -16,7 +13,12 @@ let map_string_of_assoc assoc =
     (fun acc (k, v) -> MapString.add k v acc)
     MapString.empty
     assoc
-;;
+
+(* END EXPORT *)
+
+open OASISSchema
+open OASISValues
+open CommonGettext
 
 let std_field nm comp_dflt schm = 
   let build = 
@@ -49,7 +51,6 @@ let std_field nm comp_dflt schm =
     build, 
     install,
     compiled_object
-;;
 
 let build_tools_fields schm =
   (* TODO: this field should look like depends_field, especially be able to 
@@ -59,7 +60,6 @@ let build_tools_fields schm =
     ~default:[]
     (comma_separated string_not_empty)
     (fun () -> s_ "Executables require to compile.")
-;;
 
 let depends_field schm = 
   let build_depends = 
@@ -69,14 +69,12 @@ let depends_field schm =
       (fun () -> s_ "Dependencies on findlib packages and internal libraries.")
   in
     build_depends, (build_tools_fields schm)
-;;
 
 let c_field schm = 
   new_field schm "CSources"
     ~default:[]
     files
     (fun () -> s_ "C source files.")
-;;
 
 let data_field schm =
   new_field schm "DataFiles"
@@ -89,4 +87,3 @@ let data_field schm =
            wildcard '*' but only for filename and followed by a single dot \
            extension: 'dir/*.html' is valid but 'dir/*' and 'dir/*.tar.gz' are \
            not valid.")
-;;
