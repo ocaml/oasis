@@ -197,7 +197,7 @@ let rec string_of_comparator =
         (string_of_comparator c1)^" && "^(string_of_comparator c2)
 ;;
 
-open BaseGenCode;;
+open ODN;;
 
 (** Conver a comparator to its code representation for inclusion
   *)

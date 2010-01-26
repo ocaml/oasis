@@ -91,7 +91,7 @@ let test lst extra_args =
 
 (* END EXPORT *)
 
-open BaseGenCode;;
+open ODN;;
 open OASISTypes;;
 
 let generate lst =

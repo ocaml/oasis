@@ -18,13 +18,13 @@ type generator_action =
       moduls: modul list;
 
       (** Function to be added to BaseSetup.t *)
-      setup_code: BaseGenCode.ocaml_expr;
+      setup_code: ODN.t;
 
       (** Function to be called when cleaning *)
-      clean_code: BaseGenCode.ocaml_stmts;
+      clean_code: ODN.t option;
 
       (** Function to be called when distcleaning *)
-      distclean_code: BaseGenCode.ocaml_stmts;
+      distclean_code: ODN.t option;
 
       (** Write extra files *)
       other_action: unit -> unit; 

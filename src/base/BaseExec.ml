@@ -68,8 +68,6 @@ let run_read_one_line cmd args =
 
 (* END EXPORT *)
 
-open BaseGenCode;;
-
 (** Split a command line into cmd/args
   *)
 let split_command_line cmdline = 
@@ -90,6 +88,8 @@ let split_command_line cmdline =
                "Cannot process empty command line '%s'"
                cmdline)
 ;;
+
+open ODN;;
 
 let code_of_command_line cmdline =
   let cmd, args =

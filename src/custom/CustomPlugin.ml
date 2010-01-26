@@ -3,44 +3,59 @@
     @author
   *)
 
+open BaseEnv;;
+
+let plugin_id = "Custom";;
+
+let run_and_replace cmd args extra_args =
+  BaseExec.run 
+    (var_expand cmd)
+    (List.map 
+       var_expand
+       (args @ (Array.to_list extra_args)))
+
+let run_and_replace_test cmd args =
+  try
+    run_and_replace cmd args [||];
+    0.0
+  with Failure _ ->
+    1.0
+
+let run_and_replace_clean cmd args () = 
+  run_and_replace cmd args [||]
+
+(* END EXPORT *)
+
 open CommonGettext;;
 open BasePlugin;;
-open BaseGenCode;;
+open ODN;;
 open OASISTypes;;
 open OASISValues;;
 open PropList.FieldRO;;
 
-let plugin_id = "Custom";;
-
 let common cmd cmd_clean cmd_distclean =
 
-  let code_replace_and_run = 
-    BaseExec.code_of_apply_command_line 
-      "CustomUtils.run_and_replace" 
-  in
-
-  let code_run =
-    BaseExec.code_of_apply_command_line
-      "BaseExec.run"
-  in
-
   let setup_code =
-    code_replace_and_run cmd
+    BaseExec.code_of_apply_command_line 
+      "CustomPlugin.run_and_replace" 
+      cmd
   in
-  let clean_code =
-    match cmd_clean with 
-      | Some cmd ->
-          [code_run cmd]
-      | None ->
-          []
+
+  let clean_code, distclean_code =
+    let code_clean_run =
+      function 
+        | Some cmd ->
+            Some 
+              (BaseExec.code_of_apply_command_line
+                 "CustomPlugin.run_and_replace_clean"
+                 cmd)
+        | None ->
+            None
+    in
+      code_clean_run cmd_clean,
+      code_clean_run cmd_distclean
   in
-  let distclean_code =
-    match cmd_distclean with 
-      | Some cmd ->
-          [code_run cmd]
-      | None ->
-          []
-  in
+
     {
       moduls = 
         [
@@ -148,7 +163,7 @@ let test tst =
       (test_clean tst.OASISTypes.test_schema_data)
       (test_distclean tst.OASISTypes.test_schema_data))
      with 
-         setup_code = APP ("CustomUtils.run_and_replace_test", [], [])},
+         setup_code = APP ("CustomPlugin.run_and_replace_test", [], [])},
   tst
 ;;
 

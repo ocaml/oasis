@@ -6,7 +6,7 @@
 open OASISTypes;;
 open BasePlugin;;
 open BaseUtils;;
-open BaseGenCode;;
+open ODN;;
 
 let plugin_id = "Internal";;
 
@@ -40,8 +40,8 @@ let install pkg =
           InternalData.internalsys_ml
         ];
       setup_code       = code;
-      clean_code       = [];
-      distclean_code   = [];
+      clean_code       = None;
+      distclean_code   = None;
       other_action     = (fun _ -> ());
       files_generated  = [];
     },
@@ -58,8 +58,8 @@ let uninstall pkg =
           InternalData.internalsys_ml
         ];
     setup_code       = APP ("InternalInstall.uninstall", [], []);
-    clean_code       = [];
-    distclean_code   = [];
+    clean_code       = None;
+    distclean_code   = None;
     other_action     = (fun _ -> ());
     files_generated  = [];
   },

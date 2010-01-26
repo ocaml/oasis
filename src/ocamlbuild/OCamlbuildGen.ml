@@ -8,7 +8,7 @@ open BasePlugin;;
 open BaseFileGenerate;;
 open BaseUtils;;
 open BaseExpr;;
-open BaseGenCode;;
+open ODN;;
 open BaseMessage;;
 open CommonGettext;;
 
@@ -17,7 +17,7 @@ let plugin_id = "OCamlbuild";;
 let build pkg =
 
   let clean_code = 
-    APP ("OCamlbuildBuild.clean", [], [UNT])
+    VAR "OCamlbuildBuild.clean"
   in
 
   let code_choices_target oasis_choices extra_choices tgt =
@@ -417,7 +417,7 @@ let build pkg =
            (
              Format.fprintf Format.str_formatter
                "@[<hv2>let package_default =@ %a@,@];;"
-               pp_ocaml_expr myocamlbuild_t;
+               (pp_odn ~opened_modules:[]) myocamlbuild_t;
              Format.flush_str_formatter ()
            );
            "";
@@ -438,8 +438,8 @@ let build pkg =
           OCamlbuildData.ocamlbuildsys_ml;
         ];
       setup_code       = setup_code;
-      clean_code       = [clean_code];
-      distclean_code   = [];
+      clean_code       = Some clean_code;
+      distclean_code   = None;
       other_action     = other_action;
       files_generated  = [];
     },

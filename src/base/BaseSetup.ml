@@ -32,16 +32,21 @@ type t =
       test:            BaseTest.t list;
       install:         action_fun;
       uninstall:       action_fun;
-      (* TODO: use lists *)
-      clean:           unit -> unit;
-      distclean:       unit -> unit;
+      clean:           (unit -> unit) list;
+      distclean:       (unit -> unit) list;
       package:         package;
     }
 ;;
 
+let clean t = 
+  List.iter
+    (fun f -> f ())
+    t.clean
+;;
+
 let distclean t =
   (* Call clean *)
-  t.clean ();
+  clean t;
 
   (* Remove generated file *)
   List.iter
@@ -55,7 +60,11 @@ let distclean t =
      BaseLog.default_filename
      ::
      (List.rev_map BaseFileAB.to_filename t.package.files_ab));
-  t.distclean ()
+  
+  (* Call distclean code *)
+  List.iter
+    (fun f -> f ())
+    t.distclean
 ;;
 
 let configure t args = 
@@ -136,7 +145,7 @@ let setup t =
           "[options*] Uninstall library, data, executable and documentation.";
 
           "-clean",
-          arg_clean t.clean,
+          arg_clean (fun () -> clean t),
           "[options*] Clean build environment.";
 
           "-distclean",
@@ -179,7 +188,7 @@ let setup t =
 
 open OASISTypes;;
 open BasePlugin;;
-open BaseGenCode;;
+open ODN;;
 
 let code_of_oasis pkg = 
 
@@ -233,21 +242,31 @@ let code_of_oasis pkg =
   in
 
   let clean_code =
-    FUN 
-      (["()"],
-       (* Process clean code in reverse order *)
-       (List.flatten (List.rev_map (fun act -> act.clean_code) all_actions)))
+    (* Process clean code in reverse order *)
+    LST
+      (List.fold_left 
+         (fun acc ->
+            function
+              | {clean_code = Some f} -> f :: acc
+              | _ -> acc)
+         []
+         all_actions)
   in
 
   let distclean_code =
-    FUN 
-      (["()"],
-       (* Process distclean code in reverse order *)
-       (List.flatten (List.rev_map (fun act -> act.distclean_code) all_actions)))
+    (* Process distclean code in reverse order *)
+    LST
+      (List.fold_left
+        (fun acc ->
+          function
+            | {distclean_code = Some f} -> f :: acc
+            | _ -> acc)
+        []
+        all_actions)
   in
 
   let doc_code = 
-    LST []
+    ODN.of_list (fun i -> i) []
   in
 
   let test_code =
@@ -260,7 +279,7 @@ let code_of_oasis pkg =
        [
          "name",     STR pkg.name;
          "version",  STR pkg.version;
-         "files_ab", LST (List.map (fun s -> STR s) pkg.files_ab);
+         "files_ab", ODN.of_list ODN.of_string pkg.files_ab;
          "flags",    
          LST 
            (List.map 

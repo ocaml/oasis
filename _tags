@@ -10,16 +10,30 @@
 "src/oasis": include
 "src/extra": include
 "src/extra/devfiles": include
-<test/*.{ml,byte}>: pkg_oUnit, pkg_str, pkg_fileutils, pkg_extlib
-<src/oasis/*.ml>: pkg_fileutils, pkg_extlib
-<src/base/*.ml>: pkg_fileutils
-<src/ocamlbuild/*.ml>: pkg_fileutils
-<src/extra/*.ml>: pkg_fileutils
-<src/extra/devfiles/*.ml>: pkg_fileutils
-"src/oasis/OASISRecDescParser.ml": syntax_camlp4o, pkg_camlp4
-"src/OCamlAutobuild.byte": pkg_unix, pkg_str, pkg_fileutils, pkg_extlib
+"src/extra/stdfiles": include
 
 <src/tools/ocamlmod.{ml,byte,cmo,cmx}>: pkg_str, pkg_fileutils
 
-"src/extra/stdfiles": include
+<src/oasis/*.ml>: pkg_fileutils, pkg_extlib
+"src/oasis/OASISRecDescParser.ml": syntax_camlp4o, pkg_camlp4
+
+<src/base/*.ml>: pkg_fileutils, pkg_odn
+
+<src/internal/*.ml>: pkg_odn
+
+<src/custom/*.ml>: pkg_odn
+
+<src/none/*.ml>: pkg_odn
+
+<src/ocamlbuild/*.ml>: pkg_fileutils, pkg_odn
+
+<src/extra/*.ml>: pkg_fileutils
+
+<src/extra/devfiles/*.ml>: pkg_fileutils
+
 <src/extra/stdfiles/*.ml>: pkg_fileutils
+
+"src/OCamlAutobuild.byte": pkg_unix, pkg_str, pkg_fileutils, pkg_extlib, pkg_odn
+
+<test/*.{ml,byte}>: pkg_oUnit, pkg_str, pkg_fileutils, pkg_extlib, pkg_odn
+

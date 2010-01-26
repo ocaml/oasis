@@ -1,10 +1,10 @@
 
 (** Main for OCaml-autobuild *)
 
-open NoneGen;;
+open NonePlugin;;
 open InternalGen;;
 open OCamlbuildGen;;
-open CustomGen;;
+open CustomPlugin;;
 open METAGen;;
 open DevFilesGen;;
 open StdFilesGen;;

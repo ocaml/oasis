@@ -82,10 +82,6 @@ let main pkg =
     OASISLibrary.groups pkg.libraries
   in
 
-  let findlib_names =
-    OASISLibrary.findlib_names pkg.libraries
-  in
-
   let metas =
     List.fold_left
       (fun acc tree ->

@@ -7,7 +7,7 @@ open Format;;
 open OASISTypes;;
 open BaseUtils;;
 open BaseFileGenerate;;
-open BaseGenCode;;
+open ODN;;
 open BasePlugin;;
 
 (** Generate autobuild system 
@@ -48,7 +48,7 @@ let generate pkg =
   let setup_fun =
     fprintf str_formatter
       "@[<hv2>let setup () =@ %a@,@];;"
-      pp_ocaml_expr (APP ("BaseSetup.setup", [], [setup_t_code]));
+      (pp_odn ~opened_modules:[]) (APP ("BaseSetup.setup", [], [setup_t_code]));
     flush_str_formatter ()
   in
 

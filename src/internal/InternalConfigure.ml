@@ -28,7 +28,7 @@ let configure cond_checks argv =
 (* END EXPORT *)
 
 open OASISTypes;;
-open BaseGenCode;;
+open ODN;;
 open BasePlugin;;
 
 let code_of_oasis pkg =
@@ -146,8 +146,8 @@ let plugin_main pkg =
           InternalData.internalsys_ml
         ];
       setup_code       = code;
-      clean_code       = [];
-      distclean_code   = [];
+      clean_code       = None;
+      distclean_code   = None;
       other_action     = (fun _ -> ());
       files_generated  = (List.map BaseFileAB.to_filename pkg.files_ab);
     }

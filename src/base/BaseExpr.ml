@@ -69,7 +69,6 @@ let singleton e =
 (* END EXPORT *)
 
 open OASISTypes;;
-open BaseGenCode;;
 
 (** Convert OASIS expression 
   *)
@@ -94,6 +93,8 @@ let choices_of_oasis lst =
     (fun (e, v) -> expr_of_oasis e, v)
     lst
 ;;
+
+open ODN;;
 
 (** Convert BaseExpr.t to pseudo OCaml code 
   *)

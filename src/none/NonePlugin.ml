@@ -3,23 +3,22 @@
     @author Sylvain Le Gall
   *)
 
+let not_implemented str _ _ =
+  failwith ("No implementation for "^str)
+
+(* END EXPORT *)
+
 open BasePlugin;;
-open BaseGenCode;;
+open ODN;;
 
 let plugin_id = "None";;
 
 let no_generate str data =
   {
-    moduls           = [];
-    setup_code       = FUN
-                         (["_"; "_"],
-                          [APP 
-                             ("failwith",
-                              [],
-                              [STR
-                                 ("No implementation for "^str)])]);
-    clean_code       = [];
-    distclean_code   = [];
+    moduls           = [NoneData.nonesys_ml];
+    setup_code       = APP ("NonePlugin.not_implemented", [], [STR str]);
+    clean_code       = None;
+    distclean_code   = None;
     other_action     = ignore;
     files_generated  = [];
   },
