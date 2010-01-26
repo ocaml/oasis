@@ -36,12 +36,13 @@ let enable =
 type predicate = string 
 ;;
 
-type meta_t =
+type package_t =
     {
       version:     string;
       description: string option;
       requires:    string list;
       archives:    (predicate list * filename list) list;
+      subpackages: package_t list;
     }
 ;;
 
@@ -77,25 +78,40 @@ let main pkg =
     )
   in
 
+  let groups = 
+    OASISLibrary.groups pkg.libraries
+  in
+
+  let findlib_names =
+    OASISLibrary.findlib_names pkg.libraries
+  in
+
   let metas =
     List.fold_left
-      (fun acc (nm, lib) ->
-         if enable lib.lib_schema_data then
-           (
-             Filename.concat lib.lib_path "META",
-             {
-               version     = version lib;
-               description = description lib;
-               requires    = requires lib;
-               archives    = archives lib nm;
-             }
-           )
-           ::
-           acc
-         else
-           acc)
+      (fun acc tree ->
+         let nm, lib =
+           match tree with 
+             | OASISLibrary.Node (nm, lib, _) 
+             | OASISLibrary.Leaf (nm, lib) ->
+                 nm, lib
+         in
+           if enable lib.lib_schema_data then
+             (
+               Filename.concat lib.lib_path "META",
+               {
+                 version     = version lib;
+                 description = description lib;
+                 requires    = requires lib;
+                 archives    = archives lib nm;
+                 subpackages = [];
+               }
+             )
+             ::
+             acc
+           else
+             acc)
       []
-      pkg.libraries
+      groups
   in
   let meta_content meta = 
     let meta_field nm vl acc =

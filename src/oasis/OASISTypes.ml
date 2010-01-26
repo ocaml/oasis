@@ -95,6 +95,8 @@ type library =
       lib_build_tools:     prog list;
       lib_c_sources:       filename list;
       lib_data_files:      (filename * filename option) list;
+      lib_parent:          name option;
+      lib_findlib_name:    name option;
       lib_schema_data:     PropList.Data.t;
     }
 ;;

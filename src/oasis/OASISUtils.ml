@@ -7,6 +7,17 @@ open OASISSchema;;
 open OASISValues;;
 open CommonGettext;;
 
+module MapString = Map.Make(String);;
+
+(** Build a MapString with an association list 
+  *)
+let map_string_of_assoc assoc =
+  List.fold_left
+    (fun acc (k, v) -> MapString.add k v acc)
+    MapString.empty
+    assoc
+;;
+
 let std_field nm comp_dflt schm = 
   let build = 
     new_field_conditional schm "Build"

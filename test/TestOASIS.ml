@@ -11,12 +11,12 @@ open OASIS;;
 let tests ctxt =
 
   (* Check flag equality *)
-  let assert_flag nm oasis =
+  let assert_flag nm pkg =
     try
       let _ = 
         List.find 
           (fun (flg, _) -> nm = flg) 
-          oasis.flags
+          pkg.flags
       in
         ()
     with Not_found ->
@@ -53,13 +53,13 @@ let tests ctxt =
        let fn =
          in_data fn
        in
-       let oasis =
+       let pkg =
          from_file 
            ~debug:ctxt.dbug
            ~ignore_unknown:true
            fn
        in
-         test oasis)
+         test pkg)
   in
 
   let test_value_parser_of_vector (str, value_parse, fail) = 
@@ -105,12 +105,12 @@ let tests ctxt =
       (List.map test_file_of_vector 
          [
            "test1.oasis",
-           (fun oasis ->
-              assert_flag "devmod" oasis;
+           (fun pkg ->
+              assert_flag "devmod" pkg;
               assert_alternative
                 "At least one of ostest, linuxtest64 and linuxtest32 is defined"
                 (List.map
-                   (fun nm -> (fun () -> assert_flag nm oasis))
+                   (fun nm -> (fun () -> assert_flag nm pkg))
                    [
                      "ostest";
                      "linuxtest64";
@@ -138,6 +138,32 @@ let tests ctxt =
 
            "test8.oasis",
            ignore;
+
+           "test9.oasis",
+           (fun pkg ->
+              let deps =
+                (List.assoc
+                   "test"
+                   pkg.executables).exec_build_depends
+              in
+                List.iter
+                  (fun lib ->
+                     assert_bool
+                       (Printf.sprintf
+                          "Existence of library %s"
+                          (match lib with
+                             | InternalLibrary s -> s
+                             | FindlibPackage (s, _) -> s))
+                       (List.mem 
+                          lib
+                          deps))
+                  ((List.map
+                      (fun s -> FindlibPackage(s, None))
+                      ["test1"; "pa_test1"; "test_with_str"])
+                   @
+                   (List.map
+                      (fun s -> InternalLibrary s)
+                      ["test1"; "pa_test1"; "test_with_str"])));
          ]
       );
     ]

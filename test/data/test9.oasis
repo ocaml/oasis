@@ -1,0 +1,26 @@
+OASISFormat:  1.0
+Name:         foo
+Version:      0.0.1
+Synopsis:     Just a test
+License:      GPL
+LicenseFile:  LICENSE
+Authors:      Sylvain Le Gall
+
+Library test1
+  FindlibName: test
+  Path:        src/
+
+Library pa_test1
+  FindlibName: syntax
+  Parent:      test1
+  Path:        src/test
+
+Library test_with_str
+  FindlibName: str
+  Parent:      test1
+  Path:        src/str
+
+Executable test
+  MainIs:  test/main.ml
+  BuildDepends: oUnit, test, test.syntax, test.str, 
+   test1, pa_test1, test_with_str

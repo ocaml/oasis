@@ -5,6 +5,7 @@
 
 open OASISTypes;;
 open OASISAstTypes;;
+open OASISUtils;;
 
 type 'a acc_sections_t =
     {
@@ -202,24 +203,36 @@ let to_package fn ignore_unknown srcdir ast =
 
   (* Fix build depends to reflect internal dependencies *)
   let pkg = 
+    (* Map of findlib name to internal libraries *)
+    let internal_of_findlib =
+      MapString.fold
+        (fun k v acc -> MapString.add v k acc)
+        (OASISLibrary.findlib_names pkg.libraries)
+        MapString.empty
+    in
+
     let map_internal_libraries what =
       List.map
         (function
-           | (FindlibPackage (lnm, None)) as bd ->
-               if List.mem_assoc lnm pkg.libraries then
-                 InternalLibrary lnm
-               else
-                 bd
-           | (FindlibPackage (lnm, Some _)) as bd ->
-               if List.mem_assoc lnm pkg.libraries then
-                 failwith 
-                   (Printf.sprintf
-                      "Cannot use versioned build depends \
-                       on internal library %s in %s"
-                      lnm
-                      what)
-               else
-                 bd
+           | (FindlibPackage (lnm, ver_opt)) as bd ->
+               begin
+                 try 
+                   let lnm =
+                     MapString.find lnm internal_of_findlib
+                   in
+                     if ver_opt <> None then
+                       failwith 
+                         (Printf.sprintf
+                            "Cannot use versioned build depends \
+                             on internal library %s in %s"
+                            lnm
+                            what);
+
+                     InternalLibrary lnm
+
+                 with Not_found ->
+                   bd
+               end
            | (InternalLibrary _) as bd ->
                bd)
     in

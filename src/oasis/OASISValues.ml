@@ -293,3 +293,25 @@ let boolean =
     (fun () -> s_ "boolean")
     ["true", true; "false", false]
 ;;
+
+(** Findlib package name 
+  *)
+let pkgname =
+  {
+    parse = 
+      (fun s ->
+         if String.contains s '.' then
+           failwith "Findlib package name cannot contain '.'"
+         else
+           s);
+    print =
+      (fun s -> s);
+  }
+;;
+
+(** Internal library
+  *)
+let internal_library =
+  (* TODO: check that the library really exists *)
+  string
+;;

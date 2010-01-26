@@ -677,6 +677,25 @@ let tests ctxt =
          autobuild_ocamlbuild_files,
          [],
          [];
+
+         (* TODO: enable when install works for sub-package 
+         (* Use sub-packages *)
+         "../examples/with-subpackage",
+         [
+           "src/META";
+           "src/test.mllib";
+           "src/syntax/pa_test.mllib";
+         ] @ autobuild_ocamlbuild_files,
+         [
+           in_ocaml_library "test" 
+             ["META"; "test.cma"; "pa_test.cma";
+              "A.ml"; "A.cmi"; "B.ml"; "B.cmi";
+              "pa_test.ml"; "pa_test.cmi"]
+         ],
+         [
+           try_installed_library "test" ["A"; "B"];
+         ];
+          *)
        ]
     )
 ;;
