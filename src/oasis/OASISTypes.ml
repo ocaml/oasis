@@ -3,16 +3,18 @@
    @author Sylvain Le Gall
   *)
 
+TYPE_CONV_PATH "OASISTypes"
+
 (** Alias type
   *)
-type name               = string
-type package_name       = string
-type url                = string
-type version            = string
-type version_constraint = string
-type dirname            = string
-type filename           = string
-type prog               = string
+type name               = string with odn
+type package_name       = string with odn
+type url                = string with odn
+type version            = string with odn
+type version_constraint = string with odn
+type dirname            = string with odn
+type filename           = string with odn
+type prog               = string with odn
 
 (** Valid licenses
   *)
@@ -25,6 +27,7 @@ type license =
   | LGPL_link_exn
   | PublicDomain
   | OtherLicense of url
+  with odn
 
 (** Compilation type
   *)
@@ -32,12 +35,14 @@ type compiled_object =
   | Byte
   | Native
   | Best
+  with odn
 
 (** Package dependency
   *)
 type dependency = 
   | FindlibPackage of package_name * version_constraint option
   | InternalLibrary of name
+  with odn
 
 (** Possible VCS 
   *)
@@ -50,6 +55,7 @@ type vcs =
   | Bzr 
   | Arch 
   | Monotone
+  with odn
 
 (** Available test 
   *)
@@ -59,6 +65,7 @@ type expr_test =
   | TArchitecture
   | TCcomp_type
   | TOCaml_version
+  with odn
 
 (** Boolean expression to express condition on values
   *)
@@ -69,11 +76,11 @@ type expr =
   | EOr of expr * expr
   | EFlag of string
   | ETest of expr_test * string
+  with odn
 
 (** Conditional value
   *)
-type 'a conditional =
-    (expr * 'a) list
+type 'a conditional = (expr * 'a) list with odn
 
 (** Library definition 
   *)
@@ -91,7 +98,7 @@ type library =
       lib_parent:          name option;
       lib_findlib_name:    name option;
       lib_schema_data:     PropList.Data.t;
-    }
+    } with odn
 
 (** Executable definition 
   *)
@@ -108,7 +115,7 @@ type executable =
       exec_data_files:      (filename * filename option) list;
       exec_is:              filename; (* Real executable *)
       exec_schema_data:     PropList.Data.t;
-    }
+    } with odn
 
 (** Command line flag defintion 
   *)
@@ -117,7 +124,7 @@ type flag =
       flag_description:  string option;
       flag_default:      bool conditional;
       flag_schema_data:  PropList.Data.t;
-    }
+    } with odn
 
 (** Source repository definition
   *)
@@ -131,7 +138,7 @@ type source_repository =
       src_repo_tag:         string option;
       src_repo_subdir:      filename option;
       src_repo_schema_data: PropList.Data.t;
-    }
+    } with odn
 
 (** Test definition
   *)
@@ -143,7 +150,7 @@ type test =
       test_run:                bool conditional;
       test_build_tools:        prog list;
       test_schema_data:        PropList.Data.t;
-    }
+    } with odn
 
 (** OASIS file whole content
   *)
@@ -175,7 +182,7 @@ type package =
       src_repos:      (name * source_repository) list;
       tests:          (name * test) list;
       schema_data:    PropList.Data.t;
-    }
+    } with odn
 
 (* END EXPORT *)
 

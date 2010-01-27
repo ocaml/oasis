@@ -4,6 +4,49 @@
 
 open OASISTypes
 
+(** Evaluate each conditions and choose the right one. *)
+let choose var_get test_get lst =
+  let rec eval =
+    function
+      | EBool b ->
+          b
+
+      | ENot e -> 
+          not (eval e)
+
+      | EAnd (e1, e2) ->
+          (eval e1) && (eval e2)
+
+      | EOr (e1, e2) -> 
+          (eval e1) || (eval e2)
+
+      | EFlag nm ->
+          let v =
+            var_get nm
+          in
+            assert(v = "true" || v = "false");
+            (v = "true")
+
+      | ETest (nm, vl) ->
+          let v =
+            test_get nm
+          in
+            (v = vl)
+  in
+
+  let rec choose_aux = 
+    function
+      | (cond, vl) :: tl ->
+          if eval cond then 
+            vl 
+          else
+            choose_aux tl
+      | [] ->
+          failwith 
+            "No result for a choice list"
+  in
+    choose_aux (List.rev lst)
+
 (* END EXPORT *)
 
 open OASISAstTypes

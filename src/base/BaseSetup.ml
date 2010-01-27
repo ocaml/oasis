@@ -3,26 +3,10 @@
     @author Sylvain Le Gall
   *)
 
-open BaseEnv;;
-open BaseExpr;;
+open BaseEnv
+open OASISTypes
 
 type action_fun = string array -> unit;;
-
-type flag = 
-    {
-      flag_description:  string option;
-      flag_default:      bool choices;
-    }
-;;
-
-type package =
-    {
-      name:     string;
-      version:  string;
-      files_ab: string list;
-      flags:    (string * flag) list;
-    }
-;;
 
 type t =
     {
@@ -35,14 +19,12 @@ type t =
       clean:           (unit -> unit) list;
       distclean:       (unit -> unit) list;
       package:         package;
-    }
-;;
+    } 
 
 let clean t = 
   List.iter
     (fun f -> f ())
     t.clean
-;;
 
 let distclean t =
   (* Call clean *)
@@ -65,7 +47,6 @@ let distclean t =
   List.iter
     (fun f -> f ())
     t.distclean
-;;
 
 let configure t args = 
   (* Run configure *)
@@ -73,7 +54,6 @@ let configure t args =
 
   (* Replace data in file *)
   BaseFileAB.replace t.package.files_ab
-;;
 
 let setup t = 
   try
@@ -167,7 +147,17 @@ let setup t =
                   ~cli:CLIAuto
                   ?short_desc
                   nm
-                  (lazy (string_of_bool (choose choices))))
+                  (lazy 
+                     (string_of_bool
+                       (OASISExpr.choose 
+                          var_get 
+                          (function
+                             | TOs_type       -> var_get "os_type"
+                             | TSystem        -> var_get "system"
+                             | TArchitecture  -> var_get "architecture"
+                             | TCcomp_type    -> var_get "ccomp_type"
+                             | TOCaml_version -> var_get "ocaml_version")
+                          choices))))
            in
              match hlp with 
                | Some hlp ->
@@ -182,7 +172,6 @@ let setup t =
 
   with e ->
     BaseMessage.error (Printexc.to_string e);
-;;
 
 (* END EXPORT *)
 
@@ -274,32 +263,7 @@ let code_of_oasis pkg =
   in
 
   let package_code =
-    REC
-      ("BaseSetup",
-       [
-         "name",     STR pkg.name;
-         "version",  STR pkg.version;
-         "files_ab", ODN.of_list ODN.of_string pkg.files_ab;
-         "flags",    
-         LST 
-           (List.map 
-              (fun (nm, flag) ->
-                 TPL
-                   [
-                     STR nm;
-                     REC 
-                       ("BaseSetup",
-                        [
-                          "flag_description", 
-                          (match flag.flag_description with 
-                             | Some s -> VRT ("Some", [STR s])
-                             | None -> VRT ("None", []));
-                          "flag_default", 
-                          (code_of_bool_choices 
-                             (choices_of_oasis flag.flag_default));
-                        ])])
-              pkg.flags)
-       ])
+    OASISTypes.odn_of_package pkg
   in
 
   let setup_t_code =

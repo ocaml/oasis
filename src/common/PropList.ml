@@ -3,18 +3,16 @@
     @author Sylvain Le Gall
   *)
 
-open CommonGettext;;
+open CommonGettext
 
 type name_t = string
-;;
 
 let no_context f =
   fun ?context s -> f s
-;;
 
-exception Not_set of name_t;;
-exception No_printer of name_t;;
-exception Unknown_field of name_t * name_t;;
+exception Not_set of name_t
+exception No_printer of name_t
+exception Unknown_field of name_t * name_t
 
 let string_of_exception =
   function
@@ -26,7 +24,6 @@ let string_of_exception =
         Printf.sprintf (f_ "Field %s is not defined in schema %s") nm schm
     | e ->
         raise e
-;;
 
 module Data =
 struct
@@ -37,8 +34,11 @@ struct
   let create () =
     Hashtbl.create 13
 
+(* END EXPORT *)
+  let odn_of_t t =
+    ODN.APP ("PropList.Data.create", [], [ODN.UNT])
+(* START EXPORT *)
 end
-;;
 
 module Schema = 
 struct
@@ -157,7 +157,6 @@ struct
       t
 
 end
-;;
 
 module Field =
 struct
@@ -293,7 +292,6 @@ struct
     t.gets data 
 
 end
-;;
 
 module FieldRO =
 struct
@@ -304,4 +302,4 @@ struct
     in
       fun data -> Field.fget data fld
 
-end;;
+end

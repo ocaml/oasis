@@ -14,7 +14,10 @@
 
 <src/tools/ocamlmod.{ml,byte,cmo,cmx}>: pkg_str, pkg_fileutils
 
+"src/common/PropList.ml": pkg_odn
+
 <src/oasis/*.ml>: pkg_fileutils, pkg_extlib
+"src/oasis/OASISTypes.ml": syntax_camlp4o, pkg_odn.with.syntax
 "src/oasis/OASISRecDescParser.ml": syntax_camlp4o, pkg_camlp4
 
 <src/base/*.ml>: pkg_fileutils, pkg_odn
