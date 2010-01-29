@@ -31,9 +31,24 @@ let configure pkg argv =
              | FindlibPackage (findlib_pkg, version_comparator) ->
                  var_ignore_eval
                    (BaseCheck.package ?version_comparator findlib_pkg)
-             | InternalLibrary _ ->
-                 (* TODO: check that matching library is built *)
-                 ())
+             | InternalLibrary nm ->
+                 begin
+                   let lib = 
+                     try
+                       List.assoc nm pkg.libraries 
+                     with Not_found ->
+                       failwith
+                         (Printf.sprintf
+                            "Cannot find internal library '%s' \
+                             when checking build depends"
+                            nm)
+                   in
+                     if not (var_choose lib.lib_build) then
+                       failwith
+                         (Printf.sprintf
+                            "Internal library '%s' won't be built"
+                            nm)
+                 end)
           depends
       end
   in
