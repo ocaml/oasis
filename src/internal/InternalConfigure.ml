@@ -3,104 +3,40 @@
     @author Sylvain Le Gall
   *)
 
-open BaseEnv;;
-open BaseExpr;;
+open BaseEnv
+open OASISTypes
 
 (** Configure build using provided series of check to be done
   * and then output corresponding file.
   *)
-let configure cond_checks argv =
+let configure pkg argv =
+
+  let build_checks cond tools depends =
+    if var_choose cond then
+      begin
+        (* Check tools *)
+        List.iter 
+          (fun tool -> var_ignore (BaseCheck.prog tool))
+          tools;
+
+        (* Check depends *)
+        List.iter  
+          (function
+             | FindlibPackage (findlib_pkg, ver_opt) ->
+                 (* TODO: ver_opt *)
+                 var_ignore (BaseCheck.package findlib_pkg)
+             | InternalLibrary _ ->
+                 (* TODO: check that matching library is built *)
+                 ())
+          depends
+      end
+  in
 
   (* Parse command line *)
   BaseArgExt.parse argv (args ());
 
-  (* Do some check *)
-  List.iter
-    (fun (cond, checks) ->
-       if BaseExpr.choose cond then
-         BaseCheck.run checks)
-    cond_checks;
-
-  dump ();
-  print ()
-;;
-
-(* END EXPORT *)
-
-open OASISTypes;;
-open ODN;;
-open BasePlugin;;
-
-let code_of_oasis pkg =
-
-  let build_depends_check acc = 
-    function
-      | FindlibPackage (findlib_pkg, ver_opt) ->
-          (
-            let version_arg = 
-              match ver_opt with
-                | Some ver ->
-                    let cmp = 
-                      BaseVersion.comparator_of_string ver
-                    in
-                      [
-                        "version_comparator",
-                        TPL [STR ver; 
-                             BaseVersion.code_of_comparator cmp;
-                             STR (BaseVersion.varname_of_comparator cmp)];
-                      ]
-                | None ->
-                    []
-            in
-              APP ("BaseCheck.package", version_arg, [STR findlib_pkg]) :: acc
-          )
-      | InternalLibrary _ ->
-          acc
-  in
-
-  let build_tools_check acc prog =
-    APP ("BaseCheck.prog", [], [STR prog]) :: acc
-  in
-
-  let build_checks cond tools depends =
-    TPL
-      [
-        (BaseExpr.code_of_bool_choices cond);
-        LST
-          (List.rev
-             (List.fold_left 
-                build_depends_check
-                (List.fold_left
-                   build_tools_check
-                   []
-                   tools)
-                depends))
-      ]
-  in
-
-  let build_depends_collect pkg =
-   (build_checks 
-      BaseExpr.condition_true
-      pkg.build_tools 
-      pkg.build_depends)
-   ::
-   (List.map 
-     (fun (_, lib) -> 
-        build_checks
-          (BaseExpr.choices_of_oasis lib.lib_build)
-          lib.lib_build_tools
-          lib.lib_build_depends)
-     pkg.libraries)
-   @
-   (List.map 
-      (fun (_, exec) -> 
-         build_checks 
-           (BaseExpr.choices_of_oasis exec.exec_build)
-           exec.exec_build_tools
-           exec.exec_build_depends)
-      pkg.executables)
-  in
-
+  (* OCaml version *)
+  (* TODO
   let ocaml_version_check pkg = 
     match pkg.ocaml_version with 
       | Some ver -> 
@@ -125,29 +61,47 @@ let code_of_oasis pkg =
       | None ->
           []
   in
+   *)
 
-  let code_checks = 
-    LST (build_depends_collect pkg @ ocaml_version_check pkg)
-  in
+  (* Check build depends *)
+  build_checks 
+    [EBool true, true] 
+    pkg.build_tools 
+    pkg.build_depends;
 
-    APP ("InternalConfigure.configure", [], [code_checks])
-;;
+  List.iter 
+    (fun (_, lib) ->
+       build_checks
+         lib.lib_build
+         lib.lib_build_tools
+         lib.lib_build_depends)
+    pkg.libraries;
+
+  List.iter
+    (fun (_, exec) ->
+       build_checks
+         exec.exec_build
+         exec.exec_build_tools
+         exec.exec_build_depends)
+    pkg.executables;
+
+  (* Save and print environment *)
+  dump ();
+  print ()
+
+(* END EXPORT *)
+
+open BasePlugin
 
 (* Configuration *)
 let plugin_main pkg =
-  let code = 
-    code_of_oasis pkg
-  in
-    {
-      moduls = 
-        [
-          InternalData.internalsys_ml
-        ];
-      setup_code       = code;
-      clean_code       = None;
-      distclean_code   = None;
-      other_action     = (fun _ -> ());
-      files_generated  = (List.map BaseFileAB.to_filename pkg.files_ab);
-    }
-;;
-
+  {
+    moduls           = [InternalData.internalsys_ml];
+    setup            = func configure "InternalConfigure.configure";
+    clean            = None;
+    distclean        = None;
+    other_action     = (fun _ -> ());
+    (* TODO: remove files generated, useless when we have the package *)
+    files_generated  = (List.map BaseFileAB.to_filename pkg.files_ab);
+  },
+  pkg

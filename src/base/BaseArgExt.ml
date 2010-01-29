@@ -3,8 +3,6 @@
     @author Sylvain Le Gall
   *)
 
-open BaseEnv;;
-
 let parse argv args =
     (* Simulate command line for Arg *)
     let current =
@@ -22,5 +20,3 @@ let parse argv args =
           "configure options:"
       with Arg.Help txt | Arg.Bad txt ->
         BaseMessage.error txt
-;;
-

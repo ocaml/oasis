@@ -113,6 +113,7 @@ type executable =
       exec_c_sources:       filename list;
       exec_custom:          bool;
       exec_data_files:      (filename * filename option) list;
+      (* TODO: this should be computed *)
       exec_is:              filename; (* Real executable *)
       exec_schema_data:     PropList.Data.t;
     } with odn
@@ -145,7 +146,7 @@ type source_repository =
 type test = 
     {
       test_type:               string;
-      test_command:            string;
+      test_command:            string * string list;
       test_working_directory:  filename option;
       test_run:                bool conditional;
       test_build_tools:        prog list;
@@ -169,6 +170,10 @@ type package =
       synopsis:       string;
       description:    string option;
       categories:     url list;
+      (* TODO: the two following fields should be propagated
+       * to libraries/executables/... and not stored
+       * there
+       *)
       build_depends:  dependency list;
       build_tools:    prog list;
       conf_type:      string;

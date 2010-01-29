@@ -148,14 +148,3 @@ let package ?version_comparator pkg () =
     );
     vl
 ;;
-
-(** Run checks *)
-let run checks =
-  List.iter
-    (fun chk -> 
-       let _s : string = 
-         chk ()
-       in 
-         ())
-    checks
-;;

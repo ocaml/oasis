@@ -3,190 +3,268 @@
     @author
   *)
 
-open BaseEnv;;
+open BaseEnv
 
-let plugin_id = "Custom";;
+TYPE_CONV_PATH "CustomPlugin"
 
-let run_and_replace cmd args extra_args =
+type t =
+    {
+      cmd_main:     string * (string list);
+      cmd_clean:     (string * (string list)) option;
+      cmd_distclean: (string * (string list)) option;
+    } with odn
+
+let run cmd args extra_args =
   BaseExec.run 
     (var_expand cmd)
     (List.map 
        var_expand
        (args @ (Array.to_list extra_args)))
 
-let run_and_replace_test cmd args =
-  try
-    run_and_replace cmd args [||];
-    0.0
-  with Failure _ ->
-    1.0
+let main {cmd_main = (cmd, args)} _ extra_args =
+  run cmd args extra_args 
 
-let run_and_replace_clean cmd args () = 
-  run_and_replace cmd args [||]
+let clean t pkg extra_args =
+  match t with
+    | {cmd_clean = Some (cmd, args)} ->
+        run cmd args extra_args
+    | _ ->
+        ()
+
+let distclean t pkg extra_args =
+  match t with
+    | {cmd_distclean = Some (cmd, args)} ->
+        run cmd args extra_args
+    | _ ->
+        ()
+
+module Test =
+struct
+  let main t pkg nm test extra_args =
+    try
+      main t pkg extra_args;
+      0.0
+    with Failure _ ->
+      1.0
+
+  let clean t pkg nm test extra_args =
+    clean t pkg extra_args
+
+  let distclean t pkg nm test extra_args =
+    distclean t pkg extra_args 
+end
+
+module Doc =
+struct
+  let main t pkg nm () extra_args =
+    main t pkg extra_args
+
+  let clean t pkg nm () extra_args =
+    clean t pkg extra_args
+
+  let distclean t pkg nm () extra_args =
+    distclean t pkg extra_args
+end
 
 (* END EXPORT *)
 
-open CommonGettext;;
-open BasePlugin;;
-open ODN;;
-open OASISTypes;;
-open OASISValues;;
-open PropList.FieldRO;;
+open CommonGettext
+open BasePlugin
+open ODN
+open OASISTypes
+open OASISValues
+open PropList.FieldRO
 
-let common cmd cmd_clean cmd_distclean =
+let plugin_id = "Custom"
 
-  let setup_code =
-    BaseExec.code_of_apply_command_line 
-      "CustomPlugin.run_and_replace" 
-      cmd
+(** Add standard fields 
+  *)
+let add_fields
+      ?(schema=OASISPackage.schema)
+      nm 
+      hlp 
+      hlp_clean 
+      hlp_distclean =
+  let cmd_main =
+    OASIS.new_field
+      schema
+      plugin_id
+      nm
+      command_line
+      hlp
   in
-
-  let clean_code, distclean_code =
-    let code_clean_run =
-      function 
-        | Some cmd ->
-            Some 
-              (BaseExec.code_of_apply_command_line
-                 "CustomPlugin.run_and_replace_clean"
-                 cmd)
-        | None ->
-            None
-    in
-      code_clean_run cmd_clean,
-      code_clean_run cmd_distclean
+  let cmd_clean =
+    OASIS.new_field
+      schema
+      plugin_id
+      (nm^"Clean")
+      ~default:None
+      (opt command_line)
+      hlp_clean
   in
+  let cmd_distclean =
+    OASIS.new_field
+      schema
+      plugin_id
+      (nm^"Distclean")
+      ~default:None
+      (opt command_line)
+      hlp_distclean
+  in
+    cmd_main, cmd_clean, cmd_distclean
 
-    {
-      moduls = 
-        [
-          CustomData.customsys_ml;
-        ];
-      setup_code      = setup_code;
-      clean_code      = clean_code;
-      distclean_code  = distclean_code;
-      other_action    = ignore;
-      files_generated = [];
-    }
-;;
-
-let new_field nm hlp hlp_clean hlp_distclean =
-  OASIS.new_field
-    OASISPackage.schema
-    plugin_id
-    nm
-    string_not_empty
-    hlp,
-  OASIS.new_field
-    OASISPackage.schema
-    plugin_id
-    (nm^"Clean")
-    ~default:None
-    (opt string_not_empty)
-    hlp_clean,
-  OASIS.new_field
-    OASISPackage.schema
-    plugin_id
-    (nm^"Distclean")
-    ~default:None
-    (opt string_not_empty)
-    hlp_distclean
-;;
+(** Standard custom handling
+  *)
+let std nm hlp hlp_clean hlp_distclean =
+  let cmd_main, cmd_clean, cmd_distclean =
+    add_fields nm hlp hlp_clean hlp_distclean 
+  in
+    fun pkg -> 
+      let t =
+        {
+          cmd_main      = cmd_main pkg.schema_data;
+          cmd_clean     = cmd_clean pkg.schema_data;
+          cmd_distclean = cmd_distclean pkg.schema_data;
+        }
+      in
+        {
+          moduls       = [CustomData.customsys_ml];
+          setup        = func_with_arg 
+                           main ("CustomPlugin.main")
+                           t odn_of_t;
+          clean        = Some 
+                           (func_with_arg
+                              clean ("CustomPlugin.clean")
+                              t odn_of_t);
+          distclean    = Some 
+                           (func_with_arg
+                              distclean ("CustomPlugin.distclean")
+                              t odn_of_t);
+          other_action = ignore;
+          files_generated = [];
+        },
+        pkg
 
 let build = 
-  new_field
+  std
     "Build"
     (fun () -> s_ "Run command to build.")
     (fun () -> s_ "Run command to clean build step.")
     (fun () -> s_ "Run command to distclean build step.")
-;;
-
-let doc =
-  new_field 
-    "Doc"
-    (fun () -> s_ "Run command to build documentation.")
-    (fun () -> s_ "Run command to clean build documentation step.")
-    (fun () -> s_ "Run command to distclean build documentation step.")
-;;
 
 let install =
-  new_field
+  std
     "Install"
     (fun () -> s_ "Run command to install.")
     (fun () -> s_ "Run command to clean install step.")
     (fun () -> s_ "Run command to distclean install step.")
-;;
 
 let uninstall =
-  new_field
+  std
     "Uninstall"
     (fun () -> s_ "Run command to uninstall.")
     (fun () -> s_ "Run command to clean uninstall step.")
     (fun () -> s_ "Run command to distclean uninstall step.")
-;;
 
-
-let generic (fld, fld_clean, fld_distclean) pkg = 
-    common
-      (fld pkg.schema_data)
-      (fld_clean pkg.schema_data)
-      (fld_distclean pkg.schema_data),
-    pkg
-;;
-
-let test_clean =
-  OASIS.new_field
-    OASISTest.schema
-    plugin_id
-    "Clean"
-    ~default:None
-    (opt string_not_empty)
-    (fun () ->
-       s_ "Run command to clean test step.")
-;;
-
-let test_distclean =
-  OASIS.new_field
-    OASISTest.schema
-    plugin_id
-    "Distclean"
-    ~default:None
-    (opt string_not_empty)
-    (fun () ->
-       s_ "Run command to distclean test step.")
-;;
-
-let test tst =
-  {(common
-      "false"
-      (test_clean tst.OASISTypes.test_schema_data)
-      (test_distclean tst.OASISTypes.test_schema_data))
-     with 
-         setup_code = APP ("CustomPlugin.run_and_replace_test", [], [])},
-  tst
-;;
-
-let conf, conf_clean, conf_distclean = 
-  new_field 
+let conf = 
+  std
     "Conf"
     (fun () -> s_ "Run command to configure.")
     (fun () -> s_ "Run command to clean configure step.")
     (fun () -> s_ "Run command to distclean configure step.")
-;;
 
-let conf pkg = 
-  common
-    (conf pkg.schema_data)
-    (conf_clean pkg.schema_data)
-    (conf_distclean pkg.schema_data)
-;;
+let doc =
+  let cmd_main, cmd_clean, cmd_distclean =
+    add_fields
+      (* TODO: use document *)
+      ~schema:OASISPackage.schema
+      "Doc"
+      (fun () -> s_ "Run command to build documentation.")
+      (fun () -> s_ "Run command to clean build documentation step.")
+      (fun () -> s_ "Run command to distclean build documentation step.")
+  in
+    fun pkg nm doc ->
+      let t =
+        {
+          cmd_main      = cmd_main pkg.schema_data;
+          cmd_clean     = cmd_clean pkg.schema_data;
+          cmd_distclean = cmd_distclean pkg.schema_data;
+        }
+      in
+        {
+          moduls       = [CustomData.customsys_ml];
+          setup        = func_with_arg 
+                           Doc.main ("CustomPlugin.Doc.main")
+                           t odn_of_t;
+          clean        = Some 
+                           (func_with_arg
+                              Doc.clean ("CustomPlugin.Doc.clean")
+                              t odn_of_t);
+          distclean    = Some 
+                           (func_with_arg
+                              Doc.distclean ("CustomPlugin.Doc.distclean")
+                              t odn_of_t);
+          other_action = ignore;
+          files_generated = [];
+        },
+        pkg,
+        doc
 
-List.iter 
-  (plugin_register plugin_id)
-  [
-    Configure conf;
-    Build     (generic build); 
-    Doc       (generic doc); 
-    Test      test; 
-    Install   (generic install, generic uninstall);
-  ]
-;;
+let test =
+  let test_clean =
+    OASIS.new_field
+      OASISTest.schema
+      plugin_id
+      "Clean"
+      ~default:None
+      (opt command_line)
+      (fun () ->
+         s_ "Run command to clean test step.")
+  in
+  let test_distclean =
+    OASIS.new_field
+      OASISTest.schema
+      plugin_id
+      "Distclean"
+      ~default:None
+      (opt command_line)
+      (fun () ->
+         s_ "Run command to distclean test step.")
+  in
+    fun pkg nm test -> 
+      let t = 
+        { 
+          cmd_main      = test.test_command;
+          cmd_clean     = test_clean test.test_schema_data;
+          cmd_distclean = test_distclean test.test_schema_data;
+        }
+      in
+        {
+          moduls       = [CustomData.customsys_ml];
+          setup        = func_with_arg 
+                           Test.main ("CustomPlugin.Test.main")
+                           t odn_of_t;
+          clean        = Some 
+                           (func_with_arg
+                              Test.clean ("CustomPlugin.Test.clean")
+                              t odn_of_t);
+          distclean    = Some 
+                           (func_with_arg
+                              Test.distclean ("CustomPlugin.Test.distclean")
+                              t odn_of_t);
+          other_action = ignore;
+          files_generated = [];
+        },
+        pkg,
+        test
+
+let () =
+  List.iter 
+    (plugin_register plugin_id)
+    [
+      Configure conf;
+      Build     build; 
+      Doc       doc;
+      Test      test;
+      Install   (install, uninstall);
+    ]

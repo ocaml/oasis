@@ -13,14 +13,12 @@ type t =
       lib_ocaml: (name * dir list) list;
       lib_c:     (name * dir) list; 
     }
-;;
 
 let dispatch_combine lst =
   fun e ->
     List.iter 
       (fun dispatch -> dispatch e)
       lst 
-;;
 
 let dispatch t = 
   function
@@ -85,7 +83,6 @@ let dispatch t =
           t.lib_c
     | _ -> 
         ()
-;;
 
 let dispatch_default t =
   dispatch_combine 
@@ -93,4 +90,3 @@ let dispatch_default t =
       dispatch t;
       OCamlbuildFindlib.dispatch;
     ]
-;;

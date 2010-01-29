@@ -315,3 +315,27 @@ let internal_library =
   (* TODO: check that the library really exists *)
   string
 ;;
+
+(** Command line 
+  *)
+let command_line = 
+  { 
+    parse = 
+      (fun s ->
+         let cli =
+           List.filter 
+             (fun s -> s <> "")
+             (String.nsplit s " ")
+         in
+           match cli with 
+             | cmd :: args ->
+                 cmd, args
+             | [] ->
+                 failwith 
+                   (Printf.sprintf
+                      (f_ "Commande line '%s' is invalid")
+                      s));
+    print = 
+      (fun (cmd, args) -> 
+         String.concat " " (cmd :: args))
+  }

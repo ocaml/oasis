@@ -11,3 +11,6 @@ all:
 
 clean:
 	-ocamlbuild -classic-display -clean
+
+wc:
+	find src/ -name "*.ml" | xargs wc -l

@@ -3,53 +3,39 @@
     @author Sylvain Le Gall
   *)
 
-open BaseExpr;;
-open BaseEnv;;
+open BaseEnv
+open OASISTypes
+open OASISExpr
 
-type t = 
-    {
-      test_name:               string;
-      test_command:            string * string list;
-      test_working_directory:  string option;
-      test_run:                bool choices;
-      test_plugin:             string -> string list -> float;
-    }
-;;
+let test lst pkg extra_args =
 
-let test lst extra_args =
-  let one_test t =
-    if BaseExpr.choose t.test_run then
+  let one_test (test_plugin, test_name, test) =
+    if var_choose test.test_run then
       begin
         let () = 
           BaseMessage.info 
-            (Printf.sprintf "Running test '%s'" t.test_name)
+            (Printf.sprintf "Running test '%s'" test_name)
         in
-        let cwd = 
-          Sys.getcwd ()
-        in
-        let back_cwd () = 
-          BaseMessage.info 
-            (Printf.sprintf "Changing directory to '%s'" cwd);
-          Sys.chdir cwd
+        let back_cwd = 
+          match test.test_working_directory with 
+            | Some dir -> 
+                let cwd = 
+                  Sys.getcwd ()
+                in
+                let chdir d =
+                  BaseMessage.info 
+                    (Printf.sprintf "Changing directory to '%s'" d);
+                  Sys.chdir d
+                in
+                  chdir dir;
+                  fun () -> chdir cwd
+
+            | None -> 
+                fun () -> ()
         in
           try 
-            let () = 
-              match t.test_working_directory with 
-                | Some dir -> 
-                    BaseMessage.info 
-                      (Printf.sprintf "Changing directory to '%s'" dir);
-                    Sys.chdir dir
-                | None -> ()
-            in
-            let cmd, args = 
-              t.test_command
-            in
             let failure_percent =
-              t.test_plugin
-                (var_expand cmd)
-                (List.map 
-                   var_expand
-                   (args @ (Array.to_list extra_args)))
+              test_plugin pkg test_name test extra_args 
             in
               back_cwd ();
               failure_percent
@@ -62,7 +48,7 @@ let test lst extra_args =
     else
       begin
         BaseMessage.info 
-          (Printf.sprintf "Skipping test '%s'" t.test_name);
+          (Printf.sprintf "Skipping test '%s'" test_name);
         0.0
       end
   in
@@ -87,43 +73,5 @@ let test lst extra_args =
       (Printf.sprintf 
          "Tests had a %.2f%% failure rate"
          (100. *. failure_percent))
-;;
 
 (* END EXPORT *)
-
-open ODN;;
-open OASISTypes;;
-
-let generate lst =
-
-  let generate_one (nm, tst, gen) = 
-    REC
-      ("BaseTest",
-       [
-         "test_name",
-         STR nm;
-
-         "test_command", 
-         (let cmd, args = 
-            BaseExec.code_of_command_line 
-              tst.test_command
-          in
-            TPL [cmd; args]);
-
-         "test_working_directory",
-         (match tst.test_working_directory with
-            | Some wd -> VRT ("Some", [STR wd])
-            | None -> VRT ("None", []));
-
-         "test_run", 
-         code_of_bool_choices 
-           (choices_of_oasis tst.test_run);
-
-         "test_plugin",
-         gen.BasePlugin.setup_code;
-       ])
-
-  in
-
-    LST (List.map generate_one lst)
-;;

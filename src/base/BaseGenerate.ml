@@ -23,8 +23,8 @@ let required_modules =
   *)
 let generate pkg = 
 
-  let pkg, setup_t_code, all_actions =
-    BaseSetup.code_of_oasis pkg
+  let pkg, setup_t_odn, other_actions, moduls =
+    BaseSetup.odn_of_oasis pkg
   in
 
   let () = 
@@ -35,13 +35,11 @@ let generate pkg =
   in
 
   let moduls =
-    let module SSet = Set.Make(String)
+    let module SSet = 
+      Set.Make(String)
     in
-    let moduls = 
-      List.flatten
-        (required_modules 
-         ::
-         (List.map (fun act -> act.moduls) all_actions))
+    let moduls =
+      required_modules @ moduls
     in
     let (rmoduls, _) =
       List.fold_left
@@ -59,7 +57,8 @@ let generate pkg =
   let setup_fun =
     fprintf str_formatter
       "@[<hv2>let setup () =@ %a@,@];;"
-      (pp_odn ~opened_modules:[]) (APP ("BaseSetup.setup", [], [setup_t_code]));
+      (pp_odn ~opened_modules:[]) 
+      (APP ("BaseSetup.setup", [], [setup_t_odn]));
     flush_str_formatter ()
   in
 
@@ -84,7 +83,7 @@ let generate pkg =
 
     (* Generate other files *)
     List.iter
-      (fun act -> act.other_action ())
-      all_actions
+      (fun act -> act ())
+      other_actions
 ;;
 

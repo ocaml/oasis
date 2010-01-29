@@ -1,8 +1,8 @@
 
 (** Main for OCaml-autobuild *)
 
-open NonePlugin;;
-open InternalGen;;
+open NonePlugin
+open InternalPlugin
 open OCamlbuildGen;;
 open CustomPlugin;;
 open METAGen;;

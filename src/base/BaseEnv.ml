@@ -3,6 +3,9 @@
     @author Sylvain Le Gall
   *)
 
+open OASISTypes
+open PropList
+
 (** Origin of the variable, if a variable has been already set
     with a higher origin, it won't be set again
   *)
@@ -11,7 +14,6 @@ type origin_t =
   | OGetEnv      (** Extracted from environment, using Sys.getenv *)
   | OFileLoad    (** From loading file setup.data *)
   | OCommandLine (** Set on command line *)
-;;
 
 (** Command line handling for variable 
   *)
@@ -26,7 +28,6 @@ type cli_handle_t =
   | CLIEnable
   (** Fully define the command line arguments *)
   | CLIUser of (Arg.key * Arg.spec * Arg.doc) list
-;;
 
 (** Variable type
   *)
@@ -38,19 +39,16 @@ type definition_t =
       arg_help:   string option;
       group:      string option;
     }
-;;
 
 (** Schema for environment 
   *)
 let schema =
-  PropList.Schema.create "environment"
-;;
+  Schema.create "environment"
 
 (** Environment data 
   *)
 let env = 
-  PropList.Data.create ()
-;;
+  Data.create ()
 
 (** Expand variable that can be found in string. Variable follow definition of
   * variable for {!Buffer.add_substitute}.
@@ -64,7 +62,7 @@ let rec var_expand str =
       (fun var -> 
          try 
            var_get var 
-         with PropList.Unknown_field (_, _) ->
+         with Unknown_field (_, _) ->
            failwith 
              (Printf.sprintf 
                 "No variable %s defined when trying to expand %S."
@@ -78,10 +76,22 @@ let rec var_expand str =
 and var_get name =
   let vl = 
     (* TODO: catch exception that can be raised here at upper level *)
-    PropList.Schema.get schema env name
+    Schema.get schema env name
   in
     var_expand vl
-;;
+
+(** Choose a value among conditional expression
+  *)
+let var_choose lst =
+  OASISExpr.choose 
+    var_get 
+    (function
+       | TOs_type       -> var_get "os_type"
+       | TSystem        -> var_get "system"
+       | TArchitecture  -> var_get "architecture"
+       | TCcomp_type    -> var_get "ccomp_type"
+       | TOCaml_version -> var_get "ocaml_version")
+    lst
 
 (** Protect a variable content, to avoid expansion
   *)
@@ -95,7 +105,6 @@ let var_protect vl =
          | c   -> Buffer.add_char   buff c)
       vl;
     Buffer.contents buff
-;;
 
 (** Define a variable 
   *)
@@ -170,7 +179,7 @@ let var_define
   in
 
   let var_get_lst = 
-    PropList.FieldRO.create
+    FieldRO.create
       ~schema
       ~name
       ~parse:(fun ?(context=ODefault) s -> [context, lazy s])
@@ -183,7 +192,6 @@ let var_define
 
     fun () ->
       var_expand (var_get_low (var_get_lst env))
-;;
 
 (** Define a variable or redefine it
   *)
@@ -196,7 +204,7 @@ let var_redefine
       ?group 
       name 
       dflt =
-  if PropList.Schema.mem schema name then
+  if Schema.mem schema name then
     begin
       fun () -> 
         var_get name 
@@ -213,13 +221,11 @@ let var_redefine
         name 
         dflt
     end
-;;
 
 (** Well-typed ignore for var_define 
   *)
 let var_ignore (e : unit -> string) = 
   ()
-;;
 
 (** Display all variable 
   *)
@@ -231,13 +237,12 @@ let print_hidden =
     ~arg_help:"Print even non-printable variable. (debug)"
     "print_hidden"
     (lazy "false")
-;;
 
 (** Get all variable
   *)
 let var_all () =
   List.rev
-    (PropList.Schema.fold
+    (Schema.fold
        (fun acc nm def _ -> 
           if not def.hide || bool_of_string (print_hidden ()) then
             nm :: acc
@@ -245,13 +250,11 @@ let var_all () =
             acc)
        []
        schema)
-;;
 
 (** Environment default file 
   *)
 let default_filename =
   BaseEnvLight.default_filename
-;;
 
 (** Initialize environment.
   *)
@@ -285,7 +288,7 @@ let load ?(allow_empty=false) ?(filename=default_filename) () =
               Stream.junk lexer; 
               Stream.junk lexer; 
               Stream.junk lexer;
-              PropList.Schema.preset schema env nm ~context:OFileLoad value;
+              Schema.preset schema env nm ~context:OFileLoad value;
               read_file ()
           | [] ->
               ()
@@ -305,7 +308,12 @@ let load ?(allow_empty=false) ?(filename=default_filename) () =
            "Unable to load environment, the file '%s' doesn't exist."
            filename)
     )
-;;
+
+(** Uninitialize environment 
+  *)
+let unload () = 
+  (* TODO *)
+  ()
 
 (** Save environment on disk.
   *)
@@ -313,35 +321,34 @@ let dump ?(filename=default_filename) () =
   let chn =
     open_out_bin filename
   in
-    PropList.Schema.iter
+    Schema.iter
       (fun nm def _ ->
          if def.dump then
            begin
              try 
                let value =
-                 PropList.Schema.get 
+                 Schema.get 
                    schema 
                    env 
                    nm
                in
                  Printf.fprintf chn "%s = %S\n" nm value
-             with PropList.Not_set _ ->
+             with Not_set _ ->
                ()
            end)
       schema;
     close_out chn
-;;
 
 (** Display environment to user.
   *)
 let print () =
   let printable_vars =
-    PropList.Schema.fold
+    Schema.fold
       (fun acc nm def short_descr_opt -> 
          if not def.hide || bool_of_string (print_hidden ()) then
            begin
              let value = 
-               PropList.Schema.get 
+               Schema.get 
                  schema
                  env
                  nm
@@ -375,8 +382,7 @@ let print () =
        Printf.printf "%s: %s %s\n" name (dot_pad name) value)
     printable_vars;
   Printf.printf "%!";
-  print_newline ();
-;;
+  print_newline ()
 
 (** Default command line arguments 
   *)
@@ -406,7 +412,7 @@ let args () =
                Arg.Set_string rvl;
                Arg.Unit 
                  (fun () -> 
-                    PropList.Schema.set  
+                    Schema.set  
                       schema
                       env
                       ~context:OCommandLine 
@@ -419,10 +425,10 @@ let args () =
     ]
     @
     List.flatten 
-      (PropList.Schema.fold
+      (Schema.fold
         (fun acc name def short_descr_opt ->
            let var_set s = 
-             PropList.Schema.set 
+             Schema.set 
                schema
                env
                ~context:OCommandLine 
@@ -447,7 +453,7 @@ let args () =
            in
 
            let value = 
-             PropList.Schema.get
+             Schema.get
                schema
                env
                name
@@ -485,5 +491,3 @@ let args () =
              args :: acc)
          []
          schema)
-;;
-

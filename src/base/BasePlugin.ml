@@ -3,28 +3,38 @@
     @author Sylvain Le Gall
   *)
 
-open OASISTypes;;
-open CommonGettext;;
+open OASISTypes
+open CommonGettext
 
 (** Type for OCaml module embedded code
   *)
-type modul = string;;
+type modul = string
+
+(** Function that can be generated using ODN
+    func_call = APP(func, [], [func_arg])
+  *)
+type 'a func =
+    {
+      func_call: 'a;
+      func_name: string;
+      func_arg:  ODN.t option;
+    }
 
 (** Describe action made by a target
   *)
-type generator_action =
+type ('a, 'b) generator_t =
     { 
       (** OCaml module to be added to setup.ml *)
       moduls: modul list;
 
       (** Function to be added to BaseSetup.t *)
-      setup_code: ODN.t;
+      setup: 'a func;
 
       (** Function to be called when cleaning *)
-      clean_code: ODN.t option;
+      clean: ('b func) option;
 
       (** Function to be called when distcleaning *)
-      distclean_code: ODN.t option;
+      distclean: ('b func) option;
 
       (** Write extra files *)
       other_action: unit -> unit; 
@@ -32,36 +42,32 @@ type generator_action =
       (** Files generated *)
       files_generated: filename list;
     }
-;;
 
-(** Standard steps action
+(** Action step for section
   *)
-type std_act_t = 
-    package -> generator_action * package
-;;
+type ('a, 'b) section_act_t = 
+    package -> name -> 'a -> 
+      ((package -> name -> 'a -> string array -> 'b),
+       (package -> name -> 'a -> string array -> unit)) generator_t * 
+      package * 'a
 
-(** Configure step action
+(** Action step with a package argument only
   *)
-type conf_act_t = 
-    package -> generator_action
-;;
-
-(** Test step action
-  *)
-type test_act_t =
-    test -> generator_action * test
-;;
+type std_act_t =
+    package -> 
+      ((package -> string array -> unit),
+       (package -> string array -> unit)) generator_t * 
+      package
 
 (** Kind of plugin 
   *)
 type plugin_t =
-  | Configure of conf_act_t
+  | Configure of std_act_t
   | Build     of std_act_t 
-  | Doc       of std_act_t
-  | Test      of test_act_t
+  | Doc       of (unit, unit) section_act_t
+  | Test      of (test, float) section_act_t
   | Install   of std_act_t * std_act_t (* Install and uninstall data *)
   | Extra     of (package -> unit)
-;;
 
 module MapPlugin = Map.Make (
 struct 
@@ -72,7 +78,6 @@ struct
       (String.lowercase nm1)
       (String.lowercase nm2)
 end)
-;; 
 
 let (configure_plugins,
      build_plugins,
@@ -91,7 +96,6 @@ let (configure_plugins,
     p (),
     p (),
     p () 
-;;
 
 (** Register a new plugin *)
 let plugin_register nm =
@@ -107,7 +111,6 @@ let plugin_register nm =
       | Install (i, u) -> 
           padd install_plugins i;
           padd uninstall_plugins u
-;;
 
 (**/**)
 let plugin_get rmp err_fmt nm =
@@ -124,7 +127,6 @@ let plugin_get rmp err_fmt nm =
              nm 
              (String.concat ", " availables))
     )
-;;
 
 let plugin_ls rmp = 
   List.rev
@@ -132,7 +134,6 @@ let plugin_ls rmp =
        (fun k _ lst -> k :: lst)
        !rmp
        [])
-;;
 (**/**)
 
 (** Get configure plugin 
@@ -204,3 +205,34 @@ let string_of_plugin =
 ;;
 
 
+(** Create a func 
+  *)
+let func f f_nm = 
+  {
+    func_call = f;
+    func_name = f_nm;
+    func_arg  = None;
+  }
+
+(** Create a func with an argument
+  *)
+let func_with_arg f f_nm arg odn_of_arg = 
+  {
+    func_call = f arg;
+    func_name = f_nm;
+    func_arg  = Some (odn_of_arg arg);
+  }
+
+(** Return the ODN.t code corresponding to a func_t
+  *)
+let odn_of_func t =
+  match t.func_arg with 
+    | Some arg ->
+        ODN.APP (t.func_name, [], [arg])
+    | None ->
+        ODN.VAR t.func_name
+
+(** Return the OCaml function corresponding to a func_t
+  *)
+let func_call t =
+  t.func_call

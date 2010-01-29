@@ -25,6 +25,7 @@
 <src/internal/*.ml>: pkg_odn
 
 <src/custom/*.ml>: pkg_odn
+"src/custom/CustomPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
 
 <src/none/*.ml>: pkg_odn
 

@@ -199,7 +199,7 @@ let rec string_of_comparator =
 
 open ODN;;
 
-(** Conver a comparator to its code representation for inclusion
+(** Convert a comparator to its code representation for inclusion
   *)
 let rec code_of_comparator cmp =
   let variant vrt args =

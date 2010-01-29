@@ -26,7 +26,7 @@ let schema, generator =
   in
   let command = 
     new_field schm "Command"
-      string_not_empty
+      command_line
       (fun () ->
          s_ "Command to run for the test.")
   in

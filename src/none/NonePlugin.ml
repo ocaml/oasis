@@ -6,32 +6,46 @@
 let not_implemented str _ _ =
   failwith ("No implementation for "^str)
 
+let section_not_implemented str pkg _ _ extra_args =
+  not_implemented str pkg extra_args
+
 (* END EXPORT *)
 
-open BasePlugin;;
-open ODN;;
+open BasePlugin
 
-let plugin_id = "None";;
+let plugin_id = "None"
 
-let no_generate str data =
+let std_no_generate str pkg =
   {
-    moduls           = [NoneData.nonesys_ml];
-    setup_code       = APP ("NonePlugin.not_implemented", [], [STR str]);
-    clean_code       = None;
-    distclean_code   = None;
-    other_action     = ignore;
+    moduls       = [NoneData.nonesys_ml];
+    setup        = func_with_arg 
+                     not_implemented "NonePlugin.not_implemented"
+                     str ODN.of_string;
+    clean        = None;
+    distclean    = None;
+    other_action = ignore;
     files_generated  = [];
   },
-  data
-;;
+  pkg
 
-List.iter
-  (plugin_register plugin_id)
-  [
-    Configure (fun pkg -> (fst (no_generate "configure" pkg)));
-    Build     (no_generate "build"); 
-    Doc       (no_generate "doc"); 
-    Test      (no_generate "test"); 
-    Install   (no_generate "install", no_generate "uninstall");
-  ]
-;;
+let section_no_generate str pkg nm section =
+  let gen, pkg =
+    std_no_generate 
+      (str^" of section "^nm)
+      pkg
+  in
+    gen,
+    pkg,
+    section
+
+let () = 
+  List.iter
+    (plugin_register plugin_id)
+    [
+      Configure (std_no_generate "configure");
+      Build     (std_no_generate "build"); 
+      Doc       (section_no_generate "doc"); 
+      Test      (section_no_generate "test"); 
+      Install   (std_no_generate "install", 
+                 std_no_generate "uninstall");
+    ]
