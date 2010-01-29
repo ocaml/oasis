@@ -3,12 +3,12 @@
     @author Sylvain Le Gall
   *)
 
-open Format;;
-open OASISTypes;;
-open BaseUtils;;
-open BaseFileGenerate;;
-open ODN;;
-open BasePlugin;;
+open Format
+open OASISTypes
+open BaseUtils
+open BaseFileGenerate
+open ODN
+open BasePlugin
 
 let required_modules =
   [
@@ -85,5 +85,4 @@ let generate pkg =
     List.iter
       (fun act -> act ())
       other_actions
-;;
 

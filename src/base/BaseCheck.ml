@@ -2,7 +2,7 @@
 (** {1 Checking for particular features} 
   *)
 
-open BaseEnv;;
+open BaseEnv
 
 (** Look for a program among a list of alternative program
   * the first found is returned. 
@@ -28,21 +28,19 @@ let prog_best prg prg_lst =
           match alternate with
             | Some prg -> prg
             | None -> raise Not_found))
-;;
 
 (** Check the presence of a particular program.
   *)
 let prog prg =
   prog_best prg [prg]
-;;
 
 (** Check the presence of a program or its native version
   *)
 let prog_opt prg = 
   prog_best prg [prg^".opt"; prg]
-;;
 
-let ocamlfind = prog "ocamlfind";;
+let ocamlfind = 
+  prog "ocamlfind"
 
 (** Check version, following Sys.ocaml_version convention
   *)
@@ -84,7 +82,6 @@ let version
                    str_cmp
                    version)))
       ()
-;;
 
 (** Check for findlib package
   *)
@@ -147,4 +144,3 @@ let package ?version_comparator pkg () =
             ()
     );
     vl
-;;

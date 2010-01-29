@@ -3,13 +3,12 @@
     @author Sylvain Le Gall
   *)
 
-open BaseUtils;;
+open BaseUtils
 
 let default_filename =
   Filename.concat 
     (Filename.dirname BaseEnv.default_filename)
     "setup.log"
-;;
 
 let load () = 
   if Sys.file_exists default_filename then
@@ -36,7 +35,6 @@ let load () =
     (
       []
     )
-;;
 
 let register event data =
   let chn_out =
@@ -44,7 +42,6 @@ let register event data =
   in
     Printf.fprintf chn_out "%S %S\n" event data;
     close_out chn_out
-;;
 
 let unregister event data =
   let lst = 
@@ -59,7 +56,6 @@ let unregister event data =
            Printf.fprintf chn_out "%S %S\n" event data)
       lst;
     close_out chn_out
-;;
 
 let filter events =
   let st_events =
@@ -72,4 +68,3 @@ let filter events =
     List.filter 
       (fun (e, _) -> SetString.mem e st_events)
       (load ())
-;;

@@ -3,10 +3,10 @@
     @author Sylvain Le Gall
   *)
 
-open BasePlugin;;
-open BaseFileGenerate;;
+open BasePlugin
+open BaseFileGenerate
 
-let plugin_id = "DevFiles";;
+let plugin_id = "DevFiles"
 
 let main pkg = 
   (* Generate Makefile (for standard dev. env.) *)
@@ -22,7 +22,9 @@ let main pkg =
     comment_sh
     (NeedSplit
        DevFilesData.configure);
-  Unix.chmod "configure" 0o755;
-;;
+  Unix.chmod "configure" 0o755
 
-plugin_register plugin_id (Extra main);;
+let () =
+  plugin_register 
+    plugin_id 
+    (Extra main)

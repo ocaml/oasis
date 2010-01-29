@@ -3,7 +3,7 @@
     @author Sylvain Le Gall
   *)
 
-open OASISTypes;;
+open OASISTypes
 
 (** Context for building/checking AST 
   *)
@@ -18,14 +18,12 @@ type ctxt =
                                   *)
       valid_flags:  name list; (* Which flags are valid *)
     }
-;;
 
 (** Abstract Syntax Tree *)
 type stmt =
   | SField of name * string
   | SIfThenElse of expr * stmt * stmt
   | SBlock of stmt list
-;;
 
 type top_stmt = 
   | TSLibrary of name * stmt
@@ -35,5 +33,4 @@ type top_stmt =
   | TSTest of name * stmt
   | TSStmt of stmt
   | TSBlock of top_stmt list
-;; 
 

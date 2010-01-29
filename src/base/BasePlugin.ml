@@ -142,7 +142,6 @@ let plugin_configure =
   plugin_get 
     configure_plugins 
     (f_ "Unkown configure plugin '%s' (available: %s)")
-;;
 
 (** Get a build plugin 
   *)
@@ -150,7 +149,6 @@ let plugin_build =
   plugin_get 
     build_plugins
     (f_ "Unkown build plugin '%s' (available: %s)")
-;;
 
 (** Get a doc plugin 
   *)
@@ -158,7 +156,6 @@ let plugin_doc =
   plugin_get 
     doc_plugins
     (f_ "Unkown doc plugin '%s' (available: %s)")
-;;
 
 (** Get a test plugin 
   *)
@@ -166,7 +163,6 @@ let plugin_test =
   plugin_get 
     test_plugins
     (f_ "Unkown test plugin '%s' (available: %s)")
-;;
 
 (** Get a install plugin 
   *)
@@ -174,7 +170,6 @@ let plugin_install =
   plugin_get 
     install_plugins
     (f_ "Unkown install plugin '%s' (available: %s)")
-;;
 
 (** Get an uninstall plugin
   *)
@@ -182,7 +177,6 @@ let plugin_uninstall =
   plugin_get 
     uninstall_plugins 
     (f_ "Unknown uninstall plugin '%s' (available: %s)")
-;;
 
 (** Get a extra plugin 
   *)
@@ -190,7 +184,6 @@ let plugin_extra =
   plugin_get 
     extra_plugins
     (f_ "Unkown plugin '%s' (available: %s)")
-;;
 
 (** Convert target_kind to string 
   *)
@@ -202,7 +195,6 @@ let string_of_plugin =
     | Test _      -> "test"
     | Install _   -> "install"
     | Extra _     -> "extra"
-;;
 
 
 (** Create a func 

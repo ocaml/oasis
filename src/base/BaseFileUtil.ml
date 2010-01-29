@@ -51,7 +51,6 @@ let find_file paths exts =
               (List.map 
                  (Printf.sprintf "%S")
                  alternatives)))
-;;
 
 (** Find real filename of an executable
   *)
@@ -79,8 +78,7 @@ let which prg =
       | _ ->
           [""]
   in
-    find_file [path_lst; [prg]] exec_ext;  
-;;
+    find_file [path_lst; [prg]] exec_ext 
 
 (** Copy a file 
   *)
@@ -90,7 +88,6 @@ let cp src tgt =
         BaseExec.run "copy" [src; tgt]
     | _ ->
         BaseExec.run "cp" [src; tgt]
-;;
 
 (** Create a directory
   *)
@@ -100,7 +97,6 @@ let mkdir tgt =
         BaseExec.run "md" [tgt]
     | _ ->
         BaseExec.run "mkdir" [tgt]
-;;
 
 (** Remove a directory
   *)
@@ -113,4 +109,3 @@ let rmdir tgt =
         | _ ->
             BaseExec.run "rm" ["-r"; tgt]
     )
-;;

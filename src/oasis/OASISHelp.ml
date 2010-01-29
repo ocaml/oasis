@@ -3,11 +3,11 @@
     @author Sylvain Le Gall
   *)
 
-open OASISTypes;;
-open OASISSchema;;
-open CommonGettext;;
-open Format;;
-open FormatExt;;
+open OASISTypes
+open OASISSchema
+open CommonGettext
+open Format
+open FormatExt
 
 let pp_section ?plugin ?(section_txt="==") fmt schm = 
   let fields =
@@ -56,7 +56,6 @@ let pp_section ?plugin ?(section_txt="==") fmt schm =
                  pp_print_string_spaced help)
           fields
       )
-;;
 
 let pp_help ?plugin ?section_txt fmt () =
   List.iter 
@@ -69,4 +68,3 @@ let pp_help ?plugin ?section_txt fmt () =
       OASISSourceRepository.schema;
       OASISTest.schema;
     ]
-;;

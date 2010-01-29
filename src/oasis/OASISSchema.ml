@@ -3,10 +3,10 @@
     @author Sylvain Le Gall
   *)
 
-open OASISTypes;;
-open OASISAstTypes;;
-open CommonGettext;;
-open PropList;;
+open OASISTypes
+open OASISAstTypes
+open CommonGettext
+open PropList
 
 type extra =
   {
@@ -14,17 +14,14 @@ type extra =
     qckstrt_lvl: string quickstart_level;
     qckstrt_q:   string quickstart_question;
   }
-;;
 
 type t =
   (ctxt, extra) PropList.Schema.t
-;;
 
 let schema nm: t = 
   Schema.create 
     ~case_insensitive:true 
     nm
-;;
 
 let extra 
       ?plugin 
@@ -54,7 +51,6 @@ let extra
       qckstrt_lvl = qckstrt_lvl;
       qckstrt_q   = qckstrt_q;
     }
-;;
 
 
 let new_field_conditional 
@@ -119,7 +115,6 @@ let new_field_conditional
         ?quickstart_level
         ?quickstart_question
          value)
-;;
 
 let new_field 
       schm 
@@ -163,5 +158,4 @@ let new_field
         ?quickstart_level
         ?quickstart_question
          value)
-;;
 

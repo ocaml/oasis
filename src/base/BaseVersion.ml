@@ -4,7 +4,6 @@
   *)
 
 type t = string
-;;
 
 type comparator = 
   | VGreater of t
@@ -12,7 +11,6 @@ type comparator =
   | VLesser of t
   | VOr of  comparator * comparator
   | VAnd of comparator * comparator
-;;
 
 (** Compare versions
   *)
@@ -87,7 +85,6 @@ let version_compare v1 v2 =
     compare_aux 
       (v1, 0, (String.length v1))
       (v2, 0, (String.length v2))
-;;
 
 (** Apply version comparator expression
   *)
@@ -103,7 +100,6 @@ let rec comparator_apply v op =
         (comparator_apply v op1) || (comparator_apply v op2)
     | VAnd (op1, op2) ->
         (comparator_apply v op1) && (comparator_apply v op2)
-;;
 
 (* END EXPORT *)
 
@@ -176,7 +172,6 @@ let comparator_of_string str =
       | ["<="; v] -> VOr (VLesser v, VEqual v)
       | ["="; v]  -> VEqual v
       | _ -> failwith ("Unrecognized comparator: "^str)
-;;
 
 (** Convert a comparator to string 
   *)
@@ -195,9 +190,8 @@ let rec string_of_comparator =
         (string_of_comparator c1)^" || "^(string_of_comparator c2)
     | VAnd (c1, c2) -> 
         (string_of_comparator c1)^" && "^(string_of_comparator c2)
-;;
 
-open ODN;;
+open ODN
 
 (** Convert a comparator to its code representation for inclusion
   *)
@@ -217,7 +211,6 @@ let rec code_of_comparator cmp =
           variant "VAnd" 
             [code_of_comparator c1; 
              code_of_comparator c2]
-;;
 
 (** Convert a version to a varname 
   *)
@@ -242,7 +235,6 @@ let varname_of_version v =
              Buffer.add_char buff '_')
       v;
     Buffer.contents buff 
-;;
 
 (** Convert a comparator to a varname 
   *)
@@ -261,4 +253,3 @@ let rec varname_of_comparator =
         (varname_of_comparator c1)^"_or_"^(varname_of_comparator c2)
     | VAnd (c1, c2) ->
         (varname_of_comparator c1)^"_and_"^(varname_of_comparator c2)
-;;

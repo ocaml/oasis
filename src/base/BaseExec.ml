@@ -19,7 +19,6 @@ let run cmd args =
             (Printf.sprintf 
                "Command '%s' terminated with error code %d"
                cmdline i)
-;;
 
 (** Run a command and returns its output
   *)
@@ -51,7 +50,6 @@ let run_read_output cmd args =
     close_in chn;
     Sys.remove fn;
     List.rev !routput
-;;
 
 (** Run a command and returns only first line 
   *)
@@ -64,6 +62,5 @@ let run_read_one_line cmd args =
           (Printf.sprintf
              "Command return unexpected output %S"
              (String.concat "\n" lst))
-;;
 
 (* END EXPORT *)

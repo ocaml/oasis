@@ -3,23 +3,22 @@
 
 open NonePlugin
 open InternalPlugin
-open OCamlbuildGen;;
-open CustomPlugin;;
-open METAGen;;
-open DevFilesGen;;
-open StdFilesGen;;
+open OCamlbuildGen
+open CustomPlugin
+open METAGen
+open DevFilesGen
+open StdFilesGen
 
-open BaseGenerate;;
-open BasePlugin;;
-open BaseUtils;;
-open CommonGettext;;
-open Format;;
-open OASISTypes;;
+open BaseGenerate
+open BasePlugin
+open BaseUtils
+open CommonGettext
+open Format
+open OASISTypes
 
 type action_t =
   | Generate 
   | Quickstart
-;;
 
 let () =
 
@@ -149,4 +148,3 @@ let () =
               Format.pp_print_flush fmt ();
               close_out chn
           end
-;;

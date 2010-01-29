@@ -3,9 +3,9 @@
     @author Sylvain Le Gall
   *)
 
-open OASISTypes;;
-open OASISAstTypes;;
-open OASISUtils;;
+open OASISTypes
+open OASISAstTypes
+open OASISUtils
 
 type 'a acc_sections_t =
     {
@@ -15,7 +15,6 @@ type 'a acc_sections_t =
       src_repos:  (name * source_repository) list;
       tests:      (name * test) list;
     }
-;;
 
 (** Convert oasis AST into package 
   *)
@@ -260,5 +259,4 @@ let to_package fn ignore_unknown srcdir ast =
   in
     (* TODO: check recursion and re-order library/tools using ocamlgraph *)
     pkg
-;;
 

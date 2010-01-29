@@ -3,14 +3,14 @@
     @author Sylvain Le Gall
   *)
 
-open OASISTypes;;
-open OASIS;;
-open OASISValues;;
-open BasePlugin;;
-open BaseFileGenerate;;
-open CommonGettext;;
+open OASISTypes
+open OASIS
+open OASISValues
+open BasePlugin
+open BaseFileGenerate
+open CommonGettext
 
-let plugin_id = "StdFiles";;
+let plugin_id = "StdFiles"
 
 let fn_enable fn = 
   new_field 
@@ -29,21 +29,17 @@ let fn_enable fn =
     string_not_empty
     (fun () -> 
        Printf.sprintf (f_ "Real filename to use for file %s.") fn)
-;;
 
 let readme =
   fn_enable "README"
-;;
 
 let install = 
   fn_enable "INSTALL"
-;;
 
 let authors =
   fn_enable "AUTHORS"
-;;
 
-open Format;;
+open Format
 
 let main pkg = 
   let data =
@@ -187,7 +183,9 @@ let main pkg =
            );
 
          pp_close_box fmt ()
-      );
-;;
+      )
 
-plugin_register plugin_id (Extra main);;
+let () = 
+  plugin_register 
+    plugin_id 
+    (Extra main)

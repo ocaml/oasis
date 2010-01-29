@@ -10,12 +10,10 @@
 
 let warning msg = 
   prerr_endline msg
-;;
 
 let error msg = 
   prerr_endline msg;
   exit 1
-;;
 
 let find_unit directory unit_name extensions =
   let unit_base_fn =
@@ -55,7 +53,6 @@ let find_unit directory unit_name extensions =
           fn
       | [] ->
           raise Not_found
-;;
 
 let cmx_of_cma cma =
   let dirname =
@@ -107,7 +104,6 @@ let cmx_of_cma cma =
       )
   in
     List.fold_left add_cmx [] !unit_list
-;;
 
 let install_lib ~directory ~archive ~interfaces =
   let mandatory_file fn =
@@ -186,7 +182,6 @@ let install_lib ~directory ~archive ~interfaces =
         fn_lst_native;
         fn_lst_stubs;
       ]
-;;
 
 (* QUID: .o (.obj), .a (.lib), .so (.dll) *)
 
@@ -195,5 +190,4 @@ let () =
     ("To install: "^
      (String.concat ", " 
         (install_lib ~directory:"." ~archive:"stlang" ~interfaces:["STLang"; "STLangTypes"])))
-;;
 

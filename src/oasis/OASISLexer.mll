@@ -1,5 +1,5 @@
 {
-open OasisParser;;
+open OasisParser
 }
 
 rule token = parse

@@ -1,6 +1,6 @@
 %{
 
-open Oasis;;
+open Oasis
 
 %}
 

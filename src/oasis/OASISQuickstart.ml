@@ -3,17 +3,16 @@
     @author Sylvain Le Gall
   *)
 
-open CommonGettext;;
-open OASISSchema;;
-open OASISTypes;;
-open Format;;
-open FormatExt;;
+open CommonGettext
+open OASISSchema
+open OASISTypes
+open Format
+open FormatExt
 
 type 'a default =
   | Default_exists of 'a
   | Default_is of string
   | NoDefault
-;;
 
 let ask_until_correct q ?help ?(default=NoDefault) parse = 
   let rec ask_until_correct_aux () =
@@ -66,7 +65,6 @@ let ask_until_correct q ?help ?(default=NoDefault) parse =
       input_until_decided ()
   in
     ask_until_correct_aux ()
-;;
 
 let ask_shortcut_choices ?help ?(default=NoDefault) q choices = 
   let help = 
@@ -128,7 +126,6 @@ let ask_shortcut_choices ?help ?(default=NoDefault) q choices =
              (Printf.sprintf 
                 "'%s' is not valid answer"
                 s))
-;;
 
 let ask_yes_no ?help ?default q =
   ask_shortcut_choices 
@@ -139,11 +136,9 @@ let ask_yes_no ?help ?default q =
       (s_ "y"), (s_ "yes"), true;
       (s_ "n"), (s_ "no"),  false;
     ]
-;;
 
 let ask_field =
   ask_until_correct
-;;
 
 type section =
   | Library 
@@ -151,7 +146,6 @@ type section =
   | Flag
   | SourceRepo
   | Test
-;;
 
 let quickstart fmt lvl =
   let fake_context = 
@@ -459,5 +453,4 @@ let quickstart fmt lvl =
     sections;
 
   pp_close_box fmt ()
-;;
 

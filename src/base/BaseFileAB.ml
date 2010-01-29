@@ -9,7 +9,7 @@
     @author Sylvain Le Gall
   *)
 
-open BaseEnv;;
+open BaseEnv
 
 let to_filename fn =
   if not (Filename.check_suffix fn ".ab") then
@@ -18,7 +18,6 @@ let to_filename fn =
          "File '%s' doesn't have '.ab' extension"
          fn);
   Filename.chop_extension fn
-;;
 
 (** Replace variable in file %.ab to generate %
   *)
@@ -48,4 +47,3 @@ let replace fn_lst =
            close_in chn_in;
            close_out chn_out)
       fn_lst
-;;

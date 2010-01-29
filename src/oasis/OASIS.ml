@@ -25,21 +25,17 @@ let from_file ?(srcdir) ?(debug=false) ?(ignore_unknown=false) fn =
     OASISAst.to_package fn ignore_unknown srcdir ast
   in
     pkg
-;;
 
 (** Add a new field to schema
   *)
 let new_field = OASISPlugin.new_field
-;;
 
 (** Add a new field to schema which can be conditional
   *)
 let new_field_conditional = OASISPlugin.new_field_conditional
-;;
 
 (** Print help about OASIS fields.
   *)
 let pp_help = 
   OASISHelp.pp_help
-;;
 

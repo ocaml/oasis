@@ -9,4 +9,3 @@ struct
 
   let camlidl    = Chk.prog "camlidl"
 end
-;;

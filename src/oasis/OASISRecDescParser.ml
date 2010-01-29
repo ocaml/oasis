@@ -3,9 +3,9 @@
     @author Sylvain Le Gall
   *)
 
-open OASISTypes;;
-open OASISAstTypes;;
-open Genlex;;
+open OASISTypes
+open OASISAstTypes
+open Genlex
 
 let stream_debugger st = 
   Stream.from
@@ -18,7 +18,6 @@ let stream_debugger st =
            Some c
        with Stream.Failure ->
          None)
-;;
 
 let parse_file ~debug fn = 
   let chn =
@@ -523,4 +522,3 @@ let parse_file ~debug fn =
           else
             failwith ("Syntax error "^str^(position ()))
         )
-;;

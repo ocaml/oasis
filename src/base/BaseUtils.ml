@@ -12,14 +12,12 @@ let set_string_add_list st lst =
     (fun acc e -> SetString.add e acc)
     st
     lst
-;;
 
 (** Build a set out of list 
   *)
 let set_string_of_list =
   set_string_add_list
     SetString.empty
-;;
 
 (** Split a string, separator not included
   *)
@@ -63,5 +61,4 @@ let split sep str =
       )
   in
     split_aux [] 0
-;;
 

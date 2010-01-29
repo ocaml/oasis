@@ -3,13 +3,13 @@
     @author Sylvain Le Gall
   *)
 
-open CommonGettext;;
-open OASISTypes;;
-open OASISValues;;
-open BasePlugin;;
-open BaseFileGenerate;;
+open CommonGettext
+open OASISTypes
+open OASISValues
+open BasePlugin
+open BaseFileGenerate
 
-let plugin_id = "META";;
+let plugin_id = "META"
 
 let description =
   OASIS.new_field
@@ -20,7 +20,6 @@ let description =
     (opt string_not_empty)
     (fun () ->
        s_ "META package description")
-;;
 
 let enable = 
   OASIS.new_field
@@ -31,10 +30,8 @@ let enable =
     boolean
     (fun () ->
        s_ "Enable META generation")
-;;
 
 type predicate = string 
-;;
 
 type package_t =
     {
@@ -44,7 +41,6 @@ type package_t =
       archives:    (predicate list * filename list) list;
       subpackages: package_t list;
     }
-;;
 
 let main pkg =
   let version lib = 
@@ -134,11 +130,12 @@ let main pkg =
            ))
   in
 
-
     List.iter 
       (fun (fn, meta) ->
          file_generate fn comment_meta (Split([], meta_content meta, [])))
       metas
-;; 
 
-plugin_register plugin_id (Extra main);;
+let () = 
+  plugin_register 
+    plugin_id 
+    (Extra main)

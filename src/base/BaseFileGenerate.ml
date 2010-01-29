@@ -3,7 +3,7 @@
     @author Sylvain Le Gall
   *)
 
-open BaseMessage;;
+open BaseMessage
 
 (** {1 Comments} *)
 
@@ -15,24 +15,20 @@ type comment_format =
       start:     string;
       stop:      string;
     }
-;;
 
 type content =
   (* Use header * body * footer without start/stop comment *)
   | Split of (string list) * (string list) * (string list)
   (* Look for start/stop comment and split *)
   | NeedSplit of string list
-;;
 
 (**/**)
 let (start_msg, stop_msg) =
   "AUTOBUILD_START",
   "AUTOBUILD_STOP"
-;;
 
 let white_space =
   "[ \t]*"
-;;
 
 let comment cmt_beg cmt_end =
   let of_string =
@@ -66,33 +62,26 @@ let comment cmt_beg cmt_end =
       start     = of_string start_msg;
       stop      = of_string stop_msg;
     }
-;;
 
 (**/**)
 
 let comment_ml =
   comment "(*" (Some "*)")
-;;
 
 let comment_sh = 
   comment "#" None
-;;
 
 let comment_makefile = 
   comment_sh
-;;
 
 let comment_ocamlbuild =
   comment_sh
-;;
 
 let comment_bat = 
   comment "rem" None
-;;
 
 let comment_meta = 
   comment_sh
-;;
 
 (** Generate a file using a template. Only the part between AUTOBUILD_START and 
     AUTOBUILD_END will really be replaced if the file exist. If file doesn't exist
@@ -346,7 +335,6 @@ let file_generate ?(target) fn comment content =
           content_body
           content_footer
       )
-;;
 
 let mlfile_generate ?(target) fn content = 
 
@@ -471,4 +459,3 @@ let mlfile_generate ?(target) fn content =
   in
 
     file_generate ?target fn comment_ml content
-;;

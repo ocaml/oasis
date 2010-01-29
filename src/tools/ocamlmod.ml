@@ -97,8 +97,7 @@ let dump_ml chn_out fn =
 
     Printf.fprintf chn_out "module %s = struct\n" modname;
     export_extract chn_out fn;
-    Printf.fprintf chn_out "end\n\n";
-;;
+    Printf.fprintf chn_out "end\n\n"
 
 let process chn_in curdir chn_out =
   try
@@ -118,7 +117,6 @@ let process chn_in curdir chn_out =
     done
   with End_of_file ->
     ()
-;;
 
 let process_modfile fn =
   let chn_out =
@@ -130,7 +128,6 @@ let process_modfile fn =
     process chn_in (Filename.dirname fn) chn_out;
     close_in chn_in;
     close_out chn_out
-;;
 
 let () = 
   let lst =
@@ -144,4 +141,3 @@ let () =
     List.iter
       process_modfile 
       (List.rev !lst)
-;;

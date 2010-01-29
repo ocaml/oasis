@@ -11,6 +11,5 @@ struct
   let xmllint    = Chk.prog "xmllint"
 
 end
-;;
 
 

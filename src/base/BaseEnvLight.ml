@@ -2,9 +2,9 @@
 (** Simple environment, allowing only to read values
   *)
 
-module MapString = Map.Make(String);;
+module MapString = Map.Make(String)
 
-type t = string MapString.t;;
+type t = string MapString.t
 
 (** Environment default file 
   *)
@@ -12,7 +12,6 @@ let default_filename =
   Filename.concat 
     (Filename.dirname Sys.argv.(0))
     "setup.data"
-;;
 
 (** Load environment.
   *)
@@ -49,7 +48,6 @@ let load ?(allow_empty=false) ?(filename=default_filename) () =
            "Unable to load environment, the file '%s' doesn't exist."
            filename)
     end
-;;
 
 (** Get a variable that evaluate expression that can be found in it (see
     {!Buffer.add_substitute}.
@@ -74,4 +72,3 @@ let var_get name env =
       Buffer.contents buff
   in
     var_expand (MapString.find name env)
-;;

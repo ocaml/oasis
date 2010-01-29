@@ -3,8 +3,8 @@
     @author Sylvain Le Gall
   *)
 
-open BaseCheck;;
-open BaseEnv;;
+open BaseCheck
+open BaseEnv
 
 (** {2 Paths} *)
 

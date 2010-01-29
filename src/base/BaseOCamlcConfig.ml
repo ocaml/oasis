@@ -3,11 +3,12 @@
   * into enviornment variable
   *)
 
-open BaseEnv;;
+open BaseEnv
 
-module SMap = Map.Make(String);;
+module SMap = Map.Make(String)
 
-let ocamlc = BaseCheck.prog_opt "ocamlc";;
+let ocamlc = 
+  BaseCheck.prog_opt "ocamlc"
 
 let ocamlc_config_map =
   (* Map name to value for ocamlc -config output 
@@ -66,7 +67,6 @@ let ocamlc_config_map =
                   (BaseExec.run_read_output 
                      (ocamlc ()) ["-config"]))
                [])))
-;;
 
 let var_define nm =
   (* Extract data from ocamlc -config *)
@@ -97,5 +97,4 @@ let var_define nm =
                  "Cannot find field '%s' in '%s -config' output"
                  nm
                  (ocamlc ()))))
-;;
 

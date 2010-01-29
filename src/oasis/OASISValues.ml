@@ -3,13 +3,13 @@
     @author Sylvain Le Gall
   *)
 
-open OASISTypes;;
-open CommonGettext;;
-open ExtString;;
+open OASISTypes
+open CommonGettext
+open ExtString
 
 (** The value exist but there is no easy way to represent it
   *)
-exception Not_printable;;
+exception Not_printable
 
 module StdRegexp = 
 struct 
@@ -26,7 +26,6 @@ struct
     r 
       ("\\(\\(\\(>=?\\|<=?\\|=\\) *"^s_version^"\\|&&\\|||\\) *\\)*")
 end
-;;
 
 (* Check that string match a Str.regexp *)
 let regexp regexp error = 
@@ -45,28 +44,24 @@ let regexp regexp error =
                 (error ())));
     print = (fun s -> s);
   }
-;;
 
 (** Check that we have an URL *)
 let url = 
   regexp
     StdRegexp.url
     (fun () -> s_ "URL")
-;;
 
 (** Check that we have a version number *)
 let version =
   regexp
     StdRegexp.version
     (fun () -> s_ "version")
-;;
 
 (** Check that we have a version constraint *)
 let version_constraint = 
   regexp 
     StdRegexp.version_constraint
     (fun () -> s_ "version constraint")
-;;
 
 (** Check that we a (C) copyright *)
 let copyright =
@@ -83,7 +78,6 @@ let copyright =
                 str));
     print = (fun s -> s);
   }
-;;
 
 
 (** String *)
@@ -92,7 +86,6 @@ let string =
     parse = (fun s -> s);
     print = (fun s -> s);
   }
-;;
 
 (** String is not empty *)
 let string_not_empty =
@@ -105,17 +98,14 @@ let string_not_empty =
            failwith (s_ "Expecting not empty string"));
     print = (fun s -> s);
   }
-;;
 
 (** File *)
 let file = 
   string
-;;
 
 (** Directory *)
 let directory =
   string
-;;
 
 (** Convert a comma separated string into list *)
 let comma_separated value =
@@ -136,7 +126,6 @@ let comma_separated value =
               value.print
               lst));
   }
-;;
 
 (** Split a string that with an optional value: "e1 (e2)" *)
 let with_optional_parentheses main_value optional_value =
@@ -175,7 +164,6 @@ let with_optional_parentheses main_value optional_value =
                  (main_value.print v)
                  (optional_value.print opt));
     }
-;;
 
 (** Optional value *)
 let opt value =
@@ -186,7 +174,6 @@ let opt value =
          | Some v -> value.print v
          | None -> raise Not_printable);
   }
-;;
 
 (** Convert string to build depends *)
 let build_depends =
@@ -212,7 +199,6 @@ let build_depends =
                    | InternalLibrary nm -> (nm, None))
                 lst));
     }
-;;
 
 (** Convert string to data files specification *)
 let data_files =
@@ -223,7 +209,6 @@ let data_files =
         *)
        string_not_empty
        string_not_empty)
-;;
 
 (** Convert string to module list *)
 let modules =
@@ -231,17 +216,14 @@ let modules =
     (regexp 
        StdRegexp.modul
        (fun () -> s_ "module"))
-;;
 
 (** Convert string to file list *)
 let files = 
   comma_separated file
-;;
 
 (** Convert string to URL *)
 let categories = 
   comma_separated url 
-;;
 
 (** Choices 
   *)
@@ -277,7 +259,6 @@ let choices nm lst =
                 (f_ "Unexpected abstract choice value for %s")
                 (nm ())));
   }
-;;
 
 (** Compilation types
   *)
@@ -285,14 +266,12 @@ let compiled_object =
   choices
     (fun () -> s_ "compiled object")
     ["byte", Byte; "native", Native; "best", Best]
-;;
 
 (** Convert string to boolean *)
 let boolean =
   choices 
     (fun () -> s_ "boolean")
     ["true", true; "false", false]
-;;
 
 (** Findlib package name 
   *)
@@ -307,14 +286,12 @@ let pkgname =
     print =
       (fun s -> s);
   }
-;;
 
 (** Internal library
   *)
 let internal_library =
   (* TODO: check that the library really exists *)
   string
-;;
 
 (** Command line 
   *)

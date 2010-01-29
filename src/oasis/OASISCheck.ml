@@ -2,9 +2,9 @@
 (** Check an OASIS package
   *)
 
-open CommonGettext;;
-open PropList;;
-open OASISSchema;;
+open CommonGettext
+open PropList
+open OASISSchema
 
 let check_schema schm data =
   let msgfld =
@@ -39,4 +39,3 @@ let check_schema schm data =
         (Printf.sprintf
            (f_ "Missing field: %s")
            (String.concat (s_ ", ") msgfld))
-;;
