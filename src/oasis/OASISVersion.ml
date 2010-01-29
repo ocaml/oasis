@@ -77,14 +77,30 @@ let version_of_string str =
       VEnd 
   in
 
-    parse_aux 0
+  let rec compress =
+    function
+      | VInt (i, VNonInt(".", (VInt _ as tl))) ->
+          VInt (i, compress tl)
+      | VInt (i, tl) ->
+          VInt (i, compress tl)
+      | VNonInt (i, tl) ->
+          VNonInt (i, compress tl)
+      | VEnd ->
+          VEnd
+  in
+
+    compress (parse_aux 0)
 
 (** Convert a version to a string
   *)
 let rec string_of_version =
   function
-    | VInt (i, tl) -> (string_of_int i)^(string_of_version tl)
-    | VNonInt (s, tl) -> s^(string_of_version tl)
+    | VInt (i, (VInt _ as tl)) ->
+        (string_of_int i)^"."^(string_of_version tl)
+    | VInt (i, tl) -> 
+        (string_of_int i)^(string_of_version tl)
+    | VNonInt (s, tl) -> 
+        s^(string_of_version tl)
     | VEnd -> ""
 
 (** Apply version comparator expression
