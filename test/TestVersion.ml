@@ -3,9 +3,9 @@
     @author Sylvain Le Gall
   *)
 
-open OUnit;;
-open TestCommon;;
-open BaseVersion;;
+open OUnit
+open TestCommon
+open OASISVersion
 
 let tests ctxt =
 
@@ -27,7 +27,10 @@ let tests ctxt =
                    v2)
            ~printer:string_of_int
             exp
-            (norm_sign (version_compare v1 v2)))
+            (norm_sign 
+               (version_compare 
+                  (version_of_string v1)
+                  (version_of_string v2))))
   in
 
   let comparator_apply_of_vector (v, c, exp) =
@@ -43,7 +46,9 @@ let tests ctxt =
                    v)
            ~printer:string_of_bool
            exp
-           (comparator_apply v op))
+           (comparator_apply 
+              (version_of_string v)
+              op))
   in
 
   "Version" >:::
@@ -66,5 +71,3 @@ let tests ctxt =
          "1.0.1", ">= 1.0.2", false;
        ]);
   ]
-;;
-

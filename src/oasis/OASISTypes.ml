@@ -7,14 +7,32 @@ TYPE_CONV_PATH "OASISTypes"
 
 (** Alias type
   *)
-type name               = string with odn
-type package_name       = string with odn
-type url                = string with odn
-type version            = string with odn
-type version_constraint = string with odn
-type dirname            = string with odn
-type filename           = string with odn
-type prog               = string with odn
+type name         = string with odn
+type package_name = string with odn
+type url          = string with odn
+type dirname      = string with odn
+type filename     = string with odn
+type prog         = string with odn
+
+(** Version 
+  *)
+type version =
+  | VInt of int * version
+  | VNonInt of string * version
+  | VEnd
+  with odn
+
+(** Version comparator
+  *)
+type version_comparator = 
+  | VGreater of version
+  | VGreaterEqual of version
+  | VEqual of version
+  | VLesser of version
+  | VLesserEqual of version
+  | VOr of  version_comparator * version_comparator
+  | VAnd of version_comparator * version_comparator
+  with odn
 
 (** Valid licenses
   *)
@@ -40,7 +58,7 @@ type compiled_object =
 (** Package dependency
   *)
 type dependency = 
-  | FindlibPackage of package_name * version_constraint option
+  | FindlibPackage of package_name * version_comparator option
   | InternalLibrary of name
   with odn
 
@@ -158,7 +176,7 @@ type test =
 type package = 
     {
       oasis_version:  version;
-      ocaml_version:  version_constraint option;
+      ocaml_version:  version_comparator option;
       name:           package_name;
       version:        version;
       license:        license;

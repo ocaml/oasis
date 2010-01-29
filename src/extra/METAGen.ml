@@ -43,8 +43,8 @@ type package_t =
     }
 
 let main pkg =
-  let version lib = 
-    pkg.OASISTypes.version
+  let version = 
+    OASISVersion.string_of_version pkg.OASISTypes.version
   in
 
   let description lib =
@@ -91,7 +91,7 @@ let main pkg =
              (
                Filename.concat lib.lib_path "META",
                {
-                 version     = version lib;
+                 version     = version;
                  description = description lib;
                  requires    = requires lib;
                  archives    = archives lib nm;

@@ -205,7 +205,9 @@ let pkg_version =
   var_define
     ~short_desc:"Package version"
     "pkg_version"
-    (lazy (snd (pkg_get ())))
+    (lazy 
+       (OASISVersion.string_of_version 
+          (snd (pkg_get ()))))
 
 (** Initialize some variables 
   *)

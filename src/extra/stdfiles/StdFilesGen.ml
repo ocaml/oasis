@@ -152,8 +152,10 @@ let main pkg =
            pkg.build_tools;
          List.iter 
            (function
-              | FindlibPackage (lib, Some ver) -> 
-                  fprintf fmt "* findlib package %s (%s)\n" lib ver
+              | FindlibPackage (lib, Some ver_cmp) -> 
+                  fprintf fmt "* findlib package %s (%s)\n" 
+                    lib
+                    (OASISVersion.string_of_comparator ver_cmp)
               | FindlibPackage (lib, None) -> 
                   fprintf fmt "* findlib package %s\n" lib
               | InternalLibrary _ ->

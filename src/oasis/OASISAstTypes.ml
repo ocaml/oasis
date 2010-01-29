@@ -34,3 +34,12 @@ type top_stmt =
   | TSStmt of stmt
   | TSBlock of top_stmt list
 
+type ver_cmp_t =
+  | VCGt of string
+  | VCGe of string
+  | VCEq of string
+  | VCLt of string
+  | VCLe of string
+  | VCOr  of ver_cmp_t * ver_cmp_t
+  | VCAnd of ver_cmp_t * ver_cmp_t
+

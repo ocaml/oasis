@@ -17,21 +17,33 @@ let schema, generator =
     schema "Package"
   in
   let oasis_version = 
-    new_field schm "OASISFormat" 
-      ~quickstart_level:(NoChoice "1.0")
-      {
-        parse = 
-          (function
-             | "1.0" as v -> v
-             | str ->
-                 failwith 
-                   (Printf.sprintf 
-                      "OASIS format version '%s' is not supported"
-                      str));
-        print = (fun str -> str);
-      }
-      (fun () ->
-         s_ "OASIS format version used to write file _oasis.")
+    let current_version =
+      OASISVersion.version_of_string "1.0"
+    in
+    let extra_supported_versions =
+      []
+    in
+      new_field schm "OASISFormat" 
+        ~quickstart_level:(NoChoice current_version)
+        {
+          parse = 
+            (fun str ->
+               let v = 
+                 version.parse str
+               in
+                 if not 
+                      (List.mem 
+                         v 
+                         (current_version :: extra_supported_versions)) then
+                   failwith 
+                     (Printf.sprintf 
+                        "OASIS format version '%s' is not supported"
+                        str);
+                 v);
+          print = version.print;
+        }
+        (fun () ->
+           s_ "OASIS format version used to write file _oasis.")
   in
   let name = 
     new_field schm "Name" string_not_empty 
@@ -125,7 +137,7 @@ let schema, generator =
   let ocaml_version =
     new_field schm "OCamlVersion"
       ~default:None
-      (opt version_constraint)
+      (opt version_comparator)
       (fun () -> 
          s_ "Version constraint on OCaml.")
   in

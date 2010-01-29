@@ -46,18 +46,18 @@ let ocamlfind =
   *)
 let version 
       var_prefix 
-      (str_cmp, cmp, var_cmp) 
+      cmp
       fversion 
       () = 
   (* Really compare version provided *)
   let var = 
-    var_prefix^"_version_"^var_cmp
+    var_prefix^"_version_"^(OASISVersion.varname_of_comparator cmp)
   in
     var_redefine 
       ~hide:true 
       var
       (lazy
-         (let version =
+         (let version_str =
             match fversion () with 
               | "[Distributed with OCaml]" ->
                   begin
@@ -71,16 +71,18 @@ let version
               | res ->
                   res
           in
-            prerr_endline version;
-            if BaseVersion.comparator_apply version cmp then
-              version
+          let version =
+            OASISVersion.version_of_string version_str
+          in
+            if OASISVersion.comparator_apply version cmp then
+              version_str
             else
               failwith 
                 (Printf.sprintf
                    "Cannot satisfy version constraint on %s: %s (version: %s)"
                    var_prefix
-                   str_cmp
-                   version)))
+                   (OASISVersion.string_of_comparator cmp)
+                   version_str)))
       ()
 
 (** Check for findlib package
@@ -135,11 +137,12 @@ let package ?version_comparator pkg () =
     (
       match version_comparator with 
         | Some ver_cmp ->
-            var_ignore
+            ignore
               (version 
                  var
                  ver_cmp
-                 (fun _ -> findlib_version pkg))
+                 (fun _ -> findlib_version pkg)
+                 ())
         | None -> 
             ()
     );

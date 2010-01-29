@@ -67,7 +67,7 @@ let tests ctxt =
     (fun () ->
        try
          ( 
-           let _s : string = 
+           let _s : version_comparator = 
              value_parse str
            in
              if fail then
@@ -87,7 +87,7 @@ let tests ctxt =
       "ValueParser" >:::
       (List.map test_value_parser_of_vector 
          (List.map 
-            (fun (v, f) -> (v, OASISValues.version_constraint.parse, f))
+            (fun (v, f) -> (v, OASISValues.version_comparator.parse, f))
             [
               ">= 3.11.1", false;
               ">= 3.11",   false;

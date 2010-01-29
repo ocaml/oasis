@@ -15,16 +15,9 @@ module StdRegexp =
 struct 
   let r = Str.regexp
 
-  let s_version = "[0-9]+\\(\\.[0-9]+\\)*"
-
   let url       = r "http://[a-zA-Z0-9\\./_?&;=-]+"
-  let version   = r s_version
   let copyright = r "\\((c)\\|(C)\\) * [0-9]+\\(-[0-9]+\\)?,? .*" 
   let modul     = r "[A-Z][A-Za-z0-9_]*"
-
-  let version_constraint = 
-    r 
-      ("\\(\\(\\(>=?\\|<=?\\|=\\) *"^s_version^"\\|&&\\|||\\) *\\)*")
 end
 
 (* Check that string match a Str.regexp *)
@@ -50,18 +43,6 @@ let url =
   regexp
     StdRegexp.url
     (fun () -> s_ "URL")
-
-(** Check that we have a version number *)
-let version =
-  regexp
-    StdRegexp.version
-    (fun () -> s_ "version")
-
-(** Check that we have a version constraint *)
-let version_constraint = 
-  regexp 
-    StdRegexp.version_constraint
-    (fun () -> s_ "version constraint")
 
 (** Check that we a (C) copyright *)
 let copyright =
@@ -127,6 +108,20 @@ let comma_separated value =
               lst));
   }
 
+(** Check that we have a version number *)
+let version =
+  {
+    parse = OASISVersion.version_of_string;
+    print = OASISVersion.string_of_version;
+  }
+
+(** Check that we have a version constraint *)
+let version_comparator = 
+  {
+    parse = OASISVersion.comparator_of_string;
+    print = OASISVersion.string_of_comparator;
+  }
+
 (** Split a string that with an optional value: "e1 (e2)" *)
 let with_optional_parentheses main_value optional_value =
   let split_parentheses =
@@ -181,7 +176,7 @@ let build_depends =
     comma_separated 
       (with_optional_parentheses
          string_not_empty
-         version_constraint)
+         version_comparator)
   in
     {
       parse = 

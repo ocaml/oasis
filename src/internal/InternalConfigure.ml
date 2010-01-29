@@ -10,21 +10,27 @@ open OASISTypes
   * and then output corresponding file.
   *)
 let configure pkg argv =
+  let var_ignore_eval var = 
+    let _s : string =
+      var ()
+    in 
+      ()
+  in
 
   let build_checks cond tools depends =
     if var_choose cond then
       begin
         (* Check tools *)
         List.iter 
-          (fun tool -> var_ignore (BaseCheck.prog tool))
+          (fun tool -> var_ignore_eval (BaseCheck.prog tool))
           tools;
 
         (* Check depends *)
         List.iter  
           (function
-             | FindlibPackage (findlib_pkg, ver_opt) ->
-                 (* TODO: ver_opt *)
-                 var_ignore (BaseCheck.package findlib_pkg)
+             | FindlibPackage (findlib_pkg, version_comparator) ->
+                 var_ignore_eval
+                   (BaseCheck.package ?version_comparator findlib_pkg)
              | InternalLibrary _ ->
                  (* TODO: check that matching library is built *)
                  ())
@@ -36,32 +42,17 @@ let configure pkg argv =
   BaseArgExt.parse argv (args ());
 
   (* OCaml version *)
-  (* TODO
-  let ocaml_version_check pkg = 
+  begin
     match pkg.ocaml_version with 
-      | Some ver -> 
-          (
-            let cmp = 
-              BaseVersion.comparator_of_string ver
-            in
-              [TPL
-                 [BaseExpr.code_condition_true;
-                  LST
-                    [
-                      APP ("BaseCheck.version",
-                           [],
-                           [
-                             STR "ocaml";
-                             TPL [STR ver; 
-                                  BaseVersion.code_of_comparator cmp;
-                                  STR (BaseVersion.varname_of_comparator cmp)];
-                             VAR "BaseStandardVar.ocaml_version";
-                           ])]]]
-          )
+      | Some ver_cmp ->
+          var_ignore_eval
+            (BaseCheck.version
+               "ocaml"
+               ver_cmp
+               BaseStandardVar.ocaml_version)
       | None ->
-          []
-  in
-   *)
+          ()
+  end;
 
   (* Check build depends *)
   build_checks 
