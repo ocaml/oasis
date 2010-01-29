@@ -56,8 +56,8 @@ let generate pkg =
 
   let setup_fun =
     fprintf str_formatter
-      "@[<hv2>let setup () =@ %a@,@];;"
-      (pp_odn ~opened_modules:[]) 
+      "@[<v>open OASISTypes;;@,@[<hv2>let setup () =@ %a@,@];;"
+      (pp_odn ~opened_modules:["OASISTypes"]) 
       (APP ("BaseSetup.setup", [], [setup_t_odn]));
     flush_str_formatter ()
   in
@@ -76,7 +76,7 @@ let generate pkg =
                 [setup_fun]
               ]),
            (* Footer *)
-           ["setup ();;"]
+           ["let () = setup ();;"]
          )
       );
     Unix.chmod "setup.ml" 0o755;
