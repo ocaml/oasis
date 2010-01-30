@@ -469,7 +469,6 @@ let plugin_main pkg =
       clean        = Some (func clean "OCamlbuildBuild.clean");
       distclean    = None;
       other_action = create_ocamlbuild_files pkg;
-      files_generated  = [];
     },
     {pkg with 
          build_tools = "ocamlbuild" :: pkg.build_tools}

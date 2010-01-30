@@ -141,7 +141,6 @@ let std nm hlp hlp_clean hlp_distclean =
                               distclean ("CustomPlugin.distclean")
                               t odn_of_t);
           other_action = ignore;
-          files_generated = [];
         },
         pkg
 
@@ -205,7 +204,6 @@ let doc =
                               Doc.distclean ("CustomPlugin.Doc.distclean")
                               t odn_of_t);
           other_action = ignore;
-          files_generated = [];
         },
         pkg,
         doc
@@ -253,7 +251,6 @@ let test =
                               Test.distclean ("CustomPlugin.Test.distclean")
                               t odn_of_t);
           other_action = ignore;
-          files_generated = [];
         },
         pkg,
         test

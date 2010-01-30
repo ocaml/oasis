@@ -38,9 +38,6 @@ type ('a, 'b) generator_t =
 
       (** Write extra files *)
       other_action: unit -> unit; 
-
-      (** Files generated *)
-      files_generated: filename list;
     }
 
 (** Action step for section

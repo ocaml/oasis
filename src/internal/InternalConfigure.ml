@@ -102,12 +102,10 @@ open BasePlugin
 (* Configuration *)
 let plugin_main pkg =
   {
-    moduls           = [InternalData.internalsys_ml];
-    setup            = func configure "InternalConfigure.configure";
-    clean            = None;
-    distclean        = None;
-    other_action     = (fun _ -> ());
-    (* TODO: remove files generated, useless when we have the package *)
-    files_generated  = (List.map BaseFileAB.to_filename pkg.files_ab);
+    moduls       = [InternalData.internalsys_ml];
+    setup        = func configure "InternalConfigure.configure";
+    clean        = None;
+    distclean    = None;
+    other_action = (fun _ -> ());
   },
   pkg

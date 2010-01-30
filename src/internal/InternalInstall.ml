@@ -398,7 +398,6 @@ let plugin_install_main pkg =
       clean        = None;
       distclean    = None;
       other_action = ignore;
-      files_generated  = [];
     },
     pkg
 
@@ -410,7 +409,6 @@ let plugin_uninstall_main pkg =
     clean        = None;
     distclean    = None;
     other_action = ignore;
-    files_generated  = [];
   },
   pkg
 

@@ -24,7 +24,6 @@ let std_no_generate str pkg =
     clean        = None;
     distclean    = None;
     other_action = ignore;
-    files_generated  = [];
   },
   pkg
 
