@@ -33,7 +33,7 @@
 
 <src/extra/*.ml>: pkg_fileutils, pkg_extlib
 
-<src/extra/devfiles/*.ml>: pkg_fileutils
+<src/extra/devfiles/*.ml>: pkg_fileutils, pkg_extlib
 
 <src/extra/stdfiles/*.ml>: pkg_fileutils
 
