@@ -678,7 +678,6 @@ let tests ctxt =
          [],
          [];
 
-         (* TODO: enable when install works for sub-package 
          (* Use sub-packages *)
          "../examples/with-subpackage",
          [
@@ -690,12 +689,15 @@ let tests ctxt =
            in_ocaml_library "test" 
              ["META"; "test.cma"; "pa_test.cma";
               "A.ml"; "A.cmi"; "B.ml"; "B.cmi";
-              "pa_test.ml"; "pa_test.cmi"]
+              "pa_test.ml"; "pa_test.cmi"];
+           conditional 
+             ctxt.has_ocamlopt
+             (in_ocaml_library "test"
+                ["test.cmxa"; "test.a"]);
          ],
          [
            try_installed_library "test" ["A"; "B"];
          ];
-          *)
        ]
     )
 ;;

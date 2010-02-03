@@ -14,6 +14,11 @@ type dirname      = string with odn
 type filename     = string with odn
 type prog         = string with odn
 
+(* Package name for findlib, doesn't contain '.' *)
+type findlib_name = string with odn 
+(* Package path, made of several findlib name concatenated with '.' *)
+type findlib_path = string with odn
+
 (** Version 
   *)
 type version =
@@ -58,7 +63,7 @@ type compiled_object =
 (** Package dependency
   *)
 type dependency = 
-  | FindlibPackage of package_name * version_comparator option
+  | FindlibPackage of findlib_path * version_comparator option
   | InternalLibrary of name
   with odn
 
@@ -104,18 +109,19 @@ type 'a conditional = (expr * 'a) list with odn
   *)
 type library = 
     {
-      lib_build:           bool conditional;
-      lib_install:         bool conditional;
-      lib_path:            dirname;
-      lib_modules:         string list;
-      lib_compiled_object: compiled_object;
-      lib_build_depends:   dependency list;
-      lib_build_tools:     prog list;
-      lib_c_sources:       filename list;
-      lib_data_files:      (filename * filename option) list;
-      lib_parent:          name option;
-      lib_findlib_name:    name option;
-      lib_schema_data:     PropList.Data.t;
+      lib_build:              bool conditional;
+      lib_install:            bool conditional;
+      lib_path:               dirname;
+      lib_modules:            string list;
+      lib_compiled_object:    compiled_object;
+      lib_build_depends:      dependency list;
+      lib_build_tools:        prog list;
+      lib_c_sources:          filename list;
+      lib_data_files:         (filename * filename option) list;
+      lib_parent:             name option;
+      lib_findlib_name:       findlib_name option;
+      lib_findlib_containers: findlib_name list;
+      lib_schema_data:        PropList.Data.t;
     } with odn
 
 (** Executable definition 
@@ -208,6 +214,16 @@ type package =
     } with odn
 
 (* END EXPORT *)
+
+(** Configuration for parsing and checking 
+  *)
+type conf =
+  {
+    oasisfn:        filename option;
+    srcdir:         dirname option;
+    debug:          bool;
+    ignore_unknown: bool;
+  }
 
 (** Definition of a value in OASIS file
   *)

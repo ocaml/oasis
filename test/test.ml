@@ -36,5 +36,6 @@ let _res: test_result list =
          TestFileGenerate.tests ctxt;
          TestBasic.tests        ctxt;
          TestFull.tests         ctxt;
+         TestMETA.tests         ctxt;
        ])
 ;;

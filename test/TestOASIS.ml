@@ -55,8 +55,9 @@ let tests ctxt =
        in
        let pkg =
          from_file 
-           ~debug:ctxt.dbug
-           ~ignore_unknown:true
+           ~conf:{default_conf with 
+                      debug = ctxt.dbug; 
+                      ignore_unknown = true}
            fn
        in
          test pkg)

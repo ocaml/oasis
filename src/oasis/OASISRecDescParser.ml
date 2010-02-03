@@ -1,5 +1,5 @@
 
-(** Various tool to debug OASIS module
+(** Parse OASIS files using Genlex.
     @author Sylvain Le Gall
   *)
 
@@ -19,14 +19,7 @@ let stream_debugger st =
        with Stream.Failure ->
          None)
 
-let parse_file ~debug fn = 
-  let chn =
-    open_in fn
-  in
-
-  let st =
-    Stream.of_channel chn
-  in
+let parse_stream conf st = 
 
   (* Get rid of MS-DOS file format *)
   let dos2unix st = 
@@ -358,7 +351,7 @@ let parse_file ~debug fn =
             (dos2unix 
                (notab
                  (count_line 
-                    (if debug then
+                    (if conf.debug then
                        stream_debugger st
                      else
                        st))))))
@@ -367,7 +360,9 @@ let parse_file ~debug fn =
   let position () = 
     Printf.sprintf 
       " in file '%s' at line %d, char %d" 
-      fn 
+      (match conf.oasisfn with 
+         | Some fn -> fn
+         | None -> "<>")
       !lineno
       !charno
   in
@@ -512,7 +507,6 @@ let parse_file ~debug fn =
       let ast = 
         TSBlock (parse_top_stmt_list st_token)
       in
-        close_in chn;
         ast
     with 
       | Stream.Error str ->

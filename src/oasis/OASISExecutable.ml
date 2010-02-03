@@ -5,6 +5,9 @@
 
 open OASISTypes
 
+let exec_path exec = 
+  Filename.dirname exec.exec_main_is
+
 (* END EXPORT *)
 
 open OASISSchema

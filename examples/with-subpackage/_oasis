@@ -13,10 +13,11 @@ Library test
 # This library will be installed with library 'test' above
 # and will be named 'test.syntax'.
 Library pa_test
-  Path:        src/syntax
-  Modules:     Pa_test
-  FindlibName: syntax
-  Parent:      test
+  Path:           src/syntax
+  Modules:        Pa_test
+  FindlibName:    syntax
+  Parent:         test
+  CompiledObject: byte
   
 
 Executable mytest

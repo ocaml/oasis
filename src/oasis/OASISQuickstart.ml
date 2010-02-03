@@ -150,10 +150,8 @@ type section =
 let quickstart fmt lvl =
   let fake_context = 
     {
-      OASISAstTypes.oasisfn = "";
-      srcdir                = "";
-      cond                  = None;
-      valid_flags           = []
+      OASISAstTypes.cond = None;
+      valid_flags        = []
     }
   in
 

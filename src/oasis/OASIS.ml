@@ -4,27 +4,51 @@
     @author Sylvain Le Gall
   *)  
 
-(** [from_file fn ?(srcdir) valid_test] Parse the OASIS file [fn]. Consider
-    only test defined in [valid_test] when checking OASIS. When testing for
-    file/dir existence, consider that root of the project is located in 
-    [srcdir].
-  *)
-let from_file ?(srcdir) ?(debug=false) ?(ignore_unknown=false) fn = 
-  let srcdir =
-    match srcdir with 
-      | Some fn ->
-          fn
-      | None ->
-          Filename.dirname fn
-  in
+open OASISTypes
 
-  let ast = 
-    OASISRecDescParser.parse_file ~debug fn
+(** Default configuration for parser/checker *)
+let default_conf =
+  {
+    oasisfn        = None;
+    srcdir         = None;
+    ignore_unknown = false;
+    debug          = false;
+  }
+
+(** [from_file ~conf fn] Parse the OASIS file [fn] and check it using
+    context [conf].
+  *)
+let from_file ?(conf=default_conf) fn = 
+  let conf =
+    (* Add srcdir information to configuration *)
+    match conf.srcdir with 
+      | Some _ -> conf
+      | None -> {conf with srcdir = Some (Filename.dirname fn)}
+  in
+  let conf =
+    (* Add OASIS filename information to configuration *)
+    match conf.oasisfn with
+      | Some _ -> conf
+      | None -> {conf with oasisfn = Some fn}
+  in
+  let chn =
+    open_in fn
   in
   let pkg = 
-    OASISAst.to_package fn ignore_unknown srcdir ast
+    OASISAst.to_package 
+      conf
+      (Stream.of_channel chn)
   in
+    close_in chn;
     pkg
+
+(** [from_string ~conf str] Parse the OASIS string [str] and check it using
+    context [conf].
+  *)
+let from_string ?(conf=default_conf) str =
+  OASISAst.to_package 
+    conf
+    (Stream.of_string str)
 
 (** Add a new field to schema
   *)

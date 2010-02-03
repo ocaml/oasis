@@ -7,7 +7,7 @@ open OASISTypes
 open OASISAstTypes
 open OASISUtils
 
-type 'a acc_sections_t =
+type acc_sections_t =
     {
       execs:      (name * executable) list;
       libs:       (name * library) list;
@@ -16,14 +16,18 @@ type 'a acc_sections_t =
       tests:      (name * test) list;
     }
 
-(** Convert oasis AST into package 
+(** Convert OASIS stream into package 
   *)
-let to_package fn ignore_unknown srcdir ast = 
+let to_package conf st = 
+
+  let ast = 
+    OASISRecDescParser.parse_stream 
+      conf 
+      st
+  in
 
   let default_ctxt =
     {
-      oasisfn     = fn;
-      srcdir      = Filename.dirname fn;
       cond        = None;
       valid_flags = [];
     }
@@ -54,7 +58,7 @@ let to_package fn ignore_unknown srcdir ast =
             try
               PropList.Schema.set schm data nm ~context:ctxt str
             with (PropList.Unknown_field _) as exc ->
-              if OASISPlugin.test_field_name nm && ignore_unknown then
+              if OASISPlugin.test_field_name nm && conf.ignore_unknown then
                 ()
               else
                 raise exc
@@ -204,10 +208,20 @@ let to_package fn ignore_unknown srcdir ast =
   let pkg = 
     (* Map of findlib name to internal libraries *)
     let internal_of_findlib =
-      MapString.fold
-        (fun k v acc -> MapString.add v k acc)
-        (OASISLibrary.findlib_names pkg.libraries)
-        MapString.empty
+      let mp = 
+        OASISLibrary.findlib_name_map pkg.libraries
+      in
+        MapString.fold
+          (fun nm _ acc -> 
+             let fndlb_nm_full =
+               OASISLibrary.findlib_of_name 
+                 ~recurse:true 
+                 mp 
+                 nm
+             in
+               MapString.add fndlb_nm_full nm acc)
+          mp
+          MapString.empty
     in
 
     let map_internal_libraries what =

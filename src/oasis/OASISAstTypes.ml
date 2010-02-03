@@ -5,12 +5,9 @@
 
 open OASISTypes
 
-(** Context for building/checking AST 
-  *)
-type ctxt = 
+(** Context for parsing and checking AST *)
+type ctxt =
     {
-      oasisfn:      filename;    (* Location of OASIS file *)
-      srcdir:       dirname;     (* Toplevel source directory *)
       cond:         expr option; (* Condition for this context
                                     can be used with certain
                                     field.

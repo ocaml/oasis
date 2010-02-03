@@ -6,6 +6,7 @@
 open BaseEnv
 open BaseStandardVar
 open OASISTypes
+open OASISLibrary
 
 let srcdir =
   var_define
@@ -122,172 +123,246 @@ let install pkg argv =
       BaseLog.register install_file_ev tgt_file
   in
 
-  let install_data path files_targets = 
-    List.iter
-      (fun (src, tgt_opt) ->
-         let real_srcs = 
-           let real_src = 
-             Filename.concat path src
+  (* Install all datas *)
+  let install_datas pkg = 
+
+    (* Install data for a single section *)
+    let install_data path files_targets = 
+      List.iter
+        (fun (src, tgt_opt) ->
+           let real_srcs = 
+             let real_src = 
+               Filename.concat path src
+             in
+             (* Glob the src expression *)
+             let filename = 
+               Filename.basename real_src
+             in
+               if String.contains filename '*' then
+                 (
+                   let ext = 
+                     match BaseUtils.split '.' filename with 
+                       | [a; b] when a = "*" -> 
+                           "."^b
+                       | _ ->
+                           failwith 
+                             (Printf.sprintf 
+                                "Invalid file wildcard in '%s'"
+                                src)
+                   in
+                   let ext_len =
+                     String.length ext
+                   in
+                   let dirname =
+                     Filename.dirname real_src
+                   in
+                   let res =
+                     Array.fold_left
+                       (fun acc fn ->
+                          try 
+                            let fn_ext = 
+                              String.sub 
+                                fn 
+                                ((String.length fn) - ext_len) 
+                                ext_len
+                            in
+                              if fn_ext = ext then
+                                (Filename.concat dirname fn) :: acc
+                              else
+                                acc
+                          with Invalid_argument "String.sub" ->
+                            acc)
+                       []
+                       (Sys.readdir dirname)
+                   in
+                     if res = [] then
+                       failwith 
+                         (Printf.sprintf 
+                            "Wildcard '%s' doesn't match any files"
+                            src);
+                     res
+                 )
+               else
+                 (
+                   [real_src]
+                 )
            in
-           (* Glob the src expression *)
-           let filename = 
-             Filename.basename real_src
-           in
-             if String.contains filename '*' then
-               (
-                 let ext = 
-                   match BaseUtils.split '.' filename with 
-                     | [a; b] when a = "*" -> 
-                         "."^b
-                     | _ ->
-                         failwith 
-                           (Printf.sprintf 
-                              "Invalid file wildcard in '%s'"
-                              src)
-                 in
-                 let ext_len =
-                   String.length ext
-                 in
-                 let dirname =
-                   Filename.dirname real_src
-                 in
-                 let res =
-                   Array.fold_left
-                     (fun acc fn ->
-                        try 
-                          let fn_ext = 
-                            String.sub 
-                              fn 
-                              ((String.length fn) - ext_len) 
-                              ext_len
-                          in
-                            if fn_ext = ext then
-                              (Filename.concat dirname fn) :: acc
-                            else
-                              acc
-                        with Invalid_argument "String.sub" ->
-                          acc)
-                     []
-                     (Sys.readdir dirname)
-                 in
-                   if res = [] then
-                     failwith 
-                       (Printf.sprintf 
-                          "Wildcard '%s' doesn't match any files"
-                          src);
-                   res
-               )
-             else
-               (
-                 [real_src]
-               )
-         in
-           List.iter 
-             (fun fn -> 
-                install_file 
-                  fn 
-                  (fun () -> 
-                     match tgt_opt with 
-                       | Some s -> var_expand s
-                       | None -> var_expand "$datarootdir/$pkg_name")) 
-             real_srcs)
-           
-      files_targets
+             List.iter 
+               (fun fn -> 
+                  install_file 
+                    fn 
+                    (fun () -> 
+                       match tgt_opt with 
+                         | Some s -> var_expand s
+                         | None -> var_expand "$datarootdir/$pkg_name")) 
+               real_srcs)
+             
+        files_targets
+    in
+
+      (* Install datas for libraries *)
+      List.iter
+        (fun (nm, lib) -> 
+           if var_choose lib.lib_install then
+             install_data lib.lib_path lib.lib_data_files)
+        pkg.libraries;
+      (* Install datas for executables *)
+      List.iter
+        (fun (nm, exec) ->
+           if var_choose exec.exec_install then
+             install_data (OASISExecutable.exec_path exec) exec.exec_data_files)
+        pkg.executables
   in
 
-  let install_lib (lib_name, lib) = 
-    let lib, lib_extra =
-      !lib_hook lib_name lib
+  (** Install all libraries *)
+  let install_libs pkg =
+
+    let find_lib_file lib fn =
+      find_file
+        (fun rootdir -> [rootdir; lib.lib_path; fn])
+        rootdirs
     in
-      if var_choose lib.lib_install then
-        (
-          let find_lib_file fn =
-            find_file
-              (fun rootdir -> [rootdir; lib.lib_path; fn])
-              rootdirs
-          in
 
-          let module_to_cmi modul =
-            find_file 
-               (fun (rootdir, fn) -> [rootdir; lib.lib_path; (fn^".cmi")])
-               (rootdirs * (make_module modul))
-          in
-
-          let module_to_header modul =
-            assert(modul <> "");
-            find_file 
-               (fun ((rootdir, fn), ext) -> [rootdir; lib.lib_path; fn^ext])
-               (rootdirs * (make_module modul) * [".mli"; ".ml"])
-          in
-            
-          let files =
-            List.flatten
+    let files_of_library acc lib_name lib = 
+      let lib, lib_extra =
+        !lib_hook lib_name lib
+      in
+      let find_lib_file =
+        find_lib_file lib
+      in
+        (if var_choose lib.lib_install then
+           [
+             find_lib_file (lib_name^".cma");
+           ]
+           :: 
+           (if is_native lib.lib_compiled_object then
               (
-                [
-                  find_lib_file "META";
-                  find_lib_file (lib_name^".cma");
-                ]
-                :: 
-                (if is_native lib.lib_compiled_object then
-                   (
-                     try 
-                       [
-                         find_lib_file (lib_name^".cmxa");
-                         find_lib_file (lib_name^(ext_lib ()));
-                       ]
-                     with Failure txt ->
-                       BaseMessage.warning 
-                         (Printf.sprintf
-                            "Cannot install native library %s: %s"
-                            lib_name
-                            txt);
-                       []
-                   )
-                 else
-                   []
-                )
-                ::
-                lib_extra
-                ::
-                (if lib.lib_c_sources <> [] then
-                   [
-                     find_build_file (libfn lib.lib_path lib_name);
-                   ]
-                 else
-                   [])
-                ::
-                (* Some architecture doesn't allow shared library (Cygwin, AIX) *)
-                (if lib.lib_c_sources <> [] then
-                   (try 
-                     [
-                       find_build_file (dllfn lib.lib_path lib_name);
-                     ]
-                    with Failure txt ->
-                      if (os_type ()) <> "Cygwin" then
-                        BaseMessage.warning
-                          (Printf.sprintf
-                             "Cannot install C static library %s: %s"
-                             lib_name
-                             txt);
-                      [])
-                 else
-                   [])
-                ::
-                (
-                  List.rev_map
-                    (fun modul -> [module_to_cmi modul; module_to_header modul])
-                    lib.lib_modules
-                )
+                try 
+                  [
+                    find_lib_file (lib_name^".cmxa");
+                    find_lib_file (lib_name^(ext_lib ()));
+                  ]
+                with Failure txt ->
+                  BaseMessage.warning 
+                    (Printf.sprintf
+                       "Cannot install native library %s: %s"
+                       lib_name
+                       txt);
+                  []
               )
-          in
+            else
+              []
+           )
+           ::
+           lib_extra
+           ::
+           (if lib.lib_c_sources <> [] then
+              [
+                find_build_file (libfn lib.lib_path lib_name);
+              ]
+            else
+              [])
+           ::
+           (* Some architecture doesn't allow shared library (Cygwin, AIX) *)
+           (if lib.lib_c_sources <> [] then
+              (try 
+                [
+                  find_build_file (dllfn lib.lib_path lib_name);
+                ]
+               with Failure txt ->
+                 if (os_type ()) <> "Cygwin" then
+                   BaseMessage.warning
+                     (Printf.sprintf
+                        "Cannot install C static library %s: %s"
+                        lib_name
+                        txt);
+                 [])
+            else
+              [])
+           ::
+           (
+             let module_to_cmi modul =
+               find_file 
+                  (fun (rootdir, fn) -> [rootdir; lib.lib_path; (fn^".cmi")])
+                  (rootdirs * (make_module modul))
+             in
+
+             let module_to_header modul =
+               assert(modul <> "");
+               find_file 
+                  (fun ((rootdir, fn), ext) -> [rootdir; lib.lib_path; fn^ext])
+                  (rootdirs * (make_module modul) * [".mli"; ".ml"])
+             in
+               List.fold_left
+                 (fun acc modul -> 
+                    module_to_cmi modul :: module_to_header modul :: acc)
+                 []
+                 lib.lib_modules
+           )
+           ::
+           acc
+         else
+           acc)
+    in
+
+    (* Install one group of library *)
+    let install_group_lib grp = 
+      (* Iterate through all group nodes *)
+      let rec install_group_lib_aux acc grp =
+        let acc, children = 
+          match grp with 
+            | Container (_, children) ->
+                acc, children
+            | Package (_, nm, lib, children) ->
+                files_of_library acc nm lib, children
+        in
+          List.fold_left
+            install_group_lib_aux
+            acc
+            children
+      in
+
+      (* Findlib name of the root library *)
+      let findlib_name =
+        findlib_of_group grp
+      in
+
+      (* Determine root library *)
+      let _, root_lib =
+        root_of_group grp
+      in
+
+      (* All files to install for this library *)
+      let files =
+        List.flatten (install_group_lib_aux [] grp)
+      in
+
+        (* Really install, if there is something to install *)
+        if files = [] then 
+          begin
             BaseMessage.info 
-              (Printf.sprintf
-                 "Installing findlib library '%s'"
-                 lib_name);
-            BaseExec.run "ocamlfind" ("install" :: lib_name :: files);
-            BaseLog.register install_findlib_ev lib_name;
-            install_data lib.lib_path lib.lib_data_files;
-        )
+              (Printf.sprintf 
+                 "Nothing to install for findlib library '%s'"
+                 findlib_name)
+          end
+        else
+          begin
+            let meta = 
+              find_lib_file root_lib "META"
+            in
+              BaseMessage.info 
+                (Printf.sprintf
+                   "Installing findlib library '%s'"
+                   findlib_name);
+              BaseExec.run (ocamlfind ()) ("install" :: findlib_name :: meta :: files);
+              BaseLog.register install_findlib_ev findlib_name 
+          end
+    in
+
+      (* We install libraries in groups *)
+      List.iter 
+        install_group_lib
+        (group_libs pkg.libraries)
   in
 
   let install_exec (exec_name, exec) =
@@ -296,26 +371,18 @@ let install pkg argv =
     in
       if var_choose exec.exec_install then
         (
-          let exec_path = 
-            (* TODO: move this to OASISExecutable *)
-            Filename.dirname exec.exec_main_is
-          in
-          let () = 
             install_file
               (find_build_file
                  (exec.exec_is^(suffix_program ())))
               bindir;
-            install_data 
-              exec_path
-              exec.exec_data_files 
-          in
+
             if exec.exec_c_sources <> [] && 
                not exec.exec_custom && 
                not (is_native exec.exec_compiled_object) then
               (
                 install_file
                   (find_build_file
-                     (dllfn exec_path exec_name))
+                     (dllfn (OASISExecutable.exec_path exec) exec_name))
                   libdir
               )
             else
@@ -323,8 +390,9 @@ let install pkg argv =
         )
   in
   
-    List.iter install_lib pkg.libraries;
-    List.iter install_exec pkg.executables
+    install_libs pkg;
+    List.iter install_exec pkg.executables;
+    install_datas pkg
 
 (* Uninstall already installed data *)
 let uninstall _ argv =

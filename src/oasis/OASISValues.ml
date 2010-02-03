@@ -88,7 +88,25 @@ let file =
 let directory =
   string
 
-(** Convert a comma separated string into list *)
+(** Convert a dot separated string into list, don't strip whitespace *)
+let dot_separated value =
+  {
+    parse =
+      (fun s ->
+         List.map
+           value.parse
+           (String.nsplit
+              s
+              "."));
+    print =
+      (fun lst ->
+         String.concat "." 
+           (List.map 
+              value.print
+              lst));
+  }
+
+(** Convert a comma separated string into list, strip whitespace *)
 let comma_separated value =
   { 
     parse = 
