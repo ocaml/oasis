@@ -141,7 +141,7 @@ let install pkg argv =
                if String.contains filename '*' then
                  (
                    let ext = 
-                     match BaseUtils.split '.' filename with 
+                     match OASISUtils.split '.' filename with 
                        | [a; b] when a = "*" -> 
                            "."^b
                        | _ ->

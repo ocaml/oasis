@@ -3,7 +3,7 @@
     @author Sylvain Le Gall
   *)
 
-open BaseUtils
+open OASISUtils
 
 let default_filename =
   Filename.concat 

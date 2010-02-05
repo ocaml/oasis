@@ -194,12 +194,6 @@ type package =
       synopsis:       string;
       description:    string option;
       categories:     url list;
-      (* TODO: the two following fields should be propagated
-       * to libraries/executables/... and not stored
-       * there
-       *)
-      build_depends:  dependency list;
-      build_tools:    prog list;
       conf_type:      string;
       build_type:     string;
       install_type:   string;

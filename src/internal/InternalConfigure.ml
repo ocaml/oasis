@@ -70,11 +70,6 @@ let configure pkg argv =
   end;
 
   (* Check build depends *)
-  build_checks 
-    [EBool true, true] 
-    pkg.build_tools 
-    pkg.build_depends;
-
   List.iter 
     (fun (_, lib) ->
        build_checks

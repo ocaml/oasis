@@ -12,6 +12,46 @@ open OASISUtils
 open OASISSchema
 open CommonGettext
 
+let add_build_depend build_depend pkg =
+  {pkg with
+       libraries =
+         List.map
+           (fun (nm, lib) ->
+              nm,
+              {lib with 
+                   lib_build_depends = 
+                     build_depend :: lib.lib_build_depends})
+           pkg.libraries;
+     
+       executables =
+         List.map
+           (fun (nm, exec) ->
+              nm,
+              {exec with 
+                   exec_build_depends = 
+                     build_depend :: exec.exec_build_depends})
+           pkg.executables}
+
+let add_build_tool ?(condition=[EBool true, true]) build_tool pkg =
+  {pkg with
+       libraries =
+         List.map
+           (fun (nm, lib) ->
+              nm,
+              {lib with 
+                   lib_build_tools = 
+                     build_tool :: lib.lib_build_tools})
+           pkg.libraries;
+     
+       executables =
+         List.map
+           (fun (nm, exec) ->
+              nm,
+              {exec with 
+                   exec_build_tools = 
+                     build_tool :: exec.exec_build_tools})
+           pkg.executables}
+
 let schema, generator =
   let schm =
     schema "Package"
@@ -199,31 +239,35 @@ let schema, generator =
   in
     schm,
     (fun data libs execs flags src_repos tests ->
-      {
-        oasis_version = oasis_version data;
-        ocaml_version = ocaml_version data;
-        name          = name data;
-        version       = version data;
-        license       = license data;
-        license_file  = license_file data;
-        copyrights    = copyrights data;
-        maintainers   = maintainers data;
-        authors       = authors data;
-        homepage      = homepage data;
-        synopsis      = synopsis data;
-        description   = description data;
-        categories    = categories data;
-        build_depends = build_depends data;
-        build_tools   = build_tools data;
-        conf_type     = conf_type data;
-        build_type    = build_type data;
-        install_type  = install_type data;
-        files_ab      = files_ab data;
-        plugins       = plugins data;
-        libraries     = libs;
-        executables   = execs;
-        flags         = flags;
-        src_repos     = src_repos;
-        tests         = tests;
-        schema_data   = data;
-      })
+       List.fold_right
+         add_build_depend 
+         (build_depends data)
+         (List.fold_right
+            add_build_tool
+            (build_tools data)
+            {
+              oasis_version = oasis_version data;
+              ocaml_version = ocaml_version data;
+              name          = name data;
+              version       = version data;
+              license       = license data;
+              license_file  = license_file data;
+              copyrights    = copyrights data;
+              maintainers   = maintainers data;
+              authors       = authors data;
+              homepage      = homepage data;
+              synopsis      = synopsis data;
+              description   = description data;
+              categories    = categories data;
+              conf_type     = conf_type data;
+              build_type    = build_type data;
+              install_type  = install_type data;
+              files_ab      = files_ab data;
+              plugins       = plugins data;
+              libraries     = libs;
+              executables   = execs;
+              flags         = flags;
+              src_repos     = src_repos;
+              tests         = tests;
+              schema_data   = data;
+            }))

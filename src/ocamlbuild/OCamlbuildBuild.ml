@@ -160,7 +160,7 @@ let clean pkg extra_args  =
 (* END EXPORT *)
 
 open BaseFileGenerate
-open BaseUtils
+open OASISUtils
 open BaseMessage
 open CommonGettext
 open ODN
@@ -254,7 +254,7 @@ let create_ocamlbuild_files pkg () =
                  (fun dir ->
                     tags_of_build_depends 
                       (target_ml dir) 
-                      (lib.lib_build_depends @ pkg.build_depends))
+                      lib.lib_build_depends)
                  all_path
                  acc
            in
@@ -282,9 +282,6 @@ let create_ocamlbuild_files pkg () =
            let dir = 
              FilePath.dirname exec.exec_main_is
            in
-           let all_build_depends = 
-             exec.exec_build_depends @ pkg.build_depends
-           in
            let target_exec = 
              target_exec exec.exec_main_is exec.exec_compiled_object
            in
@@ -295,13 +292,13 @@ let create_ocamlbuild_files pkg () =
            let pkg_src_tags acc =
              tags_of_build_depends
                (target_ml dir)
-               all_build_depends
+               exec.exec_build_depends
                acc
            in
            let pkg_exec_tags acc = 
              tags_of_build_depends
                target_exec
-               all_build_depends
+               exec.exec_build_depends
                acc
            in
            let clib_tag acc = 
@@ -470,5 +467,4 @@ let plugin_main pkg =
       distclean    = None;
       other_action = create_ocamlbuild_files pkg;
     },
-    {pkg with 
-         build_tools = "ocamlbuild" :: pkg.build_tools}
+    OASISPackage.add_build_tool "ocamlbuild" pkg

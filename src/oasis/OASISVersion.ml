@@ -201,3 +201,23 @@ let comparator_of_string str =
            (f_ "Error while parsing '%s': %s")
            str
            (Printexc.to_string e))
+
+
+(** Simplify comparator, if possible 
+  *)
+let rec comparator_reduce =
+  function
+    | VAnd (v1, v2) ->
+        (* TODO: this can be improved to reduce more *)
+        let v1 = 
+          comparator_reduce v1
+        in
+        let v2 = 
+          comparator_reduce v2
+        in
+          if v1 = v2 then
+            v1
+          else
+            VAnd (v1, v2) 
+    | cmp ->
+        cmp

@@ -11,7 +11,7 @@ open StdFilesGen
 
 open BaseGenerate
 open BasePlugin
-open BaseUtils
+open OASISUtils
 open CommonGettext
 open Format
 open OASISTypes

@@ -5,7 +5,7 @@
 
 open Format
 open OASISTypes
-open BaseUtils
+open OASISUtils
 open BaseFileGenerate
 open ODN
 open BasePlugin
@@ -35,20 +35,17 @@ let generate pkg =
   in
 
   let moduls =
-    let module SSet = 
-      Set.Make(String)
-    in
     let moduls =
       required_modules @ moduls
     in
     let (rmoduls, _) =
       List.fold_left
         (fun ((moduls, moduls_seen) as acc) modul ->
-           if SSet.mem modul moduls_seen then
+           if SetString.mem modul moduls_seen then
              acc
            else
-             (modul :: moduls, SSet.add modul moduls_seen))
-        ([], SSet.empty)
+             (modul :: moduls, SetString.add modul moduls_seen))
+        ([], SetString.empty)
         moduls
     in
       List.rev rmoduls

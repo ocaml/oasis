@@ -385,7 +385,7 @@ let tests ctxt =
       (fun (cur_dir, loc, pristine) ->
 
          let expected_post_autobuild_files = 
-           BaseUtils.set_string_add_list
+           OASISUtils.set_string_add_list
              (set_string_of_file_digest pristine)
              (List.rev_map 
                 (FilePath.make_absolute (pwd ()))
@@ -439,7 +439,7 @@ let tests ctxt =
          let () = 
            let expected_installed_files = 
              (* Gather all file into a set *)
-             BaseUtils.set_string_of_list
+             OASISUtils.set_string_of_list
                (* Compute all file that should have been installed *)
                (List.fold_left
                   (fun acc f -> f loc acc)

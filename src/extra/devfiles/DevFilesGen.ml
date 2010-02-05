@@ -64,11 +64,11 @@ let main pkg =
       in
       let targets =
         let excludes =
-          BaseUtils.set_string_of_list 
+          OASISUtils.set_string_of_list 
             (makefile_notargets pkg.schema_data)
         in
           List.filter
-            (fun t -> not (BaseUtils.SetString.mem t excludes))
+            (fun t -> not (OASISUtils.SetString.mem t excludes))
             all_targets
       in
       let add_one_target ?(need_configure=true) nm = 

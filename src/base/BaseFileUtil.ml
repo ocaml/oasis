@@ -63,7 +63,7 @@ let which prg =
           ':'
   in
   let path_lst =
-    BaseUtils.split 
+    OASISUtils.split 
       path_sep 
       (Sys.getenv "PATH")
   in
@@ -72,7 +72,7 @@ let which prg =
       | "Win32" ->
           "" 
           :: 
-          (BaseUtils.split 
+          (OASISUtils.split 
              path_sep 
              (Sys.getenv "PATHEXT"))
       | _ ->
