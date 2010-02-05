@@ -1,5 +1,5 @@
 
-(** Gettext interface for Autobuild
+(** Gettext interface
   *)
 
 let s_ str = 

@@ -1,5 +1,5 @@
 
-(** Manage plugin for AutoBuild
+(** Manage plugins
     @author Sylvain Le Gall
   *)
 

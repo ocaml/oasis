@@ -1,6 +1,6 @@
 #!/usr/bin/expect -f
 set timeout 1
-spawn OCamlAutobuild --quickstart
+spawn OASIS --quickstart
 expect {
   "Value of Name?"     {send -- "test\r"; exp_continue}
   "Value of Version?"  {send -- "0.1\r"; exp_continue}

@@ -24,7 +24,7 @@ let run cmd args =
   *)
 let run_read_output cmd args =
   let fn = 
-    Filename.temp_file "ocaml-autobuild" ".txt"
+    Filename.temp_file "oasis-" ".txt"
   in
   let () = 
     try

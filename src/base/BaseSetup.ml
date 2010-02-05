@@ -1,5 +1,5 @@
 
-(** Entry point for ocaml-autobuild
+(** Entry points for setup.ml
     @author Sylvain Le Gall
   *)
 

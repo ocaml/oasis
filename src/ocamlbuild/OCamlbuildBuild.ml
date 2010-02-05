@@ -1,5 +1,5 @@
 
-(** Runtime support for autobuild/OCamlbuild
+(** Build using ocamlbuild  
     @author Sylvain Le Gall
   *)
 

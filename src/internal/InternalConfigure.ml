@@ -1,5 +1,5 @@
 
-(** Configure using ocaml-autobuild internal scheme
+(** Configure using internal scheme
     @author Sylvain Le Gall
   *)
 

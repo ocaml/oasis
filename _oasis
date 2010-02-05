@@ -1,4 +1,4 @@
-Package:      ocaml-autobuild
+Package:      oasis
 Version:      0.0.1
 LicenseFile:  LICENSE
 License:      LGPL-link-exn
@@ -19,18 +19,17 @@ Description:
  .
  It is mainly targeted to ocamlbuild and rely on findlib for all operations.
  .
- Package are described through an OASIS file (OCaml Autobuild Source
- InformationS). This file is translated into commands for the different
- sub-system and executed.
+ Package are described through an OASIS file. This file is translated into
+ commands for the different sub-system and executed.
  . 
  The internal configuration system allow to: check findlib package and find
  available program.  
 
-Executable ocaml-autobuild
+Executable OASIS
   Buildable: true
-  MainIs: src/ocaml-autobuild.ml
+  MainIs: src/Main.ml
 
-Library autobuild
+Library oasis
   Buildable: true
   Module: 
   Path: src/

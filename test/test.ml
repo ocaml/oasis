@@ -1,5 +1,5 @@
 
-(** Run test for ocaml-autobuild
+(** Run test for OASIS
     @author Sylvain Le Gall
   *)
 
@@ -20,15 +20,15 @@ let _res: test_result list =
           with Not_found ->
             false
         );
-      ocaml_autobuild =
+      oasis =
         FilePath.concat
           (FileUtil.pwd ())
-          "../_build/src/OCamlAutobuild.byte";
-      ocaml_autobuild_args = [];
+          "../_build/src/OASIS.byte";
+      oasis_args = [];
     }
   in
     run_test_tt_main
-      ("ocaml-autobuild">:::
+      ("OASIS">:::
        [
          TestPropList.tests     ctxt;
          TestOASIS.tests        ctxt;

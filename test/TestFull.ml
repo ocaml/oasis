@@ -1,5 +1,5 @@
 
-(** Run full OCamlAutobuild use case
+(** Run full OASIS use cases
     @author Sylvain Le Gall
   *)
 
@@ -109,14 +109,14 @@ let tests ctxt =
   in
 
   (* Files always generated *)
-  let autobuild_std_files = 
+  let oasis_std_files = 
     [
       "setup.ml"; 
     ]
   in
 
   (* Files generated when ocamlbuild buildsys is used *)
-  let autobuild_ocamlbuild_files =
+  let oasis_ocamlbuild_files =
     [
       "myocamlbuild.ml"; 
       "_tags";
@@ -333,7 +333,7 @@ let tests ctxt =
 
   (* Run standard test *)
   let test_of_vector (srcdir, 
-                      autobuild_extra_files,
+                      oasis_extra_files,
                       installed_files,
                       post_install_runs) =
     srcdir >::
@@ -346,7 +346,7 @@ let tests ctxt =
 
          (* Create build dir *)
          let build_dir = 
-           temp_dir "ocaml-autobuild-" ".dir"
+           temp_dir "oasis-" ".dir"
          in
 
          (* Create a directory in build_dir and return its name *)
@@ -363,8 +363,8 @@ let tests ctxt =
            Sys.chdir srcdir;
 
            (* Ensure that we are in a clean environment *)
-           rm autobuild_extra_files;
-           rm autobuild_std_files;
+           rm oasis_extra_files;
+           rm oasis_std_files;
 
            (* Memorize file listing/digest of the current srcdir *)
            all_file_digests ()
@@ -384,28 +384,28 @@ let tests ctxt =
       (* Run test *)
       (fun (cur_dir, loc, pristine) ->
 
-         let expected_post_autobuild_files = 
+         let expected_post_oasis_files = 
            OASISUtils.set_string_add_list
              (set_string_of_file_digest pristine)
              (List.rev_map 
                 (FilePath.make_absolute (pwd ()))
                 (List.rev_append
-                  autobuild_std_files
-                  autobuild_extra_files))
+                  oasis_std_files
+                  oasis_extra_files))
          in
 
-         (* Create build system using OCamlAutobuild *)
+         (* Create build system using OASIS *)
          let () = 
            assert_command 
              ctxt
-             ctxt.ocaml_autobuild 
-             ctxt.ocaml_autobuild_args;
+             ctxt.oasis 
+             ctxt.oasis_args;
 
            (* Check generated files *)
            OUnitSetString.assert_equal 
              ~msg:"Generated files"
              ~printer:fn_printer
-             expected_post_autobuild_files
+             expected_post_oasis_files
              (all_files_cwd ())
          in
 
@@ -484,18 +484,18 @@ let tests ctxt =
            assert_run_setup ["-clean"];
            assert_run_setup ["-distclean"];
 
-           (* Check that only OCamlAutobuild generated files remain *)
+           (* Check that only OASIS generated files remain *)
            OUnitSetString.assert_equal
              ~msg:"Remaining files after distclean"
              ~printer:fn_printer
-             expected_post_autobuild_files
+             expected_post_oasis_files
              (all_files_cwd ())
          in
 
          (* Clean test environment -- the standard way *)
          let () =
-           rm autobuild_std_files;
-           rm autobuild_extra_files;
+           rm oasis_std_files;
+           rm oasis_extra_files;
 
            (* Check that we are back to pristine ls
             *)
@@ -544,7 +544,7 @@ let tests ctxt =
        [
          (* Use flags *)
          "../examples/flags", 
-         autobuild_ocamlbuild_files
+         oasis_ocamlbuild_files
          @
          [
            "src/simplelib/simplelib.mllib";
@@ -578,7 +578,7 @@ let tests ctxt =
 
          (* Complete library *)
          "../examples/simplelib", 
-         autobuild_ocamlbuild_files @ ["src/simplelib.mllib"],
+         oasis_ocamlbuild_files @ ["src/simplelib.mllib"],
          [
            in_ocaml_library "simplelib" 
              ["simplelib.cma"; 
@@ -597,7 +597,7 @@ let tests ctxt =
 
          (* Complete library with findlib package to check *)
          "../examples/findlib",
-         autobuild_ocamlbuild_files,
+         oasis_ocamlbuild_files,
          [],
          [
            (* TODO: test *)
@@ -628,7 +628,7 @@ let tests ctxt =
            "src/libtest-with-c.clib";
            "src/libwith-c.clib";
            "src/with-c.mllib";
-         ] @ autobuild_ocamlbuild_files,
+         ] @ oasis_ocamlbuild_files,
          [
            in_bin ["test-with-c"; 
                    "test-with-c-custom"; 
@@ -656,7 +656,7 @@ let tests ctxt =
          [
            "src/META";
            "src/test.mllib";
-         ] @ autobuild_ocamlbuild_files,
+         ] @ oasis_ocamlbuild_files,
          [
            in_bin ["test"];
            in_ocaml_library "test"
@@ -674,7 +674,7 @@ let tests ctxt =
 
          (* Test executable *)
          "../examples/with-test",
-         autobuild_ocamlbuild_files,
+         oasis_ocamlbuild_files,
          [],
          [];
 
@@ -684,7 +684,7 @@ let tests ctxt =
            "src/META";
            "src/test.mllib";
            "src/syntax/pa_test.mllib";
-         ] @ autobuild_ocamlbuild_files,
+         ] @ oasis_ocamlbuild_files,
          [
            in_ocaml_library "test" 
              ["META"; "test.cma"; "pa_test.cma";

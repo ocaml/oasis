@@ -1,5 +1,5 @@
 
-(** Install using ocaml-autobuild internal scheme
+(** Install using internal scheme
     @author Sylvain Le Gall
   *)
 

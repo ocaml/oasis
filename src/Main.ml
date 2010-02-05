@@ -1,5 +1,5 @@
 
-(** Main for OCaml-autobuild *)
+(** Main for OASIS *)
 
 open NonePlugin
 open InternalPlugin
@@ -68,9 +68,9 @@ let () =
              (Printf.sprintf 
                 (f_ "Don't know what to do with '%s'")
                 str))
-        (s_ "ocaml-autobuild (C) 2009 Sylvain Le Gall\n\
+        (s_ "OASIS (C) 2009-2010 OCamlCore SARL\n\
              \n\
-             ocaml-autobuild [options*] -action [action-options*]\n\n");
+             OASIS [options*] -action [action-options*]\n\n");
     with 
       | Arg.Bad txt ->
           prerr_endline txt;

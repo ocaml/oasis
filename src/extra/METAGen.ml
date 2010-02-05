@@ -1,5 +1,5 @@
 
-(** META generator for AutoBuild
+(** META generator
     @author Sylvain Le Gall
   *)
 
@@ -155,7 +155,7 @@ let pp_print_meta pkg findlib_name_map fmt grp =
 
     assert(enable root_lib.lib_schema_data);
     pp_open_vbox fmt 0;
-    fprintf fmt "# AUTOBUILD_START";
+    fprintf fmt "# OASIS_START";
     begin
       match grp with 
         | Container (_, children) ->
@@ -163,7 +163,7 @@ let pp_print_meta pkg findlib_name_map fmt grp =
         | Package (_, nm, lib, children) ->
             pp_print_library fmt (nm, lib, children)
     end;
-    fprintf fmt "@,# AUTOBUILD_STOP@,";
+    fprintf fmt "@,# OASIS_STOP@,";
     pp_close_box fmt ();
     pp_print_flush fmt ()
 

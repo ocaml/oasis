@@ -1,4 +1,0 @@
-src/tools/ocamlmod.byte
-src/autobuild.cma
-src/OCamlAutobuild.byte
-test/test.byte

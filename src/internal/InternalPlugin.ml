@@ -1,5 +1,5 @@
 
-(** Internal configure and install scheme for AutoBuild
+(** Internal configure and install scheme
     @author Sylvain Le Gall
   *)
 

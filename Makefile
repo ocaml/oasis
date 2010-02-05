@@ -7,7 +7,8 @@ test: all
 
 # Default target
 all:
-	ocamlbuild -tag debug -classic-display ocaml-autobuild.otarget
+	ocamlbuild -tag debug -classic-display oasis.otarget
+	cp _build/src/Main.byte _build/src/OASIS.byte
 
 clean:
 	-ocamlbuild -classic-display -clean

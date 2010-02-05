@@ -315,7 +315,7 @@ Customization of generated files
 --------------------------------
 
 When OASIS generates file, it always replace only lines between
-`AUTOBUILD_START` and `AUTOBUILD_STOP`. These keywords are commented and
+`OASIS_START` and `OASIS_STOP`. These keywords are commented and
 followed by data to check that content is unchanged.
 
 If the file doesn't exist, OASIS will create the whole file using default
@@ -335,7 +335,7 @@ TODO: explains hook.
 Plugins 
 -------
 
-OCamlAutobuild is basically built around plugins. They are used to define
+OASIS is basically built around plugins. They are used to define
 specific behavior for generating files and including their own code in `setup.ml`.
 
 There are 6 categories of plugin:
@@ -504,13 +504,13 @@ ocaml setup.ml -distclean
 
 This step is optional. Try to go back to pristine source state.
 
-OCamlAutobuild usage
+OASIS usage
 ===================
 
 Command line
 ------------
 
-    OCamlAutobuild [options*]
+    OASIS [options*]
 
 `-C dir`: Change directory before running.
 

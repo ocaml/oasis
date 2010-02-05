@@ -1,5 +1,5 @@
 
-(** OCaml Autobuild Source Information System
+(** OASIS library
 
     @author Sylvain Le Gall
   *)  

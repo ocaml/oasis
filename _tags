@@ -37,7 +37,7 @@
 
 <src/extra/stdfiles/*.ml>: pkg_fileutils
 
-"src/OCamlAutobuild.byte": pkg_unix, pkg_str, pkg_fileutils, pkg_extlib, pkg_odn
+"src/Main.byte": pkg_unix, pkg_str, pkg_fileutils, pkg_extlib, pkg_odn
 
 <test/*.{ml,byte}>: pkg_oUnit, pkg_str, pkg_fileutils, pkg_extlib, pkg_odn, pkg_findlib
 

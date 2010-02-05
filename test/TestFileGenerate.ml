@@ -69,41 +69,41 @@ let tests ctxt =
         "filegenerate1.txt", 
         [
           "toto";
-          "# AUTOBUILD_START ";
-          "# AUTOBUILD_STOP ";
+          "# OASIS_START ";
+          "# OASIS_STOP ";
         ], 
         comment_sh;
 
         "filegenerate2.txt", 
         [
           "toto";
-          "# AUTOBUILD_START ";
-          "# AUTOBUILD_STOP ";
+          "# OASIS_START ";
+          "# OASIS_STOP ";
         ], 
         comment_sh;
 
         "filegenerate3.txt", 
         [
           "toto";
-          "# AUTOBUILD_START ";
-          "# AUTOBUILD_STOP ";
+          "# OASIS_START ";
+          "# OASIS_STOP ";
         ], 
         comment_sh;
 
         "filegenerate4.txt", 
         [
           "toto";
-          "# AUTOBUILD_START ";
-          "# AUTOBUILD_STOP ";
+          "# OASIS_START ";
+          "# OASIS_STOP ";
         ], 
         comment_sh;
 
         "filegenerate5.txt", 
         [
           "toto";
-          "# AUTOBUILD_START ";
+          "# OASIS_START ";
           "tata";
-          "# AUTOBUILD_STOP ";
+          "# OASIS_STOP ";
         ], 
         comment_sh;
       ]

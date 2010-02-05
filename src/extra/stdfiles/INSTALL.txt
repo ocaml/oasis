@@ -13,9 +13,9 @@ Uninstalling
 1. Go to the root of the package 
 2. Run 'ocaml setup.ml -uninstall'
 
-ocaml-autobuild 
-===============
+OASIS
+=====
 
-OCaml-autobuild is a software that helps to write setup.ml using a simple
-'_oasis' configuration file. The generated setup only depends on standard
-OCaml installation, no additional library is required.
+OASIS is a software that helps to write setup.ml using a simple '_oasis'
+configuration file. The generated setup only depends on standard OCaml
+installation, no additional library is required.

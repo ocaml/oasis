@@ -288,8 +288,8 @@ let main pkg =
            pkg.name;
 
          pp_print_para fmt
-           "This package use ocaml-autobuild to generate its build system. \
-            See section ocaml-autobuild for full information. ";
+           "This package use OASIS to generate its build system. \
+            See section OASIS for full information. ";
 
          pp_print_title fmt "Dependencies";
          fprintf fmt "@[In order to compile this package, you will need:@]@,";

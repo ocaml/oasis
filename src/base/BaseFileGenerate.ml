@@ -24,8 +24,8 @@ type content =
 
 (**/**)
 let (start_msg, stop_msg) =
-  "AUTOBUILD_START",
-  "AUTOBUILD_STOP"
+  "OASIS_START",
+  "OASIS_STOP"
 
 let white_space =
   "[ \t]*"
@@ -83,8 +83,8 @@ let comment_bat =
 let comment_meta = 
   comment_sh
 
-(** Generate a file using a template. Only the part between AUTOBUILD_START and 
-    AUTOBUILD_END will really be replaced if the file exist. If file doesn't exist
+(** Generate a file using a template. Only the part between OASIS_START and 
+    OASIS_END will really be replaced if the file exist. If file doesn't exist
     use the whole template.
  *)
 let file_generate ?(target) fn comment content = 

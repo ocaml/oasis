@@ -10,10 +10,10 @@ module SetString = Set.Make(String);;
 
 type context =
     {
-      dbug:                 bool;
-      has_ocamlopt:         bool;
-      ocaml_autobuild:      string;
-      ocaml_autobuild_args: string list;
+      dbug:         bool;
+      has_ocamlopt: bool;
+      oasis:        string;
+      oasis_args:   string list;
     }
 ;;
 
@@ -35,7 +35,7 @@ let assert_command ?(exit_code=0) ?(extra_env=[]) ctxt cmd args  =
       )
   in
   let fn, chn_out =
-    Filename.open_temp_file "ocaml-autobuild-" ".log"
+    Filename.open_temp_file "oasis-" ".log"
   in
   let chn_in =
     open_in fn

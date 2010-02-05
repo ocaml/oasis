@@ -19,7 +19,7 @@ let required_modules =
     BaseData.basesys_ml;
   ]
 
-(** Generate autobuild system 
+(** Generate setup.ml and the rest of the build system 
   *)
 let generate pkg = 
 
