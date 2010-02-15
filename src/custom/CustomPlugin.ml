@@ -40,39 +40,39 @@ let distclean t pkg extra_args =
 
 module Test =
 struct
-  let main t pkg nm test extra_args =
+  let main t pkg (cs, test) extra_args =
     try
       main t pkg extra_args;
       0.0
     with Failure _ ->
       1.0
 
-  let clean t pkg nm test extra_args =
+  let clean t pkg (cs, test) extra_args =
     clean t pkg extra_args
 
-  let distclean t pkg nm test extra_args =
+  let distclean t pkg (cs, test) extra_args =
     distclean t pkg extra_args 
 end
 
 module Doc =
 struct
-  let main t pkg nm () extra_args =
+  let main t pkg (cs, ()) extra_args =
     main t pkg extra_args
 
-  let clean t pkg nm () extra_args =
+  let clean t pkg (cs, ()) extra_args =
     clean t pkg extra_args
 
-  let distclean t pkg nm () extra_args =
+  let distclean t pkg (cs, ()) extra_args =
     distclean t pkg extra_args
 end
 
 (* END EXPORT *)
 
 open CommonGettext
-open BasePlugin
 open ODN
 open OASISTypes
 open OASISValues
+open BasePlugin
 open PropList.FieldRO
 
 let plugin_id = "Custom"
@@ -182,7 +182,7 @@ let doc =
       (fun () -> s_ "Run command to clean build documentation step.")
       (fun () -> s_ "Run command to distclean build documentation step.")
   in
-    fun pkg nm doc ->
+    fun pkg (cs, doc) ->
       let t =
         {
           cmd_main      = cmd_main pkg.schema_data;
@@ -206,6 +206,7 @@ let doc =
           other_action = ignore;
         },
         pkg,
+        cs,
         doc
 
 let test =
@@ -229,12 +230,12 @@ let test =
       (fun () ->
          s_ "Run command to distclean test step.")
   in
-    fun pkg nm test -> 
+    fun pkg (cs, test) -> 
       let t = 
         { 
           cmd_main      = test.test_command;
-          cmd_clean     = test_clean test.test_schema_data;
-          cmd_distclean = test_distclean test.test_schema_data;
+          cmd_clean     = test_clean cs.cs_data;
+          cmd_distclean = test_distclean cs.cs_data;
         }
       in
         {
@@ -253,6 +254,7 @@ let test =
           other_action = ignore;
         },
         pkg,
+        cs,
         test
 
 let () =

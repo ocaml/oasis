@@ -67,6 +67,13 @@ type dependency =
   | InternalLibrary of name
   with odn
 
+(** Tool dependency
+  *)
+type tool =
+  | ExternalTool of name
+  | InternalExecutable of name 
+  with odn
+
 (** Possible VCS 
   *)
 type vcs = 
@@ -78,6 +85,7 @@ type vcs =
   | Bzr 
   | Arch 
   | Monotone
+  | OtherVCS of url
   with odn
 
 (** Available test 
@@ -105,41 +113,42 @@ type expr =
   *)
 type 'a conditional = (expr * 'a) list with odn
 
+type common_section =
+    {
+      cs_name: name;
+      cs_data: PropList.Data.t;
+    }
+    with odn
+
+type build_section =
+    {
+      bs_build:           bool conditional;
+      bs_install:         bool conditional;
+      bs_path:            dirname;
+      bs_compiled_object: compiled_object;
+      bs_build_depends:   dependency list;
+      bs_build_tools:     tool list;
+      bs_c_sources:       filename list;
+      bs_data_files:      (filename * filename option) list;
+    }
+    with odn
+
 (** Library definition 
   *)
 type library = 
     {
-      lib_build:              bool conditional;
-      lib_install:            bool conditional;
-      lib_path:               dirname;
       lib_modules:            string list;
-      lib_compiled_object:    compiled_object;
-      lib_build_depends:      dependency list;
-      lib_build_tools:        prog list;
-      lib_c_sources:          filename list;
-      lib_data_files:         (filename * filename option) list;
-      lib_parent:             name option;
+      lib_findlib_parent:     findlib_name option;
       lib_findlib_name:       findlib_name option;
       lib_findlib_containers: findlib_name list;
-      lib_schema_data:        PropList.Data.t;
     } with odn
 
 (** Executable definition 
   *)
 type executable = 
     {
-      exec_build:           bool conditional;
-      exec_install:         bool conditional;
-      exec_main_is:         filename;
-      exec_compiled_object: compiled_object;
-      exec_build_depends:   dependency list;
-      exec_build_tools:     prog list;
-      exec_c_sources:       filename list;
       exec_custom:          bool;
-      exec_data_files:      (filename * filename option) list;
-      (* TODO: this should be computed *)
-      exec_is:              filename; (* Real executable *)
-      exec_schema_data:     PropList.Data.t;
+      exec_main_is:         filename;
     } with odn
 
 (** Command line flag defintion 
@@ -148,7 +157,6 @@ type flag =
     {
       flag_description:  string option;
       flag_default:      bool conditional;
-      flag_schema_data:  PropList.Data.t;
     } with odn
 
 (** Source repository definition
@@ -162,7 +170,6 @@ type source_repository =
       src_repo_branch:      string option;
       src_repo_tag:         string option;
       src_repo_subdir:      filename option;
-      src_repo_schema_data: PropList.Data.t;
     } with odn
 
 (** Test definition
@@ -173,9 +180,16 @@ type test =
       test_command:            string * string list;
       test_working_directory:  filename option;
       test_run:                bool conditional;
-      test_build_tools:        prog list;
-      test_schema_data:        PropList.Data.t;
+      test_build_tools:        tool list;
     } with odn
+
+type section =
+  | Library    of common_section * build_section * library
+  | Executable of common_section * build_section * executable
+  | Flag       of common_section * flag
+  | SrcRepo    of common_section * source_repository
+  | Test       of common_section * test
+  with odn
 
 (** OASIS file whole content
   *)
@@ -198,12 +212,8 @@ type package =
       build_type:     string;
       install_type:   string;
       files_ab:       filename list;
+      sections:       section list;
       plugins:        string list;
-      libraries:      (name * library) list;
-      executables:    (name * executable) list;
-      flags:          (name * flag) list;
-      src_repos:      (name * source_repository) list;
-      tests:          (name * test) list;
       schema_data:    PropList.Data.t;
     } with odn
 

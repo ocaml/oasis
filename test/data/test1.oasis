@@ -58,4 +58,5 @@ Library stuff
   Modules: A, B, C
 
 Executable toto
-  MainIs: src/toto.ml
+  Path: src
+  MainIs: toto.ml

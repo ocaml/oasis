@@ -15,8 +15,10 @@ let tests ctxt =
     try
       let _ = 
         List.find 
-          (fun (flg, _) -> nm = flg) 
-          pkg.flags
+          (function
+             | Flag (cs, _) -> cs.cs_name = nm
+             | _ -> false) 
+          pkg.sections
       in
         ()
     with Not_found ->
@@ -143,9 +145,18 @@ let tests ctxt =
            "test9.oasis",
            (fun pkg ->
               let deps =
-                (List.assoc
-                   "test"
-                   pkg.executables).exec_build_depends
+                List.fold_left
+                  (fun acc ->
+                     function
+                       | Executable (cs, bs, _) ->
+                           if cs.cs_name = "test" then
+                             bs.bs_build_depends @ acc
+                           else
+                             acc
+                       | _ ->
+                           acc)
+                  []
+                  pkg.sections
               in
                 List.iter
                   (fun lib ->

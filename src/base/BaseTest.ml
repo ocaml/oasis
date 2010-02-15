@@ -9,12 +9,12 @@ open OASISExpr
 
 let test lst pkg extra_args =
 
-  let one_test (test_plugin, test_name, test) =
+  let one_test (test_plugin, cs, test) =
     if var_choose test.test_run then
       begin
         let () = 
           BaseMessage.info 
-            (Printf.sprintf "Running test '%s'" test_name)
+            (Printf.sprintf "Running test '%s'" cs.cs_name)
         in
         let back_cwd = 
           match test.test_working_directory with 
@@ -35,7 +35,7 @@ let test lst pkg extra_args =
         in
           try 
             let failure_percent =
-              test_plugin pkg test_name test extra_args 
+              test_plugin pkg (cs, test) extra_args 
             in
               back_cwd ();
               failure_percent
@@ -48,7 +48,7 @@ let test lst pkg extra_args =
     else
       begin
         BaseMessage.info 
-          (Printf.sprintf "Skipping test '%s'" test_name);
+          (Printf.sprintf "Skipping test '%s'" cs.cs_name);
         0.0
       end
   in

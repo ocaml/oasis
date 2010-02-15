@@ -6,15 +6,7 @@
 open OASISTypes
 open OASISAstTypes
 open OASISUtils
-
-type acc_sections_t =
-    {
-      execs:      (name * executable) list;
-      libs:       (name * library) list;
-      flags:      (name * flag) list;
-      src_repos:  (name * source_repository) list;
-      tests:      (name * test) list;
-    }
+open CommonGettext
 
 (** Convert OASIS stream into package 
   *)
@@ -34,9 +26,16 @@ let to_package conf st =
   in
 
   (* Convert flags into ctxt *)
-  let ctxt_of_flags flags =
+  let ctxt_of_sections scts =
     {default_ctxt with 
-         valid_flags = List.map fst flags}
+         valid_flags = 
+           (List.fold_left 
+              (fun acc ->
+                function 
+                  | Flag (cs, _) -> cs.cs_name :: acc
+                  | _ -> acc)
+              default_ctxt.valid_flags
+              scts)}
   in
 
   (* Merge an expression with a condition in a ctxt *)
@@ -87,16 +86,16 @@ let to_package conf st =
   (* Explore statement and register data into a newly created
    * Schema.writer.
    *)
-  let schema_stmt gen nm schm flags stmt' = 
+  let schema_stmt gen nm schm scts stmt' = 
     let data =
       PropList.Data.create ()
     in
     let ctxt =
-      ctxt_of_flags flags
+      ctxt_of_sections scts
     in
       stmt schm data ctxt stmt';
       OASISCheck.check_schema schm data;
-      gen nm data
+      (gen nm data) :: scts
   in
 
   (* Recurse into top-level statement. At this level there is 
@@ -106,65 +105,50 @@ let to_package conf st =
   let rec top_stmt pkg_data acc =
     function
       | TSLibrary (nm, stmt) -> 
-          let lib = 
-            schema_stmt 
-              OASISLibrary.generator
-              nm
-              OASISLibrary.schema 
-              acc.flags 
-              stmt
-          in
-            {acc with libs = (nm, lib) :: acc.libs}
+          schema_stmt 
+            OASISLibrary.generator
+            nm
+            OASISLibrary.schema 
+            acc
+            stmt
 
       | TSExecutable (nm, stmt) -> 
-          let exec =
-            schema_stmt
-              OASISExecutable.generator
-              nm
-              OASISExecutable.schema
-              acc.flags
-              stmt
-          in
-            {acc with execs = (nm, exec) :: acc.execs}
+          schema_stmt
+            OASISExecutable.generator
+            nm
+            OASISExecutable.schema
+            acc
+            stmt
 
       | TSFlag (nm, stmt) -> 
-          let flag =
-            schema_stmt 
-              OASISFlag.generator 
-              nm
-              OASISFlag.schema 
-              acc.flags
-              stmt
-          in
-            {acc with flags = (nm, flag) :: acc.flags}
+          schema_stmt 
+            OASISFlag.generator 
+            nm
+            OASISFlag.schema 
+            acc
+            stmt
 
       | TSSourceRepository (nm, stmt) ->
-          let src_repo =
-            schema_stmt
-              OASISSourceRepository.generator
-              nm
-              OASISSourceRepository.schema
-              acc.flags
-              stmt
-          in
-            {acc with src_repos = (nm, src_repo) :: acc.src_repos}
+          schema_stmt
+            OASISSourceRepository.generator
+            nm
+            OASISSourceRepository.schema
+            acc
+            stmt
 
       | TSTest (nm, stmt) ->
-          let test =
-            schema_stmt
-              OASISTest.generator
-              nm
-              OASISTest.schema
-              acc.flags
-              stmt
-          in
-            {acc with tests = (nm, test) :: acc.tests}
+          schema_stmt
+            OASISTest.generator
+            nm
+            OASISTest.schema
+            acc
+            stmt
 
       | TSStmt stmt' -> 
           stmt 
             OASISPackage.schema
             pkg_data 
-            (ctxt_of_flags acc.flags) 
+            (ctxt_of_sections acc) 
             stmt';
           acc
 
@@ -179,16 +163,10 @@ let to_package conf st =
   let data =
     PropList.Data.create ()
   in
-  let acc =
+  let sections =
     top_stmt 
       data
-      {
-        libs      = [];
-        execs     = [];
-        flags     = [];
-        src_repos = [];
-        tests     = [];
-      }
+      []
       ast
   in
   let pkg = 
@@ -197,11 +175,7 @@ let to_package conf st =
       data;
     OASISPackage.generator 
       data
-      acc.libs 
-      acc.execs 
-      acc.flags 
-      acc.src_repos
-      acc.tests
+      sections
   in
 
   (* Fix build depends to reflect internal dependencies *)
@@ -209,7 +183,7 @@ let to_package conf st =
     (* Map of findlib name to internal libraries *)
     let internal_of_findlib =
       let mp = 
-        OASISLibrary.findlib_name_map pkg.libraries
+        OASISLibrary.findlib_name_map pkg
       in
         MapString.fold
           (fun nm _ acc -> 
@@ -249,27 +223,68 @@ let to_package conf st =
            | (InternalLibrary _) as bd ->
                bd)
     in
+
+    let internal_tools = 
+      List.fold_left
+        (fun st ->
+           function
+             | Executable (cs, _, _) ->
+                 SetString.add cs.cs_name st
+             | _ ->
+                 st)
+        SetString.empty
+        pkg.sections
+    in
+
+    let map_internal_tools what = 
+      List.map 
+        (function
+           | ExternalTool lnm as bt ->
+               begin
+                 if SetString.mem lnm internal_tools then
+                   InternalExecutable lnm
+                 else
+                   bt
+               end
+           | InternalExecutable _ as bt ->
+               bt)
+    in
+
+    let map_internal what bs = 
+      {bs with 
+           bs_build_depends = map_internal_libraries what bs.bs_build_depends;
+           bs_build_tools = map_internal_tools what bs.bs_build_tools}
+    in
+
       {pkg with 
-           libraries = 
+           sections =
              List.map 
-               (fun (nm, lib) ->
-                  nm,
-                  {lib with 
-                       lib_build_depends = 
-                         map_internal_libraries
-                           ("library "^nm)
-                           lib.lib_build_depends})
-               pkg.libraries;
-           executables =
-             List.map 
-               (fun (nm, exec) ->
-                  nm,
-                  {exec with 
-                       exec_build_depends =
-                         map_internal_libraries
-                           ("executable "^nm)
-                           exec.exec_build_depends})
-               pkg.executables}
+               (function
+                  | Library (cs, bs, lib) ->
+                      Library 
+                        (cs, 
+                         map_internal 
+                           (Printf.sprintf (f_ "library %s") cs.cs_name)
+                           bs,
+                         lib)
+                  | Executable (cs, bs, exec) ->
+                      Executable
+                        (cs,
+                         map_internal
+                           (Printf.sprintf (f_ "executable %s") cs.cs_name)
+                           bs,
+                         exec)
+                  | Test (cs, tst) ->
+                      Test 
+                        (cs,
+                         {tst with 
+                              test_build_tools = 
+                                map_internal_tools 
+                                  (Printf.sprintf "test %s" cs.cs_name)
+                                  tst.test_build_tools})
+                  | Flag _ | SrcRepo _ as sct ->
+                      sct)
+               pkg.sections}
   in
     (* TODO: check recursion and re-order library/tools using ocamlgraph *)
     pkg

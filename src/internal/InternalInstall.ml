@@ -25,10 +25,10 @@ let libfn path name =
   Filename.concat path ("lib"^name^(ext_lib ()))
 
 let exec_hook =
-  ref (fun exec -> exec)
+  ref (fun (cs, bs, exec) -> cs, bs, exec)
 
 let lib_hook =
-  ref (fun _ lib -> lib, [])
+  ref (fun (cs, bs, lib) -> cs, bs, lib, [])
 
 let install_file_ev = 
   "install-file"
@@ -127,12 +127,12 @@ let install pkg argv =
   let install_datas pkg = 
 
     (* Install data for a single section *)
-    let install_data path files_targets = 
+    let install_data bs = 
       List.iter
         (fun (src, tgt_opt) ->
            let real_srcs = 
              let real_src = 
-               Filename.concat path src
+               Filename.concat bs.bs_path src
              in
              (* Glob the src expression *)
              let filename = 
@@ -197,56 +197,53 @@ let install pkg argv =
                          | None -> var_expand "$datarootdir/$pkg_name")) 
                real_srcs)
              
-        files_targets
+        bs.bs_data_files
     in
 
-      (* Install datas for libraries *)
+      (* Install datas for libraries and executables *)
       List.iter
-        (fun (nm, lib) -> 
-           if var_choose lib.lib_install then
-             install_data lib.lib_path lib.lib_data_files)
-        pkg.libraries;
-      (* Install datas for executables *)
-      List.iter
-        (fun (nm, exec) ->
-           if var_choose exec.exec_install then
-             install_data (OASISExecutable.exec_path exec) exec.exec_data_files)
-        pkg.executables
+        (function
+           | Library (_, bs, _)
+           | Executable (_, bs, _) ->
+               install_data bs
+           | _ ->
+               ())
+        pkg.sections
   in
 
   (** Install all libraries *)
   let install_libs pkg =
 
-    let find_lib_file lib fn =
+    let find_lib_file (cs, bs, lib) fn =
       find_file
-        (fun rootdir -> [rootdir; lib.lib_path; fn])
+        (fun rootdir -> [rootdir; bs.bs_path; fn])
         rootdirs
     in
 
-    let files_of_library acc lib_name lib = 
-      let lib, lib_extra =
-        !lib_hook lib_name lib
+    let files_of_library acc data_lib = 
+      let cs, bs, lib, lib_extra =
+        !lib_hook data_lib
       in
       let find_lib_file =
-        find_lib_file lib
+        find_lib_file (cs, bs, lib)
       in
-        (if var_choose lib.lib_install then
+        (if var_choose bs.bs_install then
            [
-             find_lib_file (lib_name^".cma");
+             find_lib_file (cs.cs_name^".cma");
            ]
            :: 
-           (if is_native lib.lib_compiled_object then
+           (if is_native bs.bs_compiled_object then
               (
                 try 
                   [
-                    find_lib_file (lib_name^".cmxa");
-                    find_lib_file (lib_name^(ext_lib ()));
+                    find_lib_file (cs.cs_name^".cmxa");
+                    find_lib_file (cs.cs_name^(ext_lib ()));
                   ]
                 with Failure txt ->
                   BaseMessage.warning 
                     (Printf.sprintf
                        "Cannot install native library %s: %s"
-                       lib_name
+                       cs.cs_name
                        txt);
                   []
               )
@@ -256,25 +253,25 @@ let install pkg argv =
            ::
            lib_extra
            ::
-           (if lib.lib_c_sources <> [] then
+           (if bs.bs_c_sources <> [] then
               [
-                find_build_file (libfn lib.lib_path lib_name);
+                find_build_file (libfn bs.bs_path cs.cs_name);
               ]
             else
               [])
            ::
            (* Some architecture doesn't allow shared library (Cygwin, AIX) *)
-           (if lib.lib_c_sources <> [] then
+           (if bs.bs_c_sources <> [] then
               (try 
                 [
-                  find_build_file (dllfn lib.lib_path lib_name);
+                  find_build_file (dllfn bs.bs_path cs.cs_name);
                 ]
                with Failure txt ->
                  if (os_type ()) <> "Cygwin" then
                    BaseMessage.warning
                      (Printf.sprintf
                         "Cannot install C static library %s: %s"
-                        lib_name
+                        cs.cs_name
                         txt);
                  [])
             else
@@ -283,14 +280,14 @@ let install pkg argv =
            (
              let module_to_cmi modul =
                find_file 
-                  (fun (rootdir, fn) -> [rootdir; lib.lib_path; (fn^".cmi")])
+                  (fun (rootdir, fn) -> [rootdir; bs.bs_path; (fn^".cmi")])
                   (rootdirs * (make_module modul))
              in
 
              let module_to_header modul =
                assert(modul <> "");
                find_file 
-                  (fun ((rootdir, fn), ext) -> [rootdir; lib.lib_path; fn^ext])
+                  (fun ((rootdir, fn), ext) -> [rootdir; bs.bs_path; fn^ext])
                   (rootdirs * (make_module modul) * [".mli"; ".ml"])
              in
                List.fold_left
@@ -313,8 +310,8 @@ let install pkg argv =
           match grp with 
             | Container (_, children) ->
                 acc, children
-            | Package (_, nm, lib, children) ->
-                files_of_library acc nm lib, children
+            | Package (_, cs, bs, lib, children) ->
+                files_of_library acc (cs, bs, lib), children
         in
           List.fold_left
             install_group_lib_aux
@@ -328,7 +325,7 @@ let install pkg argv =
       in
 
       (* Determine root library *)
-      let _, root_lib =
+      let root_lib =
         root_of_group grp
       in
 
@@ -362,36 +359,46 @@ let install pkg argv =
       (* We install libraries in groups *)
       List.iter 
         install_group_lib
-        (group_libs pkg.libraries)
+        (group_libs pkg)
   in
 
-  let install_exec (exec_name, exec) =
-    let exec =
-      !exec_hook exec
-    in
-      if var_choose exec.exec_install then
-        (
-            install_file
-              (find_build_file
-                 (exec.exec_is^(suffix_program ())))
-              bindir;
+  let install_execs pkg = 
+    let install_exec data_exec =
+      let (cs, bs, exec) as data_exec =
+        !exec_hook data_exec
+      in
+        if var_choose bs.bs_install then
+          (
+              install_file
+                (find_build_file
+                   ((OASISExecutable.exec_is data_exec)^(suffix_program ())))
+                bindir;
 
-            if exec.exec_c_sources <> [] && 
-               not exec.exec_custom && 
-               not (is_native exec.exec_compiled_object) then
-              (
-                install_file
-                  (find_build_file
-                     (dllfn (OASISExecutable.exec_path exec) exec_name))
-                  libdir
-              )
-            else
-              ()
-        )
+              if bs.bs_c_sources <> [] && 
+                 not exec.exec_custom && 
+                 (* TODO: move is_native to OASISBuildSection *)
+                 not (is_native bs.bs_compiled_object) then
+                (
+                  install_file
+                    (find_build_file
+                       (dllfn (OASISExecutable.exec_main_path data_exec) cs.cs_name))
+                    libdir
+                )
+              else
+                ()
+          )
+    in
+      List.iter
+        (function
+           | Executable (cs, bs, exec)->
+               install_exec (cs, bs, exec)
+           | _ ->
+               ())
+        pkg.sections
   in
   
     install_libs pkg;
-    List.iter install_exec pkg.executables;
+    install_execs pkg;
     install_datas pkg
 
 (* Uninstall already installed data *)

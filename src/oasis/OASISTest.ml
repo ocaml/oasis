@@ -45,15 +45,19 @@ let schema, generator =
          s_ "Enable this test.")
   in
   let build_tools = 
-    build_tools_fields schm
+    OASISBuildSection.build_tools_field schm
+  in
+  let cmn_section_gen =
+    OASISSection.section_fields (s_ "executable") schm
   in
     schm,
-    (fun (_: string) data ->
-       {
-         test_type              = typ data;
-         test_command           = command data;
-         test_working_directory = working_directory data;
-         test_run               = run data;
-         test_build_tools       = build_tools data;
-         test_schema_data       = data;
-       })
+    (fun nm data ->
+       Test
+         (cmn_section_gen nm data,
+          {
+            test_type              = typ data;
+            test_command           = command data;
+            test_working_directory = working_directory data;
+            test_run               = run data;
+            test_build_tools       = build_tools data;
+          }))

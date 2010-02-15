@@ -11,6 +11,7 @@ let section_not_implemented str pkg _ _ extra_args =
 
 (* END EXPORT *)
 
+open OASISTypes
 open BasePlugin
 
 let plugin_id = "None"
@@ -27,14 +28,15 @@ let std_no_generate str pkg =
   },
   pkg
 
-let section_no_generate str pkg nm section =
+let section_no_generate str pkg (cs, section) =
   let gen, pkg =
     std_no_generate 
-      (str^" of section "^nm)
+      (str^" of section "^cs.cs_name)
       pkg
   in
     gen,
     pkg,
+    cs,
     section
 
 let () = 

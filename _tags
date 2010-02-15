@@ -30,6 +30,10 @@
 <src/none/*.ml>: pkg_odn
 
 <src/ocamlbuild/*.ml>: pkg_fileutils, pkg_odn
+"src/ocamlbuild/OCamlbuildBase.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/ocamlbuild/OCamlbuildFindlib.ml": use_ocamlbuild
+"src/ocamlbuild/OCamlbuildBase.ml": use_ocamlbuild
+"src/ocamlbuild/OCamlbuildBase.ml": syntax_camlp4o, pkg_odn.with.syntax
 
 <src/extra/*.ml>: pkg_fileutils, pkg_extlib
 
@@ -37,7 +41,7 @@
 
 <src/extra/stdfiles/*.ml>: pkg_fileutils
 
-"src/Main.byte": pkg_unix, pkg_str, pkg_fileutils, pkg_extlib, pkg_odn
+"src/Main.byte": pkg_unix, pkg_str, pkg_fileutils, pkg_extlib, pkg_odn, use_ocamlbuild
 
 <test/*.{ml,byte}>: pkg_oUnit, pkg_str, pkg_fileutils, pkg_extlib, pkg_odn, pkg_findlib
 

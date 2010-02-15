@@ -2,6 +2,8 @@ OASISTypes.ml
 OASISVersion.ml
 OASISUtils.ml
 OASISExpr.ml
+OASISSection.ml
+OASISBuildSection.ml
 OASISExecutable.ml
 OASISLibrary.ml
 OASISFlag.ml

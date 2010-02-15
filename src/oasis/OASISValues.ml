@@ -188,41 +188,6 @@ let opt value =
          | None -> raise Not_printable);
   }
 
-(** Convert string to build depends *)
-let build_depends =
-  let base_value = 
-    comma_separated 
-      (with_optional_parentheses
-         string_not_empty
-         version_comparator)
-  in
-    {
-      parse = 
-        (fun str ->
-           List.map 
-             (fun (pkg, ver_constr_opt) -> 
-                FindlibPackage (pkg, ver_constr_opt))
-             (base_value.parse str));
-      print =
-        (fun lst ->
-           base_value.print
-             (List.map 
-                (function 
-                   | FindlibPackage (nm, ver) -> (nm, ver)
-                   | InternalLibrary nm -> (nm, None))
-                lst));
-    }
-
-(** Convert string to data files specification *)
-let data_files =
-  comma_separated
-    (with_optional_parentheses
-       (* TODO: these two strings are in fact "expendable strings" i.e. that
-        * can contain $xxx, we need to check their correctness 
-        *)
-       string_not_empty
-       string_not_empty)
-
 (** Convert string to module list *)
 let modules =
   comma_separated
@@ -272,13 +237,6 @@ let choices nm lst =
                 (f_ "Unexpected abstract choice value for %s")
                 (nm ())));
   }
-
-(** Compilation types
-  *)
-let compiled_object =
-  choices
-    (fun () -> s_ "compiled object")
-    ["byte", Byte; "native", Native; "best", Best]
 
 (** Convert string to boolean *)
 let boolean =

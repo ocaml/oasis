@@ -1,5 +1,5 @@
 
-(** Helper function to write e _oasis file
+(** Helper function to write an _oasis file
     @author Sylvain Le Gall
   *)
 
@@ -140,13 +140,6 @@ let ask_yes_no ?help ?default q =
 let ask_field =
   ask_until_correct
 
-type section =
-  | Library 
-  | Executable
-  | Flag
-  | SourceRepo
-  | Test
-
 let quickstart fmt lvl =
   let fake_context = 
     {
@@ -234,11 +227,11 @@ let quickstart fmt lvl =
   in
 
   let sections =
-    let section schema q_name =
+    let section gen schema q_name =
       let nm = 
         ask_field q_name (fun s -> s)
       in
-        nm, of_schema schema
+        gen nm (of_schema schema)
     in
 
     let sections = 
@@ -248,40 +241,40 @@ let quickstart fmt lvl =
         s_ "l", s_ "create a library",
         (Some 
            (fun () -> 
-              Library,
               section
+                OASISLibrary.generator
                 OASISLibrary.schema
                 (s_ "Library name?")));
 
         s_ "e", s_ "create an executable",
         (Some 
            (fun () ->
-              Executable,
               section
+                OASISExecutable.generator
                 OASISExecutable.schema
                 (s_ "Executable name?")));
 
         s_ "f", s_ "create a flag",
         (Some 
            (fun () ->
-              Flag,
               section
+                OASISFlag.generator
                 OASISFlag.schema
                 (s_ "Flag name?")));
 
         s_ "s", s_ "create a source repository",
         (Some 
            (fun () ->
-              SourceRepo,
               section
+                OASISSourceRepository.generator
                 OASISSourceRepository.schema
                 (s_ "Source repository identifier?")));
 
         s_ "t", s_ "create a test",
         (Some 
            (fun () ->
-              Test,
               section
+                OASISTest.generator
                 OASISTest.schema
                 (s_ "Test name?")));
       ]
@@ -303,25 +296,10 @@ let quickstart fmt lvl =
     (* Check that the global packaging is correct and get
      * order for package/library/test
      *)
-    let convert typ_ref gen =
-      List.rev
-        (List.fold_left
-           (fun acc (typ, (nm, data)) ->
-              if typ = typ_ref then
-                (nm, gen nm data) :: acc
-              else
-                acc)
-           []
-           sections)
-    in
 
-      OASISPackage.generator 
-        pkg_data 
-        (convert Library OASISLibrary.generator)
-        (convert Executable OASISExecutable.generator)
-        (convert Flag OASISFlag.generator)
-        (convert SourceRepo OASISSourceRepository.generator)
-        (convert Test OASISTest.generator)
+    OASISPackage.generator 
+      pkg_data 
+      sections 
   in
 
   (** Pretty print the package 
@@ -412,20 +390,31 @@ let quickstart fmt lvl =
   pp_print_cut fmt ();
 
   List.iter 
-    (fun (typ, (nm, data)) ->
-       let typ_str, schm = 
-         match typ with 
-           | Library ->
+    (fun sct ->
+       let sct_str, schm = 
+         match sct with 
+           | Library _ ->
                "Library", OASISLibrary.schema
-           | Executable -> 
+           | Executable _ -> 
                "Executable", OASISExecutable.schema
-           | SourceRepo ->
+           | SrcRepo _ ->
                "SourceRepository", OASISSourceRepository.schema
-           | Test ->
+           | Test _ ->
                "Test", OASISTest.schema
-           | Flag ->
+           | Flag _ ->
                "Flag", OASISFlag.schema
        in
+
+       let {cs_name = nm; cs_data = data} = 
+         match sct with
+           | Library (cs, _, _)
+           | Executable (cs, _, _) 
+           | SrcRepo (cs, _) 
+           | Test (cs, _)
+           | Flag (cs, _) ->
+              cs
+       in 
+
        let pp_id_or_string fmt id =
          let is_id str =
            let is_alpha c = 
@@ -445,7 +434,7 @@ let quickstart fmt lvl =
              fprintf fmt "%S" id
        in
          fprintf fmt "@[<v 2>%s %a@,%a@]@,"
-           typ_str
+           sct_str
            pp_id_or_string nm
            pp_fields (schm, data))
     sections;

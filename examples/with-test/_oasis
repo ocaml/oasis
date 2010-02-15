@@ -9,10 +9,11 @@ Plugins:     META
 
 Executable test
  Install: false
- MainIs: src/test.ml
+ Path: src
+ MainIs: test.ml
  BuildDepends: oUnit
 
 Test "main"
  Type: Custom
  Command: ../_build/src/test
- WorkingDirectory: src/
+ WorkingDirectory: src

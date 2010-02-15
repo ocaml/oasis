@@ -8,12 +8,13 @@ Synopsis:    Library and executable with extra data
 Plugins:     META
 
 Executable test
- MainIs: src/test.ml
+ Path: src
+ MainIs: test.ml
  DataFiles: *.txt, test.html ($htmldir)
 
 Library test
  CompiledObject: Byte
- Path: src/
+ Path: src
  Modules: Test
  DataFiles: test.txt ($datarootdir/$pkg_name-$pkg_version)
 

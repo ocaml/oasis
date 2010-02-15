@@ -12,45 +12,30 @@ open OASISUtils
 open OASISSchema
 open CommonGettext
 
-let add_build_depend build_depend pkg =
+let mod_build_depends f pkg = 
   {pkg with
-       libraries =
+       sections = 
          List.map
-           (fun (nm, lib) ->
-              nm,
-              {lib with 
-                   lib_build_depends = 
-                     build_depend :: lib.lib_build_depends})
-           pkg.libraries;
-     
-       executables =
-         List.map
-           (fun (nm, exec) ->
-              nm,
-              {exec with 
-                   exec_build_depends = 
-                     build_depend :: exec.exec_build_depends})
-           pkg.executables}
+           (function
+              | Library (cs, bs, lib) ->
+                  Library (cs, f bs, lib)
+              | Executable (cs, bs, exec) ->
+                  Executable (cs, f bs, exec)
+              | Test _ | Flag _ | SrcRepo _ as sct ->
+                  sct)
+           pkg.sections}
+
+let add_build_depend build_depend pkg =
+  mod_build_depends
+    (fun bs ->
+       {bs with bs_build_depends = build_depend :: bs.bs_build_depends})
+    pkg
 
 let add_build_tool ?(condition=[EBool true, true]) build_tool pkg =
-  {pkg with
-       libraries =
-         List.map
-           (fun (nm, lib) ->
-              nm,
-              {lib with 
-                   lib_build_tools = 
-                     build_tool :: lib.lib_build_tools})
-           pkg.libraries;
-     
-       executables =
-         List.map
-           (fun (nm, exec) ->
-              nm,
-              {exec with 
-                   exec_build_tools = 
-                     build_tool :: exec.exec_build_tools})
-           pkg.executables}
+  mod_build_depends
+    (fun bs ->
+       {bs with bs_build_tools = build_tool :: bs.bs_build_tools})
+    pkg
 
 let schema, generator =
   let schm =
@@ -234,11 +219,14 @@ let schema, generator =
       (fun () -> 
          s_ "Extra plugins to use")
   in
-  let build_depends, build_tools =
-    depends_field schm
+  let build_depends =
+    OASISBuildSection.build_depends_field schm
+  in
+  let build_tools =
+    OASISBuildSection.build_tools_field schm
   in
     schm,
-    (fun data libs execs flags src_repos tests ->
+    (fun data sections ->
        List.fold_right
          add_build_depend 
          (build_depends data)
@@ -264,10 +252,6 @@ let schema, generator =
               install_type  = install_type data;
               files_ab      = files_ab data;
               plugins       = plugins data;
-              libraries     = libs;
-              executables   = execs;
-              flags         = flags;
-              src_repos     = src_repos;
-              tests         = tests;
+              sections      = sections;
               schema_data   = data;
             }))

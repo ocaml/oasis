@@ -11,84 +11,89 @@ open CommonGettext
   *)
 type group_t = 
   | Container of findlib_name * (group_t list)
-  | Package of findlib_name * name * library * (group_t list)
+  | Package of (findlib_name * 
+                common_section *
+                build_section * 
+                library * 
+                (group_t list))
 
 (** Compute groups of libraries, associate root libraries with 
     a tree of its children. A group of libraries is defined by 
     the fact that these libraries has a parental relationship 
     and must be isntalled together, with the same META file.
   *)
-let group_libs libs =
+let group_libs pkg =
   (** Associate a name with its children *)
   let children =
     List.fold_left
-      (fun mp (nm, lib) ->
-         match lib.lib_parent with 
-           | Some p_nm ->
+      (fun mp ->
+         function
+           | Library (cs, bs, lib) ->
                begin
-                 let children =
-                   try 
-                     MapString.find p_nm mp
-                   with Not_found ->
-                     []
-                 in
-                   MapString.add p_nm ((nm, lib) :: children) mp
+                 match lib.lib_findlib_parent with 
+                   | Some p_nm ->
+                       begin
+                         let children =
+                           try 
+                             MapString.find p_nm mp
+                           with Not_found ->
+                             []
+                         in
+                           MapString.add p_nm ((cs, bs, lib) :: children) mp
+                       end
+                   | None ->
+                       mp
                end
-           | None ->
+           | _ ->
                mp)
       MapString.empty
-      libs
+      pkg.sections
   in
 
   (* Compute findlib name of a single node *)
-  let findlib_name nm lib =
+  let findlib_name (cs, _, lib) =
     match lib.lib_findlib_name with 
       | Some nm -> nm
-      | None -> nm
+      | None -> cs.cs_name
   in
 
   (** Build a package tree *)
-  let rec tree_of_library containers nm lib =
+  let rec tree_of_library containers ((cs, bs, lib) as acc) =
     match containers with
       | hd :: tl ->
-          Container (hd, [tree_of_library tl nm lib])
+          Container (hd, [tree_of_library tl acc])
       | [] ->
           (* TODO: allow merging containers with the same 
            * name 
            *)
           Package 
-            (findlib_name nm lib,
-             nm, 
-             lib, 
+            (findlib_name acc, cs, bs, lib,
              (try 
                 List.rev_map 
-                  (fun (child_nm, child_lib) -> 
+                  (fun ((_, _, child_lib) as child_acc) ->
                      tree_of_library 
-                       child_lib.lib_findlib_containers 
-                       child_nm 
-                       child_lib)
-                  (MapString.find nm children)
+                       child_lib.lib_findlib_containers
+                       child_acc)
+                  (MapString.find cs.cs_name children)
               with Not_found ->
                 []))
   in
 
     (* TODO: check that libraries are unique *)
     List.fold_left
-      (fun acc (nm, lib) ->
-         if lib.lib_parent = None then
-           (tree_of_library 
-              lib.lib_findlib_containers 
-              nm 
-              lib) :: acc
-         else
-           acc)
+      (fun acc ->
+         function
+           | Library (cs, bs, lib) when lib.lib_findlib_parent = None -> 
+               (tree_of_library lib.lib_findlib_containers (cs, bs, lib)) :: acc
+           | _ ->
+               acc)
       []
-      libs
+      pkg.sections
 
 (** Compute internal library findlib names, including subpackage
     and return a map of it.
   *)
-let findlib_name_map libs = 
+let findlib_name_map pkg = 
 
   (* Compute names in a tree *)
   let rec findlib_names_aux path mp grp =
@@ -97,7 +102,7 @@ let findlib_name_map libs =
         | Container (fndlb_nm, children) ->
             fndlb_nm, children, mp
                                   
-        | Package (fndlb_nm, nm, _, children) ->
+        | Package (fndlb_nm, {cs_name = nm}, _, _, children) ->
             fndlb_nm, children, (MapString.add nm (path, fndlb_nm) mp)
     in
     let fndlb_nm_full =
@@ -115,7 +120,7 @@ let findlib_name_map libs =
     List.fold_left
       (findlib_names_aux None)
       MapString.empty
-      (group_libs libs)
+      (group_libs pkg)
 
 
 (** Return the findlib name of the library without parents *)
@@ -141,7 +146,7 @@ let findlib_of_name ?(recurse=false) map nm =
 let findlib_of_group = 
   function
     | Container (fndlb_nm, _) 
-    | Package (fndlb_nm, _, _, _) -> fndlb_nm
+    | Package (fndlb_nm, _, _, _, _) -> fndlb_nm
 
 (** Return the root library, i.e. the first found into the group tree
     that has no parent.
@@ -151,9 +156,9 @@ let root_of_group grp =
     function 
       | Container (_, children) ->
           root_lib_lst children        
-      | Package (_, nm, lib, children) ->
-          if lib.lib_parent = None then 
-            nm, lib
+      | Package (_, cs, bs, lib, children) ->
+          if lib.lib_findlib_parent = None then 
+            cs, bs, lib
           else
             root_lib_lst children
   and root_lib_lst =
@@ -185,12 +190,6 @@ let schema, generator =
   let schm =
     schema "Library"
   in
-  let path =
-    new_field schm "Path" 
-      directory
-      (fun () ->
-         s_ "Directory containing the library")
-  in
   let modules =
     new_field schm "Modules" 
       ~default:[]
@@ -199,8 +198,8 @@ let schema, generator =
       (fun () ->
          s_ "List of modules to compile.") 
   in
-  let parent =
-    new_field schm "Parent"
+  let findlib_parent =
+    new_field schm "FindlibParent"
       ~default:None
       (opt internal_library)
       (fun () ->
@@ -226,33 +225,20 @@ let schema, generator =
       (fun () ->
          s_ "Virtual containers for sub-package, dot-separated")
   in
-  let build, install, compiled_object = 
-    std_field (s_ "library") Best schm
+  let build_section_gen =
+    OASISBuildSection.section_fields (s_ "library") Best schm
   in
-  let build_depends, build_tools =
-    depends_field schm
-  in
-  let c_sources = 
-    c_field schm
-  in
-  let data_files = 
-    data_field schm
+  let cmn_section_gen =
+    OASISSection.section_fields (s_ "library") schm
   in
     schm,
-    (fun (_: string) data ->
-       {
-         lib_build              = build data;
-         lib_install            = install data;
-         lib_path               = path data;
-         lib_modules            = modules data;
-         lib_compiled_object    = compiled_object data;
-         lib_build_depends      = build_depends data;
-         lib_build_tools        = build_tools data;
-         lib_c_sources          = c_sources data;
-         lib_data_files         = data_files data;
-         lib_parent             = parent data;
-         lib_findlib_name       = findlib_name data;
-         lib_findlib_containers = findlib_containers data;
-         lib_schema_data        = data;
-       })
-
+    (fun nm data ->
+       Library
+         (cmn_section_gen nm data,
+          (build_section_gen nm data),
+          {
+            lib_modules            = modules data;
+            lib_findlib_parent     = findlib_parent data;
+            lib_findlib_name       = findlib_name data;
+            lib_findlib_containers = findlib_containers data;
+          }))

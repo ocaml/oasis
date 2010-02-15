@@ -74,15 +74,19 @@ let schema, generator =
              top directory for the package, i.e. the directory containing the \
              package's `_oasis` file.")
   in
+  let cmn_section_gen =
+    OASISSection.section_fields (s_ "executable") schm
+  in
     schm,
-    (fun (_: string) data ->
-       {
-         src_repo_type        = typ data;
-         src_repo_location    = location data;
-         src_repo_browser     = browser data;
-         src_repo_module      = modul data;
-         src_repo_branch      = branch data;
-         src_repo_tag         = tag data;
-         src_repo_subdir      = subdir data;
-         src_repo_schema_data = data;
-       })
+    (fun nm data ->
+       SrcRepo
+         (cmn_section_gen nm data,
+          {
+            src_repo_type        = typ data;
+            src_repo_location    = location data;
+            src_repo_browser     = browser data;
+            src_repo_module      = modul data;
+            src_repo_branch      = branch data;
+            src_repo_tag         = tag data;
+            src_repo_subdir      = subdir data;
+          }))

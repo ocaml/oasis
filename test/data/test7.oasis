@@ -18,4 +18,5 @@ Library "toto-test"
   Build: true
 
 Executable "toto-test"
-  MainIs: src/toto.ml
+  Path: src
+  MainIs: toto.ml

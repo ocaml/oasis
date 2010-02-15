@@ -3,16 +3,18 @@
     @author Sylvain Le Gall
   *)
 
+TYPE_CONV_PATH "OCamlbuildBase"
+
 open Ocamlbuild_plugin
 
-type dir = string
-type name = string
+type dir = string with odn
+type name = string with odn
 
 type t =
     {
       lib_ocaml: (name * dir list) list;
       lib_c:     (name * dir) list; 
-    }
+    } with odn
 
 let dispatch_combine lst =
   fun e ->
@@ -90,3 +92,5 @@ let dispatch_default t =
       dispatch t;
       OCamlbuildFindlib.dispatch;
     ]
+
+(* END EXPORT *)

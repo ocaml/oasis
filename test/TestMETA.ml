@@ -24,10 +24,10 @@ let tests ctxt =
 
           (* Generate META file *)
           let findlib_name_map =
-            OASISLibrary.findlib_name_map pkg.libraries
+            OASISLibrary.findlib_name_map pkg
           in
           let groups =
-            OASISLibrary.group_libs pkg.libraries
+            OASISLibrary.group_libs pkg
           in
           let write_meta fndlb_nm =
             let grp = 
@@ -37,7 +37,7 @@ let tests ctxt =
                   (fun grp ->
                      match grp with 
                        | Container (nm, _)
-                       | Package (nm, _, _, _) -> nm = fndlb_nm)
+                       | Package (nm, _, _, _, _) -> nm = fndlb_nm)
                   groups
               with Not_found ->
                 failwith 
@@ -163,7 +163,7 @@ Library odn
 Library pa_odn
   Path:              src
   Modules:           Pa_odn
-  Parent:            odn
+  FindlibParent:     odn
   XMETADescription:  Syntax extension for odn
   FindlibContainers: with
   FindlibName:       syntax
@@ -171,7 +171,7 @@ Library pa_odn
 Library pa_noodn
   Path:              src
   Modules:           Pa_noodn
-  Parent:            odn
+  FindlibParent:     odn
   XMETADescription:  Syntax extension that removes 'with odn'
   FindlibContainers: without
   FindlibName:       syntax",
@@ -216,7 +216,7 @@ Library odn
 Library pa_odn
   Path:             src
   Modules:          Pa_odn
-  Parent:           odn
+  FindlibParent:    odn
   XMETADescription: Syntax extension for odn
   XMETAType:        syntax
   XMETARequires:    type-conv.syntax, camlp4

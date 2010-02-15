@@ -17,13 +17,33 @@ let configure pkg argv =
       ()
   in
 
-  let build_checks cond tools depends =
-    if var_choose cond then
+  let build_checks bs =
+    if var_choose bs.bs_build then
       begin
         (* Check tools *)
         List.iter 
-          (fun tool -> var_ignore_eval (BaseCheck.prog tool))
-          tools;
+          (function
+             | ExternalTool tool -> 
+                 var_ignore_eval (BaseCheck.prog tool)
+             | InternalExecutable nm1 ->
+                 (* Check that matching tool is built *)
+                 List.iter
+                   (function
+                      | Executable ({cs_name = nm2}, 
+                                    {bs_build = build}, 
+                                    _) when nm1 = nm2 ->
+                           if not (var_choose build) then
+                             failwith 
+                               (Printf.sprintf
+                                  "Cannot find buildable internal executable \
+                                   '%s' when checking build depends"
+                                  nm1)
+                           else
+                             ()
+                      | _ ->
+                          ())
+                   pkg.sections)
+          bs.bs_build_tools;
 
         (* Check depends *)
         List.iter  
@@ -31,25 +51,25 @@ let configure pkg argv =
              | FindlibPackage (findlib_pkg, version_comparator) ->
                  var_ignore_eval
                    (BaseCheck.package ?version_comparator findlib_pkg)
-             | InternalLibrary nm ->
-                 begin
-                   let lib = 
-                     try
-                       List.assoc nm pkg.libraries 
-                     with Not_found ->
-                       failwith
-                         (Printf.sprintf
-                            "Cannot find internal library '%s' \
-                             when checking build depends"
-                            nm)
-                   in
-                     if not (var_choose lib.lib_build) then
-                       failwith
-                         (Printf.sprintf
-                            "Internal library '%s' won't be built"
-                            nm)
-                 end)
-          depends
+             | InternalLibrary nm1 ->
+                 (* Check that matching library is built *)
+                 List.iter
+                   (function
+                      | Library ({cs_name = nm2},
+                                 {bs_build = build}, 
+                                 _) when nm1 = nm2 ->
+                           if not (var_choose build) then
+                             failwith 
+                               (Printf.sprintf
+                                  "Cannot find buildable internal library \
+                                   '%s' when checking build depends"
+                                  nm1)
+                           else
+                             ()
+                      | _ ->
+                          ())
+                   pkg.sections)
+          bs.bs_build_depends
       end
   in
 
@@ -70,21 +90,14 @@ let configure pkg argv =
   end;
 
   (* Check build depends *)
-  List.iter 
-    (fun (_, lib) ->
-       build_checks
-         lib.lib_build
-         lib.lib_build_tools
-         lib.lib_build_depends)
-    pkg.libraries;
-
   List.iter
-    (fun (_, exec) ->
-       build_checks
-         exec.exec_build
-         exec.exec_build_tools
-         exec.exec_build_depends)
-    pkg.executables;
+    (function
+       | Executable (_, bs, _)
+       | Library (_, bs, _) ->
+           build_checks bs
+       | _ ->
+           ())
+    pkg.sections;
 
   (* Save and print environment *)
   dump ();

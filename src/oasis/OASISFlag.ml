@@ -31,10 +31,14 @@ let schema, generator =
       (fun () ->
          s_ "Default value for the flag")
   in
+  let cmn_section_gen =
+    OASISSection.section_fields (s_ "executable") schm
+  in
     schm,
-    (fun (_: string) data ->
-       {
-         flag_description = descr data;
-         flag_default     = default data;
-         flag_schema_data = data;
-       })
+    (fun nm data ->
+       Flag
+         (cmn_section_gen nm data,
+          {
+            flag_description = descr data;
+            flag_default     = default data;
+          }))

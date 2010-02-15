@@ -5,8 +5,21 @@
 
 open OASISTypes
 
-let exec_path exec = 
-  Filename.dirname exec.exec_main_is
+(* Return the directory that will contain the executable *)
+let exec_main_path (cs, bs, exec) = 
+  let dir = 
+    Filename.dirname exec.exec_main_is
+  in
+    if dir = Filename.current_dir_name then
+      bs.bs_path
+    else
+      Filename.concat bs.bs_path dir
+
+(* Return the name of the real name of executable, with full 
+   path
+ *)
+let exec_is ((cs, _, _) as exec_data) = 
+  Filename.concat (exec_main_path exec_data) cs.cs_name
 
 (* END EXPORT *)
 
@@ -41,32 +54,18 @@ let schema, generator =
       (fun () ->
          s_ "Create custom bytecode executable.")
   in
-  let build, install, compiled_object = 
-    std_field (s_ "executable") Byte schm
+  let build_section_gen =
+    OASISBuildSection.section_fields (s_ "executable") Byte schm
   in
-  let build_depends, build_tools =
-    depends_field schm
-  in
-  let c_sources = 
-    c_field schm
-  in
-  let data_files =
-    data_field schm
+  let cmn_section_gen =
+    OASISSection.section_fields (s_ "executable") schm
   in
     schm,
     (fun nm data -> 
-       {
-         exec_build           = build data;
-         exec_install         = install data;
-         exec_main_is         = main_is data;
-         exec_compiled_object = compiled_object data;
-         exec_build_depends   = build_depends data;
-         exec_build_tools     = build_tools data;
-         exec_c_sources       = c_sources data;
-         exec_custom          = custom data;
-         exec_data_files      = data_files data;
-         exec_is              = FilePath.concat 
-                                  (FilePath.dirname (main_is data))
-                                  nm;
-         exec_schema_data     = data;
-       })
+       Executable
+         (cmn_section_gen nm data,
+          build_section_gen nm data,
+          {
+            exec_main_is = main_is data;
+            exec_custom  = custom data;
+          }))

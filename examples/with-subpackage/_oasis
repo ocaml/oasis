@@ -16,12 +16,13 @@ Library pa_test
   Path:           src/syntax
   Modules:        Pa_test
   FindlibName:    syntax
-  Parent:         test
+  FindlibParent:  test
   CompiledObject: byte
   
 
 Executable mytest
-  MainIs:       src/main.ml
+  Path:    src 
+  MainIs:  main.ml
   # We need to use the findlib name to build depend on
   # pa_test library.
   BuildDepends: test.syntax, test

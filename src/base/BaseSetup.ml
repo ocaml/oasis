@@ -5,12 +5,13 @@
 
 open BaseEnv
 open OASISTypes
+open OASISSection
 
 type std_args_fun = 
     package -> string array -> unit
 
 type ('a, 'b) section_args_fun = 
-    name * (package -> name -> 'a -> string array -> 'b)
+    name * (package -> (common_section * 'a) -> string array -> 'b)
 
 type t =
     {
@@ -47,24 +48,24 @@ let build t args =
 
 (** Documentation step *)
 let doc t args =
-  List.iter
-    (fun (nm, f) -> 
-       let doc = 
-         () 
-       in
-         f t.package nm doc args)
-    t.doc
+  (* TODO: documentation run *)
+  ()
 
 (** Test step *)
 let test t args = 
   BaseTest.test 
-    (List.map 
-       (fun (nm, f) ->
-          let test =
-            List.assoc nm t.package.tests
-          in
-            f, nm, test)
-       t.test)
+    (List.rev
+       (List.fold_left 
+          (fun acc ->
+             function
+               | Test (cs, test) ->
+                   (List.assoc cs.cs_name t.test,
+                    cs, 
+                    test) :: acc
+               | _ ->
+                   acc)
+          []
+          t.package.sections))
     t.package
     args
 
@@ -79,26 +80,21 @@ let uninstall t args =
 (** Clean and distclean steps *)
 let clean, distclean = 
   let generic_clean t what mains docs tests args = 
+    (* Clean section *)
     List.iter
-      (fun (nm, f) ->
-         let doc = 
-           ()
-         in
-           f t.package nm doc args)
-      docs;
-    List.iter
-      (fun (nm, f) ->
-         let test = 
-           try
-             List.assoc nm t.package.tests
-           with Not_found ->
-             failwith
-               (Printf.sprintf
-                  "Cannot find test '%s' when %s"
-                  nm what)
-         in
-           f t.package nm test args)
-      tests;
+      (function
+         | Test (cs, test) ->
+             let f =
+               List.assoc cs.cs_name tests
+             in
+               f t.package (cs, test) args
+         | Library _ 
+         | Executable _
+         | Flag _ 
+         | SrcRepo _ ->
+             ())
+      t.package.sections;
+    (* Clean whole package *)
     List.iter
       (fun f -> 
          f t.package args)
@@ -203,22 +199,29 @@ let setup t =
       load ~allow_empty:!allow_empty_env_ref ();
 
       (** Initialize flags *)
-      List.iter 
-        (fun (nm, {flag_description = hlp; flag_default = choices}) ->
-           let apply ?short_desc () = 
-             var_ignore
-               (var_define
-                  ~cli:CLIAuto
-                  ?short_desc
-                  nm
-                  (lazy (string_of_bool (var_choose choices))))
-           in
-             match hlp with 
-               | Some hlp ->
-                   apply ~short_desc:hlp ()
-               | None ->
-                   apply ())
-        t.package.flags;
+      List.iter
+        (function
+           | Flag (cs, {flag_description = hlp; 
+                        flag_default = choices}) ->
+               begin
+                 let apply ?short_desc () = 
+                   var_ignore
+                     (var_define
+                        ~cli:CLIAuto
+                        ?short_desc
+                        cs.cs_name
+                        (lazy (string_of_bool 
+                                 (var_choose choices))))
+                 in
+                   match hlp with 
+                     | Some hlp ->
+                         apply ~short_desc:hlp ()
+                     | None ->
+                         apply ()
+               end
+           | _ -> 
+               ())
+        t.package.sections;
 
       BaseStandardVar.init (t.package.name, t.package.version);
 
@@ -240,19 +243,29 @@ let odn_of_oasis pkg =
   let test_odn, test_gens, pkg = 
     let test_odns, test_gens, pkg = 
       List.fold_left
-        (fun (test_odns, test_gens, pkg) (nm, tst) ->
-           let gen, pkg, tst = 
-             (PLG.plugin_test tst.test_type) pkg nm tst
-           in
-             ODN.TPL [ODN.STR nm; PLG.odn_of_func gen.PLG.setup] :: test_odns,
-             (nm, gen) :: test_gens,
-             {pkg with tests = (nm, tst) :: pkg.tests})
-        ([], [], {pkg with tests = []})
-        pkg.tests
+        (fun (test_odns, test_gens, pkg) -> 
+           function
+             | Test (cs, tst) ->
+                 begin
+                   let gen, pkg, cs, tst = 
+                     (PLG.plugin_test tst.test_type) pkg (cs, tst)
+                   in
+                     (ODN.TPL [ODN.STR cs.cs_name; PLG.odn_of_func gen.PLG.setup] 
+                      :: 
+                      test_odns),
+                     (cs.cs_name, gen) :: test_gens,
+                     {pkg with sections = (Test (cs, tst)) :: pkg.sections}
+                 end
+             | sct ->
+                 test_odns,
+                 test_gens,
+                 {pkg with sections = sct :: pkg.sections})
+        ([], [], {pkg with sections = []})
+        pkg.sections
     in
       ODN.LST (List.rev test_odns),
       List.rev test_gens,
-      {pkg with tests = List.rev pkg.tests}
+      {pkg with sections = List.rev pkg.sections}
   in
 
   let doc_odn, doc_gens, pkg = 

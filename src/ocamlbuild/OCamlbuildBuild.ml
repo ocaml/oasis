@@ -54,78 +54,84 @@ let build pkg argv =
     List.flatten 
       [
         List.fold_left
-          (fun acc (nm, lib) ->
-             if var_choose lib.lib_build then
-               begin
-                 let acc =
-                   (* Compute what libraries should be built *)
-                   let target ext =
-                     Std (Filename.concat lib.lib_path (nm^ext))
-                   in
-                   let byte, native =
-                     target ".cma", target ".cmxa"
-                   in
-                     match lib.lib_compiled_object, ocamlbest () with 
-                       | Native, _ 
-                       | Best, "native" ->
-                           byte :: native :: acc
-                       | Byte, _
-                       | Best, "byte" ->
-                           byte :: acc
-                       | Best, ocamlbest ->
-                           failwith 
-                             (Printf.sprintf 
-                                "Unknown ocamlbest: '%s'"
-                                ocamlbest)
-                 in
+          (fun acc ->
+             function 
+               | Library (cs, bs, lib) ->
+                   if var_choose bs.bs_build then
+                     begin
+                       let acc =
+                         (* Compute what libraries should be built *)
+                         let target ext =
+                           Std (Filename.concat bs.bs_path (cs.cs_name^ext))
+                         in
+                         let byte, native =
+                           target ".cma", target ".cmxa"
+                         in
+                           match bs.bs_compiled_object, ocamlbest () with 
+                             | Native, _ 
+                             | Best, "native" ->
+                                 byte :: native :: acc
+                             | Byte, _
+                             | Best, "byte" ->
+                                 byte :: acc
+                             | Best, ocamlbest ->
+                                 failwith 
+                                   (Printf.sprintf 
+                                      "Unknown ocamlbest: '%s'"
+                                      ocamlbest)
+                       in
 
-                 let acc = 
-                   (* Add C library to be built *)
-                   if lib.lib_c_sources <> [] then
-                     CLibrary (lib.lib_path, nm) :: acc
+                       let acc = 
+                         (* Add C library to be built *)
+                         if bs.bs_c_sources <> [] then
+                           CLibrary (bs.bs_path, cs.cs_name) :: acc
+                         else
+                           acc
+                       in
+                         acc
+                     end
                    else
                      acc
-                 in
-                   acc
-               end
-             else
-               acc)
+               | Executable (cs, bs, exec) ->
+                   if var_choose bs.bs_build then
+                     begin
+                       let target ext =
+                         let src = 
+                           (Filename.concat
+                              bs.bs_path
+                              (Filename.chop_extension 
+                                 exec.exec_main_is))^ext
+                         in
+                         let exec_is =
+                           OASISExecutable.exec_is (cs, bs, exec)
+                         in
+                           if src = exec_is then
+                             Std src
+                           else
+                             Rename (src, exec_is)
+                       in
+                       let byte, native = 
+                         target ".byte", target ".native" 
+                       in
+                         match bs.bs_compiled_object, ocamlbest () with
+                           | Byte, _
+                           | Best, "byte" ->
+                               byte :: acc
+                           | Native, _
+                           | Best, "native" ->
+                               native :: acc
+                           | Best, ocamlbest ->
+                               failwith 
+                                 (Printf.sprintf 
+                                    "Unknown ocamlbest: '%s'"
+                                    ocamlbest)
+                     end
+                   else
+                     acc
+               | Test _ | SrcRepo _ | Flag _ ->
+                   acc)
           []
-          pkg.libraries;
-
-        List.fold_left
-          (fun acc (nm, exec) ->
-             if var_choose exec.exec_build then
-               begin
-                 let target ext =
-                   let src = 
-                     (Filename.chop_extension exec.exec_main_is)^ext
-                   in
-                     if src = exec.exec_is then
-                       Std src
-                     else
-                       Rename (src, exec.exec_is)
-                 in
-                 let byte, native = 
-                   target ".byte", target ".native" 
-                 in
-                   match exec.exec_compiled_object, ocamlbest () with
-                     | Byte, _
-                     | Best, "byte" ->
-                         byte :: acc
-                     | Native, _
-                     | Best, "native" ->
-                         native :: acc
-                     | Best, ocamlbest ->
-                         failwith 
-                           (Printf.sprintf 
-                              "Unknown ocamlbest: '%s'"
-                              ocamlbest)
-               end
-             else
-               acc)
-          []
-          pkg.executables;
+          pkg.sections;
       ]
   in
 
@@ -165,14 +171,16 @@ open BaseMessage
 open CommonGettext
 open ODN
 open BasePlugin
+open OASISTypes
+open OCamlbuildBase
 
 let create_ocamlbuild_files pkg () = 
 
-  let clib path nm c_sources =  
-    if c_sources <> [] then
+  let clib cs bs =  
+    if bs.bs_c_sources <> [] then
       let fn_clib = 
         FilePath.add_extension 
-          (FilePath.concat path ("lib"^nm))
+          (FilePath.concat bs.bs_path ("lib"^cs.cs_name))
           "clib"
       in
         file_generate 
@@ -182,7 +190,7 @@ let create_ocamlbuild_files pkg () =
              ([], 
               List.map 
                 (fun fn -> FilePath.replace_extension fn "o")
-                c_sources,
+                bs.bs_c_sources,
               []))
   in
 
@@ -203,120 +211,124 @@ let create_ocamlbuild_files pkg () =
       Printf.sprintf "<%s/*.ml>" dir
     in
 
-    let target_lib dir nm comp =
-      let ext = 
-        match comp with
-          | Best ->
-              "{cma,cmxa}"
-          | Byte ->
-              "cma"
-          | Native ->
-              "cmxa"
-      in
-        Printf.sprintf "<%s/%s.%s>" dir nm ext
-    in
-
-    let target_exec main_is comp =
-      let ext =
-        match comp with 
-          | Best ->
-              "{native,byte}"
-          | Byte -> 
-              "byte"
-          | Native ->
-              "native"
-      in
-        Printf.sprintf "<%s.%s>" (FilePath.chop_extension main_is) ext
-    in
-
     let rev_content = 
-      (* Extract content for libraries *)
       List.fold_left 
-        (fun acc (nm, lib) ->
+        (fun acc ->
+           function 
+             | Library (cs, bs, lib) ->
+                 begin
+                   (* Extract content for libraries *)
+                   let start_comment acc = 
+                     (Printf.sprintf "# Library %s" cs.cs_name) :: acc
+                   in
 
-           let start_comment acc = 
-             (Printf.sprintf "# Library %s" nm) :: acc
-           in
+                   (* Add tags for build depends *)
+                   let pkg_tags acc = 
+                     let all_path = 
+                       List.fold_left
+                         (fun st modul ->
+                            SetString.add
+                              (FilePath.dirname 
+                                 (FilePath.concat bs.bs_path modul))
+                              st)
+                         SetString.empty
+                         lib.lib_modules
+                     in
+                       SetString.fold
+                         (fun dir ->
+                            tags_of_build_depends 
+                              (target_ml dir) 
+                              bs.bs_build_depends)
+                         all_path
+                         acc
+                   in
 
-           (* Add tags for build depends *)
-           let pkg_tags acc = 
-             let all_path = 
-               List.fold_left
-                 (fun st modul ->
-                    SetString.add
-                      (FilePath.dirname 
-                         (FilePath.concat lib.lib_path modul))
-                      st)
-                 SetString.empty
-                 lib.lib_modules
-             in
-               SetString.fold
-                 (fun dir ->
-                    tags_of_build_depends 
-                      (target_ml dir) 
-                      lib.lib_build_depends)
-                 all_path
-                 acc
-           in
+                   (* Generated library *)
+                   let target_lib =
+                     let ext = 
+                       match bs.bs_compiled_object with
+                         | Best ->
+                             "{cma,cmxa}"
+                         | Byte ->
+                             "cma"
+                         | Native ->
+                             "cmxa"
+                     in
+                       Printf.sprintf "<%s/%s.%s>" bs.bs_path cs.cs_name ext
+                   in
 
-           (* Add tag for dependency on C part of the library *)
-           let clib_tag acc =
-             if lib.lib_c_sources <> [] then
-               (
-                 (target_lib lib.lib_path nm lib.lib_compiled_object)^
-                 ": use_lib"^nm
-               ) :: acc
-             else
-               acc
-           in
+                   (* Add tag for dependency on C part of the library *)
+                   let clib_tag acc =
+                     if bs.bs_c_sources <> [] then
+                       (Printf.sprintf "%s: use_lib%s" target_lib cs.cs_name) :: acc
+                     else
+                       acc
+                   in
 
-             clib_tag (pkg_tags (start_comment acc)))
+                     clib_tag (pkg_tags (start_comment acc))
+
+                 end
+
+             | Executable (cs, bs, exec) ->
+                 begin
+                   (* Extract content for executables *)
+                   let dir = 
+                     OASISExecutable.exec_main_path (cs, bs, exec)
+                   in
+                   let target_exec = 
+                     let ext =
+                       match bs.bs_compiled_object with 
+                         | Best ->
+                             "{native,byte}"
+                         | Byte -> 
+                             "byte"
+                         | Native ->
+                             "native"
+                     in
+                       Printf.sprintf 
+                         "<%s.%s>" 
+                         (* TODO: here Filename.concat is Unix.Filename.Concat *)
+                         (Filename.concat 
+                            bs.bs_path 
+                            (FilePath.chop_extension 
+                               (exec.exec_main_is)))
+                         ext
+                   in
+
+                   let start_comment acc = 
+                     (Printf.sprintf "# Executable %s" cs.cs_name) :: acc
+                   in
+                   let pkg_src_tags acc =
+                     tags_of_build_depends
+                       (target_ml dir)
+                       bs.bs_build_depends
+                       acc
+                   in
+                   let pkg_exec_tags acc = 
+                     tags_of_build_depends
+                       target_exec
+                       bs.bs_build_depends
+                       acc
+                   in
+                   let clib_tag acc = 
+                     if bs.bs_c_sources <> [] then
+                       (Printf.sprintf "%s: use_lib%s" target_exec cs.cs_name) :: acc
+                     else
+                       acc
+                   in
+                   let custom_tag acc = 
+                     if exec.exec_custom then
+                       (Printf.sprintf "%s: custom" target_exec) :: acc
+                     else
+                       acc
+                   in
+                     custom_tag (clib_tag (pkg_exec_tags (pkg_src_tags (start_comment acc))))
+                 end
+
+             | Flag _ | SrcRepo _ | Test _ ->
+                 acc)
         []
-        pkg.libraries
-    in
-
-    let rev_content =
-      (* Extract content for executables *)
-      List.fold_left
-        (fun acc (nm, exec) ->
-           let dir = 
-             FilePath.dirname exec.exec_main_is
-           in
-           let target_exec = 
-             target_exec exec.exec_main_is exec.exec_compiled_object
-           in
-
-           let start_comment acc = 
-             (Printf.sprintf "# Executable %s" nm) :: acc
-           in
-           let pkg_src_tags acc =
-             tags_of_build_depends
-               (target_ml dir)
-               exec.exec_build_depends
-               acc
-           in
-           let pkg_exec_tags acc = 
-             tags_of_build_depends
-               target_exec
-               exec.exec_build_depends
-               acc
-           in
-           let clib_tag acc = 
-             if exec.exec_c_sources <> [] then
-               (Printf.sprintf "%s: use_lib%s" target_exec nm) :: acc
-             else
-               acc
-           in
-           let custom_tag acc = 
-             if exec.exec_custom then
-               (Printf.sprintf "%s: custom" target_exec) :: acc
-             else
-               acc
-           in
-             custom_tag (clib_tag (pkg_exec_tags (pkg_src_tags (start_comment acc)))))
-
-        rev_content
-        pkg.executables
+        pkg.sections
     in
 
       (* Filter duplicate and reverse content *)
@@ -335,42 +347,44 @@ let create_ocamlbuild_files pkg () =
            rev_content)
   in
 
-  (* Generate files for OCaml library (.mllib/.clib) *)
   List.iter
-    (fun (nm, lib) ->
-       let fn_base =
-         Filename.concat lib.lib_path nm
-       in
+    (function
+       | Library (cs, bs, lib) ->
+           begin
+             (* Generate files for OCaml library (.mllib/.clib) *)
+             let fn_base =
+               Filename.concat bs.bs_path cs.cs_name
+             in
 
-       (* Generate .mllib file *)
-       let () =
-         let fn_mllib =
-           FilePath.add_extension fn_base  "mllib"
-         in
-           if lib.lib_modules = [] then
-             warning 
-               (Printf.sprintf
-                  (f_ "No module defined for library %s")
-                  nm);
-           file_generate
-             fn_mllib
-             comment_ocamlbuild
-             (Split ([], lib.lib_modules, []))
-       in
+             (* Generate .mllib file *)
+             let () =
+               let fn_mllib =
+                 FilePath.add_extension fn_base  "mllib"
+               in
+                 if lib.lib_modules = [] then
+                   warning 
+                     (Printf.sprintf
+                        (f_ "No module defined for library %s")
+                        cs.cs_name);
+                 file_generate
+                   fn_mllib
+                   comment_ocamlbuild
+                   (Split ([], lib.lib_modules, []))
+             in
 
-       (* Generate .clib file *)
-       let () = 
-         clib lib.lib_path nm lib.lib_c_sources
-       in
+               (* Generate .clib file *)
+               clib cs bs
+           end
 
-         ())
-    pkg.libraries;
+       | Executable (cs, bs, exec) ->
+           begin
+             (* Generate files for OCaml executable (.clib) *)
+             clib cs bs
+           end
 
-  (* Generate files for OCaml executable (.clib) *)
-  List.iter 
-    (fun (nm, exec) ->
-       clib (FilePath.dirname exec.exec_is) nm exec.exec_c_sources)
-    pkg.executables;
+       | Flag _ | SrcRepo _ | Test _ ->
+           ())
+    pkg.sections;
 
   (* Generate _tags *)
   file_generate
@@ -384,59 +398,61 @@ let create_ocamlbuild_files pkg () =
   (* Generate myocamlbuild.ml *)
   mlfile_generate 
     "myocamlbuild.ml"
+    (* TODO: use odn *)
     (let myocamlbuild_t = 
-       REC
-         ("OCamlbuildBase",
-          [
-            "lib_ocaml",
-            (LST
-               (List.map 
-                  (fun (nm, lib) ->
-                     let dirs = 
-                       List.map 
-                         (fun s -> STR s)
-                         (SetString.elements
-                            (set_string_of_list
-                               (lib.lib_path
-                                ::
-                                List.rev_map
-                                  FilePath.UnixPath.dirname
-                                  (List.rev_map
-                                     (FilePath.UnixPath.concat lib.lib_path)
-                                     lib.lib_modules))))
-                     in
-                       TPL 
-                         [STR (lib.lib_path^"/"^nm); 
-                          LST dirs])
-                  pkg.libraries));
+       List.fold_left
+         (fun t ->
+            function
+              | Library (cs, bs, lib) ->
+                  begin
+                    let lib_name =
+                      bs.bs_path^"/"^cs.cs_name
+                    in
 
-            "lib_c",
-            (LST
-               (List.map 
-                  (fun (nm, path) ->
-                     TPL [STR nm; STR path])
-                  (
-                    (* Extract OCaml library/clib *)
-                    (List.fold_left 
-                       (fun acc (nm, lib) ->
-                          if lib.lib_c_sources <> [] then
-                            (nm, lib.lib_path) :: acc
+                    let lib_paths = 
+                      SetString.elements
+                       (set_string_of_list
+                          (bs.bs_path
+                           ::
+                           List.rev_map
+                             FilePath.UnixPath.dirname
+                             (List.rev_map
+                                (FilePath.UnixPath.concat bs.bs_path)
+                                lib.lib_modules)))
+                    in
+
+                      {
+                        lib_ocaml = 
+                          (lib_name, lib_paths) :: t.lib_ocaml;
+                        
+                        lib_c = 
+                          (* Extract OCaml library/clib *)
+                          if bs.bs_c_sources <> [] then
+                            (cs.cs_name, bs.bs_path) :: t.lib_c
                           else
-                            acc)
-                       []
-                       pkg.libraries)
-                    @
-                    (* Extract OCaml executable/clib *)
-                    (List.fold_left
-                       (fun acc (nm, exec) ->
-                          if exec.exec_c_sources <> [] then
-                            (nm, FilePath.dirname exec.exec_is) :: acc
-                          else
-                            acc)
-                       []
-                       pkg.executables)
-                  )))
-          ])
+                            t.lib_c}
+                  end
+
+              | Executable (cs, bs, exec) ->
+                  begin
+
+                    {t with
+
+                         lib_c = 
+                           (* Extract OCaml executable/clib *)
+                           if bs.bs_c_sources <> [] then
+                             (cs.cs_name, 
+                              OASISExecutable.exec_main_path (cs, bs, exec)) 
+                             :: 
+                             t.lib_c
+                           else
+                             t.lib_c}
+                  end
+
+              | Flag _ | SrcRepo _ | Test _ ->
+                  t)
+         {lib_ocaml = []; lib_c = []}
+         pkg.sections
      in
      let content = 
        [
@@ -445,7 +461,8 @@ let create_ocamlbuild_files pkg () =
          (
            Format.fprintf Format.str_formatter
              "@[<hv2>let package_default =@ %a@,@];;"
-             (pp_odn ~opened_modules:[]) myocamlbuild_t;
+             (pp_odn ~opened_modules:[]) 
+             (OCamlbuildBase.odn_of_t myocamlbuild_t);
            Format.flush_str_formatter ()
          );
          "";
@@ -467,4 +484,6 @@ let plugin_main pkg =
       distclean    = None;
       other_action = create_ocamlbuild_files pkg;
     },
-    OASISPackage.add_build_tool "ocamlbuild" pkg
+    OASISPackage.add_build_tool 
+      (ExternalTool "ocamlbuild") 
+      pkg

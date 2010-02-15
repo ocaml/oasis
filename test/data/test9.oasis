@@ -11,16 +11,17 @@ Library test1
   Path:        src/
 
 Library pa_test1
-  FindlibName: syntax
-  Parent:      test1
-  Path:        src/test
+  FindlibName:   syntax
+  FindlibParent: test1
+  Path:          src/test
 
 Library test_with_str
-  FindlibName: str
-  Parent:      test1
-  Path:        src/str
+  FindlibName:   str
+  FindlibParent: test1
+  Path:          src/str
 
 Executable test
-  MainIs:  test/main.ml
+  Path:    test
+  MainIs:  main.ml
   BuildDepends: oUnit, test, test.syntax, test.str, 
    test1, pa_test1, test_with_str

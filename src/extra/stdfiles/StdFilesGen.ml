@@ -3,12 +3,12 @@
     @author Sylvain Le Gall
   *)
 
+open BasePlugin
+open BaseFileGenerate
 open OASISTypes
 open OASIS
 open OASISUtils
 open OASISValues
-open BasePlugin
-open BaseFileGenerate
 open CommonGettext
 open Format
 open FormatExt
@@ -42,10 +42,6 @@ let install =
 
 let authors =
   fn_enable "AUTHORS"
-
-type section =
-  | Executable of name * executable
-  | Library of name * library
 
 module SetSection = 
   Set.Make
@@ -85,19 +81,17 @@ let main pkg =
   in
 
   let all_build_sections =
-     List.rev_append
-       (List.rev_map 
-          (fun (nm, lib) -> 
-             Library (nm, lib), 
-             lib.lib_build_depends, 
-             lib.lib_build_tools)
-          pkg.libraries)
-       (List.map 
-          (fun (nm, exec) -> 
-             Executable (nm, exec), 
-             exec.exec_build_depends,
-             exec.exec_build_tools)
-          pkg.executables)
+    List.rev
+      (List.fold_left
+         (fun acc ->
+            function
+              | Library (_, bs, _) 
+              | Executable (_, bs, _) as sct ->
+                  (sct, bs) :: acc
+              | SrcRepo _ | Flag _ | Test _ ->
+                  acc)
+         []
+         pkg.sections)
   in
 
   let pp_print_sections =
@@ -109,9 +103,7 @@ let main pkg =
       List.fold_left
         (fun acc e -> SetSection.add e acc)
         SetSection.empty  
-        (List.rev_map 
-           (fun (section, _, _) -> section)
-           all_build_sections)
+        (List.rev_map fst all_build_sections)
     in
       fun fmt sections ->
         if SetSection.equal sections ref_general then
@@ -121,10 +113,12 @@ let main pkg =
             (pp_print_list 
                (fun fmt ->
                   function
-                    | Library (nm, _) -> 
+                    | Library ({cs_name = nm}, _, _) -> 
                         fprintf fmt "library %s" nm
-                    | Executable (nm, _) -> 
-                        fprintf fmt "executable %s" nm)
+                    | Executable ({cs_name = nm}, _, _) -> 
+                        fprintf fmt "executable %s" nm
+                    | SrcRepo _ | Flag _ | Test _ ->
+                        ())
                ",@ ")
             (SetSection.elements sections)
   in
@@ -144,14 +138,14 @@ let main pkg =
   let build_depends =
     let map_build_depends = 
       List.fold_left
-        (fun acc (section, build_depends, _) ->
+        (fun mp (section, bs) ->
            List.fold_left
-             (fun acc ->
+             (fun mp ->
                 function
                   | FindlibPackage (fndlb_nm, ver_opt1) ->
                      let ver_opt2, st =
                         try
-                          MapString.find fndlb_nm acc
+                          MapString.find fndlb_nm mp
                         with Not_found ->
                           None, SetSection.empty
                       in
@@ -164,12 +158,12 @@ let main pkg =
                           fndlb_nm 
                           (ver_opt, 
                            SetSection.add section st)
-                          acc
+                          mp
                      
                   | InternalLibrary _ ->
-                      acc)
-             acc
-             build_depends)
+                      mp)
+             mp
+             bs.bs_build_depends)
         MapString.empty
         all_build_sections
     in
@@ -183,24 +177,25 @@ let main pkg =
   let build_tools = 
     let map_build_tools =
       List.fold_left
-        (fun mp (section, _, build_tools) ->
+        (fun mp (section, bs) ->
            List.fold_left
-             (fun acc tool ->
-                (* TODO: make a difference between internal 
-                   and external tools
-                 *)
-                 let st =
-                   try
-                     MapString.find tool mp
-                   with Not_found ->
-                     SetSection.empty
-                 in
-                   MapString.add 
-                     tool
-                     (SetSection.add section st)
-                     mp)
+             (fun mp ->
+                function
+                  | ExternalTool tool ->
+                      let st =
+                        try
+                          MapString.find tool mp
+                        with Not_found ->
+                          SetSection.empty
+                      in
+                        MapString.add 
+                          tool
+                          (SetSection.add section st)
+                          mp
+                  | InternalExecutable _ ->
+                      mp)
              mp
-             build_tools)
+             bs.bs_build_tools)
         MapString.empty
         all_build_sections
     in

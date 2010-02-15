@@ -43,27 +43,33 @@ type ('a, 'b) generator_t =
 (** Action step for section
   *)
 type ('a, 'b) section_act_t = 
-    package -> name -> 'a -> 
-      ((package -> name -> 'a -> string array -> 'b),
-       (package -> name -> 'a -> string array -> unit)) generator_t * 
-      package * 'a
+    package -> (common_section * 'a) -> 
+      ((* Run *)
+       (package -> (common_section * 'a) -> string array -> 'b),
+       (* Clean & Distclean *)
+       (package -> (common_section * 'a) -> string array -> unit) 
+      ) generator_t * 
+      package * common_section * 'a
 
 (** Action step with a package argument only
   *)
-type std_act_t =
+type package_act_t =
     package -> 
-      ((package -> string array -> unit),
-       (package -> string array -> unit)) generator_t * 
+      ((* Run *)
+       (package -> string array -> unit),
+       (* Clean & Distclean *)
+       (package -> string array -> unit)
+      ) generator_t * 
       package
 
 (** Kind of plugin 
   *)
 type plugin_t =
-  | Configure of std_act_t
-  | Build     of std_act_t 
+  | Configure of package_act_t
+  | Build     of package_act_t 
   | Doc       of (unit, unit) section_act_t
   | Test      of (test, float) section_act_t
-  | Install   of std_act_t * std_act_t (* Install and uninstall data *)
+  | Install   of package_act_t * package_act_t (* Install and uninstall data *)
   | Extra     of (package -> unit)
 
 module MapPlugin = Map.Make (
