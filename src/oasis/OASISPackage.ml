@@ -31,11 +31,28 @@ let add_build_depend build_depend pkg =
        {bs with bs_build_depends = build_depend :: bs.bs_build_depends})
     pkg
 
-let add_build_tool ?(condition=[EBool true, true]) build_tool pkg =
-  mod_build_depends
-    (fun bs ->
-       {bs with bs_build_tools = build_tool :: bs.bs_build_tools})
-    pkg
+let add_build_tool ?(no_test=false) ?(condition=[EBool true, true]) build_tool pkg =
+  let pkg = 
+    mod_build_depends
+      (fun bs ->
+         {bs with bs_build_tools = build_tool :: bs.bs_build_tools})
+      pkg
+  in
+    if no_test then
+      pkg
+    else
+      {pkg with 
+           sections = 
+             List.map 
+               (function 
+                  | Test (cs, test) ->
+                      Test (cs, 
+                            {test with 
+                                 test_build_tools = 
+                                   build_tool :: test.test_build_tools})
+                  | Library _ | Executable _ | Flag _ | SrcRepo _ as sct ->
+                      sct)
+               pkg.sections}
 
 let schema, generator =
   let schm =

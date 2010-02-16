@@ -484,6 +484,6 @@ let plugin_main pkg =
       distclean    = None;
       other_action = create_ocamlbuild_files pkg;
     },
-    OASISPackage.add_build_tool 
+    OASISPackage.add_build_tool ~no_test:true 
       (ExternalTool "ocamlbuild") 
       pkg

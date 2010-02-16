@@ -13,8 +13,120 @@ open CommonGettext
 open Format
 open FormatExt
 
-
 let plugin_id = "StdFiles"
+
+type package =
+    (* Standalone executable *)
+  | LTool of filename
+    (* Findlib package *)  
+  | LFindlibPackage of name * (version_comparator option)
+
+let facts = 
+  [
+    LFindlibPackage ("ocaml", None),
+    [
+      (* Tools shipped with OCaml *)
+      "camlp4";
+      "camlp4boot";
+      "camlp4o";
+      "camlp4of";
+      "camlp4of.opt";
+      "camlp4oof";
+      "camlp4oof.opt";
+      "camlp4o.opt";
+      "camlp4orf";
+      "camlp4orf.opt";
+      "camlp4prof";
+      "camlp4r";
+      "camlp4rf";
+      "camlp4rf.opt";
+      "camlp4r.opt";
+      "mkcamlp4";
+      "ocaml";
+      "ocamlbuild";
+      "ocamlbuild.byte";
+      "ocamlbuild.native";
+      "ocamlc";
+      "ocamlc.opt";
+      "ocamlcp";
+      "ocamldebug";
+      "ocamldep";
+      "ocamldep.opt";
+      "ocamldoc";
+      "ocamldoc.opt";
+      "ocamllex";
+      "ocamllex.opt";
+      "ocamlmklib";
+      "ocamlmktop";
+      "ocamlopt";
+      "ocamlopt.opt";
+      "ocamlprof";
+      "ocamlrun";
+      "ocamlyacc";
+    ],
+    [
+      (* Libraries shipped with OCaml *)
+      "bigarray";
+      "camlp4";
+      "dbm";
+      "dynlink";
+      "graphics";
+      "labltk";
+      "num";
+      "stdlib";
+      "str";
+      "threads";
+      "unix";
+    ];
+
+    LFindlibPackage ("findlib", None), 
+    ["ocamlfind"],
+    ["findlib"];
+  ]
+
+(** Merge 2 versions constraint *)
+let merge_version_opt ver_opt1 ver_opt2 =
+ match ver_opt1, ver_opt2 with
+   | Some v1, Some v2 -> Some (VAnd (v1, v2))
+   | None, v | v, None -> v
+
+(** Associate a tool to a findlib package or a tool *)
+let package_of_tool = 
+  let mp = 
+    map_string_of_assoc
+      (List.fold_left
+         (fun acc (pkg, tools, _) ->
+            List.fold_left
+              (fun acc tool -> (tool, pkg) :: acc)
+              acc
+              tools)
+         []
+         facts)
+  in
+    fun tool ->
+      try 
+        MapString.find tool mp
+      with Not_found ->
+        LTool tool
+
+(** Associate a library to a findlib package raw data *)
+let package_of_library = 
+  let mp = 
+    map_string_of_assoc
+      (List.fold_left
+         (fun acc (pkg, _, libs) ->
+            List.fold_left
+              (fun acc lib -> (lib, pkg) :: acc)
+              acc
+              libs)
+         []
+         facts)
+  in
+    fun lib ver_opt ->
+      try 
+        MapString.find lib mp
+      with Not_found ->
+        LFindlibPackage (lib, ver_opt)
 
 let fn_enable fn = 
   new_field 
@@ -80,36 +192,46 @@ let main pkg =
     fprintf fmt "@[%s@]@,@," (String.make (String.length str) '=')
   in
 
-  let all_build_sections =
-    List.rev
-      (List.fold_left
-         (fun acc ->
-            function
-              | Library (_, bs, _) 
-              | Executable (_, bs, _) as sct ->
-                  (sct, bs) :: acc
-              | SrcRepo _ | Flag _ | Test _ ->
-                  acc)
-         []
-         pkg.sections)
-  in
-
-  let pp_print_sections =
-    (* If a tool/library applies to all sections that can handle a build_depends
-       or build_toolsn we can say it is a general depends. In this case, return
-       is None, otherwise "Some sections".
-     *)
-    let ref_general = 
+  (** All sections that contains a build_section *)
+  let all_build_sections_set = 
+    let all_build_sections =
+      List.rev
+        (List.fold_left
+           (fun acc ->
+              function
+                | Library (_, bs, _) 
+                | Executable (_, bs, _) as sct ->
+                    (sct, bs) :: acc
+                | SrcRepo _ | Flag _ | Test _ ->
+                    acc)
+           []
+           pkg.sections)
+    in
       List.fold_left
         (fun acc e -> SetSection.add e acc)
         SetSection.empty  
         (List.rev_map fst all_build_sections)
-    in
-      fun fmt sections ->
-        if SetSection.equal sections ref_general then
+  in
+
+  let pp_print_sections =
+    (* If a tool/library applies to all sections that can handle a build_depends
+       or build_tools we can say it is a general depends. In this case, return
+       is None, otherwise "Some sections".
+     *)
+    fun fmt sections ->
+      let is_all_build_sections, sections = 
+        if SetSection.subset all_build_sections_set sections then
+          true, SetSection.diff sections all_build_sections_set
+        else
+          false, sections
+      in
+        if SetSection.is_empty sections then
           ()
         else
-          fprintf fmt " (%a)"
+          fprintf fmt " for %t%a"
+            (fun fmt ->
+               if is_all_build_sections then
+                 fprintf fmt "all,@ ")
             (pp_print_list 
                (fun fmt ->
                   function
@@ -117,7 +239,9 @@ let main pkg =
                         fprintf fmt "library %s" nm
                     | Executable ({cs_name = nm}, _, _) -> 
                         fprintf fmt "executable %s" nm
-                    | SrcRepo _ | Flag _ | Test _ ->
+                    | Test ({cs_name = nm}, _) ->
+                        fprintf fmt "test %s" nm
+                    | SrcRepo _ | Flag _ ->
                         ())
                ",@ ")
             (SetSection.elements sections)
@@ -126,7 +250,7 @@ let main pkg =
   let pp_print_ver_opt fmt =
     function
       | Some ver_cmp ->
-          fprintf fmt " %a"
+          fprintf fmt " (%a)"
             pp_print_string 
             (OASISVersion.string_of_comparator 
                (OASISVersion.comparator_reduce ver_cmp))
@@ -134,76 +258,127 @@ let main pkg =
           ()
   in
 
+  let depends = 
+    let merge_package_section lst (new_pkg, new_sections) = 
+      try
+        let old_pkg, new_pkg, old_sections = 
+          match new_pkg with 
+            | LTool _ as tool ->
+                tool, 
+                tool,
+                List.assoc tool lst
+                          
+            | LFindlibPackage (nm1, ver_opt1) ->
+                begin
+                  let res_opt = 
+                    List.fold_left
+                      (fun acc pkg ->
+                         match acc, pkg with 
+                           | None, 
+                             ((LFindlibPackage (nm2, ver_opt2)) 
+                                as old_pkg, 
+                              sections) -> 
+                               if nm1 = nm2 then
+                                 Some 
+                                   (old_pkg,
+                                    LFindlibPackage 
+                                      (nm1, 
+                                       merge_version_opt 
+                                         ver_opt1 
+                                         ver_opt2),
+                                    sections)
+                               else 
+                                 acc
+                           | _, _ ->
+                               acc)
+                      None
+                      lst
+                  in
+                    match res_opt with
+                      | Some res ->
+                          res
+                      | None ->
+                          raise Not_found
+                end
+        in
+        let lst = 
+          try 
+            List.remove_assoc old_pkg lst
+          with Not_found ->
+            lst
+        in
+          (new_pkg, SetSection.union new_sections old_sections) :: lst
 
-  let build_depends =
-    let map_build_depends = 
-      List.fold_left
-        (fun mp (section, bs) ->
-           List.fold_left
-             (fun mp ->
-                function
-                  | FindlibPackage (fndlb_nm, ver_opt1) ->
-                     let ver_opt2, st =
-                        try
-                          MapString.find fndlb_nm mp
-                        with Not_found ->
-                          None, SetSection.empty
-                      in
-                      let ver_opt =
-                        match ver_opt1, ver_opt2 with
-                          | Some v1, Some v2 -> Some (VAnd (v1, v2))
-                          | None, v | v, None -> v
-                      in
-                        MapString.add 
-                          fndlb_nm 
-                          (ver_opt, 
-                           SetSection.add section st)
-                          mp
-                     
-                  | InternalLibrary _ ->
-                      mp)
-             mp
-             bs.bs_build_depends)
-        MapString.empty
-        all_build_sections
+      with Not_found ->
+        (new_pkg, new_sections) :: lst
     in
-      MapString.fold
-        (fun fndlb_nm (ver_opt, sections) acc ->
-           (fndlb_nm, ver_opt, sections) :: acc)
-        map_build_depends
-        []
-  in
 
-  let build_tools = 
-    let map_build_tools =
-      List.fold_left
-        (fun mp (section, bs) ->
-           List.fold_left
-             (fun mp ->
-                function
-                  | ExternalTool tool ->
-                      let st =
-                        try
-                          MapString.find tool mp
-                        with Not_found ->
-                          SetSection.empty
-                      in
-                        MapString.add 
-                          tool
-                          (SetSection.add section st)
-                          mp
-                  | InternalExecutable _ ->
-                      mp)
-             mp
-             bs.bs_build_tools)
-        MapString.empty
-        all_build_sections
+    let add_build_tools ssection = 
+       List.fold_left
+         (fun lst ->
+            function
+              | ExternalTool tool ->
+                  (package_of_tool tool, ssection) :: lst
+              | InternalExecutable _ ->
+                  lst)
     in
-      MapString.fold
-        (fun fndlb_nm sections acc ->
-           (fndlb_nm, sections) :: acc)
-        map_build_tools
+
+    let split_package_section = 
+      List.fold_left 
+        (fun lst ->
+           function 
+             | Library (_, bs, _) | Executable (_, bs, _) as section ->
+                 begin
+                   let ssection = 
+                     SetSection.singleton section
+                   in
+                   let lst = 
+                     (* Add build_depends *)
+                     List.fold_left
+                       (fun lst ->
+                          function
+                            | FindlibPackage (fndlb_nm, ver_opt) ->
+                                let fndlb_root = 
+                                  match (split '.' fndlb_nm) with 
+                                    | hd :: _ -> hd
+                                    | _ -> fndlb_nm
+                                in
+                                  (package_of_library fndlb_root ver_opt,
+                                   ssection) :: lst 
+                            | InternalLibrary _ ->
+                                lst)
+                       lst
+                       bs.bs_build_depends
+                   in
+                     (* Add build_tools *)
+                     add_build_tools 
+                       ssection
+                       lst
+                       bs.bs_build_tools
+                 end
+             | Test (_, {test_build_tools = build_tools}) as section ->
+                 add_build_tools
+                   (SetSection.singleton section)
+                   lst
+                   build_tools
+             | Flag _ | SrcRepo _ ->
+                 lst) 
+
+        (* Basic dependencies *)
+        [
+          LFindlibPackage ("ocaml", pkg.ocaml_version), all_build_sections_set;
+          LFindlibPackage ("findlib", pkg.findlib_version), all_build_sections_set;
+        ]
+
+        (* Go through all sections *)
+        pkg.sections
+    in
+
+      (* Merge everything *)
+      List.fold_left
+        merge_package_section
         []
+        split_package_section
   in
 
   let file_generate (enable, fn) ppf = 
@@ -290,33 +465,23 @@ let main pkg =
          fprintf fmt "@[In order to compile this package, you will need:@]@,";
          pp_open_vbox fmt 0;
 
-         fprintf fmt "* @[OCaml%a@]@,"
-           pp_print_ver_opt pkg.ocaml_version;
-
-         fprintf fmt "* @[Findlib%a@]@,"
-           pp_print_ver_opt pkg.findlib_version;
-
          pp_print_list 
-           (fun fmt (tool, sections) ->
-              fprintf fmt "* @[%s%a@]" 
-                tool 
-                pp_print_sections sections)
-           "+@,"
-           fmt
-           build_tools;
-
-         if build_tools <> [] && build_depends <> [] then
-           pp_print_cut fmt ();
-
-         pp_print_list 
-           (fun fmt (tool, ver_opt, sections) ->
-              fprintf fmt "* @[findlib library %s%a%a@]" 
-                tool 
-                pp_print_ver_opt ver_opt
+           (fun fmt (pkg, sections) ->
+              fprintf fmt "* @[%a%a@]" 
+                (fun fmt ->
+                   function
+                     | LTool s -> 
+                         pp_print_string fmt s
+                     | LFindlibPackage (nm, ver_opt) ->
+                         fprintf fmt "%s%a"
+                           nm
+                           pp_print_ver_opt ver_opt)
+                pkg
                 pp_print_sections sections)
            "@,"
            fmt
-           build_depends;
+           depends;
+
          pp_close_box fmt ();
          pp_print_cut fmt ();
 
