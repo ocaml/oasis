@@ -6,7 +6,7 @@ open CommonGettext
 open PropList
 open OASISSchema
 
-let check_schema schm data =
+let check_schema where schm data =
   let msgfld =
     Schema.fold
       (fun acc fld extra hlp ->
@@ -37,5 +37,6 @@ let check_schema schm data =
     if msgfld <> [] then
       failwith 
         (Printf.sprintf
-           (f_ "Missing field: %s")
+           (f_ "Missing field in %s: %s")
+           where
            (String.concat (s_ ", ") msgfld))

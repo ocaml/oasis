@@ -119,32 +119,35 @@ let () =
 
   in
 
-    match !action with 
-      | Generate ->
-          begin
-            let pkg =
-              OASIS.from_file !oasis_fn 
-            in
-              generate pkg
-          end
-      | Quickstart ->
-          begin
-            let fn =
-              "_oasis"
-            in
-            let chn = 
-              open_out_gen 
-                [Open_wronly; Open_creat; Open_excl; Open_text] 
-                0o644
+    try 
+      match !action with 
+        | Generate ->
+            begin
+              let pkg =
+                OASIS.from_file !oasis_fn 
+              in
+                generate pkg
+            end
+        | Quickstart ->
+            begin
+              let fn =
                 "_oasis"
-            in
-            let fmt = 
-              Format.formatter_of_out_channel chn
-            in
-              Printf.printf "Creating %s file\n%!" fn;
-              OASISQuickstart.quickstart 
-                fmt
-                !qckstrt_lvl;
-              Format.pp_print_flush fmt ();
-              close_out chn
-          end
+              in
+              let chn = 
+                open_out_gen 
+                  [Open_wronly; Open_creat; Open_excl; Open_text] 
+                  0o644
+                  "_oasis"
+              in
+              let fmt = 
+                Format.formatter_of_out_channel chn
+              in
+                Printf.printf "Creating %s file\n%!" fn;
+                OASISQuickstart.quickstart 
+                  fmt
+                  !qckstrt_lvl;
+                Format.pp_print_flush fmt ();
+                close_out chn
+            end
+    with Failure s ->
+      prerr_endline s

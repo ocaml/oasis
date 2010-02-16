@@ -94,7 +94,10 @@ let to_package conf st =
       ctxt_of_sections scts
     in
       stmt schm data ctxt stmt';
-      OASISCheck.check_schema schm data;
+      OASISCheck.check_schema 
+        (schm.PropList.Schema.name ^" "^nm)
+        schm 
+        data;
       (gen nm data) :: scts
   in
 
@@ -171,6 +174,7 @@ let to_package conf st =
   in
   let pkg = 
     OASISCheck.check_schema 
+      "package"
       OASISPackage.schema 
       data;
     OASISPackage.generator 

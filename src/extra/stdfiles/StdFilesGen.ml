@@ -366,8 +366,8 @@ let main pkg =
 
         (* Basic dependencies *)
         [
-          LFindlibPackage ("ocaml", pkg.ocaml_version), all_build_sections_set;
           LFindlibPackage ("findlib", pkg.findlib_version), all_build_sections_set;
+          LFindlibPackage ("ocaml", pkg.ocaml_version), all_build_sections_set;
         ]
 
         (* Go through all sections *)
