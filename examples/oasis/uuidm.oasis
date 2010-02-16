@@ -12,7 +12,8 @@ Library uuidm
   Modules: Uuidm
 
 Executable perf
-  MainIs: test/perf.ml
+  Path: test
+  MainIs: perf.ml
   Install: false
   BuildDepends: uuidm
 
@@ -21,7 +22,8 @@ Test perf
   Command: _build/test/perf
 
 Executable test
-  MainIs: test/test.ml
+  Path: test
+  MainIs: test.ml
   Install: false
   BuildDepends: uuidm
 
@@ -30,7 +32,8 @@ Test test
   Command: _build/test/test
 
 Executable uuid
-  MainIs: test/uuid.ml
+  Path: test
+  MainIs: uuid.ml
   Install: false
   BuildDepends: uuidm
 

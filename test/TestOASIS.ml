@@ -3,10 +3,11 @@
     @author Sylvain Le Gall
   *)
 
-open OUnit;;
-open TestCommon;;
-open OASISTypes;;
-open OASIS;;
+open OUnit
+open TestCommon
+open OASISTypes
+open OASIS
+open FileUtil
 
 let tests ctxt =
 
@@ -49,12 +50,9 @@ let tests ctxt =
         assert_failure msg
   in
 
-  let test_file_of_vector (fn, test) = 
+  let file_of_vector (fn, test) = 
     fn >::
     (fun () ->
-       let fn =
-         in_data fn
-       in
        let pkg =
          from_file 
            ~conf:{default_conf with 
@@ -63,6 +61,10 @@ let tests ctxt =
            fn
        in
          test pkg)
+  in
+
+  let test_file_of_vector (fn, test) = 
+    file_of_vector (in_data fn, test)
   in
 
   let test_value_parser_of_vector (str, value_parse, fail) = 
@@ -105,78 +107,89 @@ let tests ctxt =
       );
 
       "File" >:::
-      (List.map test_file_of_vector 
-         [
-           "test1.oasis",
-           (fun pkg ->
-              assert_flag "devmod" pkg;
-              assert_alternative
-                "At least one of ostest, linuxtest64 and linuxtest32 is defined"
-                (List.map
-                   (fun nm -> (fun () -> assert_flag nm pkg))
-                   [
-                     "ostest";
-                     "linuxtest64";
-                     "linuxtest32";
-                   ])
-                ());
+      ((List.map test_file_of_vector 
+          [
+            "test1.oasis",
+            (fun pkg ->
+               assert_flag "devmod" pkg;
+               assert_alternative
+                 "At least one of ostest, linuxtest64 and linuxtest32 is defined"
+                 (List.map
+                    (fun nm -> (fun () -> assert_flag nm pkg))
+                    [
+                      "ostest";
+                      "linuxtest64";
+                      "linuxtest32";
+                    ])
+                 ());
 
-           "test2.oasis",
-           ignore;
+            "test2.oasis",
+            ignore;
 
-           "test3.oasis",
-           ignore;
+            "test3.oasis",
+            ignore;
 
-           "test4.oasis",
-           ignore;
-           
-           "test5.oasis",
-           ignore;
-           
-           "test6.oasis",
-           ignore;
+            "test4.oasis",
+            ignore;
+            
+            "test5.oasis",
+            ignore;
+            
+            "test6.oasis",
+            ignore;
 
-           "test7.oasis",
-           ignore;
+            "test7.oasis",
+            ignore;
 
-           "test8.oasis",
-           ignore;
+            "test8.oasis",
+            ignore;
 
-           "test9.oasis",
-           (fun pkg ->
-              let deps =
-                List.fold_left
-                  (fun acc ->
-                     function
-                       | Executable (cs, bs, _) ->
-                           if cs.cs_name = "test" then
-                             bs.bs_build_depends @ acc
-                           else
-                             acc
-                       | _ ->
-                           acc)
-                  []
-                  pkg.sections
-              in
-                List.iter
-                  (fun lib ->
-                     assert_bool
-                       (Printf.sprintf
-                          "Existence of library %s"
-                          (match lib with
-                             | InternalLibrary s -> s
-                             | FindlibPackage (s, _) -> s))
-                       (List.mem 
-                          lib
-                          deps))
-                  ((List.map
-                      (fun s -> FindlibPackage(s, None))
-                      ["test1"; "pa_test1"; "test_with_str"])
-                   @
-                   (List.map
-                      (fun s -> InternalLibrary s)
-                      ["test1"; "pa_test1"; "test_with_str"])));
-         ]
-      );
+            "test9.oasis",
+            (fun pkg ->
+               let deps =
+                 List.fold_left
+                   (fun acc ->
+                      function
+                        | Executable (cs, bs, _) ->
+                            if cs.cs_name = "test" then
+                              bs.bs_build_depends @ acc
+                            else
+                              acc
+                        | _ ->
+                            acc)
+                   []
+                   pkg.sections
+               in
+                 List.iter
+                   (fun lib ->
+                      assert_bool
+                        (Printf.sprintf
+                           "Existence of library %s"
+                           (match lib with
+                              | InternalLibrary s -> s
+                              | FindlibPackage (s, _) -> s))
+                        (List.mem 
+                           lib
+                           deps))
+                   ((List.map
+                       (fun s -> FindlibPackage(s, None))
+                       ["test1"; "pa_test1"; "test_with_str"])
+                    @
+                    (List.map
+                       (fun s -> InternalLibrary s)
+                       ["test1"; "pa_test1"; "test_with_str"])));
+          ])
+      @
+       (List.rev_map file_of_vector
+          (List.rev_map 
+             (fun fn ->
+                fn, ignore)
+             (find 
+                (* Collect _oasis in examples/ *)
+                (Basename_is "_oasis") "../examples" 
+                (fun a e -> e :: a) 
+                (* Collect examples/oasis/*.oasis *)
+                (filter (Has_extension "oasis") 
+                   (ls "../examples/oasis"))))));
     ]
 ;;
