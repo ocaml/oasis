@@ -73,21 +73,24 @@ let configure pkg argv =
       end
   in
 
+  let ver_opt_check prefix std_var  =
+    function
+      | Some ver_cmp ->
+          var_ignore_eval
+            (BaseCheck.version prefix ver_cmp std_var)
+      | None ->
+          ()
+  in
+
+
   (* Parse command line *)
   BaseArgExt.parse argv (args ());
 
   (* OCaml version *)
-  begin
-    match pkg.ocaml_version with 
-      | Some ver_cmp ->
-          var_ignore_eval
-            (BaseCheck.version
-               "ocaml"
-               ver_cmp
-               BaseStandardVar.ocaml_version)
-      | None ->
-          ()
-  end;
+  ver_opt_check "ocaml" BaseStandardVar.ocaml_version pkg.ocaml_version;
+
+  (* Findlib version *)
+  ver_opt_check "findlib" BaseStandardVar.findlib_version pkg.findlib_version;
 
   (* Check build depends *)
   List.iter

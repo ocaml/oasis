@@ -195,26 +195,27 @@ type section =
   *)
 type package = 
     {
-      oasis_version:  version;
-      ocaml_version:  version_comparator option;
-      name:           package_name;
-      version:        version;
-      license:        license;
-      license_file:   filename option;
-      copyrights:     string list;
-      maintainers:    string list;
-      authors:        string list;
-      homepage:       url option;
-      synopsis:       string;
-      description:    string option;
-      categories:     url list;
-      conf_type:      string;
-      build_type:     string;
-      install_type:   string;
-      files_ab:       filename list;
-      sections:       section list;
-      plugins:        string list;
-      schema_data:    PropList.Data.t;
+      oasis_version:   version;
+      ocaml_version:   version_comparator option;
+      findlib_version: version_comparator option;
+      name:            package_name;
+      version:         version;
+      license:         license;
+      license_file:    filename option;
+      copyrights:      string list;
+      maintainers:     string list;
+      authors:         string list;
+      homepage:        url option;
+      synopsis:        string;
+      description:     string option;
+      categories:      url list;
+      conf_type:       string;
+      build_type:      string;
+      install_type:    string;
+      files_ab:        filename list;
+      sections:        section list;
+      plugins:         string list;
+      schema_data:     PropList.Data.t;
     } with odn
 
 (* END EXPORT *)

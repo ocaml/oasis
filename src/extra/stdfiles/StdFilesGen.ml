@@ -283,12 +283,19 @@ let main pkg =
            pkg.name;
 
          pp_print_para fmt
-           "This package use OASIS to generate its build system. \
+           "This package uses OASIS to generate its build system. \
             See section OASIS for full information. ";
 
          pp_print_title fmt "Dependencies";
          fprintf fmt "@[In order to compile this package, you will need:@]@,";
          pp_open_vbox fmt 0;
+
+         fprintf fmt "* @[OCaml%a@]@,"
+           pp_print_ver_opt pkg.ocaml_version;
+
+         fprintf fmt "* @[Findlib%a@]@,"
+           pp_print_ver_opt pkg.findlib_version;
+
          pp_print_list 
            (fun fmt (tool, sections) ->
               fprintf fmt "* @[%s%a@]" 

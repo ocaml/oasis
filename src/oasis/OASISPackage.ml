@@ -166,6 +166,13 @@ let schema, generator =
       (fun () -> 
          s_ "Version constraint on OCaml.")
   in
+  let findlib_version =
+    new_field schm "FindlibVersion"
+      ~default:None
+      (opt version_comparator)
+      (fun () ->
+         s_ "Version constraint on Finblib.")
+  in
   let conf_type =
     new_field schm "ConfType" 
       ~default:"internal"
@@ -234,24 +241,25 @@ let schema, generator =
             add_build_tool
             (build_tools data)
             {
-              oasis_version = oasis_version data;
-              ocaml_version = ocaml_version data;
-              name          = name data;
-              version       = version data;
-              license       = license data;
-              license_file  = license_file data;
-              copyrights    = copyrights data;
-              maintainers   = maintainers data;
-              authors       = authors data;
-              homepage      = homepage data;
-              synopsis      = synopsis data;
-              description   = description data;
-              categories    = categories data;
-              conf_type     = conf_type data;
-              build_type    = build_type data;
-              install_type  = install_type data;
-              files_ab      = files_ab data;
-              plugins       = plugins data;
-              sections      = sections;
-              schema_data   = data;
+              oasis_version   = oasis_version data;
+              ocaml_version   = ocaml_version data;
+              findlib_version = findlib_version data;
+              name            = name data;
+              version         = version data;
+              license         = license data;
+              license_file    = license_file data;
+              copyrights      = copyrights data;
+              maintainers     = maintainers data;
+              authors         = authors data;
+              homepage        = homepage data;
+              synopsis        = synopsis data;
+              description     = description data;
+              categories      = categories data;
+              conf_type       = conf_type data;
+              build_type      = build_type data;
+              install_type    = install_type data;
+              files_ab        = files_ab data;
+              plugins         = plugins data;
+              sections        = sections;
+              schema_data     = data;
             }))

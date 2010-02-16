@@ -152,6 +152,14 @@ let systhread_supported      = c "systhread_supported"
 
 (** {2 ...} *)
 
+(** Findlib version
+  *)
+let findlib_version =
+  var_define
+    "findlib_version"
+    (lazy 
+       (BaseCheck.package_version "findlib"))
+
 (** Check what is the best target for platform (opt/byte)
   *)
 let ocamlbest =

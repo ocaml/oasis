@@ -85,6 +85,13 @@ let version
                    version_str)))
       ()
 
+(** Get findlib package version 
+  *)
+let package_version pkg =
+  BaseExec.run_read_one_line 
+    (ocamlfind ())
+    ["query"; "-format"; "%v"; pkg]
+
 (** Check for findlib package
   *)
 let package ?version_comparator pkg () =
@@ -123,11 +130,6 @@ let package ?version_comparator pkg () =
               directory %s return doesn't exist"
              pkg dir)
   in
-  let findlib_version pkg =
-    BaseExec.run_read_one_line 
-      (ocamlfind ())
-      ["query"; "-format"; "%v"; pkg]
-  in
   let vl =
     var_redefine
       var
@@ -141,7 +143,7 @@ let package ?version_comparator pkg () =
               (version 
                  var
                  ver_cmp
-                 (fun _ -> findlib_version pkg)
+                 (fun _ -> package_version pkg)
                  ())
         | None -> 
             ()
