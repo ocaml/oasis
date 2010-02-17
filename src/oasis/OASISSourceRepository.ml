@@ -17,6 +17,9 @@ let schema, generator =
   let schm =
     schema "SourceRepository"
   in
+  let cmn_section_gen =
+    OASISSection.section_fields (s_ "source repository") schm
+  in
   let typ = 
     new_field schm "Type"
       (choices 
@@ -73,9 +76,6 @@ let schema, generator =
          s_ "Define the relative path from the root of the repository to the \
              top directory for the package, i.e. the directory containing the \
              package's `_oasis` file.")
-  in
-  let cmn_section_gen =
-    OASISSection.section_fields (s_ "executable") schm
   in
     schm,
     (fun nm data ->

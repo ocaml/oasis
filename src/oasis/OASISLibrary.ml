@@ -190,6 +190,12 @@ let schema, generator =
   let schm =
     schema "Library"
   in
+  let cmn_section_gen =
+    OASISSection.section_fields (s_ "library") schm
+  in
+  let build_section_gen =
+    OASISBuildSection.section_fields (s_ "library") Best schm
+  in
   let modules =
     new_field schm "Modules" 
       ~default:[]
@@ -224,12 +230,6 @@ let schema, generator =
       (dot_separated string_not_empty)
       (fun () ->
          s_ "Virtual containers for sub-package, dot-separated")
-  in
-  let build_section_gen =
-    OASISBuildSection.section_fields (s_ "library") Best schm
-  in
-  let cmn_section_gen =
-    OASISSection.section_fields (s_ "library") schm
   in
     schm,
     (fun nm data ->

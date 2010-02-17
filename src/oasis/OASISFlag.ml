@@ -17,6 +17,9 @@ let schema, generator =
   let schm =
     schema "flag" 
   in
+  let cmn_section_gen =
+    OASISSection.section_fields (s_ "flag") schm
+  in
   let descr = 
     new_field schm "Description" 
       ~default:None 
@@ -30,9 +33,6 @@ let schema, generator =
       boolean
       (fun () ->
          s_ "Default value for the flag")
-  in
-  let cmn_section_gen =
-    OASISSection.section_fields (s_ "executable") schm
   in
     schm,
     (fun nm data ->

@@ -33,6 +33,12 @@ let schema, generator =
   let schm =
     schema "executable" 
   in
+  let cmn_section_gen =
+    OASISSection.section_fields (s_ "executable") schm
+  in
+  let build_section_gen =
+    OASISBuildSection.section_fields (s_ "executable") Byte schm
+  in
   let main_is =
     new_field schm "MainIs" 
       (let base_value =
@@ -53,12 +59,6 @@ let schema, generator =
       boolean
       (fun () ->
          s_ "Create custom bytecode executable.")
-  in
-  let build_section_gen =
-    OASISBuildSection.section_fields (s_ "executable") Byte schm
-  in
-  let cmn_section_gen =
-    OASISSection.section_fields (s_ "executable") schm
   in
     schm,
     (fun nm data -> 

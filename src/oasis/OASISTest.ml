@@ -17,6 +17,12 @@ let schema, generator =
   let schm =
    schema "Test"
   in
+  let cmn_section_gen =
+    OASISSection.section_fields (s_ "test") schm
+  in
+  let build_tools = 
+    OASISBuildSection.build_tools_field schm
+  in
   let typ =
     new_field schm "Type"
       ~default:"none"
@@ -43,12 +49,6 @@ let schema, generator =
       boolean
       (fun () ->
          s_ "Enable this test.")
-  in
-  let build_tools = 
-    OASISBuildSection.build_tools_field schm
-  in
-  let cmn_section_gen =
-    OASISSection.section_fields (s_ "executable") schm
   in
     schm,
     (fun nm data ->
