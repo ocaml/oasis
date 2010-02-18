@@ -18,16 +18,15 @@ let load () =
       in
       let rec read_aux acc =
         try 
-          (
+          let line = 
+            input_line chn
+          in
             read_aux 
-              (Scanf.fscanf chn "%S %S\n" 
+              (Scanf.sscanf line "%S %S" 
                  (fun e d ->  (e, d) :: acc))
-          )
         with End_of_file ->
-          (
-            close_in chn;
-            List.rev acc
-          )
+          close_in chn;
+          List.rev acc
       in
         read_aux []
     )

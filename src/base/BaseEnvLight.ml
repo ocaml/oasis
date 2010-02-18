@@ -27,14 +27,16 @@ let load ?(allow_empty=false) ?(filename=default_filename) () =
         begin
           try 
             while true do 
-              Scanf.fscanf chn "%s = %S\n" 
-                (fun nm vl -> rmp := MapString.add nm vl !rmp)
+              let line = 
+                input_line chn
+              in
+                Scanf.sscanf line "%s = %S" 
+                  (fun nm vl -> rmp := MapString.add nm vl !rmp)
             done;
             ()
           with End_of_file ->
-            ()
+            close_in chn
         end;
-        close_in chn;
         !rmp
     end
   else if allow_empty then
