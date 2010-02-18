@@ -150,4 +150,7 @@ let () =
                 close_out chn
             end
     with Failure s ->
-      prerr_endline s
+      begin
+        prerr_endline s;
+        exit 1
+      end
