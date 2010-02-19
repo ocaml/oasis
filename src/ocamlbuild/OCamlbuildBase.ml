@@ -12,7 +12,7 @@ type name = string with odn
 
 type t =
     {
-      lib_ocaml: (name * dir list) list;
+      lib_ocaml: (name * dir list * bool) list;
       lib_c:     (name * dir) list; 
     } with odn
 
@@ -47,10 +47,10 @@ let dispatch t =
         (* Declare OCaml libraries *)
         List.iter 
           (function
-             | lib, [] ->
-                 ocaml_lib lib;
-             | lib, dir :: tl ->
-                 ocaml_lib ~dir:dir lib;
+             | lib, [], extern ->
+                 ocaml_lib ~extern lib;
+             | lib, dir :: tl, extern ->
+                 ocaml_lib ~extern ~dir:dir lib;
                  List.iter 
                    (fun dir -> 
                       flag 

@@ -290,6 +290,13 @@ let to_package conf st =
                       sct)
                pkg.sections}
   in
-    (* TODO: check recursion and re-order library/tools using ocamlgraph *)
+
+  (* Check recursion and re-order library/tools so that build order is
+     respected 
+   *)
+  let pkg = 
+    {pkg with sections = OASISBuildSection.build_order pkg}
+  in
+
     pkg
 

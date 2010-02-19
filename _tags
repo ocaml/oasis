@@ -19,6 +19,7 @@
 <src/oasis/*.ml>: pkg_fileutils, pkg_extlib
 "src/oasis/OASISTypes.ml": syntax_camlp4o, pkg_odn.with.syntax
 "src/oasis/OASISRecDescParser.ml": syntax_camlp4o, pkg_camlp4
+"src/oasis/OASISBuildSection.ml": pkg_ocamlgraph
 
 <src/base/*.ml>: pkg_fileutils, pkg_odn
 
@@ -41,7 +42,9 @@
 
 <src/extra/stdfiles/*.ml>: pkg_fileutils
 
-"src/Main.byte": pkg_unix, pkg_str, pkg_fileutils, pkg_extlib, pkg_odn, use_ocamlbuild
+"src/Main.byte": pkg_unix, pkg_str, pkg_fileutils, pkg_extlib
+"src/Main.byte": pkg_odn, use_ocamlbuild, pkg_ocamlgraph
 
-<test/*.{ml,byte}>: pkg_oUnit, pkg_str, pkg_fileutils, pkg_extlib, pkg_odn, pkg_findlib
+<test/*.{ml,byte}>: pkg_oUnit, pkg_str, pkg_fileutils, pkg_extlib
+<test/*.{ml,byte}>: pkg_odn, pkg_findlib, pkg_ocamlgraph
 

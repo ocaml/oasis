@@ -1,0 +1,43 @@
+OASISFormat: 1.0
+Name:        interdepend-libraries
+Version:     0.1
+Synopsis:    Executable and libraries with interdependencies
+Authors:     Sylvain Le Gall
+License:     LGPL-LINK-EXN
+
+Library liba
+  Modules:      A
+  Path:         src/liba
+  BuildDepends: str
+  Install:      false
+  
+Library libb
+  Modules:      B
+  Path:         src/libb
+  BuildDepends: liba, unix
+  Install:      false
+  
+Library libc
+  Modules:      C
+  Path:         src/libc
+  BuildDepends: libb, num
+  Install:      false
+
+Library libd
+  Modules:           D
+  Path:              src/libd
+  Install:           false
+  XOCamlbuildExtern: false
+
+Library libe
+  Modules:           E
+  Path:              src/libe
+  Install:           false
+  XOCamlbuildExtern: false
+  BuildDepends:      libd
+  
+Executable execa
+  MainIs:       Main.ml
+  Path:         src/execa
+  BuildDepends: libc, libe
+  Install:      false

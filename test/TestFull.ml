@@ -698,6 +698,28 @@ let tests ctxt =
          [
            try_installed_library "test" ["A"; "B"];
          ];
+
+         (* Interdependencies *)
+         "../examples/interdepend-libraries",
+         [
+           "src/liba/liba.mllib";
+           "src/libb/libb.mllib";
+           "src/libc/libc.mllib";
+           "src/libd/libd.mllib";
+           "src/libe/libe.mllib";
+         ] @ oasis_ocamlbuild_files,
+         [],
+         [];
+
+         (* Build order *)
+         "../examples/order-matter",
+         [
+           "src/foo/foo.mllib";
+           "src/bar/bar.mllib";
+           "src/baz/baz.mllib";
+         ] @ oasis_ocamlbuild_files,
+         [],
+         [];
        ]
     )
 ;;

@@ -1,3 +1,4 @@
+#default: TESTFLAGS=-only-test OASIS:5:TestFull:9 -only-test OASIS:5:TestFull:8
 default: test
 
 test: all

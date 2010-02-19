@@ -1,0 +1,1 @@
+let doit = Bar.doit

@@ -41,7 +41,7 @@ let build pkg argv =
 
   let ocamlbuild_run rtargets = 
     let args = 
-      List.rev_append rtargets (Array.to_list argv)
+      rtargets @ (Array.to_list argv)
     in
       BaseExec.run (ocamlbuild ()) (env_args @ args)
   in
@@ -131,7 +131,8 @@ let build pkg argv =
                | Test _ | SrcRepo _ | Flag _ ->
                    acc)
           []
-          pkg.sections;
+          (* Keep the pkg.sections ordered *)
+          (List.rev pkg.sections);
       ]
   in
 
@@ -148,7 +149,7 @@ let build pkg argv =
                ::
                acc
            | Rename (src, tgt) ->
-               ocamlbuild_run (src :: acc);
+               ocamlbuild_run (List.rev (src :: acc));
                BaseFileUtil.cp 
                  (in_build_dir src) 
                  (in_build_dir tgt);
@@ -157,7 +158,7 @@ let build pkg argv =
       (!cond_targets_hook cond_targets)
   in
     if last_rtargets <> [] then
-      ocamlbuild_run last_rtargets
+      ocamlbuild_run (List.rev last_rtargets)
 
 let clean pkg extra_args  = 
   (* TODO use ocamlbuild *)
@@ -172,7 +173,23 @@ open CommonGettext
 open ODN
 open BasePlugin
 open OASISTypes
+open OASISValues
 open OCamlbuildBase
+
+let plugin_id = "OCamlbuild"
+
+let extern = 
+  OASIS.new_field
+    OASISLibrary.schema
+    plugin_id
+    "Extern"
+    ~default:true
+    boolean
+    (fun () ->
+       s_ "By default we consider library to be external. This allow to \
+           have very limited export. If set to false, the _tags file \
+           will include all directories of the libraries. This can be a \
+           problem if there are conflicting modules.")
 
 let create_ocamlbuild_files pkg () = 
 
@@ -195,6 +212,15 @@ let create_ocamlbuild_files pkg () =
   in
 
   let tags_of_package pkg =
+
+    let build_depends_of_section = 
+      let mp =
+        OASISBuildSection.transitive_build_depends pkg
+      in
+        fun sct ->
+          OASISSection.MapSection.find sct mp
+    in
+
     let tags_of_build_depends target deps acc = 
       List.fold_left 
         (fun acc dep ->
@@ -215,31 +241,37 @@ let create_ocamlbuild_files pkg () =
       List.fold_left 
         (fun acc ->
            function 
-             | Library (cs, bs, lib) ->
+             | Library (cs, bs, lib) as sct ->
                  begin
+                   let build_depends =
+                     build_depends_of_section sct
+                   in
+
                    (* Extract content for libraries *)
                    let start_comment acc = 
                      (Printf.sprintf "# Library %s" cs.cs_name) :: acc
                    in
 
+                   (* All path access from within the library *)
+                   let all_paths = 
+                     List.fold_left
+                       (fun st modul ->
+                          SetString.add
+                            (FilePath.dirname 
+                               (FilePath.concat bs.bs_path modul))
+                            st)
+                       SetString.empty
+                       lib.lib_modules
+                   in
+
                    (* Add tags for build depends *)
                    let pkg_tags acc = 
-                     let all_path = 
-                       List.fold_left
-                         (fun st modul ->
-                            SetString.add
-                              (FilePath.dirname 
-                                 (FilePath.concat bs.bs_path modul))
-                              st)
-                         SetString.empty
-                         lib.lib_modules
-                     in
                        SetString.fold
                          (fun dir ->
                             tags_of_build_depends 
                               (target_ml dir) 
-                              bs.bs_build_depends)
-                         all_path
+                              build_depends)
+                         all_paths
                          acc
                    in
 
@@ -265,11 +297,25 @@ let create_ocamlbuild_files pkg () =
                        acc
                    in
 
-                     clib_tag (pkg_tags (start_comment acc))
+                  (* Add include tag if the library is internal *)
+                   let include_tag acc =
+                     if not (extern cs.cs_data) then
+                       SetString.fold
+                         (fun dir acc ->
+                            (Printf.sprintf "\"%s\": include" dir)
+                            ::
+                            acc)
+                         all_paths
+                         acc
+                     else
+                       acc
+                   in
+
+                     include_tag (clib_tag (pkg_tags (start_comment acc)))
 
                  end
 
-             | Executable (cs, bs, exec) ->
+             | Executable (cs, bs, exec) as sct ->
                  begin
                    (* Extract content for executables *)
                    let dir = 
@@ -298,16 +344,20 @@ let create_ocamlbuild_files pkg () =
                    let start_comment acc = 
                      (Printf.sprintf "# Executable %s" cs.cs_name) :: acc
                    in
+                   let build_depends = 
+                     build_depends_of_section
+                       sct 
+                   in
                    let pkg_src_tags acc =
                      tags_of_build_depends
                        (target_ml dir)
-                       bs.bs_build_depends
+                       build_depends
                        acc
                    in
                    let pkg_exec_tags acc = 
                      tags_of_build_depends
                        target_exec
-                       bs.bs_build_depends
+                       build_depends
                        acc
                    in
                    let clib_tag acc = 
@@ -398,7 +448,6 @@ let create_ocamlbuild_files pkg () =
   (* Generate myocamlbuild.ml *)
   mlfile_generate 
     "myocamlbuild.ml"
-    (* TODO: use odn *)
     (let myocamlbuild_t = 
        List.fold_left
          (fun t ->
@@ -423,7 +472,9 @@ let create_ocamlbuild_files pkg () =
 
                       {
                         lib_ocaml = 
-                          (lib_name, lib_paths) :: t.lib_ocaml;
+                          (lib_name, 
+                           lib_paths, 
+                           extern cs.cs_data) :: t.lib_ocaml;
                         
                         lib_c = 
                           (* Extract OCaml library/clib *)
@@ -452,7 +503,8 @@ let create_ocamlbuild_files pkg () =
               | Flag _ | SrcRepo _ | Test _ ->
                   t)
          {lib_ocaml = []; lib_c = []}
-         pkg.sections
+         (* To preserve build order *)
+         (List.rev pkg.sections)
      in
      let content = 
        [
@@ -479,11 +531,16 @@ let create_ocamlbuild_files pkg () =
 let plugin_main pkg =
     {
       moduls       = [OCamlbuildData.ocamlbuildsys_ml];
-      setup        = func build "OCamlbuildBuild.build";
-      clean        = Some (func clean "OCamlbuildBuild.clean");
+      setup        = func build "OCamlbuildPlugin.build";
+      clean        = Some (func clean "OCamlbuildPlugin.clean");
       distclean    = None;
       other_action = create_ocamlbuild_files pkg;
     },
     OASISPackage.add_build_tool ~no_test:true 
       (ExternalTool "ocamlbuild") 
       pkg
+
+let () =
+  plugin_register 
+    plugin_id 
+    (Build plugin_main)

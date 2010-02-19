@@ -1,0 +1,24 @@
+OASISFormat: 1.0
+Name:        order-matter
+Version:     0.1
+Synopsis:    Reorder _oasis section for building
+Authors:     Sylvain Le Gall
+License:     LGPL-LINK-EXN
+
+Library foo
+  Path:    src/foo
+  Modules: Foo
+  Install: false
+  BuildDepends: baz
+  
+Library bar
+  Path:    src/bar
+  Install: false
+  Modules: Bar
+  
+Library baz
+  Path:    src/baz
+  Modules: Baz
+  Install: false
+  BuildDepends: bar
+  

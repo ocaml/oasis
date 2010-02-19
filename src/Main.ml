@@ -3,7 +3,7 @@
 
 open NonePlugin
 open InternalPlugin
-open OCamlbuildGen
+open OCamlbuildPlugin
 open CustomPlugin
 open METAGen
 open DevFilesGen
