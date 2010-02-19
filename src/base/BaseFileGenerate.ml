@@ -306,7 +306,7 @@ let file_generate ?(target) fn comment content =
                 )
             | fn_header, None ->
                 (
-                  info (Printf.sprintf "No replace section in file %s" fn);
+                  warning (Printf.sprintf "No replace section in file %s" fn);
                   match target with
                     | Some fn ->
                         (

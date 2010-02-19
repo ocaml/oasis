@@ -22,6 +22,7 @@
 "src/oasis/OASISBuildSection.ml": pkg_ocamlgraph
 
 <src/base/*.ml>: pkg_fileutils, pkg_odn
+"src/base/BaseDev.ml": syntax_camlp4o, pkg_odn.with.syntax
 
 <src/internal/*.ml>: pkg_odn
 
@@ -42,6 +43,7 @@
 
 <src/extra/stdfiles/*.ml>: pkg_fileutils
 
+"src/Main.ml": pkg_fileutils
 "src/Main.byte": pkg_unix, pkg_str, pkg_fileutils, pkg_extlib
 "src/Main.byte": pkg_odn, use_ocamlbuild, pkg_ocamlgraph
 

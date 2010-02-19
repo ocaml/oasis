@@ -9,12 +9,11 @@ open METAGen
 open DevFilesGen
 open StdFilesGen
 
-open BaseGenerate
-open BasePlugin
-open OASISUtils
-open CommonGettext
 open Format
+open CommonGettext
 open OASISTypes
+open OASISUtils
+open BasePlugin
 
 type action_t =
   | Generate 
@@ -34,6 +33,14 @@ let () =
     ref Beginner
   in
 
+  let rdev =
+    ref false
+  in
+
+  let rsetup_fn =
+    ref "setup.ml"
+  in
+
   let () = 
     try 
       Arg.parse_argv 
@@ -44,7 +51,7 @@ let () =
              Arg.String (fun str -> Sys.chdir str),
              (s_ "dir Change directory before running.");
 
-             "--quickstart",
+             "-quickstart",
              Arg.Unit (fun () -> action := Quickstart),
              (s_ " Launch an helper to write _oasis file.");
 
@@ -56,12 +63,26 @@ let () =
                    s_ "expert", Expert;
                  ]
                in
-                 "--quickstart-level",
+                 "-quickstart-level",
                  Arg.Symbol
                    ((List.map fst lvls),
                     (fun s -> qckstrt_lvl := List.assoc s lvls)),
                  (s_ " Quickstart level, skip questions according to this level.")
              );
+
+             "-dev",
+             Arg.Set rdev,
+             (s_ " Create a developper mode setup.ml. It will be automatically \
+                   updated at each run.");
+
+             "-setup-fn",
+             Arg.Set_string rsetup_fn,
+             (s_ " Change the default name of setup.ml. This option should be \
+                   used with caution, it is reserved for internal use.");                   
+
+             "-quiet",
+             Arg.Clear BaseMessage.verbose,
+             (s_ " Run quietly");
            ])
         (fun str -> 
            failwith 
@@ -126,7 +147,7 @@ let () =
               let pkg =
                 OASIS.from_file !oasis_fn 
               in
-                generate pkg
+                BaseGenerate.generate pkg !rdev !rsetup_fn
             end
         | Quickstart ->
             begin

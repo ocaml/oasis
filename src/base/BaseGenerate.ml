@@ -21,7 +21,7 @@ let required_modules =
 
 (** Generate setup.ml and the rest of the build system 
   *)
-let generate pkg = 
+let generate pkg dev setup_fn = 
 
   let pkg, setup_t_odn, other_actions, moduls =
     BaseSetup.odn_of_oasis pkg
@@ -55,13 +55,20 @@ let generate pkg =
     fprintf str_formatter
       "@[<v>open OASISTypes;;@,@[<hv2>let setup () =@ %a@,@];;"
       (pp_odn ~opened_modules:["OASISTypes"]) 
-      (APP ("BaseSetup.setup", [], [setup_t_odn]));
+      (if dev then
+         APP ("BaseDev.update_and_run", 
+              [], 
+              [BaseDev.odn_of_t (BaseDev.create setup_fn)])
+       else
+         APP ("BaseSetup.setup", 
+              [], 
+              [setup_t_odn]));
     flush_str_formatter ()
   in
 
     (* Generate setup.ml *)
     mlfile_generate
-      "setup.ml"
+      setup_fn
       (Split
          (
            (* Header *)
@@ -76,7 +83,7 @@ let generate pkg =
            ["let () = setup ();;"]
          )
       );
-    Unix.chmod "setup.ml" 0o755;
+    Unix.chmod setup_fn 0o755;
 
     (* Generate other files *)
     List.iter
