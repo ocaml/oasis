@@ -136,40 +136,25 @@ let rec string_of_comparator =
     | VAnd (c1, c2) -> 
         (string_of_comparator c1)^" && "^(string_of_comparator c2)
 
-(** Convert a version to a varname 
-  *)
-let varname_of_version v =
-  let vstr = 
-    string_of_version v
-  in
-  let buff = 
-    Buffer.create (String.length vstr)
-  in
-    String.iter 
-      (fun c ->
-         if ('a' <= c && c <= 'z') ||
-            ('A' <= c && c <= 'Z') ||
-            ('0' <= c && c <= '9') ||
-            (c = '_') then
-           Buffer.add_char buff c
-         else
-           Buffer.add_char buff '_')
-      vstr;
-    Buffer.contents buff 
-
 (** Convert a comparator to a varname 
   *)
 let rec varname_of_comparator =
-  function 
-    | VGreater v -> "gt_"^(varname_of_version v)
-    | VLesser v  -> "lt_"^(varname_of_version v)
-    | VEqual v   -> "eq_"^(varname_of_version v)
-    | VGreaterEqual v -> "ge_"^(varname_of_version v)
-    | VLesserEqual v  -> "le_"^(varname_of_version v)
-    | VOr (c1, c2) ->
-        (varname_of_comparator c1)^"_or_"^(varname_of_comparator c2)
-    | VAnd (c1, c2) ->
-        (varname_of_comparator c1)^"_and_"^(varname_of_comparator c2)
+  let concat p v = 
+    OASISUtils.varname_concat
+      p 
+      (OASISUtils.varname_of_string 
+         (string_of_version v))
+  in
+    function 
+      | VGreater v -> concat "gt" v
+      | VLesser v  -> concat "lt" v
+      | VEqual v   -> concat "eq" v
+      | VGreaterEqual v -> concat "ge" v
+      | VLesserEqual v  -> concat "le" v
+      | VOr (c1, c2) ->
+          (varname_of_comparator c1)^"_or_"^(varname_of_comparator c2)
+      | VAnd (c1, c2) ->
+          (varname_of_comparator c1)^"_and_"^(varname_of_comparator c2)
 
 (* END EXPORT *)
 

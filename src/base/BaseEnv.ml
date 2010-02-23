@@ -387,17 +387,8 @@ let print () =
 (** Default command line arguments 
   *)
 let args () =
-  let tr_arg str =
-    let buff =
-      Buffer.create (String.length str)
-    in
-      String.iter 
-        (function 
-           | '_' | ' ' | '\n' | '\r' | '\t' -> Buffer.add_char buff '-'
-           | c -> Buffer.add_char buff c
-        )
-        str;
-      Buffer.contents buff
+  let arg_concat =
+    OASISUtils.varname_concat ~hyphen:'-'
   in
     [
       "--override",
@@ -437,7 +428,7 @@ let args () =
            in
 
            let arg_name = 
-             tr_arg name
+             OASISUtils.varname_of_string ~hyphen:'-' name
            in
 
            let hlp =
@@ -465,23 +456,23 @@ let args () =
                    []
                | CLIAuto -> 
                    [
-                     "--"^arg_name,
+                     arg_concat "--" arg_name,
                      Arg.String var_set,
                      arg_hlp^" "^hlp^" ["^value^"]"
                    ]
                | CLIWith ->
                    [
-                     "--with-"^arg_name,
+                     arg_concat "--with-" arg_name,
                      Arg.String var_set,
                      arg_hlp^" "^hlp^" ["^value^"]"
                    ]
                | CLIEnable ->
                    [
-                     "--enable-"^arg_name,
+                     arg_concat "--enable-" arg_name,
                      Arg.Unit (fun () -> var_set "true"),
                      " "^hlp^(if value = "true" then " [default]" else "");
 
-                     "--disable-"^arg_name,
+                     arg_concat "--disable-" arg_name,
                      Arg.Unit (fun () -> var_set "false"),
                      " "^hlp^(if value <> "true" then " [default]" else "");
                    ]

@@ -415,23 +415,12 @@ let quickstart fmt lvl =
               cs
        in 
 
-       let pp_id_or_string fmt id =
-         let is_id str =
-           let is_alpha c = 
-             ('a' <= c && c <= 'z') ||  ('A' <= c && c <= 'Z')
-           in
-           let res =
-             ref (String.length str > 0 && is_alpha str.[0])
-           in
-             String.iter
-               (fun c -> res := !res && (is_alpha c || '0' <= c && c <= '9' || c = '_'))
-               str;
-             !res
-         in
-           if is_id id then 
-             fprintf fmt "%s" id
-           else 
-             fprintf fmt "%S" id
+       let pp_id_or_string fmt str =
+         (* A string is an id if varname_of_string doesn't change it *)
+         if str = (OASISUtils.varname_of_string str) then 
+           fprintf fmt "%s" str
+         else 
+           fprintf fmt "%S" str
        in
          fprintf fmt "@[<v 2>%s %a@,%a@]@,"
            sct_str

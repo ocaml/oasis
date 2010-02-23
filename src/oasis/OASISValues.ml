@@ -126,6 +126,19 @@ let comma_separated value =
               lst));
   }
 
+(** Convert a blank separated string into list, strip empty component *)
+let space_separated = 
+  {
+    parse = 
+      (fun s ->
+         List.filter 
+           (fun s -> s <> "")
+           (String.nsplit s " "));
+    print =
+      (fun lst ->
+         String.concat " " lst);
+  }
+
 (** Check that we have a version number *)
 let version =
   {
@@ -270,20 +283,15 @@ let command_line =
   { 
     parse = 
       (fun s ->
-         let cli =
-           List.filter 
-             (fun s -> s <> "")
-             (String.nsplit s " ")
-         in
-           match cli with 
-             | cmd :: args ->
-                 cmd, args
-             | [] ->
-                 failwith 
-                   (Printf.sprintf
-                      (f_ "Commande line '%s' is invalid")
-                      s));
+         match space_separated.parse s with 
+           | cmd :: args ->
+               cmd, args
+           | [] ->
+               failwith 
+                 (Printf.sprintf
+                    (f_ "Commande line '%s' is invalid")
+                    s));
     print = 
       (fun (cmd, args) -> 
-         String.concat " " (cmd :: args))
+         space_separated.print (cmd :: args))
   }

@@ -13,6 +13,8 @@ type url          = string with odn
 type dirname      = string with odn
 type filename     = string with odn
 type prog         = string with odn
+type arg          = string with odn
+type command      = string with odn
 
 (* Package name for findlib, doesn't contain '.' *)
 type findlib_name = string with odn 
@@ -130,6 +132,12 @@ type build_section =
       bs_build_tools:     tool list;
       bs_c_sources:       filename list;
       bs_data_files:      (filename * filename option) list;
+      bs_ccopt:           arg list;
+      bs_cclib:           arg list;
+      bs_dlllib:          arg list;
+      bs_dllpath:         arg list;
+      bs_byteopt:         arg list;
+      bs_nativeopt:       arg list;
     }
     with odn
 
@@ -177,7 +185,7 @@ type source_repository =
 type test = 
     {
       test_type:               string;
-      test_command:            string * string list;
+      test_command:            command * arg list;
       test_working_directory:  filename option;
       test_run:                bool conditional;
       test_build_tools:        tool list;

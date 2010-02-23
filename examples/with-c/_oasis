@@ -11,6 +11,7 @@ Library "with-c"
   Path: src
   Modules: A
   CSources: A_stub.c
+  CCOpt: -D OPTION_PASSED
 
 Executable "test-with-c"
   Path: src
@@ -18,6 +19,7 @@ Executable "test-with-c"
   CompiledObject: byte
   BuildDepends: with-c 
   CSources: main_stub.c
+  CCOpt: -D OPTION_PASSED
 
 Executable "test-with-c-custom"
   Path: src

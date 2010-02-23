@@ -96,24 +96,9 @@ let package_version pkg =
   *)
 let package ?version_comparator pkg () =
   let var =
-    let buff = 
-      Buffer.create ((String.length pkg) + 4)
-    in
-      Buffer.add_string buff "pkg_";
-      String.iter
-        (fun c ->
-           if ('a' <= c && c <= 'z') 
-             || 
-              ('A' <= c && c <= 'Z') 
-             || 
-              ('0' <= c && c <= '9')
-             ||
-              c = '_' then
-             Buffer.add_char buff c
-           else
-             Buffer.add_char buff '_')
-        pkg;
-      Buffer.contents buff
+    OASISUtils.varname_concat 
+      "pkg_" 
+      (OASISUtils.varname_of_string pkg)
   in
   let findlib_dir pkg = 
     let dir = 

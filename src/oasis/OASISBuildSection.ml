@@ -130,6 +130,48 @@ let section_fields nm comp_dflt schm =
              extension: 'dir/*.html' is valid but 'dir/*' and 'dir/*.tar.gz' are \
              not valid.")
   in
+  let ccopt = 
+    new_field schm "CCOpt"
+      ~default:[]
+      space_separated
+      (fun () ->
+         s_ "-ccopt arguments to use when building.")
+  in
+  let cclib = 
+    new_field schm "CCLib"
+      ~default:[]
+      space_separated
+      (fun () ->
+         s_ "-cclib arguments to use when building.")
+  in
+  let dlllib = 
+    new_field schm "DllLib"
+      ~default:[]
+      space_separated
+      (fun () ->
+         s_ "-dlllib arguments to use when building.")
+  in
+  let dllpath = 
+    new_field schm "DllPath"
+      ~default:[]
+      space_separated
+      (fun () ->
+         s_ "-dllpath arguments to use when building.")
+  in
+  let byteopt = 
+    new_field schm "ByteOpt"
+      ~default:[]
+      space_separated
+      (fun () ->
+         s_ "ocamlc arguments to use when building.")
+  in
+  let nativeopt = 
+    new_field schm "NativeOpt"
+      ~default:[]
+      space_separated
+      (fun () ->
+         s_ "ocamlopt arguments to use when building.")
+  in
     (fun nm data ->
        {
          bs_build           = build data;
@@ -140,6 +182,12 @@ let section_fields nm comp_dflt schm =
          bs_build_tools     = build_tools data;
          bs_c_sources       = c_sources data;
          bs_data_files      = data_files data;
+         bs_ccopt           = ccopt data;
+         bs_cclib           = cclib data;
+         bs_dlllib          = dlllib data;
+         bs_dllpath         = dllpath data;
+         bs_byteopt         = byteopt data;
+         bs_nativeopt       = nativeopt data;
        })
 
 (** {2 Graph of build depends}
@@ -157,24 +205,7 @@ module Oper = Oper.I(G)
 module Display = 
 struct 
   include G
-  let vertex_name v = 
-    let s = 
-      string_of_section v
-    in
-    let buff = 
-      Buffer.create (String.length s)
-    in
-      String.iter 
-        (fun c ->
-           if ('a' <= c && c <= 'z') 
-             ||
-              ('A' <= c && c <= 'Z') then
-             Buffer.add_char buff c
-           else
-             Buffer.add_char buff '_')
-        s;
-      Buffer.contents buff
-
+  let vertex_name v = varname_of_string (string_of_section v)
   let graph_attributes _ = []
   let default_vertex_attributes _ = []
   let vertex_attributes _ = []
