@@ -26,7 +26,7 @@ let exec_is ((cs, _, _) as exec_data) =
 open OASISSchema
 open OASISValues
 open OASISUtils
-open CommonGettext
+open OASISGettext
 open PropList.Field
 
 let schema, generator =

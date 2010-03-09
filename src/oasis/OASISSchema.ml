@@ -5,7 +5,7 @@
 
 open OASISTypes
 open OASISAstTypes
-open CommonGettext
+open OASISGettext
 open PropList
 
 type extra =

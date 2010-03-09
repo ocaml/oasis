@@ -5,7 +5,7 @@
 
 open OASISTypes
 open OASISUtils
-open CommonGettext
+open OASISGettext
 
 (** Library group are organized in trees
   *)
@@ -183,7 +183,7 @@ let root_of_group grp =
 
 open OASISSchema
 open OASISValues
-open CommonGettext
+open OASISGettext
 open PropList.Field
 
 let schema, generator =

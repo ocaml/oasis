@@ -5,7 +5,7 @@
 
 open BasePlugin
 open BaseFileGenerate
-open CommonGettext
+open OASISGettext
 open OASISTypes
 
 let plugin_id = "DevFiles"

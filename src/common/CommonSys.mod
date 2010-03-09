@@ -1,2 +1,2 @@
-CommonGettext.ml
+OASISGettext.ml
 PropList.ml

@@ -4,7 +4,7 @@
   *)
 
 open OASISTypes
-open CommonGettext
+open OASISGettext
 
 (** Compare versions
   *)

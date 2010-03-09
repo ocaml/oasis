@@ -4,7 +4,7 @@
   *)
 
 open OASISTypes
-open CommonGettext
+open OASISGettext
 open ExtString
 
 (** The value exist but there is no easy way to represent it

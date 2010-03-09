@@ -3,7 +3,7 @@
     @author Sylvain Le Gall
   *)
 
-open CommonGettext
+open OASISGettext
 open OASISSchema
 open OASISTypes
 open Format

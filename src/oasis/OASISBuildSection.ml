@@ -10,7 +10,7 @@ open OASISTypes
 open OASISSchema
 open OASISValues
 open OASISUtils
-open CommonGettext
+open OASISGettext
 
 let build_depends_field schm = 
   new_field schm "BuildDepends" 

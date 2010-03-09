@@ -2,7 +2,7 @@
 (** Check an OASIS package
   *)
 
-open CommonGettext
+open OASISGettext
 open PropList
 open OASISSchema
 

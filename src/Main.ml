@@ -10,7 +10,7 @@ open DevFilesGen
 open StdFilesGen
 
 open Format
-open CommonGettext
+open OASISGettext
 open OASISTypes
 open OASISUtils
 open BasePlugin
@@ -41,12 +41,16 @@ let () =
     ref "setup.ml"
   in
 
+  let (gettext_args, _) =
+    OASISGettext.init
+  in
+
   let () = 
     try 
       Arg.parse_argv 
         Sys.argv
         (Arg.align 
-           [
+           ([
              "-C",
              Arg.String (fun str -> Sys.chdir str),
              (s_ "dir Change directory before running.");
@@ -83,7 +87,7 @@ let () =
              "-quiet",
              Arg.Clear BaseMessage.verbose,
              (s_ " Run quietly");
-           ])
+           ] @ gettext_args))
         (fun str -> 
            failwith 
              (Printf.sprintf 

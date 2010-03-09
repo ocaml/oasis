@@ -10,7 +10,7 @@ open OASISTypes
 open OASISValues
 open OASISUtils
 open OASISSchema
-open CommonGettext
+open OASISGettext
 
 let mod_build_depends f pkg = 
   {pkg with

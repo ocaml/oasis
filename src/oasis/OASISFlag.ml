@@ -10,7 +10,7 @@ open OASISTypes
 open OASISSchema
 open OASISValues
 open OASISUtils
-open CommonGettext
+open OASISGettext
 open PropList.Field
 
 let schema, generator = 

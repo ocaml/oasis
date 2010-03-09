@@ -168,7 +168,7 @@ let clean pkg extra_args  =
 open BaseFileGenerate
 open OASISUtils
 open BaseMessage
-open CommonGettext
+open OASISGettext
 open ODN
 open BasePlugin
 open OASISTypes

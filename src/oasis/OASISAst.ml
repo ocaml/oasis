@@ -6,7 +6,7 @@
 open OASISTypes
 open OASISAstTypes
 open OASISUtils
-open CommonGettext
+open OASISGettext
 
 (** Convert OASIS stream into package 
   *)

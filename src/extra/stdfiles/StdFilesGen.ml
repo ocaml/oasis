@@ -9,7 +9,7 @@ open OASISTypes
 open OASIS
 open OASISUtils
 open OASISValues
-open CommonGettext
+open OASISGettext
 open Format
 open FormatExt
 

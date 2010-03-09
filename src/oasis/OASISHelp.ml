@@ -5,7 +5,7 @@
 
 open OASISTypes
 open OASISSchema
-open CommonGettext
+open OASISGettext
 open Format
 open FormatExt
 

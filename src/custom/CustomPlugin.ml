@@ -68,7 +68,7 @@ end
 
 (* END EXPORT *)
 
-open CommonGettext
+open OASISGettext
 open ODN
 open OASISTypes
 open OASISValues

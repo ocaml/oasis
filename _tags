@@ -15,6 +15,7 @@
 <src/tools/ocamlmod.{ml,byte,cmo,cmx}>: pkg_str, pkg_fileutils
 
 "src/common/PropList.ml": pkg_odn
+"src/common/OASISGettext.ml": pkg_gettext-camomile
 
 <src/oasis/*.ml>: pkg_fileutils, pkg_extlib
 "src/oasis/OASISTypes.ml": syntax_camlp4o, pkg_odn.with.syntax
@@ -46,7 +47,9 @@
 "src/Main.ml": pkg_fileutils
 "src/Main.byte": pkg_unix, pkg_str, pkg_fileutils, pkg_extlib
 "src/Main.byte": pkg_odn, use_ocamlbuild, pkg_ocamlgraph
+"src/Main.byte": pkg_gettext-camomile
 
 <test/*.{ml,byte}>: pkg_oUnit, pkg_str, pkg_fileutils, pkg_extlib
 <test/*.{ml,byte}>: pkg_odn, pkg_findlib, pkg_ocamlgraph
+<test/*.{ml,byte}>: pkg_gettext-camomile
 
