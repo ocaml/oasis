@@ -5,7 +5,7 @@ License:     GPL
 LicenseFile: LICENSE.txt
 Authors:     Sylvain Le Gall
 Synopsis:    Library and executable with test
-Plugins:     META
+Plugins:     META (0.1.0)
 
 Executable test
  Install: false
@@ -14,6 +14,6 @@ Executable test
  BuildDepends: oUnit
 
 Test "main"
- Type: Custom
+ Type: Custom (0.1.0)
  Command: ../_build/src/test
  WorkingDirectory: src

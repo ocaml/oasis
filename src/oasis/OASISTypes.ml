@@ -115,6 +115,8 @@ type expr =
   *)
 type 'a conditional = (expr * 'a) list with odn
 
+type plugin = name * version option with odn
+
 type common_section =
     {
       cs_name: name;
@@ -184,7 +186,7 @@ type source_repository =
   *)
 type test = 
     {
-      test_type:               string;
+      test_type:               plugin;
       test_command:            command * arg list;
       test_working_directory:  filename option;
       test_run:                bool conditional;
@@ -217,12 +219,12 @@ type package =
       synopsis:        string;
       description:     string option;
       categories:      url list;
-      conf_type:       string;
-      build_type:      string;
-      install_type:    string;
+      conf_type:       plugin;
+      build_type:      plugin;
+      install_type:    plugin;
       files_ab:        filename list;
       sections:        section list;
-      plugins:         string list;
+      plugins:         plugin list;
       schema_data:     PropList.Data.t;
     } with odn
 

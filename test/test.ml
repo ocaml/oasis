@@ -5,6 +5,7 @@
 
 open OUnit;;
 open TestCommon;;
+open OASISBuiltinPlugins;;
 
 let _res: test_result list = 
   let ctxt =

@@ -192,22 +192,22 @@ let schema, generator =
   in
   let conf_type =
     new_field schm "ConfType" 
-      ~default:"internal"
-      string_not_empty
+      ~default:(OASISPlugin.builtin "internal")
+      OASISPlugin.Configure.value
       (fun () -> 
          s_ "Configuration system.")
   in
   let build_type =
     new_field schm "BuildType" 
-      ~default:"ocamlbuild"
-      string_not_empty
+      ~default:(OASISPlugin.builtin "ocamlbuild")
+      OASISPlugin.Build.value
       (fun () -> 
          s_ "Build system.")
   in
   let install_type =
     new_field schm "InstallType"
-      ~default:"internal"
-      string_not_empty
+      ~default:(OASISPlugin.builtin "internal")
+      OASISPlugin.Install.value
       (fun () -> 
          s_ "Install/uninstall system.")
   in
@@ -236,10 +236,7 @@ let schema, generator =
   let plugins =
     new_field schm "Plugins"
       ~default:[]
-      (* TODO: check that plugin exists and activate plugins for further
-       * processing/check
-       *)
-      (comma_separated string_not_empty)
+      (comma_separated OASISPlugin.Extra.value)
       (fun () -> 
          s_ "Extra plugins to use")
   in

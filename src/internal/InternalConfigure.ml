@@ -108,15 +108,19 @@ let configure pkg argv =
 
 (* END EXPORT *)
 
-open BasePlugin
+open OASISPlugin
 
-(* Configuration *)
-let plugin_main pkg =
-  {
-    moduls       = [InternalData.internalsys_ml];
-    setup        = func configure "InternalConfigure.configure";
-    clean        = None;
-    distclean    = None;
-    other_action = (fun _ -> ());
-  },
-  pkg
+let () =
+  let module PU = Configure.Make(InternalId)
+  in
+  let doit pkg =  
+    {
+      moduls       = [InternalData.internalsys_ml];
+      setup        = ODNFunc.func configure "InternalConfigure.configure";
+      clean        = None;
+      distclean    = None;
+      other_action = (fun _ -> ());
+    },
+    pkg
+  in
+    PU.register doit

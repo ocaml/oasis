@@ -12,14 +12,18 @@ let section_not_implemented str pkg _ _ extra_args =
 (* END EXPORT *)
 
 open OASISTypes
-open BasePlugin
+open OASISPlugin
 
-let plugin_id = "None"
+module Id = 
+struct
+  let name    = "None"
+  let version = OASISConf.version
+end
 
 let std_no_generate str pkg =
   {
     moduls       = [NoneData.nonesys_ml];
-    setup        = func_with_arg 
+    setup        = ODNFunc.func_with_arg 
                      not_implemented "NonePlugin.not_implemented"
                      str ODN.of_string;
     clean        = None;
@@ -40,13 +44,14 @@ let section_no_generate str pkg (cs, section) =
     section
 
 let () = 
-  List.iter
-    (plugin_register plugin_id)
-    [
-      Configure (std_no_generate "configure");
-      Build     (std_no_generate "build"); 
-      Doc       (section_no_generate "doc"); 
-      Test      (section_no_generate "test"); 
-      Install   (std_no_generate "install", 
-                 std_no_generate "uninstall");
-    ]
+  let module PU = Configure.Make(Id) in 
+    PU.register (std_no_generate "configure");
+  let module PU = Build.Make(Id) in 
+    PU.register (std_no_generate "build"); 
+  let module PU = Doc.Make(Id) in 
+    PU.register (section_no_generate "doc"); 
+  let module PU = Test.Make(Id) in 
+    PU.register (section_no_generate "test"); 
+  let module PU = Install.Make(Id) in 
+    PU.register (std_no_generate "install", 
+                 std_no_generate "uninstall")

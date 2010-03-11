@@ -4,7 +4,7 @@ Version:     0.9.3
 Authors:     Daniel Buenzli
 LicenseFile: LICENSE
 License:     BSD3
-Plugins:     META, StdFiles, DevFiles
+Plugins:     META (0.1.0), StdFiles (0.1.0), DevFiles (0.1.0)
 Synopsis:    Universally unique identifiers (UUIDs) for OCaml
 
 Library uuidm
@@ -18,7 +18,7 @@ Executable perf
   BuildDepends: uuidm
 
 Test perf
-  Type: Custom
+  Type: Custom (0.1.0)
   Command: _build/test/perf
 
 Executable test
@@ -28,7 +28,7 @@ Executable test
   BuildDepends: uuidm
 
 Test test
-  Type: Custom
+  Type: Custom (0.1.0)
   Command: _build/test/test
 
 Executable uuid
@@ -38,5 +38,5 @@ Executable uuid
   BuildDepends: uuidm
 
 Test uuid
-  Type: Custom
+  Type: Custom (0.1.0)
   Command: _build/test/uuid

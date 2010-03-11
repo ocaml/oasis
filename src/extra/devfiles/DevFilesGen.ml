@@ -3,12 +3,17 @@
     @author Sylvain Le Gall
   *)
 
-open BasePlugin
 open BaseFileGenerate
 open OASISGettext
 open OASISTypes
 
-let plugin_id = "DevFiles"
+module PU = OASISPlugin.Extra.Make
+              (struct 
+                 let name = "DevFiles" 
+                 let version = OASISConf.version 
+               end)
+
+open PU
 
 let all_targets =
   [
@@ -23,9 +28,8 @@ let all_targets =
   ]
 
 let makefile_notargets =
-  OASIS.new_field
+  new_field
     OASISPackage.schema
-    plugin_id
     "MakefileNoTargets"
     ~default:[]
     (OASISValues.comma_separated
@@ -36,9 +40,8 @@ let makefile_notargets =
        s_ "Targets to disable when generating Makefile")
 
 let enable_makefile =
-  OASIS.new_field
+  new_field
     OASISPackage.schema
-    plugin_id
     "EnableMakefile"
     ~default:true
     OASISValues.boolean
@@ -46,9 +49,8 @@ let enable_makefile =
        s_ "Generate Makefile")
 
 let enable_configure =
-  OASIS.new_field
+  new_field
     OASISPackage.schema
-    plugin_id
     "EnableConfigure"
     ~default:true
     OASISValues.boolean
@@ -114,6 +116,4 @@ let main pkg =
     end
 
 let () =
-  plugin_register 
-    plugin_id 
-    (Extra main)
+  register main

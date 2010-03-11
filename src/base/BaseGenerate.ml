@@ -8,7 +8,7 @@ open OASISTypes
 open OASISUtils
 open BaseFileGenerate
 open ODN
-open BasePlugin
+open OASISPlugin
 
 let required_modules =
   [
@@ -30,7 +30,7 @@ let generate pkg dev setup_fn =
   let () = 
     (* Run extra plugin *)
     List.iter
-      (fun nm -> plugin_extra nm pkg)
+      (fun nm -> Extra.find nm pkg)
       pkg.plugins
   in
 

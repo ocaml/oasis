@@ -5,7 +5,7 @@ Authors:     Sylvain Le Gall
 LicenseFile: LICENSE
 License:     LGPL-link-exn
 Synopsis:    Minimal project with C file.
-Plugins:     META
+Plugins:     META (0.1.0)
 
 Library "with-c"
   Path: src

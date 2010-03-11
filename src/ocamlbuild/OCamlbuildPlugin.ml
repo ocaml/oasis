@@ -170,18 +170,21 @@ open OASISUtils
 open BaseMessage
 open OASISGettext
 open ODN
-open BasePlugin
+open OASISPlugin
 open OASISTypes
 open OASISValues
 open OCamlbuildBase
 open Ocamlbuild_plugin
 
-let plugin_id = "OCamlbuild"
+module PU = OASISPlugin.Build.Make
+              (struct 
+                 let name    = "OCamlbuild"
+                 let version = OASISConf.version
+               end)
 
 let extern = 
-  OASIS.new_field
+  PU.new_field
     OASISLibrary.schema
-    plugin_id
     "Extern"
     ~default:true
     boolean
@@ -552,19 +555,17 @@ let create_ocamlbuild_files pkg () =
               ["Ocamlbuild_plugin.dispatch dispatch_default;;"]))
 
 
-let plugin_main pkg =
-    {
-      moduls       = [OCamlbuildData.ocamlbuildsys_ml];
-      setup        = func build "OCamlbuildPlugin.build";
-      clean        = Some (func clean "OCamlbuildPlugin.clean");
-      distclean    = None;
-      other_action = create_ocamlbuild_files pkg;
-    },
-    OASISPackage.add_build_tool ~no_test:true 
-      (ExternalTool "ocamlbuild") 
-      pkg
-
 let () =
-  plugin_register 
-    plugin_id 
-    (Build plugin_main)
+  let doit pkg =
+      {
+        moduls       = [OCamlbuildData.ocamlbuildsys_ml];
+        setup        = ODNFunc.func build "OCamlbuildPlugin.build";
+        clean        = Some (ODNFunc.func clean "OCamlbuildPlugin.clean");
+        distclean    = None;
+        other_action = create_ocamlbuild_files pkg;
+      },
+      OASISPackage.add_build_tool ~no_test:true 
+        (ExternalTool "ocamlbuild") 
+        pkg
+  in
+    PU.register doit

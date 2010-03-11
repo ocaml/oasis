@@ -7,16 +7,21 @@ open OASISGettext
 open OASISTypes
 open OASISValues
 open OASISLibrary
-open BasePlugin
 open BaseFileGenerate
 open Format
 
-let plugin_id = "META"
+module PU = OASISPlugin.Extra.Make
+              (struct
+                 let name = "META"
+                 let version = OASISConf.version
+               end)
+open PU
+
+let new_field nm = 
+  new_field OASISLibrary.schema nm
 
 let enable = 
-  OASIS.new_field
-    OASISLibrary.schema
-    plugin_id 
+  new_field
     "Enable"
     ~default:true
     boolean
@@ -24,9 +29,7 @@ let enable =
        s_ "Enable META generation")
 
 let description =
-  OASIS.new_field
-    OASISLibrary.schema
-    plugin_id
+  new_field
     "Description"
     ~default:None
     (opt string_not_empty)
@@ -38,9 +41,7 @@ type meta_type =
   | METASyntax
 
 let typ =
-  OASIS.new_field
-    OASISLibrary.schema
-    plugin_id
+  new_field
     "Type"
     ~default:METALibrary
     (choices
@@ -54,9 +55,7 @@ let typ =
        s_ "Type of META package, set default predicates for archive")
 
 let requires =
-  OASIS.new_field
-    OASISLibrary.schema
-    plugin_id
+  new_field
     "Requires"
     ~default:None
     (opt (comma_separated string))
@@ -204,6 +203,4 @@ let main pkg =
       (group_libs pkg)
 
 let () = 
-  plugin_register 
-    plugin_id 
-    (Extra main)
+  register main

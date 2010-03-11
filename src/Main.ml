@@ -1,19 +1,12 @@
 
 (** Main for OASIS *)
 
-open NonePlugin
-open InternalPlugin
-open OCamlbuildPlugin
-open CustomPlugin
-open METAGen
-open DevFilesGen
-open StdFilesGen
-
 open Format
 open OASISGettext
 open OASISTypes
 open OASISUtils
-open BasePlugin
+open OASISPlugin
+open OASISBuiltinPlugins
 
 type action_t =
   | Generate 
@@ -130,13 +123,12 @@ let () =
                    set_string_add_list
                    SetString.empty
                    [
-                     plugin_ls configure_plugins;
-                     plugin_ls build_plugins;
-                     plugin_ls doc_plugins;
-                     plugin_ls test_plugins;
-                     plugin_ls install_plugins;
-                     plugin_ls uninstall_plugins;
-                     plugin_ls extra_plugins;
+                     OASISPlugin.Configure.ls ();
+                     OASISPlugin.Build.ls ();
+                     OASISPlugin.Doc.ls ();
+                     OASISPlugin.Test.ls ();
+                     OASISPlugin.Install.ls ();
+                     OASISPlugin.Extra.ls ();
                    ]));
 
             pp_print_flush std_formatter ();

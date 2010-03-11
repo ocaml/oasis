@@ -463,27 +463,33 @@ let uninstall _ argv =
 
 (* END EXPORT *)
 
-open BasePlugin
+open OASISPlugin
 
-(* Installation *)
-let plugin_install_main pkg =
+let () = 
+  let module PU = Install.Make(InternalId)
+  in
+  (* Installation *)
+  let doit_install pkg =
+      {
+        moduls       = [InternalData.internalsys_ml];
+        setup        = ODNFunc.func install "InternalInstall.install";
+        clean        = None;
+        distclean    = None;
+        other_action = ignore;
+      },
+      pkg
+  in
+
+  (* Uninstall *)
+  let doit_uninstall pkg = 
     {
       moduls       = [InternalData.internalsys_ml];
-      setup        = func install "InternalInstall.install";
+      setup        = ODNFunc.func uninstall "InternalInstall.uninstall";
       clean        = None;
       distclean    = None;
       other_action = ignore;
     },
     pkg
+  in
 
-(* Uninstall *)
-let plugin_uninstall_main pkg = 
-  {
-    moduls       = [InternalData.internalsys_ml];
-    setup        = func uninstall "InternalInstall.uninstall";
-    clean        = None;
-    distclean    = None;
-    other_action = ignore;
-  },
-  pkg
-
+    PU.register (doit_install, doit_uninstall)

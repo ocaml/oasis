@@ -3,17 +3,21 @@
     @author Sylvain Le Gall
   *)
 
-open BasePlugin
 open BaseFileGenerate
+open OASISPlugin
 open OASISTypes
-open OASIS
 open OASISUtils
 open OASISValues
 open OASISGettext
 open Format
 open FormatExt
 
-let plugin_id = "StdFiles"
+module PU = OASISPlugin.Extra.Make
+              (struct
+                 let name    = "StdFiles"
+                 let version = OASISConf.version
+               end)
+open PU
 
 type package =
     (* Standalone executable *)
@@ -130,8 +134,7 @@ let package_of_library =
 
 let fn_enable fn = 
   new_field 
-    OASISPackage.schema 
-    plugin_id 
+    OASISPackage.schema
     fn 
     ~default:true 
     boolean
@@ -139,7 +142,6 @@ let fn_enable fn =
        Printf.sprintf (f_ "Enable %s file generation.") fn),
   new_field 
     OASISPackage.schema
-    plugin_id 
     (fn^"Filename")
     ~default:(fn^".txt")
     string_not_empty
@@ -514,6 +516,4 @@ let main pkg =
          pp_close_box fmt ())
 
 let () = 
-  plugin_register 
-    plugin_id 
-    (Extra main)
+  register main

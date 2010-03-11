@@ -50,16 +50,7 @@ let from_string ?(conf=default_conf) str =
     conf
     (Stream.of_string str)
 
-(** Add a new field to schema
-  *)
-let new_field = OASISPlugin.new_field
-
-(** Add a new field to schema which can be conditional
-  *)
-let new_field_conditional = OASISPlugin.new_field_conditional
-
 (** Print help about OASIS fields.
   *)
-let pp_help = 
-  OASISHelp.pp_help
+let pp_help = OASISHelp.pp_help
 

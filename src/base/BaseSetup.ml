@@ -232,12 +232,12 @@ let setup t =
 
 (* END EXPORT *)
 
-module PLG = BasePlugin
+module PLG = OASISPlugin
 
 let odn_of_oasis pkg = 
 
   let build_gen, pkg = 
-    (PLG.plugin_build pkg.build_type) pkg
+    (PLG.Build.find pkg.build_type) pkg
   in
 
   let test_odn, test_gens, pkg = 
@@ -248,9 +248,10 @@ let odn_of_oasis pkg =
              | Test (cs, tst) ->
                  begin
                    let gen, pkg, cs, tst = 
-                     (PLG.plugin_test tst.test_type) pkg (cs, tst)
+                     (PLG.Test.find tst.test_type) pkg (cs, tst)
                    in
-                     (ODN.TPL [ODN.STR cs.cs_name; PLG.odn_of_func gen.PLG.setup] 
+                     (ODN.TPL [ODN.STR cs.cs_name; 
+                               ODNFunc.odn_of_func gen.PLG.setup] 
                       :: 
                       test_odns),
                      (cs.cs_name, gen) :: test_gens,
@@ -272,16 +273,21 @@ let odn_of_oasis pkg =
     ODN.LST [], [], pkg
   in
 
-  let install_gen, pkg =
-    (PLG.plugin_install pkg.install_type) pkg
-  in
-
-  let uninstall_gen, pkg =
-    (PLG.plugin_uninstall pkg.install_type) pkg
+  let install_gen, uninstall_gen, pkg =
+    let inst, uninst = 
+      PLG.Install.find pkg.install_type
+    in
+    let install_gen, pkg = 
+      inst pkg
+    in
+    let uninstall_gen, pkg =
+      uninst pkg
+    in
+      install_gen, uninstall_gen, pkg
   in
 
   let configure_gen, pkg =
-    (PLG.plugin_configure pkg.conf_type) pkg
+    (PLG.Configure.find pkg.conf_type) pkg
   in
 
   let std_gens = 
@@ -366,23 +372,23 @@ let odn_of_oasis pkg =
     if false then
       begin
         let setup_func_calls lst =
-          List.map (fun (nm, gen) -> nm, PLG.func_call gen.PLG.setup) lst
+          List.map (fun (nm, gen) -> nm, ODNFunc.func_call gen.PLG.setup) lst
         in
         let func_calls lst = 
-          List.map (fun (nm, func) -> nm, PLG.func_call func) lst
+          List.map (fun (nm, func) -> nm, ODNFunc.func_call func) lst
         in
         let _t: t = 
           {
-            configure       = PLG.func_call configure_gen.PLG.setup;
-            build           = PLG.func_call build_gen.PLG.setup;
+            configure       = ODNFunc.func_call configure_gen.PLG.setup;
+            build           = ODNFunc.func_call build_gen.PLG.setup;
             doc             = setup_func_calls doc_gens;
             test            = setup_func_calls test_gens;
-            install         = PLG.func_call install_gen.PLG.setup;
-            uninstall       = PLG.func_call uninstall_gen.PLG.setup;
-            clean           = List.map PLG.func_call clean_funcs;
+            install         = ODNFunc.func_call install_gen.PLG.setup;
+            uninstall       = ODNFunc.func_call uninstall_gen.PLG.setup;
+            clean           = List.map ODNFunc.func_call clean_funcs;
             clean_test      = func_calls clean_test_funcs;
             clean_doc       = func_calls clean_doc_funcs;
-            distclean       = List.map PLG.func_call distclean_funcs;
+            distclean       = List.map ODNFunc.func_call distclean_funcs;
             distclean_test  = func_calls distclean_test_funcs;
             distclean_doc   = func_calls distclean_doc_funcs;
             package         = pkg;
@@ -394,24 +400,24 @@ let odn_of_oasis pkg =
 
   let setup_t_odn =
     let odn_of_funcs lst =
-      ODN.LST (List.map PLG.odn_of_func lst)
+      ODN.LST (List.map ODNFunc.odn_of_func lst)
     in
     let odn_of_assocs lst =
       ODN.LST 
         (List.map 
            (fun (nm, func) -> 
-              ODN.TPL[ODN.STR nm; PLG.odn_of_func func])
+              ODN.TPL[ODN.STR nm; ODNFunc.odn_of_func func])
            lst)
     in
       ODN.REC
         ("BaseSetup",
          [
-           "configure",      PLG.odn_of_func configure_gen.PLG.setup;
-           "build",          PLG.odn_of_func build_gen.PLG.setup;
+           "configure",      ODNFunc.odn_of_func configure_gen.PLG.setup;
+           "build",          ODNFunc.odn_of_func build_gen.PLG.setup;
            "test",           test_odn;
            "doc",            doc_odn;
-           "install",        PLG.odn_of_func  install_gen.PLG.setup;
-           "uninstall",      PLG.odn_of_func  uninstall_gen.PLG.setup;
+           "install",        ODNFunc.odn_of_func  install_gen.PLG.setup;
+           "uninstall",      ODNFunc.odn_of_func  uninstall_gen.PLG.setup;
            "clean",          odn_of_funcs clean_funcs;
            "clean_test",     odn_of_assocs clean_test_funcs;
            "clean_doc",      odn_of_assocs clean_doc_funcs;

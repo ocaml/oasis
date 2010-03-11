@@ -25,8 +25,8 @@ let schema, generator =
   in
   let typ =
     new_field schm "Type"
-      ~default:"none"
-      string_not_empty
+      ~default:(OASISPlugin.builtin "none") 
+      OASISPlugin.Test.value
       (fun () ->
          s_ "Plugin to use to run test.")
   in

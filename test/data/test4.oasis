@@ -5,7 +5,7 @@ Synopsis:     Just a test
 License:      GPL
 LicenseFile:  LICENSE
 Authors:      Sylvain Le Gall
-BuildType:    None
+BuildType:    None (0.1.0)
 XTest:        true
 Description: 
  This is a test to check that everything is working great

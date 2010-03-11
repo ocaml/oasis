@@ -5,7 +5,7 @@ License:     GPL
 LicenseFile: LICENSE.txt
 Authors:     Sylvain Le Gall
 Synopsis:    Library and executable with extra data
-Plugins:     META
+Plugins:     META (0.1.0)
 
 Executable test
  Path: src
