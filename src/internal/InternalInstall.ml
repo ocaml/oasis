@@ -30,6 +30,9 @@ let exec_hook =
 let lib_hook =
   ref (fun (cs, bs, lib) -> cs, bs, lib, [])
 
+let doc_hook =
+  ref (fun (cs, doc) -> cs, doc)
+
 let install_file_ev = 
   "install-file"
 
@@ -126,86 +129,47 @@ let install pkg argv =
   (* Install all datas *)
   let install_datas pkg = 
 
-    (* Install data for a single section *)
-    let install_data bs = 
-      List.iter
-        (fun (src, tgt_opt) ->
-           let real_srcs = 
-             let real_src = 
-               Filename.concat bs.bs_path src
+    (* Install data into defined directory *)
+    let install_data srcdir lst tgtdir =
+      let tgtdir = 
+        var_expand tgtdir
+      in
+        List.iter
+          (fun (src, tgt_opt) ->
+             let real_srcs = 
+               BaseFileUtil.glob 
+                 (Filename.concat srcdir src)
              in
-             (* Glob the src expression *)
-             let filename = 
-               Filename.basename real_src
-             in
-               if String.contains filename '*' then
-                 (
-                   let ext = 
-                     match OASISUtils.split '.' filename with 
-                       | [a; b] when a = "*" -> 
-                           "."^b
-                       | _ ->
-                           failwith 
-                             (Printf.sprintf 
-                                "Invalid file wildcard in '%s'"
-                                src)
-                   in
-                   let ext_len =
-                     String.length ext
-                   in
-                   let dirname =
-                     Filename.dirname real_src
-                   in
-                   let res =
-                     Array.fold_left
-                       (fun acc fn ->
-                          try 
-                            let fn_ext = 
-                              String.sub 
-                                fn 
-                                ((String.length fn) - ext_len) 
-                                ext_len
-                            in
-                              if fn_ext = ext then
-                                (Filename.concat dirname fn) :: acc
-                              else
-                                acc
-                          with Invalid_argument "String.sub" ->
-                            acc)
-                       []
-                       (Sys.readdir dirname)
-                   in
-                     if res = [] then
-                       failwith 
-                         (Printf.sprintf 
-                            "Wildcard '%s' doesn't match any files"
-                            src);
-                     res
-                 )
-               else
-                 (
-                   [real_src]
-                 )
-           in
-             List.iter 
-               (fun fn -> 
-                  install_file 
-                    fn 
-                    (fun () -> 
-                       match tgt_opt with 
-                         | Some s -> var_expand s
-                         | None -> var_expand "$datarootdir/$pkg_name")) 
-               real_srcs)
-             
-        bs.bs_data_files
-    in
+               if real_srcs = [] then
+                 failwith 
+                   (Printf.sprintf 
+                      "Wildcard '%s' doesn't match any files"
+                      src);
+               List.iter 
+                 (fun fn -> 
+                    install_file 
+                      fn 
+                      (fun () -> 
+                         match tgt_opt with 
+                           | Some s -> var_expand s
+                           | None -> tgtdir))
+                 real_srcs)
+          lst
+    in       
 
-      (* Install datas for libraries and executables *)
       List.iter
         (function
            | Library (_, bs, _)
            | Executable (_, bs, _) ->
-               install_data bs
+               install_data
+                 bs.bs_path
+                 bs.bs_data_files
+                 "$datarootdir/$pkg_name"
+           | Doc (_, doc) ->
+               install_data
+                 Filename.current_dir_name
+                 doc.doc_data_files
+                 doc.doc_install_dir
            | _ ->
                ())
         pkg.sections
@@ -368,25 +332,23 @@ let install pkg argv =
         !exec_hook data_exec
       in
         if var_choose bs.bs_install then
-          (
-              install_file
-                (find_build_file
-                   ((OASISExecutable.exec_is data_exec)^(suffix_program ())))
-                bindir;
-
-              if bs.bs_c_sources <> [] && 
-                 not exec.exec_custom && 
-                 (* TODO: move is_native to OASISBuildSection *)
-                 not (is_native bs.bs_compiled_object) then
-                (
-                  install_file
-                    (find_build_file
-                       (dllfn (OASISExecutable.exec_main_path data_exec) cs.cs_name))
-                    libdir
-                )
-              else
-                ()
-          )
+          begin
+            install_file
+              (find_build_file
+                 ((OASISExecutable.exec_is data_exec)^(suffix_program ())))
+              bindir;
+            
+            if bs.bs_c_sources <> [] && 
+               not exec.exec_custom && 
+               (* TODO: move is_native to OASISBuildSection *)
+               not (is_native bs.bs_compiled_object) then
+              begin
+                install_file
+                  (find_build_file
+                     (dllfn (OASISExecutable.exec_main_path data_exec) cs.cs_name))
+                  libdir
+              end
+          end
     in
       List.iter
         (function
@@ -396,9 +358,39 @@ let install pkg argv =
                ())
         pkg.sections
   in
+
+  let install_docs pkg = 
+    let install_doc data =
+      let (cs, doc) =
+        !doc_hook data
+      in
+        if var_choose doc.doc_install then
+          begin
+            let tgt_dir =
+              var_expand doc.doc_install_dir
+            in
+              BaseBuilt.fold
+                BaseBuilt.BDoc
+                cs.cs_name
+                (fun () fn ->
+                   install_file 
+                     fn 
+                     (fun () -> tgt_dir))
+              ()
+          end
+    in
+      List.iter
+        (function
+           | Doc (cs, doc) ->
+               install_doc (cs, doc)
+           | _ ->
+               ())
+        pkg.sections
+  in
   
-    install_libs pkg;
+    install_libs  pkg;
     install_execs pkg;
+    install_docs  pkg;
     install_datas pkg
 
 (* Uninstall already installed data *)

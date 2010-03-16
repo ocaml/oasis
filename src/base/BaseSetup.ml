@@ -6,6 +6,7 @@
 open BaseEnv
 open OASISTypes
 open OASISSection
+open OASISGettext
 
 type std_args_fun = 
     package -> string array -> unit
@@ -17,18 +18,38 @@ type t =
     {
       configure:       std_args_fun;
       build:           std_args_fun;
-      doc:             ((unit, unit)  section_args_fun) list;
+      doc:             ((doc, unit)  section_args_fun) list;
       test:            ((test, float) section_args_fun) list;
       install:         std_args_fun;
       uninstall:       std_args_fun;
       clean:           std_args_fun list;
-      clean_doc:       (unit, unit) section_args_fun list;
+      clean_doc:       (doc, unit) section_args_fun list;
       clean_test:      (test, unit) section_args_fun list;
       distclean:       std_args_fun list;
-      distclean_doc:   (unit, unit) section_args_fun list;
+      distclean_doc:   (doc, unit) section_args_fun list;
       distclean_test:  (test, unit) section_args_fun list;
       package:         package;
     } 
+
+(** Associate a plugin function with data from package
+  *)
+let join_plugin_sections filter_map lst =
+  List.rev
+    (List.fold_left
+       (fun acc sct ->
+          try 
+            match filter_map sct with 
+              | Some e ->
+                  e :: acc
+              | None ->
+                  acc
+          with Not_found ->
+            failwith 
+              (Printf.sprintf 
+                 (f_ "Cannot find plugin matching %s")
+                 (OASISSection.string_of_section sct)))
+       []
+       lst)
 
 (** Configure step *)
 let configure t args = 
@@ -48,24 +69,33 @@ let build t args =
 
 (** Documentation step *)
 let doc t args =
-  (* TODO: documentation run *)
-  ()
+  BaseDoc.doc
+    (join_plugin_sections
+       (function 
+          | Doc (cs, e) -> 
+              Some 
+                (List.assoc cs.cs_name t.doc,
+                 cs,
+                 e)
+          | _ -> 
+              None)
+       t.package.sections)
+    t.package
+    args
 
 (** Test step *)
 let test t args = 
   BaseTest.test 
-    (List.rev
-       (List.fold_left 
-          (fun acc ->
-             function
-               | Test (cs, test) ->
-                   (List.assoc cs.cs_name t.test,
-                    cs, 
-                    test) :: acc
-               | _ ->
-                   acc)
-          []
-          t.package.sections))
+    (join_plugin_sections
+       (function 
+          | Test (cs, e) -> 
+              Some 
+                (List.assoc cs.cs_name t.test,
+                 cs,
+                 e)
+          | _ -> 
+              None)
+       t.package.sections)
     t.package
     args
 
@@ -91,7 +121,8 @@ let clean, distclean =
          | Library _ 
          | Executable _
          | Flag _ 
-         | SrcRepo _ ->
+         | SrcRepo _
+         | Doc _ ->
              ())
       t.package.sections;
     (* Clean whole package *)
@@ -270,7 +301,32 @@ let odn_of_oasis pkg =
   in
 
   let doc_odn, doc_gens, pkg = 
-    ODN.LST [], [], pkg
+    let doc_odns, doc_gens, pkg =
+      List.fold_left
+        (fun (doc_odns, doc_gens, pkg) -> 
+           function
+             | Doc (cs, doc) ->
+                 begin
+                   let gen, pkg, cs, doc = 
+                     (PLG.Doc.find doc.doc_type) pkg (cs, doc)
+                   in
+                     (ODN.TPL [ODN.STR cs.cs_name; 
+                               ODNFunc.odn_of_func gen.PLG.setup] 
+                      :: 
+                      doc_odns),
+                     (cs.cs_name, gen) :: doc_gens,
+                     {pkg with sections = (Doc (cs, doc)) :: pkg.sections}
+                 end
+             | sct ->
+                 doc_odns,
+                 doc_gens,
+                 {pkg with sections = sct :: pkg.sections})
+        ([], [], {pkg with sections = []})
+        pkg.sections
+    in
+      ODN.LST (List.rev doc_odns),
+      List.rev doc_gens,
+      {pkg with sections = List.rev pkg.sections}
   in
 
   let install_gen, uninstall_gen, pkg =

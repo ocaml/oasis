@@ -10,3 +10,4 @@ OASISFlag.ml
 OASISPackage.ml
 OASISSourceRepository.ml
 OASISTest.ml
+OASISDocumentation.ml

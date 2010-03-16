@@ -5,37 +5,41 @@
 
 open OASISTypes
 
-(* END EXPORT *)
-
-let section_fields _ _ =
-  fun nm data ->
-    {
-      cs_name = nm;
-      cs_data = data;
-    }
-
 type section_kind =
   | KLibrary 
   | KExecutable
   | KFlag
   | KSrcRepo
   | KTest
+  | KDoc
+
+(** Extract generic information 
+  *)
+let section_kind_common = 
+  function
+    | Library (cs, _, _) -> 
+        KLibrary, cs
+    | Executable (cs, _, _) ->
+        KExecutable, cs
+    | Flag (cs, _) ->
+        KFlag, cs
+    | SrcRepo (cs, _) ->
+        KSrcRepo, cs
+    | Test (cs, _) ->
+        KTest, cs
+    | Doc (cs, _) ->
+        KDoc, cs
+
+(** Common section of a section
+  *)
+let section_common sct =
+  snd (section_kind_common sct)
 
 (** Key used to identify section
   *)
 let section_id sct = 
   let k, cs = 
-    match sct with
-      | Library (cs, _, _) -> 
-          KLibrary, cs
-      | Executable (cs, _, _) ->
-          KExecutable, cs
-      | Flag (cs, _) ->
-          KFlag, cs
-      | SrcRepo (cs, _) ->
-          KSrcRepo, cs
-      | Test (cs, _) ->
-          KTest, cs
+    section_kind_common sct
   in
     k, cs.cs_name
 
@@ -48,8 +52,18 @@ let string_of_section sct =
        | KExecutable -> "executable"
        | KFlag       -> "flag"
        | KSrcRepo    -> "src repository"
-       | KTest       -> "test")
+       | KTest       -> "test"
+       | KDoc        -> "doc")
     ^" "^nm
+
+(* END EXPORT *)
+
+let section_fields _ _ =
+  fun nm data ->
+    {
+      cs_name = nm;
+      cs_data = data;
+    }
 
 (** {2 Module for full section} *)
 

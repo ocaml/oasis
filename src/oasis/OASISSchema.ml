@@ -194,3 +194,5 @@ let new_field
         ?quickstart_question
          value)
 
+let new_field_phantom ?plugin ?name () =
+  Field.create ?name (extra ?plugin OASISValues.blackbox)

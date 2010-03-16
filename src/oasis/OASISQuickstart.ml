@@ -392,28 +392,24 @@ let quickstart fmt lvl =
 
   List.iter 
     (fun sct ->
-       let sct_str, schm = 
+       let schm = 
          match sct with 
            | Library _ ->
-               "Library", OASISLibrary.schema
+               OASISLibrary.schema
            | Executable _ -> 
-               "Executable", OASISExecutable.schema
+               OASISExecutable.schema
            | SrcRepo _ ->
-               "SourceRepository", OASISSourceRepository.schema
+               OASISSourceRepository.schema
            | Test _ ->
-               "Test", OASISTest.schema
+               OASISTest.schema
            | Flag _ ->
-               "Flag", OASISFlag.schema
+               OASISFlag.schema
+           | Doc _ ->
+               OASISDocumentation.schema
        in
 
        let {cs_name = nm; cs_data = data} = 
-         match sct with
-           | Library (cs, _, _)
-           | Executable (cs, _, _) 
-           | SrcRepo (cs, _) 
-           | Test (cs, _)
-           | Flag (cs, _) ->
-              cs
+         OASISSection.section_common sct
        in 
 
        let pp_id_or_string fmt str =
@@ -424,7 +420,7 @@ let quickstart fmt lvl =
            fprintf fmt "%S" str
        in
          fprintf fmt "@[<v 2>%s %a@,%a@]@,"
-           sct_str
+           schm.PropList.Schema.name
            pp_id_or_string nm
            pp_fields (schm, data))
     sections;

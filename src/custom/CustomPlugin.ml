@@ -60,13 +60,13 @@ end
 
 module Doc =
 struct
-  let main t pkg (cs, ()) extra_args =
+  let main t pkg (cs, _) extra_args =
     main t pkg extra_args
 
-  let clean t pkg (cs, ()) extra_args =
+  let clean t pkg (cs, _) extra_args =
     clean t pkg extra_args
 
-  let distclean t pkg (cs, ()) extra_args =
+  let distclean t pkg (cs, _) extra_args =
     distclean t pkg extra_args
 end
 

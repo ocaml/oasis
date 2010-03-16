@@ -27,6 +27,7 @@ type location_t =
       lib_dir:       filename;
       data_dir:      filename;
       doc_dir:       filename;
+      html_dir:      filename;
     }
 ;;
 
@@ -143,6 +144,41 @@ let tests ctxt =
          acc)
       acc
       files
+  in
+
+  (* Set all files location into html_dir + library *)
+  let in_html lib files loc acc =
+    List.fold_left
+      (fun acc fn ->
+         (FilePath.make_filename [loc.html_dir; lib; fn])
+         ::
+         acc)
+      acc
+      files
+  in
+
+  let api_ref_html lib moduls =
+    in_html lib
+      (List.rev_append
+         [
+           "index.html"; 
+           "index_attributes.html"; 
+           "index_class_types.html"; 
+           "index_classes.html"; 
+           "index_exceptions.html"; 
+           "index_methods.html"; 
+           "index_module_types.html"; 
+           "index_modules.html"; 
+           "index_types.html"; 
+           "index_values.html"; 
+           "style.css"; 
+         ]
+         (List.flatten
+            (List.rev_map 
+               (fun modul ->
+                  ["type_"^modul^".html";
+                   modul^".html"])
+               moduls)))
   in
 
   (* Set all files location into buid_dir + data *)
@@ -378,6 +414,7 @@ let tests ctxt =
              lib_dir       = mkdir_return ["lib"];
              data_dir      = mkdir_return ["share"];
              doc_dir       = mkdir_return ["share"; "doc"];
+             html_dir      = mkdir_return ["share"; "doc"; "html"];
            }, 
            pristine)
 
@@ -411,28 +448,31 @@ let tests ctxt =
 
          (* Run configure target *)
          let () = 
-           assert_run_setup ["-configure"; "--prefix"; loc.build_dir];
+           assert_run_setup 
+             ["-configure"; 
+              "--prefix";  loc.build_dir;
+              "--docdir";  loc.doc_dir;
+              "--htmldir"; loc.html_dir;
+             ];
 
            assert_bool
              "File 'setup.data' has been created"
-             (Sys.file_exists "setup.data");
+             (Sys.file_exists "setup.data")
          in
 
          (* Run build target *)
          let () = 
-           assert_run_setup ["-build"];
+           assert_run_setup ["-build"]
          in
 
          (* Run test target *)
          let () = 
-           assert_run_setup ["-test"];
+           assert_run_setup ["-test"]
          in
 
          (* Run documentation target *)
          let () = 
-           (* TODO: activate *)
-           (*assert_run_setup ["-documentation"];*)
-           ()
+           assert_run_setup ["-doc"]
          in
 
          (* Run install target *)
@@ -548,7 +588,9 @@ let tests ctxt =
          @
          [
            "src/simplelib/simplelib.mllib";
+           "src/simplelib/simplelib.odocl";
            "src/simplelibext/simplelibext.mllib";
+           "src/simplelibext/simplelibext.odocl";
          ],
          [
            (in_ocaml_library "simplelib") 
@@ -570,6 +612,12 @@ let tests ctxt =
              ctxt.has_ocamlopt
              (in_ocaml_library "simplelibext"
                 ["simplelibext.cmxa"; "simplelibext.a"]);
+
+           api_ref_html "simplelib"
+             ["Foo"; "Bar"];
+
+           api_ref_html "simplelibext"
+             ["FooExt"; "BarExt"];
          ],
          [
            (* TODO: test *)
@@ -578,7 +626,11 @@ let tests ctxt =
 
          (* Complete library *)
          "../examples/simplelib", 
-         oasis_ocamlbuild_files @ ["src/simplelib.mllib"],
+         oasis_ocamlbuild_files @ 
+         [
+           "src/simplelib.mllib";
+           "src/simplelib.odocl";
+         ],
          [
            in_ocaml_library "simplelib" 
              ["simplelib.cma"; 
@@ -589,6 +641,9 @@ let tests ctxt =
              ctxt.has_ocamlopt
              (in_ocaml_library "simplelib"
                 ["simplelib.cmxa"; "simplelib.a"]);
+
+           api_ref_html "simplelib"
+             ["Bar"; "Foo"];
          ],
          [
            (* TODO: test *)
@@ -628,6 +683,7 @@ let tests ctxt =
            "src/libtest-with-c.clib";
            "src/libwith-c.clib";
            "src/with-c.mllib";
+           "src/with-c.odocl";
          ] @ oasis_ocamlbuild_files,
          [
            in_bin ["test-with-c"; 
@@ -643,6 +699,11 @@ let tests ctxt =
              ctxt.has_ocamlopt
              (in_ocaml_library "with-c" 
                 ["with-c.a"; "with-c.cmxa"]);
+
+           api_ref_html "with-c"
+             ["A"];
+           in_html "with-c"
+             ["code_VALA.ident.html"];
          ],
          [
            try_installed_exec "test-with-c-native" [];
@@ -656,6 +717,7 @@ let tests ctxt =
          [
            "src/META";
            "src/test.mllib";
+           "src/test.odocl";
          ] @ oasis_ocamlbuild_files,
          [
            in_bin ["test"];
@@ -665,8 +727,11 @@ let tests ctxt =
              ];
            in_data_dir 
              ["with-data/test.txt"; 
-              "doc/with-data/test.html";
+              "doc/html/test.html";
               "with-data-0.1/test.txt"];
+
+           api_ref_html "test"
+             ["Test"];
          ],
          [
            try_installed_library "test" ["Test"];
@@ -683,6 +748,7 @@ let tests ctxt =
          [
            "src/META";
            "src/test.mllib";
+           "src/test.odocl";
            "src/syntax/pa_test.mllib";
          ] @ oasis_ocamlbuild_files,
          [
@@ -694,6 +760,9 @@ let tests ctxt =
              ctxt.has_ocamlopt
              (in_ocaml_library "test"
                 ["test.cmxa"; "test.a"]);
+
+           api_ref_html "test"
+             ["A"; "B"];
          ],
          [
            try_installed_library "test" ["A"; "B"];
@@ -703,10 +772,15 @@ let tests ctxt =
          "../examples/interdepend-libraries",
          [
            "src/liba/liba.mllib";
+           "src/liba/liba.odocl";
            "src/libb/libb.mllib";
+           "src/libb/libb.odocl";
            "src/libc/libc.mllib";
+           "src/libc/libc.odocl";
            "src/libd/libd.mllib";
+           "src/libd/libd.odocl";
            "src/libe/libe.mllib";
+           "src/libe/libe.odocl";
          ] @ oasis_ocamlbuild_files,
          [],
          [];
@@ -715,8 +789,11 @@ let tests ctxt =
          "../examples/order-matter",
          [
            "src/foo/foo.mllib";
+           "src/foo/foo.odocl";
            "src/bar/bar.mllib";
+           "src/bar/bar.odocl";
            "src/baz/baz.mllib";
+           "src/baz/baz.odocl";
          ] @ oasis_ocamlbuild_files,
          [],
          [];

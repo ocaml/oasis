@@ -70,6 +70,29 @@ let build_tools_field schm =
        })
     (fun () -> s_ "Executables required to compile.")
 
+let build_install_data_fields schm = 
+  new_field_conditional schm "Build"
+    ~default:true
+    boolean
+    (fun () -> s_ "Set if the section should be built. Use with flag."),
+  new_field_conditional schm "Install"
+    ~default:true
+    boolean
+    (fun () -> s_ "Set if the section should be distributed."),
+  new_field schm "DataFiles"
+    ~default:[]
+    (comma_separated
+       (with_optional_parentheses
+          file_glob
+          (expand directory)))
+    (fun () -> 
+       s_ "Comma separated list of files to be installed for run-time use by \
+           the package. Install by default in '$datadir/$pkg_name', you can \
+           override using 'fn ($datadir/other_location)'. You can use \
+           wildcard '*' but only for filename and followed by a single dot \
+           extension: 'dir/*.html' is valid but 'dir/*' and 'dir/*.tar.gz' are \
+           not valid.")
+
 let section_fields nm comp_dflt schm = 
   let path =
     new_field schm "Path" 
@@ -79,29 +102,14 @@ let section_fields nm comp_dflt schm =
            (f_ "Directory containing the %s")
            nm)
   in
-  let build = 
-    new_field_conditional schm "Build"
-      ~default:true
-      boolean
-      (fun () ->
-         Printf.sprintf 
-           (f_ "Set if the %s should be built. Use with flag.")
-           nm)
-  in
-  let install =
-    new_field_conditional schm "Install"
-      ~default:true
-      boolean
-      (fun () ->
-         Printf.sprintf
-           (f_ "Set if the %s should be distributed.")
-           nm)
-  in
   let build_depends =
     build_depends_field schm
   in
   let build_tools =
     build_tools_field schm
+  in
+  let build, install, data_files = 
+    build_install_data_fields schm
   in
   let compiled_object =
     new_field schm "CompiledObject"
@@ -119,24 +127,6 @@ let section_fields nm comp_dflt schm =
       ~default:[]
       files
       (fun () -> s_ "C source files.")
-  in
-  let data_files =
-    new_field schm "DataFiles"
-      ~default:[]
-      (comma_separated
-         (with_optional_parentheses
-            (* TODO: these two strings are in fact "expendable strings" i.e. that
-             * can contain $xxx, we need to check their correctness 
-             *)
-            string_not_empty
-            string_not_empty))
-      (fun () -> 
-         s_ "Comma separated list of files to be installed for run-time use by \
-             the package. Install by default in '$datadir/$pkg_name', you can \
-             override using 'fn ($datadir/other_location)'. You can use \
-             wildcard '*' but only for filename and followed by a single dot \
-             extension: 'dir/*.html' is valid but 'dir/*' and 'dir/*.tar.gz' are \
-             not valid.")
   in
   let ccopt = 
     new_field_conditional schm "CCOpt"
@@ -295,14 +285,15 @@ let build_graph pkg =
              add_build_section 
                (find_name cs.cs_name vertex_of_exec)
                bs
-         | Test (cs, tst) as sct ->
+         | Test (cs, {test_build_tools = build_tools}) 
+         | Doc (cs, {doc_build_tools = build_tools}) as sct ->
              let vrtx = 
                G.V.create sct
              in
                G.add_vertex g vrtx;
                add_build_tool 
                  vrtx
-                 tst.test_build_tools
+                 build_tools
          | Flag _ | SrcRepo _ as sct ->
              G.add_vertex g (G.V.create sct))
       pkg.sections;
@@ -352,7 +343,7 @@ let transitive_build_depends pkg =
                     SetDepends.empty
                     bs.bs_build_depends)
                  mp
-           | Flag _ | SrcRepo _ | Test _ as sct ->
+           | Flag _ | SrcRepo _ | Test _ | Doc _ as sct ->
                MapSection.add sct SetDepends.empty mp)
       MapSection.empty
       pkg.sections
@@ -370,7 +361,7 @@ let transitive_build_depends pkg =
                  add_build_depends
                    deps
                    bs.bs_build_depends 
-             | Executable _ | Flag _ | SrcRepo _ | Test _ ->
+             | Executable _ | Flag _ | SrcRepo _ | Test _ | Doc _ ->
                  deps
          in
            MapSection.add v1 deps mp)

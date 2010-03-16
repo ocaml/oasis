@@ -21,7 +21,7 @@ let mod_build_depends f pkg =
                   Library (cs, f bs, lib)
               | Executable (cs, bs, exec) ->
                   Executable (cs, f bs, exec)
-              | Test _ | Flag _ | SrcRepo _ as sct ->
+              | Test _ | Flag _ | SrcRepo _ | Doc _ as sct ->
                   sct)
            pkg.sections}
 
@@ -50,6 +50,11 @@ let add_build_tool ?(no_test=false) ?(condition=[EBool true, true]) build_tool p
                             {test with 
                                  test_build_tools = 
                                    build_tool :: test.test_build_tools})
+                  | Doc (cs, doc) ->
+                      Doc (cs,
+                           {doc with 
+                                doc_build_tools = 
+                                  build_tool :: doc.doc_build_tools})
                   | Library _ | Executable _ | Flag _ | SrcRepo _ as sct ->
                       sct)
                pkg.sections}

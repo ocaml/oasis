@@ -77,7 +77,6 @@ sig
     (unit -> string) -> 
     PropList.Data.t -> 
     (OASISTypes.expr * 'a) list
-
 end
 
 (* Plugin data *)
@@ -231,7 +230,7 @@ module Build =
 module Doc =
   Make
     (struct 
-       type t = (unit, unit) section_act_t
+       type t = (doc, unit) section_act_t
        let family_string = "doc"
        let not_found_fmt =
          f_ "Unkown doc plugin '%s' (available: %s)"

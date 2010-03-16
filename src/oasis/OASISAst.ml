@@ -183,6 +183,14 @@ let to_package conf st =
             acc
             stmt
 
+      | TSDocumentation (nm, stmt) ->
+          schema_stmt 
+            OASISDocumentation.generator
+            nm
+            OASISDocumentation.schema
+            acc
+            stmt
+
       | TSStmt stmt' -> 
           stmt 
             OASISPackage.schema
@@ -238,7 +246,7 @@ let to_package conf st =
           MapString.empty
     in
 
-    let map_internal_libraries what =
+    let map_internal_libraries sct =
       List.map
         (function
            | (FindlibPackage (lnm, ver_opt)) as bd ->
@@ -253,7 +261,7 @@ let to_package conf st =
                             "Cannot use versioned build depends \
                              on internal library %s in %s"
                             lnm
-                            what);
+                            (OASISSection.string_of_section sct));
 
                      InternalLibrary lnm
 
@@ -276,7 +284,7 @@ let to_package conf st =
         pkg.sections
     in
 
-    let map_internal_tools what = 
+    let map_internal_tools sct = 
       List.map 
         (function
            | ExternalTool lnm as bt ->
@@ -290,38 +298,48 @@ let to_package conf st =
                bt)
     in
 
-    let map_internal what bs = 
+    let map_internal sct bs = 
       {bs with 
-           bs_build_depends = map_internal_libraries what bs.bs_build_depends;
-           bs_build_tools = map_internal_tools what bs.bs_build_tools}
+           bs_build_depends = 
+             map_internal_libraries sct bs.bs_build_depends;
+           bs_build_tools = 
+             map_internal_tools sct bs.bs_build_tools}
     in
 
       {pkg with 
            sections =
              List.map 
                (function
-                  | Library (cs, bs, lib) ->
+                  | Library (cs, bs, lib) as sct ->
                       Library 
                         (cs, 
                          map_internal 
-                           (Printf.sprintf (f_ "library %s") cs.cs_name)
+                           sct
                            bs,
                          lib)
-                  | Executable (cs, bs, exec) ->
+                  | Executable (cs, bs, exec) as sct ->
                       Executable
                         (cs,
                          map_internal
-                           (Printf.sprintf (f_ "executable %s") cs.cs_name)
+                           sct
                            bs,
                          exec)
-                  | Test (cs, tst) ->
+                  | Test (cs, tst) as sct ->
                       Test 
                         (cs,
                          {tst with 
                               test_build_tools = 
                                 map_internal_tools 
-                                  (Printf.sprintf "test %s" cs.cs_name)
+                                  sct
                                   tst.test_build_tools})
+                  | Doc (cs, doc) as sct ->
+                      Doc
+                        (cs,
+                         {doc with
+                              doc_build_tools =
+                                map_internal_tools
+                                  sct
+                                  doc.doc_build_tools})
                   | Flag _ | SrcRepo _ as sct ->
                       sct)
                pkg.sections}

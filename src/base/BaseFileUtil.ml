@@ -109,3 +109,49 @@ let rmdir tgt =
         | _ ->
             BaseExec.run "rm" ["-r"; tgt]
     )
+
+(** Expand a filename containing '*.ext' into corresponding
+    real files
+  *)
+let glob fn = 
+ let basename = 
+   Filename.basename fn
+ in
+   if String.length basename >= 2 &&
+      basename.[0] = '*' &&
+      basename.[1] = '.' then
+     begin
+       let ext_len =
+         (String.length basename) - 2
+       in
+       let ext = 
+         String.sub basename 2 ext_len
+       in
+       let dirname =
+         Filename.dirname fn
+       in
+         Array.fold_left
+           (fun acc fn ->
+              try 
+                let fn_ext = 
+                  String.sub 
+                    fn 
+                    ((String.length fn) - ext_len) 
+                    ext_len
+                in
+                  if fn_ext = ext then
+                    (Filename.concat dirname fn) :: acc
+                  else
+                    acc
+              with Invalid_argument "String.sub" ->
+                acc)
+           []
+           (Sys.readdir dirname)
+     end
+   else
+     begin
+       if Sys.file_exists fn then
+         [fn]
+       else
+         []
+     end

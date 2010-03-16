@@ -20,6 +20,20 @@ exception Not_combinable
 let update_fail _ _ =
   raise Not_combinable
 
+(** Hidden value to build phantom data storage
+  *)
+let blackbox =
+  {
+    parse  = 
+      (fun s -> 
+         failwith 
+           (Printf.sprintf 
+              (f_ "Blackbox type cannot be set to the value '%s'")
+              s));
+    update = update_fail;
+    print  = (fun _ -> raise Not_printable);
+  }
+
 module StdRegexp = 
 struct 
   let r = Str.regexp
@@ -95,11 +109,22 @@ let string_not_empty =
 
 (** File *)
 let file = 
-  string
+  {string_not_empty with update = update_fail}
+
+(** File with glob *)
+let file_glob =
+  {string_not_empty with update = update_fail}
 
 (** Directory *)
 let directory =
   {string_not_empty with update = update_fail}
+
+
+(** Variable that should be first expanded (i.e. replace $(...) by values 
+  *)
+let expand value =
+  (* TODO: check expandable value *)
+  value
 
 (** Convert a dot separated string into list, don't strip whitespace *)
 let dot_separated value =

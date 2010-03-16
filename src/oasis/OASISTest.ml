@@ -3,15 +3,13 @@
     @author Sylvain Le Gall
   *)
 
-open OASISTypes
-
 (* END EXPORT *)
 
+open OASISTypes
 open OASISSchema
 open OASISValues
 open OASISUtils
 open OASISGettext
-open PropList.Field
 
 let schema, generator =
   let schm =

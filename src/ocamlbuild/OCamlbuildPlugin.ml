@@ -16,38 +16,14 @@ let cond_targets_hook =
   ref (fun lst -> lst)
 
 let build pkg argv =
-  (* Fix special arguments depending on environment *)
-  let env_args =
-    List.flatten
-      [
-        if (os_type ()) = "Win32" then
-          [
-            "-classic-display"; 
-            "-no-log"; 
-            "-install-lib-dir"; 
-            (Filename.concat (standard_library ()) "ocamlbuild")
-          ] 
-        else
-          [];
-    
-        if (ocamlbest ()) = "byte" || (os_type ()) = "Win32" then
-          [
-            "-byte-plugin" 
-          ]
-        else
-          [];
-      ]
-  in
-
-  let ocamlbuild_run rtargets = 
-    let args = 
-      rtargets @ (Array.to_list argv)
-    in
-      BaseExec.run (ocamlbuild ()) (env_args @ args)
+  let run_ocamlbuild rtargets = 
+    OCamlbuildCommon.run_ocamlbuild rtargets argv
   in
 
   let in_build_dir fn =
-    Filename.concat "_build" fn
+    Filename.concat 
+      (OCamlbuildCommon.build_dir argv) 
+      fn
   in
 
   let cond_targets =
@@ -128,7 +104,7 @@ let build pkg argv =
                      end
                    else
                      acc
-               | Test _ | SrcRepo _ | Flag _ ->
+               | Test _ | SrcRepo _ | Flag _ | Doc _ ->
                    acc)
           []
           (* Keep the pkg.sections ordered *)
@@ -149,7 +125,7 @@ let build pkg argv =
                ::
                acc
            | Rename (src, tgt) ->
-               ocamlbuild_run (List.rev (src :: acc));
+               run_ocamlbuild (List.rev (src :: acc));
                BaseFileUtil.cp 
                  (in_build_dir src) 
                  (in_build_dir tgt);
@@ -158,10 +134,10 @@ let build pkg argv =
       (!cond_targets_hook cond_targets)
   in
     if last_rtargets <> [] then
-      ocamlbuild_run (List.rev last_rtargets)
+      run_ocamlbuild (List.rev last_rtargets)
 
 let clean pkg extra_args  = 
-  BaseExec.run (ocamlbuild ()) ("-clean" :: (Array.to_list extra_args))
+  OCamlbuildCommon.run_clean extra_args
 
 (* END EXPORT *)
 
@@ -176,11 +152,7 @@ open OASISValues
 open OCamlbuildBase
 open Ocamlbuild_plugin
 
-module PU = OASISPlugin.Build.Make
-              (struct 
-                 let name    = "OCamlbuild"
-                 let version = OASISConf.version
-               end)
+module PU = OASISPlugin.Build.Make(OCamlbuildId)
 
 let extern = 
   PU.new_field
@@ -226,7 +198,7 @@ let create_ocamlbuild_files pkg () =
       (* Only link findlib package with executable *)
       match sct with 
         | Executable _ -> true
-        | Library _ | Flag _ | Test _ | SrcRepo _ -> false
+        | Library _ | Flag _ | Test _ | SrcRepo _ | Doc _ -> false
     in
 
     let src_tgts = 
@@ -427,22 +399,23 @@ let create_ocamlbuild_files pkg () =
                            extern cs.cs_data) :: myocamlbuild_t.lib_ocaml}
                  in
 
-                 (* Generate .mllib file *)
+                 (* Generate .mllib files *)
                  let () =
-                   let fn_mllib =
-                     FilePath.add_extension 
-                       (Filename.concat bs.bs_path cs.cs_name)
-                       "mllib"
+                   let fn_base = 
+                     FilePath.concat bs.bs_path cs.cs_name
+                   in
+                   let fn_generate ext =
+                     file_generate
+                       (FilePath.add_extension fn_base ext)
+                       comment_ocamlbuild
+                       (Split ([], lib.lib_modules, []));
                    in
                      if lib.lib_modules = [] then
                        warning 
                          (Printf.sprintf
                             (f_ "No module defined for library %s")
                             cs.cs_name);
-                     file_generate
-                       fn_mllib
-                       comment_ocamlbuild
-                       (Split ([], lib.lib_modules, []))
+                     fn_generate "mllib"
                  in
 
                    tag_t, myocamlbuild_t
@@ -497,7 +470,7 @@ let create_ocamlbuild_files pkg () =
                    tag_t, myocamlbuild_t
                end
 
-           | Flag _ | SrcRepo _ | Test _ ->
+           | Flag _ | SrcRepo _ | Test _ | Doc _ ->
                tag_t, myocamlbuild_t)
       ([], {lib_ocaml = []; lib_c = []; flags = []})
       pkg.sections
@@ -569,6 +542,6 @@ let () =
       },
       OASISPackage.add_build_tool ~no_test:true 
         (ExternalTool "ocamlbuild") 
-        pkg
+        (OCamlbuildDocPlugin.auto_doc_section pkg)
   in
     PU.register doit

@@ -195,12 +195,25 @@ type test =
       test_build_tools:        tool list;
     } with odn
 
+(** Documentation definition
+  *)
+type doc =
+    {
+      doc_type:        plugin;
+      doc_build:       bool conditional;
+      doc_install:     bool conditional;
+      doc_install_dir: filename;
+      doc_data_files:  (filename * filename option) list;
+      doc_build_tools: tool list;
+    } with odn
+
 type section =
   | Library    of common_section * build_section * library
   | Executable of common_section * build_section * executable
   | Flag       of common_section * flag
   | SrcRepo    of common_section * source_repository
   | Test       of common_section * test
+  | Doc        of common_section * doc
   with odn
 
 (** OASIS file whole content

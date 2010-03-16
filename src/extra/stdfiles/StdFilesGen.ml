@@ -204,7 +204,7 @@ let main pkg =
                 | Library (_, bs, _) 
                 | Executable (_, bs, _) as sct ->
                     (sct, bs) :: acc
-                | SrcRepo _ | Flag _ | Test _ ->
+                | SrcRepo _ | Flag _ | Test _ | Doc _ ->
                     acc)
            []
            pkg.sections)
@@ -235,16 +235,8 @@ let main pkg =
                if is_all_build_sections then
                  fprintf fmt "all,@ ")
             (pp_print_list 
-               (fun fmt ->
-                  function
-                    | Library ({cs_name = nm}, _, _) -> 
-                        fprintf fmt "library %s" nm
-                    | Executable ({cs_name = nm}, _, _) -> 
-                        fprintf fmt "executable %s" nm
-                    | Test ({cs_name = nm}, _) ->
-                        fprintf fmt "test %s" nm
-                    | SrcRepo _ | Flag _ ->
-                        ())
+               (fun fmt sct ->
+                  fprintf fmt "%s" (OASISSection.string_of_section sct))
                ",@ ")
             (SetSection.elements sections)
   in
@@ -358,7 +350,8 @@ let main pkg =
                        lst
                        bs.bs_build_tools
                  end
-             | Test (_, {test_build_tools = build_tools}) as section ->
+             | Test (_, {test_build_tools = build_tools})
+             | Doc (_, {doc_build_tools = build_tools}) as section ->
                  add_build_tools
                    (SetSection.singleton section)
                    lst
