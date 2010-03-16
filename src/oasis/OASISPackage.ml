@@ -82,6 +82,7 @@ let schema, generator =
                         "OASIS format version '%s' is not supported"
                         str);
                  v);
+          update = update_fail;
           print = version.print;
         }
         (fun () ->
@@ -168,6 +169,7 @@ let schema, generator =
                             str
                             (String.concat ", " (List.map fst std_licenses)))
                    end);
+            update = base_value.update;
             print = 
               (function
                  | OtherLicense v -> url.print v

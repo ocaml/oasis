@@ -98,3 +98,10 @@ let map_section_id mp =
     mp
     MapSectionId.empty
 
+
+(** {2 Search list with id} *)
+
+let section_find id scts =
+  List.find
+    (fun sct -> id = section_id sct)
+    scts

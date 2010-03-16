@@ -197,6 +197,8 @@ module Make =
                in
                  check_compat res;
                  res);
+          update = 
+            OASISValues.update_fail;
           print = 
             (fun e -> base.print e)
         }

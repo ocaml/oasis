@@ -62,9 +62,35 @@ let new_field_conditional
       ?quickstart_question
       value 
       help =
-  let update old_v v =
-    OASISExpr.reduce_choices 
-      (old_v @ v)
+  let update ?context old_choices new_choices =
+    let choices =
+      match context with 
+        | Some {append = true} ->
+            (* Append in conditional context means a cartesian product between
+               the choices and the (None :: Some + appends). We then combine
+               condition with && and values with value.update.
+
+               WARNING: quadratic expansion in space
+             *)
+            let all_appends = 
+              None :: (List.map (fun v -> Some v) new_choices)
+            in
+              List.flatten
+                (List.map
+                   (fun (cond, choice) ->
+                      List.map
+                        (function
+                           | None ->
+                               cond, choice
+                           | Some (new_cond, append) ->
+                               EAnd(cond, new_cond), 
+                               value.update choice append)
+                        all_appends)
+                   old_choices)
+        | _ ->
+            old_choices @ new_choices
+    in
+      OASISExpr.reduce_choices choices
   in
 
   let default = 
@@ -104,12 +130,12 @@ let new_field_conditional
 
     FieldRO.create 
       ~schema:schm 
-      ~name:name
-      ~parse:parse 
-      ~print:print
-      ~update:update
-      ~default:default
-      ~help:help
+      ~name
+      ~parse 
+      ~print
+      ~update
+      ~default
+      ~help
       (extra
         ?plugin 
         ?quickstart_level
@@ -125,6 +151,14 @@ let new_field
       ?quickstart_question
       value 
       help =
+
+  let update ?context old_v v =
+    match context with 
+      | Some {append = true} ->
+          value.update old_v v
+      | _ ->
+          v
+  in
 
   let parse ?context s =
     match context with 
@@ -148,11 +182,12 @@ let new_field
 
     FieldRO.create
       ~schema:schm 
-      ~name:name
-      ~parse:parse 
+      ~name
+      ~parse 
       ~print:value.print
+      ~update
       ?default
-      ~help:help
+      ~help
       (extra
         ?plugin 
         ?quickstart_level

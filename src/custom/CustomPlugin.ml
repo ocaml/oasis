@@ -4,14 +4,15 @@
   *)
 
 open BaseEnv
+open OASISTypes
 
 TYPE_CONV_PATH "CustomPlugin"
 
 type t =
     {
-      cmd_main:     string * (string list);
-      cmd_clean:     (string * (string list)) option;
-      cmd_distclean: (string * (string list)) option;
+      cmd_main:      command_line conditional;
+      cmd_clean:     (command_line option) conditional;
+      cmd_distclean: (command_line option) conditional;
     } with odn
 
 let run cmd args extra_args =
@@ -21,19 +22,22 @@ let run cmd args extra_args =
        var_expand
        (args @ (Array.to_list extra_args)))
 
-let main {cmd_main = (cmd, args)} _ extra_args =
-  run cmd args extra_args 
+let main t _ extra_args =
+  let cmd, args =
+    var_choose t.cmd_main
+  in
+    run cmd args extra_args 
 
 let clean t pkg extra_args =
-  match t with
-    | {cmd_clean = Some (cmd, args)} ->
+  match var_choose t.cmd_clean with
+    | Some (cmd, args) ->
         run cmd args extra_args
     | _ ->
         ()
 
 let distclean t pkg extra_args =
-  match t with
-    | {cmd_distclean = Some (cmd, args)} ->
+  match var_choose t.cmd_distclean with
+    | Some (cmd, args) ->
         run cmd args extra_args
     | _ ->
         ()
@@ -90,14 +94,14 @@ struct
         hlp_clean 
         hlp_distclean =
     let cmd_main =
-      PU.new_field
+      PU.new_field_conditional
         schema
         nm
         command_line
         hlp
     in
     let cmd_clean =
-      PU.new_field
+      PU.new_field_conditional
         schema
         (nm^"Clean")
         ~default:None
@@ -105,7 +109,7 @@ struct
         hlp_clean
     in
     let cmd_distclean =
-      PU.new_field
+      PU.new_field_conditional
         schema
         (nm^"Distclean")
         ~default:None
@@ -267,7 +271,7 @@ let () =
   let module CU = Make(PU)
   in
   let test_clean =
-    PU.new_field
+    PU.new_field_conditional
       OASISTest.schema
       "Clean"
       ~default:None
@@ -276,7 +280,7 @@ let () =
          s_ "Run command to clean test step.")
   in
   let test_distclean =
-    PU.new_field
+    PU.new_field_conditional
       OASISTest.schema
       "Distclean"
       ~default:None

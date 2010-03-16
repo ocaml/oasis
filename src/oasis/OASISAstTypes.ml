@@ -8,17 +8,26 @@ open OASISTypes
 (** Context for parsing and checking AST *)
 type ctxt =
     {
-      cond:         expr option; (* Condition for this context
-                                    can be used with certain
-                                    field.
-                                    By default ETrue (no condition)
-                                  *)
-      valid_flags:  name list; (* Which flags are valid *)
+      (* Current condition for conditional fields. *)
+      cond: expr option; 
+
+      (* Valid flags *)
+      valid_flags:  name list;
+
+      (* Combine values rather than setting it, when
+         setting field values
+       *)
+      append: bool; 
     }
 
 (** Abstract Syntax Tree *)
+type field_op =
+  | FSet of string
+  | FAdd of string
+  | FEval of expr
+
 type stmt =
-  | SField of name * string
+  | SField of name * field_op
   | SIfThenElse of expr * stmt * stmt
   | SBlock of stmt list
 

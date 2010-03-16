@@ -144,6 +144,7 @@ let quickstart fmt lvl =
   let fake_context = 
     {
       OASISAstTypes.cond = None;
+      append             = false;
       valid_flags        = []
     }
   in

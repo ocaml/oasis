@@ -10,6 +10,15 @@ open ExtString
 (** The value exist but there is no easy way to represent it
   *)
 exception Not_printable
+(** It is not possible to combine values
+  *)
+exception Not_combinable
+
+
+(** Always fail on update
+  *)
+let update_fail _ _ =
+  raise Not_combinable
 
 module StdRegexp = 
 struct 
@@ -35,6 +44,7 @@ let regexp regexp error =
                 (f_ "String '%s' is not a %s")
                 str 
                 (error ())));
+    update = update_fail;
     print = (fun s -> s);
   }
 
@@ -57,6 +67,7 @@ let copyright =
                 (f_ "Copyright must follow the convention \
                      '(C) 2008-2009 J.R. Hacker', here it is '%s'")
                 str));
+    update = update_fail;
     print = (fun s -> s);
   }
 
@@ -64,8 +75,9 @@ let copyright =
 (** String *)
 let string =
   { 
-    parse = (fun s -> s);
-    print = (fun s -> s);
+    parse =  (fun s -> s);
+    update = (fun s1 s2 -> s1^" "^s2); 
+    print =  (fun s -> s);
   }
 
 (** String is not empty *)
@@ -77,6 +89,7 @@ let string_not_empty =
            str
          else
            failwith (s_ "Expecting not empty string"));
+    update = (fun s1 s2 ->s1^" "^s2);
     print = (fun s -> s);
   }
 
@@ -86,7 +99,7 @@ let file =
 
 (** Directory *)
 let directory =
-  string
+  {string_not_empty with update = update_fail}
 
 (** Convert a dot separated string into list, don't strip whitespace *)
 let dot_separated value =
@@ -98,6 +111,8 @@ let dot_separated value =
            (String.nsplit
               s
               "."));
+    update = 
+      List.append;
     print =
       (fun lst ->
          String.concat "." 
@@ -118,6 +133,8 @@ let comma_separated value =
            (String.nsplit 
               s 
               ","));
+    update = 
+      List.append;
     print = 
       (fun lst ->
          String.concat ", "
@@ -134,6 +151,8 @@ let space_separated =
          List.filter 
            (fun s -> s <> "")
            (String.nsplit s " "));
+    update = 
+      List.append;
     print =
       (fun lst ->
          String.concat " " lst);
@@ -142,15 +161,17 @@ let space_separated =
 (** Check that we have a version number *)
 let version =
   {
-    parse = OASISVersion.version_of_string;
-    print = OASISVersion.string_of_version;
+    parse  = OASISVersion.version_of_string;
+    update = update_fail;
+    print  = OASISVersion.string_of_version;
   }
 
 (** Check that we have a version constraint *)
 let version_comparator = 
   {
-    parse = OASISVersion.comparator_of_string;
-    print = OASISVersion.string_of_comparator;
+    parse  = OASISVersion.comparator_of_string;
+    update = update_fail;
+    print  = OASISVersion.string_of_comparator;
   }
 
 (** Split a string that with an optional value: "e1 (e2)" *)
@@ -181,6 +202,7 @@ let with_optional_parentheses main_value optional_value =
              begin
                main_value.parse str, None
              end);
+      update = update_fail;
       print =
         (function
            | v, None ->
@@ -195,6 +217,7 @@ let with_optional_parentheses main_value optional_value =
 let opt value =
   {
     parse = (fun str -> Some (value.parse str));
+    update = update_fail;
     print =
       (function
          | Some v -> value.print v
@@ -236,6 +259,7 @@ let choices nm lst =
                 (nm ())
                 str
                 (String.concat ", " (List.map fst lst))));
+    update = update_fail;
     print =
       (fun v ->
          try
@@ -267,6 +291,7 @@ let pkgname =
            failwith "Findlib package name cannot contain '.'"
          else
            s);
+    update = update_fail;
     print =
       (fun s -> s);
   }
@@ -275,7 +300,7 @@ let pkgname =
   *)
 let internal_library =
   (* TODO: check that the library really exists *)
-  string
+  {string with update = update_fail}
 
 (** Command line 
   *)
@@ -291,6 +316,9 @@ let command_line =
                  (Printf.sprintf
                     (f_ "Commande line '%s' is invalid")
                     s));
+    update =
+      (fun (cmd, args1) (arg2, args3) ->
+         (cmd, args1 @ (arg2 :: args3)));
     print = 
       (fun (cmd, args) -> 
          space_separated.print (cmd :: args))

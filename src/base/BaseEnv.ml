@@ -185,7 +185,7 @@ let var_define
       ~parse:(fun ?(context=ODefault) s -> [context, lazy s])
       ~print:var_get_low
       ~default
-      ~update:(fun x old_x -> x @ old_x)
+      ~update:(fun ?context x old_x -> x @ old_x)
       ?help
       extra
   in

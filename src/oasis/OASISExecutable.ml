@@ -47,8 +47,9 @@ let schema, generator =
            (fun () -> s_ ".ml file")
        in
          {
-           parse = (fun str -> file.parse (base_value.parse str));
-           print = (fun fn -> file.print (base_value.print fn));
+           parse  = (fun str -> file.parse (base_value.parse str));
+           update = update_fail;
+           print  = (fun fn -> file.print (base_value.print fn));
          })
       (fun () -> 
          s_ "OCaml file (.ml) containing main procedure for the executable.")

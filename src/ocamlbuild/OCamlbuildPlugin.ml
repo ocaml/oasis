@@ -250,50 +250,53 @@ let create_ocamlbuild_files pkg () =
       in
         List.fold_left
           (fun (tag_t, myocamlbuild_t) 
-                 (basename, tags, pre_arg, tr_arg, args) ->
-             if args <> [] then
-               begin
-                 let tag_name = 
-                   (* e.g. oasis_library_foo_ccopt *)
-                   varname_concat 
-                     "oasis_"
-                     (varname_concat
-                        (varname_of_string 
-                           (OASISSection.string_of_section sct))
-                        basename)
-                 in
-                 let all_tags =
-                   tag_name :: tags 
-                 in
-                 let spec = 
-                   S (List.fold_left
-                        (fun acc arg -> 
-                           match pre_arg with 
-                             | Some s -> s :: arg :: acc
-                             | None -> arg :: acc)
-                        []
-                        (List.rev_map tr_arg args))
-                 in
-                 let tag_t =
-                   if List.mem "compile" tags then
-                     add_tags tag_t src_tgts [tag_name]
-                   else
-                     tag_t
-                 in
-                 let tag_t =
-                   if List.mem "link" tags then 
-                     add_tags tag_t [link_tgt] [tag_name]
-                   else
-                     tag_t
-                 in
-                   tag_t,
-                   {myocamlbuild_t with
-                        flags = (all_tags, spec) :: myocamlbuild_t.flags}
-               end
-             else
-               begin
-                 tag_t, myocamlbuild_t
-               end)
+                 (basename, tags, pre_arg, tr_arg, args_cond) ->
+             let args = 
+               var_choose args_cond
+             in
+               if args <> [] then
+                 begin
+                   let tag_name = 
+                     (* e.g. oasis_library_foo_ccopt *)
+                     varname_concat 
+                       "oasis_"
+                       (varname_concat
+                          (varname_of_string 
+                             (OASISSection.string_of_section sct))
+                          basename)
+                   in
+                   let all_tags =
+                     tag_name :: tags 
+                   in
+                   let spec = 
+                     S (List.fold_left
+                          (fun acc arg -> 
+                             match pre_arg with 
+                               | Some s -> s :: arg :: acc
+                               | None -> arg :: acc)
+                          []
+                          (List.rev_map tr_arg args))
+                   in
+                   let tag_t =
+                     if List.mem "compile" tags then
+                       add_tags tag_t src_tgts [tag_name]
+                     else
+                       tag_t
+                   in
+                   let tag_t =
+                     if List.mem "link" tags then 
+                       add_tags tag_t [link_tgt] [tag_name]
+                     else
+                       tag_t
+                   in
+                     tag_t,
+                     {myocamlbuild_t with
+                          flags = (all_tags, spec) :: myocamlbuild_t.flags}
+                 end
+               else
+                 begin
+                   tag_t, myocamlbuild_t
+                 end)
 
           (tag_t, myocamlbuild_t)
 

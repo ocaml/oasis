@@ -5,6 +5,7 @@
 
 open OASISTypes
 open OASISAstTypes
+open OASISGettext
 open Genlex
 
 let stream_debugger st = 
@@ -357,9 +358,9 @@ let parse_stream conf st =
                        st))))))
   in
 
-  let position () = 
+  let position fmt = 
     Printf.sprintf 
-      " in file '%s' at line %d, char %d" 
+      (f_ "in file '%s' at line %d, char %d")
       (match conf.oasisfn with 
          | Some fn -> fn
          | None -> "<>")
@@ -372,7 +373,7 @@ let parse_stream conf st =
     make_lexer 
       [ 
         (* Statement *)
-        ":"; "if"; "{"; "}"; "else"; 
+        "+:"; "$:"; ":"; "if"; "{"; "}"; "else"; 
         (* Section *)
         "Flag"; "Library"; "Executable"; 
         "SourceRepository"; "Test";
@@ -405,7 +406,9 @@ let parse_stream conf st =
                  | "ocaml_version" -> TOCaml_version
                  | _ ->
                      failwith 
-                       (Printf.sprintf "Unknown test %s" nm)
+                       (Printf.sprintf 
+                          (f_ "Unknown OASIS test %s") 
+                          nm)
              in
                ETest (test, vl))
   and parse_term_follow = 
@@ -439,10 +442,32 @@ let parse_stream conf st =
       | [< >] ->
           SBlock []
     
+  and parse_field_op = 
+    parser
+      | [<'Kwd ":"; 'String str>] ->
+          FSet str
+
+      | [<'Kwd "+:"; 'String str>] ->
+          FAdd str
+
+      | [<'Kwd "$:"; 'String str>] ->
+          let e = 
+            try
+              parse_expr (lexer (Stream.of_string str))
+            with e ->
+              failwith 
+                (Printf.sprintf 
+                   (f_ "Error when parsing expresion '%s' %t: %s")
+                   str
+                   position
+                   (Printexc.to_string e))
+          in
+            FEval e
+
   and parse_stmt = 
     parser
-      | [<'Ident nm; 'Kwd ":"; 'String str>] ->
-          SField(nm, str)
+      | [<'Ident nm; op = parse_field_op>] ->
+          SField(nm, op)
 
       | [< 'Kwd "if"; e = parse_expr; 
            if_blk = parse_stmt; 
@@ -470,7 +495,7 @@ let parse_stream conf st =
 
   let rec parse_top_stmt =
     parser
-      | [<'Kwd "Flag"; 'Ident nm; flag_blk = parse_stmt>] ->
+      | [<'Kwd "Flag"; nm = id_or_string; flag_blk = parse_stmt>] ->
           TSFlag(nm, flag_blk)
 
       | [<'Kwd "Library"; nm = id_or_string; library_blk = parse_stmt>] ->
@@ -510,9 +535,16 @@ let parse_stream conf st =
         ast
     with 
       | Stream.Error str ->
-        (
-          if str = "" then 
-            failwith ("Syntax error "^(position ()))
-          else
-            failwith ("Syntax error "^str^(position ()))
-        )
+          begin
+            if str = "" then 
+              failwith 
+                (Printf.sprintf 
+                   (f_ "Syntax error %t")
+                   position)
+            else
+              failwith 
+                (Printf.sprintf
+                   (f_ "Syntax error %s %t")
+                   str
+                   position)
+          end

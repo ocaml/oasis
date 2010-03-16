@@ -31,7 +31,7 @@ let schema, generator =
          s_ "Plugin to use to run test.")
   in
   let command = 
-    new_field schm "Command"
+    new_field_conditional schm "Command"
       command_line
       (fun () ->
          s_ "Command to run for the test.")

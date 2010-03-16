@@ -46,7 +46,7 @@ struct
   type ('ctxt, 'extra) value_t =
       {
         get:   Data.t -> string;
-        set:   Data.t -> ?context:'ctxt  -> string -> unit;
+        set:   Data.t -> ?context:'ctxt -> string -> unit;
         help:  (unit -> string) option;
         extra: 'extra;
       }
@@ -163,7 +163,7 @@ struct
 
   type ('ctxt, 'value, 'extra) t =
       {
-        set:    Data.t -> 'value -> unit;
+        set:    Data.t -> ?context:'ctxt -> 'value -> unit;
         get:    Data.t -> 'value;
         sets:   Data.t -> ?context:'ctxt -> string -> unit;
         gets:   Data.t -> string;
@@ -210,13 +210,13 @@ struct
     in
 
     (* Set data *)
-    let set data x = 
+    let set data ?context x = 
       let x = 
         match update with 
           | Some f ->
               begin
                 try 
-                  f (get data) x
+                  f ?context (get data) x
                 with Not_set _ ->
                   x
               end
@@ -245,7 +245,7 @@ struct
 
     (* Set data, from string *)
     let sets data ?context s =
-      set data (parse ?context s)
+      set ?context data (parse ?context s)
     in
 
     (* Output value as string, if possible *)
@@ -279,8 +279,8 @@ struct
         extra = extra;
       }
 
-  let fset data t x = 
-    t.set data x
+  let fset data t ?context x = 
+    t.set data ?context x
 
   let fget data t =
     t.get data

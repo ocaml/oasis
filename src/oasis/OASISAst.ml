@@ -21,6 +21,7 @@ let to_package conf st =
   let default_ctxt =
     {
       cond        = None;
+      append      = false;
       valid_flags = [];
     }
   in
@@ -48,36 +49,71 @@ let to_package conf st =
   in
 
   (* Explore statement, at this level it is possible that value
-   * depends from condition (if expression is possible
+   * depends from condition (if expression is possible)
    *)
   let rec stmt schm data ctxt =
     function
-      | SField (nm, str) -> 
-          (
+      | SField (nm, op) -> 
+          begin
             try
-              PropList.Schema.set schm data nm ~context:ctxt str
+              match op with
+                | FSet s ->
+                    begin
+                      PropList.Schema.set 
+                        schm 
+                        data 
+                        nm 
+                        ~context:{ctxt with append = false}
+                        s
+                    end
+                | FAdd s ->
+                    begin
+                      PropList.Schema.set 
+                        schm 
+                        data 
+                        nm 
+                        ~context:{ctxt with append = true}
+                        s
+                    end
+                | FEval e ->
+                    begin
+                      PropList.Schema.set
+                        schm
+                        data
+                        nm
+                        ~context:{ctxt with append = false}
+                        (string_of_bool false);
+                      PropList.Schema.set 
+                        schm 
+                        data
+                        nm 
+                        ~context:{(ctxt_add_expr ctxt e) with append = false}
+                        (string_of_bool true)
+                    end
             with (PropList.Unknown_field _) as exc ->
               if OASISPlugin.test_field_name nm && conf.ignore_unknown then
                 ()
               else
                 raise exc
-          )
+          end
 
       | SIfThenElse (e, stmt1, stmt2) -> 
-          (* Check that we have a valid expression *)
-          OASISExpr.check ctxt e;
-          (* Explore if branch *)
-          stmt 
-            schm
-            data
-            (ctxt_add_expr ctxt e)
-            stmt1;
-          (* Explore then branch *)
-          stmt 
-            schm
-            data 
-            (ctxt_add_expr ctxt (ENot e))
-            stmt2
+          begin
+            (* Check that we have a valid expression *)
+            OASISExpr.check ctxt e;
+            (* Explore if branch *)
+            stmt 
+              schm
+              data
+              (ctxt_add_expr ctxt e)
+              stmt1;
+            (* Explore then branch *)
+            stmt 
+              schm
+              data 
+              (ctxt_add_expr ctxt (ENot e))
+              stmt2
+          end
 
       | SBlock blk ->
           List.iter (stmt schm data ctxt) blk

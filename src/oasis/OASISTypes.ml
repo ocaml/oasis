@@ -14,7 +14,9 @@ type dirname      = string with odn
 type filename     = string with odn
 type prog         = string with odn
 type arg          = string with odn
+type args         = arg list with odn
 type command      = string with odn
+type command_line = (command * args) with odn
 
 (* Package name for findlib, doesn't contain '.' *)
 type findlib_name = string with odn 
@@ -134,12 +136,12 @@ type build_section =
       bs_build_tools:     tool list;
       bs_c_sources:       filename list;
       bs_data_files:      (filename * filename option) list;
-      bs_ccopt:           arg list;
-      bs_cclib:           arg list;
-      bs_dlllib:          arg list;
-      bs_dllpath:         arg list;
-      bs_byteopt:         arg list;
-      bs_nativeopt:       arg list;
+      bs_ccopt:           args conditional;
+      bs_cclib:           args conditional;
+      bs_dlllib:          args conditional;
+      bs_dllpath:         args conditional;
+      bs_byteopt:         args conditional;
+      bs_nativeopt:       args conditional;
     }
     with odn
 
@@ -187,7 +189,7 @@ type source_repository =
 type test = 
     {
       test_type:               plugin;
-      test_command:            command * arg list;
+      test_command:            command_line conditional;
       test_working_directory:  filename option;
       test_run:                bool conditional;
       test_build_tools:        tool list;
@@ -244,8 +246,9 @@ type conf =
   *)
 type 'a value =
     {
-      parse: string -> 'a;
-      print: 'a -> string;
+      parse:  string -> 'a;
+      update: 'a -> 'a -> 'a;
+      print:  'a -> string;
     }
 
 (** Quickstart level

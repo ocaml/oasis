@@ -178,6 +178,81 @@ let tests ctxt =
                     (List.map
                        (fun s -> InternalLibrary s)
                        ["test1"; "pa_test1"; "test_with_str"])));
+
+            "test10.oasis",
+            (fun pkg ->
+               let flag_test =
+                 match OASISSection.section_find 
+                         (OASISSection.KFlag, "test") 
+                         pkg.sections with
+                   | Flag (_, e) -> e
+                   | _ -> assert false
+               in
+               let test_main =
+                 match OASISSection.section_find 
+                         (OASISSection.KTest, "main") 
+                         pkg.sections with 
+                   | Test (_, e)-> e
+                   | _ -> assert false
+               in
+               let choose_with_env ?(vars=[]) ?(tests=[]) v =
+                 OASISExpr.choose 
+                   (fun nm -> 
+                      try 
+                        List.assoc nm vars
+                      with Not_found ->
+                        failwith ("Unable to find var "^nm))
+                   (fun nm -> 
+                      try
+                        List.assoc nm tests
+                      with Not_found ->
+                        failwith ("Unable to find a test"))
+                   v
+               in
+                 assert_equal
+                   ~msg:"Default for flag 'test' when os_type='win32'"
+                   ~printer:string_of_bool
+                   true
+                   (choose_with_env 
+                      ~tests:[TOs_type, "win32"] 
+                      flag_test.flag_default);
+
+                 assert_equal
+                   ~msg:"Default for flag 'test' when os_type='linux'"
+                   ~printer:string_of_bool
+                   false
+                   (choose_with_env 
+                      ~tests:[TOs_type, "linux"] 
+                      flag_test.flag_default);
+
+                assert_equal 
+                  ~msg:"Default for authors"
+                  ~printer:(String.concat ", ")
+                  ["Sylvain Le Gall"; "Another one"]
+                  pkg.authors;
+
+                assert_equal
+                  ~msg:"Synopsis"
+                  ~printer:(fun s -> s)
+                  "Just a test with extra text"
+                  pkg.synopsis;
+
+                assert_equal
+                  ~msg:"Command of test 'main' with test='true'"
+                  ~printer:(fun (cmd, args) -> String.concat " " (cmd :: args))
+                  ("main", ["-test"])
+                  (choose_with_env
+                     ~vars:["test", "true"]
+                     test_main.test_command);
+
+                assert_equal
+                  ~msg:"Command of test 'main' with test='false'"
+                  ~printer:(fun (cmd, args) -> String.concat " " (cmd :: args))
+                  ("main", [])
+                  (choose_with_env
+                     ~vars:["test", "false"]
+                     test_main.test_command);
+            )
           ])
       @
        (List.rev_map file_of_vector

@@ -28,6 +28,10 @@ let build_depends_field schm =
                 (fun (pkg, ver_constr_opt) -> 
                    FindlibPackage (pkg, ver_constr_opt))
                 (base_value.parse str));
+
+         update = 
+           List.append;
+
          print =
            (fun lst ->
               base_value.print
@@ -51,6 +55,10 @@ let build_tools_field schm =
               List.map 
                 (fun s -> ExternalTool s) 
                 (base.parse str));
+
+         update =
+           List.append;
+
          print =
            (fun lst ->
               base.print
@@ -131,42 +139,42 @@ let section_fields nm comp_dflt schm =
              not valid.")
   in
   let ccopt = 
-    new_field schm "CCOpt"
+    new_field_conditional schm "CCOpt"
       ~default:[]
       space_separated
       (fun () ->
          s_ "-ccopt arguments to use when building.")
   in
   let cclib = 
-    new_field schm "CCLib"
+    new_field_conditional schm "CCLib"
       ~default:[]
       space_separated
       (fun () ->
          s_ "-cclib arguments to use when building.")
   in
   let dlllib = 
-    new_field schm "DllLib"
+    new_field_conditional schm "DllLib"
       ~default:[]
       space_separated
       (fun () ->
          s_ "-dlllib arguments to use when building.")
   in
   let dllpath = 
-    new_field schm "DllPath"
+    new_field_conditional schm "DllPath"
       ~default:[]
       space_separated
       (fun () ->
          s_ "-dllpath arguments to use when building.")
   in
   let byteopt = 
-    new_field schm "ByteOpt"
+    new_field_conditional schm "ByteOpt"
       ~default:[]
       space_separated
       (fun () ->
          s_ "ocamlc arguments to use when building.")
   in
   let nativeopt = 
-    new_field schm "NativeOpt"
+    new_field_conditional schm "NativeOpt"
       ~default:[]
       space_separated
       (fun () ->
