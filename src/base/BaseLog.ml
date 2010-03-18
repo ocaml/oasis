@@ -60,7 +60,7 @@ let unregister event data =
     List.iter 
       (fun (e, d) ->
          if e <> event || d <> data then
-           Printf.fprintf chn_out "%S %S\n" event data)
+           Printf.fprintf chn_out "%S %S\n" e d)
       lst;
     close_out chn_out
 

@@ -29,9 +29,22 @@ let install_findlib_ev =
 
 let install pkg argv =
 
+  let in_destdir =
+    try 
+      let destdir =
+        destdir () 
+      in
+        (* Practically speaking destdir is prepended
+         * at the beginning of the target filename
+         *)
+        fun fn -> destdir^fn
+    with PropList.Not_set _ ->
+      fun fn -> fn
+  in
+
   let install_file src_file envdir = 
     let tgt_dir = 
-      envdir ()
+      in_destdir (envdir ())
     in
     let tgt_file =
       Filename.concat 

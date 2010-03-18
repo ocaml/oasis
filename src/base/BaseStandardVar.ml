@@ -121,6 +121,18 @@ let psdir =
     (s_ "PS documentation")
     "$docdir"
 
+let destdir =
+  var_define
+    ~short_desc:(s_ "Prepend a path when installing package")
+    ~cli:CLIAuto 
+    ~arg_help:"dir" 
+    "destdir"
+    (lazy 
+       (raise 
+          (PropList.Not_set
+             ("destdir", 
+              Some (s_ "undefined by construct")))))
+
 (** {2 Programs} *)
 
 let ocamlfind  = BaseCheck.ocamlfind

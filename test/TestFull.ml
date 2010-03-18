@@ -368,6 +368,26 @@ let tests ctxt =
     Printf.sprintf "'%s'" (FilePath.make_relative root fn)
   in
 
+  let mkloc build_dir =
+    (* Create a directory in build_dir and return its name *)
+    let mkdir_return fn_parts =
+      let fn = 
+        FilePath.make_filename (build_dir :: fn_parts)
+      in
+        mkdir ~parent:true fn;
+        fn
+    in
+
+      {
+        build_dir     = build_dir;
+        ocaml_lib_dir = mkdir_return ["lib"; "ocaml"];
+        bin_dir       = mkdir_return ["bin"];
+        lib_dir       = mkdir_return ["lib"];
+        data_dir      = mkdir_return ["share"];
+        doc_dir       = mkdir_return ["share"; "doc"];
+        html_dir      = mkdir_return ["share"; "doc"; "html"];
+      }
+  in
 
   (* Run standard test *)
   let test_of_vector (srcdir, 
@@ -387,15 +407,6 @@ let tests ctxt =
            temp_dir "oasis-" ".dir"
          in
 
-         (* Create a directory in build_dir and return its name *)
-         let mkdir_return ?(parent=true) fn_parts =
-           let fn = 
-             FilePath.make_filename (build_dir :: fn_parts)
-           in
-             mkdir ~parent fn;
-             fn
-         in
-
          let pristine = 
            (* Change to srcdir directory *)
            Sys.chdir srcdir;
@@ -409,15 +420,7 @@ let tests ctxt =
          in
 
            cur_dir, 
-           {
-             build_dir     = build_dir;
-             ocaml_lib_dir = mkdir_return ["lib"; "ocaml"];
-             bin_dir       = mkdir_return ["bin"];
-             lib_dir       = mkdir_return ["lib"];
-             data_dir      = mkdir_return ["share"];
-             doc_dir       = mkdir_return ["share"; "doc"];
-             html_dir      = mkdir_return ["share"; "doc"; "html"];
-           }, 
+           (mkloc build_dir),
            pristine)
 
       (* Run test *)
@@ -431,6 +434,16 @@ let tests ctxt =
                 (List.rev_append
                   oasis_std_files
                   oasis_extra_files))
+         in
+
+         let expected_installed_files loc = 
+           (* Gather all file into a set *)
+           OASISUtils.set_string_of_list
+             (* Compute all file that should have been installed *)
+             (List.fold_left
+                (fun acc f -> f loc acc)
+                []
+                installed_files)
          in
 
          (* Create build system using OASIS *)
@@ -477,48 +490,83 @@ let tests ctxt =
            assert_run_setup ["-doc"]
          in
 
-         (* Run install target *)
-         let () = 
-           let expected_installed_files = 
-             (* Gather all file into a set *)
-             OASISUtils.set_string_of_list
-               (* Compute all file that should have been installed *)
-               (List.fold_left
-                  (fun acc f -> f loc acc)
-                  []
-                  installed_files)
+         (* Generic function to run install/test/uninstall *)
+         let install_test_uninstall ?(extra_env=[]) id loc test = 
+           let extra_env =
+             ("OCAMLFIND_DESTDIR", loc.ocaml_lib_dir)
+             ::
+             extra_env
            in
-             assert_run_setup
-               ~extra_env:["OCAMLFIND_DESTDIR", loc.ocaml_lib_dir]
-               ["-install"];
+             (* Install *)
+             assert_run_setup ~extra_env ["-install"];
 
              (* Check that we have installed everything as expected *)
              OUnitSetString.assert_equal
-               ~msg:"Installed files"
+               ~msg:(Printf.sprintf "Installed files (%s)" id)
                ~printer:(fn_printer ~root:loc.build_dir)
-               expected_installed_files
+               (expected_installed_files loc)
                (all_files loc.build_dir);
 
              (* Test that installed files are working *)
-             List.iter 
-               (fun f -> f ())
-               (List.fold_left
-                  (fun acc f -> f loc acc)
-                  []
-                  post_install_runs)
+             test ();
+
+             (* Uninstall *)
+             assert_run_setup ~extra_env ["-uninstall"];
+             (* Check that no more files present in build_dir *)
+             OUnitSetString.assert_equal
+               ~msg:(Printf.sprintf 
+                       "Build directory is empty after uninstall (%s)" 
+                       id)
+               ~printer:(fn_printer ~root:loc.build_dir)
+               SetString.empty
+               (all_files loc.build_dir)
          in
 
-         (* Run uninstall target *)
+         (* Run install/uninstall target *)
          let () = 
-           assert_run_setup 
-               ~extra_env:["OCAMLFIND_DESTDIR", loc.ocaml_lib_dir]
-               ["-uninstall"];
-           (* Check that no more files present in build_dir *)
-           OUnitSetString.assert_equal
-             ~msg:"Build directory is empty after uninstall"
-             ~printer:(fn_printer ~root:loc.build_dir)
-             SetString.empty
-             (all_files loc.build_dir)
+           install_test_uninstall 
+             "1st time"
+             loc
+             (fun () ->
+                (* Test that installed files are working *)
+                List.iter 
+                  (fun f -> f ())
+                  (List.fold_left
+                     (fun acc f -> f loc acc)
+                     []
+                     post_install_runs))
+         in
+
+         (* Run install/uninstall target 2nd time *)
+         let () = 
+           install_test_uninstall 
+             "2nd time"
+             loc
+             (fun () ->
+                (* Test that installed files are working *)
+                List.iter 
+                  (fun f -> f ())
+                  (List.fold_left
+                     (fun acc f -> f loc acc)
+                     []
+                     post_install_runs))
+         in
+
+         (* Run install/uninstall target with destdir *)
+         let () = 
+           let destdir = 
+             loc.build_dir
+           in
+           let loc = 
+             mkloc 
+               (Filename.concat destdir 
+                  (FilePath.make_relative "/" loc.build_dir))
+           in
+             install_test_uninstall 
+               ~extra_env:["destdir", destdir]
+               "with destdir"
+               loc
+               ignore
          in
 
          (* Run clean target *)
