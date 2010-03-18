@@ -22,7 +22,7 @@ let fix_args args extra_argv =
       else
         [];
   
-      if (ocamlbest ()) = "byte" || (os_type ()) = "Win32" then
+      if not (bool_of_string (is_native ())) || (os_type ()) = "Win32" then
         [
           "-byte-plugin" 
         ]

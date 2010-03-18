@@ -4,140 +4,177 @@
   *)
 
 open OASISTypes
+open OASISGettext
 open BaseEnv
 open BaseStandardVar
 
 type target =
-  | Std of string
-  | CLibrary  of string * string
-  | Rename of string * string
+  | Std of string 
+  | StdRename of string * string
 
 let cond_targets_hook =
   ref (fun lst -> lst)
 
 let build pkg argv =
-  let run_ocamlbuild rtargets = 
-    OCamlbuildCommon.run_ocamlbuild rtargets argv
-  in
 
+  (* Return the filename in build directory *)
   let in_build_dir fn =
     Filename.concat 
       (OCamlbuildCommon.build_dir argv) 
       fn
   in
 
-  let cond_targets =
-    List.flatten 
-      [
-        List.fold_left
-          (fun acc ->
-             function 
-               | Library (cs, bs, lib) ->
-                   if var_choose bs.bs_build then
-                     begin
-                       let acc =
-                         (* Compute what libraries should be built *)
-                         let target ext =
-                           Std (Filename.concat bs.bs_path (cs.cs_name^ext))
-                         in
-                         let byte, native =
-                           target ".cma", target ".cmxa"
-                         in
-                           match bs.bs_compiled_object, ocamlbest () with 
-                             | Native, _ 
-                             | Best, "native" ->
-                                 byte :: native :: acc
-                             | Byte, _
-                             | Best, "byte" ->
-                                 byte :: acc
-                             | Best, ocamlbest ->
-                                 failwith 
-                                   (Printf.sprintf 
-                                      "Unknown ocamlbest: '%s'"
-                                      ocamlbest)
-                       in
+  (* Return the unix filename in host build directory *)
+  let in_build_dir_of_unix fn =
+    in_build_dir (BaseFilePath.of_unix fn)
+  in
 
-                       let acc = 
-                         (* Add C library to be built *)
-                         if bs.bs_c_sources <> [] then
-                           CLibrary (bs.bs_path, cs.cs_name) :: acc
-                         else
-                           acc
-                       in
+  let cond_targets =
+    List.fold_left
+      (fun acc ->
+         function 
+           | Library (cs, bs, lib) when var_choose bs.bs_build ->
+               begin
+                 let evs, unix_files =
+                   BaseBuilt.of_library 
+                     in_build_dir_of_unix
+                     (cs, bs, lib)
+                 in
+
+                 let ends_with nd fn =
+                   let nd_len =
+                     String.length nd
+                   in
+                     (String.length fn >= nd_len)
+                     &&
+                     (String.sub 
+                        fn
+                        (String.length fn - nd_len)
+                        nd_len) = nd
+                 in
+
+                 let tgts =
+                   List.filter
+                     (fun fn ->
+                        ends_with ".cma" fn ||
+                        ends_with ".cmxa" fn ||
+                        ends_with (ext_lib ()) fn ||
+                        ends_with (ext_dll ()) fn)
+                     unix_files
+                 in
+
+                   match tgts with 
+                     | hd :: tl ->
+                         (evs, Std hd)
+                         :: 
+                         (List.map (fun tgt -> [], Std tgt) tl)
+                         @
                          acc
-                     end
-                   else
-                     acc
-               | Executable (cs, bs, exec) ->
-                   if var_choose bs.bs_build then
-                     begin
-                       let target ext =
-                         let src = 
-                           (Filename.concat
-                              bs.bs_path
-                              (Filename.chop_extension 
-                                 exec.exec_main_is))^ext
-                         in
-                         let exec_is =
-                           OASISExecutable.exec_is (cs, bs, exec)
-                         in
-                           if src = exec_is then
-                             Std src
-                           else
-                             Rename (src, exec_is)
-                       in
-                       let byte, native = 
-                         target ".byte", target ".native" 
-                       in
-                         match bs.bs_compiled_object, ocamlbest () with
-                           | Byte, _
-                           | Best, "byte" ->
-                               byte :: acc
-                           | Native, _
-                           | Best, "native" ->
-                               native :: acc
-                           | Best, ocamlbest ->
-                               failwith 
-                                 (Printf.sprintf 
-                                    "Unknown ocamlbest: '%s'"
-                                    ocamlbest)
-                     end
-                   else
-                     acc
-               | Test _ | SrcRepo _ | Flag _ | Doc _ ->
-                   acc)
-          []
-          (* Keep the pkg.sections ordered *)
-          (List.rev pkg.sections);
-      ]
+                     | [] ->
+                         failwith 
+                           (Printf.sprintf
+                              (f_ "No possible ocamlbuild targets \
+                                   in generated fiels %s for library %s")
+                              (String.concat (s_ ", " ) tgts)
+                              cs.cs_name)
+               end
+
+           | Executable (cs, bs, exec) when var_choose bs.bs_build ->
+               begin
+                 let evs, unix_exec_is, unix_dll_opt =
+                   BaseBuilt.of_executable 
+                     in_build_dir_of_unix
+                     (cs, bs, exec)
+                 in
+
+                 let host_exec_is = 
+                   in_build_dir_of_unix unix_exec_is
+                 in
+
+                 let target ext =
+                   let unix_tgt = 
+                     (BaseFilePath.Unix.concat
+                        bs.bs_path
+                        (BaseFilePath.Unix.chop_extension 
+                           exec.exec_main_is))^ext
+                   in
+
+                     evs,
+                     (if unix_tgt = unix_exec_is then
+                        Std unix_tgt
+                      else
+                        StdRename (unix_tgt, host_exec_is))
+                 in
+
+                 (* Add executable *)
+                 let acc =
+                   match bs.bs_compiled_object with
+                     | Native ->
+                         (target ".native") :: acc
+                     | Best when bool_of_string (is_native ()) ->
+                         (target ".native") :: acc
+                     | Byte
+                     | Best ->
+                         (target ".byte") :: acc
+                 in
+                   acc
+               end
+
+           | Library _ | Executable _ | Test _ 
+           | SrcRepo _ | Flag _ | Doc _ ->
+               acc)
+      []
+      (* Keep the pkg.sections ordered *)
+      (List.rev pkg.sections);
+  in
+
+  (* Check and register built files *)
+  let check_and_register (bt, bnm, lst) = 
+    List.iter
+      (fun fn ->
+         if not (Sys.file_exists fn) then
+           failwith 
+             (Printf.sprintf 
+                (f_ "Expected built file '%s' doesn't exist")
+                fn))
+      lst;
+      (BaseBuilt.register bt bnm lst) 
+  in
+
+  (* Run a list of target + post process *)
+  let run_ocamlbuild rtargets = 
+    OCamlbuildCommon.run_ocamlbuild 
+      (List.rev_map snd rtargets)
+      argv;
+    List.iter
+      check_and_register
+      (List.flatten (List.rev_map fst rtargets))
   in
 
   let last_rtargets =
     List.fold_left
-      (fun acc tgt ->
+      (fun acc (built, tgt) ->
          match tgt with 
            | Std nm -> 
-               nm :: acc
-           | CLibrary (dir, nm) ->
-               (dir^"/lib"^nm^(ext_lib ())) 
-               ::
-               (dir^"/dll"^nm^(ext_dll ()))
-               ::
-               acc
-           | Rename (src, tgt) ->
-               run_ocamlbuild (List.rev (src :: acc));
+               (built, nm) :: acc
+           | StdRename (src, tgt) ->
+               (* We run with a fake list for event registering *)
+               run_ocamlbuild (([], src) :: acc);
+               (* And then copy and register *)
                BaseFileUtil.cp 
-                 (in_build_dir src) 
-                 (in_build_dir tgt);
+                 (in_build_dir_of_unix src)
+                 tgt;
+               List.iter check_and_register built;
                [])
       []
       (!cond_targets_hook cond_targets)
   in
     if last_rtargets <> [] then
-      run_ocamlbuild (List.rev last_rtargets)
+      run_ocamlbuild last_rtargets
 
 let clean pkg extra_args  = 
-  OCamlbuildCommon.run_clean extra_args
+  OCamlbuildCommon.run_clean extra_args;
+  BaseBuilt.clean_all pkg
 
 (* END EXPORT *)
 

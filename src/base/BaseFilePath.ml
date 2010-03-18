@@ -5,6 +5,8 @@
 
 open Filename
 
+module Unix = OASISUnixPath
+
 (** Concat elements of a path
   *)
 let make =
@@ -19,8 +21,12 @@ let make =
 let of_unix ufn =
   make
     (List.map
-       (function
-          | "."  -> current_dir_name
-          | ".." -> parent_dir_name
-          | p    -> p)
+       (fun p ->
+          if p = Unix.current_dir_name then
+            current_dir_name
+          else if p = Unix.parent_dir_name then
+            parent_dir_name
+          else
+            p)
        (OASISUtils.split '/' ufn))
+

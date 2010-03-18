@@ -5,21 +5,33 @@
 
 open OASISTypes
 
-(* Return the directory that will contain the executable *)
-let exec_main_path (cs, bs, exec) = 
-  let dir = 
-    Filename.dirname exec.exec_main_is
-  in
-    if dir = Filename.current_dir_name then
-      bs.bs_path
-    else
-      Filename.concat bs.bs_path dir
-
 (* Return the name of the real name of executable, with full 
-   path
+   unix path
  *)
-let exec_is ((cs, _, _) as exec_data) = 
-  Filename.concat (exec_main_path exec_data) cs.cs_name
+let unix_exec_is (cs, bs, exec) is_native ext_dll = 
+  let dir = 
+    OASISUnixPath.concat
+      bs.bs_path
+      (OASISUnixPath.dirname exec.exec_main_is)
+  in
+  let is_native_exec = 
+    match bs.bs_compiled_object with
+      | Native -> true
+      | Best -> is_native ()
+      | Byte -> false
+  in
+
+    OASISUnixPath.concat
+      dir
+      cs.cs_name,
+
+    if not is_native_exec && 
+       not exec.exec_custom && 
+       bs.bs_c_sources <> [] then
+      Some (dir^"/dll"^cs.cs_name^(ext_dll ()))
+    else
+      None
+
 
 (* END EXPORT *)
 

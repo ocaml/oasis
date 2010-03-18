@@ -42,6 +42,49 @@ let distclean t pkg extra_args =
     | _ ->
         ()
 
+module Build =
+struct 
+  let main t pkg extra_args =
+    main t pkg extra_args;
+    List.fold_left
+      (fun () sct ->
+         let evs =
+           match sct with 
+             | Library (cs, bs, lib) when var_choose bs.bs_build ->
+                 begin
+                   let evs, _ = 
+                     BaseBuilt.of_library 
+                       BaseFilePath.of_unix
+                       (cs, bs, lib) 
+                   in
+                     evs
+                 end
+             | Executable (cs, bs, exec) when var_choose bs.bs_build ->
+                 begin
+                   let evs, _, _ =
+                     BaseBuilt.of_executable
+                       BaseFilePath.of_unix
+                       (cs, bs, exec)
+                   in
+                     evs
+                 end
+             | _ ->
+                 []
+         in
+           List.iter
+             (fun (bt, bnm, lst) -> BaseBuilt.register bt bnm lst)
+             evs)
+      ()
+      pkg.sections
+
+  let clean t pkg extra_args =
+    clean t pkg extra_args;
+    BaseBuilt.clean_all pkg
+
+  let distclean t pkg extra_args =
+    distclean t pkg extra_args
+end
+
 module Test =
 struct
   let main t pkg (cs, test) extra_args =
@@ -180,12 +223,46 @@ let () =
   in
   let module CU = Make(PU)
   in
-  let doit = 
-    CU.std
+  let cmd_main, cmd_clean, cmd_distclean =
+    CU.add_fields
       "Build"
       (fun () -> s_ "Run command to build.")
       (fun () -> s_ "Run command to clean build step.")
       (fun () -> s_ "Run command to distclean build step.")
+  in
+  let doit pkg = 
+    let t =
+      {
+        cmd_main      = cmd_main pkg.schema_data;
+        cmd_clean     = cmd_clean pkg.schema_data;
+        cmd_distclean = cmd_distclean pkg.schema_data;
+      }
+    in
+      {
+        OASISPlugin.moduls = 
+          [CustomData.customsys_ml];
+
+        setup = 
+          ODNFunc.func_with_arg 
+            Build.main ("CustomPlugin.Build.main")
+            t odn_of_t;
+
+        clean = 
+          Some 
+            (ODNFunc.func_with_arg
+               Build.clean ("CustomPlugin.Build.clean")
+               t odn_of_t);
+
+        distclean = 
+          Some 
+            (ODNFunc.func_with_arg
+               Build.distclean ("CustomPlugin.Build.distclean")
+               t odn_of_t);
+
+        other_action = 
+          ignore;
+      },
+      pkg
   in
     PU.register doit
 
@@ -219,8 +296,7 @@ let doc =
   in
   let cmd_main, cmd_clean, cmd_distclean =
     CU.add_fields
-      (* TODO: use document *)
-      ~schema:OASISPackage.schema
+      ~schema:OASISDocumentation.schema
       "Doc"
       (fun () -> s_ "Run command to build documentation.")
       (fun () -> s_ "Run command to clean build documentation step.")

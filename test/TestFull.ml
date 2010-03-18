@@ -218,16 +218,18 @@ let tests ctxt =
          [])
     in
     let ld_library_paths = 
-      loc.lib_dir 
-      ::
-      (find 
-         Is_dir
-         loc.ocaml_lib_dir
-         (fun acc fn -> fn :: acc)
-         (try
-            FilePath.path_of_string (Unix.getenv "LD_LIBRARY_PATH")
-          with Not_found ->
-            []))
+      find
+        Is_dir
+        loc.lib_dir 
+        (fun acc fn -> fn :: acc)
+        (find 
+           Is_dir
+           loc.ocaml_lib_dir
+           (fun acc fn -> fn :: acc)
+           (try
+              FilePath.path_of_string (Unix.getenv "LD_LIBRARY_PATH")
+            with Not_found ->
+              []))
     in
     let test () = 
       let real_cmd = 
@@ -689,7 +691,7 @@ let tests ctxt =
            in_bin ["test-with-c"; 
                    "test-with-c-custom"; 
                    "test-with-c-native"];
-           in_library ["dlltest-with-c.so"];
+           in_library ["with-c/dlltest-with-c.so"];
            in_ocaml_library "with-c"
              [
                "A.cmi"; "A.ml"; "META"; "with-c.cma";

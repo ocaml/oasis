@@ -160,22 +160,23 @@ let findlib_version =
     (lazy 
        (BaseCheck.package_version "findlib"))
 
-(** Check what is the best target for platform (opt/byte)
+(** Check that the platform is a native platform (can compile native
+    exec/library).
   *)
-let ocamlbest =
+let is_native =
   var_define
-    "ocamlbest"
-    (lazy 
+    "is_native"
+    (lazy
        (try
           let _s : string = 
             ocamlopt ()
           in
-            "native"
+            "true"
         with Not_found ->
           let _s : string = 
             ocamlc ()
           in
-           "byte"))
+            "false"))
 
 (** Compute the default suffix for program (target OS dependent)
   *)

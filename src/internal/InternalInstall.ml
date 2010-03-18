@@ -7,22 +7,7 @@ open BaseEnv
 open BaseStandardVar
 open OASISTypes
 open OASISLibrary
-
-let srcdir =
-  var_define
-    "srcdir"
-    (lazy ".")
-
-let builddir =
-  var_define
-    "builddir"
-    (lazy (Filename.concat (srcdir ()) "_build"))
-
-let dllfn path name = 
-  Filename.concat path ("dll"^name^(ext_dll ()))
-
-let libfn path name =
-  Filename.concat path ("lib"^name^(ext_lib ()))
+open OASISGettext
 
 let exec_hook =
   ref (fun (cs, bs, exec) -> cs, bs, exec)
@@ -43,58 +28,6 @@ let install_findlib_ev =
   "install-findlib"
 
 let install pkg argv =
-  let rootdirs =
-    [srcdir (); builddir ()]
-  in
-
-  let ( * ) lst1 lst2 = 
-    List.flatten 
-      (List.map 
-         (fun a -> 
-            List.map 
-              (fun b -> a,b) 
-              lst2) 
-         lst1)
-  in
-
-  let make_filename =
-    function
-      | [] -> "" 
-      | hd :: tl  -> List.fold_left Filename.concat hd tl
-  in
-
-  let make_module nm = 
-    [String.capitalize nm; String.uncapitalize nm]
-  in
-
-  let find_file f lst = 
-    let alternatives =
-      List.map (fun e -> make_filename (f e)) lst
-    in
-      try 
-        List.find Sys.file_exists alternatives
-      with Not_found ->
-        failwith 
-          (Printf.sprintf 
-             "Cannot find any of the files: %s"
-             (String.concat ", " 
-                (List.map 
-                   (Printf.sprintf "%S")
-                   alternatives)))
-  in
-
-  let find_build_file fn =
-    find_file
-      (fun rootdir -> [rootdir; fn])
-      rootdirs
-  in
-
-  let is_native comp_type =
-    match comp_type with 
-      | Best -> (ocamlbest ()) = "native" 
-      | Byte -> false
-      | Native -> true
-  in
 
   let install_file src_file envdir = 
     let tgt_dir = 
@@ -110,7 +43,7 @@ let install pkg argv =
         (
           BaseMessage.info 
             (Printf.sprintf 
-               "Creating directory '%s'"
+               (f_ "Creating directory '%s'")
                tgt_dir);
           BaseFileUtil.mkdir tgt_dir;
           BaseLog.register install_dir_ev tgt_dir
@@ -119,7 +52,7 @@ let install pkg argv =
       (* Really install files *)
       BaseMessage.info 
         (Printf.sprintf 
-           "Copying file '%s' to '%s'"
+           (f_ "Copying file '%s' to '%s'")
            src_file
            tgt_file);
       BaseFileUtil.cp src_file tgt_file;
@@ -143,7 +76,7 @@ let install pkg argv =
                if real_srcs = [] then
                  failwith 
                    (Printf.sprintf 
-                      "Wildcard '%s' doesn't match any files"
+                      (f_ "Wildcard '%s' doesn't match any files")
                       src);
                List.iter 
                  (fun fn -> 
@@ -164,7 +97,9 @@ let install pkg argv =
                install_data
                  bs.bs_path
                  bs.bs_data_files
-                 "$datarootdir/$pkg_name"
+                 (Filename.concat 
+                    (datarootdir ())
+                    pkg.name)
            | Doc (_, doc) ->
                install_data
                  Filename.current_dir_name
@@ -178,92 +113,56 @@ let install pkg argv =
   (** Install all libraries *)
   let install_libs pkg =
 
-    let find_lib_file (cs, bs, lib) fn =
-      find_file
-        (fun rootdir -> [rootdir; bs.bs_path; fn])
-        rootdirs
-    in
-
     let files_of_library acc data_lib = 
       let cs, bs, lib, lib_extra =
         !lib_hook data_lib
       in
-      let find_lib_file =
-        find_lib_file (cs, bs, lib)
-      in
-        (if var_choose bs.bs_install then
-           [
-             find_lib_file (cs.cs_name^".cma");
-           ]
-           :: 
-           (if is_native bs.bs_compiled_object then
-              (
-                try 
-                  [
-                    find_lib_file (cs.cs_name^".cmxa");
-                    find_lib_file (cs.cs_name^(ext_lib ()));
-                  ]
-                with Failure txt ->
-                  BaseMessage.warning 
-                    (Printf.sprintf
-                       "Cannot install native library %s: %s"
-                       cs.cs_name
-                       txt);
-                  []
-              )
-            else
-              []
-           )
-           ::
-           lib_extra
-           ::
-           (if bs.bs_c_sources <> [] then
-              [
-                find_build_file (libfn bs.bs_path cs.cs_name);
-              ]
-            else
-              [])
-           ::
-           (* Some architecture doesn't allow shared library (Cygwin, AIX) *)
-           (if bs.bs_c_sources <> [] then
-              (try 
-                [
-                  find_build_file (dllfn bs.bs_path cs.cs_name);
-                ]
-               with Failure txt ->
-                 if (os_type ()) <> "Cygwin" then
-                   BaseMessage.warning
-                     (Printf.sprintf
-                        "Cannot install C static library %s: %s"
-                        cs.cs_name
-                        txt);
-                 [])
-            else
-              [])
-           ::
-           (
-             let module_to_cmi modul =
-               find_file 
-                  (fun (rootdir, fn) -> [rootdir; bs.bs_path; (fn^".cmi")])
-                  (rootdirs * (make_module modul))
-             in
-
-             let module_to_header modul =
-               assert(modul <> "");
-               find_file 
-                  (fun ((rootdir, fn), ext) -> [rootdir; bs.bs_path; fn^ext])
-                  (rootdirs * (make_module modul) * [".mli"; ".ml"])
-             in
-               List.fold_left
-                 (fun acc modul -> 
-                    module_to_cmi modul :: module_to_header modul :: acc)
-                 []
-                 lib.lib_modules
-           )
-           ::
-           acc
+        if var_choose bs.bs_install then
+          begin
+            let acc = 
+              (* Start with acc + lib_extra *)
+              List.rev_append lib_extra acc
+            in
+            let acc = 
+              (* Add uncompiled header from the source tree *)
+              let path = 
+                BaseFilePath.of_unix bs.bs_path
+              in
+                List.fold_left
+                  (fun acc modul ->
+                     try 
+                       List.find
+                         Sys.file_exists 
+                         (List.map
+                            (Filename.concat path)
+                            [String.uncapitalize modul^".mli";
+                             String.capitalize   modul^".mli";
+                             String.uncapitalize modul^".ml";
+                             String.capitalize   modul^".ml"])
+                       :: acc
+                     with Not_found ->
+                       begin
+                         BaseMessage.warning 
+                           (Printf.sprintf 
+                              (f_ "Cannot find source header for module %s \
+                                   in library %s")
+                              modul cs.cs_name);
+                         acc
+                       end)
+                  acc
+                  lib.lib_modules
+            in
+             (* Get generated files *)
+             BaseBuilt.fold 
+               BaseBuilt.BLib 
+               cs.cs_name
+               (fun acc fn -> fn :: acc)
+               acc
+          end
          else
-           acc)
+          begin
+            acc
+          end
     in
 
     (* Install one group of library *)
@@ -295,27 +194,42 @@ let install pkg argv =
 
       (* All files to install for this library *)
       let files =
-        List.flatten (install_group_lib_aux [] grp)
+        install_group_lib_aux [] grp
       in
 
         (* Really install, if there is something to install *)
         if files = [] then 
           begin
-            BaseMessage.info 
+            BaseMessage.warning
               (Printf.sprintf 
-                 "Nothing to install for findlib library '%s'"
+                 (f_ "Nothing to install for findlib library '%s'")
                  findlib_name)
           end
         else
           begin
             let meta = 
-              find_lib_file root_lib "META"
+              (* Search META file *)
+              let (_, bs, _) = 
+                root_lib
+              in
+              let res = 
+                Filename.concat bs.bs_path "META"
+              in
+                if not (Sys.file_exists res) then
+                  failwith 
+                    (Printf.sprintf
+                       (f_ "Cannot find file '%s' for findlib library %s")
+                       res
+                       findlib_name);
+                res
             in
               BaseMessage.info 
                 (Printf.sprintf
-                   "Installing findlib library '%s'"
+                   (f_ "Installing findlib library '%s'")
                    findlib_name);
-              BaseExec.run (ocamlfind ()) ("install" :: findlib_name :: meta :: files);
+              BaseExec.run 
+                (ocamlfind ()) 
+                ("install" :: findlib_name :: meta :: files);
               BaseLog.register install_findlib_ev findlib_name 
           end
     in
@@ -328,26 +242,32 @@ let install pkg argv =
 
   let install_execs pkg = 
     let install_exec data_exec =
-      let (cs, bs, exec) as data_exec =
+      let (cs, bs, exec) =
         !exec_hook data_exec
       in
         if var_choose bs.bs_install then
           begin
-            install_file
-              (find_build_file
-                 ((OASISExecutable.exec_is data_exec)^(suffix_program ())))
-              bindir;
-            
-            if bs.bs_c_sources <> [] && 
-               not exec.exec_custom && 
-               (* TODO: move is_native to OASISBuildSection *)
-               not (is_native bs.bs_compiled_object) then
-              begin
-                install_file
-                  (find_build_file
-                     (dllfn (OASISExecutable.exec_main_path data_exec) cs.cs_name))
-                  libdir
-              end
+            let exec_libdir () =
+              Filename.concat 
+                (libdir ())
+                pkg.name
+            in
+              BaseBuilt.fold
+                BaseBuilt.BExec
+                cs.cs_name
+                (fun () fn ->
+                   install_file
+                     fn
+                     bindir)
+                ();
+              BaseBuilt.fold
+                BaseBuilt.BExecLib
+                cs.cs_name
+                (fun () fn ->
+                   install_file
+                     fn
+                     exec_libdir)
+                ()
           end
     in
       List.iter
@@ -403,7 +323,7 @@ let uninstall _ argv =
              (
                BaseMessage.info
                  (Printf.sprintf 
-                    "Removing file '%s'"
+                    (f_ "Removing file '%s'")
                     data);
                Sys.remove data
              )
@@ -416,7 +336,7 @@ let uninstall _ argv =
                  (
                    BaseMessage.info
                      (Printf.sprintf 
-                        "Removing directory '%s'"
+                        (f_ "Removing directory '%s'")
                         data);
                    BaseFileUtil.rmdir data
                  )
@@ -424,7 +344,7 @@ let uninstall _ argv =
                  (
                    BaseMessage.warning 
                      (Printf.sprintf
-                        "Directory '%s' is not empty (%s)"
+                        (f_ "Directory '%s' is not empty (%s)")
                         data
                         (String.concat 
                            ", " 
@@ -437,13 +357,16 @@ let uninstall _ argv =
          (
            BaseMessage.info
              (Printf.sprintf
-                "Removing findlib library '%s'"
+                (f_ "Removing findlib library '%s'")
                 data);
            BaseExec.run (ocamlfind ()) ["remove"; data]
          )
        else
          (
-           failwith (Printf.sprintf "Unknown log event '%s'" ev)
+           failwith 
+             (Printf.sprintf 
+                (f_ "Unknown log event '%s'")
+                ev)
          );
        BaseLog.unregister ev data)
     (* We process event in reverse order *)

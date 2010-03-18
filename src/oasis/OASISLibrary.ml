@@ -7,6 +7,83 @@ open OASISTypes
 open OASISUtils
 open OASISGettext
 
+(** Compute all files expected by a build of the library
+  *)
+let generated_unix_files (cs, bs, lib) 
+      source_file_exists is_native ext_lib ext_dll =  
+  (* The headers that should be compiled along *)
+  let headers = 
+    List.fold_left
+      (fun hdrs modul ->
+         try 
+           begin
+             let base_fn = 
+               List.find
+                 (fun fn -> 
+                    source_file_exists (fn^".ml") ||
+                    source_file_exists (fn^".mli"))
+                 (List.map
+                    (OASISUnixPath.concat bs.bs_path)
+                    [String.uncapitalize modul;
+                     String.capitalize modul])
+             in
+               (base_fn^".cmi") :: hdrs
+           end
+         with Not_found ->
+           failwith
+             (Printf.sprintf
+                (f_ "Cannot find source file matching \
+                      module '%s' in library %s")
+                modul
+                cs.cs_name)
+      )
+      []
+      lib.lib_modules
+  in
+
+  let acc_nopath =
+    []
+  in
+
+  (* Compute what libraries should be built *)
+  let acc_nopath =
+    let byte acc =
+      (cs.cs_name^".cma") :: acc
+    in
+    let native acc =
+      (cs.cs_name^".cmxa") :: (cs.cs_name^".a") :: acc
+    in
+      match bs.bs_compiled_object with 
+        | Native ->
+            byte (native acc_nopath)
+        | Best when is_native () ->
+            byte (native acc_nopath)
+        | Byte | Best ->
+            byte acc_nopath
+  in
+
+  (* Add C library to be built *)
+  let acc_nopath = 
+    if bs.bs_c_sources <> [] then
+      begin
+        ("lib"^cs.cs_name^(ext_lib ()))
+        ::
+        ("dll"^cs.cs_name^(ext_dll ()))
+        ::
+        acc_nopath
+      end
+    else
+      acc_nopath
+  in
+
+    (* All the files generated *)
+    List.rev_append
+      (List.rev_map
+         (OASISUnixPath.concat bs.bs_path)
+         acc_nopath)
+      headers
+
+
 (** Library group are organized in trees
   *)
 type group_t = 
