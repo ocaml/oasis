@@ -3,8 +3,24 @@
     @author Sylvain Le Gall
   *)
 
+open OASISGettext
+
 let verbose =
   ref true
+
+let debug =
+  ref false
+
+(** Command line arguments
+  *)
+let args =
+  ["-quiet",
+   Arg.Clear verbose,
+   (s_ " Run quietly");
+
+   "-debug",
+   Arg.Set debug,
+   (s_ " Output debug message")]
 
 (** Print a warning message 
   *)
@@ -24,6 +40,12 @@ let error str =
 let info str = 
   if !verbose then
     Printf.printf "%s\n%!" str
+
+let debug fmt =
+  if !debug then
+    Printf.fprintf  stderr fmt
+  else
+    Printf.ifprintf stderr fmt
 
 (** Print begin of line when checking for a feature.
   *)

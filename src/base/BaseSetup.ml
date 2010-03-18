@@ -160,106 +160,113 @@ let clean, distclean =
     clean, distclean
 
 let setup t = 
-  try
-    let act_ref =
-      ref (fun _ -> 
-             failwith
-               (Printf.sprintf
-                  "No action defined, run '%s %s -help'"
-                  Sys.executable_name
-                  Sys.argv.(0)))
+  let catch_exn =
+    ref true
+  in
+    try
+      let act_ref =
+        ref (fun _ -> 
+               failwith
+                 (Printf.sprintf
+                    "No action defined, run '%s %s -help'"
+                    Sys.executable_name
+                    Sys.argv.(0)))
 
-    in
-    let extra_args_ref =
-      ref []
-    in
-    let allow_empty_env_ref = 
-      ref false
-    in
+      in
+      let extra_args_ref =
+        ref []
+      in
+      let allow_empty_env_ref = 
+        ref false
+      in
+      let arg_handle ?(allow_empty_env=false) act =
+        Arg.Tuple
+          [
+            Arg.Rest (fun str -> extra_args_ref := str :: !extra_args_ref);
 
-    let arg_handle ?(allow_empty_env=false) act =
-      Arg.Tuple
-        [
-          Arg.Rest (fun str -> extra_args_ref := str :: !extra_args_ref);
+            Arg.Unit 
+              (fun () -> 
+                 allow_empty_env_ref := allow_empty_env;
+                 act_ref := act);
+          ]
+      in
 
-          Arg.Unit 
-            (fun () -> 
-               allow_empty_env_ref := allow_empty_env;
-               act_ref := act);
-        ]
-    in
+        Arg.parse 
+          (Arg.align
+             [
+               "-configure",
+               arg_handle ~allow_empty_env:true configure,
+               "[options*] Configure build process.";
 
-      Arg.parse 
-        [
-          "-configure",
-          arg_handle ~allow_empty_env:true configure,
-          "[options*] Configure build process.";
+               "-build",
+               arg_handle build,
+               "[options*] Run build process.";
 
-          "-build",
-          arg_handle build,
-          "[options*] Run build process.";
+               "-doc",
+               arg_handle doc,
+               "[options*] Build documentation.";
 
-          "-doc",
-          arg_handle doc,
-          "[options*] Build documentation.";
+               "-test",
+               arg_handle test,
+               "[options*] Build and run tests.";
 
-          "-test",
-          arg_handle test,
-          "[options*] Build and run tests.";
+               "-install",
+               arg_handle install,
+               "[options*] Install library, data, executable and documentation.";
 
-          "-install",
-          arg_handle install,
-          "[options*] Install library, data, executable and documentation.";
+               "-uninstall",
+               arg_handle uninstall,
+               "[options*] Uninstall library, data, executable and documentation.";
 
-          "-uninstall",
-          arg_handle uninstall,
-          "[options*] Uninstall library, data, executable and documentation.";
+               "-clean",
+               arg_handle ~allow_empty_env:true clean,
+               "[options*] Clean build environment.";
 
-          "-clean",
-          arg_handle ~allow_empty_env:true clean,
-          "[options*] Clean build environment.";
+               "-distclean",
+               arg_handle ~allow_empty_env:true distclean,
+               "[options*] Clean build and configure environment.";
 
-          "-distclean",
-          arg_handle ~allow_empty_env:true distclean,
-          "[options*] Clean build and configure environment.";
-        ]
-        (fun str -> failwith ("Don't know what to do with "^str))
-        "Setup and run build process current package\n";
+               "-no-catch-exn",
+               Arg.Clear catch_exn,
+               " Don't exception, useful for debugging.";
+             ] @ BaseMessage.args)
+          (fun str -> failwith ("Don't know what to do with "^str))
+          "Setup and run build process current package\n";
 
-      (* Build initial environment *)
-      load ~allow_empty:!allow_empty_env_ref ();
+        (* Build initial environment *)
+        load ~allow_empty:!allow_empty_env_ref ();
 
-      (** Initialize flags *)
-      List.iter
-        (function
-           | Flag (cs, {flag_description = hlp; 
-                        flag_default = choices}) ->
-               begin
-                 let apply ?short_desc () = 
-                   var_ignore
-                     (var_define
-                        ~cli:CLIAuto
-                        ?short_desc
-                        cs.cs_name
-                        (lazy (string_of_bool 
-                                 (var_choose choices))))
-                 in
-                   match hlp with 
-                     | Some hlp ->
-                         apply ~short_desc:hlp ()
-                     | None ->
-                         apply ()
-               end
-           | _ -> 
-               ())
-        t.package.sections;
+        (** Initialize flags *)
+        List.iter
+          (function
+             | Flag (cs, {flag_description = hlp; 
+                          flag_default = choices}) ->
+                 begin
+                   let apply ?short_desc () = 
+                     var_ignore
+                       (var_define
+                          ~cli:CLIAuto
+                          ?short_desc
+                          cs.cs_name
+                          (lazy (string_of_bool 
+                                   (var_choose choices))))
+                   in
+                     match hlp with 
+                       | Some hlp ->
+                           apply ~short_desc:hlp ()
+                       | None ->
+                           apply ()
+                 end
+             | _ -> 
+                 ())
+          t.package.sections;
 
-      BaseStandardVar.init (t.package.name, t.package.version);
+        BaseStandardVar.init (t.package.name, t.package.version);
 
-      !act_ref t (Array.of_list (List.rev !extra_args_ref))
+        !act_ref t (Array.of_list (List.rev !extra_args_ref))
 
-  with e ->
-    BaseMessage.error (Printexc.to_string e);
+    with e when !catch_exn ->
+      BaseMessage.error (Printexc.to_string e)
 
 (* END EXPORT *)
 

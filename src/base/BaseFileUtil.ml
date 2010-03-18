@@ -2,6 +2,8 @@
 (** {1 File operation (install, which...)
   *)
 
+open OASISGettext
+
 (** Find a file among all provided alternatives
   *)
 let find_file paths exts = 
@@ -41,16 +43,11 @@ let find_file paths exts =
            p ^ e) 
       ((combined_paths paths) * exts)
   in
-    try 
-      List.find Sys.file_exists alternatives
-    with Not_found ->
-      failwith 
-        (Printf.sprintf 
-           "Cannot find any of the files: %s"
-           (String.concat ", " 
-              (List.map 
-                 (Printf.sprintf "%S")
-                 alternatives)))
+    List.find 
+      (fun fn ->
+         BaseMessage.debug (f_ "Testing file existence '%s'") fn;
+         Sys.file_exists fn)
+      alternatives
 
 (** Find real filename of an executable
   *)
@@ -143,7 +140,7 @@ let glob fn =
                     (Filename.concat dirname fn) :: acc
                   else
                     acc
-              with Invalid_argument "String.sub" ->
+              with Invalid_argument _ ->
                 acc)
            []
            (Sys.readdir dirname)

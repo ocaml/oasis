@@ -72,7 +72,7 @@ let generate pkg dev setup_fn =
       (Split
          (
            (* Header *)
-           ["#!/usr/bin/ocamlrun ocaml"],
+           [],
            (* Body *)
            (List.flatten 
               [
@@ -83,7 +83,6 @@ let generate pkg dev setup_fn =
            ["let () = setup ();;"]
          )
       );
-    Unix.chmod setup_fn 0o755;
 
     (* Generate other files *)
     List.iter

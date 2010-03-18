@@ -77,10 +77,9 @@ let () =
              (s_ " Change the default name of setup.ml. This option should be \
                    used with caution, it is reserved for internal use.");                   
 
-             "-quiet",
-             Arg.Clear BaseMessage.verbose,
-             (s_ " Run quietly");
-           ] @ gettext_args))
+           ] 
+           @ BaseMessage.args
+           @ gettext_args))
         (fun str -> 
            failwith 
              (Printf.sprintf 

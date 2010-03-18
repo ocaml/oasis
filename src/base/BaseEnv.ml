@@ -4,6 +4,7 @@
   *)
 
 open OASISTypes
+open OASISGettext
 open PropList
 
 (** Origin of the variable, if a variable has been already set
@@ -65,7 +66,7 @@ let rec var_expand str =
          with Unknown_field (_, _) ->
            failwith 
              (Printf.sprintf 
-                "No variable %s defined when trying to expand %S."
+                (f_ "No variable %s defined when trying to expand %S.")
                 var 
                 str))
       str;
@@ -119,13 +120,10 @@ let var_define
       dflt =
 
   let default =
-    (ODefault, dflt)
-    ::
-    (try 
-       [OGetEnv, lazy (Sys.getenv name)] 
-     with Not_found ->
-       [])
-
+    [
+      ODefault, dflt;
+      OGetEnv, lazy (Sys.getenv name);
+    ]
   in
 
   let extra = 
@@ -140,36 +138,42 @@ let var_define
 
   (* Try to find a value that can be defined 
    *)
-  let rec var_get_low = 
-    let rec higher_priority o1 v1 =
-      function
-        | (o2, v2) :: tl ->
-            if o1 < o2 then
-              begin
-                try 
-                  higher_priority o2 (Lazy.force v2) tl 
-                with Not_found ->
-                  higher_priority o1 v1 tl
-              end
-            else
-              higher_priority o1 v1 tl
-        | [] ->
-            v1
+  let var_get_low lst = 
+    let errors, res =
+      List.fold_left
+        (fun (errors, res) (_, v) ->
+           if res = None then
+             begin
+               try 
+                 errors, Some (Lazy.force v)
+               with
+                 | Not_found ->
+                      errors, res
+                 | Failure rsn ->
+                     (rsn :: errors), res
+                 | e ->
+                     (Printexc.to_string e) :: errors, res
+             end
+           else
+             errors, res)
+        ([], None)
+        (List.sort
+           (fun (o1, _) (o2, _) ->
+              if o1 < o2 then 
+               1
+              else if o1 = o2 then
+                0
+              else 
+               -1)
+           lst)
     in
-
-      function
-        | (o, v) :: tl -> 
-            begin
-              try 
-                higher_priority o (Lazy.force v) tl
-              with Not_found ->
-                var_get_low tl 
-            end
-        | [] ->
-            failwith 
-              (Printf.sprintf 
-                 "Variable %s is not set"
-                 name)
+      match res, errors with 
+        | Some v, _ ->
+            v
+        | None, [] ->
+            raise (Not_set (name, None))
+        | None, lst ->
+            raise (Not_set (name, Some (String.concat (s_ ", ") lst)))
   in
 
   let help =
@@ -295,7 +299,7 @@ let load ?(allow_empty=false) ?(filename=default_filename) () =
           | _ ->
               failwith 
                 (Printf.sprintf 
-                   "Malformed data file '%s' line %d"
+                   (f_ "Malformed data file '%s' line %d")
                    filename !line)
       in
         read_file ();
@@ -305,7 +309,7 @@ let load ?(allow_empty=false) ?(filename=default_filename) () =
     (
       failwith 
         (Printf.sprintf 
-           "Unable to load environment, the file '%s' doesn't exist."
+           (f_ "Unable to load environment, the file '%s' doesn't exist.")
            filename)
     )
 
@@ -347,18 +351,21 @@ let print () =
       (fun acc nm def short_descr_opt -> 
          if not def.hide || bool_of_string (print_hidden ()) then
            begin
-             let value = 
-               Schema.get 
-                 schema
-                 env
-                 nm
-             in
-             let txt = 
-               match short_descr_opt with 
-                 | Some s -> s ()
-                 | None -> nm
-             in
-               (txt, value) :: acc
+             try 
+               let value = 
+                 Schema.get 
+                   schema
+                   env
+                   nm
+               in
+               let txt = 
+                 match short_descr_opt with 
+                   | Some s -> s ()
+                   | None -> nm
+               in
+                 (txt, value) :: acc
+             with Not_set _ ->
+                 acc
            end
          else
            acc)
@@ -443,11 +450,16 @@ let args () =
                | None   -> "str"
            in
 
-           let value = 
-             Schema.get
-               schema
-               env
-               name
+           let default_value = 
+             try 
+               Printf.sprintf 
+                 (f_ " [%s]")
+                 (Schema.get
+                    schema
+                    env
+                    name)
+             with Not_set _ -> 
+               ""
            in
 
            let args = 
@@ -458,23 +470,31 @@ let args () =
                    [
                      arg_concat "--" arg_name,
                      Arg.String var_set,
-                     arg_hlp^" "^hlp^" ["^value^"]"
+                     Printf.sprintf (f_ "%s %s%s") arg_hlp hlp default_value
                    ]
                | CLIWith ->
                    [
                      arg_concat "--with-" arg_name,
                      Arg.String var_set,
-                     arg_hlp^" "^hlp^" ["^value^"]"
+                     Printf.sprintf (f_ "%s %s%s") arg_hlp hlp default_value
                    ]
                | CLIEnable ->
                    [
                      arg_concat "--enable-" arg_name,
                      Arg.Unit (fun () -> var_set "true"),
-                     " "^hlp^(if value = "true" then " [default]" else "");
+                     Printf.sprintf (f_ " %s%s") hlp 
+                       (if default_value = " [true]" then
+                          (s_ " [default]")
+                        else
+                          "");
 
                      arg_concat "--disable-" arg_name,
                      Arg.Unit (fun () -> var_set "false"),
-                     " "^hlp^(if value <> "true" then " [default]" else "");
+                     Printf.sprintf (f_ " %s%s") hlp 
+                       (if default_value = " [false]" then
+                          (s_ " [default]")
+                        else
+                          "");
                    ]
                | CLIUser lst ->
                    lst

@@ -3,6 +3,7 @@
     @author Sylvain Le Gall
   *)
 
+open OASISGettext
 open BaseCheck
 open BaseEnv
 
@@ -23,7 +24,7 @@ let (/) = Filename.concat
 
 let prefix = 
   p "prefix"
-    "install architecture-independent files dir"
+    (s_ "Install architecture-independent files dir")
     (match Sys.os_type with
        | "Win32" ->
            "%PROGRAMFILES%\\$pkg_name"
@@ -32,37 +33,37 @@ let prefix =
       
 let exec_prefix = 
   p "exec_prefix"
-    "Install architecture-dependent files in dir"
+    (s_ "Install architecture-dependent files in dir")
     "$prefix"
 
 let bindir =
   p "bindir"
-    "User executables"
+    (s_ "User executables")
     ("$exec_prefix"/"bin")
 
 let sbindir =
   p "sbindir"
-    "System admin executables"
+    (s_ "System admin executables")
     ("$exec_prefix"/"sbin")
 
 let libexecdir =
   p "libexecdir"
-    "Program executables"
+    (s_ "Program executables")
     ("$exec_prefix"/"libexec")
 
 let sysconfdir =
   p "sysconfdir"
-    "Read-only single-machine data"
+    (s_ "Read-only single-machine data")
     ("$prefix"/"etc")
 
 let sharedstatedir =
   p "sharedstatedir"
-    "Modifiable architecture-independent data"
+    (s_ "Modifiable architecture-independent data")
     ("$prefix"/"com")
 
 let localstatedir =
   p "localstatedir"
-    "Modifiable single-machine data"
+    (s_ "Modifiable single-machine data")
     ("$prefix"/"var")
 
 let libdir =
@@ -72,52 +73,52 @@ let libdir =
 
 let datarootdir =
   p "datarootdir"
-    "Read-only arch.-independent data root"
+    (s_ "Read-only arch-independent data root")
     ("$prefix"/"share")
 
 let datadir =
   p "datadir"
-    "Read-only architecture-independent data"
+    (s_ "Read-only architecture-independent data")
     "$datarootdir"
 
 let infodir =
   p "infodir"
-    "Info documentation"
+    (s_ "Info documentation")
     ("$datarootdir"/"info")
 
 let localedir =
   p "localedir"
-    "Locale-dependent data"
+    (s_ "Locale-dependent data")
     ("$datarootdir"/"locale")
 
 let mandir =
   p "mandir"
-    "Man documentation"
+    (s_ "Man documentation")
     ("$datarootdir"/"man")
 
 let docdir =
   p "docdir"
-    "Documentation root"
+    (s_ "Documentation root")
     ("$datarootdir"/"doc"/"$pkg_name")
 
 let htmldir =
   p "htmldir"
-    "HTML documentation"
+    (s_ "HTML documentation")
     "$docdir"
 
 let dvidir =
   p "dvidir"
-    "DVI documentation"
+    (s_ "DVI documentation")
     "$docdir"
 
 let pdfdir =
   p "pdfdir"
-    "PDF documentation"
+    (s_ "PDF documentation")
     "$docdir"
 
 let psdir =
   p "psdir"
-    "PS documentation"
+    (s_ "PS documentation")
     "$docdir"
 
 (** {2 Programs} *)
@@ -172,7 +173,7 @@ let is_native =
             ocamlopt ()
           in
             "true"
-        with Not_found ->
+        with PropList.Not_set _ ->
           let _s : string = 
             ocamlc ()
           in
@@ -206,13 +207,13 @@ let pkg_get () =
 
 let pkg_name = 
   var_define
-    ~short_desc:"Package name"
+    ~short_desc:(s_ "Package name")
     "pkg_name"
     (lazy (fst (pkg_get ())))
 
 let pkg_version =
   var_define
-    ~short_desc:"Package version"
+    ~short_desc:(s_ "Package version")
     "pkg_version"
     (lazy 
        (OASISVersion.string_of_version 
