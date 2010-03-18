@@ -5,6 +5,8 @@
 
 open BaseEnv
 open OASISTypes
+open OASISUtils
+open OASISGettext
 
 (** Configure build using provided series of check to be done
   * and then output corresponding file.
@@ -33,13 +35,10 @@ let configure pkg argv =
                                     {bs_build = build}, 
                                     _) when nm1 = nm2 ->
                            if not (var_choose build) then
-                             failwith 
-                               (Printf.sprintf
-                                  "Cannot find buildable internal executable \
-                                   '%s' when checking build depends"
-                                  nm1)
-                           else
-                             ()
+                             failwithf1
+                               (f_ "Cannot find buildable internal executable \
+                                    '%s' when checking build depends")
+                               nm1
                       | _ ->
                           ())
                    pkg.sections)
@@ -59,13 +58,10 @@ let configure pkg argv =
                                  {bs_build = build}, 
                                  _) when nm1 = nm2 ->
                            if not (var_choose build) then
-                             failwith 
-                               (Printf.sprintf
-                                  "Cannot find buildable internal library \
-                                   '%s' when checking build depends"
-                                  nm1)
-                           else
-                             ()
+                             failwithf1 
+                               (f_ "Cannot find buildable internal library \
+                                    '%s' when checking build depends")
+                               nm1
                       | _ ->
                           ())
                    pkg.sections)

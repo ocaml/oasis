@@ -78,13 +78,9 @@ let () =
                    used with caution, it is reserved for internal use.");                   
 
            ] 
-           @ BaseMessage.args
+           @ OASISMessage.args
            @ gettext_args))
-        (fun str -> 
-           failwith 
-             (Printf.sprintf 
-                (f_ "Don't know what to do with '%s'")
-                str))
+        (failwithf1 (f_ "Don't know what to do with '%s'"))
         (s_ "OASIS (C) 2009-2010 OCamlCore SARL\n\
              \n\
              OASIS [options*] -action [action-options*]\n\n");

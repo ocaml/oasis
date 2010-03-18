@@ -4,8 +4,10 @@
   *)
 
 open BaseEnv
+open OASISMessage
 open OASISTypes
 open OASISExpr
+open OASISGettext
 
 let test lst pkg extra_args =
 
@@ -13,8 +15,7 @@ let test lst pkg extra_args =
     if var_choose test.test_run then
       begin
         let () = 
-          BaseMessage.info 
-            (Printf.sprintf "Running test '%s'" cs.cs_name)
+          info (f_ "Running test '%s'") cs.cs_name
         in
         let back_cwd = 
           match test.test_working_directory with 
@@ -23,8 +24,7 @@ let test lst pkg extra_args =
                   Sys.getcwd ()
                 in
                 let chdir d =
-                  BaseMessage.info 
-                    (Printf.sprintf "Changing directory to '%s'" d);
+                  info (f_ "Changing directory to '%s'") d;
                   Sys.chdir d
                 in
                   chdir dir;
@@ -47,8 +47,7 @@ let test lst pkg extra_args =
       end
     else
       begin
-        BaseMessage.info 
-          (Printf.sprintf "Skipping test '%s'" cs.cs_name);
+        info (f_ "Skipping test '%s'") cs.cs_name;
         0.0
       end
   in
@@ -67,11 +66,10 @@ let test lst pkg extra_args =
       res
   in
     (if failure_percent > 0.0 then
-       BaseMessage.warning 
+       warning 
      else
-       BaseMessage.info)
-      (Printf.sprintf 
-         "Tests had a %.2f%% failure rate"
-         (100. *. failure_percent))
+       info)
+      (f_ "Tests had a %.2f%% failure rate")
+      (100. *. failure_percent)
 
 (* END EXPORT *)

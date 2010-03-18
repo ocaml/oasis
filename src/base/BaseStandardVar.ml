@@ -212,9 +212,7 @@ let rpkg =
 let pkg_get () =
   match !rpkg with 
     | Some pkg -> pkg
-    | None -> 
-        failwith 
-          "OASIS Package is not set"
+    | None -> failwith (s_ "OASIS Package is not set")
 (**/**)
 
 let pkg_name = 

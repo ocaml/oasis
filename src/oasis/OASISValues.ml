@@ -5,6 +5,7 @@
 
 open OASISTypes
 open OASISGettext
+open OASISUtils
 open ExtString
 
 (** The value exist but there is no easy way to represent it
@@ -26,10 +27,9 @@ let blackbox =
   {
     parse  = 
       (fun s -> 
-         failwith 
-           (Printf.sprintf 
-              (f_ "Blackbox type cannot be set to the value '%s'")
-              s));
+         failwithf1
+           (f_ "Blackbox type cannot be set to the value '%s'")
+           s);
     update = update_fail;
     print  = (fun _ -> raise Not_printable);
   }
@@ -53,11 +53,10 @@ let regexp regexp error =
             (Str.match_end ()) = (String.length str) then
            str
          else
-           failwith 
-             (Printf.sprintf 
-                (f_ "String '%s' is not a %s")
-                str 
-                (error ())));
+           failwithf2
+             (f_ "String '%s' is not a %s")
+             str 
+             (error ()));
     update = update_fail;
     print = (fun s -> s);
   }
@@ -76,11 +75,10 @@ let copyright =
          if Str.string_match StdRegexp.copyright str 0 then
            str
          else
-           failwith 
-             (Printf.sprintf
-                (f_ "Copyright must follow the convention \
-                     '(C) 2008-2009 J.R. Hacker', here it is '%s'")
-                str));
+           failwithf1
+             (f_ "Copyright must follow the convention \
+                  '(C) 2008-2009 J.R. Hacker', here it is '%s'")
+             str);
     update = update_fail;
     print = (fun s -> s);
   }
@@ -278,12 +276,10 @@ let choices nm lst =
                   String.lowercase k, v)
                   lst)
          with Not_found ->
-           failwith 
-             (Printf.sprintf 
-                (f_ "Unknown %s %S (possible: %s)")
-                (nm ())
-                str
-                (String.concat ", " (List.map fst lst))));
+           failwithf3
+             (f_ "Unknown %s %S (possible: %s)")
+             (nm ()) str
+             (String.concat ", " (List.map fst lst)));
     update = update_fail;
     print =
       (fun v ->
@@ -294,10 +290,9 @@ let choices nm lst =
                 (fun (s, v) -> v, s)
                 lst)
          with Not_found ->
-           failwith 
-             (Printf.sprintf
-                (f_ "Unexpected abstract choice value for %s")
-                (nm ())));
+           failwithf1
+             (f_ "Unexpected abstract choice value for %s")
+             (nm ()));
   }
 
 (** Convert string to boolean *)
@@ -313,7 +308,7 @@ let pkgname =
     parse = 
       (fun s ->
          if String.contains s '.' then
-           failwith "Findlib package name cannot contain '.'"
+           failwith (s_ "Findlib package name cannot contain '.'")
          else
            s);
     update = update_fail;
@@ -337,10 +332,7 @@ let command_line =
            | cmd :: args ->
                cmd, args
            | [] ->
-               failwith 
-                 (Printf.sprintf
-                    (f_ "Commande line '%s' is invalid")
-                    s));
+               failwithf1 (f_ "Commande line '%s' is invalid") s);
     update =
       (fun (cmd, args1) (arg2, args3) ->
          (cmd, args1 @ (arg2 :: args3)));

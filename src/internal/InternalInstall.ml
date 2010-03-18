@@ -5,9 +5,11 @@
 
 open BaseEnv
 open BaseStandardVar
+open OASISMessage
 open OASISTypes
 open OASISLibrary
 open OASISGettext
+open OASISUtils
 
 let exec_hook =
   ref (fun (cs, bs, exec) -> cs, bs, exec)
@@ -54,20 +56,13 @@ let install pkg argv =
       (* Check that target directory exist *)
       if not (Sys.file_exists tgt_dir) then
         (
-          BaseMessage.info 
-            (Printf.sprintf 
-               (f_ "Creating directory '%s'")
-               tgt_dir);
+          info (f_ "Creating directory '%s'") tgt_dir;
           BaseFileUtil.mkdir tgt_dir;
           BaseLog.register install_dir_ev tgt_dir
         );
 
       (* Really install files *)
-      BaseMessage.info 
-        (Printf.sprintf 
-           (f_ "Copying file '%s' to '%s'")
-           src_file
-           tgt_file);
+      info (f_ "Copying file '%s' to '%s'") src_file tgt_file;
       BaseFileUtil.cp src_file tgt_file;
       BaseLog.register install_file_ev tgt_file
   in
@@ -87,10 +82,9 @@ let install pkg argv =
                  (Filename.concat srcdir src)
              in
                if real_srcs = [] then
-                 failwith 
-                   (Printf.sprintf 
-                      (f_ "Wildcard '%s' doesn't match any files")
-                      src);
+                 failwithf1
+                   (f_ "Wildcard '%s' doesn't match any files")
+                   src;
                List.iter 
                  (fun fn -> 
                     install_file 
@@ -155,11 +149,10 @@ let install pkg argv =
                        :: acc
                      with Not_found ->
                        begin
-                         BaseMessage.warning 
-                           (Printf.sprintf 
-                              (f_ "Cannot find source header for module %s \
-                                   in library %s")
-                              modul cs.cs_name);
+                         warning 
+                           (f_ "Cannot find source header for module %s \
+                                in library %s")
+                           modul cs.cs_name;
                          acc
                        end)
                   acc
@@ -213,10 +206,9 @@ let install pkg argv =
         (* Really install, if there is something to install *)
         if files = [] then 
           begin
-            BaseMessage.warning
-              (Printf.sprintf 
-                 (f_ "Nothing to install for findlib library '%s'")
-                 findlib_name)
+            warning
+              (f_ "Nothing to install for findlib library '%s'")
+              findlib_name
           end
         else
           begin
@@ -229,17 +221,15 @@ let install pkg argv =
                 Filename.concat bs.bs_path "META"
               in
                 if not (Sys.file_exists res) then
-                  failwith 
-                    (Printf.sprintf
-                       (f_ "Cannot find file '%s' for findlib library %s")
-                       res
-                       findlib_name);
+                  failwithf2
+                    (f_ "Cannot find file '%s' for findlib library %s")
+                    res
+                    findlib_name;
                 res
             in
-              BaseMessage.info 
-                (Printf.sprintf
-                   (f_ "Installing findlib library '%s'")
-                   findlib_name);
+              info 
+                (f_ "Installing findlib library '%s'")
+                findlib_name;
               BaseExec.run 
                 (ocamlfind ()) 
                 ("install" :: findlib_name :: meta :: files);
@@ -331,56 +321,45 @@ let uninstall _ argv =
   List.iter 
     (fun (ev, data) ->
        if ev = install_file_ev then
-         (
+         begin
            if Sys.file_exists data then
-             (
-               BaseMessage.info
-                 (Printf.sprintf 
-                    (f_ "Removing file '%s'")
-                    data);
+             begin
+               info
+                 (f_ "Removing file '%s'")
+                 data;
                Sys.remove data
-             )
-         )
+             end
+         end 
        else if ev = install_dir_ev then
-         (
+         begin
            if Sys.file_exists data && Sys.is_directory data then
-             (
+             begin
                if Sys.readdir data = [||] then
-                 (
-                   BaseMessage.info
-                     (Printf.sprintf 
-                        (f_ "Removing directory '%s'")
-                        data);
+                 begin
+                   info
+                     (f_ "Removing directory '%s'")
+                     data;
                    BaseFileUtil.rmdir data
-                 )
+                 end
                else
-                 (
-                   BaseMessage.warning 
-                     (Printf.sprintf
-                        (f_ "Directory '%s' is not empty (%s)")
-                        data
-                        (String.concat 
-                           ", " 
-                           (Array.to_list 
-                              (Sys.readdir data))))
-                 )
-             )
-         )
+                 begin
+                   warning 
+                     (f_ "Directory '%s' is not empty (%s)")
+                     data
+                     (String.concat 
+                        ", " 
+                        (Array.to_list 
+                           (Sys.readdir data)))
+                 end
+             end
+         end
        else if ev = install_findlib_ev then
-         (
-           BaseMessage.info
-             (Printf.sprintf
-                (f_ "Removing findlib library '%s'")
-                data);
+         begin
+           info (f_ "Removing findlib library '%s'") data;
            BaseExec.run (ocamlfind ()) ["remove"; data]
-         )
+         end
        else
-         (
-           failwith 
-             (Printf.sprintf 
-                (f_ "Unknown log event '%s'")
-                ev)
-         );
+         failwithf1 (f_ "Unknown log event '%s'") ev;
        BaseLog.unregister ev data)
     (* We process event in reverse order *)
     (List.rev 

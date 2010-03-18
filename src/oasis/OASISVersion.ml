@@ -159,6 +159,7 @@ let rec varname_of_comparator =
 (* END EXPORT *)
 
 open OASISAstTypes
+open OASISUtils
 
 (** Convert a string into a comparator
   *)
@@ -181,12 +182,10 @@ let comparator_of_string str =
         (OASISVersion_parser.main 
            OASISVersion_lexer.token lexbuf)
     with e ->
-      failwith
-        (Printf.sprintf
-           (f_ "Error while parsing '%s': %s")
-           str
-           (Printexc.to_string e))
-
+      failwithf2
+        (f_ "Error while parsing '%s': %s")
+        str
+        (Printexc.to_string e)
 
 (** Simplify comparator, if possible 
   *)

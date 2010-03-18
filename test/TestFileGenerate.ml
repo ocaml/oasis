@@ -38,7 +38,7 @@ let tests ctxt =
        in
 
        let verbosity =
-         !BaseMessage.verbose
+         !OASISMessage.verbose
        in
 
          at_exit 
@@ -46,13 +46,13 @@ let tests ctxt =
               if Sys.file_exists target_fn then
                 Sys.remove target_fn);
 
-         BaseMessage.verbose := false;
+         OASISMessage.verbose := false;
          file_generate 
            ~target:target_fn
            real_fn
            comment_fmt
            (NeedSplit content_lst);
-         BaseMessage.verbose := verbosity;
+         OASISMessage.verbose := verbosity;
 
 
          assert_equal 

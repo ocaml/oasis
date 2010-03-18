@@ -3,7 +3,9 @@
     @author Sylvain Le Gall
   *)
 
-open BaseMessage
+open OASISMessage
+open OASISGettext
+open OASISUtils
 
 (** {1 Comments} *)
 
@@ -220,21 +222,20 @@ let file_generate ?(target) fn comment content =
       | Split (lst_header, lst_body, lst_footer) ->
           lst_header, lst_body, lst_footer
       | NeedSplit lst ->
-          (
+          begin
             match split_header_body_footer lst with
               | lst_header, Some (_, lst_body, lst_footer) ->
                   lst_header, lst_body, lst_footer
               | lst_header, None ->
                   warning 
-                    (Printf.sprintf 
-                       "No replace section found in template for file %s" 
-                       fn);
+                    (f_ "No replace section found in template for file %s") 
+                    fn;
                   lst_header, [], []
-          )
+          end
   in
 
     if Sys.file_exists fn then
-      (
+      begin
         let lst_fn =
           let chn_in =
             open_in_bin fn 
@@ -258,55 +259,53 @@ let file_generate ?(target) fn comment content =
          *)
           match split_header_body_footer lst_fn with 
             | fn_header, Some (digest_body, fn_body, fn_footer) ->
-                (
+                begin
                   (* Check "do not digest" value
                    *)
                   let () =
                     match digest_body with
                       | Some expected_digest ->
-                          (
+                          begin
                             let digest =
                               digest_of_list fn_body
                             in
                               if expected_digest <> digest then 
-                                (
+                                begin
                                   let fn_backup =
                                     fn^".bak"
                                   in
                                     warning 
-                                      (Printf.sprintf 
-                                         "File %s has changed, doing a backup in %s"
-                                         fn fn_backup);
+                                      (f_ "File %s has changed, doing a backup in %s")
+                                      fn fn_backup;
                                     if not (Sys.file_exists fn_backup) then
                                       FileUtil.cp [fn] fn_backup
                                     else
-                                      failwith 
-                                        (Printf.sprintf 
-                                           "File %s already exists" 
-                                           fn_backup)
-                                )
+                                      failwithf1
+                                        (f_ "File %s already exists")
+                                        fn_backup
+                                end
 
-                          )
+                          end
                       | lst ->
                           ()
                   in
                     if target <> None || file_has_changed ([], fn_body, []) ([], content_body, []) then
-                      (
+                      begin
                         (* Regenerate *)
-                        info (Printf.sprintf "Regenerating file %s" fn);
+                        info (f_ "Regenerating file %s") fn;
                         output_file 
                           fn_header
                           content_body
                           fn_footer
-                      )
+                      end
                     else
-                      (
-                        info (Printf.sprintf "File %s has not changed, skipping" fn)
-                      )
-                )
+                      begin
+                        info (f_ "File %s has not changed, skipping") fn
+                      end
+                end
             | fn_header, None ->
-                (
-                  warning (Printf.sprintf "No replace section in file %s" fn);
+                begin
+                  warning (f_ "No replace section in file %s") fn;
                   match target with
                     | Some fn ->
                         (
@@ -325,16 +324,16 @@ let file_generate ?(target) fn comment content =
                         )
                     | None ->
                         ()
-                )
-      )
+                end
+      end
     else
-      (
-        info (Printf.sprintf "File %s doesn't exist, creating it." fn);
+      begin
+        info (f_ "File %s doesn't exist, creating it.") fn;
         output_file 
           content_header 
           content_body
           content_footer
-      )
+      end
 
 let mlfile_generate ?(target) fn content = 
 

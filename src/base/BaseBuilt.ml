@@ -52,20 +52,19 @@ let fold t nm f acc =
          end
        else
          begin
-           BaseMessage.warning 
+           OASISMessage.warning 
+             (f_ "File '%s' has been marked as built \
+                for %s but doesn't exist")
+             fn
              (Printf.sprintf
-                (f_ "File '%s' has been marked as built \
-                     for %s but doesn't exist")
-                fn
-                (Printf.sprintf
-                   (match t with 
-                      | BExec | BExecLib -> 
-                          (f_ "executable %s")
-                      | BLib ->
-                          (f_ "library %s")
-                      | BDoc ->
-                          (f_ "documentation %s"))
-                   nm));
+                (match t with 
+                   | BExec | BExecLib -> 
+                       (f_ "executable %s")
+                   | BLib ->
+                       (f_ "library %s")
+                   | BDoc ->
+                       (f_ "documentation %s"))
+                nm);
            acc
          end)
     acc

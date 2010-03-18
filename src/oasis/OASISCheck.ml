@@ -3,8 +3,9 @@
   *)
 
 open OASISGettext
-open PropList
 open OASISSchema
+open OASISUtils
+open PropList
 
 let check_schema where schm data =
   let msgfld =
@@ -35,8 +36,7 @@ let check_schema where schm data =
       schm
   in
     if msgfld <> [] then
-      failwith 
-        (Printf.sprintf
-           (f_ "Missing field in %s: %s")
-           where
-           (String.concat (s_ ", ") msgfld))
+      failwithf2
+        (f_ "Missing field in %s: %s")
+        where
+        (String.concat (s_ ", ") msgfld)

@@ -6,6 +6,7 @@
 open OASISTypes
 open OASISAstTypes
 open OASISGettext
+open OASISUtils
 open PropList
 
 type extra =
@@ -112,11 +113,10 @@ let new_field_conditional
              end
          | None ->
              (* TODO: this is ugly, try to find a solution without ?context *)
-             failwith 
-               (Printf.sprintf 
-                  (f_ "No context defined for field '%s' when parsing value %S")
-                  name 
-                  s)
+             failwithf2
+               (f_ "No context defined for field '%s' when parsing value %S")
+               name 
+               s
      in
        [real_cond, value.parse s]
   in
@@ -165,19 +165,14 @@ let new_field
       | Some ctxt ->
           begin
             if ctxt.cond <> None then
-              failwith 
-                (Printf.sprintf 
-                   "Field %s cannot be conditional"
-                   name);
+              failwithf1 (f_ "Field %s cannot be conditional") name;
             value.parse s
           end
       | None ->
           (* TODO: this is ugly, try to find a solution without ?context *)
-          failwith 
-            (Printf.sprintf
-              (f_ "No context defined for field '%s' when parsing value %S")
-              name 
-              s)
+          failwithf2 
+            (f_ "No context defined for field '%s' when parsing value %S")
+            name s
   in
 
     FieldRO.create

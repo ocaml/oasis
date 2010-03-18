@@ -82,10 +82,9 @@ let schema, generator =
                       (List.mem 
                          v 
                          (current_version :: extra_supported_versions)) then
-                   failwith 
-                     (Printf.sprintf 
-                        "OASIS format version '%s' is not supported"
-                        str);
+                   failwithf1
+                     (f_ "OASIS format version '%s' is not supported")
+                     str;
                  v);
           update = update_fail;
           print = version.print;
@@ -168,11 +167,10 @@ let schema, generator =
                      try
                        OtherLicense (url.parse str)
                      with _ ->
-                       failwith 
-                         (Printf.sprintf 
-                            (f_ "'%s' is not an URL or a common license name (%s)")
-                            str
-                            (String.concat ", " (List.map fst std_licenses)))
+                       failwithf2
+                         (f_ "'%s' is not an URL or a common license name (%s)")
+                         str
+                         (String.concat ", " (List.map fst std_licenses))
                    end);
             update = base_value.update;
             print = 

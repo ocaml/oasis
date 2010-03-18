@@ -6,6 +6,7 @@
 open OASISGettext
 open OASISSchema
 open OASISTypes
+open OASISUtils
 open Format
 open FormatExt
 
@@ -122,10 +123,7 @@ let ask_shortcut_choices ?help ?(default=NoDefault) q choices =
              s 
              (List.map (fun (c, _, v) -> (c, v)) choices)
          with Not_found ->
-           failwith 
-             (Printf.sprintf 
-                "'%s' is not valid answer"
-                s))
+           failwithf1 (f_ "'%s' is not valid answer") s)
 
 let ask_yes_no ?help ?default q =
   ask_shortcut_choices 
@@ -185,12 +183,9 @@ let quickstart fmt lvl =
                          try
                            parse s
                          with e ->
-                           failwith
-                             (Printf.sprintf 
-                                (f_ "Trying to set '%s' using mandatory value '%s': %s")
-                                key
-                                s
-                                (Printexc.to_string e))
+                           failwithf3
+                             (f_ "Trying to set '%s' using mandatory value '%s': %s")
+                             key s (Printexc.to_string e)
                        end
                    | _ when not has_default || lvl >= extra.qckstrt_lvl ->
                        begin

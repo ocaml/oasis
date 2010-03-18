@@ -3,22 +3,23 @@
     @author Sylvain Le Gall
   *)
 
+open OASISGettext
+open OASISUtils
+
 (** Run a command 
   *)
 let run cmd args =
   let cmdline =
     String.concat " " (cmd :: args)
   in
-    BaseMessage.info 
-      (Printf.sprintf "Running command '%s'" cmdline);
+    OASISMessage.info (f_ "Running command '%s'") cmdline;
     match Sys.command cmdline with 
       | 0 ->
           ()
       | i ->
-          failwith 
-            (Printf.sprintf 
-               "Command '%s' terminated with error code %d"
-               cmdline i)
+          failwithf2
+            (f_ "Command '%s' terminated with error code %d")
+            cmdline i
 
 (** Run a command and returns its output
   *)
@@ -58,9 +59,8 @@ let run_read_one_line cmd args =
     | [fst] -> 
         fst
     | lst -> 
-        failwith 
-          (Printf.sprintf
-             "Command return unexpected output %S"
-             (String.concat "\n" lst))
+        failwithf1
+          (f_ "Command return unexpected output %S")
+          (String.concat "\n" lst)
 
 (* END EXPORT *)

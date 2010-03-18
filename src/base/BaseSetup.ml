@@ -4,9 +4,11 @@
   *)
 
 open BaseEnv
+open OASISMessage
 open OASISTypes
 open OASISSection
 open OASISGettext
+open OASISUtils
 
 type std_args_fun = 
     package -> string array -> unit
@@ -44,10 +46,9 @@ let join_plugin_sections filter_map lst =
               | None ->
                   acc
           with Not_found ->
-            failwith 
-              (Printf.sprintf 
-                 (f_ "Cannot find plugin matching %s")
-                 (OASISSection.string_of_section sct)))
+            failwithf1
+              (f_ "Cannot find plugin matching %s")
+              (OASISSection.string_of_section sct))
        []
        lst)
 
@@ -144,9 +145,10 @@ let clean, distclean =
     List.iter
       (fun fn ->
          if Sys.file_exists fn then
-           (BaseMessage.info 
-              (Printf.sprintf "Remove '%s'" fn);
-            Sys.remove fn))
+           begin
+             info (f_ "Remove '%s'") fn;
+             Sys.remove fn
+           end)
       (BaseEnv.default_filename 
        :: 
        BaseLog.default_filename
@@ -166,11 +168,10 @@ let setup t =
     try
       let act_ref =
         ref (fun _ -> 
-               failwith
-                 (Printf.sprintf
-                    "No action defined, run '%s %s -help'"
-                    Sys.executable_name
-                    Sys.argv.(0)))
+               failwithf2
+                 (f_ "No action defined, run '%s %s -help'")
+                 Sys.executable_name
+                 Sys.argv.(0))
 
       in
       let extra_args_ref =
@@ -196,42 +197,44 @@ let setup t =
              [
                "-configure",
                arg_handle ~allow_empty_env:true configure,
-               "[options*] Configure build process.";
+               s_ "[options*] Configure build process.";
 
                "-build",
                arg_handle build,
-               "[options*] Run build process.";
+               s_ "[options*] Run build process.";
 
                "-doc",
                arg_handle doc,
-               "[options*] Build documentation.";
+               s_ "[options*] Build documentation.";
 
                "-test",
                arg_handle test,
-               "[options*] Build and run tests.";
+               s_ "[options*] Build and run tests.";
 
                "-install",
                arg_handle install,
-               "[options*] Install library, data, executable and documentation.";
+               s_ "[options*] Install library, data, executable \
+                              and documentation.";
 
                "-uninstall",
                arg_handle uninstall,
-               "[options*] Uninstall library, data, executable and documentation.";
+               s_ "[options*] Uninstall library, data, executable \
+                              and documentation.";
 
                "-clean",
                arg_handle ~allow_empty_env:true clean,
-               "[options*] Clean build environment.";
+               s_ "[options*] Clean build environment.";
 
                "-distclean",
                arg_handle ~allow_empty_env:true distclean,
-               "[options*] Clean build and configure environment.";
+               s_ "[options*] Clean build and configure environment.";
 
                "-no-catch-exn",
                Arg.Clear catch_exn,
-               " Don't exception, useful for debugging.";
-             ] @ BaseMessage.args)
-          (fun str -> failwith ("Don't know what to do with "^str))
-          "Setup and run build process current package\n";
+               s_ " Don't exception, useful for debugging.";
+             ] @ args)
+          (failwithf1 (f_ "Don't know what to do with '%s'"))
+          (s_ "Setup and run build process current package\n");
 
         (* Build initial environment *)
         load ~allow_empty:!allow_empty_env_ref ();
@@ -266,7 +269,7 @@ let setup t =
         !act_ref t (Array.of_list (List.rev !extra_args_ref))
 
     with e when !catch_exn ->
-      BaseMessage.error (Printexc.to_string e)
+      error "%s" (Printexc.to_string e)
 
 (* END EXPORT *)
 

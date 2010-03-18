@@ -105,7 +105,7 @@ struct
     in
 
       if Hashtbl.mem t.fields key then
-        failwith 
+        failwith
           (Printf.sprintf 
              (f_ "Field '%s' is already defined in schema '%s'")
              nm t.name);

@@ -45,7 +45,7 @@ let find_file paths exts =
   in
     List.find 
       (fun fn ->
-         BaseMessage.debug (f_ "Testing file existence '%s'") fn;
+         OASISMessage.debug (f_ "Testing file existence '%s'") fn;
          Sys.file_exists fn)
       alternatives
 

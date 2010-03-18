@@ -3,6 +3,8 @@
   *)
 
 open BaseEnv
+open OASISUtils
+open OASISGettext
 
 (** Look for a program among a list of alternative program
   * the first found is returned. 
@@ -64,7 +66,7 @@ let version
                     try 
                       (var_get "ocaml_version")
                     with Not_found ->
-                      BaseMessage.warning 
+                      OASISMessage.warning 
                         "Variable ocaml_version not defined, fallback to default";
                       Sys.ocaml_version
                   end
@@ -77,12 +79,11 @@ let version
             if OASISVersion.comparator_apply version cmp then
               version_str
             else
-              failwith 
-                (Printf.sprintf
-                   "Cannot satisfy version constraint on %s: %s (version: %s)"
-                   var_prefix
-                   (OASISVersion.string_of_comparator cmp)
-                   version_str)))
+              failwithf3
+                (f_ "Cannot satisfy version constraint on %s: %s (version: %s)")
+                var_prefix
+                (OASISVersion.string_of_comparator cmp)
+                version_str))
       ()
 
 (** Get findlib package version 
@@ -109,11 +110,10 @@ let package ?version_comparator pkg () =
       if Sys.is_directory dir then
         dir
       else
-        failwith
-          (Printf.sprintf
-             "When looking for findlib package %s, \
-              directory %s return doesn't exist"
-             pkg dir)
+        failwithf2
+          (f_ "When looking for findlib package %s, \
+               directory %s return doesn't exist")
+          pkg dir
   in
   let vl =
     var_redefine

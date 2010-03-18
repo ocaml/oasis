@@ -5,7 +5,7 @@
 
 open OASISTypes
 open OASISGettext
-open BaseMessage
+open OASISMessage
 open BaseStandardVar
 
 TYPE_CONV_PATH "OCamlbuildDocPlugin"
@@ -108,9 +108,8 @@ let of_data =
 let create_ocamlbuild_odocl_files cs t () =
    if t.modules = [] then
      warning 
-       (Printf.sprintf
-          (f_ "No module defined for documentation of library %s")
-          cs.cs_name);
+       (f_ "No module defined for documentation of library %s")
+       cs.cs_name;
    file_generate
      (FilePath.add_extension 
         (FilePath.concat t.path cs.cs_name)

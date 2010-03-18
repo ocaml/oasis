@@ -5,6 +5,7 @@
 
 open OASISTypes
 open OASISGettext
+open OASISUtils
 open BaseEnv
 open BaseStandardVar
 
@@ -71,12 +72,11 @@ let build pkg argv =
                          @
                          acc
                      | [] ->
-                         failwith 
-                           (Printf.sprintf
-                              (f_ "No possible ocamlbuild targets \
-                                   in generated fiels %s for library %s")
-                              (String.concat (s_ ", " ) tgts)
-                              cs.cs_name)
+                         failwithf2
+                           (f_ "No possible ocamlbuild targets \
+                                in generated fiels %s for library %s")
+                           (String.concat (s_ ", " ) tgts)
+                           cs.cs_name
                end
 
            | Executable (cs, bs, exec) when var_choose bs.bs_build ->
@@ -133,10 +133,9 @@ let build pkg argv =
     List.iter
       (fun fn ->
          if not (Sys.file_exists fn) then
-           failwith 
-             (Printf.sprintf 
-                (f_ "Expected built file '%s' doesn't exist")
-                fn))
+           failwithf1
+             (f_ "Expected built file '%s' doesn't exist")
+             fn)
       lst;
       (BaseBuilt.register bt bnm lst) 
   in
@@ -180,7 +179,7 @@ let clean pkg extra_args  =
 
 open BaseFileGenerate
 open OASISUtils
-open BaseMessage
+open OASISMessage
 open OASISGettext
 open ODN
 open OASISPlugin
@@ -449,9 +448,8 @@ let create_ocamlbuild_files pkg () =
                    in
                      if lib.lib_modules = [] then
                        warning 
-                         (Printf.sprintf
-                            (f_ "No module defined for library %s")
-                            cs.cs_name);
+                         (f_ "No module defined for library %s")
+                         cs.cs_name;
                      fn_generate "mllib"
                  in
 

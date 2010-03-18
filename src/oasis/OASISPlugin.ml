@@ -5,6 +5,7 @@
 
 open OASISTypes
 open OASISGettext
+open OASISUtils
 open ODNFunc
 
 (** Type for OCaml module embedded code
@@ -156,11 +157,10 @@ module Make =
       try
         MapPlugin.find nm !all
       with Not_found ->
-        failwith 
-          (Printf.sprintf 
-             F.not_found_fmt 
-             nm 
-             (String.concat ", " (ls ())))
+        failwithf2
+          F.not_found_fmt 
+          nm 
+          (String.concat ", " (ls ()))
 
     (** Find a specific plugin generator *)
     let find k = 
@@ -181,12 +181,10 @@ module Make =
             | Some v ->
                 ()
             | None ->
-                (* TODO: use warning *)
-                prerr_endline 
-                  (Printf.sprintf 
-                     (f_ "Plugin %s is defined without version, use current version at least: %s.")
-                     nm 
-                     (base.print (nm, Some (OASISVersion.version_of_string plg_ver))))
+                OASISMessage.warning
+                  (f_ "Plugin %s is defined without version, use current version at least: %s.")
+                  nm 
+                  (base.print (nm, Some (OASISVersion.version_of_string plg_ver)))
       in
         {
           parse = 

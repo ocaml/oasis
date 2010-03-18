@@ -6,6 +6,7 @@
 open OASISTypes
 open OASISAstTypes
 open OASISGettext
+open OASISUtils
 open Genlex
 
 let stream_debugger st = 
@@ -406,10 +407,7 @@ let parse_stream conf st =
                  | "ccomp_type"    -> TCcomp_type
                  | "ocaml_version" -> TOCaml_version
                  | _ ->
-                     failwith 
-                       (Printf.sprintf 
-                          (f_ "Unknown OASIS test %s") 
-                          nm)
+                     failwithf1 (f_ "Unknown OASIS test %s") nm
              in
                ETest (test, vl))
   and parse_term_follow = 
@@ -456,12 +454,11 @@ let parse_stream conf st =
             try
               parse_expr (lexer (Stream.of_string str))
             with e ->
-              failwith 
-                (Printf.sprintf 
-                   (f_ "Error when parsing expresion '%s' %t: %s")
-                   str
-                   position
-                   (Printexc.to_string e))
+              failwithf3
+                (f_ "Error when parsing expresion '%s' %t: %s")
+                str
+                position
+                (Printexc.to_string e)
           in
             FEval e
 
@@ -538,17 +535,7 @@ let parse_stream conf st =
       in
         ast
     with 
+      | Stream.Error "" -> 
+          failwithf1 (f_ "Syntax error %t") position
       | Stream.Error str ->
-          begin
-            if str = "" then 
-              failwith 
-                (Printf.sprintf 
-                   (f_ "Syntax error %t")
-                   position)
-            else
-              failwith 
-                (Printf.sprintf
-                   (f_ "Syntax error %s %t")
-                   str
-                   position)
-          end
+          failwithf2 (f_ "Syntax error %s %t") str position

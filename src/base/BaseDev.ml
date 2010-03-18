@@ -4,6 +4,8 @@
 
 TYPE_CONV_PATH "BaseDev"
 
+open OASISGettext
+
 type t = 
     {
       oasis_cmd:  string;
@@ -37,11 +39,10 @@ let update_and_run t =
   in
 
     if Sys.file_exists dev_fn then
-      BaseMessage.error
-        (Printf.sprintf 
-           "File %s already exists, cannot generate it for \
-            dev-mode. Please remove it first."
-           dev_fn);
+      OASISMessage.error
+        (f_ "File %s already exists, cannot generate it for \
+             dev-mode. Please remove it first.")
+        dev_fn;
 
     try 
       (* Run OASIS to generate a temporary setup.ml

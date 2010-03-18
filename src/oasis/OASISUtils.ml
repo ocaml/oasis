@@ -131,4 +131,27 @@ let varname_concat ?(hyphen='_') p s =
   in
     Printf.sprintf "%s%c%s" p hyphen s
 
+
+(** Fail with a format string, with 1 to 5 args.
+    This is ugly but trying to use 
+    Printf.ksprintf failwith, fails because the 
+    return function should also be polymorphic
+    but is constrained by the format types ->
+    return is typed string and not 'a...
+  *)
+let failwithf1 fmt a =
+  failwith (Printf.sprintf fmt a)
+
+let failwithf2 fmt a b =
+  failwith (Printf.sprintf fmt a b)
+
+let failwithf3 fmt a b c =
+  failwith (Printf.sprintf fmt a b c)
+
+let failwithf4 fmt a b c d =
+  failwith (Printf.sprintf fmt a b c d)
+
+let failwithf5 fmt a b c d e =
+  failwith (Printf.sprintf fmt a b c d e)
+
 (* END EXPORT *)

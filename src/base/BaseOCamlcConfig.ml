@@ -4,6 +4,8 @@
   *)
 
 open BaseEnv
+open OASISUtils
+open OASISGettext
 
 module SMap = Map.Make(String)
 
@@ -92,9 +94,8 @@ let var_define nm =
             in
               value
           with Not_found ->
-            failwith
-              (Printf.sprintf 
-                 "Cannot find field '%s' in '%s -config' output"
-                 nm
-                 (ocamlc ()))))
+            failwithf2
+              (f_ "Cannot find field '%s' in '%s -config' output")
+              nm
+              (ocamlc ())))
 

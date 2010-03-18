@@ -3,6 +3,7 @@
   *)
 
 open OASISTypes
+open OASISGettext
 
 (** Evaluate each conditions and choose the right one. *)
 let choose var_get test_get lst =
@@ -42,14 +43,15 @@ let choose var_get test_get lst =
           else
             choose_aux tl
       | [] ->
-          failwith 
-            "No result for a choice list"
+          failwith
+            (s_ "No result for a choice list")
   in
     choose_aux (List.rev lst)
 
 (* END EXPORT *)
 
 open OASISAstTypes
+open OASISUtils
 
 (* Check that expression only use valid tests/flags *)
 let check ctxt =
@@ -67,13 +69,8 @@ let check ctxt =
           check_aux ctxt e1; 
           check_aux ctxt e2
       | EFlag nm ->
-          (
-            if not (List.exists (lowercase_eq nm) ctxt.valid_flags) then
-              failwith 
-                (Printf.sprintf 
-                   "Unknown flag '%s'"
-                   nm)
-          )
+          if not (List.exists (lowercase_eq nm) ctxt.valid_flags) then
+            failwithf1 (f_ "Unknown flag '%s'") nm
       | ETest (_, _) ->
           ()
   in

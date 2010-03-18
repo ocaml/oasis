@@ -10,13 +10,13 @@
   *)
 
 open BaseEnv
+open OASISGettext
 
 let to_filename fn =
   if not (Filename.check_suffix fn ".ab") then
-    BaseMessage.warning 
-      (Printf.sprintf 
-         "File '%s' doesn't have '.ab' extension"
-         fn);
+    OASISMessage.warning 
+      (f_ "File '%s' doesn't have '.ab' extension")
+      fn;
   Filename.chop_extension fn
 
 (** Replace variable in file %.ab to generate %

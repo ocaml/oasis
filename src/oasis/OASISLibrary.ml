@@ -16,27 +16,22 @@ let generated_unix_files (cs, bs, lib)
     List.fold_left
       (fun hdrs modul ->
          try 
-           begin
-             let base_fn = 
-               List.find
-                 (fun fn -> 
-                    source_file_exists (fn^".ml") ||
-                    source_file_exists (fn^".mli"))
-                 (List.map
-                    (OASISUnixPath.concat bs.bs_path)
-                    [String.uncapitalize modul;
-                     String.capitalize modul])
-             in
-               (base_fn^".cmi") :: hdrs
-           end
+           let base_fn = 
+             List.find
+               (fun fn -> 
+                  source_file_exists (fn^".ml") ||
+                  source_file_exists (fn^".mli"))
+               (List.map
+                  (OASISUnixPath.concat bs.bs_path)
+                  [String.uncapitalize modul;
+                   String.capitalize modul])
+           in
+             (base_fn^".cmi") :: hdrs
          with Not_found ->
-           failwith
-             (Printf.sprintf
-                (f_ "Cannot find source file matching \
-                      module '%s' in library %s")
-                modul
-                cs.cs_name)
-      )
+           failwithf2
+             (f_ "Cannot find source file matching \
+                  module '%s' in library %s")
+             modul cs.cs_name)
       []
       lib.lib_modules
   in
@@ -211,10 +206,9 @@ let findlib_of_name ?(recurse=false) map nm =
         | _ -> fndlb_nm
 
   with Not_found ->
-    failwith 
-      (Printf.sprintf
-         (f_ "Unable to translate internal library '%s' to findlib name")
-         nm)
+    failwithf1
+      (f_ "Unable to translate internal library '%s' to findlib name")
+      nm
 
 (** Return the findlib root name of a group, it takes into account
     containers. So the return group name is the toplevel name
@@ -251,10 +245,9 @@ let root_of_group grp =
     try
       root_lib_aux grp
     with Not_found ->
-      failwith
-        (Printf.sprintf 
-           "Unable to determine root library of findlib library '%s'"
-           (findlib_of_group grp))
+      failwithf1
+        (f_ "Unable to determine root library of findlib library '%s'")
+        (findlib_of_group grp)
 
 (* END EXPORT *)
 

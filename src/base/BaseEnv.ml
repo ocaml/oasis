@@ -5,6 +5,7 @@
 
 open OASISTypes
 open OASISGettext
+open OASISUtils
 open PropList
 
 (** Origin of the variable, if a variable has been already set
@@ -64,11 +65,10 @@ let rec var_expand str =
          try 
            var_get var 
          with Unknown_field (_, _) ->
-           failwith 
-             (Printf.sprintf 
-                (f_ "No variable %s defined when trying to expand %S.")
-                var 
-                str))
+           failwithf2
+             (f_ "No variable %s defined when trying to expand %S.")
+             var 
+             str)
       str;
     Buffer.contents buff
 
@@ -264,7 +264,7 @@ let default_filename =
   *)
 let load ?(allow_empty=false) ?(filename=default_filename) () =
   if Sys.file_exists filename then
-    (
+    begin
       let chn =
         open_in_bin filename
       in
@@ -297,21 +297,19 @@ let load ?(allow_empty=false) ?(filename=default_filename) () =
           | [] ->
               ()
           | _ ->
-              failwith 
-                (Printf.sprintf 
-                   (f_ "Malformed data file '%s' line %d")
-                   filename !line)
+              failwithf2
+                (f_ "Malformed data file '%s' line %d")
+                filename !line
       in
         read_file ();
         close_in chn
-    )
+    end
   else if not allow_empty then
-    (
-      failwith 
-        (Printf.sprintf 
-           (f_ "Unable to load environment, the file '%s' doesn't exist.")
-           filename)
-    )
+    begin
+      failwithf1
+        (f_ "Unable to load environment, the file '%s' doesn't exist.")
+        filename
+    end
 
 (** Uninitialize environment 
   *)
