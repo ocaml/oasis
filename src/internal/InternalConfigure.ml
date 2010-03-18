@@ -19,30 +19,45 @@ let configure pkg argv =
       ()
   in
 
-  let build_checks bs =
+  (* Check tools *)
+  let check_tools lst =
+    List.iter 
+      (function
+         | ExternalTool tool -> 
+             var_ignore_eval (BaseCheck.prog tool)
+         | InternalExecutable nm1 ->
+             (* Check that matching tool is built *)
+             List.iter
+               (function
+                  | Executable ({cs_name = nm2}, 
+                                {bs_build = build}, 
+                                _) when nm1 = nm2 ->
+                       if not (var_choose build) then
+                         failwithf1
+                           (f_ "Cannot find buildable internal executable \
+                                '%s' when checking build depends")
+                           nm1
+                  | _ ->
+                      ())
+               pkg.sections)
+      lst
+  in
+
+  let build_checks sct bs =
     if var_choose bs.bs_build then
       begin
+        if bs.bs_compiled_object = Native then
+          begin
+            try 
+              var_ignore_eval BaseStandardVar.ocamlopt
+            with PropList.Not_set _ ->
+              failwithf1
+                (f_ "Section %s requires native compilation")
+                (OASISSection.string_of_section sct)
+          end;
+
         (* Check tools *)
-        List.iter 
-          (function
-             | ExternalTool tool -> 
-                 var_ignore_eval (BaseCheck.prog tool)
-             | InternalExecutable nm1 ->
-                 (* Check that matching tool is built *)
-                 List.iter
-                   (function
-                      | Executable ({cs_name = nm2}, 
-                                    {bs_build = build}, 
-                                    _) when nm1 = nm2 ->
-                           if not (var_choose build) then
-                             failwithf1
-                               (f_ "Cannot find buildable internal executable \
-                                    '%s' when checking build depends")
-                               nm1
-                      | _ ->
-                          ())
-                   pkg.sections)
-          bs.bs_build_tools;
+        check_tools bs.bs_build_tools;
 
         (* Check depends *)
         List.iter  
@@ -92,8 +107,14 @@ let configure pkg argv =
   List.iter
     (function
        | Executable (_, bs, _)
-       | Library (_, bs, _) ->
-           build_checks bs
+       | Library (_, bs, _) as sct ->
+           build_checks sct bs
+       | Doc (_, doc) ->
+           if var_choose doc.doc_build then
+             check_tools doc.doc_build_tools
+       | Test (_, test) ->
+           if var_choose test.test_run then
+             check_tools test.test_build_tools
        | _ ->
            ())
     pkg.sections;

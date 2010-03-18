@@ -30,8 +30,9 @@ Executable "test-with-c-custom"
   CSources: main_custom_stub.c
 
 Executable "test-with-c-native"
+  Build$: flag(is_native)
   Path: src
   MainIs: main_native.ml
-  CompiledObject: best
+  CompiledObject: native
   BuildDepends: with-c 
   CSources: main_native_stub.c

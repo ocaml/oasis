@@ -316,18 +316,21 @@ let tests ctxt =
               ["-o"; FilePath.replace_extension fn "byte"; 
                fn];
 
-            (* Library + native compilation *)
-            assert_compile 
-              "ocamlopt" 
-              ["-a"; 
-               "-o"; FilePath.replace_extension fn "cmxa";
-               fn];
+            if ctxt.has_ocamlopt then
+              begin
+                (* Library + native compilation *)
+                assert_compile 
+                  "ocamlopt" 
+                  ["-a"; 
+                   "-o"; FilePath.replace_extension fn "cmxa";
+                   fn];
 
-            (* Program + native compilation *)
-            assert_compile 
-              "ocamlopt" 
-              ["-o"; FilePath.replace_extension fn "native"; 
-               fn];
+                (* Program + native compilation *)
+                assert_compile 
+                  "ocamlopt" 
+                  ["-o"; FilePath.replace_extension fn "native"; 
+                   fn];
+              end;
 
             rm ~recurse:true [srcdir];
 
@@ -737,8 +740,10 @@ let tests ctxt =
          ] @ oasis_ocamlbuild_files,
          [
            in_bin ["test-with-c"; 
-                   "test-with-c-custom"; 
-                   "test-with-c-native"];
+                   "test-with-c-custom"];
+           conditional
+             ctxt.has_ocamlopt
+             (in_bin ["test-with-c-native"]);
            in_library ["with-c/dlltest-with-c.so"];
            in_ocaml_library "with-c"
              [
@@ -755,12 +760,18 @@ let tests ctxt =
            in_html "with-c"
              ["code_VALA.ident.html"];
          ],
-         [
-           try_installed_exec "test-with-c-native" [];
-           try_installed_exec "test-with-c-custom" [];
-           try_installed_exec "test-with-c" [];
-           try_installed_library "with-c" ["A"];
-         ];
+         (if ctxt.has_ocamlopt then
+            (fun lst ->  
+               (try_installed_exec "test-with-c-native" [])
+               ::
+               lst)
+          else
+            (fun lst -> lst))
+           [
+             try_installed_exec "test-with-c-custom" [];
+             try_installed_exec "test-with-c" [];
+             try_installed_library "with-c" ["A"];
+           ];
 
          (* Library/executable using data files *)
          "../examples/with-data",
