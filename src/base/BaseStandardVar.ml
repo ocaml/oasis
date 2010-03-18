@@ -145,7 +145,7 @@ let ocamlbuild = prog "ocamlbuild"
 
 let c = BaseOCamlcConfig.var_define 
 
-let ocaml_version            = c "version"
+let ocaml_version            = c "ocaml_version"
 let standard_library_default = c "standard_library_default"
 let standard_library         = c "standard_library"
 let standard_runtime         = c "standard_runtime"
