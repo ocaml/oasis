@@ -858,6 +858,28 @@ let tests ctxt =
          ] @ oasis_ocamlbuild_files,
          [],
          [];
+
+         (* Single level package *)
+         "data/1level",
+         [
+           "META";
+           "with-a.mllib";
+           "with-a.odocl";
+         ] @ oasis_ocamlbuild_files,
+         [
+           in_ocaml_library "with-a"
+             ["META"; "A.ml"; "A.cmi"; "with-a.cma"];
+           conditional
+             ctxt.has_ocamlopt
+             (in_ocaml_library "with-a"
+                ["with-a.cmxa"; "with-a.a"]);
+           in_bin ["test-with-a"];
+           api_ref_html "with-a" ["A"];
+         ],
+         [
+           try_installed_library "with-a" ["A"];
+           try_installed_exec "test-with-a" [];
+         ];
        ]
     )
 ;;

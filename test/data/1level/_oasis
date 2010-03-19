@@ -1,0 +1,18 @@
+OASISFormat: 1.0
+Name:        with-c
+Version:     0.0.1
+Authors:     Sylvain Le Gall
+LicenseFile: LICENSE
+License:     LGPL-link-exn
+Synopsis:    Minimal project in a single directory.
+Plugins:     META
+
+Library "with-a"
+  Path: .
+  Modules: A
+
+Executable "test-with-a"
+  Path: .
+  MainIs: main.ml
+  BuildDepends: with-a
+
