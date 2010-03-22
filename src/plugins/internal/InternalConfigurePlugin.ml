@@ -133,7 +133,9 @@ let () =
   let doit pkg =  
     {
       moduls       = [InternalData.internalsys_ml];
-      setup        = ODNFunc.func configure "InternalConfigure.configure";
+      setup        = ODNFunc.func 
+                       configure 
+                       "InternalConfigurePlugin.configure";
       clean        = None;
       distclean    = None;
       other_action = (fun _ -> ());

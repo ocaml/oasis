@@ -1,4 +1,3 @@
 src/tools/ocamlmod.byte
-src/oasis.cma
 src/Main.byte
 test/test.byte

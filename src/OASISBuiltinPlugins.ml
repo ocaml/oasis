@@ -3,11 +3,11 @@
   *)
 
 open NonePlugin
-open InternalInstall
-open InternalConfigure
+open InternalInstallPlugin
+open InternalConfigurePlugin
 open OCamlbuildPlugin
 open OCamlbuildDocPlugin
 open CustomPlugin
 open METAPlugin
-open DevFilesGen
-open StdFilesGen
+open DevFilesPlugin
+open StdFilesPlugin

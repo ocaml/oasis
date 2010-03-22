@@ -1,4 +1,0 @@
-base/BaseSys
-internal/InternalSys
-ocamlbuild/OCamlbuildSys
-custom/CustomSys

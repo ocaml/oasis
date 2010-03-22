@@ -379,7 +379,7 @@ let () =
   let doit_install pkg =
       {
         moduls       = [InternalData.internalsys_ml];
-        setup        = ODNFunc.func install "InternalInstall.install";
+        setup        = ODNFunc.func install "InternalInstallPlugin.install";
         clean        = None;
         distclean    = None;
         other_action = ignore;
@@ -391,7 +391,7 @@ let () =
   let doit_uninstall pkg = 
     {
       moduls       = [InternalData.internalsys_ml];
-      setup        = ODNFunc.func uninstall "InternalInstall.uninstall";
+      setup        = ODNFunc.func uninstall "InternalInstallPlugin.uninstall";
       clean        = None;
       distclean    = None;
       other_action = ignore;
