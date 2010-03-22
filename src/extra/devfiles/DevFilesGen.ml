@@ -11,6 +11,9 @@ module PU = OASISPlugin.Extra.Make
               (struct 
                  let name = "DevFiles" 
                  let version = OASISConf.version 
+                 let help = DevFilesData.readme_template_mkd
+                 let help_extra_vars = []
+                 let help_order = 60
                end)
 
 open PU

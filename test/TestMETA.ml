@@ -51,7 +51,7 @@ let tests ctxt =
             let fmt =
               Format.formatter_of_out_channel chn
             in
-              METAGen.pp_print_meta pkg findlib_name_map fmt grp;
+              METAPlugin.pp_print_meta pkg findlib_name_map fmt grp;
               close_out chn
           in
 

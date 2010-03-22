@@ -1,0 +1,1 @@
+This plugin basically does nothing. It helps to replace mandatory step by nothing.

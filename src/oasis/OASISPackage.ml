@@ -90,7 +90,7 @@ let schema, generator =
           print = version.print;
         }
         (fun () ->
-           s_ "OASIS format version used to write file _oasis.")
+           s_ "OASIS format version used to write file `_oasis`.")
   in
   let name = 
     new_field schm "Name" string_not_empty 
@@ -125,7 +125,7 @@ let schema, generator =
     new_field schm "Authors" 
       (comma_separated string_not_empty)
       (fun () ->
-         s_ "Real person that has contributed to the package.")
+         s_ "Real people that had contributed to the package.")
   in
   let copyrights =
     new_field schm "Copyrights" 
@@ -243,7 +243,7 @@ let schema, generator =
       ~default:[]
       (comma_separated OASISPlugin.Extra.value)
       (fun () -> 
-         s_ "Extra plugins to use")
+         s_ "Extra plugins to use.")
   in
   let build_depends =
     OASISBuildSection.build_depends_field schm

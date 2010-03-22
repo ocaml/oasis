@@ -122,11 +122,7 @@ Example:
 
 Available tests are :
 
-* `os_type(X)`
-* `ocaml_version(X)`
-* `system(X)`
-* `architecture(X)`
-* `ccomp_type(X)`
+$ListOASISTests
 
 All tests check that the value `X` match the value defined in the output of: 
 
@@ -151,26 +147,7 @@ project.
 
 Fields:
 
- * `OASISFormat`: OASIS format version used to write file `_oasis`. (__mandatory__)
- * `Name`: Name of the package. (__mandatory__)
- * `Version`: Version of the package. (__mandatory__)
- * `LicenseFile`: File containing license. (__mandatory__)
- * `Synopsis`:Short fields:of the purpose of this package. (__mandatory__)
- * `Authors`: Real person that has contributed to the package. (__mandatory__)
- * `License`: License type of the package. (__mandatory__)
- * `OCamlVersion`: Version constraint on OCaml.
- * `ConfType`: Configuration system.
- * `BuildType`: Build system.
- * `InstallType`: Install/uninstall system.
- * `Copyrights`: Copyright owners.
- * `Maintainers`: Current maintainers of the package
- * `Homepage`: URL of the package homepage.
- * `Description`:Long fields:of the package purpose.
- * `Categories`: URL(s) describing categories of the package.
- * `FilesAB`: Files to generate using environment variable substitution.
- * `Plugins`: Extra plugins to use.
- * `BuildDepends`: Dependencies on findlib packages and internal libraries.
- * `BuildTools`: Executables require to compile.
+$ListOASISPackageFields
 
 `BuildDepends` and `BuildTools` are appended to all sections and not used
 directly at toplevel.
@@ -200,8 +177,7 @@ inside conditional fields.
 
 Fields:
 
- * `Description`: Help for the flag
- * `Default`: Default value for the flag
+$ListOASISFlagFields
 
 ### Common fields
 
@@ -209,16 +185,9 @@ These fields are used inside `Library` and `Executable`.
 
 Fields: 
 
- * `Path`: Toplevel directory for component.
- * `Build`: Set if the component should be built.
- * `Install`: Set if the component should be distributed.
- * `CompiledObject`: Define the compilation type: byte, native or best
- * `BuildDepends`: Dependencies on findlib packages and internal libraries.
- * `BuildTools`: Tools require to compile.
- * `CSources`: C source files.
- * `DataFiles`: List of files to be installed for run-time use 
-   ([see here](#data-files))
+$ListOASISBuildFields
 
+All files defined in the section are relative to `Path`.
 
 ### Library 
 
@@ -227,7 +196,7 @@ Define an OCaml library. OCaml API is generated using `ocamldoc` applied to
 
 Fields:
 
- * `Modules`: List of modules to compile.
+$ListOASISLibraryFields
  * Include all common fields.
 
 ### Executable 
@@ -237,20 +206,16 @@ library, an helper script can be generated to set library path.
 
 Fields:
 
- * `MainIs`: OCaml file (.ml) containing main procedure for the executable
-   relative to `Path`.  (__mandatory__)
- * `Custom`: Create custom bytecode executable.
+$ListOASISExecutableFields
  * Include all common fields.
 
-### Document 
+### Documentation
 
-Define a generated document. 
+Define a generated documentation.
 
 Fields:
 
- * `Type`: Plugin to use for creating document.
- * Include `Path`, `Build`, `Install`, `BuildDepends`, `BuildTools` and
-   `DataFiles` from common fields.
+$ListOASISDocumentationFields
 
 ### Test 
 
@@ -258,11 +223,7 @@ Define a test to run.
 
 Fields:
 
- * `Type`: Plugin to use to run test.
- * `Command`: Command to run for the test. (__mandatory__)
- * `WorkingDirectory`: Directory to run the test.
- * `Run`: Enable this test.
- * Include `BuildTools` from common fields.
+$ListOASISTestFields
 
 ### SourceRepository 
 
@@ -273,26 +234,16 @@ Define VCS informations. There is two special identified repository:
 
 Fields:
 
- * `Type`: VCS type (darcs, git, svn, cvs, hg, bzr, arch, monotone).
-   (__mandatory__)
- * `Location`: URL of the repository. The exact form of this field depends on
-   the repository type. (__mandatory__)
- * `Browser`: URL where the repository can be navigated using a web browser.
- * `Module`: CVS requires a named module, as each CVS server can host multiple
-   named repositories. (__mandatory__ for CVS)
- * `Branch`: Define a meaningful branch for this repository. 
- * `Tag`: Identify a state corresponding to this particular package version
-   or release. 
- * `Subdir`: Define the relative path from the root of the repository to the top
-   directory for the package, i.e. the directory containing the package's
-   `_oasis` file. 
- 
+$ListOASISSourceRepositoryFields
+
+Supported VCS types are: darcs, git, svn, cvs, hg, bzr, arch, monotone.
+
 Data files <a id="data-files" />
 ----------
 
-`DataFiles` fields help to install extra data inside `$datadir/$pkg_name`. This
+`DataFiles` fields help to install extra data inside `\$datadir/\$pkg_name`. This
 field is a comma separated list of file, with optional value inside parenthesis. 
-You can override target directory using `fn ($datadir/other_location)`. 
+You can override target directory using `fn (\$datadir/other_location)`. 
 
 You can use wildcard `*` but only for a filename and followed by a single dot
 extension: `dir/*.html` is valid but `dir/*` and `dir/*.tar.gz` are not valid.
@@ -347,99 +298,7 @@ There are 6 categories of plugin:
  * Install: apply to install and uninstall steps
  * Extra: everything else
 
-### Plugin Custom (conf, build, test, doc, install) <a id="plugin-Custom" />
-
-This plugin allow to define a set of three commands to perform each steps,
-associated with the following fields:
-
- * `XCustomXXX`: main action to run.
- * `XCustomXXXClean`: action to run when clean is invoked.
- * `XCustomXXXDistclean`: action to run when distclean is invoked.
-
-`XXX` stands for `Conf`, `Build`, `Doc`, `Test`, `Install` or `Uninstall`.
-
-Action to run is a simple shell command. It can contain substitution variables as
-defined in [this section][#substitution].
-
-Toplevel fields:
-
- * `XCustomConfDistclean`: Run command to distclean configure step.
- * `XCustomConfClean`: Run command to clean configure step.
- * `XCustomConf`: Run command to configure. (__mandatory__)
- * `XCustomBuildDistclean`: Run command to distclean build step.
- * `XCustomBuildClean`: Run command to clean build step.
- * `XCustomBuild`: Run command to build. (__mandatory__)
- * `XCustomDocDistclean`: Run command to distclean build documentation step.
- * `XCustomDocClean`: Run command to clean build documentation step.
- * `XCustomDoc`: Run command to build documentation. (__mandatory__)
- * `XCustomTestDistclean`: Run command to distclean test step.
- * `XCustomTestClean`: Run command to clean test step.
- * `XCustomTest`: Run command to test. (__mandatory__)
- * `XCustomInstallDistclean`: Run command to distclean install step.
- * `XCustomInstallClean`: Run command to clean install step.
- * `XCustomInstall`: Run command to install. (__mandatory__)
- * `XCustomUninstallDistclean`: Run command to distclean uninstall step.
- * `XCustomUninstallClean`: Run command to clean uninstall step.
- * `XCustomUninstall`: Run command to uninstall. (__mandatory__)
-
-### Plugin None (conf, build, install) <a id="plugin-None" />
-
-This plugin basically does nothing. It helps to replace mandatory step by nothing.
-
-
-### Plugin OCamlbuild (build) <a id="plugin-OCamlbuild" />
-
-This plugin uses OCamlbuild to generate a build system. It is the default value
-for `BuildType`.
-
-
-### Plugin Internal (conf, install) <a id="plugin-Internal" />
-
-This plugin is the default value for the `ConfType` and `InstallType`. It
-represents a default behavior for configuring and installing OCaml project.
-
-The configure part take care of checking:
-
- * Tools availability (ocamlfind, ocamlc et al)
- * OCaml version
- * Findlib packages 
-
-The install part take care of installing executables, libraries and data files
-using standard environment variable (`$bindir`, `$datadir` et al).
-
-### Plugin META (extra) <a id="plugin-META" />
-
-This plugin is an helper to generate a `META` files that can be distributed and
-install with a library. It uses library name, version, synopsis and dependencies
-to generate matching fields in `META`.
-
-Library fields:
-
- * `XMETADescription`: META package description
- * `XMETAEnable`: Enable META generation
-
-
-### Plugin StdFiles (extra) <a id="plugin-StdFiles" />
-
-This plugin generates standard files like `README.txt`, `INSTALL.txt` and
-`AUTHORS.txt`. These files will summarize data contains in `_oasis`. 
-
-The `.txt` extension has been added to allow easy editing/viewing under Windows
-and other system that look for extension to determine file type.
-
-Toplevel fields:
-
- * `XStdFilesREADMEFilename`: Real filename to use for file README.
- * `XStdFilesREADME`: Enable README file generation.
- * `XStdFilesINSTALLFilename`: Real filename to use for file INSTALL.
- * `XStdFilesINSTALL`: Enable INSTALL file generation.
- * `XStdFilesAUTHORSFilename`: Real filename to use for file AUTHORS.
- * `XStdFilesAUTHORS`: Enable AUTHORS file generation.
-
-### Plugin DevFiles (extra) <a id="plugin-DevFiles" />
-
-It helps to generate a toplevel `Makefile` and `configure` files which only
-invoke `setup.ml`. It aims to provide good old entry points.
+$ListOASISPlugins
 
 Building and installing
 =======================
@@ -510,18 +369,6 @@ OASIS usage
 Command line
 ------------
 
-    OASIS [options*]
-
-`-C dir`: Change directory before running.
-
-`--dev`: Generate a setup.ml for development. 
-
-`--dev-internal`: Internal flag, don't use.
-
-`--apply plugin`: Apply an extra plugin and do nothing else.
-
-`--quickstart`: Start an `_oasis` file creation tools.
-
-`-help|--help`: Display list of options.
+$OASISCommandLineHelp
 
  vim:tw=80:

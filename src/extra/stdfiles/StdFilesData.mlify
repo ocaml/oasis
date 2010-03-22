@@ -1,2 +1,2 @@
-VarStringList  configure           "configure"
+VarString      install             "INSTALL.txt"
 VarStringList  readme_template_mkd "README-template.mkd"

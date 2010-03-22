@@ -14,6 +14,9 @@ module PU = OASISPlugin.Extra.Make
               (struct
                  let name = "META"
                  let version = OASISConf.version
+                 let help = METAData.readme_template_mkd
+                 let help_extra_vars = []
+                 let help_order = 40
                end)
 open PU
 

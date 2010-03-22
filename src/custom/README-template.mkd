@@ -1,0 +1,23 @@
+This plugin allow to define a set of three commands to perform each steps,
+associated with the following fields:
+
+ * `XCustomXXX`: main action to run.
+ * `XCustomXXXClean`: action to run when clean is invoked.
+ * `XCustomXXXDistclean`: action to run when distclean is invoked.
+
+`XXX` stands for `Conf`, `Build`, `Doc`, `Test`, `Install` or `Uninstall`.
+
+Action to run is a simple shell command. It can contain substitution variables as
+defined in [this section][#substitution].
+
+Package fields:
+
+$ListOASISPackageFields
+
+Documentation fields:
+
+$ListOASISDocumentationFields
+
+Test fields:
+
+$ListOASISTestFields

@@ -1,4 +1,4 @@
-default: test
+default: test  
 
 test: all
 	cd '$(CURDIR)/test' && ../_build/test/test.byte $(TESTFLAGS)
@@ -13,7 +13,14 @@ all:
 
 clean:
 	-ocamlbuild -classic-display -clean
+	-$(RM) doc/README.mkd
 	$(MAKE) -C po clean
+	$(MAKE) -C doc clean
 
 wc:
 	find src/ -name "*.ml" | xargs wc -l
+
+doc: all
+	_build/src/OASIS.byte -documentation > doc/README.mkd
+	$(MAKE) -C doc
+

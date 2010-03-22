@@ -32,7 +32,7 @@ let schema, generator =
           "bzr",      Bzr; 
           "arch",     Arch; 
           "monotone", Monotone])
-      (fun () -> s_ "VCS type")
+      (fun () -> s_ "VCS type.")
   in
   let location =
     new_field schm "Location"
@@ -68,7 +68,7 @@ let schema, generator =
   let tag =
     new_field_opt "Tag"
       (fun () -> 
-         s_ "Identify a state corresponding to this particular package version")
+         s_ "Identify a state corresponding to this particular package version.")
   in
   let subdir = 
     new_field_opt "Subdir"

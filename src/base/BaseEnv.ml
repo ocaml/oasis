@@ -76,7 +76,6 @@ let rec var_expand str =
   *)
 and var_get name =
   let vl = 
-    (* TODO: catch exception that can be raised here at upper level *)
     Schema.get schema env name
   in
     var_expand vl
@@ -86,12 +85,7 @@ and var_get name =
 let var_choose lst =
   OASISExpr.choose 
     var_get 
-    (function
-       | TOs_type       -> var_get "os_type"
-       | TSystem        -> var_get "system"
-       | TArchitecture  -> var_get "architecture"
-       | TCcomp_type    -> var_get "ccomp_type"
-       | TOCaml_version -> var_get "ocaml_version")
+    (fun et -> var_get (OASISExpr.string_of_expr_test et))
     lst
 
 (** Protect a variable content, to avoid expansion

@@ -14,8 +14,11 @@ open FormatExt
 
 module PU = OASISPlugin.Extra.Make
               (struct
-                 let name    = "StdFiles"
+                 let name = "StdFiles"
                  let version = OASISConf.version
+                 let help = StdFilesData.readme_template_mkd
+                 let help_extra_vars = []
+                 let help_order = 50
                end)
 open PU
 
@@ -480,7 +483,7 @@ let main pkg =
          pp_close_box fmt ();
          pp_print_cut fmt ();
 
-         pp_print_string fmt StdFilesGenData.install;
+         pp_print_string fmt StdFilesData.install;
          pp_close_box fmt ());
     
     (* Generate AUTHORS.txt *)

@@ -1,2 +1,1 @@
-VarString     customsys_ml        "CustomSys.ml"
 VarStringList readme_template_mkd "README-template.mkd"

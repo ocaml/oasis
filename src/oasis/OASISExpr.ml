@@ -4,6 +4,7 @@
 
 open OASISTypes
 open OASISGettext
+open OASISUtils
 
 (** Evaluate each conditions and choose the right one. *)
 let choose var_get test_get lst =
@@ -48,10 +49,42 @@ let choose var_get test_get lst =
   in
     choose_aux (List.rev lst)
 
+(** All availbable expression tests and functions to convert it
+    to string and reverse
+  *)
+let expr_tests, string_of_expr_test, expr_test_of_string =
+  let all =
+    [
+      TOs_type;
+      TSystem;
+      TArchitecture;
+      TCcomp_type;
+      TOCaml_version;
+    ]
+  in
+  let to_string = 
+    function 
+      | TOs_type       -> "os_type"
+      | TSystem        -> "system"
+      | TArchitecture  -> "architecture"
+      | TCcomp_type    -> "ccomp_type"
+      | TOCaml_version -> "ocaml_version"
+  in
+  let of_string =
+    let mp =
+      List.rev_map (fun e -> to_string e, e) all
+    in
+      fun s -> 
+        try 
+          List.assoc (String.lowercase s) mp 
+        with Not_found ->
+          failwithf1 (f_ "Unknown OASIS test %s") s
+  in
+    all, to_string, of_string
+
 (* END EXPORT *)
 
 open OASISAstTypes
-open OASISUtils
 
 (* Check that expression only use valid tests/flags *)
 let check ctxt =
@@ -136,3 +169,4 @@ let reduce_choices choices =
     reduce_choices_aux 
       []
       (List.map (fun (cond, vl) -> reduce cond, vl) choices)
+

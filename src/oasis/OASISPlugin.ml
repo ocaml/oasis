@@ -78,6 +78,7 @@ sig
     (unit -> string) -> 
     PropList.Data.t -> 
     (OASISTypes.expr * 'a) list
+
 end
 
 (* Plugin data *)
@@ -85,6 +86,9 @@ module type PLUGIN_ID_TYPE =
 sig 
   val name: string
   val version: string
+  val help: string list
+  val help_extra_vars: (string * (unit -> string)) list
+  val help_order: int
 end
 
 module MapPlugin = Map.Make (
@@ -96,6 +100,11 @@ struct
       (String.lowercase nm1)
       (String.lowercase nm2)
 end)
+
+
+(* General data for plugin *)
+let help_all =
+  ref MapPlugin.empty
 
 module Make =
   functor (F:(sig
@@ -112,6 +121,12 @@ module Make =
     module Make (PI: PLUGIN_ID_TYPE) : PLUGIN_UTILS_TYPE with type t = F.t =
     struct
        type t = F.t
+
+       let () = 
+         help_all :=
+         MapPlugin.add
+           PI.name (PI.version, PI.help_order, PI.help, PI.help_extra_vars) 
+           !help_all
 
        let register e = 
          all := MapPlugin.add PI.name (e, PI.version) !all

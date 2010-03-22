@@ -41,7 +41,7 @@ let build_depends_field schm =
                       | InternalLibrary nm -> (nm, None))
                    lst));
        })
-    (fun () -> s_ "Dependencies on findlib packages.")
+    (fun () -> s_ "Dependencies on findlib packages, including internal findlib packages.")
 
 let build_tools_field schm =
   new_field schm "BuildTools"
@@ -68,39 +68,42 @@ let build_tools_field schm =
                       | ExternalTool nm -> nm)
                 lst))
        })
-    (fun () -> s_ "Executables required to compile.")
+    (fun () -> s_ "Tools required to compile, including internal executables.")
 
 let build_install_data_fields schm = 
-  new_field_conditional schm "Build"
-    ~default:true
-    boolean
-    (fun () -> s_ "Set if the section should be built. Use with flag."),
-  new_field_conditional schm "Install"
-    ~default:true
-    boolean
-    (fun () -> s_ "Set if the section should be distributed."),
-  new_field schm "DataFiles"
-    ~default:[]
-    (comma_separated
-       (with_optional_parentheses
-          file_glob
-          (expand directory)))
-    (fun () -> 
-       s_ "Comma separated list of files to be installed for run-time use by \
-           the package. Install by default in '$datadir/$pkg_name', you can \
-           override using 'fn ($datadir/other_location)'. You can use \
-           wildcard '*' but only for filename and followed by a single dot \
-           extension: 'dir/*.html' is valid but 'dir/*' and 'dir/*.tar.gz' are \
-           not valid.")
+  let build = 
+    new_field_conditional schm "Build"
+      ~default:true
+      boolean
+      (fun () -> s_ "Set if the section should be built.")
+  in
+  let install =
+    new_field_conditional schm "Install"
+      ~default:true
+      boolean
+      (fun () -> s_ "Set if the section should be distributed.")
+  in
+  let data_files =
+    new_field schm "DataFiles"
+      ~default:[]
+      (comma_separated
+         (with_optional_parentheses
+            file_glob
+            (expand directory)))
+      (fun () -> 
+         s_ "Comma separated list of files to be installed for run-time. \
+             ([see here](#data-files))")
+  in
+    build, install, data_files
 
 let section_fields nm comp_dflt schm = 
   let path =
     new_field schm "Path" 
       directory
-      (fun () ->
-         Printf.sprintf
-           (f_ "Directory containing the %s")
-           nm)
+      (fun () -> s_ "Directory containing the section")
+  in
+  let build, install, data_files = 
+    build_install_data_fields schm
   in
   let build_depends =
     build_depends_field schm
@@ -108,19 +111,14 @@ let section_fields nm comp_dflt schm =
   let build_tools =
     build_tools_field schm
   in
-  let build, install, data_files = 
-    build_install_data_fields schm
-  in
   let compiled_object =
     new_field schm "CompiledObject"
       ~default:comp_dflt
       (choices
          (fun () -> s_ "compiled object")
          ["byte", Byte; "native", Native; "best", Best])
-      (fun () ->
-         Printf.sprintf 
-           (f_ "Define the compilation type of %s: byte, native or best")
-           nm)
+      (fun () -> 
+         s_ "Define the compilation type of the section: byte, native or best")
   in
   let c_sources = 
     new_field schm "CSources"

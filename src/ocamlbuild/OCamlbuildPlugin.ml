@@ -198,7 +198,7 @@ let extern =
     boolean
     (fun () ->
        s_ "By default we consider library to be external. This allow to \
-           have very limited export. If set to false, the _tags file \
+           have very limited export. If set to false, the `_tags` file \
            will include all directories of the libraries. This can be a \
            problem if there are conflicting modules.")
 

@@ -122,8 +122,11 @@ open OASISValues
 
 module Id =
 struct
-  let name    = "Custom"
-  let version = OASISConf.version
+  let name            = "Custom"
+  let version         = OASISConf.version
+  let help            = CustomData.readme_template_mkd
+  let help_extra_vars = []
+  let help_order      = 0
 end
 
 module Make (PU: OASISPlugin.PLUGIN_UTILS_TYPE) =
@@ -297,7 +300,7 @@ let doc =
   let cmd_main, cmd_clean, cmd_distclean =
     CU.add_fields
       ~schema:OASISDocumentation.schema
-      "Doc"
+      ""
       (fun () -> s_ "Run command to build documentation.")
       (fun () -> s_ "Run command to clean build documentation step.")
       (fun () -> s_ "Run command to distclean build documentation step.")

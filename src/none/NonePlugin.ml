@@ -19,8 +19,11 @@ open OASISPlugin
 
 module Id = 
 struct
-  let name    = "None"
+  let name = "None"
   let version = OASISConf.version
+  let help = NoneData.readme_template_mkd
+  let help_extra_vars = []
+  let help_order = 10
 end
 
 let std_no_generate str pkg =

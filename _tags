@@ -8,9 +8,10 @@
 "src/omake": include
 "src/ocamlmakefile": include
 "src/oasis": include
-"src/extra": include
+"src/extra/META": include
 "src/extra/devfiles": include
 "src/extra/stdfiles": include
+"doc": include
 
 <src/tools/ocamlmod.{ml,byte,cmo,cmx}>: pkg_str, pkg_fileutils
 
@@ -41,7 +42,7 @@
 "src/ocamlbuild/OCamlbuildPlugin.ml": use_ocamlbuild
 "src/ocamlbuild/OCamlbuildDocPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
 
-<src/extra/*.ml>: pkg_fileutils, pkg_extlib
+<src/extra/META/*.ml>: pkg_fileutils, pkg_extlib
 
 <src/extra/devfiles/*.ml>: pkg_fileutils, pkg_extlib
 

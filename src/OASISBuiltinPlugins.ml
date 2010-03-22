@@ -6,7 +6,8 @@ open NonePlugin
 open InternalInstall
 open InternalConfigure
 open OCamlbuildPlugin
+open OCamlbuildDocPlugin
 open CustomPlugin
-open METAGen
+open METAPlugin
 open DevFilesGen
 open StdFilesGen

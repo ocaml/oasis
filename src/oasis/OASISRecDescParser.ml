@@ -399,17 +399,7 @@ let parse_stream conf st =
           if nm = "flag" then
             EFlag vl
           else
-            (let test = 
-               match String.lowercase nm with 
-                 | "os_type"       -> TOs_type
-                 | "system"        -> TSystem
-                 | "architecture"  -> TArchitecture
-                 | "ccomp_type"    -> TCcomp_type
-                 | "ocaml_version" -> TOCaml_version
-                 | _ ->
-                     failwithf1 (f_ "Unknown OASIS test %s") nm
-             in
-               ETest (test, vl))
+            ETest (OASISExpr.expr_test_of_string nm, vl)
   and parse_term_follow = 
     parser
       | [< 'Kwd "&&"; e1 = parse_factor; e2 = parse_term_follow >] ->

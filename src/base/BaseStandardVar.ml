@@ -4,8 +4,58 @@
   *)
 
 open OASISGettext
+open OASISTypes
 open BaseCheck
 open BaseEnv
+
+(** {2 Programs} *)
+
+let ocamlfind  = BaseCheck.ocamlfind
+let ocamlc     = BaseOCamlcConfig.ocamlc
+let ocamlopt   = prog_opt "ocamlopt"
+let ocamlbuild = prog "ocamlbuild"
+
+
+(** {2 OCaml config variable} *) 
+
+let c = BaseOCamlcConfig.var_define 
+let stdc et = BaseOCamlcConfig.var_define (OASISExpr.string_of_expr_test et)
+
+let os_type        = stdc TOs_type
+let system         = stdc TSystem
+let architecture   = stdc TArchitecture
+let ccomp_type     = stdc TCcomp_type
+let ocaml_version  = stdc TOCaml_version
+
+(* Check variable presence *)
+let () = 
+  if false then 
+    let v_of_et =
+      function
+        | TOs_type       -> os_type        
+        | TSystem        -> system         
+        | TArchitecture  -> architecture   
+        | TCcomp_type    -> ccomp_type     
+        | TOCaml_version -> ocaml_version  
+    in
+    let _lst : 'a list =
+      List.map v_of_et OASISExpr.expr_tests
+    in 
+      ()
+
+let standard_library_default = c "standard_library_default"
+let standard_library         = c "standard_library"
+let standard_runtime         = c "standard_runtime"
+let bytecomp_c_compiler      = c "bytecomp_c_compiler"
+let native_c_compiler        = c "native_c_compiler"
+let model                    = c "model"
+let ext_obj                  = c "ext_obj"
+let ext_asm                  = c "ext_asm"
+let ext_lib                  = c "ext_lib"
+let ext_dll                  = c "ext_dll"
+let default_executable_name  = c "default_executable_name"
+let systhread_supported      = c "systhread_supported"
+
 
 (** {2 Paths} *)
 
@@ -25,6 +75,7 @@ let (/) = Filename.concat
 let prefix = 
   p "prefix"
     (s_ "Install architecture-independent files dir")
+    (* TODO: we should use os_type () here rather than Sys.os_type *)
     (match Sys.os_type with
        | "Win32" ->
            "%PROGRAMFILES%\\$pkg_name"
@@ -132,36 +183,6 @@ let destdir =
           (PropList.Not_set
              ("destdir", 
               Some (s_ "undefined by construct")))))
-
-(** {2 Programs} *)
-
-let ocamlfind  = BaseCheck.ocamlfind
-let ocamlc     = BaseOCamlcConfig.ocamlc
-let ocamlopt   = prog_opt "ocamlopt"
-let ocamlbuild = prog "ocamlbuild"
-
-
-(** {2 OCaml config variable} *) 
-
-let c = BaseOCamlcConfig.var_define 
-
-let ocaml_version            = c "ocaml_version"
-let standard_library_default = c "standard_library_default"
-let standard_library         = c "standard_library"
-let standard_runtime         = c "standard_runtime"
-let ccomp_type               = c "ccomp_type"
-let bytecomp_c_compiler      = c "bytecomp_c_compiler"
-let native_c_compiler        = c "native_c_compiler"
-let architecture             = c "architecture"
-let model                    = c "model"
-let system                   = c "system"
-let ext_obj                  = c "ext_obj"
-let ext_asm                  = c "ext_asm"
-let ext_lib                  = c "ext_lib"
-let ext_dll                  = c "ext_dll"
-let os_type                  = c "os_type"
-let default_executable_name  = c "default_executable_name"
-let systhread_supported      = c "systhread_supported"
 
 (** {2 ...} *)
 

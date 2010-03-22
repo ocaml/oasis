@@ -1,0 +1,10 @@
+This plugin uses OCamlbuild to generate a build system. It is the default value
+for `BuildType`.
+
+Library fields:
+
+$ListOASISLibraryFields
+
+Documentation fields:
+
+$ListOASISDocumentationFields

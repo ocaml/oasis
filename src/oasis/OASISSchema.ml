@@ -123,7 +123,10 @@ let new_field_conditional
 
   let print =
     function
-      | [EBool true, v] -> value.print v
+      | [] -> 
+          raise (PropList.Not_set(name, None))
+      | [EBool true, v] -> 
+          value.print v
       | _ ->
           raise OASISValues.Not_printable
   in
