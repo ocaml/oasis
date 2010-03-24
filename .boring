@@ -77,3 +77,4 @@
 \.cmxa$
 ^po/.*\.mo$
 ^installbuilder-license.xml$
+^doc/MANUAL.mkd$

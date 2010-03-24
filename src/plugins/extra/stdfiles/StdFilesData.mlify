@@ -1,2 +1,2 @@
 VarString      install             "INSTALL.txt"
-VarStringList  readme_template_mkd "README-template.mkd"
+VarStringList  readme_template_mkd "MANUAL-template.mkd"

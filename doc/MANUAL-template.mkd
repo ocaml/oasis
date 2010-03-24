@@ -1,3 +1,5 @@
+% OASIS User Manual 
+% author Sylvain Le Gall and others
 
 Introduction
 ============
@@ -33,11 +35,11 @@ features/bugs that are oriented toward this build system.
 
 Features:
 
- * OCamlbuild support ([see here](#plugin-OCamlbuild))
- * Standard files auto-generation (see here [1](#plugin-DevFiles),
-   [2](#plugin-META), [3](#plugin-StdFiles))
- * Generic support for all step ([see here](#plugin-Custom))
- * Internal configure/install ([see here](#plugin-Internal))
+ * OCamlbuild support ([see here](#plugin-ocamlbuild))
+ * Standard files auto-generation (see here [1](#plugin-devfiles),
+   [2](#plugin-meta), [3](#plugin-stdfiles))
+ * Generic support for all step ([see here](#plugin-custom))
+ * Internal configure/install ([see here](#plugin-internal))
 
 Planned features:
 
@@ -238,7 +240,7 @@ $ListOASISSourceRepositoryFields
 
 Supported VCS types are: darcs, git, svn, cvs, hg, bzr, arch, monotone.
 
-Data files <a id="data-files" />
+Data files
 ----------
 
 `DataFiles` fields help to install extra data inside `\$datadir/\$pkg_name`. This
@@ -248,7 +250,7 @@ You can override target directory using `fn (\$datadir/other_location)`.
 You can use wildcard `*` but only for a filename and followed by a single dot
 extension: `dir/*.html` is valid but `dir/*` and `dir/*.tar.gz` are not valid.
 
-Substitution inside text <a id="substitution" />
+Substitution inside text
 ------------------------
 
 Substitution is performed using [Buffer.add\_substitute][].
@@ -371,4 +373,3 @@ Command line
 
 $OASISCommandLineHelp
 
- vim:tw=80:

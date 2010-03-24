@@ -217,12 +217,9 @@ let pp_help ?plugin fmt args msg =
           ]
           []
     in
-      fprintf fmt 
-        (f_ "### Plugin %s v%s (%s) <a id=\"plugin-%s\" />\n\n") 
-        plg 
-        ver
-        (String.concat (s_ ", ") kinds)
-        plg;
+      fprintf fmt (f_ "### Plugin %s\n\n") plg;
+      fprintf fmt (f_ "__Version__: %s<br/>\n") ver;
+      fprintf fmt (f_ "__Types__: %s\n\n") (String.concat (s_ ", ") kinds);
       pp_help_replace (hlp_xtr_vr @ (vars ~plugin:plg ())) fmt hlp;
   in
 
