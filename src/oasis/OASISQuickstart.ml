@@ -184,7 +184,7 @@ let quickstart fmt lvl =
                            parse s
                          with e ->
                            failwithf3
-                             (f_ "Trying to set '%s' using mandatory value '%s': %s")
+                             (f_ "Trying to set field '%s' using mandatory value '%s': %s")
                              key s (Printexc.to_string e)
                        end
                    | _ when not has_default || lvl >= extra.qckstrt_lvl ->
@@ -200,7 +200,7 @@ let quickstart fmt lvl =
                              | _ ->
                                  (* TODO: handle other kind of questions *)
                                  ask_field 
-                                   (Printf.sprintf (f_ "Value of %s?") key)
+                                   (Printf.sprintf (f_ "Value for field '%s'?") key)
                                    ?help
                                    ~default
                                    parse

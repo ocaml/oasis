@@ -43,7 +43,7 @@ open PropList.Field
 
 let schema, generator =
   let schm =
-    schema "executable" 
+    schema "Executable" 
   in
   let cmn_section_gen =
     OASISSection.section_fields (s_ "executable") schm

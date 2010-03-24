@@ -15,7 +15,7 @@ open PropList.Field
 
 let schema, generator = 
   let schm =
-    schema "flag" 
+    schema "Flag" 
   in
   let cmn_section_gen =
     OASISSection.section_fields (s_ "flag") schm
