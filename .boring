@@ -68,8 +68,12 @@
 \_vti_pvt$
 ^_build$
 ^doc/ext/x611.html$
+^doc/ext/mod.pdf$
+^doc/ext/configure.till$
 \.cmo$
 \.cmx$
 \.cmi$
 \.cma$
 \.cmxa$
+^po/.*\.mo$
+^installbuilder-license.xml$
