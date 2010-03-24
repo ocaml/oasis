@@ -1,7 +1,4 @@
-all: README.html ANALYSIS.html FAQ.html
+all:
 
 clean:
-	-$(RM) *.html
-
-%.html: %.mkd
-	markdown $^ > $@
+	-$(RM) README.mkd
