@@ -1,0 +1,6 @@
+
+I don't want a full build system, is it possible to just write \_oasis to
+provides as metadata for my software?
+
+
+Is OASIS flexible?
