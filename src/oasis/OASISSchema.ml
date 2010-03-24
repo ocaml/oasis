@@ -168,7 +168,7 @@ let new_field
       | Some ctxt ->
           begin
             if ctxt.cond <> None then
-              failwithf1 (f_ "Field %s cannot be conditional") name;
+              failwithf1 (f_ "Field '%s' cannot be conditional") name;
             value.parse s
           end
       | None ->

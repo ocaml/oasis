@@ -129,7 +129,7 @@ let () =
               let fmt = 
                 Format.formatter_of_out_channel chn
               in
-                Printf.printf "Creating %s file\n%!" fn;
+                Printf.printf (f_ "Creating %s file\n%!") fn;
                 OASISQuickstart.quickstart 
                   fmt
                   !qckstrt_lvl;

@@ -21,6 +21,6 @@ wc:
 	find src/ -name "*.ml" | xargs wc -l
 
 doc: all
-	_build/src/OASIS.byte -documentation > doc/README.mkd
+	env LANG=C _build/src/OASIS.byte -documentation > doc/README.mkd
 	$(MAKE) -C doc
 

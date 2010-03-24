@@ -74,7 +74,7 @@ let build pkg argv =
                      | [] ->
                          failwithf2
                            (f_ "No possible ocamlbuild targets \
-                                in generated fiels %s for library %s")
+                                in generated files %s for library %s")
                            (String.concat (s_ ", " ) tgts)
                            cs.cs_name
                end
@@ -197,9 +197,9 @@ let extern =
     ~default:true
     boolean
     (fun () ->
-       s_ "By default we consider library to be external. This allow to \
+       s_ "By default a library is considered external. This allow to \
            have very limited export. If set to false, the `_tags` file \
-           will include all directories of the libraries. This can be a \
+           will include all directories of the library. This can be a \
            problem if there are conflicting modules.")
 
 let create_ocamlbuild_files pkg () = 

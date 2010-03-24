@@ -209,17 +209,17 @@ let setup t =
 
                "-test",
                arg_handle test,
-               s_ "[options*] Build and run tests.";
+               s_ "[options*] Run tests.";
 
                "-install",
                arg_handle install,
-               s_ "[options*] Install library, data, executable \
-                              and documentation.";
+               s_ "[options*] Install libraries, data, executables \
+                              and documentations.";
 
                "-uninstall",
                arg_handle uninstall,
-               s_ "[options*] Uninstall library, data, executable \
-                              and documentation.";
+               s_ "[options*] Uninstall libraries, data, executables \
+                              and documentations.";
 
                "-clean",
                arg_handle ~allow_empty_env:true clean,
@@ -231,7 +231,7 @@ let setup t =
 
                "-no-catch-exn",
                Arg.Clear catch_exn,
-               s_ " Don't exception, useful for debugging.";
+               s_ " Don't catch exception, useful for debugging.";
              ] @ args)
           (failwithf1 (f_ "Don't know what to do with '%s'"))
           (s_ "Setup and run build process current package\n");

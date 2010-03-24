@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-22 15:36+0000\n"
+"POT-Creation-Date: 2010-03-24 14:21+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,7 +38,7 @@ msgid " Display extended help"
 msgstr ""
 
 #: ../src/base/BaseSetup.ml:234
-msgid " Don't exception, useful for debugging."
+msgid " Don't catch exception, useful for debugging."
 msgstr ""
 
 #: ../src/Main.ml:49
@@ -152,7 +152,7 @@ msgid "Building documentation '%s'"
 msgstr ""
 
 #: ../src/plugins/ocamlbuild/OCamlbuildPlugin.ml:200
-msgid "By default we consider library to be external. This allow to have very limited export. If set to false, the `_tags` file will include all directories of the libraries. This can be a problem if there are conflicting modules."
+msgid "By default a library is considered external. This allow to have very limited export. If set to false, the `_tags` file will include all directories of the library. This can be a problem if there are conflicting modules."
 msgstr ""
 
 #: ../src/oasis/OASISBuildSection.ml:127
@@ -255,6 +255,10 @@ msgstr ""
 msgid "Create custom bytecode executable."
 msgstr ""
 
+#: ../src/Main.ml:132
+msgid "Creating %s file\n%!"
+msgstr ""
+
 #: ../src/plugins/internal/InternalInstallPlugin.ml:59
 msgid "Creating directory '%s'"
 msgstr ""
@@ -351,16 +355,24 @@ msgstr ""
 msgid "Extra plugins to use."
 msgstr ""
 
-#: ../src/oasis/OASISSchema.ml:171
-msgid "Field %s cannot be conditional"
-msgstr ""
-
 #: ../src/common/PropList.ml:26
 msgid "Field %s is not defined in schema %s"
 msgstr ""
 
+#: ../src/oasis/OASISSchema.ml:171
+msgid "Field '%s' cannot be conditional"
+msgstr ""
+
 #: ../src/common/PropList.ml:110
 msgid "Field '%s' is already defined in schema '%s'"
+msgstr ""
+
+#: ../src/common/PropList.ml:22
+msgid "Field '%s' is not set"
+msgstr ""
+
+#: ../src/common/PropList.ml:20
+msgid "Field '%s' is not set: %s"
 msgstr ""
 
 #: ../src/base/BaseFileGenerate.ml:284
@@ -536,7 +548,7 @@ msgid "No module defined for library %s"
 msgstr ""
 
 #: ../src/plugins/ocamlbuild/OCamlbuildPlugin.ml:76
-msgid "No possible ocamlbuild targets in generated fiels %s for library %s"
+msgid "No possible ocamlbuild targets in generated files %s for library %s"
 msgstr ""
 
 #: ../src/base/BaseFileGenerate.ml:231
@@ -808,7 +820,7 @@ msgid "Top level directory for building ocamldoc documentation"
 msgstr ""
 
 #: ../src/oasis/OASISQuickstart.ml:187
-msgid "Trying to set '%s' using mandatory value '%s': %s"
+msgid "Trying to set field '%s' using mandatory value '%s': %s"
 msgstr ""
 
 #: ../src/plugins/extra/META/METAPlugin.ml:58
@@ -907,16 +919,8 @@ msgstr ""
 msgid "VCS type."
 msgstr ""
 
-#: ../src/common/PropList.ml:22
-msgid "Value %s is not set"
-msgstr ""
-
-#: ../src/common/PropList.ml:20
-msgid "Value %s is not set: %s"
-msgstr ""
-
 #: ../src/oasis/OASISQuickstart.ml:203
-msgid "Value of %s?"
+msgid "Value for field '%s'?"
 msgstr ""
 
 #: ../src/oasis/OASISPackage.ml:196
@@ -943,10 +947,6 @@ msgstr ""
 msgid "Wildcard '%s' doesn't match any files"
 msgstr ""
 
-#: ../src/base/BaseSetup.ml:212
-msgid "[options*] Build and run tests."
-msgstr ""
-
 #: ../src/base/BaseSetup.ml:208
 msgid "[options*] Build documentation."
 msgstr ""
@@ -964,15 +964,19 @@ msgid "[options*] Configure build process."
 msgstr ""
 
 #: ../src/base/BaseSetup.ml:216
-msgid "[options*] Install library, data, executable and documentation."
+msgid "[options*] Install libraries, data, executables and documentations."
 msgstr ""
 
 #: ../src/base/BaseSetup.ml:204
 msgid "[options*] Run build process."
 msgstr ""
 
+#: ../src/base/BaseSetup.ml:212
+msgid "[options*] Run tests."
+msgstr ""
+
 #: ../src/base/BaseSetup.ml:221
-msgid "[options*] Uninstall library, data, executable and documentation."
+msgid "[options*] Uninstall libraries, data, executables and documentations."
 msgstr ""
 
 #: ../src/Main.ml:54

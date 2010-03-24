@@ -17,9 +17,9 @@ exception Unknown_field of name_t * name_t
 let string_of_exception =
   function
     | Not_set (nm, Some rsn) ->
-        Printf.sprintf (f_ "Value %s is not set: %s") nm rsn
+        Printf.sprintf (f_ "Field '%s' is not set: %s") nm rsn
     | Not_set (nm, None) ->
-        Printf.sprintf (f_ "Value %s is not set") nm
+        Printf.sprintf (f_ "Field '%s' is not set") nm
     | No_printer nm ->
         Printf.sprintf (f_ "No default printer for value %s") nm
     | Unknown_field (nm, schm) ->

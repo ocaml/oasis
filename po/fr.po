@@ -1,16 +1,10 @@
-# French translation of oasis.
-# Copyright (C) 2010 THE oasis'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the oasis package.
-# Sylvain Le Gall <sylvain@le-gall.net>, 2010.
-# , fuzzy
-# 
-# 
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: oasis 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-08 16:24+0000\n"
-"PO-Revision-Date: 2010-03-09 11:24+0100\n"
+"POT-Creation-Date: 2010-03-24 14:15+0000\n"
+"PO-Revision-Date: 2010-03-24 15:22+0100\n"
 "Last-Translator: Sylvain Le Gall <sylvain@le-gall.net>\n"
 "Language-Team: French <gnomefr@traduc.org>\n"
 "MIME-Version: 1.0\n"
@@ -18,161 +12,308 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;"
 
-#: ../src/oasis/OASISHelp.ml:46
-msgid " (mandatory)"
-msgstr " (obligatoire)"
+#: ../src/base/BaseEnv.ml:485 ../src/base/BaseEnv.ml:477
+msgid " %s%s"
+msgstr " %s%s"
 
-#: ../src/oasis/OASISHelp.ml:54
-msgid " * @[%s: %a@]@\n"
-msgstr " * @[%s : %a@]@\n"
+#: ../src/oasis/OASISHelp.ml:62
+msgid " (__mandatory__)"
+msgstr " (__obligatoire__)"
 
-#: ../src/Main.ml:80
-msgid " Change the default name of setup.ml. This option should be used with caution, it is reserved for internal use."
-msgstr " Changer le nom par défaut de setup.ml. Cette option doit être utilisé avec précaution, elle est réservée pour un usage interne."
+#: ../src/oasis/OASISHelp.ml:68
+msgid " * @[`%s`: %a@]"
+msgstr "·*·@[`%s` :·%a@]"
 
-#: ../src/Main.ml:75
-msgid " Create a developper mode setup.ml. It will be automatically updated at each run."
-msgstr " Créer setup.ml en mode développeur. Ce fichier sera mis à jour à chaque lancement."
+#: ../src/Main.ml:72
+msgid ""
+" Create a developper mode setup.ml. It will be automatically updated at each "
+"run."
+msgstr ""
+" Créer setup.ml en mode développeur. Ce fichier sera mis à jour à chaque "
+"lancement."
 
-#: ../src/Main.ml:56
-msgid " Launch an helper to write _oasis file."
-msgstr " Lance l'aide à l'écriture de fichier _oasis."
+#: ../src/Main.ml:68
+msgid " Display extended help"
+msgstr " Affiche l'aide étendue"
 
-#: ../src/Main.ml:70
+#: ../src/base/BaseSetup.ml:234
+msgid " Don't catch exception, useful for debugging."
+msgstr " Ne pas rattraper les exceptions, utile pour debugger."
+
+#: ../src/Main.ml:49
+msgid " Launch an helper to write `_oasis` file."
+msgstr " Lance une aide à l'écriture du fichier `_oasis`."
+
+#: ../src/common/OASISMessage.ml:23
+msgid " Output debug message"
+msgstr " Imprime les messages de debug"
+
+#: ../src/Main.ml:63
 msgid " Quickstart level, skip questions according to this level."
-msgstr " Niveau d'expertise de quickstart, ignore les questions ne correspondant pas au niveau."
+msgstr ""
+" Niveau d'expertise de quickstart, ignore les questions ne correspondant pas "
+"au niveau."
 
-#: ../src/Main.ml:85
+#: ../src/common/OASISMessage.ml:19
 msgid " Run quietly"
 msgstr " Mode silencieux."
 
-#: ../src/oasis/OASISHelp.ml:29
-msgid "%s description"
-msgstr "%s description."
+#: ../src/base/BaseEnv.ml:448
+msgid " [%s]"
+msgstr " [%s]"
 
-#: ../src/oasis/OASISPackage.ml:167
+#: ../src/base/BaseEnv.ml:487 ../src/base/BaseEnv.ml:479
+msgid " [default]"
+msgstr ".[défaut]"
+
+#: ../src/oasis/OASISHelp.ml:221
+msgid ""
+"### Plugin %s v%s (%s) <a id=\"plugin-%s\" />\n"
+"\n"
+msgstr ""
+"###·Plugin·%s·v%s·(%s)·<a·id=\"plugin-%s\"·/>\n"
+"\n"
+
+#: ../src/base/BaseEnv.ml:471 ../src/base/BaseEnv.ml:465
+msgid "%s %s%s"
+msgstr "%s·%s%s"
+
+#: ../src/oasis/OASISPackage.ml:171
 msgid "'%s' is not an URL or a common license name (%s)"
 msgstr "'%s' n'est pas une URL ou un nom de licence connue (%s)"
 
-#: ../src/oasis/OASISQuickstart.ml:34
+#: ../src/oasis/OASISQuickstart.ml:126
+msgid "'%s' is not valid answer"
+msgstr "'%s' n'est pas une réponse valide"
+
+#: ../src/oasis/OASISQuickstart.ml:35
 msgid "(default exists) "
 msgstr "(une valeur par défaut existe)"
 
-#: ../src/oasis/OASISQuickstart.ml:27
+#: ../src/oasis/OASISQuickstart.ml:28
 msgid "(default exists, type '?' for help) "
 msgstr "(une valeur par défaut existe, taper '?' pour l'aide) "
 
-#: ../src/oasis/OASISQuickstart.ml:32
+#: ../src/oasis/OASISQuickstart.ml:33
 msgid "(default is '%s') "
 msgstr "(la valeur par défaut est '%s') "
 
-#: ../src/oasis/OASISQuickstart.ml:25
+#: ../src/oasis/OASISQuickstart.ml:26
 msgid "(default is '%s', type '?' for help) "
 msgstr "(la valeur par défaut est '%s', taper '?' pour l'aide) "
 
-#: ../src/oasis/OASISQuickstart.ml:29
+#: ../src/oasis/OASISQuickstart.ml:30
 msgid "(type '?' for help) "
 msgstr "(taper '?' pour l'aide) "
 
-#: ../src/oasis/OASISCheck.ml:42
+#: ../src/oasis/OASISCheck.ml:42 ../src/oasis/OASISHelp.ml:224
+#. ../src/base/BaseEnv.ml:170
+#. ../src/plugins/ocamlbuild/OCamlbuildPlugin.ml:78
 msgid ", "
 msgstr ", "
 
-#: ../src/oasis/OASISBuildSection.ml:145
+#: ../src/oasis/OASISBuildSection.ml:141
 msgid "-cclib arguments to use when building."
 msgstr "-cclib arguments à utiliser pour la construction "
 
-#: ../src/oasis/OASISBuildSection.ml:138
+#: ../src/oasis/OASISBuildSection.ml:134
 msgid "-ccopt arguments to use when building."
 msgstr "-ccopt arguments à utiliser pour la construction"
 
-#: ../src/oasis/OASISBuildSection.ml:152
+#: ../src/oasis/OASISBuildSection.ml:148
 msgid "-dlllib arguments to use when building."
 msgstr "-dlllib arguments à utiliser pour la construction."
 
-#: ../src/oasis/OASISBuildSection.ml:159
+#: ../src/oasis/OASISBuildSection.ml:155
 msgid "-dllpath arguments to use when building."
 msgstr "-dllpath arguments à utiliser pour la construction."
 
-#: ../src/oasis/OASISExecutable.ml:47
+#: ../src/oasis/OASISExecutable.ml:59
 msgid ".ml file"
 msgstr "fichier .ml"
 
-#: ../src/Main.ml:111
-msgid "= Command line options ="
-msgstr "= Options de la ligne de commande ="
+#: ../src/oasis/OASISHelp.ml:97
+msgid "@[`%s %s`: %a@]"
+msgstr "@[`%s·%s` :·%a@]"
 
-#: ../src/Main.ml:114
-msgid "= OASIS file layout ="
-msgstr "= Organisation du fichier OASIS ="
+#: ../src/oasis/OASISHelp.ml:102
+msgid "@[`%s`: %a@]"
+msgstr "@[`%s` :·%a@]"
 
-#: ../src/Main.ml:122
-msgid "= Plugin "
-msgstr "= Plugin "
+#: ../src/oasis/OASISValues.ml:31
+msgid "Blackbox type cannot be set to the value '%s'"
+msgstr ""
+"Les valeurs de type boite noire ne peuvent être affectées à la valeur '%s'"
 
-#: ../src/Main.ml:117
-msgid "= Plugins ="
-msgstr "= Plugins ="
+#: ../src/plugins/ocamlbuild/OCamlbuildDocPlugin.ml:65
+msgid "Build documentation associated to the library."
+msgstr "Construit la documentation associé à la librairie."
 
-#: ../src/oasis/OASISPackage.ml:205
+#: ../src/oasis/OASISPackage.ml:210
 msgid "Build system."
 msgstr "Système de construction."
 
-#: ../src/ocamlbuild/OCamlbuildPlugin.ml:189
-msgid "By default we consider library to be external. This allow to have very limited export. If set to false, the _tags file will include all directories of the libraries. This can be a problem if there are conflicting modules."
-msgstr "Par défaut, nous considerons que les librairies sont externes. Cela permet d'avoir un export minimal. Si on met cette valeur à \"false\", le fichier _tags contiendra une directive include pour tous les répertoires des librairies. Cela peut poser problème, s'il existe des modules conflictuels."
+#: ../src/base/BaseDoc.ml:15
+msgid "Building documentation '%s'"
+msgstr "Construction de la documentation '%s'"
 
-#: ../src/oasis/OASISBuildSection.ml:113
+#: ../src/plugins/ocamlbuild/OCamlbuildPlugin.ml:200
+msgid ""
+"By default a library is considered external. This allow to have very limited "
+"export. If set to false, the `_tags` file will include all directories of "
+"the library. This can be a problem if there are conflicting modules."
+msgstr ""
+"Par défaut, une librairie est considérée externe. Cela permet d'avoir des "
+"exports très limités. Si cette valeur est mise à 'false', le fichier `_tags` "
+"inclura tous les répertoires de la librairies. Cela peut être un problème si "
+"elle contientdes modules en conflit."
+
+#: ../src/oasis/OASISBuildSection.ml:127
 msgid "C source files."
 msgstr "Fichiers source C."
 
 #: ../src/oasis/OASISSourceRepository.ml:60
-msgid "CVS requires a named module, as each CVS server can host multiple named repositories. (__mandatory__ for CVS)"
-msgstr "CVS a besoin du nom d'un module, car les serveurs CVS peuvent contenir plusieurs dépot de sources (__obligatoire__ pour CVS)"
+msgid ""
+"CVS requires a named module, as each CVS server can host multiple named "
+"repositories. (__mandatory__ for CVS)"
+msgstr ""
+"CVS a besoin du nom d'un module, car les serveurs CVS peuvent contenir "
+"plusieurs dépot de sources (__obligatoire__ pour CVS)"
 
-#: ../src/common/PropList.ml:241
+#: ../src/plugins/internal/InternalConfigurePlugin.ml:37
+msgid ""
+"Cannot find buildable internal executable '%s' when checking build depends"
+msgstr ""
+"Impossible un exécutable interne '%s' à construire pendant la vérification "
+"des dépendances de construction"
+
+#: ../src/plugins/internal/InternalConfigurePlugin.ml:77
+msgid "Cannot find buildable internal library '%s' when checking build depends"
+msgstr ""
+"Impossible de trouver une librairie interne '%s' à construire pendant la "
+"vérification des dépendances de construction"
+
+#: ../src/base/BaseOCamlcConfig.ml:98
+msgid "Cannot find field '%s' in '%s -config' output"
+msgstr ""
+"Impossible de trouver le champ '%s' dans la sortie de la commande '%s -"
+"config'"
+
+#: ../src/plugins/internal/InternalInstallPlugin.ml:225
+msgid "Cannot find file '%s' for findlib library %s"
+msgstr "Impossible de trouver le fichier '%s' pour la librairie findlib %s"
+
+#: ../src/base/BaseSetup.ml:50
+msgid "Cannot find plugin matching %s"
+msgstr "Impossible de trouver le plugin correspondant à %s"
+
+#: ../src/oasis/OASISLibrary.ml:32
+msgid "Cannot find source file matching module '%s' in library %s"
+msgstr ""
+"Impossible de trouver le fichier source correspondante au module '%s' de la "
+"librairie %s"
+
+#: ../src/plugins/internal/InternalInstallPlugin.ml:153
+msgid "Cannot find source header for module %s in library %s"
+msgstr ""
+"Impossible de trouver le fichier source d'en-tête pour le module %s de la "
+"librairie %s"
+
+#: ../src/common/PropList.ml:243
 msgid "Cannot parse field '%s' when setting value %S"
 msgstr "Impossible d'analyser '%s' pour mettre à jour la valeur %S"
 
-#: ../src/oasis/OASISBuildSection.ml:126
-msgid "Comma separated list of files to be installed for run-time use by the package. Install by default in '$datadir/$pkg_name', you can override using 'fn ($datadir/other_location)'. You can use wildcard '*' but only for filename and followed by a single dot extension: 'dir/*.html' is valid but 'dir/*' and 'dir/*.tar.gz' are not valid."
-msgstr "Liste de fichiers, séparés par des virgules, à installer pour utiliser le paquet. L'installation se fait par défaut dans '$datadir/$pkg_name', il est possible de changer cette destination en utilisant 'fn ($datadir/other_location'. Il est possible d'utiliser le joker '*' mais seulement pour les noms de fichiers suivi par une seule extension : 'dir/*.html' est valide, mais 'dir/*' et 'dir/*.tar.gz' ne sont pas valides."
+#: ../src/base/BaseCheck.ml:83
+msgid "Cannot satisfy version constraint on %s: %s (version: %s)"
+msgstr ""
+"Impossible de satisfaire la contrainte de version sur %s : %s (version : %s)"
 
-#: ../src/oasis/OASISTest.ml:37
+#: ../src/oasis/OASISAst.ml:260
+msgid "Cannot use versioned build depends on internal library %s in %s"
+msgstr ""
+"Impossible d'utiliser une dépendance avec version pour la librairie interne %"
+"s dans %s"
+
+#: ../src/base/BaseTest.ml:27
+msgid "Changing directory to '%s'"
+msgstr "Changement de répertoire vers '%s'"
+
+#: ../src/oasis/OASISBuildSection.ml:94
+msgid ""
+"Comma separated list of files to be installed for run-time. ([see here]"
+"(#data-files))"
+msgstr ""
+"Liste de fichiers, séparée par des virgules, à installer pour l'exécution "
+"([voir ici](#data-files))"
+
+#: ../src/base/BaseExec.ml:21
+msgid "Command '%s' terminated with error code %d"
+msgstr "La commande '%s' s'est terminée avec un code d'erreur %d"
+
+#: ../src/base/BaseExec.ml:63
+msgid "Command return unexpected output %S"
+msgstr "La commande a émis des données non attendue %S"
+
+#: ../src/oasis/OASISTest.ml:35
 msgid "Command to run for the test."
 msgstr "Commande à lancer pour ce test."
 
-#: ../src/oasis/OASISValues.ml:292
+#: ../src/oasis/OASISValues.ml:335
 msgid "Commande line '%s' is invalid"
 msgstr "La ligne de commande '%s' n'est pas valide"
 
-#: ../src/oasis/OASISPackage.ml:198
+#: ../src/oasis/OASISPackage.ml:203
 msgid "Configuration system."
 msgstr "Système de configuration."
 
-#: ../src/oasis/OASISValues.ml:57
-msgid "Copyright must follow the convention '(C) 2008-2009 J.R. Hacker', here it is '%s'"
-msgstr "Le champ 'Copyright' doit suivre la convention suivante '(C)·2008-2009·J.R.·Hacker' ; sa valeur est '%s' ici"
+#: ../src/plugins/internal/InternalInstallPlugin.ml:65
+msgid "Copying file '%s' to '%s'"
+msgstr "Copie du fichier '%s' vers '%s'"
 
-#: ../src/oasis/OASISPackage.ml:130
+#: ../src/oasis/OASISValues.ml:79
+msgid ""
+"Copyright must follow the convention '(C) 2008-2009 J.R. Hacker', here it is "
+"'%s'"
+msgstr ""
+"Le champ 'Copyright' doit suivre la convention suivante '(C)·2008-2009·J.R."
+"·Hacker' ; sa valeur est '%s' ici"
+
+#: ../src/oasis/OASISPackage.ml:135
 msgid "Copyright owners."
 msgstr "Détenteur des droit d'auteurs."
 
-#: ../src/oasis/OASISQuickstart.ml:292
+#: ../src/oasis/OASISQuickstart.ml:288
 msgid "Create a section?"
 msgstr "Créer une section ?"
 
-#: ../src/oasis/OASISQuickstart.ml:290
+#: ../src/oasis/OASISQuickstart.ml:286
 msgid "Create another section?"
 msgstr "Créer une autre section ?"
 
-#: ../src/oasis/OASISExecutable.ml:61
+#: ../src/oasis/OASISExecutable.ml:74
 msgid "Create custom bytecode executable."
 msgstr "Créer un exécutable en mode 'custom'."
 
-#: ../src/oasis/OASISPackage.ml:137
+#: ../src/Main.ml:132
+msgid "Creating %s file\n%!"
+msgstr "Créé le fichier %s\n%!"
+
+#: ../src/plugins/internal/InternalInstallPlugin.ml:59
+msgid "Creating directory '%s'"
+msgstr "Création du répertoire '%s'"
+
+#: ../src/oasis/OASISPackage.ml:142
 msgid "Current maintainers of the package"
 msgstr "Responsables actuels de ce paquet"
+
+#: ../src/base/BaseStandardVar.ml:162
+msgid "DVI documentation"
+msgstr "Documentation DVI"
+
+#: ../src/oasis/OASISDocumentation.ml:35
+msgid "Default target directory to install data and documentation."
+msgstr ""
+"Répertoire cible par défaut pour installer les données et la documentation."
 
 #: ../src/oasis/OASISFlag.ml:35
 msgid "Default value for the flag"
@@ -182,431 +323,816 @@ msgstr "Valeur par défaut pour ce flag"
 msgid "Define a meaningful branch for this repository."
 msgstr "Défini une branche logique pour ce dépôt."
 
-#: ../src/oasis/OASISBuildSection.ml:106
-msgid "Define the compilation type of %s: byte, native or best"
-msgstr "Défini le type de compilation pour %s: byte, native ou best"
+#: ../src/oasis/OASISBuildSection.ml:121
+msgid "Define the compilation type of the section: byte, native or best"
+msgstr ""
+"Défini le type de compilation pour cette section : byte, native ou best"
 
 #: ../src/oasis/OASISSourceRepository.ml:76
-msgid "Define the relative path from the root of the repository to the top directory for the package, i.e. the directory containing the package's `_oasis` file."
-msgstr "Défini le chemin relatif depuis la racine du dépôt source vers le répertoire principal du paquet, en d'autre mots le répertoire contenant le fichier `_oasis` du paquet."
+msgid ""
+"Define the relative path from the root of the repository to the top "
+"directory for the package, i.e. the directory containing the package's "
+"`_oasis` file."
+msgstr ""
+"Défini le chemin relatif depuis la racine du dépôt source vers le répertoire "
+"principal du paquet, en d'autre mots le répertoire contenant le fichier "
+"`_oasis` du paquet."
 
-#: ../src/oasis/OASISBuildSection.ml:40
-msgid "Dependencies on findlib packages."
-msgstr "Dépendances sur les paquets findlib."
+#: ../src/oasis/OASISBuildSection.ml:44
+msgid "Dependencies on findlib packages, including internal findlib packages."
+msgstr ""
+"Dépendances sur les paquets findlib, incluant les dépendances sur les "
+"paquets findlib internes."
 
-#: ../src/oasis/OASISBuildSection.ml:71
-msgid "Directory containing the %s"
-msgstr "Répertoire contenant %s"
+#: ../src/plugins/internal/InternalInstallPlugin.ml:347
+msgid "Directory '%s' is not empty (%s)"
+msgstr "Le répertoire '%s' n'est pas vide (%s)"
 
-#: ../src/oasis/OASISTest.ml:44
+#: ../src/oasis/OASISBuildSection.ml:103
+msgid "Directory containing the section"
+msgstr "Répertoire contenant cette section"
+
+#: ../src/oasis/OASISTest.ml:42
 msgid "Directory to run the test."
 msgstr "Répertoire depuis lequel lancé le test."
 
-#: ../src/Main.ml:90
+#: ../src/base/BaseStandardVar.ml:152
+msgid "Documentation root"
+msgstr "Répertoire racine de la documentation"
+
+#: ../src/base/BaseSetup.ml:236 ../src/Main.ml:98
 msgid "Don't know what to do with '%s'"
 msgstr "Ne sait que faire avec '%s'"
 
-#: ../src/extra/stdfiles/StdFilesGen.ml:139
+#: ../src/base/BaseArgExt.ml:20
+msgid "Don't know what to do with arguments: '%s'"
+msgstr "Ne sait pas que faire de l'argument : '%s'"
+
+#: ../src/plugins/extra/stdfiles/StdFilesPlugin.ml:145
 msgid "Enable %s file generation."
 msgstr "Activer la création du fichier %s."
 
-#: ../src/extra/METAGen.ml:24
+#: ../src/plugins/extra/META/METAPlugin.ml:32
 msgid "Enable META generation"
 msgstr "Activer la création de fichier META"
 
-#: ../src/oasis/OASISTest.ml:51
+#: ../src/oasis/OASISTest.ml:49
 msgid "Enable this test."
 msgstr "Activer ce test."
+
+#: ../src/oasis/OASISRecDescParser.ml:448
+msgid "Error when parsing expresion '%s' %t: %s"
+msgstr "Erreur lors de l'analyse de l'expression '%s' %t %s"
 
 #: ../src/oasis/OASISVersion.ml:186
 msgid "Error while parsing '%s': %s"
 msgstr "Erreur lors de l'analyse de '%s': %s"
 
-#: ../src/oasis/OASISQuickstart.ml:255
+#: ../src/oasis/OASISQuickstart.ml:251
 msgid "Executable name?"
 msgstr "Nom de l'Executable ?"
 
-#: ../src/oasis/OASISBuildSection.ml:63
-msgid "Executables required to compile."
-msgstr "Exécutables nécessaires à la compilation."
+#: ../src/plugins/ocamlbuild/OCamlbuildPlugin.ml:137
+msgid "Expected built file '%s' doesn't exist"
+msgstr "Le fichier '%s', qui devrait construit, n'existe pas"
 
-#: ../src/oasis/OASISValues.ml:79
+#: ../src/oasis/OASISValues.ml:103
 msgid "Expecting not empty string"
 msgstr "La chaîne ne doit pas être vide."
 
-#: ../src/oasis/OASISPackage.ml:244
-msgid "Extra plugins to use"
-msgstr "Plugin de type extra à utiliser"
+#: ../src/oasis/OASISPackage.ml:246
+msgid "Extra plugins to use."
+msgstr "Plugins 'extra' à utiliser."
 
-#: ../src/common/PropList.ml:24
+#: ../src/common/PropList.ml:26
 msgid "Field %s is not defined in schema %s"
 msgstr "Le champs %s n'est pas défini dans le schéma %s"
 
-#: ../src/common/PropList.ml:108
+#: ../src/oasis/OASISSchema.ml:171
+msgid "Field '%s' cannot be conditional"
+msgstr "Le champ '%s' ne peut être conditionnel"
+
+#: ../src/common/PropList.ml:110
 msgid "Field '%s' is already defined in schema '%s'"
 msgstr "Le champ '%s' est déjà défini dans le schéma '%s'"
 
-#: ../src/oasis/OASISPackage.ml:117
+#: ../src/common/PropList.ml:22
+msgid "Field '%s' is not set"
+msgstr "La champ %s n'est pas définie"
+
+#: ../src/common/PropList.ml:20
+msgid "Field '%s' is not set: %s"
+msgstr "Le champ %s n'est pas assigné: %s"
+
+#: ../src/base/BaseFileGenerate.ml:284
+msgid "File %s already exists"
+msgstr "Le fichier %s existe déjà"
+
+#: ../src/base/BaseDev.ml:43
+msgid ""
+"File %s already exists, cannot generate it for dev-mode. Please remove it "
+"first."
+msgstr ""
+"Le fichier %s existe déjà, impossible de le générer en mode dev. Enlever le "
+"d'abord."
+
+#: ../src/base/BaseFileGenerate.ml:331
+msgid "File %s doesn't exist, creating it."
+msgstr "Le fichier %s n'existe pas, création"
+
+#: ../src/base/BaseFileGenerate.ml:278
+msgid "File %s has changed, doing a backup in %s"
+msgstr "Le fichier %s a changé, création d'une sauvegarde dans %s"
+
+#: ../src/base/BaseFileGenerate.ml:303
+msgid "File %s has not changed, skipping"
+msgstr "Le fichier %s n'a pas changé, ignoré"
+
+#: ../src/base/BaseFileAB.ml:18
+msgid "File '%s' doesn't have '.ab' extension"
+msgstr "Le fichier '%s' n'a pas l'extension '.ab'"
+
+#: ../src/base/BaseBuilt.ml:56
+msgid "File '%s' has been marked as built for %s but doesn't exist"
+msgstr "Le fichier '%s' a été marqué comme construit pour %s mais n'existe pas"
+
+#: ../src/oasis/OASISPackage.ml:122
 msgid "File containing license."
 msgstr "Fichier contenant la licence."
 
-#: ../src/oasis/OASISPackage.ml:234
+#: ../src/oasis/OASISPackage.ml:239
 msgid "Files to generate using environment variable substitution."
 msgstr "Fichiers à créer par remplacement de variables."
 
-#: ../src/oasis/OASISQuickstart.ml:263
+#: ../src/oasis/OASISValues.ml:311
+msgid "Findlib package name cannot contain '.'"
+msgstr "Le nom d'un paquet findlib ne peut contenir de '.'"
+
+#: ../src/oasis/OASISQuickstart.ml:259
 msgid "Flag name?"
 msgstr "Nom du Flag ?"
 
-#: ../src/extra/devfiles/DevFilesGen.ml:46
+#: ../src/plugins/extra/devfiles/DevFilesPlugin.ml:52
 msgid "Generate Makefile"
 msgstr "Créer un Makefile"
 
-#: ../src/extra/devfiles/DevFilesGen.ml:56
+#: ../src/plugins/extra/devfiles/DevFilesPlugin.ml:61
 msgid "Generate configure script"
 msgstr "Créer un script configure"
+
+#: ../src/base/BaseStandardVar.ml:157
+msgid "HTML documentation"
+msgstr "Documentation HTML"
 
 #: ../src/oasis/OASISFlag.ml:28
 msgid "Help for the flag"
 msgstr "Aide pour le flag"
 
 #: ../src/oasis/OASISSourceRepository.ml:71
-msgid "Identify a state corresponding to this particular package version"
-msgstr "Identifie un état particulier du déport de code source, correspondant à la version du paquet"
+msgid "Identify a state corresponding to this particular package version."
+msgstr ""
+"Identifie un état correspondant à cette version particulière du paquet."
 
-#: ../src/oasis/OASISPackage.ml:212
+#: ../src/base/BaseStandardVar.ml:137
+msgid "Info documentation"
+msgstr "Documentation info"
+
+#: ../src/base/BaseStandardVar.ml:87
+msgid "Install architecture-dependent files in dir"
+msgstr "Répertoire d'installation des fichiers dépendants de l'architecture"
+
+#: ../src/base/BaseStandardVar.ml:77
+msgid "Install architecture-independent files dir"
+msgstr "Répertoire d'installation des fichiers indépendants de l'architecture"
+
+#: ../src/oasis/OASISPackage.ml:217
 msgid "Install/uninstall system."
 msgstr "Système d'installation/désinstallation."
 
-#: ../src/oasis/OASISQuickstart.ml:247
+#: ../src/plugins/internal/InternalInstallPlugin.ml:231
+msgid "Installing findlib library '%s'"
+msgstr "Installe la librairie findlib '%s'"
+
+#: ../src/oasis/OASISQuickstart.ml:243
 msgid "Library name?"
 msgstr "Nom de la librairie ?"
 
-#: ../src/oasis/OASISLibrary.ml:212
-msgid "Library which includes the current library. The current library will be built as its parents and installed along it."
-msgstr "Librairies qui inclut cette librairie. Elle sera construite et installée en même temps que ses parents."
+#: ../src/oasis/OASISLibrary.ml:282
+msgid ""
+"Library which includes the current library. The current library will be "
+"built as its parents and installed along it."
+msgstr ""
+"Librairies qui inclut cette librairie. Elle sera construite et installée en "
+"même temps que ses parents."
 
-#: ../src/oasis/OASISPackage.ml:177
+#: ../src/oasis/OASISPackage.ml:182
 msgid "License type of the package."
 msgstr "Type de licence pour le paquet."
 
-#: ../src/oasis/OASISLibrary.ml:205
+#: ../src/plugins/ocamlbuild/OCamlbuildDocPlugin.ml:83
+msgid "List of OCaml modules used to generate ocamldoc documentation"
+msgstr ""
+"Liste des modules OCaml utilisés pour générer la documentation avec ocamldoc"
+
+#: ../src/oasis/OASISLibrary.ml:275
 msgid "List of modules to compile."
 msgstr "Liste des modules à compiler."
 
-#: ../src/oasis/OASISPackage.ml:110
+#: ../src/base/BaseStandardVar.ml:142
+msgid "Locale-dependent data"
+msgstr "Données dépendent de la langue"
+
+#: ../src/oasis/OASISPackage.ml:115
 msgid "Long description of the package purpose."
 msgstr "Description longue de l'intérêt du paquet."
 
-#: ../src/extra/METAGen.ml:34
+#: ../src/plugins/extra/META/METAPlugin.ml:40
 msgid "META package description"
 msgstr "Description du paquet pour le fichier META"
 
-#: ../src/extra/METAGen.ml:48
+#: ../src/plugins/extra/META/METAPlugin.ml:52
 msgid "META type"
 msgstr "Type de fichier META"
+
+#: ../src/base/BaseEnv.ml:295
+msgid "Malformed data file '%s' line %d"
+msgstr "Fichier '%s' de données invalide à la ligne %d"
+
+#: ../src/base/BaseStandardVar.ml:147
+msgid "Man documentation"
+msgstr "Documentation man"
 
 #: ../src/oasis/OASISCheck.ml:40
 msgid "Missing field in %s: %s"
 msgstr "Champs manquant dans %s: %s"
 
-#: ../src/oasis/OASISPackage.ml:93
+#: ../src/base/BaseStandardVar.ml:112
+msgid "Modifiable architecture-independent data"
+msgstr "Données modifiables indépendantes de l'architecture"
+
+#: ../src/base/BaseStandardVar.ml:117
+msgid "Modifiable single-machine data"
+msgstr "Données modifiables liées à une seule machine"
+
+#: ../src/oasis/OASISPackage.ml:98
 msgid "Name of the package."
 msgstr "Nom du paquet."
 
-#: ../src/oasis/OASISLibrary.ml:223
+#: ../src/oasis/OASISLibrary.ml:293
 msgid "Name used by findlib."
 msgstr "Nom utilisé par findlib."
 
-#: ../src/oasis/OASISSchema.ml:144 ../src/oasis/OASISSchema.ml:91
-msgid "No context defined for field '%s' when parsing value %S"
-msgstr "Aucun contexte défini pour le champ '%s' pendant l'analyse de la valeur %S"
+#: ../src/base/BaseSetup.ml:172
+msgid "No action defined, run '%s %s -help'"
+msgstr "Aucune action définie, lancer la commande '%s %s -help'"
 
-#: ../src/common/PropList.ml:22
+#: ../src/oasis/OASISSchema.ml:177 ../src/oasis/OASISSchema.ml:117
+msgid "No context defined for field '%s' when parsing value %S"
+msgstr ""
+"Aucun contexte défini pour le champ '%s' pendant l'analyse de la valeur %S"
+
+#: ../src/common/PropList.ml:24
 msgid "No default printer for value %s"
 msgstr "Pas de représentation par défaut pour la valeur %s"
 
-#: ../src/ocamlbuild/OCamlbuildPlugin.ml:434
+#: ../src/plugins/none/NonePlugin.ml:10
+msgid "No implementation for %s"
+msgstr "Pas d'implémentation pour %s"
+
+#: ../src/plugins/ocamlbuild/OCamlbuildDocPlugin.ml:111
+msgid "No module defined for documentation of library %s"
+msgstr "Pas de module défini pour la documentation de la librairie %s"
+
+#: ../src/plugins/ocamlbuild/OCamlbuildPlugin.ml:451
 msgid "No module defined for library %s"
 msgstr "Pas de module défini pour la librairie %s"
 
-#: ../src/Main.ml:92
-msgid "OASIS (C) 2009-2010 OCamlCore SARL\n\nOASIS [options*] -action [action-options*]\n\n"
-msgstr "OASIS (C) 2009-2010 OCamlCore SARL\n\nOASIS [options]* -action [action-options*]\n\n"
+#: ../src/plugins/ocamlbuild/OCamlbuildPlugin.ml:76
+msgid "No possible ocamlbuild targets in generated files %s for library %s"
+msgstr ""
+"Pas de cible ocamlbuild dans les fichiers générés %s pour la librairie %s"
 
-#: ../src/oasis/OASISPackage.ml:88
-msgid "OASIS format version used to write file _oasis."
-msgstr "Version du format OASIS utilisé pour écrire le fichier _oasis."
+#: ../src/base/BaseFileGenerate.ml:231
+msgid "No replace section found in template for file %s"
+msgstr "Pas de section de remplacement trouvée dans le fichier gabarit %s"
 
-#: ../src/oasis/OASISExecutable.ml:54
+#: ../src/base/BaseFileGenerate.ml:308
+msgid "No replace section in file %s"
+msgstr "Pas de section de remplacement dans le fichier %s"
+
+#: ../src/oasis/OASISExpr.ml:48
+msgid "No result for a choice list"
+msgstr "Pas de résultat possible pour une liste de choix"
+
+#: ../src/base/BaseEnv.ml:69
+msgid "No variable %s defined when trying to expand %S."
+msgstr "La variable %s n'est pas définie pour l'évaluation de %S."
+
+#: ../src/plugins/internal/InternalInstallPlugin.ml:210
+msgid "Nothing to install for findlib library '%s'"
+msgstr "Rien à installer pour la librairie findlib '%s'"
+
+#: ../src/Main.ml:86
+msgid "OASIS (C) 2009-2010 OCamlCore SARL"
+msgstr "OASIS·(C)·2009-2010·OCamlCore·SARL"
+
+#: ../src/base/BaseStandardVar.ml:236
+msgid "OASIS Package is not set"
+msgstr "Le paquet OASIS n'est pas défini"
+
+#: ../src/Main.ml:90
+msgid "OASIS [options] -action [action-options]"
+msgstr "OASIS·[options]·-action·[action-options]"
+
+#: ../src/oasis/OASISPackage.ml:86
+msgid "OASIS format version '%s' is not supported"
+msgstr "La version '%s' pour le format OASIS n'est pas supportée"
+
+#: ../src/oasis/OASISPackage.ml:93
+msgid "OASIS format version used to write file `_oasis`."
+msgstr "Version du format OASIS utilisé pour écrire le fichier `_oasis`."
+
+#: ../src/oasis/OASISExecutable.ml:67
 msgid "OCaml file (.ml) containing main procedure for the executable."
-msgstr "Fichier source OCaml (.ml) contenant le point d'entrée principal pour l'executable."
+msgstr ""
+"Fichier source OCaml (.ml) contenant le point d'entrée principal pour "
+"l'executable."
 
-#: ../src/oasis/OASISTest.ml:31
+#: ../src/base/BaseStandardVar.ml:167
+msgid "PDF documentation"
+msgstr "Documentation PDF"
+
+#: ../src/base/BaseStandardVar.ml:172
+msgid "PS documentation"
+msgstr "Documentation PS"
+
+#: ../src/base/BaseStandardVar.ml:241
+msgid "Package name"
+msgstr "Nom du paquet"
+
+#: ../src/base/BaseStandardVar.ml:247
+msgid "Package version"
+msgstr "Version du paquet"
+
+#: ../src/oasis/OASISPlugin.ml:200
+msgid "Plugin %s is defined without version, use current version at least: %s."
+msgstr ""
+"Le plugin %s est défini sans version, utilisé au moins la version courante %"
+"s."
+
+#: ../src/oasis/OASISDocumentation.ml:28
+msgid "Plugin to use to build documentation."
+msgstr "Plugin à utiliser pour construire la documentation."
+
+#: ../src/oasis/OASISTest.ml:29
 msgid "Plugin to use to run test."
 msgstr "Plugin à utiliser pour lancer le test."
 
-#: ../src/extra/stdfiles/StdFilesGen.ml:147
+#: ../src/base/BaseStandardVar.ml:177
+msgid "Prepend a path when installing package"
+msgstr "Ajouter un chemin au début lors de l'instation du paquet"
+
+#: ../src/base/BaseStandardVar.ml:102
+msgid "Program executables"
+msgstr "Exécutables utilisés par le programme"
+
+#: ../src/base/BaseStandardVar.ml:127
+msgid "Read-only arch-independent data root"
+msgstr ""
+"Racine pour les données indépendantes de l'architecture en lectures seules"
+
+#: ../src/base/BaseStandardVar.ml:132
+msgid "Read-only architecture-independent data"
+msgstr "Données dépendantes de l'architecture en lectures seules"
+
+#: ../src/base/BaseStandardVar.ml:107
+msgid "Read-only single-machine data"
+msgstr "Données liées à une machine en lectures seules"
+
+#: ../src/plugins/extra/stdfiles/StdFilesPlugin.ml:152
 msgid "Real filename to use for file %s."
 msgstr "Nom de fichier à réellement utiliser pour le fichier %s."
 
-#: ../src/oasis/OASISPackage.ml:123
-msgid "Real person that has contributed to the package."
-msgstr "Personne réelle ayant contribué au paquet."
+#: ../src/oasis/OASISPackage.ml:128
+msgid "Real people that had contributed to the package."
+msgstr "Personnes réelles ayant contribué au paquet"
 
-#: ../src/extra/METAGen.ml:64
+#: ../src/base/BaseFileGenerate.ml:295
+msgid "Regenerating file %s"
+msgstr "Régénère le fichier %s"
+
+#: ../src/base/BaseSetup.ml:149
+msgid "Remove '%s'"
+msgstr "Supprime '%s'"
+
+#: ../src/plugins/internal/InternalInstallPlugin.ml:340
+msgid "Removing directory '%s'"
+msgstr "Supprime le répertoire '%s'"
+
+#: ../src/plugins/internal/InternalInstallPlugin.ml:328
+msgid "Removing file '%s'"
+msgstr "Supprime le fichier '%s'"
+
+#: ../src/plugins/internal/InternalInstallPlugin.ml:358
+msgid "Removing findlib library '%s'"
+msgstr "Supprime la librairie findlib '%s'"
+
+#: ../src/plugins/extra/META/METAPlugin.ml:66
 msgid "Requires field for META package"
 msgstr "Champ \"requires\" pour le paquet du fichier META"
 
-#: ../src/custom/CustomPlugin.ml:181
+#: ../src/plugins/custom/CustomPlugin.ml:304
 msgid "Run command to build documentation."
 msgstr "Commande à lancer pour construire la documentation."
 
-#: ../src/custom/CustomPlugin.ml:150
+#: ../src/plugins/custom/CustomPlugin.ml:232
 msgid "Run command to build."
 msgstr "Commande à lancer pour la construction."
 
-#: ../src/custom/CustomPlugin.ml:182
+#: ../src/plugins/custom/CustomPlugin.ml:305
 msgid "Run command to clean build documentation step."
 msgstr "Commande à lancer pour nettoyer après l'étape de documentation."
 
-#: ../src/custom/CustomPlugin.ml:151
+#: ../src/plugins/custom/CustomPlugin.ml:233
 msgid "Run command to clean build step."
 msgstr "Commande à lancer pour nettoyer après l'étape de construction."
 
-#: ../src/custom/CustomPlugin.ml:172
+#: ../src/plugins/custom/CustomPlugin.ml:218
 msgid "Run command to clean configure step."
 msgstr "Commande à lancer pour nettoyer après l'étape de configuration."
 
-#: ../src/custom/CustomPlugin.ml:158
+#: ../src/plugins/custom/CustomPlugin.ml:282
 msgid "Run command to clean install step."
 msgstr "Commande à lancer pour nettoyer après l'étape d'installation."
 
-#: ../src/custom/CustomPlugin.ml:221
+#: ../src/plugins/custom/CustomPlugin.ml:359
 msgid "Run command to clean test step."
 msgstr "Commande à lancer pour nettoyer après l'étape de test."
 
-#: ../src/custom/CustomPlugin.ml:165
+#: ../src/plugins/custom/CustomPlugin.ml:289
 msgid "Run command to clean uninstall step."
 msgstr "Commande à lancer pour nettoyer après l'étape de désinstallation."
 
-#: ../src/custom/CustomPlugin.ml:171
+#: ../src/plugins/custom/CustomPlugin.ml:217
 msgid "Run command to configure."
 msgstr "Commande à lancer pour configurer."
 
-#: ../src/custom/CustomPlugin.ml:183
+#: ../src/plugins/custom/CustomPlugin.ml:306
 msgid "Run command to distclean build documentation step."
-msgstr "Commande à lancer pour nettoyer en profondeur après l'étape de construction de la documentation."
+msgstr ""
+"Commande à lancer pour nettoyer en profondeur après l'étape de construction "
+"de la documentation."
 
-#: ../src/custom/CustomPlugin.ml:152
+#: ../src/plugins/custom/CustomPlugin.ml:234
 msgid "Run command to distclean build step."
-msgstr "Commande à lancer pour nettoyer en profondeur après l'étape de construction."
+msgstr ""
+"Commande à lancer pour nettoyer en profondeur après l'étape de construction."
 
-#: ../src/custom/CustomPlugin.ml:173
+#: ../src/plugins/custom/CustomPlugin.ml:219
 msgid "Run command to distclean configure step."
-msgstr "Commande à lancer pour nettoyer en profondeur après l'étape de configuration."
+msgstr ""
+"Commande à lancer pour nettoyer en profondeur après l'étape de configuration."
 
-#: ../src/custom/CustomPlugin.ml:159
+#: ../src/plugins/custom/CustomPlugin.ml:283
 msgid "Run command to distclean install step."
-msgstr "Commande à lancer pour nettoyer en profondeur après l'étape d'installation."
+msgstr ""
+"Commande à lancer pour nettoyer en profondeur après l'étape d'installation."
 
-#: ../src/custom/CustomPlugin.ml:231
+#: ../src/plugins/custom/CustomPlugin.ml:368
 msgid "Run command to distclean test step."
 msgstr "Commande à lancer pour nettoyer en profondeur après l'étape de test."
 
-#: ../src/custom/CustomPlugin.ml:166
+#: ../src/plugins/custom/CustomPlugin.ml:290
 msgid "Run command to distclean uninstall step."
-msgstr "Commande à lancer pour nettoyer en profondeur après l'étape de désinstallation."
+msgstr ""
+"Commande à lancer pour nettoyer en profondeur après l'étape de "
+"désinstallation."
 
-#: ../src/custom/CustomPlugin.ml:157
+#: ../src/plugins/custom/CustomPlugin.ml:281
 msgid "Run command to install."
 msgstr "Commande pour installer."
 
-#: ../src/custom/CustomPlugin.ml:164
+#: ../src/plugins/custom/CustomPlugin.ml:288
 msgid "Run command to uninstall."
 msgstr "Commande pour désinstaller."
 
-#: ../src/oasis/OASISBuildSection.ml:80
-msgid "Set if the %s should be built. Use with flag."
-msgstr "Mettre à vrai si %s doit être construit. Utiliser avec un flag."
+#: ../src/base/BaseExec.ml:15
+msgid "Running command '%s'"
+msgstr "Exécute la commande '%s'"
 
-#: ../src/oasis/OASISBuildSection.ml:89
-msgid "Set if the %s should be distributed."
-msgstr "Mettre à vrai si %s doit être distribué."
+#: ../src/base/BaseTest.ml:18
+msgid "Running test '%s'"
+msgstr "Exécute le test '%s'"
 
-#: ../src/oasis/OASISPackage.ml:103
+#: ../src/plugins/internal/InternalConfigurePlugin.ml:55
+msgid "Section %s requires native compilation"
+msgstr "La section %s nécessite une compilation native"
+
+#: ../src/oasis/OASISBuildSection.ml:78
+msgid "Set if the section should be built."
+msgstr "Mettre à 'true' si la section doit être construite."
+
+#: ../src/oasis/OASISBuildSection.ml:84
+msgid "Set if the section should be distributed."
+msgstr "Mettre à 'true' si la section doit être distribuée."
+
+#: ../src/base/BaseSetup.ml:237
+msgid "Setup and run build process current package\n"
+msgstr "Met en place et lance le processus de construction\n"
+
+#: ../src/oasis/OASISPackage.ml:108
 msgid "Short description of the purpose of this package."
 msgstr "Description courte de l'intérêt de ce paquet."
 
-#: ../src/oasis/OASISQuickstart.ml:271
+#: ../src/base/BaseTest.ml:50
+msgid "Skipping test '%s'"
+msgstr "Ignore le test '%s'"
+
+#: ../src/oasis/OASISQuickstart.ml:267
 msgid "Source repository identifier?"
 msgstr "Identifiant pour le dépot de code source ?"
 
-#: ../src/oasis/OASISValues.ml:35
+#: ../src/oasis/OASISValues.ml:57
 msgid "String '%s' is not a %s"
 msgstr "La chaîne '%s' n'est pas un %s"
 
-#: ../src/extra/devfiles/DevFilesGen.ml:36
+#: ../src/oasis/OASISRecDescParser.ml:531
+msgid "Syntax error %s %t"
+msgstr "Erreur de syntaxe %s %t"
+
+#: ../src/oasis/OASISRecDescParser.ml:529
+msgid "Syntax error %t"
+msgstr "Erreur de syntaxe %t"
+
+#: ../src/base/BaseStandardVar.ml:97
+msgid "System admin executables"
+msgstr "Exécutables pour l'administrateur système"
+
+#: ../src/plugins/extra/devfiles/DevFilesPlugin.ml:43
 msgid "Targets to disable when generating Makefile"
 msgstr "Cibles à désactiver pour la génération du fichier Makefile"
 
-#: ../src/oasis/OASISQuickstart.ml:279
+#: ../src/oasis/OASISQuickstart.ml:275
 msgid "Test name?"
 msgstr "Nom du test ?"
 
-#: ../src/oasis/OASISQuickstart.ml:189
-msgid "Trying to set '%s' using mandatory value '%s': %s"
-msgstr "Tentative d'utilisation de la valeur obligatoire '%s' pour '%s' : %s"
+#: ../src/base/BaseFileUtil.ml:48
+msgid "Testing file existence '%s'"
+msgstr "Teste l'existence du fichier '%s'"
 
-#: ../src/extra/METAGen.ml:54
+#: ../src/base/BaseTest.ml:72
+msgid "Tests had a %.2f%% failure rate"
+msgstr "Les tests on un taux de %.2f%% d'erreur"
+
+#: ../src/oasis/OASISBuildSection.ml:71
+msgid "Tools required to compile, including internal executables."
+msgstr "Outils nécessaire à la compilation, incluant les exécutable interne."
+
+#: ../src/plugins/ocamlbuild/OCamlbuildDocPlugin.ml:74
+msgid "Top level directory for building ocamldoc documentation"
+msgstr "Répertoire racine pour construire la documentation ocamldoc"
+
+#: ../src/oasis/OASISQuickstart.ml:187
+msgid "Trying to set field '%s' using mandatory value '%s': %s"
+msgstr ""
+"Tentative d'utilisation pour le champs '%s' de la valeur obligatoire '%s' : %"
+"s"
+
+#: ../src/plugins/extra/META/METAPlugin.ml:58
 msgid "Type of META package, set default predicates for archive"
-msgstr "Type de paquet pour le fichier META, défini les 'predicates' par défault pour les champs \"archive\""
+msgstr ""
+"Type de paquet pour le fichier META, défini les 'predicates' par défault "
+"pour les champs \"archive\""
 
-#: ../src/oasis/OASISValues.ml:45
+#: ../src/oasis/OASISValues.ml:68
 msgid "URL"
 msgstr "URL"
 
-#: ../src/oasis/OASISPackage.ml:219
+#: ../src/oasis/OASISPackage.ml:224
 msgid "URL of the package homepage."
 msgstr "URL de la page d'accueil pour le paquet."
 
 #: ../src/oasis/OASISSourceRepository.ml:41
-msgid "URL of the repository. The exact form of this field depends on the repository type."
-msgstr "URL du dépôt de code source. La grammaire exacte de ce champ dépend du type de dépôt."
+msgid ""
+"URL of the repository. The exact form of this field depends on the "
+"repository type."
+msgstr ""
+"URL du dépôt de code source. La grammaire exacte de ce champ dépend du type "
+"de dépôt."
 
 #: ../src/oasis/OASISSourceRepository.ml:49
 msgid "URL where the repository can be navigated using a web browser."
-msgstr "URL pouvant être utilisée pour parcourir le dépôt à l'aide d'un navigateur web."
+msgstr ""
+"URL pouvant être utilisée pour parcourir le dépôt à l'aide d'un navigateur "
+"web."
 
-#: ../src/oasis/OASISPackage.ml:226
+#: ../src/oasis/OASISPackage.ml:231
 msgid "URL(s) describing categories of the package."
 msgstr "URL(s) décrivant les catégories auxquels appartient le paquet."
 
-#: ../src/oasis/OASISLibrary.ml:139
-msgid "Unable to translate internal library '%s' to findlib name"
-msgstr "Impossible de traduire le nom de la librairie interne '%s' en nom de paquet findlib"
+#: ../src/oasis/OASISLibrary.ml:249
+msgid "Unable to determine root library of findlib library '%s'"
+msgstr ""
+"Impossible de déterminer le répertoire racine de la librairie findlib '%s'"
 
-#: ../src/oasis/OASISValues.ml:250
+#: ../src/base/BaseEnv.ml:304
+msgid "Unable to load environment, the file '%s' doesn't exist."
+msgstr "Impossible de charger l'environnement, le fichier '%s' n'existe pas."
+
+#: ../src/oasis/OASISLibrary.ml:210
+msgid "Unable to translate internal library '%s' to findlib name"
+msgstr ""
+"Impossible de traduire le nom de la librairie interne '%s' en nom de paquet "
+"findlib"
+
+#: ../src/oasis/OASISValues.ml:294
 msgid "Unexpected abstract choice value for %s"
 msgstr "La valeur abstraite ne correspond à aucun choix pour la valeur %s"
 
-#: ../src/oasis/OASISValues.ml:235
+#: ../src/oasis/OASISValues.ml:280
 msgid "Unknown %s %S (possible: %s)"
 msgstr "%s inconnue %S (possible: %s)"
 
-#: ../src/base/BasePlugin.ml:182
-msgid "Unknown uninstall plugin '%s' (available: %s)"
-msgstr "Plugin de désinstallation '%s' inconnu (disponible: %s)"
+#: ../src/oasis/OASISExpr.ml:81
+msgid "Unknown OASIS test %s"
+msgstr "Test OASIS %s inconnu"
 
-#: ../src/base/BasePlugin.ml:154
-msgid "Unkown build plugin '%s' (available: %s)"
-msgstr "Plugin de construction '%s' inconnu (disponible: %s)"
+#: ../src/oasis/OASISPlugin.ml:238
+msgid "Unknown build plugin '%s' (available: %s)"
+msgstr "Plugin de construction '%s' inconnu (disponible : %s)"
 
-#: ../src/base/BasePlugin.ml:147
+#: ../src/oasis/OASISExpr.ml:106
+msgid "Unknown flag '%s'"
+msgstr "Flag '%s' inconnu "
+
+#: ../src/plugins/internal/InternalInstallPlugin.ml:362
+msgid "Unknown log event '%s'"
+msgstr "Évènement de log '%s' inconnu"
+
+#: ../src/oasis/OASISHelp.ml:169
+msgid "Unknown variable %s in documentationi (line is '%s')"
+msgstr "Variable %s inconnue dans la documentation (la ligne étant '%s')"
+
+#: ../src/oasis/OASISPlugin.ml:227
 msgid "Unkown configure plugin '%s' (available: %s)"
 msgstr "Plugin de configuration '%s' inconnu (disponible : %s)"
 
-#: ../src/base/BasePlugin.ml:161
+#: ../src/oasis/OASISPlugin.ml:249
 msgid "Unkown doc plugin '%s' (available: %s)"
 msgstr "Plugin de documentation '%s' inconnu (disponible : %s)"
 
-#: ../src/base/BasePlugin.ml:175
+#: ../src/oasis/OASISPlugin.ml:282
+msgid "Unkown extra plugin '%s' (available: %s)"
+msgstr "Plugin extra '%s' inconnu (disponible : %s)"
+
+#: ../src/oasis/OASISPlugin.ml:271
 msgid "Unkown install plugin '%s' (available: %s)"
 msgstr "Plugin d'installation '%s' inconnu (disponible : %s)"
 
-#: ../src/base/BasePlugin.ml:189
-msgid "Unkown plugin '%s' (available: %s)"
-msgstr "Plugin '%s' inconnu (possibilités : %s)"
-
-#: ../src/base/BasePlugin.ml:168
+#: ../src/oasis/OASISPlugin.ml:260
 msgid "Unkown test plugin '%s' (available: %s)"
 msgstr "Plugin de test '%s' inconnu (disponible : %s)"
 
-#: ../src/oasis/OASISQuickstart.ml:54
+#: ../src/base/BaseStandardVar.ml:92
+msgid "User executables"
+msgstr "Exécutables pour l'utilistateur"
+
+#: ../src/oasis/OASISQuickstart.ml:55
 msgid "Using default '%s'.\n"
 msgstr "Utiliser la valeur par défaut '%s'.\n"
 
 #: ../src/oasis/OASISSourceRepository.ml:35
-msgid "VCS type"
+msgid "VCS type."
 msgstr "Type de VCS"
 
-#: ../src/common/PropList.ml:20
-msgid "Value %s is not set"
-msgstr "La valeur %s n'est pas définie"
+#: ../src/oasis/OASISQuickstart.ml:203
+msgid "Value for field '%s'?"
+msgstr "Valeur du champs '%s' ?"
 
-#: ../src/oasis/OASISQuickstart.ml:207
-msgid "Value of %s?"
-msgstr "Valeur de %s ?"
-
-#: ../src/oasis/OASISPackage.ml:191
+#: ../src/oasis/OASISPackage.ml:196
 msgid "Version constraint on Finblib."
 msgstr "Contraintes sur la version de Findlib."
 
-#: ../src/oasis/OASISPackage.ml:184
+#: ../src/oasis/OASISPackage.ml:189
 msgid "Version constraint on OCaml."
 msgstr "Contraintes sur la version d'OCaml"
 
-#: ../src/oasis/OASISPackage.ml:98
+#: ../src/oasis/OASISPackage.ml:103
 msgid "Version of the package."
 msgstr "Version du paquet"
 
-#: ../src/oasis/OASISLibrary.ml:232
+#: ../src/oasis/OASISLibrary.ml:302
 msgid "Virtual containers for sub-package, dot-separated"
 msgstr "Conteneurs virtuels pour un sous-paquet, séparer par des points"
 
-#: ../src/Main.ml:61
+#: ../src/base/BaseCheck.ml:114
+msgid "When looking for findlib package %s, directory %s return doesn't exist"
+msgstr ""
+"Le répertoire %s, retourné par la recherche du paquet findlib %s, n'existe "
+"pas"
+
+#: ../src/plugins/internal/InternalInstallPlugin.ml:86
+msgid "Wildcard '%s' doesn't match any files"
+msgstr "Le joker '%s' ne correspond à aucun fichier"
+
+#: ../src/base/BaseSetup.ml:208
+msgid "[options*] Build documentation."
+msgstr "[options*] Construit la documentation"
+
+#: ../src/base/BaseSetup.ml:230
+msgid "[options*] Clean build and configure environment."
+msgstr ""
+"[options*] Nettoie l'environnement de construction et de configuration."
+
+#: ../src/base/BaseSetup.ml:226
+msgid "[options*] Clean build environment."
+msgstr "[options*] Nettoie l'environnement de construction."
+
+#: ../src/base/BaseSetup.ml:200
+msgid "[options*] Configure build process."
+msgstr "[options*] Configure le processus de construction."
+
+#: ../src/base/BaseSetup.ml:216
+msgid "[options*] Install libraries, data, executables and documentations."
+msgstr ""
+"[options*] Installe les librairies, les données, les exécutables et la "
+"documentation."
+
+#: ../src/base/BaseSetup.ml:204
+msgid "[options*] Run build process."
+msgstr "[options*] Exécute la processus de construction."
+
+#: ../src/base/BaseSetup.ml:212
+msgid "[options*] Run tests."
+msgstr "[options*] Exécute les tests"
+
+#: ../src/base/BaseSetup.ml:221
+msgid "[options*] Uninstall libraries, data, executables and documentations."
+msgstr ""
+"[options*] Désinstalle les librairies, les données, les exécutables et la "
+"documentation."
+
+#: ../src/Main.ml:54
 msgid "beginner"
 msgstr "débutant"
 
-#: ../src/oasis/OASISValues.ml:257
+#: ../src/oasis/OASISValues.ml:301
 msgid "boolean"
 msgstr "booléen"
 
-#: ../src/oasis/OASISBuildSection.ml:102
+#: ../src/oasis/OASISBuildSection.ml:118
 msgid "compiled object"
 msgstr "objet compilé"
 
-#: ../src/oasis/OASISQuickstart.ml:257
+#: ../src/base/BaseArgExt.ml:21
+msgid "configure options:"
+msgstr "options de configuration :"
+
+#: ../src/oasis/OASISQuickstart.ml:253
 msgid "create a flag"
 msgstr "créer une option de configuration"
 
-#: ../src/oasis/OASISQuickstart.ml:241
+#: ../src/oasis/OASISQuickstart.ml:237
 msgid "create a library"
 msgstr "créer une librairie"
 
-#: ../src/oasis/OASISQuickstart.ml:265
+#: ../src/oasis/OASISQuickstart.ml:261
 msgid "create a source repository"
 msgstr "créer un dépot de code source"
 
-#: ../src/oasis/OASISQuickstart.ml:273
+#: ../src/oasis/OASISQuickstart.ml:269
 msgid "create a test"
 msgstr "créer un test"
 
-#: ../src/oasis/OASISQuickstart.ml:249
+#: ../src/oasis/OASISQuickstart.ml:245
 msgid "create an executable"
 msgstr "créer un executable"
 
-#: ../src/Main.ml:52
+#: ../src/Main.ml:45
 msgid "dir Change directory before running."
 msgstr "dir Changer de répertoire avant le lancement."
 
-#: ../src/oasis/OASISQuickstart.ml:249
+#: ../src/base/BaseBuilt.ml:66
+msgid "documentation %s"
+msgstr "documentation %s"
+
+#: ../src/oasis/OASISQuickstart.ml:245
 msgid "e"
 msgstr "e"
 
-#: ../src/oasis/OASISExecutable.ml:40 ../src/oasis/OASISExecutable.ml:37
+#: ../src/oasis/OASISExecutable.ml:52 ../src/oasis/OASISExecutable.ml:49
 msgid "executable"
 msgstr "executable"
 
-#: ../src/oasis/OASISAst.ml:278
+#: ../src/base/BaseBuilt.ml:62
 msgid "executable %s"
 msgstr "l'executable %s"
 
-#: ../src/Main.ml:63
+#: ../src/Main.ml:56
 msgid "expert"
 msgstr "expert"
 
-#: ../src/oasis/OASISQuickstart.ml:257
+#: ../src/oasis/OASISQuickstart.ml:253
 msgid "f"
 msgstr "f"
 
@@ -614,47 +1140,63 @@ msgstr "f"
 msgid "flag"
 msgstr "flag"
 
-#: ../src/Main.ml:62
+#: ../src/Main.ml:77
+msgid ""
+"fn Change the default name of setup.ml. This option should be used with "
+"caution, it is reserved for internal use."
+msgstr ""
+"fn Change le nom par défaut pour setup.ml. Cette option doit être utilisée "
+"avec précaution, elle est normalement réservée à un usage interne."
+
+#: ../src/oasis/OASISRecDescParser.ml:364
+msgid "in file '%s' at line %d, char %d"
+msgstr "dans le fichier '%s' à la ligne %d, au caractère %d"
+
+#: ../src/Main.ml:55
 msgid "intermediate"
 msgstr "intermédiaire"
 
-#: ../src/oasis/OASISQuickstart.ml:241
+#: ../src/oasis/OASISQuickstart.ml:237
 msgid "l"
 msgstr "l"
 
-#: ../src/oasis/OASISLibrary.ml:197 ../src/oasis/OASISLibrary.ml:194
+#: ../src/oasis/OASISLibrary.ml:267 ../src/oasis/OASISLibrary.ml:264
 msgid "library"
 msgstr "library"
 
-#: ../src/oasis/OASISAst.ml:271
+#: ../src/base/BaseBuilt.ml:64
 msgid "library %s"
 msgstr "la librairie %s"
 
-#: ../src/oasis/OASISPackage.ml:153
+#: ../src/oasis/OASISPackage.ml:158
 msgid "license"
 msgstr "licence"
 
-#: ../src/oasis/OASISValues.ml:209
+#: ../src/oasis/OASISValues.ml:255
 msgid "module"
 msgstr "module"
 
-#: ../src/oasis/OASISQuickstart.ml:239 ../src/oasis/OASISQuickstart.ml:137
+#: ../src/oasis/OASISQuickstart.ml:235 ../src/oasis/OASISQuickstart.ml:135
 msgid "n"
 msgstr "n"
 
-#: ../src/oasis/OASISQuickstart.ml:137
+#: ../src/oasis/OASISQuickstart.ml:135
 msgid "no"
 msgstr "non"
 
-#: ../src/oasis/OASISBuildSection.ml:166
+#: ../src/common/PropList.ml:199
+msgid "no default value"
+msgstr "pas de valeur par défaut"
+
+#: ../src/oasis/OASISBuildSection.ml:162
 msgid "ocamlc arguments to use when building."
 msgstr "Argument à utiliser avec ocamlc pendant la construction."
 
-#: ../src/oasis/OASISBuildSection.ml:173
+#: ../src/oasis/OASISBuildSection.ml:169
 msgid "ocamlopt arguments to use when building."
 msgstr "Arguments à utiliser avec ocamlopt pendant la construction."
 
-#: ../src/oasis/OASISQuickstart.ml:265
+#: ../src/oasis/OASISQuickstart.ml:261
 msgid "s"
 msgstr "s"
 
@@ -666,27 +1208,31 @@ msgstr "dépot de code source"
 msgid "source repository type"
 msgstr "type de dépôt de code source"
 
-#: ../src/oasis/OASISQuickstart.ml:239
+#: ../src/oasis/OASISQuickstart.ml:235
 msgid "stop"
 msgstr "arréter"
 
-#: ../src/oasis/OASISQuickstart.ml:273
+#: ../src/oasis/OASISQuickstart.ml:269
 msgid "t"
 msgstr "t"
 
-#: ../src/extra/devfiles/DevFilesGen.ml:33
+#: ../src/plugins/extra/devfiles/DevFilesPlugin.ml:40
 msgid "target"
 msgstr "cible"
 
-#: ../src/oasis/OASISTest.ml:21
+#: ../src/oasis/OASISTest.ml:19 ../src/oasis/OASISDocumentation.ml:18
 msgid "test"
 msgstr "test"
 
-#: ../src/oasis/OASISQuickstart.ml:136
+#: ../src/base/BaseStandardVar.ml:185
+msgid "undefined by construct"
+msgstr "non-défini par construction"
+
+#: ../src/oasis/OASISQuickstart.ml:134
 msgid "y"
 msgstr "y"
 
-#: ../src/oasis/OASISQuickstart.ml:136
+#: ../src/oasis/OASISQuickstart.ml:134
 msgid "yes"
 msgstr "oui"
 
