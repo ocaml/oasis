@@ -46,7 +46,7 @@ let generated_unix_files (cs, bs, lib)
       (cs.cs_name^".cma") :: acc
     in
     let native acc =
-      (cs.cs_name^".cmxa") :: (cs.cs_name^".a") :: acc
+      (cs.cs_name^".cmxa") :: (cs.cs_name^(ext_lib ())) :: acc
     in
       match bs.bs_compiled_object with 
         | Native ->

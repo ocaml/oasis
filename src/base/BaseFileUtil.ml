@@ -77,35 +77,39 @@ let which prg =
   in
     find_file [path_lst; [prg]] exec_ext 
 
+(**/**)
+let q = Filename.quote
+(**/**)
+
 (** Copy a file 
   *)
 let cp src tgt = 
-  match Sys.os_type with 
-    | "Win32" ->
-        BaseExec.run "copy" [src; tgt]
-    | _ ->
-        BaseExec.run "cp" [src; tgt]
+  BaseExec.run
+    (match Sys.os_type with 
+     | "Win32" -> "copy"
+     | _ -> "cp")
+    [q src; q tgt]
 
 (** Create a directory
   *)
 let mkdir tgt =
-  match Sys.os_type with 
-    | "Win32" ->
-        BaseExec.run "md" [tgt]
-    | _ ->
-        BaseExec.run "mkdir" [tgt]
+  BaseExec.run 
+    (match Sys.os_type with 
+       | "Win32" -> "md" 
+       | _ -> "mkdir")
+    [q tgt]
 
 (** Remove a directory
   *)
 let rmdir tgt =
   if Sys.readdir tgt = [||] then
-    (
+    begin
       match Sys.os_type with 
         | "Win32" ->
-            BaseExec.run "rd" [tgt]
+            BaseExec.run "rd" [q tgt]
         | _ ->
-            BaseExec.run "rm" ["-r"; tgt]
-    )
+            BaseExec.run "rm" ["-r"; q tgt]
+    end
 
 (** Expand a filename containing '*.ext' into corresponding
     real files

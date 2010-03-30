@@ -232,7 +232,9 @@ let setup t =
                "-no-catch-exn",
                Arg.Clear catch_exn,
                s_ " Don't catch exception, useful for debugging.";
-             ] @ args)
+             ] 
+           @ OASISMessage.args
+           @ args)
           (failwithf1 (f_ "Don't know what to do with '%s'"))
           (s_ "Setup and run build process current package\n");
 
@@ -269,7 +271,12 @@ let setup t =
         !act_ref t (Array.of_list (List.rev !extra_args_ref))
 
     with e when !catch_exn ->
-      error "%s" (Printexc.to_string e)
+      begin
+        try 
+          error "%s" (PropList.string_of_exception e)
+        with e ->
+          error "%s" (Printexc.to_string e)
+      end
 
 (* END EXPORT *)
 

@@ -325,19 +325,114 @@ let internal_library =
 (** Command line 
   *)
 let command_line = 
-  { 
-    parse = 
-      (fun s ->
-         match space_separated.parse s with 
-           | cmd :: args ->
-               cmd, args
-           | [] ->
-               failwithf1 (f_ "Commande line '%s' is invalid") s);
-    update =
-      (fun (cmd, args1) (arg2, args3) ->
-         (cmd, args1 @ (arg2 :: args3)));
-    print = 
-      (fun (cmd, args) -> 
-         space_separated.print (cmd :: args))
-  }
+  let split_expandable str =
+
+    (* Add a single char to accumulator *)
+    let rec addchr c =
+      function
+        | Some b, _ as acc -> 
+            Buffer.add_char b c;
+            acc
+        | None, l -> 
+            let b =
+              Buffer.create 13
+            in
+              addchr c (Some b, l)
+    in
+
+    (* Add a separator that will end the previous
+     * token or do nothing if already separated
+     *)
+    let addsep =
+      function
+        | Some b, l -> 
+            None, (Buffer.contents b) :: l
+        | None, l ->
+            None, l
+    in
+
+    (* Split the list of char into a list of token
+     * taking care of matching $( ... ) and ${ ... }
+     *)
+    let rec lookup_closing oc cc acc =
+      function
+        | c :: tl ->
+            let acc = 
+              addchr c acc
+            in
+              if c = oc then
+                begin
+                  let acc, tl =
+                    lookup_closing oc cc acc tl
+                  in
+                    lookup_closing oc cc acc tl
+                end
+              else if c = cc then
+                begin
+                  acc, tl
+                end
+              else
+                begin
+                  lookup_closing oc cc acc tl 
+                end
+        | [] ->
+            failwithf1
+              (f_ "'%s' contains unbalanced curly braces")
+              str
+    in
+    let rec lookup_dollar acc = 
+      function 
+        | '$' :: ('(' as c) :: tl
+        | '$' :: ('{' as c) :: tl -> 
+            begin
+              let acc, tl = 
+                lookup_closing 
+                  c (if c = '(' then ')' else '}')
+                  (addchr c (addchr '$' acc))
+                  tl
+              in
+                lookup_dollar acc tl
+            end
+        | ' ' :: tl -> 
+            lookup_dollar (addsep acc) tl
+        | c :: tl -> 
+            lookup_dollar (addchr c acc) tl
+        | [] ->
+            begin
+              let l = 
+                match acc with
+                  | Some b, l -> Buffer.contents b :: l
+                  | None, l -> l
+              in
+                List.rev l
+            end
+    in
+
+    (* Transform string into list
+     *)
+    let lst =
+      let rl = ref []
+      in
+        String.iter (fun c -> rl := c :: !rl) str;
+        List.rev !rl
+    in
+
+      lookup_dollar (None, []) lst
+  in
+    
+    { 
+      parse = 
+        (fun s ->
+           match split_expandable s with 
+             | cmd :: args ->
+                 cmd, args
+             | [] ->
+                 failwithf1 (f_ "Commande line '%s' is invalid") s);
+      update =
+        (fun (cmd, args1) (arg2, args3) ->
+           (cmd, args1 @ (arg2 :: args3)));
+      print = 
+        (fun (cmd, args) -> 
+           space_separated.print (cmd :: args))
+    }
 

@@ -15,6 +15,33 @@ let ocamlc     = BaseOCamlcConfig.ocamlc
 let ocamlopt   = prog_opt "ocamlopt"
 let ocamlbuild = prog "ocamlbuild"
 
+(** {2 Variables from OASIS package} 
+  *)
+
+(**/**)
+let rpkg = 
+  ref None
+
+let pkg_get () =
+  match !rpkg with 
+    | Some pkg -> pkg
+    | None -> failwith (s_ "OASIS Package is not set")
+(**/**)
+
+let pkg_name = 
+  var_define
+    ~short_desc:(s_ "Package name")
+    "pkg_name"
+    (lazy (fst (pkg_get ())))
+
+let pkg_version =
+  var_define
+    ~short_desc:(s_ "Package version")
+    "pkg_version"
+    (lazy 
+       (OASISVersion.string_of_version 
+          (snd (pkg_get ()))))
+
 
 (** {2 OCaml config variable} *) 
 
@@ -66,118 +93,125 @@ let p name hlp dflt =
     ~cli:CLIAuto 
     ~arg_help:"dir" 
     name 
-    (lazy dflt) 
+    dflt 
 
-let (/) = Filename.concat
-
+let (/) a b = 
+  if os_type () = Sys.os_type then
+    Filename.concat a b 
+  else if os_type () = "Unix" then
+    BaseFilePath.Unix.concat a b 
+  else
+    OASISUtils.failwithf1 
+      (f_ "Cannot handle os_type %s filename concat")
+      (os_type ())
 (**/**)
 
 let prefix = 
   p "prefix"
     (s_ "Install architecture-independent files dir")
-    (* TODO: we should use os_type () here rather than Sys.os_type *)
-    (match Sys.os_type with
-       | "Win32" ->
-           "%PROGRAMFILES%\\$pkg_name"
-       | _ ->
-           "/usr/local")
-      
+    (lazy 
+       (match os_type () with
+          | "Win32" ->
+              let program_files =
+                Sys.getenv "PROGRAMFILES"
+              in
+                program_files/(pkg_name ())
+          | _ ->
+              "/usr/local"))
+
 let exec_prefix = 
   p "exec_prefix"
     (s_ "Install architecture-dependent files in dir")
-    "$prefix"
+    (lazy (prefix ()))
 
 let bindir =
   p "bindir"
     (s_ "User executables")
-    ("$exec_prefix"/"bin")
+    (lazy (exec_prefix ()/"bin"))
 
 let sbindir =
   p "sbindir"
     (s_ "System admin executables")
-    ("$exec_prefix"/"sbin")
+    (lazy (exec_prefix ()/"sbin"))
 
 let libexecdir =
   p "libexecdir"
     (s_ "Program executables")
-    ("$exec_prefix"/"libexec")
+    (lazy (exec_prefix ()/"libexec"))
 
 let sysconfdir =
   p "sysconfdir"
     (s_ "Read-only single-machine data")
-    ("$prefix"/"etc")
+    (lazy (prefix ()/"etc"))
 
 let sharedstatedir =
   p "sharedstatedir"
     (s_ "Modifiable architecture-independent data")
-    ("$prefix"/"com")
+    (lazy (prefix ()/"com"))
 
 let localstatedir =
   p "localstatedir"
     (s_ "Modifiable single-machine data")
-    ("$prefix"/"var")
+    (lazy (prefix ()/"var"))
 
 let libdir =
   p "libdir"
     "Object code libraries"
-    ("$exec_prefix"/"lib")
+    (lazy (exec_prefix ()/"lib"))
 
 let datarootdir =
   p "datarootdir"
     (s_ "Read-only arch-independent data root")
-    ("$prefix"/"share")
+    (lazy (prefix ()/"share"))
 
 let datadir =
   p "datadir"
     (s_ "Read-only architecture-independent data")
-    "$datarootdir"
+    (lazy (datarootdir ()))
 
 let infodir =
   p "infodir"
     (s_ "Info documentation")
-    ("$datarootdir"/"info")
+    (lazy (datarootdir ()/"info"))
 
 let localedir =
   p "localedir"
     (s_ "Locale-dependent data")
-    ("$datarootdir"/"locale")
+    (lazy (datarootdir ()/"locale"))
 
 let mandir =
   p "mandir"
     (s_ "Man documentation")
-    ("$datarootdir"/"man")
+    (lazy (datarootdir ()/"man"))
 
 let docdir =
   p "docdir"
     (s_ "Documentation root")
-    ("$datarootdir"/"doc"/"$pkg_name")
+    (lazy (datarootdir ()/"doc"/pkg_name ()))
 
 let htmldir =
   p "htmldir"
     (s_ "HTML documentation")
-    "$docdir"
+    (lazy (docdir ()))
 
 let dvidir =
   p "dvidir"
     (s_ "DVI documentation")
-    "$docdir"
+    (lazy (docdir ()))
 
 let pdfdir =
   p "pdfdir"
     (s_ "PDF documentation")
-    "$docdir"
+    (lazy (docdir ()))
 
 let psdir =
   p "psdir"
     (s_ "PS documentation")
-    "$docdir"
+    (lazy (docdir ()))
 
 let destdir =
-  var_define
-    ~short_desc:(s_ "Prepend a path when installing package")
-    ~cli:CLIAuto 
-    ~arg_help:"dir" 
-    "destdir"
+  p "destdir"
+    (s_ "Prepend a path when installing package")
     (lazy 
        (raise 
           (PropList.Not_set
@@ -222,33 +256,6 @@ let suffix_program =
           | "Win32" -> ".exe" 
           | _ -> ""
        ))
-
-(** {2 Variables from OASIS package} 
-  *)
-
-(**/**)
-let rpkg = 
-  ref None
-
-let pkg_get () =
-  match !rpkg with 
-    | Some pkg -> pkg
-    | None -> failwith (s_ "OASIS Package is not set")
-(**/**)
-
-let pkg_name = 
-  var_define
-    ~short_desc:(s_ "Package name")
-    "pkg_name"
-    (lazy (fst (pkg_get ())))
-
-let pkg_version =
-  var_define
-    ~short_desc:(s_ "Package version")
-    "pkg_version"
-    (lazy 
-       (OASISVersion.string_of_version 
-          (snd (pkg_get ()))))
 
 (** Initialize some variables 
   *)

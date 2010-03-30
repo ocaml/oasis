@@ -19,7 +19,7 @@ Executable perf
 
 Test perf
   Type: Custom (0.1.0)
-  Command: _build/test/perf
+  Command: $(utoh "_build/test/perf")
 
 Executable test
   Path: test
@@ -29,7 +29,7 @@ Executable test
 
 Test test
   Type: Custom (0.1.0)
-  Command: _build/test/test
+  Command: $(utoh "_build/test/test")
 
 Executable uuid
   Path: test
@@ -39,4 +39,4 @@ Executable uuid
 
 Test uuid
   Type: Custom (0.1.0)
-  Command: _build/test/uuid
+  Command: $(utoh "_build/test/uuid")

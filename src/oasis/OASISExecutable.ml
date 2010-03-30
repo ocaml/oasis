@@ -8,7 +8,7 @@ open OASISTypes
 (* Return the name of the real name of executable, with full 
    unix path
  *)
-let unix_exec_is (cs, bs, exec) is_native ext_dll = 
+let unix_exec_is (cs, bs, exec) is_native ext_dll suffix_program = 
   let dir = 
     OASISUnixPath.concat
       bs.bs_path
@@ -23,7 +23,7 @@ let unix_exec_is (cs, bs, exec) is_native ext_dll =
 
     OASISUnixPath.concat
       dir
-      cs.cs_name,
+      (cs.cs_name^(suffix_program ())),
 
     if not is_native_exec && 
        not exec.exec_custom && 

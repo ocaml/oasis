@@ -52,6 +52,11 @@ let schema =
 let env = 
   Data.create ()
 
+(** Lexer for var
+  *)
+let var_lxr = 
+  Genlex.make_lexer []
+
 (** Expand variable that can be found in string. Variable follow definition of
   * variable for {!Buffer.add_substitute}.
   *)
@@ -62,13 +67,38 @@ let rec var_expand str =
     Buffer.add_substitute 
       buff
       (fun var -> 
-         try 
-           var_get var 
-         with Unknown_field (_, _) ->
-           failwithf2
-             (f_ "No variable %s defined when trying to expand %S.")
-             var 
-             str)
+         let st =
+           var_lxr (Stream.of_string var)
+         in
+           try 
+             (* TODO: this is a quick hack to allow calling Test.Command 
+              * without defining executable name really. I.e. if there is
+              * an exec Executable toto, then $(toto) should be replace
+              * by its real name. It is however useful to have this function
+              * for other variable that depend on the host and should be 
+              * written better than that.
+              *)
+             match Stream.npeek 3 st with 
+               | [Genlex.Ident "utoh"; Genlex.Ident nm] ->
+                   BaseFilePath.of_unix (var_get nm)
+               | [Genlex.Ident "utoh"; Genlex.String s] ->
+                   BaseFilePath.of_unix s
+               | [Genlex.Ident "ocaml_escaped"; Genlex.Ident nm] ->
+                   String.escaped (var_get nm)
+               | [Genlex.Ident "ocaml_escaped"; Genlex.String s] ->
+                   String.escaped s
+               | [Genlex.Ident nm] ->
+                   var_get nm
+               | _ ->
+                   failwithf2
+                     (f_ "Unknown expression '%s' in variable expansion of %s.")
+                     var
+                     str
+           with Unknown_field (_, _) ->
+             failwithf2
+               (f_ "No variable %s defined when trying to expand %S.")
+               var 
+               str)
       str;
     Buffer.contents buff
 

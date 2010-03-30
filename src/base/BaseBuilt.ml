@@ -82,6 +82,7 @@ let of_executable ffn (cs, bs, exec) =
          bool_of_string 
            (is_native ()))
       ext_dll
+      suffix_program
   in
   let evs = 
     (BExec, cs.cs_name, [ffn unix_exec_is])

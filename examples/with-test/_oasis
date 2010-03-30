@@ -15,5 +15,5 @@ Executable test
 
 Test "main"
  Type: Custom (0.1.0)
- Command: ../_build/src/test
+ Command: $(utoh "../_build/src/test")
  WorkingDirectory: src

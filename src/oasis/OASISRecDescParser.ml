@@ -113,6 +113,11 @@ let parse_stream conf st =
               Stack.push '\n' buffer_rev;
               Stream.junk st;
               check_continuation ()
+          | Some ('"' as c) ->
+              Stack.push '\\' buffer_rev;
+              Stack.push c buffer_rev;
+              Stream.junk st;
+              input_line_aux ()
           | Some c ->
               Stack.push c buffer_rev;
               Stream.junk st;

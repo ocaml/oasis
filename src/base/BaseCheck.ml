@@ -107,7 +107,7 @@ let package ?version_comparator pkg () =
         (ocamlfind ())
         ["query"; "-format"; "%d"; pkg]
     in
-      if Sys.is_directory dir then
+      if Sys.file_exists dir && Sys.is_directory dir then
         dir
       else
         failwithf2
