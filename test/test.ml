@@ -39,5 +39,6 @@ let _res: test_result list =
          TestBasic.tests        ctxt;
          TestFull.tests         ctxt;
          TestMETA.tests         ctxt;
+         TestLog.tests          ctxt;
        ])
 ;;

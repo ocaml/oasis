@@ -22,6 +22,18 @@ let in_data fn =
   Filename.concat "data" fn
 ;;
 
+(* Create a temporary dir *)
+let temp_dir () =
+  let res = 
+    Filename.temp_file "oasis-" ".dir"
+  in
+    FileUtil.rm [res];
+    FileUtil.mkdir res;
+    at_exit 
+      (fun () -> 
+         FileUtil.rm ~recurse:true [res]);
+    res
+
 (* Assert checking that command run well *)
 let assert_command ?(exit_code=0) ?(extra_env=[]) ctxt cmd args  =
   let cmdline =
