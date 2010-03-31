@@ -9,13 +9,35 @@ open OUnit;;
 
 type filename = FilePath.filename;;
 
+let compare_filename =
+  if Sys.os_type = "Win32" then
+    (* Win32 FS is case insensitive *)
+    (fun a b ->
+       String.compare 
+         (String.lowercase a) 
+         (String.lowercase b))
+  else
+    String.compare
+
 module SetFileDigest = 
   Set.Make
     (struct
        type t = filename * Digest.t
 
-       let compare a b =
-         compare a b
+       let compare (f1,d1) (f2, d2) =
+         match compare_filename f1 f2 with
+           | 0 ->
+               String.compare d1 d2
+           | n ->
+               n
+     end)
+;;
+
+module SetFile =
+  Set.Make
+    (struct
+       type t = filename
+       let compare = compare_filename
      end)
 ;;
 
@@ -82,7 +104,7 @@ end
 ;;
 
 module OUnitSetFileDigest = OUnitSet(SetFileDigest);;
-module OUnitSetString = OUnitSet(SetString);;
+module OUnitSetFile = OUnitSet(SetFile);;
 
 let tests ctxt =
 
@@ -96,12 +118,12 @@ let tests ctxt =
       res
   in
 
-  let set_string_of_file_digest st =
+  let set_file_of_file_digest st =
     SetFileDigest.fold
       (fun (fn, _) st ->
-         SetString.add fn st)
+         SetFile.add fn st)
       st
-      SetString.empty
+      SetFile.empty
   in
 
   (* Assert with setup.ml *)
@@ -374,8 +396,8 @@ let tests ctxt =
     find 
       Is_file
       dir
-      (fun st fn -> SetString.add fn st)
-      SetString.empty
+      (fun st fn -> SetFile.add fn st)
+      SetFile.empty
   in
 
   (* List all files in current working dir *)
@@ -385,7 +407,7 @@ let tests ctxt =
 
   (* Create a set of file/digest of the current directory *)
   let all_file_digests () = 
-    SetString.fold
+    SetFile.fold
       (fun fn st ->
          SetFileDigest.add (fn, Digest.file fn) st)
       (all_files_cwd ())
@@ -462,8 +484,10 @@ let tests ctxt =
          in
 
          let expected_post_oasis_files = 
-           OASISUtils.set_string_add_list
-             (set_string_of_file_digest pristine)
+           List.fold_left
+             (fun st e ->
+                SetFile.add e st)
+             (set_file_of_file_digest pristine)
              (List.rev_map 
                 (FilePath.make_absolute (pwd ()))
                 (List.rev_append
@@ -473,7 +497,9 @@ let tests ctxt =
 
          let expected_installed_files loc = 
            (* Gather all file into a set *)
-           OASISUtils.set_string_of_list
+           List.fold_left
+             (fun st e -> SetFile.add e st)
+             SetFile.empty
              (* Compute all file that should have been installed *)
              (List.fold_left
                 (fun acc f -> f loc acc)
@@ -489,7 +515,7 @@ let tests ctxt =
              ctxt.oasis_args;
 
            (* Check generated files *)
-           OUnitSetString.assert_equal 
+           OUnitSetFile.assert_equal 
              ~msg:"Generated files"
              ~printer:fn_printer
              expected_post_oasis_files
@@ -536,7 +562,7 @@ let tests ctxt =
              assert_run_setup ~extra_env ["-install"];
 
              (* Check that we have installed everything as expected *)
-             OUnitSetString.assert_equal
+             OUnitSetFile.assert_equal
                ~msg:(Printf.sprintf "Installed files (%s)" id)
                ~printer:(fn_printer ~root:loc.build_dir)
                (expected_installed_files loc)
@@ -548,12 +574,12 @@ let tests ctxt =
              (* Uninstall *)
              assert_run_setup ~extra_env ["-uninstall"];
              (* Check that no more files present in build_dir *)
-             OUnitSetString.assert_equal
+             OUnitSetFile.assert_equal
                ~msg:(Printf.sprintf 
                        "Build directory is empty after uninstall (%s)" 
                        id)
                ~printer:(fn_printer ~root:loc.build_dir)
-               SetString.empty
+               SetFile.empty
                (all_files loc.build_dir)
          in
 
@@ -631,7 +657,7 @@ let tests ctxt =
            assert_run_setup ["-distclean"];
 
            (* Check that only OASIS generated files remain *)
-           OUnitSetString.assert_equal
+           OUnitSetFile.assert_equal
              ~msg:"Remaining files after distclean"
              ~printer:fn_printer
              expected_post_oasis_files
@@ -663,14 +689,14 @@ let tests ctxt =
       (fun (cur_dir, loc, pristine) ->
 
          let st_pristine = 
-           set_string_of_file_digest pristine
+           set_file_of_file_digest pristine
          in
            (* Remove what was not here *)
            find
              Is_file
              (pwd ())
              (fun () fn ->
-                if not (SetString.mem fn st_pristine) then
+                if not (SetFile.mem fn st_pristine) then
                   rm [fn])
              ();
 
