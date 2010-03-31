@@ -23,7 +23,8 @@ let generated_unix_files (cs, bs, lib)
                   source_file_exists (fn^".mli"))
                (List.map
                   (OASISUnixPath.concat bs.bs_path)
-                  [String.uncapitalize modul;
+                  [modul;
+                   String.uncapitalize modul;
                    String.capitalize modul])
            in
              (base_fn^".cmi") :: hdrs

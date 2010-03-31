@@ -16,6 +16,7 @@ let fix_args args extra_argv =
         [
           "-classic-display"; 
           "-no-log"; 
+          "-no-links";
           "-install-lib-dir"; 
           (Filename.concat (standard_library ()) "ocamlbuild")
         ] 

@@ -122,92 +122,92 @@ let prefix =
 let exec_prefix = 
   p "exec_prefix"
     (s_ "Install architecture-dependent files in dir")
-    (lazy (prefix ()))
+    (lazy "$prefix")
 
 let bindir =
   p "bindir"
     (s_ "User executables")
-    (lazy (exec_prefix ()/"bin"))
+    (lazy ("$exec_prefix"/"bin"))
 
 let sbindir =
   p "sbindir"
     (s_ "System admin executables")
-    (lazy (exec_prefix ()/"sbin"))
+    (lazy ("$exec_prefix"/"sbin"))
 
 let libexecdir =
   p "libexecdir"
     (s_ "Program executables")
-    (lazy (exec_prefix ()/"libexec"))
+    (lazy ("$exec_prefix"/"libexec"))
 
 let sysconfdir =
   p "sysconfdir"
     (s_ "Read-only single-machine data")
-    (lazy (prefix ()/"etc"))
+    (lazy ("$prefix"/"etc"))
 
 let sharedstatedir =
   p "sharedstatedir"
     (s_ "Modifiable architecture-independent data")
-    (lazy (prefix ()/"com"))
+    (lazy ("$prefix"/"com"))
 
 let localstatedir =
   p "localstatedir"
     (s_ "Modifiable single-machine data")
-    (lazy (prefix ()/"var"))
+    (lazy ("$prefix"/"var"))
 
 let libdir =
   p "libdir"
     "Object code libraries"
-    (lazy (exec_prefix ()/"lib"))
+    (lazy ("$exec_prefix"/"lib"))
 
 let datarootdir =
   p "datarootdir"
     (s_ "Read-only arch-independent data root")
-    (lazy (prefix ()/"share"))
+    (lazy ("$prefix"/"share"))
 
 let datadir =
   p "datadir"
     (s_ "Read-only architecture-independent data")
-    (lazy (datarootdir ()))
+    (lazy ("$datarootdir"))
 
 let infodir =
   p "infodir"
     (s_ "Info documentation")
-    (lazy (datarootdir ()/"info"))
+    (lazy ("$datarootdir"/"info"))
 
 let localedir =
   p "localedir"
     (s_ "Locale-dependent data")
-    (lazy (datarootdir ()/"locale"))
+    (lazy ("$datarootdir"/"locale"))
 
 let mandir =
   p "mandir"
     (s_ "Man documentation")
-    (lazy (datarootdir ()/"man"))
+    (lazy ("$datarootdir"/"man"))
 
 let docdir =
   p "docdir"
     (s_ "Documentation root")
-    (lazy (datarootdir ()/"doc"/pkg_name ()))
+    (lazy ("$datarootdir"/"doc"/"$pkg_name"))
 
 let htmldir =
   p "htmldir"
     (s_ "HTML documentation")
-    (lazy (docdir ()))
+    (lazy ("$docdir"))
 
 let dvidir =
   p "dvidir"
     (s_ "DVI documentation")
-    (lazy (docdir ()))
+    (lazy ("$docdir"))
 
 let pdfdir =
   p "pdfdir"
     (s_ "PDF documentation")
-    (lazy (docdir ()))
+    (lazy ("$docdir"))
 
 let psdir =
   p "psdir"
     (s_ "PS documentation")
-    (lazy (docdir ()))
+    (lazy ("$docdir"))
 
 let destdir =
   p "destdir"

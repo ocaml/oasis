@@ -142,7 +142,9 @@ let install pkg argv =
                          Sys.file_exists 
                          (List.map
                             (Filename.concat path)
-                            [String.uncapitalize modul^".mli";
+                            [modul^".mli";
+                             modul^".ml";
+                             String.uncapitalize modul^".mli";
                              String.capitalize   modul^".mli";
                              String.uncapitalize modul^".ml";
                              String.capitalize   modul^".ml"])

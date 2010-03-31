@@ -13,11 +13,14 @@ open BaseEnv
 open OASISGettext
 
 let to_filename fn =
-  if not (Filename.check_suffix fn ".ab") then
-    OASISMessage.warning 
-      (f_ "File '%s' doesn't have '.ab' extension")
-      fn;
-  Filename.chop_extension fn
+  let fn =
+    BaseFilePath.of_unix fn
+  in
+    if not (Filename.check_suffix fn ".ab") then
+      OASISMessage.warning 
+        (f_ "File '%s' doesn't have '.ab' extension")
+        fn;
+    Filename.chop_extension fn
 
 (** Replace variable in file %.ab to generate %
   *)
@@ -27,6 +30,9 @@ let replace fn_lst =
   in
     List.iter
       (fun fn ->
+         let fn =
+           BaseFilePath.of_unix fn
+         in
          let chn_in =
            open_in fn
          in

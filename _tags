@@ -10,6 +10,7 @@
 
 "src/common/PropList.ml": pkg_odn
 "src/common/OASISGettext.ml": pkg_gettext-camomile
+"src/common/OASISGettext.ml": syntax_camlp4o, pkg_camlp4.macro
 "src/common/ODNFunc.ml": pkg_odn
 
 <src/oasis/*.ml>: pkg_fileutils, pkg_extlib

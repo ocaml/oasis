@@ -209,15 +209,11 @@ let tests ctxt =
 
   (* Try to run an installed executable *)
   let try_installed_exec ?exit_code cmd args loc =
-    let paths = 
-      loc.bin_dir 
-      ::
-      (try
-         FilePath.path_of_string (Unix.getenv "PATH")
-       with Not_found ->
-         [])
-    in
-    let ld_library_paths = 
+
+    (* Libraries located inside the test
+     * directory
+     *)
+    let local_lib_paths = 
       find
         Is_dir
         loc.lib_dir 
@@ -226,11 +222,41 @@ let tests ctxt =
            Is_dir
            loc.ocaml_lib_dir
            (fun acc fn -> fn :: acc)
-           (try
-              FilePath.path_of_string (Unix.getenv "LD_LIBRARY_PATH")
-            with Not_found ->
-              []))
+           [])
     in
+
+    let env_paths =
+      try
+        FilePath.path_of_string (Unix.getenv "PATH")
+      with Not_found ->
+        []
+    in
+
+    let paths, extra_env = 
+      if Sys.os_type = "Win32" then
+        begin
+          (loc.bin_dir :: (local_lib_paths @ env_paths)),
+          []
+        end
+      else
+        begin
+          let paths = 
+            loc.bin_dir :: env_paths
+          in
+          let ld_library_paths = 
+            local_lib_paths @
+            (try
+               FilePath.path_of_string (Unix.getenv "LD_LIBRARY_PATH")
+             with Not_found ->
+               [])
+          in
+            paths,
+            [
+              "LD_LIBRARY_PATH", ld_library_paths;
+            ]
+        end
+    in
+
     let test () = 
       let real_cmd = 
         try 
@@ -244,12 +270,12 @@ let tests ctxt =
       in
         assert_command 
           ?exit_code
-          ~extra_env:["OCAMLPATH", 
-                      loc.ocaml_lib_dir;
-                      "LD_LIBRARY_PATH", 
-                      FilePath.string_of_path ld_library_paths;
-                      "PATH", 
-                      FilePath.string_of_path paths]
+          ~extra_env:(("OCAMLPATH", loc.ocaml_lib_dir)
+                      ::
+                      (List.map
+                         (fun (v, lst) ->
+                            v, FilePath.string_of_path lst)
+                         (("PATH", paths) :: extra_env)))
           ctxt
           real_cmd
           args
@@ -557,19 +583,40 @@ let tests ctxt =
 
          (* Run install/uninstall target with destdir *)
          let () = 
-           let destdir = 
-             loc.build_dir
-           in
-           let loc = 
-             mkloc 
-               (Filename.concat destdir 
-                  (FilePath.make_relative "/" loc.build_dir))
-           in
-             install_test_uninstall 
-               ~extra_env:["destdir", destdir]
-               "with destdir"
-               loc
-               ignore
+           (* Prepending something at the beginning of a Win32 path
+            * doesn't work because it will create a filename like:
+            * c:\a\b\c:\c, which is illegal
+            * TODO: find a solution for DESTDIR on Win32
+            *)
+           if Sys.os_type <> "Win32" then
+             begin
+               let destdir = 
+                 loc.build_dir
+               in
+               let loc = 
+                 mkloc 
+                   (Filename.concat destdir 
+                      (FilePath.make_relative 
+                        (if Sys.os_type = "Win32" then
+                          begin
+                            if String.length loc.build_dir >= 2 then
+                              String.sub loc.build_dir 0 2
+                            else
+                              failwith 
+                                (Printf.sprintf
+                                  "Cannot extract drive letter of filename '%s'" 
+                                  loc.build_dir)
+                          end
+                        else
+                          "/")
+                        loc.build_dir))
+               in
+                 install_test_uninstall 
+                   ~extra_env:["destdir", destdir]
+                   "with destdir"
+                   loc
+                   ignore
+             end
          in
 
          (* Run clean target *)
@@ -622,7 +669,7 @@ let tests ctxt =
              ();
 
            rm ~recurse:true ["_build"];
-           rm ["setup.data"];
+           rm ["setup.data"; "setup.log"];
 
            (* Back into current dir *)
            Sys.chdir cur_dir;
@@ -654,7 +701,11 @@ let tests ctxt =
            conditional 
              ctxt.has_ocamlopt
              (in_ocaml_library "simplelib" 
-                ["simplelib.cmxa"; "simplelib.a"]);
+                ["simplelib.cmxa"; 
+                 if Sys.os_type = "Win32" then
+                   "simplelib.lib"
+                 else
+                   "simplelib.a"]);
 
            in_ocaml_library "simplelibext"
              ["simplelibext.cma"; 
@@ -664,7 +715,11 @@ let tests ctxt =
            conditional
              ctxt.has_ocamlopt
              (in_ocaml_library "simplelibext"
-                ["simplelibext.cmxa"; "simplelibext.a"]);
+                ["simplelibext.cmxa"; 
+                 if Sys.os_type = "Win32" then 
+                   "simplelibext.lib"
+                 else
+                   "simplelibext.a"]);
 
            api_ref_html "simplelib"
              ["Foo"; "Bar"];
@@ -693,7 +748,11 @@ let tests ctxt =
            conditional 
              ctxt.has_ocamlopt
              (in_ocaml_library "simplelib"
-                ["simplelib.cmxa"; "simplelib.a"]);
+                ["simplelib.cmxa"; 
+                 if Sys.os_type = "Win32" then
+                   "simplelib.lib"
+                 else
+                   "simplelib.a"]);
 
            api_ref_html "simplelib"
              ["Bar"; "Foo"];
@@ -739,21 +798,37 @@ let tests ctxt =
            "src/with-c.odocl";
          ] @ oasis_ocamlbuild_files,
          [
-           in_bin ["test-with-c"; 
-                   "test-with-c-custom"];
+           
+           in_bin 
+             (if Sys.os_type = "Win32" then
+                ["test-with-c.exe"; "test-with-c-custom.exe"]
+              else
+                ["test-with-c"; "test-with-c-custom"]);
            conditional
              ctxt.has_ocamlopt
-             (in_bin ["test-with-c-native"]);
-           in_library ["with-c/dlltest-with-c.so"];
+             (in_bin [if Sys.os_type = "Win32" then
+                        "test-with-c-native.exe"
+                      else
+                        "test-with-c-native"]);
+           in_library [if Sys.os_type = "Win32" then
+                         "with-c/dlltest-with-c.dll"
+                       else
+                         "with-c/dlltest-with-c.so"];
            in_ocaml_library "with-c"
-             [
-               "A.cmi"; "A.ml"; "META"; "with-c.cma";
-               "libwith-c.a"; "dllwith-c.so"
-             ]; 
+             ["A.cmi"; "A.ml"; "META"; "with-c.cma"]; 
+           in_ocaml_library "with-c"
+             (if Sys.os_type = "Win32" then
+                ["libwith-c.lib"; "dllwith-c.dll"]
+              else
+                ["libwith-c.a"; "dllwith-c.so"]);
            conditional
              ctxt.has_ocamlopt
              (in_ocaml_library "with-c" 
-                ["with-c.a"; "with-c.cmxa"]);
+                [if Sys.os_type = "Win32" then
+                   "with-c.lib"
+                 else
+                   "with-c.a"; 
+                 "with-c.cmxa"]);
 
            api_ref_html "with-c"
              ["A"];
@@ -781,7 +856,10 @@ let tests ctxt =
            "src/test.odocl";
          ] @ oasis_ocamlbuild_files,
          [
-           in_bin ["test"];
+           in_bin [if Sys.os_type = "Win32" then
+                     "test.exe"
+                   else
+                     "test"];
            in_ocaml_library "test"
              [
                "test.ml"; "test.cmi"; "META"; "test.cma";
@@ -820,7 +898,11 @@ let tests ctxt =
            conditional 
              ctxt.has_ocamlopt
              (in_ocaml_library "test"
-                ["test.cmxa"; "test.a"]);
+                ["test.cmxa"; 
+                 if Sys.os_type = "Win32" then
+                   "test.lib"
+                 else
+                   "test.a"]);
 
            api_ref_html "test"
              ["A"; "B"];
@@ -872,8 +954,15 @@ let tests ctxt =
            conditional
              ctxt.has_ocamlopt
              (in_ocaml_library "with-a"
-                ["with-a.cmxa"; "with-a.a"]);
-           in_bin ["test-with-a"];
+                ["with-a.cmxa"; 
+                 if Sys.os_type = "Win32" then
+                   "with-a.lib"
+                 else
+                   "with-a.a"]);
+           in_bin [if Sys.os_type = "Win32" then
+                     "test-with-a.exe"
+                   else
+                     "test-with-a"];
            api_ref_html "with-a" ["A"];
          ],
          [

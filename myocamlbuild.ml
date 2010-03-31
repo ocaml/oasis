@@ -52,7 +52,7 @@ rule "ocamlmod: %.mod -> %.ml"
         env "%.mod"
       in
       let dirname =
-        Filename.dirname modfn
+        Pathname.dirname modfn
       in
         depends_from_file 
           env 
@@ -180,5 +180,19 @@ let dispatch_ocamlfind =
     | _ -> ()
 ;;
 
-dispatch dispatch_ocamlfind;;
+dispatch 
+  begin
+    function
+      | After_rules ->
+          dispatch_ocamlfind After_rules;
+          (* This first statement is not effective *)
+          flag ["dep"; "pkg_camlp4.macro"; "has_gettext"] 
+            & S[A"-ppopt"; A"-D";  A"-ppopt"; A"HAS_GETTEXT"];
+          flag ["compile"; "pkg_camlp4.macro"; "has_gettext"] 
+            & S[A"-ppopt"; A"-D";  A"-ppopt"; A"HAS_GETTEXT"];
+
+      | e ->
+          dispatch_ocamlfind e
+  end
+;;
 (** END COPIED FROM src/ocamlbuild/myocamlbuild *)

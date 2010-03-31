@@ -7,7 +7,10 @@ Copyrights: (C) 2008 Mauricio Fernandez
 LicenseFile: LICENSE
 License: LGPL-link-exn
 ConfType:              custom (0.1.0)
-XCustomConf:           ./myconfigure
+if os_type(Win32) 
+  XCustomConf: myconfigure.bat
+else 
+  XCustomConf: ./myconfigure
 BuildType:             custom (0.1.0)
 XCustomBuild:          make -f TopMakefile all OCAMLC=${ocamlc}
 XCustomBuildClean:     make -f TopMakefile clean

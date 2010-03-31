@@ -37,14 +37,18 @@ let assert_command ?(exit_code=0) ?(extra_env=[]) ctxt cmd args  =
   let fn, chn_out =
     Filename.open_temp_file "oasis-" ".log"
   in
-  let chn_in =
-    open_in fn
-  in
-  let () = 
-    Sys.remove fn
-  in
   let fd =
     Unix.descr_of_out_channel chn_out
+  in
+  let clean_fn () =
+    if Sys.file_exists fn then
+      try 
+        Sys.remove fn
+      with _ ->
+        ()
+  in
+  let () = 
+    at_exit clean_fn
   in
   let env = 
     let extra_env_map = 
@@ -103,44 +107,49 @@ let assert_command ?(exit_code=0) ?(extra_env=[]) ctxt cmd args  =
   in
 
   let pid =
-    if ctxt.dbug then
-      prerr_endline ("Running "^cmdline); 
-    Unix.create_process_env 
-      cmd 
-      (Array.of_list (cmd :: args))
-      env
-      Unix.stdin
-      fd
-      fd;
+    let res = 
+      if ctxt.dbug then
+        prerr_endline ("Running "^cmdline); 
+      Unix.create_process_env 
+        cmd 
+        (Array.of_list (cmd :: args))
+        env
+        Unix.stdin
+        fd
+        fd
+    in
+      close_out chn_out;
+      res
   in
   let dump_stdout_stderr () = 
     let buff =
       Buffer.create 13
     in
-      close_out chn_out;
+    let chn_in = 
+      open_in_bin fn
+    in
       Buffer.add_channel buff chn_in (in_channel_length chn_in);
-      close_in chn_in;
       Buffer.output_buffer stderr buff;
-      flush stderr
+      flush stderr;
+      close_in chn_in
   in
   let err_stdout_stderr () = 
     dump_stdout_stderr ();
     Printf.eprintf "Error running command '%s'\n%!" cmdline
   in
-
     match Unix.waitpid [] pid with
       | _, Unix.WEXITED i ->
           if i <> exit_code then
             err_stdout_stderr ()
           else if ctxt.dbug then
+            begin
             dump_stdout_stderr ();
+            end;
           assert_equal
             ~msg:"exit code"
             ~printer:string_of_int
             exit_code
             i;
-          close_in chn_in;
-          close_out chn_out
       | _, Unix.WSIGNALED i ->
           err_stdout_stderr ();
           failwith 
