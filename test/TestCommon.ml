@@ -11,6 +11,7 @@ module SetString = Set.Make(String);;
 type context =
     {
       dbug:         bool;
+      long:         bool;
       has_ocamlopt: bool;
       oasis:        string;
       oasis_args:   string list;

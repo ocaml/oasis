@@ -11,6 +11,7 @@ let _res: test_result list =
   let ctxt =
     {
       dbug = false;
+      long = false;
       has_ocamlopt = 
         (
           try 

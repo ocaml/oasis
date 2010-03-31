@@ -420,6 +420,7 @@ let tests ctxt =
 
   (* Run standard test *)
   let test_of_vector (srcdir, 
+                      long,
                       oasis_extra_files,
                       installed_files,
                       post_install_runs) =
@@ -454,6 +455,11 @@ let tests ctxt =
 
       (* Run test *)
       (fun (cur_dir, loc, pristine) ->
+         let () = 
+           skip_if 
+             (long && not ctxt.long)
+             "Long test"
+         in
 
          let expected_post_oasis_files = 
            OASISUtils.set_string_add_list
@@ -684,6 +690,7 @@ let tests ctxt =
        [
          (* Use flags *)
          "../examples/flags", 
+         false,
          oasis_ocamlbuild_files
          @
          [
@@ -734,6 +741,7 @@ let tests ctxt =
 
          (* Complete library *)
          "../examples/simplelib", 
+         true,
          oasis_ocamlbuild_files @ 
          [
            "src/simplelib.mllib";
@@ -764,6 +772,7 @@ let tests ctxt =
 
          (* Complete library with findlib package to check *)
          "../examples/findlib",
+         true,
          oasis_ocamlbuild_files,
          [],
          [
@@ -773,6 +782,7 @@ let tests ctxt =
 
          (* Complete library with custom build system *)
          "../examples/custom", 
+         true,
          [],
          [
            in_ocaml_library "simplelib"
@@ -788,6 +798,7 @@ let tests ctxt =
 
          (* Library/executable using C files *)
          "../examples/with-c",
+         true,
          [
            "src/META"; 
            "src/libtest-with-c-custom.clib"; 
@@ -850,6 +861,7 @@ let tests ctxt =
 
          (* Library/executable using data files *)
          "../examples/with-data",
+         true,
          [
            "src/META";
            "src/test.mllib";
@@ -878,12 +890,14 @@ let tests ctxt =
 
          (* Test executable *)
          "../examples/with-test",
+         true,
          oasis_ocamlbuild_files,
          [],
          [];
 
          (* Use sub-packages *)
          "../examples/with-subpackage",
+         true,
          [
            "src/META";
            "src/test.mllib";
@@ -913,6 +927,7 @@ let tests ctxt =
 
          (* Interdependencies *)
          "../examples/interdepend-libraries",
+         true,
          [
            "src/liba/liba.mllib";
            "src/liba/liba.odocl";
@@ -930,6 +945,7 @@ let tests ctxt =
 
          (* Build order *)
          "../examples/order-matter",
+         true,
          [
            "src/foo/foo.mllib";
            "src/foo/foo.odocl";
@@ -943,6 +959,7 @@ let tests ctxt =
 
          (* Single level package *)
          "data/1level",
+         true,
          [
            "META";
            "with-a.mllib";
