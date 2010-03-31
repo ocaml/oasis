@@ -42,11 +42,7 @@ let assert_command ?(exit_code=0) ?(extra_env=[]) ctxt cmd args  =
     Unix.descr_of_out_channel chn_out
   in
   let clean_fn () =
-    if Sys.file_exists fn then
-      try 
-        Sys.remove fn
-      with _ ->
-        ()
+    FileUtil.rm [fn]
   in
   let () = 
     at_exit clean_fn
@@ -138,31 +134,33 @@ let assert_command ?(exit_code=0) ?(extra_env=[]) ctxt cmd args  =
     dump_stdout_stderr ();
     Printf.eprintf "Error running command '%s'\n%!" cmdline
   in
-    match Unix.waitpid [] pid with
-      | _, Unix.WEXITED i ->
-          if i <> exit_code then
-            err_stdout_stderr ()
-          else if ctxt.dbug then
-            begin
-            dump_stdout_stderr ();
-            end;
-          assert_equal
-            ~msg:"exit code"
-            ~printer:string_of_int
-            exit_code
-            i;
-      | _, Unix.WSIGNALED i ->
-          err_stdout_stderr ();
-          failwith 
-            (Printf.sprintf
-               "Process '%s' has been killed by signal %d"
-               cmdline
-               i)
-      | _, Unix.WSTOPPED i ->
-          err_stdout_stderr ();
-          failwith
-            (Printf.sprintf
-               "Process '%s' has been stopped by signal %d"
-               cmdline
-               i)
-;;
+    begin
+      match Unix.waitpid [] pid with
+        | _, Unix.WEXITED i ->
+            if i <> exit_code then
+              err_stdout_stderr ()
+            else if ctxt.dbug then
+              begin
+              dump_stdout_stderr ();
+              end;
+            assert_equal
+              ~msg:"exit code"
+              ~printer:string_of_int
+              exit_code
+              i;
+        | _, Unix.WSIGNALED i ->
+            err_stdout_stderr ();
+            failwith 
+              (Printf.sprintf
+                 "Process '%s' has been killed by signal %d"
+                 cmdline
+                 i)
+        | _, Unix.WSTOPPED i ->
+            err_stdout_stderr ();
+            failwith
+              (Printf.sprintf
+                 "Process '%s' has been stopped by signal %d"
+                 cmdline
+                 i)
+    end;
+    clean_fn ()

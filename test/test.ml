@@ -23,9 +23,9 @@ let _res: test_result list =
             false
         );
       oasis =
-        FilePath.concat
-          (FileUtil.pwd ())
-          "../_build/src/OASIS.byte";
+        FilePath.make_filename
+          [FileUtil.pwd ();FilePath.parent_dir;
+           "_build";"src";"OASIS.byte"];
       oasis_args = [];
     }
   in

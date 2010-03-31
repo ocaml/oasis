@@ -43,8 +43,7 @@ let tests ctxt =
 
          at_exit 
            (fun () ->
-              if Sys.file_exists target_fn then
-                Sys.remove target_fn);
+              FileUtil.rm [target_fn]);
 
          OASISMessage.verbose := false;
          file_generate 
