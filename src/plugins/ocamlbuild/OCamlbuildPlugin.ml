@@ -408,14 +408,26 @@ let create_ocamlbuild_files pkg () =
                  in
 
                  (* Add include tag if the library is internal *)
-                 let tag_t =
+                 let tag_t, myocamlbuild_t =
                    if not (extern cs.cs_data) then
                      add_tags 
                        tag_t
                        (List.rev_map (Printf.sprintf "\"%s\"") src_dirs)
-                       ["include"]
+                       ["include"],
+                     myocamlbuild_t
                    else
-                     tag_t
+                     tag_t,
+                     (* Fix for ocaml < 3.11.2, ocamlbuild doesn't include enough
+                      * for external library 
+                      *)
+                     {myocamlbuild_t with
+                          flags = 
+                            (["doc"; "ocaml"; "use_"^cs.cs_name], 
+                             S(List.fold_right
+                                 (fun e acc -> A"-I" :: P e :: acc)
+                                 src_dirs
+                                 []))
+                            :: myocamlbuild_t.flags}
                  in
 
                  let tag_t, myocamlbuild_t =
