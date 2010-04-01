@@ -96,12 +96,17 @@ let main pkg =
             (fun t -> not (OASISUtils.SetString.mem t excludes))
             all_targets
       in
-      let add_one_target ?(need_configure=true) nm = 
+      let add_one_target ?(need_configure=true) ?(other_depends=[]) nm = 
         Printf.bprintf buff 
           "%s: %s\n\
            \t$(SETUP) -%s $(%sFLAGS)\n\n" 
           nm 
-          (if need_configure then "setup.data" else "")
+          (String.concat " "
+             ((if need_configure then 
+                 (fun l -> "setup.data" :: l)
+               else 
+                 (fun l -> l))
+                other_depends))
           nm (String.uppercase nm) 
       in
         Buffer.add_string buff "\nSETUP = ocaml setup.ml\n\n";
@@ -109,6 +114,8 @@ let main pkg =
           (function
              | "clean" | "distclean" as nm ->
                  add_one_target ~need_configure:false nm
+             | "test" | "doc" as nm ->
+                 add_one_target ~other_depends:["build"] nm
              | "configure" ->
                  Printf.bprintf buff 
                    "setup.data:\n\
