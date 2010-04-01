@@ -24,6 +24,7 @@
   *)
 
 open BaseEnv
+open OASISGettext
 open OASISTypes
 
 TYPE_CONV_PATH "CustomPlugin"
@@ -111,7 +112,11 @@ struct
     try
       main t pkg extra_args;
       0.0
-    with Failure _ ->
+    with Failure s ->
+      OASISMessage.warning 
+        (f_ "Test '%s' fails: %s")
+        cs.cs_name
+        s;
       1.0
 
   let clean t pkg (cs, test) extra_args =

@@ -294,8 +294,11 @@ let setup t =
       begin
         try 
           error "%s" (PropList.string_of_exception e)
-        with e ->
-          error "%s" (Printexc.to_string e)
+        with 
+          | Failure s ->
+              error "%s" s
+          | e ->
+              error "%s" (Printexc.to_string e)
       end
 
 (* END EXPORT *)

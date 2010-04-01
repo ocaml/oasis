@@ -87,17 +87,17 @@ let rec var_expand str =
     Buffer.add_substitute 
       buff
       (fun var -> 
-         let st =
-           var_lxr (Stream.of_string var)
-         in
-           try 
-             (* TODO: this is a quick hack to allow calling Test.Command 
-              * without defining executable name really. I.e. if there is
-              * an exec Executable toto, then $(toto) should be replace
-              * by its real name. It is however useful to have this function
-              * for other variable that depend on the host and should be 
-              * written better than that.
-              *)
+         try 
+           (* TODO: this is a quick hack to allow calling Test.Command 
+            * without defining executable name really. I.e. if there is
+            * an exec Executable toto, then $(toto) should be replace
+            * by its real name. It is however useful to have this function
+            * for other variable that depend on the host and should be 
+            * written better than that.
+            *)
+           let st =
+             var_lxr (Stream.of_string var)
+           in
              match Stream.npeek 3 st with 
                | [Genlex.Ident "utoh"; Genlex.Ident nm] ->
                    BaseFilePath.of_unix (var_get nm)
@@ -114,11 +114,19 @@ let rec var_expand str =
                      (f_ "Unknown expression '%s' in variable expansion of %s.")
                      var
                      str
-           with Unknown_field (_, _) ->
-             failwithf2
-               (f_ "No variable %s defined when trying to expand %S.")
-               var 
-               str)
+         with 
+           | Unknown_field (_, _) ->
+               failwithf2
+                 (f_ "No variable %s defined when trying to expand %S.")
+                 var 
+                 str
+           | Stream.Error e -> 
+               failwithf3
+                 (f_ "Syntax error when parsing '%s' when trying to \
+                      expand %S: %s")
+                 var
+                 str
+                 e)
       str;
     Buffer.contents buff
 
@@ -126,7 +134,7 @@ let rec var_expand str =
   *)
 and var_get name =
   let vl = 
-    Schema.get schema env name
+    Schema.get schema env ~preset:true name
   in
     var_expand vl
 

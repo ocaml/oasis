@@ -149,9 +149,17 @@ struct
     with Not_found ->
       raise (Unknown_field (nm, t.name))
 
-  let get t data nm =
-    (find t nm).get 
-      data
+  let get t data ?(preset=false) nm =
+    try 
+      (find t nm).get 
+        data
+    with Unknown_field _ as e when preset->
+      begin
+        try 
+          snd (Hashtbl.find t.presets nm)
+        with Not_found ->
+          raise e
+      end
 
   let set t data nm ?context x =
     (find t nm).set 
