@@ -1,12 +1,12 @@
 Name:         oasis
 Version:      0.0.1
-OASISFormat: 1.0
+OASISFormat: 0.1
 Synopsis:     Just a test
 License:      GPL
 LicenseFile:  LICENSE
 Authors:      Sylvain Le Gall
-BuildType:    None (0.1.0)
-BuildDepends: oUnit (>= 1.0.2), benchmark (>= 0.6)
+BuildType:    None (0.0.1)
+BuildDepends: oUnit (>= 0.1.2), benchmark (>= 0.6)
 Description: 
  This is a test to check that everything is working great
  with this kind of parser.

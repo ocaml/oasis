@@ -1,10 +1,10 @@
-OASISFormat: 1.0
+OASISFormat: 0.1
 Name:        with-subpackage
 Version:     0.0
 Synopsis:    Simple library package with a sub library
 Authors:     Sylvain Le Gall
 License:     LGPL-LINK-EXN
-Plugins:     META (0.1.0)
+Plugins:     META (0.0.1)
 
 Library test
   Path:    src

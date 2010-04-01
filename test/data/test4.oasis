@@ -1,11 +1,11 @@
 Name:         oasis
 Version:      0.0.1
-OASISFormat: 1.0
+OASISFormat: 0.1
 Synopsis:     Just a test
 License:      GPL
 LicenseFile:  LICENSE
 Authors:      Sylvain Le Gall
-BuildType:    None (0.1.0)
+BuildType:    None (0.0.1)
 XTest:        true
 Description: 
  This is a test to check that everything is working great

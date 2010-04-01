@@ -85,7 +85,7 @@ let schema, generator =
   in
   let oasis_version = 
     let current_version =
-      OASISVersion.version_of_string "1.0"
+      OASISVersion.version_of_string "0.1"
     in
     let extra_supported_versions =
       []

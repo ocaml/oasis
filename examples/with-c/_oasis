@@ -1,11 +1,11 @@
-OASISFormat: 1.0
+OASISFormat: 0.1
 Name:        with-c
 Version:     0.0.1
 Authors:     Sylvain Le Gall
 LicenseFile: LICENSE
 License:     LGPL-link-exn
 Synopsis:    Minimal project with C file.
-Plugins:     META (0.1.0)
+Plugins:     META (0.0.1)
 
 Library "with-c"
   Path: src

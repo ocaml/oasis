@@ -1,17 +1,17 @@
 Name: simplelib
 Version: 0.0.1
-OASISFormat: 1.0
+OASISFormat: 0.1
 Authors: Mauricio Fernandez <mfp@acm.org>
 Maintainers: Mauricio Fernandez <mfp@acm.org>
 Copyrights: (C) 2008 Mauricio Fernandez
 LicenseFile: LICENSE
 License: LGPL-link-exn
-ConfType:              custom (0.1.0)
+ConfType:              custom (0.0.1)
 if os_type(Win32) 
   XCustomConf: myconfigure.bat
 else 
   XCustomConf: ./myconfigure
-BuildType:             custom (0.1.0)
+BuildType:             custom (0.0.1)
 XCustomBuild:          make -f TopMakefile all OCAMLC=${ocamlc}
 XCustomBuildClean:     make -f TopMakefile clean
 XCustomBuildDistclean: make -f TopMakefile distclean

@@ -169,7 +169,7 @@ let tests ctxt =
        [
          "2-subpackages",
          "\
-OASISFormat:  1.0
+OASISFormat:  0.1
 Name:         ocaml-data-notation
 Version:      0.0.1
 Synopsis:     store data using OCaml notation
@@ -205,7 +205,7 @@ Library pa_noodn
 
          "virtual-root",
          "\
-OASISFormat:  1.0
+OASISFormat:  0.1
 Name:         ocaml-data-notation
 Version:      0.0.1
 Synopsis:     store data using OCaml notation
@@ -222,7 +222,7 @@ Library odn
 
          "syntax",
          "\
-OASISFormat:  1.0
+OASISFormat:  0.1
 Name:         ocaml-data-notation
 Version:      0.0.1
 Synopsis:     store data using OCaml notation

@@ -1,4 +1,4 @@
-OASISFormat: 1.0
+OASISFormat: 0.1
 Name:        interdepend-libraries
 Version:     0.1
 Synopsis:    Executable and libraries with interdependencies

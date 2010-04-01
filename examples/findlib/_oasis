@@ -1,11 +1,11 @@
 Name: findlib
 Version: 0.0.1
-OASISFormat: 1.0
+OASISFormat: 0.1
 Authors: Sylvain Le Gall
 Copyrights: (C) 2008 Sylvain Le Gall
 Homepage: http://example.com
 LicenseFile: LICENSE
 License: LGPL-link-exn
 Synopsis: Minimal ADT just to illustrate how libs work.
-BuildDepends: oUnit (>= 1.0.1)
+BuildDepends: oUnit (>= 0.1.1)
 

@@ -1,11 +1,11 @@
-OASISFormat: 1.0
+OASISFormat: 0.1
 Name:        with-data
 Version:     0.1
 License:     GPL
 LicenseFile: LICENSE.txt
 Authors:     Sylvain Le Gall
 Synopsis:    Library and executable with test
-Plugins:     META (0.1.0)
+Plugins:     META (0.0.1)
 
 Executable test
  Install: false
@@ -14,6 +14,6 @@ Executable test
  BuildDepends: oUnit
 
 Test "main"
- Type: Custom (0.1.0)
+ Type: Custom (0.0.1)
  Command: $(utoh "../_build/src/test")
  WorkingDirectory: src
