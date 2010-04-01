@@ -6,10 +6,11 @@ Authors:     Sylvain Le Gall
 License:     LGPL-LINK-EXN
 
 Library liba
-  Modules:      A
-  Path:         src/liba
-  BuildDepends: str
-  Install:      false
+  Modules:         A
+  InternalModules: intern/A2, intern/A_parser, intern/A_lexer
+  Path:            src/liba
+  BuildDepends:    str
+  Install:         false
   
 Library libb
   Modules:      B

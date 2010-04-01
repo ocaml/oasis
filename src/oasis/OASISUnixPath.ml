@@ -51,6 +51,15 @@ let dirname f =
   with Not_found ->
     current_dir_name
 
+let basename f =
+  try 
+    let pos_start =
+      (String.rindex f '/') + 1
+    in
+      String.sub f pos_start ((String.length f) - pos_start)
+  with Not_found ->
+    f
+
 let chop_extension f =
   try 
     let last_dot =

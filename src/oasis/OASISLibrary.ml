@@ -40,7 +40,9 @@ let generated_unix_files (cs, bs, lib)
              List.find
                (fun fn -> 
                   source_file_exists (fn^".ml") ||
-                  source_file_exists (fn^".mli"))
+                  source_file_exists (fn^".mli") ||
+                  source_file_exists (fn^".mll") ||
+                  source_file_exists (fn^".mly")) 
                (List.map
                   (OASISUnixPath.concat bs.bs_path)
                   [modul;
@@ -287,13 +289,21 @@ let schema, generator =
   let build_section_gen =
     OASISBuildSection.section_fields (s_ "library") Best schm
   in
-  let modules =
+  let external_modules =
     new_field schm "Modules" 
       ~default:[]
       ~quickstart_level:Beginner
       modules
       (fun () ->
          s_ "List of modules to compile.") 
+  in
+  let internal_modules = 
+    new_field schm "InternalModules"
+      ~default:[]
+      ~quickstart_level:Beginner
+      modules
+      (fun () ->
+         s_ "List of modules to compile which are not exported.")
   in
   let findlib_parent =
     new_field schm "FindlibParent"
@@ -328,7 +338,8 @@ let schema, generator =
          (cmn_section_gen nm data,
           (build_section_gen nm data),
           {
-            lib_modules            = modules data;
+            lib_modules            = external_modules data;
+            lib_internal_modules   = internal_modules data;
             lib_findlib_parent     = findlib_parent data;
             lib_findlib_name       = findlib_name data;
             lib_findlib_containers = findlib_containers data;

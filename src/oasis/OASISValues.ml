@@ -269,10 +269,31 @@ let opt value =
 
 (** Convert string to module list *)
 let modules =
-  comma_separated
-    (regexp 
-       StdRegexp.modul
-       (fun () -> s_ "module"))
+  let base_value = 
+    regexp 
+      StdRegexp.modul
+      (fun () -> s_ "module")
+  in
+    comma_separated
+      {
+        parse = 
+         (fun s ->
+            let path = 
+              OASISUnixPath.dirname s
+            in
+            let modul = 
+              OASISUnixPath.basename s
+            in
+              if String.contains path ' ' then
+                failwithf1
+                  (f_ "Module path '%s' must not contain a ' '")
+                  s;
+              OASISUnixPath.concat
+                path
+                (base_value.parse modul));
+        update = update_fail;
+        print  = (fun s -> s);
+      }
 
 (** Convert string to file list *)
 let files = 

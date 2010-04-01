@@ -248,7 +248,7 @@ let create_ocamlbuild_files pkg () =
               files)))
   in
 
-  let bs_tags sct cs bs src_dirs link_tgt tag_t myocamlbuild_t = 
+  let bs_tags sct cs bs src_dirs src_internal_dirs link_tgt tag_t myocamlbuild_t = 
 
     let link_pkg = 
       (* Only link findlib package with executable *)
@@ -262,7 +262,7 @@ let create_ocamlbuild_files pkg () =
         (* .ml files *)
         (List.rev_map 
            (Printf.sprintf "<%s/*.ml>")
-           src_dirs)
+           (src_dirs @ src_internal_dirs))
         (* .c files *)
         (List.rev_map
            (Printf.sprintf "\"%s\"")
@@ -271,71 +271,77 @@ let create_ocamlbuild_files pkg () =
               bs.bs_c_sources))
     in
 
+    (* Manipulate ocamlbuild's spec *)
+    let atom s = A s
+    in
+    let path s = P s
+    in
+    let mkspec pre_arg tr_arg lst =
+      S (List.fold_left
+           (fun acc arg -> 
+              match pre_arg with 
+                | Some s -> s :: arg :: acc
+                | None -> arg :: acc)
+           []
+           (List.rev_map tr_arg lst))
+    in
+
+    (* Create flag for extra command line option *)
     let tag_t, myocamlbuild_t = 
-      let atom s = A s
-      in
-      let path s = P s
-      in
-        List.fold_left
-          (fun (tag_t, myocamlbuild_t) 
-                 (basename, tags, pre_arg, tr_arg, args_cond) ->
-             let args = 
-               var_choose args_cond
-             in
-               if args <> [] then
-                 begin
-                   let tag_name = 
-                     (* e.g. oasis_library_foo_ccopt *)
-                     varname_concat 
-                       "oasis_"
-                       (varname_concat
-                          (varname_of_string 
-                             (OASISSection.string_of_section sct))
-                          basename)
-                   in
-                   let all_tags =
-                     tag_name :: tags 
-                   in
-                   let spec = 
-                     S (List.fold_left
-                          (fun acc arg -> 
-                             match pre_arg with 
-                               | Some s -> s :: arg :: acc
-                               | None -> arg :: acc)
-                          []
-                          (List.rev_map tr_arg args))
-                   in
-                   let tag_t =
-                     if List.mem "compile" tags then
-                       add_tags tag_t src_tgts [tag_name]
-                     else
-                       tag_t
-                   in
-                   let tag_t =
-                     if List.mem "link" tags then 
-                       add_tags tag_t [link_tgt] [tag_name]
-                     else
-                       tag_t
-                   in
-                     tag_t,
-                     {myocamlbuild_t with
-                          flags = (all_tags, spec) :: myocamlbuild_t.flags}
-                 end
-               else
-                 begin
-                   tag_t, myocamlbuild_t
-                 end)
+      List.fold_left
+        (fun (tag_t, myocamlbuild_t) 
+               (basename, tags, pre_arg, tr_arg, args_cond) ->
+           let args = 
+             var_choose args_cond
+           in
+             if args <> [] then
+               begin
+                 let tag_name = 
+                   (* e.g. oasis_library_foo_ccopt *)
+                   varname_concat 
+                     "oasis_"
+                     (varname_concat
+                        (varname_of_string 
+                           (OASISSection.string_of_section sct))
+                        basename)
+                 in
+                 let all_tags =
+                   tag_name :: tags 
+                 in
+                 let spec = 
+                   mkspec pre_arg tr_arg args
+                 in
+                 let tag_t =
+                   if List.mem "compile" tags then
+                     add_tags tag_t src_tgts [tag_name]
+                   else
+                     tag_t
+                 in
+                 let tag_t =
+                   if List.mem "link" tags then 
+                     add_tags tag_t [link_tgt] [tag_name]
+                   else
+                     tag_t
+                 in
+                   tag_t,
+                   {myocamlbuild_t with
+                        flags = (all_tags, spec) :: myocamlbuild_t.flags}
+               end
+             else
+               begin
+                 tag_t, myocamlbuild_t
+               end)
 
-          (tag_t, myocamlbuild_t)
+        (tag_t, myocamlbuild_t)
 
-          [
-            "ccopt",   ["compile"], Some (A"-ccopt"),   atom, bs.bs_ccopt;
-            "cclib",   ["link"],    Some (A"-cclib"),   atom, bs.bs_cclib;
-            "dlllib",  ["link"],    Some (A"-dllib"),   path, bs.bs_dlllib;
-            "dllpath", ["link"],    Some (A"-dllpath"), path, bs.bs_dllpath;
-            "byte",    ["byte"],    None,               atom, bs.bs_byteopt;
-            "native",  ["native"],  None,               atom, bs.bs_nativeopt;
-          ]
+        [
+          "ccopt",   ["compile"], Some (A"-ccopt"),   atom, bs.bs_ccopt;
+          "cclib",   ["link"],    Some (A"-cclib"),   atom, bs.bs_cclib;
+          "dlllib",  ["link"],    Some (A"-dllib"),   path, bs.bs_dlllib;
+          "dllpath", ["link"],    Some (A"-dllpath"), path, bs.bs_dllpath;
+          "byte",    ["byte"],    None,               atom, bs.bs_byteopt;
+          "native",  ["native"],  None,               atom, bs.bs_nativeopt;
+        ]
     in
 
     (* Add tag for dependency on C part of the library *)
@@ -392,6 +398,43 @@ let create_ocamlbuild_files pkg () =
         myocamlbuild_t
     in
 
+    (* Add included paths for the section to itself, this
+       TODO: see if the following fix for PR#5015 make
+       this mandatory
+    let tag_t, myocamlbuild_t =
+      let tag_name = 
+        (* e.g. oasis_library_foo_include *)
+        varname_concat 
+          "oasis"
+          (varname_concat
+             (varname_of_string 
+                (OASISSection.string_of_section sct))
+             "include")
+      in
+      let include_spec = 
+        mkspec (Some (A"-I")) path (src_dirs @ src_internal_dirs)
+      in
+        add_tags
+          tag_t
+          src_tgts
+          [tag_name],
+        {myocamlbuild_t with
+             flags = 
+               (["compile"; tag_name], include_spec)
+             (*::(["ocamldep"; tag_name], include_spec)*)
+             :: myocamlbuild_t.flags}
+    in
+     *)
+
+    (* Fix for PR#5015, unable to compile depends in subdir *)
+    let tag_t, myocamlbuild_t =
+      add_tags 
+        tag_t
+        (List.rev_map (Printf.sprintf "\"%s\"") src_internal_dirs)
+        ["include"],
+      myocamlbuild_t
+    in
+
       tag_t, myocamlbuild_t
   in
 
@@ -403,9 +446,14 @@ let create_ocamlbuild_files pkg () =
                begin
                  (* Extract content for libraries *)
 
-                 (* All path access from within the library *)
+                 (* All paths accessed from within the library *)
                  let src_dirs = 
                    bs_paths bs lib.lib_modules
+                 in
+
+                 (* All paths accessed only by the library *)
+                 let src_internal_dirs =
+                   bs_paths bs lib.lib_internal_modules
                  in
 
                  (* Generated library *)
@@ -432,7 +480,7 @@ let create_ocamlbuild_files pkg () =
                    if not (extern cs.cs_data) then
                      add_tags 
                        tag_t
-                       (List.rev_map (Printf.sprintf "\"%s\"") src_dirs)
+                       (List.rev_map (Printf.sprintf "\"%s\"") (src_dirs @ src_internal_dirs))
                        ["include"],
                      myocamlbuild_t
                    else
@@ -454,6 +502,7 @@ let create_ocamlbuild_files pkg () =
                    bs_tags 
                      sct cs bs 
                      src_dirs
+                     src_internal_dirs
                      target_lib
                      tag_t
                      myocamlbuild_t
@@ -476,11 +525,11 @@ let create_ocamlbuild_files pkg () =
                      file_generate
                        (FilePath.add_extension fn_base ext)
                        comment_ocamlbuild
-                       (Split ([], lib.lib_modules, []));
+                       (Split ([], lib.lib_modules @ lib.lib_internal_modules, []));
                    in
                      if lib.lib_modules = [] then
                        warning 
-                         (f_ "No module defined for library %s")
+                         (f_ "No exported module defined for library %s")
                          cs.cs_name;
                      fn_generate "mllib"
                  in
@@ -522,6 +571,7 @@ let create_ocamlbuild_files pkg () =
                    bs_tags 
                      sct cs bs 
                      src_dirs
+                     []
                      target_exec
                      tag_t
                      myocamlbuild_t

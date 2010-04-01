@@ -170,6 +170,7 @@ type build_section =
 type library = 
     {
       lib_modules:            string list;
+      lib_internal_modules:   string list;
       lib_findlib_parent:     findlib_name option;
       lib_findlib_name:       findlib_name option;
       lib_findlib_containers: findlib_name list;
