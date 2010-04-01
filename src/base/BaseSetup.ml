@@ -301,7 +301,7 @@ let setup t =
                    let apply ?short_desc () = 
                      var_ignore
                        (var_define
-                          ~cli:CLIAuto
+                          ~cli:CLIEnable
                           ?short_desc
                           cs.cs_name
                           (lazy (string_of_bool 
