@@ -134,7 +134,7 @@ let configure pkg argv =
              check_tools doc.doc_build_tools
        | Test (_, test) ->
            if var_choose test.test_run then
-             check_tools test.test_build_tools
+             check_tools test.test_tools
        | _ ->
            ())
     pkg.sections;

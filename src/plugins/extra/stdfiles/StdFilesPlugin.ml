@@ -373,7 +373,7 @@ let main pkg =
                        lst
                        bs.bs_build_tools
                  end
-             | Test (_, {test_build_tools = build_tools})
+             | Test (_, {test_tools = build_tools})
              | Doc (_, {doc_build_tools = build_tools}) as section ->
                  add_build_tools
                    (SetSection.singleton section)

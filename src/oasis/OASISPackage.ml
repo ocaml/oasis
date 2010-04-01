@@ -68,8 +68,8 @@ let add_build_tool ?(no_test=false) ?(condition=[EBool true, true]) build_tool p
                   | Test (cs, test) ->
                       Test (cs, 
                             {test with 
-                                 test_build_tools = 
-                                   build_tool :: test.test_build_tools})
+                                 test_tools = 
+                                   build_tool :: test.test_tools})
                   | Doc (cs, doc) ->
                       Doc (cs,
                            {doc with 

@@ -63,31 +63,34 @@ let build_depends_field schm =
        })
     (fun () -> s_ "Dependencies on findlib packages, including internal findlib packages.")
 
+let build_tools_value =
+   let base = 
+     comma_separated file
+   in
+     {
+       parse = 
+         (fun str ->
+            List.map 
+              (fun s -> ExternalTool s) 
+              (base.parse str));
+
+       update =
+         List.append;
+
+       print =
+         (fun lst ->
+            base.print
+              (List.map
+                 (function
+                    | InternalExecutable nm
+                    | ExternalTool nm -> nm)
+              lst))
+     }
+
 let build_tools_field schm =
   new_field schm "BuildTools"
     ~default:[]
-    (let base = 
-       comma_separated file
-     in
-       {
-         parse = 
-           (fun str ->
-              List.map 
-                (fun s -> ExternalTool s) 
-                (base.parse str));
-
-         update =
-           List.append;
-
-         print =
-           (fun lst ->
-              base.print
-                (List.map
-                   (function
-                      | InternalExecutable nm
-                      | ExternalTool nm -> nm)
-                lst))
-       })
+    build_tools_value
     (fun () -> s_ "Tools required to compile, including internal executables.")
 
 let build_install_data_fields schm = 
@@ -303,7 +306,7 @@ let build_graph pkg =
              add_build_section 
                (find_name cs.cs_name vertex_of_exec)
                bs
-         | Test (cs, {test_build_tools = build_tools}) 
+         | Test (cs, {test_tools = build_tools}) 
          | Doc (cs, {doc_build_tools = build_tools}) as sct ->
              let vrtx = 
                G.V.create sct

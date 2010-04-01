@@ -213,7 +213,7 @@ type test =
       test_command:            command_line conditional;
       test_working_directory:  filename option;
       test_run:                bool conditional;
-      test_build_tools:        tool list;
+      test_tools:              tool list;
     } with odn
 
 (** Documentation definition

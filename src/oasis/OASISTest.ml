@@ -38,15 +38,19 @@ let schema, generator =
   let cmn_section_gen =
     OASISSection.section_fields (s_ "test") schm
   in
-  let build_tools = 
-    OASISBuildSection.build_tools_field schm
-  in
   let typ =
     new_field schm "Type"
       ~default:(OASISPlugin.builtin "none") 
       OASISPlugin.Test.value
       (fun () ->
          s_ "Plugin to use to run test.")
+  in
+  let tools = 
+    new_field schm "TestTools"
+      ~default:[]
+      OASISBuildSection.build_tools_value
+      (fun () -> 
+         s_ "Tools required to run the test, including internal executables.")
   in
   let command = 
     new_field_conditional schm "Command"
@@ -77,5 +81,5 @@ let schema, generator =
             test_command           = command data;
             test_working_directory = working_directory data;
             test_run               = run data;
-            test_build_tools       = build_tools data;
+            test_tools             = tools data;
           }))

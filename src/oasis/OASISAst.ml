@@ -346,10 +346,10 @@ let to_package conf st =
                       Test 
                         (cs,
                          {tst with 
-                              test_build_tools = 
+                              test_tools = 
                                 map_internal_tools 
                                   sct
-                                  tst.test_build_tools})
+                                  tst.test_tools})
                   | Doc (cs, doc) as sct ->
                       Doc
                         (cs,
