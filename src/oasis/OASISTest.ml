@@ -65,6 +65,11 @@ let schema, generator =
       (fun () ->
          s_ "Directory to run the test.")
   in
+  let custom =
+    OASISCustom.add_fields schm ""
+      (fun () -> s_ "Command to run before the test")
+      (fun () -> s_ "Command to run after the test")
+  in
   let run = 
     new_field_conditional schm "Run"
       ~default:true
@@ -80,6 +85,7 @@ let schema, generator =
             test_type              = typ data;
             test_command           = command data;
             test_working_directory = working_directory data;
+            test_custom            = custom data;
             test_run               = run data;
             test_tools             = tools data;
           }))

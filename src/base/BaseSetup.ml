@@ -75,7 +75,10 @@ let join_plugin_sections filter_map lst =
 (** Configure step *)
 let configure t args = 
   (* Run configure *)
-  t.configure t.package args;
+  BaseCustom.hook 
+    t.package.conf_custom
+    (t.configure t.package)
+    args;
 
   (* Reload environment *)
   unload ();
@@ -86,7 +89,10 @@ let configure t args =
 
 (** Build step *)
 let build t args =
-  t.build t.package args
+  BaseCustom.hook
+    t.package.build_custom
+    (t.build t.package)
+    args
 
 (** Documentation step *)
 let doc t args =
@@ -122,39 +128,57 @@ let test t args =
 
 (** Install step *)
 let install t args =
-  t.install t.package args
+  BaseCustom.hook
+    t.package.install_custom
+    (t.install t.package)
+    args
 
 (** Uninstall step *)
 let uninstall t args =
-  t.uninstall t.package args
+  BaseCustom.hook
+    t.package.uninstall_custom
+    (t.uninstall t.package)
+    args
 
 (** Clean and distclean steps *)
 let clean, distclean = 
-  let generic_clean t what mains docs tests args = 
-    (* Clean section *)
-    List.iter
-      (function
-         | Test (cs, test) ->
-             let f =
-               List.assoc cs.cs_name tests
-             in
-               f t.package (cs, test) args
-         | Library _ 
-         | Executable _
-         | Flag _ 
-         | SrcRepo _
-         | Doc _ ->
-             ())
-      t.package.sections;
-    (* Clean whole package *)
-    List.iter
-      (fun f -> 
-         f t.package args)
-      mains
+  let generic_clean t what cstm mains docs tests args = 
+    BaseCustom.hook
+      ~failsafe:true
+      cstm
+      (fun () ->
+         (* Clean section *)
+         List.iter
+           (function
+              | Test (cs, test) ->
+                  let f =
+                    List.assoc cs.cs_name tests
+                  in
+                    f t.package (cs, test) args
+              | Library _ 
+              | Executable _
+              | Flag _ 
+              | SrcRepo _
+              | Doc _ ->
+                  ())
+           t.package.sections;
+         (* Clean whole package *)
+         List.iter
+           (fun f -> 
+              f t.package args)
+           mains)
+      ()
   in
 
   let clean t args =
-    generic_clean t "cleaning" t.clean t.clean_doc t.clean_test args
+    generic_clean 
+      t 
+      "cleaning" 
+      t.package.clean_custom
+      t.clean 
+      t.clean_doc 
+      t.clean_test 
+      args
   in
 
   let distclean t args =
@@ -176,7 +200,14 @@ let clean, distclean =
        (List.rev_map BaseFileAB.to_filename t.package.files_ab));
     
     (* Call distclean code *)
-    generic_clean t "distcleaning" t.distclean t.distclean_doc t.distclean_test args
+    generic_clean 
+      t 
+      "distcleaning" 
+      t.package.distclean_custom
+      t.distclean 
+      t.distclean_doc 
+      t.distclean_test 
+      args
   in
 
     clean, distclean

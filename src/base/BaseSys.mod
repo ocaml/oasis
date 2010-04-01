@@ -9,6 +9,7 @@ BaseStandardVar.ml
 BaseFileAB.ml
 BaseLog.ml
 BaseBuilt.ml
+BaseCustom.ml
 BaseTest.ml
 BaseDoc.ml
 BaseSetup.ml

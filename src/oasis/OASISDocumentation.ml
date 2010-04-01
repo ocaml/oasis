@@ -48,6 +48,11 @@ let schema, generator =
       (fun () ->
          s_ "Plugin to use to build documentation.")
   in
+  let custom =
+    OASISCustom.add_fields schm ""
+      (fun () -> s_ "Command to run before building the doc.")
+      (fun () -> s_ "Command to run after building the doc.")
+  in
   let install_dir =
     new_field schm "InstallDir"
       ~default:"$docdir"
@@ -64,6 +69,7 @@ let schema, generator =
          (cmn_section_gen nm data,
           {
             doc_type        = typ data;
+            doc_custom      = custom data;
             doc_build       = build data;
             doc_install     = install data;
             doc_install_dir = install_dir data;

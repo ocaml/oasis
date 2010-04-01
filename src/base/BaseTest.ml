@@ -55,7 +55,10 @@ let test lst pkg extra_args =
         in
           try 
             let failure_percent =
-              test_plugin pkg (cs, test) extra_args 
+              BaseCustom.hook 
+                test.test_custom
+                (test_plugin pkg (cs, test))
+                extra_args 
             in
               back_cwd ();
               failure_percent

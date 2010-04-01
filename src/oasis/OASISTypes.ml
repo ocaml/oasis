@@ -139,6 +139,13 @@ type 'a conditional = (expr * 'a) list with odn
 
 type plugin = name * version option with odn
 
+type custom = 
+    {
+      pre_command:  (command_line option) conditional;
+      post_command: (command_line option) conditional; 
+    }
+    with odn
+
 type common_section =
     {
       cs_name: name;
@@ -211,6 +218,7 @@ type test =
     {
       test_type:               plugin;
       test_command:            command_line conditional;
+      test_custom:             custom;
       test_working_directory:  filename option;
       test_run:                bool conditional;
       test_tools:              tool list;
@@ -221,6 +229,7 @@ type test =
 type doc =
     {
       doc_type:        plugin;
+      doc_custom:      custom;
       doc_build:       bool conditional;
       doc_install:     bool conditional;
       doc_install_dir: filename;
@@ -241,27 +250,38 @@ type section =
   *)
 type package = 
     {
-      oasis_version:   version;
-      ocaml_version:   version_comparator option;
-      findlib_version: version_comparator option;
-      name:            package_name;
-      version:         version;
-      license:         license;
-      license_file:    filename option;
-      copyrights:      string list;
-      maintainers:     string list;
-      authors:         string list;
-      homepage:        url option;
-      synopsis:        string;
-      description:     string option;
-      categories:      url list;
-      conf_type:       plugin;
-      build_type:      plugin;
-      install_type:    plugin;
-      files_ab:        filename list;
-      sections:        section list;
-      plugins:         plugin list;
-      schema_data:     PropList.Data.t;
+      oasis_version:    version;
+      ocaml_version:    version_comparator option;
+      findlib_version:  version_comparator option;
+      name:             package_name;
+      version:          version;
+      license:          license;
+      license_file:     filename option;
+      copyrights:       string list;
+      maintainers:      string list;
+      authors:          string list;
+      homepage:         url option;
+      synopsis:         string;
+      description:      string option;
+      categories:       url list;
+
+      conf_type:        plugin;
+      conf_custom:      custom;
+
+      build_type:       plugin;
+      build_custom:     custom;
+
+      install_type:     plugin;
+      install_custom:   custom;
+      uninstall_custom: custom;
+
+      clean_custom:     custom;
+      distclean_custom: custom;
+
+      files_ab:         filename list;
+      sections:         section list;
+      plugins:          plugin list;
+      schema_data:      PropList.Data.t;
     } with odn
 
 (* END EXPORT *)

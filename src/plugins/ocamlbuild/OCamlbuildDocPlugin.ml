@@ -160,6 +160,8 @@ let auto_doc_section pkg =
                          cs_data = data},
                         {
                           doc_type        = OASISPlugin.builtin "ocamlbuild";
+                          doc_custom      = {pre_command  = [EBool true, None]; 
+                                             post_command = [EBool true, None]};
                           doc_build       = bs.bs_build;
                           doc_install     = bs.bs_install;
                           doc_install_dir = "$htmldir/"^cs.cs_name;

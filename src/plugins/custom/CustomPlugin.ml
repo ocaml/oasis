@@ -36,12 +36,7 @@ type t =
       cmd_distclean: (command_line option) conditional;
     } with odn
 
-let run cmd args extra_args =
-  BaseExec.run 
-    (var_expand cmd)
-    (List.map 
-       var_expand
-       (args @ (Array.to_list extra_args)))
+let run  = BaseCustom.run 
 
 let main t _ extra_args =
   let cmd, args =

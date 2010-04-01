@@ -33,7 +33,10 @@ let doc lst pkg extra_args =
     if var_choose doc.doc_build then
       begin
         OASISMessage.info (f_ "Building documentation '%s'") cs.cs_name;
-        doc_plugin pkg (cs, doc) extra_args
+        BaseCustom.hook
+          doc.doc_custom
+          (doc_plugin pkg (cs, doc))
+          extra_args
       end
   in
     List.iter 

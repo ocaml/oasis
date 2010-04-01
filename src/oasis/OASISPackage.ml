@@ -103,7 +103,7 @@ let schema, generator =
                          v 
                          (current_version :: extra_supported_versions)) then
                    failwithf1
-                     (f_ "OASIS format version '%s' is not supported")
+                     (f_ "OASIS format version '%s' is not supported.")
                      str;
                  v);
           update = update_fail;
@@ -159,7 +159,7 @@ let schema, generator =
       ~default:[]
       (comma_separated string_not_empty)
       (fun () -> 
-         s_ "Current maintainers of the package")
+         s_ "Current maintainers of the package.")
   in
   let license =
     new_field schm "License"
@@ -188,7 +188,7 @@ let schema, generator =
                        OtherLicense (url.parse str)
                      with _ ->
                        failwithf2
-                         (f_ "'%s' is not an URL or a common license name (%s)")
+                         (f_ "'%s' is not an URL or a common license name (%s).")
                          str
                          (String.concat ", " (List.map fst std_licenses))
                    end);
@@ -222,6 +222,11 @@ let schema, generator =
       (fun () -> 
          s_ "Configuration system.")
   in
+  let conf_custom = 
+    OASISCustom.add_fields schm "Conf"
+      (fun () -> s_ "Command to run before configuration.")
+      (fun () -> s_ "Command to run after configuration.")
+  in
   let build_type =
     new_field schm "BuildType" 
       ~default:(OASISPlugin.builtin "ocamlbuild")
@@ -229,12 +234,37 @@ let schema, generator =
       (fun () -> 
          s_ "Build system.")
   in
+  let build_custom = 
+    OASISCustom.add_fields schm "Build"
+      (fun () -> s_ "Command to run before build.")
+      (fun () -> s_ "Command to run after build.")
+  in
   let install_type =
     new_field schm "InstallType"
       ~default:(OASISPlugin.builtin "internal")
       OASISPlugin.Install.value
       (fun () -> 
          s_ "Install/uninstall system.")
+  in
+  let install_custom = 
+    OASISCustom.add_fields schm "Install"
+      (fun () -> s_ "Command to run before install.")
+      (fun () -> s_ "Command to run after install.")
+  in
+  let uninstall_custom = 
+    OASISCustom.add_fields schm "Uninstall"
+      (fun () -> s_ "Command to run before uninstall.")
+      (fun () -> s_ "Command to run after uninstall.")
+  in
+  let clean_custom = 
+    OASISCustom.add_fields schm "Clean"
+      (fun () -> s_ "Command to run before clean.")
+      (fun () -> s_ "Command to run after clean.")
+  in
+  let distclean_custom = 
+    OASISCustom.add_fields schm "Distclean"
+      (fun () -> s_ "Command to run before distclean.")
+      (fun () -> s_ "Command to run after distclean.")
   in
   let homepage =
     new_field schm "Homepage" 
@@ -280,25 +310,31 @@ let schema, generator =
             add_build_tool
             (build_tools data)
             {
-              oasis_version   = oasis_version data;
-              ocaml_version   = ocaml_version data;
-              findlib_version = findlib_version data;
-              name            = name data;
-              version         = version data;
-              license         = license data;
-              license_file    = license_file data;
-              copyrights      = copyrights data;
-              maintainers     = maintainers data;
-              authors         = authors data;
-              homepage        = homepage data;
-              synopsis        = synopsis data;
-              description     = description data;
-              categories      = categories data;
-              conf_type       = conf_type data;
-              build_type      = build_type data;
-              install_type    = install_type data;
-              files_ab        = files_ab data;
-              plugins         = plugins data;
-              sections        = sections;
-              schema_data     = data;
+              oasis_version    = oasis_version data;
+              ocaml_version    = ocaml_version data;
+              findlib_version  = findlib_version data;
+              name             = name data;
+              version          = version data;
+              license          = license data;
+              license_file     = license_file data;
+              copyrights       = copyrights data;
+              maintainers      = maintainers data;
+              authors          = authors data;
+              homepage         = homepage data;
+              synopsis         = synopsis data;
+              description      = description data;
+              categories       = categories data;
+              conf_type        = conf_type data;
+              conf_custom      = conf_custom data;
+              build_type       = build_type data;
+              build_custom     = build_custom data;
+              install_type     = install_type data;
+              install_custom   = install_custom data;
+              uninstall_custom = uninstall_custom data;
+              clean_custom     = clean_custom data;
+              distclean_custom = distclean_custom data;
+              files_ab         = files_ab data;
+              plugins          = plugins data;
+              sections         = sections;
+              schema_data      = data;
             }))
