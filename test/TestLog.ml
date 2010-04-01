@@ -34,7 +34,7 @@ let tests ctxt =
       ignore
       f
       (fun () ->
-         Sys.remove BaseLog.default_filename)
+         FileUtil.rm [BaseLog.default_filename])
   in
   let assert_equal_log msg exp =
     assert_equal

@@ -88,18 +88,29 @@ let register event data =
 (** Remove an event from the log file
   *)
 let unregister event data =
-  let lst = 
-    load ()
-  in
-  let chn_out =
-    open_out default_filename
-  in
-    List.iter 
-      (fun (e, d) ->
-         if e <> event || d <> data then
-           Printf.fprintf chn_out "%S %S\n" e d)
-      lst;
-    close_out chn_out
+  if Sys.file_exists default_filename then
+    begin
+      let lst = 
+        load ()
+      in
+      let chn_out =
+        open_out default_filename
+      in
+      let write_something =
+        ref false
+      in
+        List.iter 
+          (fun (e, d) ->
+             if e <> event || d <> data then
+               begin
+                 write_something := true;
+                 Printf.fprintf chn_out "%S %S\n" e d
+               end)
+          lst;
+        close_out chn_out;
+        if not !write_something then
+          Sys.remove default_filename
+    end
 
 (** Filter events of the log file
   *)

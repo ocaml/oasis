@@ -62,7 +62,13 @@ let run_clean extra_argv =
     if not (BaseLog.exists ocamlbuild_clean_ev extra_cli) then
       begin
         BaseExec.run (ocamlbuild ()) (fix_args ["-clean"] extra_argv);
-        BaseLog.register ocamlbuild_clean_ev extra_cli
+        BaseLog.register ocamlbuild_clean_ev extra_cli;
+        at_exit 
+          (fun () ->
+             try 
+               BaseLog.unregister ocamlbuild_clean_ev extra_cli
+             with _ ->
+               ())
       end
 
 (** Run ocamlbuild, unregister all clean events *)
