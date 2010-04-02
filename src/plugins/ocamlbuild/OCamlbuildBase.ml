@@ -58,6 +58,10 @@ type t =
       flags:     (string list * spec) list;
     } with odn
 
+let env_filename =
+  Pathname.basename 
+    BaseEnvLight.default_filename
+
 let dispatch_combine lst =
   fun e ->
     List.iter 
@@ -68,7 +72,10 @@ let dispatch t =
   function
     | Before_options ->
         let env = 
-          BaseEnvLight.load ~filename:(Pathname.basename BaseEnvLight.default_filename) ()
+          BaseEnvLight.load 
+            ~filename:env_filename 
+            ~allow_empty:true
+            ()
         in
         let no_trailing_dot s =
           if String.length s >= 1 && s.[0] = '.' then
@@ -78,7 +85,10 @@ let dispatch t =
         in
           List.iter
             (fun (opt, var) ->
-               opt := no_trailing_dot (BaseEnvLight.var_get var env))
+               try 
+                 opt := no_trailing_dot (BaseEnvLight.var_get var env)
+               with Not_found ->
+                 Printf.eprintf "W: Cannot get variable %s" var)
             [
               Options.ext_obj, "ext_obj";
               Options.ext_lib, "ext_lib";

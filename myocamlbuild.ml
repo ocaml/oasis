@@ -113,7 +113,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: a2afeae7b229b172b0310af5de1df953) *)
+(* DO NOT EDIT (digest: 84af389e42aa9f470c1ee8ab068b655b) *)
 module BaseEnvLight = struct
 # 0 "/home/gildor/programmation/oasis/src/base/BaseEnvLight.ml"
   
@@ -327,6 +327,10 @@ module OCamlbuildBase = struct
         flags:     (string list * spec) list;
       } 
   
+  let env_filename =
+    Pathname.basename 
+      BaseEnvLight.default_filename
+  
   let dispatch_combine lst =
     fun e ->
       List.iter 
@@ -337,7 +341,10 @@ module OCamlbuildBase = struct
     function
       | Before_options ->
           let env = 
-            BaseEnvLight.load ~filename:(Pathname.basename BaseEnvLight.default_filename) ()
+            BaseEnvLight.load 
+              ~filename:env_filename 
+              ~allow_empty:true
+              ()
           in
           let no_trailing_dot s =
             if String.length s >= 1 && s.[0] = '.' then
@@ -347,7 +354,10 @@ module OCamlbuildBase = struct
           in
             List.iter
               (fun (opt, var) ->
-                 opt := no_trailing_dot (BaseEnvLight.var_get var env))
+                 try 
+                   opt := no_trailing_dot (BaseEnvLight.var_get var env)
+                 with Not_found ->
+                   Printf.eprintf "W: Cannot get variable %s" var)
               [
                 Options.ext_obj, "ext_obj";
                 Options.ext_lib, "ext_lib";
@@ -413,7 +423,7 @@ module OCamlbuildBase = struct
 end
 
 
-# 302 "myocamlbuild.ml"
+# 312 "myocamlbuild.ml"
 open Ocamlbuild_plugin;;
 let package_default =
   {
@@ -484,8 +494,7 @@ dispatch
                         "gettext" 
                         (BaseEnvLight.load
                            ~allow_empty:true
-                           ~filename:(Pathname.basename 
-                                        BaseEnvLight.default_filename)
+                           ~filename:OCamlbuildBase.env_filename
                            ())
                     in
                       if gettext = "true" then
