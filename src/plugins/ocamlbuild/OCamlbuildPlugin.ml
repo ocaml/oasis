@@ -428,11 +428,17 @@ let create_ocamlbuild_files pkg () =
 
     (* Fix for PR#5015, unable to compile depends in subdir *)
     let tag_t, myocamlbuild_t =
-      add_tags 
-        tag_t
-        (List.rev_map (Printf.sprintf "\"%s\"") src_internal_dirs)
-        ["include"],
-      myocamlbuild_t
+      let dirs = 
+        src_dirs @ src_internal_dirs 
+      in
+        (if List.length dirs > 1 then
+           add_tags 
+             tag_t
+             (List.rev_map (Printf.sprintf "\"%s\"") dirs)
+             ["include"]
+         else
+           tag_t),
+        myocamlbuild_t
     in
 
       tag_t, myocamlbuild_t
@@ -453,7 +459,18 @@ let create_ocamlbuild_files pkg () =
 
                  (* All paths accessed only by the library *)
                  let src_internal_dirs =
-                   bs_paths bs lib.lib_internal_modules
+                   let set_dirs = 
+                     set_string_of_list 
+                       src_dirs
+                   in
+                   let set_internal_dirs = 
+                     set_string_of_list
+                       (bs_paths bs lib.lib_internal_modules)
+                   in
+                     SetString.elements
+                       (SetString.diff 
+                          set_internal_dirs
+                          set_dirs)
                  in
 
                  (* Generated library *)
