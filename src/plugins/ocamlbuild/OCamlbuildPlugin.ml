@@ -665,7 +665,7 @@ let create_ocamlbuild_files pkg () =
               ["Ocamlbuild_plugin.dispatch dispatch_default;;"]))
 
 
-let () =
+let init () =
   let doit pkg =
       {
         moduls       = [OCamlbuildData.ocamlbuildsys_ml];

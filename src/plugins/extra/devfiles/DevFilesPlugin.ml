@@ -145,5 +145,5 @@ let main pkg =
       Unix.chmod "configure" 0o755
     end
 
-let () =
+let init () =
   register main

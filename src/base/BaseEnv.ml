@@ -140,8 +140,9 @@ and var_get name =
 
 (** Choose a value among conditional expression
   *)
-let var_choose lst =
+let var_choose ?printer lst =
   OASISExpr.choose 
+    ?printer
     var_get 
     (fun et -> var_get (OASISExpr.string_of_expr_test et))
     lst
@@ -230,7 +231,7 @@ let var_define
 
   let help =
     match short_desc with 
-      | Some s -> Some (fun () -> s)
+      | Some fs -> Some fs
       | None -> None
   in
 

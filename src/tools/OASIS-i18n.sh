@@ -22,4 +22,4 @@
 
 LOCDIR="$(dirname $(readlink -f $0))"
 BUILDDIR="$(readlink -f "$LOCDIR/../../_build")"
-exec "$BUILDDIR/src/Main.byte" --gettext-dir "$BUILDDIR/po" "$@"
+exec "$BUILDDIR/src/OASIS" --gettext-dir "$BUILDDIR/po" "$@"

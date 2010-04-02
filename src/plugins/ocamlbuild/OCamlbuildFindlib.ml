@@ -83,7 +83,7 @@ let dispatch =
     | After_rules ->
         
         (* When one link an OCaml library/binary/package, one should use -linkpkg *)
-        flag ["ocaml"; "link"] & A"-linkpkg";
+        flag ["ocaml"; "link"; "program"] & A"-linkpkg";
         
         (* For each ocamlfind package one inject the -package option when
          * compiling, computing dependencies, generating documentation and

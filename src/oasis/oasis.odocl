@@ -1,0 +1,26 @@
+# OASIS_START
+# DO NOT EDIT (digest: cca881c17176fb874505f84ab96efc2e)
+FormatExt
+OASISGettext
+OASISMessage
+ODNFunc
+PropList
+OASIS
+OASISBuildSection
+OASISDocumentation
+OASISExecutable
+OASISExpr
+OASISFlag
+OASISHelp
+OASISLibrary
+OASISPackage
+OASISPlugin
+OASISSourceRepository
+OASISTest
+OASISTypes
+OASISUnixPath
+OASISUtils
+OASISValues
+OASISVersion
+OASISData
+# OASIS_STOP

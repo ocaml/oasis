@@ -132,7 +132,7 @@ module Make =
                 type t
                 val family_string: string
                 val not_found_fmt: 
-                  (string -> string -> string, unit, string) format
+                  unit -> (string -> string -> string, unit, string) format
               end)) ->
   struct 
     let all : ((F.t * string) MapPlugin.t) ref = 
@@ -193,7 +193,7 @@ module Make =
         MapPlugin.find nm !all
       with Not_found ->
         failwithf2
-          F.not_found_fmt 
+          (F.not_found_fmt ())
           nm 
           (String.concat ", " (ls ()))
 
@@ -244,7 +244,7 @@ module Configure =
        type t = package_act_t
        let family_string = "configure"
        let not_found_fmt =  
-         f_ "Unkown configure plugin '%s' (available: %s)"
+         (fun () -> f_ "Unkown configure plugin '%s' (available: %s)")
      end)
 
 (** Build plugins 
@@ -255,7 +255,7 @@ module Build =
        type t = package_act_t
        let family_string = "build"
        let not_found_fmt =
-         f_ "Unknown build plugin '%s' (available: %s)"
+         (fun () -> f_ "Unknown build plugin '%s' (available: %s)")
      end)
 
 (** Documentation plugins 
@@ -266,7 +266,7 @@ module Doc =
        type t = (doc, unit) section_act_t
        let family_string = "doc"
        let not_found_fmt =
-         f_ "Unkown doc plugin '%s' (available: %s)"
+         (fun () -> f_ "Unkown doc plugin '%s' (available: %s)")
      end)
 
 (** Test plugins
@@ -277,7 +277,7 @@ module Test =
        type t = (test, float) section_act_t
        let family_string = "test"
        let not_found_fmt =
-         f_ "Unkown test plugin '%s' (available: %s)"
+         (fun () -> f_ "Unkown test plugin '%s' (available: %s)")
      end)
 
 (** Install/uninstall plugins
@@ -288,7 +288,7 @@ module Install =
        type t = package_act_t * package_act_t
        let family_string = "install"
        let not_found_fmt =
-         f_ "Unkown install plugin '%s' (available: %s)"
+         (fun () -> f_ "Unkown install plugin '%s' (available: %s)")
      end)
 
 (** Extra plugins
@@ -299,7 +299,7 @@ module Extra =
        type t = package -> unit
        let family_string = "extra"
        let not_found_fmt =
-         f_ "Unkown extra plugin '%s' (available: %s)"
+         (fun () -> f_ "Unkown extra plugin '%s' (available: %s)")
      end)
 
 (** Functions for plugin writer

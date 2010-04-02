@@ -32,7 +32,6 @@ open OASISPlugin
 
 let required_modules =
   [
-    CommonData.commonsys_ml;
     OASISData.oasissys_ml;
     BaseData.basesysenvironment_ml;
     (* TODO: is this module really required ? *)

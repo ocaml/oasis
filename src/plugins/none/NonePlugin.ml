@@ -69,7 +69,7 @@ let section_no_generate str pkg (cs, section) =
     cs,
     section
 
-let () = 
+let init () = 
   let module PU = Configure.Make(Id) in 
     PU.register (std_no_generate "configure");
   let module PU = Build.Make(Id) in 

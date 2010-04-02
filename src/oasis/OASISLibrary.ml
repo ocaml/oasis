@@ -286,10 +286,10 @@ let schema, generator =
     schema "Library"
   in
   let cmn_section_gen =
-    OASISSection.section_fields (s_ "library") schm
+    OASISSection.section_fields (fun () -> (s_ "library")) schm
   in
   let build_section_gen =
-    OASISBuildSection.section_fields (s_ "library") Best schm
+    OASISBuildSection.section_fields (fun () -> (s_ "library")) Best schm
   in
   let external_modules =
     new_field schm "Modules" 

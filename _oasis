@@ -1,40 +1,220 @@
-Package:      oasis
-Version:      0.0.1
-LicenseFile:  LICENSE
+OASISFormat:  0.1
+OCamlVersion: >= 3.10.2
+Name:         oasis
+Version:      0.1.0
+LicenseFile:  LICENSE.txt
 License:      LGPL-link-exn
-BuildType:    ocamlbuild
-Author:       Sylvain Le Gall
-Copyright:    (C) 2008-2009 Sylvain Le Gall
-Homepage:     http://ocaml-autobuild.forge.ocamlcore.org/
-Synopsis:     generate different build system for OCaml projects
-Categories:   BuildTool 
-BuildDepends: fileutils, findlib
+BuildType:    ocamlbuild (0.1.0)
+Authors:      Sylvain Le Gall
+Copyrights:   (C) 2008-2010 OCamlCore SARL
+Homepage:     http://oasis.forge.ocamlcore.org/
+Plugins:      DevFiles (0.1.0), StdFiles (0.1.0)
+
+Synopsis: Architecture for building OCaml libraries and applications
 Description:
- This program and library allow to create a build system for OCaml program
- and library.
- .
- It can use ocamlbuild, OCamlMakefile or OMake as the real build system and
- ocaml-autoconf or an internal configuration system. It allow to configure,
- build and install your program and libraries.
- .
- It is mainly targeted to ocamlbuild and rely on findlib for all operations.
- .
- Package are described through an OASIS file. This file is translated into
- commands for the different sub-system and executed.
- . 
- The internal configuration system allow to: check findlib package and find
- available program.  
+  OASIS generates a full configure, build and install system for your
+  application. It starts with a simple `_oasis` file at the toplevel of your
+  project and creates everything required.
+  .
+  It uses external tools like OCamlbuild and it can be considered as the glue
+  between various subsystems that do the job. It should support the following
+  tools: 
+  - OCamlbuild
+  - OMake (todo)
+  - OCamlMakefile (todo),
+  - ocaml-autoconf (todo)
+  .
+  It also features a do-it-yourself command line invocation and an internal 
+  configure/install scheme. Libraries are managed through findlib. It has been
+  tested on GNU Linux and Windows.
+  .
+  It also allows to have standard entry points and description. It helps to 
+  integrates your libraries and software with third parties tools like GODI.
+  
+Flag gettext
+  Description: Use ocaml-gettext for i18n
+
+BuildTools: make
+if flag(gettext) 
+  PostBuildCommand: $make -C po all
+  PostCleanCommand: $make -C po clean
+
+Executable ocamlmod
+  Path:   src/tools
+  MainIs: ocamlmod.ml
+  BuildDepends: fileutils, str
+  
+Library oasis
+  Path: src/oasis
+  Modules: FormatExt,
+           OASISGettext,
+           OASISMessage,
+           ODNFunc,
+           PropList,
+           OASIS,
+           OASISBuildSection,
+           OASISDocumentation,
+           OASISExecutable,
+           OASISExpr,
+           OASISFlag,
+           OASISHelp,
+           OASISLibrary,
+           OASISPackage,
+           OASISPlugin,
+           OASISSourceRepository,
+           OASISTest,
+           OASISTypes,
+           OASISUnixPath,
+           OASISUtils,
+           OASISValues,
+           OASISVersion,
+           OASISData
+  InternalModules: OASISVersion_lexer,
+                   OASISVersion_parser,
+                   OASISSection,
+                   OASISSchema,
+                   OASISConf,
+                   OASISHelpData,
+                   OASISAst,
+                   OASISCheck,
+                   OASISRecDescParser,
+                   OASISCustom,
+                   OASISQuickstart
+  CompiledObject: byte
+#  XOCamlbuildExtern: false
+  BuildDepends: fileutils, unix, str, extlib, findlib, odn, ocamlgraph
+  BuildTools: ocamlmod, ocamlyacc, ocamllex, ocamlify
+
+Library base
+  Path: src/base
+  Modules: BaseArgExt,
+           BaseBuilt,
+           BaseCheck,
+           BaseCustom,
+           BaseData,
+           BaseDev,
+           BaseDoc,
+           BaseEnvLight,
+           BaseEnv,
+           BaseExec,
+           BaseFileAB,
+           BaseFileGenerate,
+           BaseFilePath,
+           BaseFileUtil,
+           BaseGenerate,
+           BaseLog,
+           BaseOCamlcConfig,
+           BaseSetup,
+           BaseStandardVar,
+           BaseTest
+  CompiledObject: byte
+#  XOCamlbuildExtern: false
+  BuildDepends: oasis
+  BuildTools: ocamlmod, ocamlify
+
+Library "plugin-none"
+  Path: src/plugins/none
+  Modules: NonePlugin
+  InternalModules: NoneData
+  Install: false
+  CompiledObject: byte
+  BuildDepends: oasis
+  BuildTools: ocamlmod, ocamlify
+
+Library "plugin-internal"
+  Path: src/plugins/internal
+  Modules: InternalConfigurePlugin, 
+           InternalInstallPlugin
+  InternalModules: InternalData,
+                   InternalId
+  Install: false
+  CompiledObject: byte
+  BuildDepends: oasis, base
+  BuildTools: ocamlmod, ocamlify
+
+Library "plugin-ocamlbuild"
+  Path: src/plugins/ocamlbuild
+  Modules: OCamlbuildPlugin,
+           OCamlbuildDocPlugin
+  InternalModules: OCamlbuildData,
+                   OCamlbuildCommon,
+                   OCamlbuildId,
+                   OCamlbuildBase,
+                   OCamlbuildFindlib
+  Install: false
+  CompiledObject: byte
+  BuildDepends: oasis, base
+  BuildTools: ocamlmod, ocamlify
+
+Library "plugin-custom"
+  Path: src/plugins/custom 
+  Modules: CustomPlugin
+  InternalModules: CustomData
+  Install: false
+  CompiledObject: byte
+  BuildDepends: oasis, base
+  BuildTools: ocamlmod, ocamlify
+
+Library "plugin-meta"
+  Path: src/plugins/extra/META
+  Modules: METAPlugin
+  InternalModules: METAData
+  Install: false
+  CompiledObject: byte
+  BuildDepends: oasis, base
+  BuildTools: ocamlmod, ocamlify
+
+Library "plugin-devfiles"
+  Path: src/plugins/extra/devfiles
+  Modules: DevFilesPlugin
+  InternalModules: DevFilesData 
+  Install: false
+  CompiledObject: byte
+  BuildDepends: oasis, base
+  BuildTools: ocamlmod, ocamlify
+
+Library "plugin-stdfiles"
+  Path: src/plugins/extra/stdfiles
+  Modules: StdFilesPlugin
+  InternalModules: StdFilesData
+  Install: false
+  CompiledObject: byte
+  BuildDepends: oasis, base
+  BuildTools: ocamlmod, ocamlify
+
+Library "builtin-plugins"
+  Path: src
+  Modules: OASISBuiltinPlugins
+  Install: false
+  CompiledObject: byte
+  BuildDepends: plugin-none, 
+                plugin-internal, 
+                plugin-ocamlbuild, 
+                plugin-custom,
+                plugin-meta,
+                plugin-devfiles,
+                plugin-stdfiles
 
 Executable OASIS
-  Buildable: true
-  MainIs: src/Main.ml
-
-Library oasis
-  Buildable: true
-  Module: 
-  Path: src/
+  Path:   src
+  MainIs: OASISMain.ml
+  BuildDepends: oasis, base, builtin-plugins
 
 Executable test
-  Buildable: true
-  MainIs: test/test.ml
+  Path: test
+  MainIs: test.ml
+  Install: false
+  CompiledObject: byte
+  BuildDepends: oUnit, oasis, base, builtin-plugins
+
+Test main
+  Type: custom (0.1.0)
+  Command: $(utoh "../_build/test/test")
+  WorkingDirectory: test 
+  TestTools: OASIS, test
+
+Documentation manual
+  Type: custom (0.1.0)
+  XCustom: env LANG=C $(utoh _build/src/OASIS) -documentation > doc/MANUAL.mkd
+  XCustomClean: rm doc/MANUAL.mkd
 

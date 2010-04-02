@@ -226,7 +226,7 @@ struct
 end
 
 (* Configure plugin *)
-let () = 
+let conf_init () = 
   let module PU = OASISPlugin.Configure.Make(Id)
   in
   let module CU = Make(PU)
@@ -241,7 +241,7 @@ let () =
     PU.register doit
 
 (* Build plugin *)
-let () = 
+let build_init () = 
   let module PU = OASISPlugin.Build.Make(Id)
   in
   let module CU = Make(PU)
@@ -290,7 +290,7 @@ let () =
     PU.register doit
 
 (* Install plugin *)
-let () =
+let install_init () =
   let module PU = OASISPlugin.Install.Make(Id)
   in
   let module CU = Make(PU)
@@ -312,7 +312,7 @@ let () =
     PU.register (doit_install, doit_uninstall)
 
 (* Documentation plugin *)
-let doc =
+let doc_init () =
   let module PU = OASISPlugin.Doc.Make(Id)
   in
   let module CU = Make(PU)
@@ -364,7 +364,7 @@ let doc =
     PU.register doit
 
 (* Test plugin *)
-let () =
+let test_init () =
   let module PU = OASISPlugin.Test.Make(Id)
   in
   let module CU = Make(PU)
@@ -424,3 +424,11 @@ let () =
         test
   in
     PU.register doit
+
+let init () = 
+  conf_init ();
+  build_init ();
+  install_init ();
+  doc_init ();
+  test_init ()
+

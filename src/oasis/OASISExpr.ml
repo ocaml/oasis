@@ -27,7 +27,7 @@ open OASISGettext
 open OASISUtils
 
 (** Evaluate each conditions and choose the right one. *)
-let choose var_get test_get lst =
+let choose ?printer var_get test_get lst =
   let rec eval =
     function
       | EBool b ->
@@ -64,8 +64,16 @@ let choose var_get test_get lst =
           else
             choose_aux tl
       | [] ->
-          failwith
-            (s_ "No result for a choice list")
+          failwithf1
+            (f_ "No result for a choice list: %s")
+            (String.concat 
+               (s_ ", ")
+               (List.map
+                  (fun (cond, vl) ->
+                     match printer with
+                       | Some p -> p vl
+                       | None -> "<no printer>")
+                  lst))
   in
     choose_aux (List.rev lst)
 

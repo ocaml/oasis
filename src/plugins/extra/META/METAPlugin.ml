@@ -225,5 +225,6 @@ let main pkg =
              end)
       (group_libs pkg)
 
-let () = 
+
+let init () = 
   register main

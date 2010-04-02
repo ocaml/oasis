@@ -1,0 +1,10 @@
+# OASIS_START
+# DO NOT EDIT (digest: db8c4929f4571a9eb009f9710b0dd1d7)
+OCamlbuildPlugin
+OCamlbuildDocPlugin
+OCamlbuildData
+OCamlbuildCommon
+OCamlbuildId
+OCamlbuildBase
+OCamlbuildFindlib
+# OASIS_STOP

@@ -147,7 +147,7 @@ let configure pkg argv =
 
 open OASISPlugin
 
-let () =
+let init () =
   let module PU = Configure.Make(InternalId)
   in
   let doit pkg =  

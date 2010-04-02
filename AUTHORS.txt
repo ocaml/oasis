@@ -1,0 +1,5 @@
+(* OASIS_START *)
+(* DO NOT EDIT (digest: ed015b4f93f97d04d297bb9801e8f1bb) *)
+Authors of oasis
+Sylvain Le Gall
+(* OASIS_STOP *)

@@ -78,3 +78,6 @@
 ^po/.*\.mo$
 ^installbuilder-license.xml$
 ^doc/MANUAL.mkd$
+^setup.data$
+^setup.log$
+^boot/

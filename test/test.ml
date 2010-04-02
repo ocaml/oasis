@@ -23,11 +23,34 @@
     @author Sylvain Le Gall
   *)
 
+IFDEF HAS_GETTEXT THEN
+module Gettext =
+  Gettext.Program
+    (struct
+       let textdomain   = "oasis"
+       let codeset      = None
+       let dir          = None
+       let dependencies = Gettext.init @ OASISGettext.init
+     end)
+    (GettextCamomile.Map)
+ELSE
+module Gettext =
+struct 
+  let init = [], ""
+end
+ENDIF
+
 open OUnit;;
 open TestCommon;;
-open OASISBuiltinPlugins;;
 
-let _res: test_result list = 
+let () =  
+  let gettext_args, _ =
+    Gettext.init 
+  in
+
+  let () = 
+    OASISBuiltinPlugins.init ()
+  in
   let dbug =
     ref false
   in
@@ -40,7 +63,7 @@ let _res: test_result list =
 
   let () = 
     Arg.parse
-      [
+      ([
         "-verbose",
         Arg.Set dbug,
         "Run the test in verbose mode.";
@@ -52,7 +75,7 @@ let _res: test_result list =
         "-long",
         Arg.Set long,
         "Run long tests";
-      ]
+      ] @ gettext_args)
       invalid_arg
       ("usage: "^Sys.executable_name^" [options*]")
   in
@@ -74,7 +97,7 @@ let _res: test_result list =
       oasis =
         FilePath.make_filename
           [FileUtil.pwd ();FilePath.parent_dir;
-           "_build";"src";"OASIS.byte"];
+           "_build";"src";"OASIS"];
       oasis_args = [];
     }
   in
@@ -100,5 +123,15 @@ let _res: test_result list =
        ])
   in
 
+  let res =
     run_test_tt ~verbose:!dbug tests
+  in
+
+    List.iter 
+      (function
+         | RFailure _ | RError _ ->
+             exit 1
+         | RSuccess _ | RSkip _ | RTodo _ ->
+             ())
+      res
 ;;

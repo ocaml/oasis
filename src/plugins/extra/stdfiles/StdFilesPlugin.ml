@@ -531,5 +531,5 @@ let main pkg =
 
          pp_close_box fmt ())
 
-let () = 
+let init () = 
   register main

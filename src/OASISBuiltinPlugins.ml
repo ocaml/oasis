@@ -22,12 +22,13 @@
 (** Load builtin plugins
   *)
 
-open NonePlugin
-open InternalInstallPlugin
-open InternalConfigurePlugin
-open OCamlbuildPlugin
-open OCamlbuildDocPlugin
-open CustomPlugin
-open METAPlugin
-open DevFilesPlugin
-open StdFilesPlugin
+let init () = 
+  NonePlugin.init ();
+  InternalInstallPlugin.init ();
+  InternalConfigurePlugin.init ();
+  OCamlbuildPlugin.init ();
+  OCamlbuildDocPlugin.init ();
+  CustomPlugin.init ();
+  METAPlugin.init ();
+  DevFilesPlugin.init ();
+  StdFilesPlugin.init ()

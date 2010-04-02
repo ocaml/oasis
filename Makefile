@@ -19,44 +19,97 @@
 #  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               #
 ################################################################################
 
-default: TESTFLAGS=-long
 default: test
 
-HAS_GETTEXT=$(shell if ocamlfind query gettext > /dev/null 2>&1; then \
-	              echo true; \
-		    else \
-		      echo false; fi)
+OCAMLBUILDFLAGS =-tag debug -classic-display
+BUILDFLAGS     +=$(OCAMLBUILDFLAGS)
+DOCFLAGS       +=$(OCAMLBUILDFLAGS)
+CLEANFLAGS     +=$(OCAMLBUILDFLAGS)
+DISTCLEANFLAGS +=$(OCAMLBUILDFLAGS)
+#TESTFLAGS      += -long 
+#TESTFLAGS      += -only-test OASIS:5:TestFull:8
 
-OCAMLBUILDFLAGS=-tag debug -classic-display
-ifeq ($(HAS_GETTEXT),true)
-OCAMLBUILDFLAGS+=-tag has_gettext
-endif
+# OASIS_START
+# DO NOT EDIT (digest: c670bbc06ab2e6f432b790475d6ad412)
 
-test: all
-	cd '$(CURDIR)/test' && ../_build/test/test.byte $(TESTFLAGS)
+SETUP = ocaml setup.ml
 
-.PHONY: test
+build: setup.data
+	$(SETUP) -build $(BUILDFLAGS)
 
-# Default target
-all:
-	ocamlbuild $(OCAMLBUILDFLAGS) oasis.otarget
-	cp _build/src/Main.byte _build/src/OASIS.byte
-ifeq ($(HAS_GETTEXT),true)
-	$(MAKE) -C po all
-endif 
+doc: setup.data build
+	$(SETUP) -doc $(DOCFLAGS)
 
-clean:
-	-ocamlbuild -classic-display -clean
-	-$(RM) doc/MANUAL.mkd
-	$(MAKE) -C po clean
+test: setup.data build
+	$(SETUP) -test $(TESTFLAGS)
+
+install: setup.data
+	$(SETUP) -install $(INSTALLFLAGS)
+
+uninstall: setup.data
+	$(SETUP) -uninstall $(UNINSTALLFLAGS)
+
+clean: 
+	$(SETUP) -clean $(CLEANFLAGS)
+
+distclean: 
+	$(SETUP) -distclean $(DISTCLEANFLAGS)
+
+setup.data:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+.PHONY: build doc test install uninstall clean distclean configure
+
+# OASIS_STOP
+
+# Backup targets to be able to build even if OASIS fails
+
+OASIS ?= boot/OASIS
+
+build-backup:
+	$(OASIS)
+	touch setup.data
+	ocamlbuild $(OCAMLBUILDFLAGS) src/tools/ocamlmod.byte
+	cp _build/src/tools/ocamlmod.byte _build/src/tools/ocamlmod
+	ocamlbuild $(OCAMLBUILDFLAGS) \
+	  src/oasis/oasis.cma \
+	  src/base/base.cma \
+	  src/plugins/custom/plugin-custom.cma \
+	  src/plugins/none/plugin-none.cma \
+	  src/plugins/internal/plugin-internal.cma \
+	  src/plugins/ocamlbuild/plugin-ocamlbuild.cma \
+	  src/plugins/extra/META/plugin-meta.cma \
+	  src/plugins/extra/devfiles/plugin-devfiles.cma \
+	  src/plugins/extra/stdfiles/plugin-stdfiles.cma \
+	  src/builtin-plugins.cma \
+	  src/OASISMain.byte test/test.byte
+	cp _build/src/OASISMain.byte _build/src/OASIS
+	cp _build/test/test.byte _build/test/test
+
+
+TEST_BACKUP_RECURSE ?= true
+
+test-backup: build-backup
+	if cd test && ../_build/test/test $(TESTFLAGS); then \
+	  cd ..; \
+	  if $(TEST_BACKUP_RECURSE) && \
+	     $(MAKE) test-backup \
+	       TEST_BACKUP_RECURSE=false \
+	       OASIS=_build/src/OASIS; then \
+	    cp boot/OASIS boot/OASIS.old; \
+	    cp _build/src/OASIS boot/OASIS; \
+	  fi; \
+	fi
+
+clean-backup:
+	ocamlbuild -clean
 
 wc:
 	find src/ -name "*.ml" | xargs wc -l
-
-doc: all
-	env LANG=C _build/src/OASIS.byte -documentation > doc/MANUAL.mkd
 
 headache:
 	find ./ -name _darcs -prune -false -o -name _build -prune \
 	  -o -name ext -prune -false -o -type f \
 	  | xargs headache -h _header -c _headache.config
+
+.PHONY: build-backup test-backup clean-backup wc headache

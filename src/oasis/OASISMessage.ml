@@ -33,7 +33,7 @@ let debug =
 
 (** Command line arguments
   *)
-let args =
+let args () =
   ["-quiet",
    Arg.Clear verbose,
    (s_ " Run quietly");

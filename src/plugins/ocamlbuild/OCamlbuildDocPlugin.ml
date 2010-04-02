@@ -177,7 +177,7 @@ let auto_doc_section pkg =
     {pkg with 
          sections = pkg.sections @ (List.rev docs)}
 
-let () = 
+let init () = 
   let doit pkg (cs, doc) = 
     let t = 
       of_data cs.cs_data

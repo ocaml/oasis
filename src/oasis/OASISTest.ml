@@ -36,7 +36,7 @@ let schema, generator =
    schema "Test"
   in
   let cmn_section_gen =
-    OASISSection.section_fields (s_ "test") schm
+    OASISSection.section_fields (fun () -> (s_ "test")) schm
   in
   let typ =
     new_field schm "Type"

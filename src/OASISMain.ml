@@ -27,10 +27,30 @@ open OASISUtils
 open OASISPlugin
 open OASISBuiltinPlugins
 
+IFDEF HAS_GETTEXT THEN
+module Gettext =
+  Gettext.Program
+    (struct
+       let textdomain   = "oasis"
+       let codeset      = None
+       let dir          = None
+       let dependencies = Gettext.init @ OASISGettext.init
+     end)
+    (GettextCamomile.Map)
+ELSE
+module Gettext =
+struct 
+  let init = [], ""
+end
+ENDIF
+
 type action_t =
   | Generate 
   | Quickstart
   | Documentation
+
+let () =
+  OASISBuiltinPlugins.init ()
 
 let () =
 
@@ -55,7 +75,7 @@ let () =
   in
 
   let (gettext_args, _) =
-    OASISGettext.init
+    Gettext.init
   in
 
   let args = 
@@ -98,7 +118,7 @@ let () =
               used with caution, it is reserved for internal use.");                   
 
     ] 
-    @ OASISMessage.args
+    @ (OASISMessage.args ())
     @ gettext_args
   in
 

@@ -1,0 +1,23 @@
+# OASIS_START
+# DO NOT EDIT (digest: a39160d8806f9b03f723192408eb1537)
+BaseArgExt
+BaseBuilt
+BaseCheck
+BaseCustom
+BaseData
+BaseDev
+BaseDoc
+BaseEnvLight
+BaseEnv
+BaseExec
+BaseFileAB
+BaseFileGenerate
+BaseFilePath
+BaseFileUtil
+BaseGenerate
+BaseLog
+BaseOCamlcConfig
+BaseSetup
+BaseStandardVar
+BaseTest
+# OASIS_STOP

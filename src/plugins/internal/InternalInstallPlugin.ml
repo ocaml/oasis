@@ -394,7 +394,7 @@ let uninstall _ argv =
 
 open OASISPlugin
 
-let () = 
+let init () = 
   let module PU = Install.Make(InternalId)
   in
   (* Installation *)

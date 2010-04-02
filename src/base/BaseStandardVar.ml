@@ -50,13 +50,13 @@ let pkg_get () =
 
 let pkg_name = 
   var_define
-    ~short_desc:(s_ "Package name")
+    ~short_desc:(fun () -> s_ "Package name")
     "pkg_name"
     (lazy (fst (pkg_get ())))
 
 let pkg_version =
   var_define
-    ~short_desc:(s_ "Package version")
+    ~short_desc:(fun () -> s_ "Package version")
     "pkg_version"
     (lazy 
        (OASISVersion.string_of_version 
@@ -128,7 +128,7 @@ let (/) a b =
 
 let prefix = 
   p "prefix"
-    (s_ "Install architecture-independent files dir")
+    (fun () -> s_ "Install architecture-independent files dir")
     (lazy 
        (match os_type () with
           | "Win32" ->
@@ -141,97 +141,97 @@ let prefix =
 
 let exec_prefix = 
   p "exec_prefix"
-    (s_ "Install architecture-dependent files in dir")
+    (fun () -> s_ "Install architecture-dependent files in dir")
     (lazy "$prefix")
 
 let bindir =
   p "bindir"
-    (s_ "User executables")
+    (fun () -> s_ "User executables")
     (lazy ("$exec_prefix"/"bin"))
 
 let sbindir =
   p "sbindir"
-    (s_ "System admin executables")
+    (fun () -> s_ "System admin executables")
     (lazy ("$exec_prefix"/"sbin"))
 
 let libexecdir =
   p "libexecdir"
-    (s_ "Program executables")
+    (fun () -> s_ "Program executables")
     (lazy ("$exec_prefix"/"libexec"))
 
 let sysconfdir =
   p "sysconfdir"
-    (s_ "Read-only single-machine data")
+    (fun () -> s_ "Read-only single-machine data")
     (lazy ("$prefix"/"etc"))
 
 let sharedstatedir =
   p "sharedstatedir"
-    (s_ "Modifiable architecture-independent data")
+    (fun () -> s_ "Modifiable architecture-independent data")
     (lazy ("$prefix"/"com"))
 
 let localstatedir =
   p "localstatedir"
-    (s_ "Modifiable single-machine data")
+    (fun () -> s_ "Modifiable single-machine data")
     (lazy ("$prefix"/"var"))
 
 let libdir =
   p "libdir"
-    "Object code libraries"
+    (fun () -> s_ "Object code libraries")
     (lazy ("$exec_prefix"/"lib"))
 
 let datarootdir =
   p "datarootdir"
-    (s_ "Read-only arch-independent data root")
+    (fun () -> s_ "Read-only arch-independent data root")
     (lazy ("$prefix"/"share"))
 
 let datadir =
   p "datadir"
-    (s_ "Read-only architecture-independent data")
+    (fun () -> s_ "Read-only architecture-independent data")
     (lazy ("$datarootdir"))
 
 let infodir =
   p "infodir"
-    (s_ "Info documentation")
+    (fun () -> s_ "Info documentation")
     (lazy ("$datarootdir"/"info"))
 
 let localedir =
   p "localedir"
-    (s_ "Locale-dependent data")
+    (fun () -> s_ "Locale-dependent data")
     (lazy ("$datarootdir"/"locale"))
 
 let mandir =
   p "mandir"
-    (s_ "Man documentation")
+    (fun () -> s_ "Man documentation")
     (lazy ("$datarootdir"/"man"))
 
 let docdir =
   p "docdir"
-    (s_ "Documentation root")
+    (fun () -> s_ "Documentation root")
     (lazy ("$datarootdir"/"doc"/"$pkg_name"))
 
 let htmldir =
   p "htmldir"
-    (s_ "HTML documentation")
+    (fun () -> s_ "HTML documentation")
     (lazy ("$docdir"))
 
 let dvidir =
   p "dvidir"
-    (s_ "DVI documentation")
+    (fun () -> s_ "DVI documentation")
     (lazy ("$docdir"))
 
 let pdfdir =
   p "pdfdir"
-    (s_ "PDF documentation")
+    (fun () -> s_ "PDF documentation")
     (lazy ("$docdir"))
 
 let psdir =
   p "psdir"
-    (s_ "PS documentation")
+    (fun () -> s_ "PS documentation")
     (lazy ("$docdir"))
 
 let destdir =
   p "destdir"
-    (s_ "Prepend a path when installing package")
+    (fun () -> s_ "Prepend a path when installing package")
     (lazy 
        (raise 
           (PropList.Not_set

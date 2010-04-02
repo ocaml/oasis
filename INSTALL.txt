@@ -1,0 +1,48 @@
+(* OASIS_START *)
+(* DO NOT EDIT (digest: ea166c1b093353ba8ccf92fdb2038c6b) *)
+This is the INSTALL file for the oasis distribution.
+
+This package uses OASIS to generate its build system. See section OASIS for
+full information. 
+
+Dependencies
+============
+
+In order to compile this package, you will need:
+* ocaml (>= 3.10.2) for all, doc base, doc builtin-plugins, doc oasis,
+  doc plugin-custom, doc plugin-devfiles, doc plugin-internal,
+  doc plugin-meta, doc plugin-none, doc plugin-ocamlbuild,
+  doc plugin-stdfiles
+* findlib
+* fileutils for library oasis, executable ocamlmod
+* make for all, test main, doc manual
+* extlib for library oasis
+* odn for library oasis
+* ocamlgraph for library oasis
+* ocamlify for library base, library oasis, library plugin-custom,
+  library plugin-devfiles, library plugin-internal, library plugin-meta,
+  library plugin-none, library plugin-ocamlbuild, library plugin-stdfiles
+* oUnit for executable test
+
+Installing
+==========
+
+1. Uncompress source directory and got to the root of the package
+2. Run 'ocaml setup.ml -configure'
+3. Run 'ocaml setup.ml -build'
+4. Run 'ocaml setup.ml -install'
+
+Uninstalling
+============
+
+1. Go to the root of the package 
+2. Run 'ocaml setup.ml -uninstall'
+
+OASIS
+=====
+
+OASIS is a software that helps to write setup.ml using a simple '_oasis'
+configuration file. The generated setup only depends on standard OCaml
+installation, no additional library is required.
+
+(* OASIS_STOP *)

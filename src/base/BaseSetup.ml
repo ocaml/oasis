@@ -284,8 +284,7 @@ let setup t =
                Arg.Clear catch_exn,
                s_ " Don't catch exception, useful for debugging.";
              ] 
-           @ OASISMessage.args
-           @ args)
+           @ (OASISMessage.args ()))
           (failwithf1 (f_ "Don't know what to do with '%s'"))
           (s_ "Setup and run build process current package\n");
 
@@ -309,7 +308,7 @@ let setup t =
                    in
                      match hlp with 
                        | Some hlp ->
-                           apply ~short_desc:hlp ()
+                           apply ~short_desc:(fun () -> hlp) ()
                        | None ->
                            apply ()
                  end
