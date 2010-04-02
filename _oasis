@@ -105,7 +105,8 @@ Library base
            BaseOCamlcConfig,
            BaseSetup,
            BaseStandardVar,
-           BaseTest
+           BaseTest,
+           BaseDynVar
   CompiledObject: byte
 #  XOCamlbuildExtern: false
   BuildDepends: oasis
@@ -208,12 +209,12 @@ Executable test
 
 Test main
   Type: custom (0.1.0)
-  Command: $(utoh "../_build/test/test")
+  Command: $test
   WorkingDirectory: test 
   TestTools: OASIS, test
 
 Documentation manual
   Type: custom (0.1.0)
-  XCustom: env LANG=C $(utoh _build/src/OASIS) -documentation > doc/MANUAL.mkd
+  XCustom: env LANG=C $OASIS -documentation > doc/MANUAL.mkd
   XCustomClean: rm doc/MANUAL.mkd
 

@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: a39160d8806f9b03f723192408eb1537)
+# DO NOT EDIT (digest: b0ced4ca96d00492cc6dbf0044ef32ac)
 BaseArgExt
 BaseBuilt
 BaseCheck
@@ -20,4 +20,5 @@ BaseOCamlcConfig
 BaseSetup
 BaseStandardVar
 BaseTest
+BaseDynVar
 # OASIS_STOP

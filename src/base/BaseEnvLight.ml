@@ -30,7 +30,7 @@ type t = string MapString.t
   *)
 let default_filename =
   Filename.concat 
-    (Filename.dirname Sys.argv.(0))
+    (Sys.getcwd ())
     "setup.data"
 
 (** Load environment.

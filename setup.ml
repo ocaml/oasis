@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: db42d27d9bb8cd7b75bc9c0cf2fa0894) *)
+(* DO NOT EDIT (digest: fa6684563357d12435a9b6012983ecc6) *)
 module OASISGettext = struct
 # 0 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
   
@@ -1593,7 +1593,7 @@ module BaseEnvLight = struct
     *)
   let default_filename =
     Filename.concat 
-      (Filename.dirname Sys.argv.(0))
+      (Sys.getcwd ())
       "setup.data"
   
   (** Load environment.
@@ -3223,7 +3223,10 @@ module BaseBuilt = struct
       (fun fn ->
          BaseLog.register 
            (to_log_event t nm)
-           fn)
+           (if Filename.is_relative fn then
+              Filename.concat (Sys.getcwd ()) fn
+            else 
+              fn))
       lst
   
   (* Unregister all files built *)
@@ -3326,6 +3329,7 @@ module BaseBuilt = struct
                  ())
         ()
         pkg.sections
+  
 end
 
 module BaseCustom = struct
@@ -3378,6 +3382,57 @@ module BaseCustom = struct
     in
       optional_command cstm.post_command;
       res
+end
+
+module BaseDynVar = struct
+# 0 "/home/gildor/programmation/oasis/src/base/BaseDynVar.ml"
+  
+  (** Dynamic variables which are set in setup.log during compilation
+      @author Sylvain Le Gall
+    
+      This variables are typically executable real name that are initially not
+      set and then are set while building.
+    *)
+  
+  open OASISTypes
+  open OASISGettext
+  open BaseEnv
+  open BaseBuilt
+  
+  let init pkg =
+    List.iter 
+      (function
+         | Executable (cs, bs, exec) ->
+             var_ignore
+               (var_define 
+                  (* We don't save this variable *)
+                  ~dump:false
+                  ~short_desc:(fun () -> 
+                                 Printf.sprintf 
+                                   (f_ "Filename of executable '%s'")
+                                   cs.cs_name)
+                  cs.cs_name
+                  (lazy 
+                     (let fn_opt = 
+                        fold
+                          BExec cs.cs_name
+                          (fun _ fn -> Some fn)
+                          None
+                      in
+                        match fn_opt with
+                          | Some fn -> fn
+                          | None ->
+                              raise 
+                                (PropList.Not_set
+                                   (cs.cs_name, 
+                                    Some (Printf.sprintf 
+                                            (f_ "Executable '%s' not yet built.")
+                                            cs.cs_name))))))
+  
+         | Library _ | Flag _ | Test _ | SrcRepo _ | Doc _ ->
+             ())
+      pkg.sections
+  
 end
 
 module BaseTest = struct
@@ -3792,6 +3847,8 @@ module BaseSetup = struct
   
           BaseStandardVar.init (t.package.name, t.package.version);
   
+          BaseDynVar.init t.package;
+  
           !act_ref t (Array.of_list (List.rev !extra_args_ref))
   
       with e when !catch_exn ->
@@ -3878,7 +3935,7 @@ module BaseDev = struct
 end
 
 
-# 3881 "setup.ml"
+# 3938 "setup.ml"
 module InternalConfigurePlugin = struct
 # 0 "/home/gildor/programmation/oasis/src/plugins/internal/InternalConfigurePlugin.ml"
   
@@ -4385,7 +4442,7 @@ module InternalInstallPlugin = struct
 end
 
 
-# 4388 "setup.ml"
+# 4445 "setup.ml"
 module OCamlbuildCommon = struct
 # 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildCommon.ml"
   
@@ -4693,7 +4750,7 @@ module OCamlbuildDocPlugin = struct
 end
 
 
-# 4696 "setup.ml"
+# 4753 "setup.ml"
 module CustomPlugin = struct
 # 0 "/home/gildor/programmation/oasis/src/plugins/custom/CustomPlugin.ml"
   
@@ -4814,7 +4871,7 @@ module CustomPlugin = struct
 end
 
 
-# 4817 "setup.ml"
+# 4874 "setup.ml"
 open OASISTypes;;
 let setup () =
   BaseSetup.setup
@@ -4826,8 +4883,7 @@ let setup () =
             ("main",
               CustomPlugin.Test.main
                 {
-                   CustomPlugin.cmd_main =
-                     [(EBool true, ("$(utoh \"../_build/test/test\")", []))];
+                   CustomPlugin.cmd_main = [(EBool true, ("$test", []))];
                    cmd_clean = [(EBool true, None)];
                    cmd_distclean = [(EBool true, None)];
                    })
@@ -4897,7 +4953,8 @@ let setup () =
                         "BaseOCamlcConfig";
                         "BaseSetup";
                         "BaseStandardVar";
-                        "BaseTest"
+                        "BaseTest";
+                        "BaseDynVar"
                      ];
                    });
             ("plugin-stdfiles",
@@ -4958,8 +5015,7 @@ let setup () =
             ("main",
               CustomPlugin.Test.clean
                 {
-                   CustomPlugin.cmd_main =
-                     [(EBool true, ("$(utoh \"../_build/test/test\")", []))];
+                   CustomPlugin.cmd_main = [(EBool true, ("$test", []))];
                    cmd_clean = [(EBool true, None)];
                    cmd_distclean = [(EBool true, None)];
                    })
@@ -5029,7 +5085,8 @@ let setup () =
                         "BaseOCamlcConfig";
                         "BaseSetup";
                         "BaseStandardVar";
-                        "BaseTest"
+                        "BaseTest";
+                        "BaseDynVar"
                      ];
                    });
             ("plugin-stdfiles",
@@ -5088,8 +5145,7 @@ let setup () =
             ("main",
               CustomPlugin.Test.distclean
                 {
-                   CustomPlugin.cmd_main =
-                     [(EBool true, ("$(utoh \"../_build/test/test\")", []))];
+                   CustomPlugin.cmd_main = [(EBool true, ("$test", []))];
                    cmd_clean = [(EBool true, None)];
                    cmd_distclean = [(EBool true, None)];
                    })
@@ -5323,7 +5379,8 @@ let setup () =
                              "BaseOCamlcConfig";
                              "BaseSetup";
                              "BaseStandardVar";
-                             "BaseTest"
+                             "BaseTest";
+                             "BaseDynVar"
                           ];
                         lib_internal_modules = [];
                         lib_findlib_parent = None;
@@ -5686,11 +5743,7 @@ let setup () =
                         test_type =
                           ("custom",
                             Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-                        test_command =
-                          [
-                             (EBool true,
-                               ("$(utoh \"../_build/test/test\")", []))
-                          ];
+                        test_command = [(EBool true, ("$test", []))];
                         test_custom =
                           {
                              pre_command = [(EBool true, None)];

@@ -318,6 +318,8 @@ let setup t =
 
         BaseStandardVar.init (t.package.name, t.package.version);
 
+        BaseDynVar.init t.package;
+
         !act_ref t (Array.of_list (List.rev !extra_args_ref))
 
     with e when !catch_exn ->

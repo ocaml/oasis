@@ -50,7 +50,10 @@ let register t nm lst =
     (fun fn ->
        BaseLog.register 
          (to_log_event t nm)
-         fn)
+         (if Filename.is_relative fn then
+            Filename.concat (Sys.getcwd ()) fn
+          else 
+            fn))
     lst
 
 (* Unregister all files built *)
@@ -153,3 +156,4 @@ let clean_all pkg =
                ())
       ()
       pkg.sections
+

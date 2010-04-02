@@ -113,7 +113,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 7f9036c63d3904b06045157bfa1a6e57) *)
+(* DO NOT EDIT (digest: aa43b8ecb9035f164724bbfc26a14b7f) *)
 module BaseEnvLight = struct
 # 0 "/home/gildor/programmation/oasis/src/base/BaseEnvLight.ml"
   
@@ -128,7 +128,7 @@ module BaseEnvLight = struct
     *)
   let default_filename =
     Filename.concat 
-      (Filename.dirname Sys.argv.(0))
+      (Sys.getcwd ())
       "setup.data"
   
   (** Load environment.
@@ -196,8 +196,8 @@ end
 
 
 # 84 "myocamlbuild.ml"
-module OCamlbuildFindlib = struct
-(* # 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildFindlib.ml" *)
+module MyOCamlbuildFindlib = struct
+# 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml"
   
   (** OCamlbuild extension, copied from 
     * http://brion.inria.fr/gallium/index.php/Using_ocamlfind_with_ocamlbuild
@@ -304,8 +304,8 @@ module OCamlbuildFindlib = struct
   
 end
 
-module OCamlbuildBase = struct
-(* # 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildBase.ml" *)
+module MyOCamlbuildBase = struct
+# 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/MyOCamlbuildBase.ml"
   
   (** Base functions for writing myocamlbuild.ml
       @author Sylvain Le Gall
@@ -318,7 +318,7 @@ module OCamlbuildBase = struct
   type dir = string 
   type name = string 
   
-(* # 52 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildBase.ml" *)
+# 52 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/MyOCamlbuildBase.ml"
   
   type t =
       {
@@ -417,16 +417,17 @@ module OCamlbuildBase = struct
     dispatch_combine 
       [
         dispatch t;
-        OCamlbuildFindlib.dispatch;
+        MyOCamlbuildFindlib.dispatch;
       ]
   
 end
 
 
+# 312 "myocamlbuild.ml"
 open Ocamlbuild_plugin;;
 let package_default =
   {
-     OCamlbuildBase.lib_ocaml =
+     MyOCamlbuildBase.lib_ocaml =
        [
           ("src/oasis/oasis", ["src/oasis"], true);
           ("src/base/base", ["src/base"], true);
@@ -473,14 +474,14 @@ let package_default =
      }
   ;;
 
-let dispatch_default = OCamlbuildBase.dispatch_default package_default;;
+let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
 (* OASIS_STOP *)
 
 open Ocamlbuild_plugin;;
 
 dispatch 
-  (OCamlbuildBase.dispatch_combine
+  (MyOCamlbuildBase.dispatch_combine
      [
        dispatch_default;
        begin
@@ -493,7 +494,7 @@ dispatch
                         "gettext" 
                         (BaseEnvLight.load
                            ~allow_empty:true
-                           ~filename:OCamlbuildBase.env_filename
+                           ~filename:MyOCamlbuildBase.env_filename
                            ())
                     in
                       if gettext = "true" then
