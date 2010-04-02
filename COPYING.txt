@@ -519,16 +519,3 @@ if necessary.  Here is a sample; alter the names:
   Ty Coon, President of Vice
 
 That's all there is to it!
-
-
-########################
-# File test/utf8-ja.po #
-########################
-
-This file has been extracted for testing purpose from virt-p2v. Here is the
-copyright notice:
-
-# Japanese translations for virt-p2v package.
-# Copyright (C) 2008 THE virt-p2v'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the virt-p2v package.
-# Richard Jones <rjones@redhat.com>, 2008.
