@@ -51,10 +51,12 @@ let generated_unix_files (cs, bs, lib)
            in
              (base_fn^".cmi") :: hdrs
          with Not_found ->
-           failwithf2
+           OASISMessage.warning
              (f_ "Cannot find source file matching \
                   module '%s' in library %s")
-             modul cs.cs_name)
+             modul cs.cs_name;
+             (OASISUnixPath.concat bs.bs_path (modul^".cmi")) 
+             :: hdrs)
       []
       lib.lib_modules
   in
