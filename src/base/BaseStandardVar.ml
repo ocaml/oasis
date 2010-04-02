@@ -52,16 +52,14 @@ let pkg_name =
   var_define
     ~short_desc:(fun () -> s_ "Package name")
     "pkg_name"
-    (lazy (fst (pkg_get ())))
+    (lazy (pkg_get ()).name)
 
 let pkg_version =
   var_define
     ~short_desc:(fun () -> s_ "Package version")
     "pkg_version"
     (lazy 
-       (OASISVersion.string_of_version 
-          (snd (pkg_get ()))))
-
+       (OASISVersion.string_of_version (pkg_get ()).version))
 
 (** {2 OCaml config variable} *) 
 

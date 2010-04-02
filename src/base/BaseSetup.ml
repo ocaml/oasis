@@ -316,7 +316,7 @@ let setup t =
                  ())
           t.package.sections;
 
-        BaseStandardVar.init (t.package.name, t.package.version);
+        BaseStandardVar.init t.package;
 
         BaseDynVar.init t.package;
 
