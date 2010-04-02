@@ -113,7 +113,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 84af389e42aa9f470c1ee8ab068b655b) *)
+(* DO NOT EDIT (digest: 7f9036c63d3904b06045157bfa1a6e57) *)
 module BaseEnvLight = struct
 # 0 "/home/gildor/programmation/oasis/src/base/BaseEnvLight.ml"
   
@@ -197,7 +197,7 @@ end
 
 # 84 "myocamlbuild.ml"
 module OCamlbuildFindlib = struct
-# 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildFindlib.ml"
+(* # 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildFindlib.ml" *)
   
   (** OCamlbuild extension, copied from 
     * http://brion.inria.fr/gallium/index.php/Using_ocamlfind_with_ocamlbuild
@@ -305,7 +305,7 @@ module OCamlbuildFindlib = struct
 end
 
 module OCamlbuildBase = struct
-# 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildBase.ml"
+(* # 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildBase.ml" *)
   
   (** Base functions for writing myocamlbuild.ml
       @author Sylvain Le Gall
@@ -318,7 +318,7 @@ module OCamlbuildBase = struct
   type dir = string 
   type name = string 
   
-# 52 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildBase.ml"
+(* # 52 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildBase.ml" *)
   
   type t =
       {
@@ -423,7 +423,6 @@ module OCamlbuildBase = struct
 end
 
 
-# 312 "myocamlbuild.ml"
 open Ocamlbuild_plugin;;
 let package_default =
   {

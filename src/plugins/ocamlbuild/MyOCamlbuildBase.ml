@@ -23,7 +23,7 @@
     @author Sylvain Le Gall
   *)
 
-TYPE_CONV_PATH "OCamlbuildBase"
+TYPE_CONV_PATH "MyOCamlbuildBase"
 
 open Ocamlbuild_plugin
 
@@ -148,7 +148,7 @@ let dispatch_default t =
   dispatch_combine 
     [
       dispatch t;
-      OCamlbuildFindlib.dispatch;
+      MyOCamlbuildFindlib.dispatch;
     ]
 
 (* END EXPORT *)

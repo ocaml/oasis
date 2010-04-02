@@ -138,8 +138,8 @@ Library "plugin-ocamlbuild"
   InternalModules: OCamlbuildData,
                    OCamlbuildCommon,
                    OCamlbuildId,
-                   OCamlbuildBase,
-                   OCamlbuildFindlib
+                   MyOCamlbuildBase,
+                   MyOCamlbuildFindlib
   Install: false
   CompiledObject: byte
   BuildDepends: oasis, base

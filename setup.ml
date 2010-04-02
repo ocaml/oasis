@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 80cfed6a6864712f699264dc9116ea91) *)
+(* DO NOT EDIT (digest: db42d27d9bb8cd7b75bc9c0cf2fa0894) *)
 module OASISGettext = struct
 # 0 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
   
@@ -5401,8 +5401,8 @@ let setup () =
                              "OCamlbuildData";
                              "OCamlbuildCommon";
                              "OCamlbuildId";
-                             "OCamlbuildBase";
-                             "OCamlbuildFindlib"
+                             "MyOCamlbuildBase";
+                             "MyOCamlbuildFindlib"
                           ];
                         lib_findlib_parent = None;
                         lib_findlib_name = None;

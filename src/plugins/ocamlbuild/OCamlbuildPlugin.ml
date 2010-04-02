@@ -205,7 +205,7 @@ open ODN
 open OASISPlugin
 open OASISTypes
 open OASISValues
-open OCamlbuildBase
+open MyOCamlbuildBase
 open Ocamlbuild_plugin
 
 module PU = OASISPlugin.Build.Make(OCamlbuildId)
@@ -651,12 +651,12 @@ let create_ocamlbuild_files pkg () =
            Format.fprintf Format.str_formatter
              "@[<hv2>let package_default =@ %a@,@];;"
              (pp_odn ~opened_modules:["Ocamlbuild_plugin"]) 
-             (OCamlbuildBase.odn_of_t myocamlbuild_t);
+             (MyOCamlbuildBase.odn_of_t myocamlbuild_t);
            Format.flush_str_formatter ()
          );
          "";
          "let dispatch_default = \
-                OCamlbuildBase.dispatch_default package_default;;"; 
+                MyOCamlbuildBase.dispatch_default package_default;;"; 
          "";
        ]
      in

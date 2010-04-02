@@ -210,8 +210,8 @@
 
 "src/plugins/custom/CustomPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
 
-"src/plugins/ocamlbuild/OCamlbuildBase.ml": syntax_camlp4o, pkg_odn.with.syntax
-"src/plugins/ocamlbuild/OCamlbuildBase.ml": use_ocamlbuild
-"src/plugins/ocamlbuild/OCamlbuildFindlib.ml": use_ocamlbuild
+"src/plugins/ocamlbuild/MyOCamlbuildBase.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/plugins/ocamlbuild/MyOCamlbuildBase.ml": use_ocamlbuild
+"src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml": use_ocamlbuild
 "src/plugins/ocamlbuild/OCamlbuildPlugin.ml": use_ocamlbuild
 "src/plugins/ocamlbuild/OCamlbuildDocPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
