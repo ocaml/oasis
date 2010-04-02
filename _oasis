@@ -74,7 +74,6 @@ Library oasis
                    OASISSection,
                    OASISSchema,
                    OASISConf,
-                   OASISHelpData,
                    OASISAst,
                    OASISCheck,
                    OASISRecDescParser,

@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: c320d468efb7b2310fc542d34d78054d) *)
+(* DO NOT EDIT (digest: 80cfed6a6864712f699264dc9116ea91) *)
 module OASISGettext = struct
 # 0 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
   
@@ -5267,7 +5267,6 @@ let setup () =
                              "OASISSection";
                              "OASISSchema";
                              "OASISConf";
-                             "OASISHelpData";
                              "OASISAst";
                              "OASISCheck";
                              "OASISRecDescParser";

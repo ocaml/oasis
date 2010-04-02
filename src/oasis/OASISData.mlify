@@ -1,1 +1,2 @@
 VarString oasissys_ml "OASISSys.ml"
+VarStringList readme_template_mkd "MANUAL-template.mkd"

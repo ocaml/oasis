@@ -300,4 +300,4 @@ let pp_help ?plugin fmt args msg =
              Buffer.contents buff)
       ] @ (vars ()))
       fmt
-      OASISHelpData.readme_template_mkd
+      OASISData.readme_template_mkd

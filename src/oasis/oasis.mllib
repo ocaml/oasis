@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 03d8caa1c1c64440f748782be0a8d374)
+# DO NOT EDIT (digest: 72fd84d46fdbb8a93384ac03bf4055f6)
 FormatExt
 OASISGettext
 OASISMessage
@@ -28,7 +28,6 @@ OASISVersion_parser
 OASISSection
 OASISSchema
 OASISConf
-OASISHelpData
 OASISAst
 OASISCheck
 OASISRecDescParser

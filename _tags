@@ -189,8 +189,6 @@
 
 # Base system and OASIS library 
 
-"doc": include
-
 <test/test.byte>: use_ocamlbuild
 <src/OASISMain.byte>: use_ocamlbuild
 
