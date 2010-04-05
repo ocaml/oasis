@@ -32,7 +32,12 @@ open OASISGettext
 let test lst pkg extra_args =
 
   let one_test (test_plugin, cs, test) =
-    if var_choose test.test_run then
+    if var_choose 
+         ~name:(Printf.sprintf
+                  (f_ "test %s run")
+                  cs.cs_name)
+         ~printer:string_of_bool
+         test.test_run then
       begin
         let () = 
           info (f_ "Running test '%s'") cs.cs_name

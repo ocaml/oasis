@@ -140,9 +140,10 @@ and var_get name =
 
 (** Choose a value among conditional expression
   *)
-let var_choose ?printer lst =
+let var_choose ?printer ?name lst =
   OASISExpr.choose 
     ?printer
+    ?name
     var_get 
     (fun et -> var_get (OASISExpr.string_of_expr_test et))
     lst

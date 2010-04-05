@@ -24,7 +24,11 @@ let hook ?(failsafe=false) cstm f e =
         | Some (cmd, args) -> String.concat " " (cmd :: args)
         | None -> s_ "No command"
     in
-      match var_choose ~printer lst with 
+      match 
+        var_choose 
+          ~name:(s_ "Pre/Post Command")
+          ~printer 
+          lst with 
         | Some (cmd, args) ->
             begin
               try 

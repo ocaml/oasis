@@ -1,0 +1,21 @@
+OASISFormat: 0.1
+Name:        with-c
+Version:     0.0.1
+Authors:     Sylvain Le Gall
+LicenseFile: LICENSE
+License:     LGPL-link-exn
+Synopsis:    Minimal project in a single directory.
+Plugins:     META
+
+Library "with-a"
+  Path: .
+  Modules: A
+  CompiledObject: byte
+  XOCamlbuildAutoDoc: false
+
+Documentation "manual-custom"
+  Type: custom (0.1.0)
+  XCustom: $make doc
+  XCustomClean: $make doc-clean
+  BuildTools: make
+

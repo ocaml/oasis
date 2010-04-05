@@ -117,9 +117,9 @@ let new_field_conditional
   let default = 
     match default with 
       | Some x ->
-          [EBool true, x]
+          Some [EBool true, x]
       | None ->
-          []
+          None
   in
 
   let parse ?context s = 
@@ -157,7 +157,7 @@ let new_field_conditional
       ~parse 
       ~print
       ~update
-      ~default
+      ?default
       ~help
       (extra
         ?plugin 

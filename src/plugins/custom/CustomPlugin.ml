@@ -40,7 +40,9 @@ let run  = BaseCustom.run
 
 let main t _ extra_args =
   let cmd, args =
-    var_choose t.cmd_main
+    var_choose 
+      ~name:(s_ "main command") 
+      t.cmd_main
   in
     run cmd args extra_args 
 
@@ -319,6 +321,9 @@ let doc_init () =
   in
   let cmd_main, cmd_clean, cmd_distclean =
     CU.add_fields
+      (* TODO: we must attach a type to schema, so we can pick sooner errors
+       * on creating a field in a schema and fetching it in another schema.
+       *)
       ~schema:OASISDocumentation.schema
       ""
       (fun () -> s_ "Run command to build documentation.")
@@ -328,9 +333,9 @@ let doc_init () =
   let doit pkg (cs, doc) =
       let t =
         {
-          cmd_main      = cmd_main pkg.schema_data;
-          cmd_clean     = cmd_clean pkg.schema_data;
-          cmd_distclean = cmd_distclean pkg.schema_data;
+          cmd_main      = cmd_main cs.cs_data;
+          cmd_clean     = cmd_clean cs.cs_data;
+          cmd_distclean = cmd_distclean cs.cs_data;
         }
       in
         {

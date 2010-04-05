@@ -1032,6 +1032,16 @@ let tests ctxt =
            try_installed_library "with-a" ["A"];
            try_installed_exec "test-with-a" [];
          ];
+
+         (* Try custom document build *)
+         "data/customdoc",
+         true,
+         ["META"; "with-a.mllib"] @ oasis_ocamlbuild_files,
+         [
+           in_ocaml_library "with-a"
+             ["META"; "A.ml"; "A.cmi"; "with-a.cma"];
+         ],
+         [];
        ]
     )
 ;;

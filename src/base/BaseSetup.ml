@@ -59,18 +59,25 @@ let join_plugin_sections filter_map lst =
   List.rev
     (List.fold_left
        (fun acc sct ->
-          try 
-            match filter_map sct with 
-              | Some e ->
-                  e :: acc
-              | None ->
-                  acc
-          with Not_found ->
-            failwithf1
-              (f_ "Cannot find plugin matching %s")
-              (OASISSection.string_of_section sct))
+          match filter_map sct with 
+            | Some e ->
+                e :: acc
+            | None ->
+                acc)
        []
        lst)
+
+(** Search for plugin data associated with a section name
+  *)
+let lookup_plugin_section plugin action nm lst =
+  try 
+    List.assoc nm lst
+  with Not_found ->
+    failwithf3
+      (f_ "Cannot find plugin %s matching section %s for %s action")
+      plugin
+      nm
+      action
 
 (** Configure step *)
 let configure t args = 
@@ -101,7 +108,11 @@ let doc t args =
        (function 
           | Doc (cs, e) -> 
               Some 
-                (List.assoc cs.cs_name t.doc,
+                (lookup_plugin_section 
+                   "documentation" 
+                   (s_ "build")
+                   cs.cs_name 
+                   t.doc,
                  cs,
                  e)
           | _ -> 
@@ -117,7 +128,11 @@ let test t args =
        (function 
           | Test (cs, e) -> 
               Some 
-                (List.assoc cs.cs_name t.test,
+                (lookup_plugin_section
+                   "test"
+                   (s_ "run")
+                   cs.cs_name 
+                   t.test,
                  cs,
                  e)
           | _ -> 
@@ -142,7 +157,7 @@ let uninstall t args =
 
 (** Clean and distclean steps *)
 let clean, distclean = 
-  let generic_clean t what cstm mains docs tests args = 
+  let generic_clean t cstm mains docs tests args = 
     BaseCustom.hook
       ~failsafe:true
       cstm
@@ -152,14 +167,24 @@ let clean, distclean =
            (function
               | Test (cs, test) ->
                   let f =
-                    List.assoc cs.cs_name tests
+                    try 
+                      List.assoc cs.cs_name tests
+                    with Not_found ->
+                      fun _ _ _ -> ()
                   in
                     f t.package (cs, test) args
+              | Doc (cs, doc) ->
+                  let f =
+                    try
+                      List.assoc cs.cs_name docs 
+                    with Not_found ->
+                      fun _ _ _ -> ()
+                  in
+                    f t.package (cs, doc) args
               | Library _ 
               | Executable _
               | Flag _ 
-              | SrcRepo _
-              | Doc _ ->
+              | SrcRepo _ ->
                   ())
            t.package.sections;
          (* Clean whole package *)
@@ -173,7 +198,6 @@ let clean, distclean =
   let clean t args =
     generic_clean 
       t 
-      "cleaning" 
       t.package.clean_custom
       t.clean 
       t.clean_doc 
@@ -202,7 +226,6 @@ let clean, distclean =
     (* Call distclean code *)
     generic_clean 
       t 
-      "distcleaning" 
       t.package.distclean_custom
       t.distclean 
       t.distclean_doc 
@@ -304,7 +327,12 @@ let setup t =
                           ?short_desc
                           cs.cs_name
                           (lazy (string_of_bool 
-                                   (var_choose choices))))
+                                   (var_choose 
+                                      ~name:(Printf.sprintf 
+                                               (f_ "default value of flag %s")
+                                               cs.cs_name)
+                                      ~printer:string_of_bool
+                                      choices))))
                    in
                      match hlp with 
                        | Some hlp ->

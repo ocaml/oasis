@@ -19,33 +19,3 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Build documentation
-    @author Sylvain Le Gall
-  *)
-
-open BaseEnv
-open OASISTypes
-open OASISGettext
-
-let doc lst pkg extra_args =
-
-  let one_doc (doc_plugin, cs, doc) = 
-    if var_choose 
-         ~name:(Printf.sprintf 
-                 (f_ "documentation %s build") 
-                 cs.cs_name)
-         ~printer:string_of_bool
-         doc.doc_build then
-      begin
-        OASISMessage.info (f_ "Building documentation '%s'") cs.cs_name;
-        BaseCustom.hook
-          doc.doc_custom
-          (doc_plugin pkg (cs, doc))
-          extra_args
-      end
-  in
-    List.iter 
-      one_doc
-      lst
-
-(* END EXPORT *)
