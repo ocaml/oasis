@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: ea166c1b093353ba8ccf92fdb2038c6b) *)
+(* DO NOT EDIT (digest: ffa25fbaab9e6cb113137f01d47821e7) *)
 This is the INSTALL file for the oasis distribution.
 
 This package uses OASIS to generate its build system. See section OASIS for
@@ -9,10 +9,7 @@ Dependencies
 ============
 
 In order to compile this package, you will need:
-* ocaml (>= 3.10.2) for all, doc base, doc builtin-plugins, doc oasis,
-  doc plugin-custom, doc plugin-devfiles, doc plugin-internal,
-  doc plugin-meta, doc plugin-none, doc plugin-ocamlbuild,
-  doc plugin-stdfiles
+* ocaml (>= 3.10.2) for all, doc base, doc oasis
 * findlib
 * fileutils for library oasis, executable ocamlmod
 * make for all, test main, doc manual

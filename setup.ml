@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: fa6684563357d12435a9b6012983ecc6) *)
+(* DO NOT EDIT (digest: 58674c9866762345cca13aaab8c05e83) *)
 module OASISGettext = struct
 # 0 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
   
@@ -1069,7 +1069,7 @@ module OASISExpr = struct
   open OASISUtils
   
   (** Evaluate each conditions and choose the right one. *)
-  let choose ?printer var_get test_get lst =
+  let choose ?printer ?name var_get test_get lst =
     let rec eval =
       function
         | EBool b ->
@@ -1106,16 +1106,29 @@ module OASISExpr = struct
             else
               choose_aux tl
         | [] ->
-            failwithf1
-              (f_ "No result for a choice list: %s")
-              (String.concat 
-                 (s_ ", ")
-                 (List.map
-                    (fun (cond, vl) ->
-                       match printer with
-                         | Some p -> p vl
-                         | None -> "<no printer>")
-                    lst))
+            let str_lst = 
+              if lst = [] then
+                s_ "<empty>"
+              else
+                String.concat 
+                  (s_ ", ")
+                  (List.map
+                     (fun (cond, vl) ->
+                        match printer with
+                          | Some p -> p vl
+                          | None -> "<no printer>")
+                     lst)
+            in
+              match name with 
+                | Some nm ->
+                    failwithf2
+                      (f_ "No result for the choice list '%s': %s")
+                      nm
+                      str_lst
+                | None ->
+                    failwithf1
+                      (f_ "No result for a choice list: %s")
+                      str_lst
     in
       choose_aux (List.rev lst)
   
@@ -1578,7 +1591,7 @@ module OASISDocumentation = struct
 end
 
 
-# 1581 "setup.ml"
+# 1594 "setup.ml"
 module BaseEnvLight = struct
 # 0 "/home/gildor/programmation/oasis/src/base/BaseEnvLight.ml"
   
@@ -1660,7 +1673,7 @@ module BaseEnvLight = struct
 end
 
 
-# 1663 "setup.ml"
+# 1676 "setup.ml"
 module BaseFilePath = struct
 # 0 "/home/gildor/programmation/oasis/src/base/BaseFilePath.ml"
   
@@ -1821,9 +1834,10 @@ module BaseEnv = struct
   
   (** Choose a value among conditional expression
     *)
-  let var_choose ?printer lst =
+  let var_choose ?printer ?name lst =
     OASISExpr.choose 
       ?printer
+      ?name
       var_get 
       (fun et -> var_get (OASISExpr.string_of_expr_test et))
       lst
@@ -2308,7 +2322,7 @@ end
 module BaseFileUtil = struct
 # 0 "/home/gildor/programmation/oasis/src/base/BaseFileUtil.ml"
   
-  (** {1 File operation (install, which...)
+  (** {1 File operation (install, which...)}
     *)
   
   open OASISGettext
@@ -2780,16 +2794,14 @@ module BaseStandardVar = struct
     var_define
       ~short_desc:(fun () -> s_ "Package name")
       "pkg_name"
-      (lazy (fst (pkg_get ())))
+      (lazy (pkg_get ()).name)
   
   let pkg_version =
     var_define
       ~short_desc:(fun () -> s_ "Package version")
       "pkg_version"
       (lazy 
-         (OASISVersion.string_of_version 
-            (snd (pkg_get ()))))
-  
+         (OASISVersion.string_of_version (pkg_get ()).version))
   
   (** {2 OCaml config variable} *) 
   
@@ -3360,7 +3372,11 @@ module BaseCustom = struct
           | Some (cmd, args) -> String.concat " " (cmd :: args)
           | None -> s_ "No command"
       in
-        match var_choose ~printer lst with 
+        match 
+          var_choose 
+            ~name:(s_ "Pre/Post Command")
+            ~printer 
+            lst with 
           | Some (cmd, args) ->
               begin
                 try 
@@ -3451,7 +3467,12 @@ module BaseTest = struct
   let test lst pkg extra_args =
   
     let one_test (test_plugin, cs, test) =
-      if var_choose test.test_run then
+      if var_choose 
+           ~name:(Printf.sprintf
+                    (f_ "test %s run")
+                    cs.cs_name)
+           ~printer:string_of_bool
+           test.test_run then
         begin
           let () = 
             info (f_ "Running test '%s'") cs.cs_name
@@ -3530,7 +3551,12 @@ module BaseDoc = struct
   let doc lst pkg extra_args =
   
     let one_doc (doc_plugin, cs, doc) = 
-      if var_choose doc.doc_build then
+      if var_choose 
+           ~name:(Printf.sprintf 
+                   (f_ "documentation %s build") 
+                   cs.cs_name)
+           ~printer:string_of_bool
+           doc.doc_build then
         begin
           OASISMessage.info (f_ "Building documentation '%s'") cs.cs_name;
           BaseCustom.hook
@@ -3588,18 +3614,25 @@ module BaseSetup = struct
     List.rev
       (List.fold_left
          (fun acc sct ->
-            try 
-              match filter_map sct with 
-                | Some e ->
-                    e :: acc
-                | None ->
-                    acc
-            with Not_found ->
-              failwithf1
-                (f_ "Cannot find plugin matching %s")
-                (OASISSection.string_of_section sct))
+            match filter_map sct with 
+              | Some e ->
+                  e :: acc
+              | None ->
+                  acc)
          []
          lst)
+  
+  (** Search for plugin data associated with a section name
+    *)
+  let lookup_plugin_section plugin action nm lst =
+    try 
+      List.assoc nm lst
+    with Not_found ->
+      failwithf3
+        (f_ "Cannot find plugin %s matching section %s for %s action")
+        plugin
+        nm
+        action
   
   (** Configure step *)
   let configure t args = 
@@ -3630,7 +3663,11 @@ module BaseSetup = struct
          (function 
             | Doc (cs, e) -> 
                 Some 
-                  (List.assoc cs.cs_name t.doc,
+                  (lookup_plugin_section 
+                     "documentation" 
+                     (s_ "build")
+                     cs.cs_name 
+                     t.doc,
                    cs,
                    e)
             | _ -> 
@@ -3646,7 +3683,11 @@ module BaseSetup = struct
          (function 
             | Test (cs, e) -> 
                 Some 
-                  (List.assoc cs.cs_name t.test,
+                  (lookup_plugin_section
+                     "test"
+                     (s_ "run")
+                     cs.cs_name 
+                     t.test,
                    cs,
                    e)
             | _ -> 
@@ -3671,7 +3712,18 @@ module BaseSetup = struct
   
   (** Clean and distclean steps *)
   let clean, distclean = 
-    let generic_clean t what cstm mains docs tests args = 
+    let failsafe f a =
+      try 
+        f a
+      with e ->
+        OASISMessage.warning 
+          (f_ "Action fail with error: %s")
+          (match e with 
+             | Failure msg -> msg
+             | e -> Printexc.to_string e)
+    in
+  
+    let generic_clean t cstm mains docs tests args = 
       BaseCustom.hook
         ~failsafe:true
         cstm
@@ -3681,20 +3733,36 @@ module BaseSetup = struct
              (function
                 | Test (cs, test) ->
                     let f =
-                      List.assoc cs.cs_name tests
+                      try 
+                        List.assoc cs.cs_name tests
+                      with Not_found ->
+                        fun _ _ _ -> ()
                     in
-                      f t.package (cs, test) args
+                      failsafe
+                        (f t.package (cs, test))
+                        args
+                | Doc (cs, doc) ->
+                    let f =
+                      try
+                        List.assoc cs.cs_name docs 
+                      with Not_found ->
+                        fun _ _ _ -> ()
+                    in
+                      failsafe 
+                        (f t.package (cs, doc))
+                        args
                 | Library _ 
                 | Executable _
                 | Flag _ 
-                | SrcRepo _
-                | Doc _ ->
+                | SrcRepo _ ->
                     ())
              t.package.sections;
            (* Clean whole package *)
            List.iter
              (fun f -> 
-                f t.package args)
+                failsafe
+                  (f t.package)
+                  args)
              mains)
         ()
     in
@@ -3702,7 +3770,6 @@ module BaseSetup = struct
     let clean t args =
       generic_clean 
         t 
-        "cleaning" 
         t.package.clean_custom
         t.clean 
         t.clean_doc 
@@ -3731,7 +3798,6 @@ module BaseSetup = struct
       (* Call distclean code *)
       generic_clean 
         t 
-        "distcleaning" 
         t.package.distclean_custom
         t.distclean 
         t.distclean_doc 
@@ -3833,7 +3899,12 @@ module BaseSetup = struct
                             ?short_desc
                             cs.cs_name
                             (lazy (string_of_bool 
-                                     (var_choose choices))))
+                                     (var_choose 
+                                        ~name:(Printf.sprintf 
+                                                 (f_ "default value of flag %s")
+                                                 cs.cs_name)
+                                        ~printer:string_of_bool
+                                        choices))))
                      in
                        match hlp with 
                          | Some hlp ->
@@ -3845,7 +3916,7 @@ module BaseSetup = struct
                    ())
             t.package.sections;
   
-          BaseStandardVar.init (t.package.name, t.package.version);
+          BaseStandardVar.init t.package;
   
           BaseDynVar.init t.package;
   
@@ -3935,7 +4006,7 @@ module BaseDev = struct
 end
 
 
-# 3938 "setup.ml"
+# 4009 "setup.ml"
 module InternalConfigurePlugin = struct
 # 0 "/home/gildor/programmation/oasis/src/plugins/internal/InternalConfigurePlugin.ml"
   
@@ -4442,7 +4513,7 @@ module InternalInstallPlugin = struct
 end
 
 
-# 4445 "setup.ml"
+# 4516 "setup.ml"
 module OCamlbuildCommon = struct
 # 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildCommon.ml"
   
@@ -4750,7 +4821,7 @@ module OCamlbuildDocPlugin = struct
 end
 
 
-# 4753 "setup.ml"
+# 4824 "setup.ml"
 module CustomPlugin = struct
 # 0 "/home/gildor/programmation/oasis/src/plugins/custom/CustomPlugin.ml"
   
@@ -4775,7 +4846,9 @@ module CustomPlugin = struct
   
   let main t _ extra_args =
     let cmd, args =
-      var_choose t.cmd_main
+      var_choose 
+        ~name:(s_ "main command") 
+        t.cmd_main
     in
       run cmd args extra_args 
   
@@ -4871,7 +4944,7 @@ module CustomPlugin = struct
 end
 
 
-# 4874 "setup.ml"
+# 4947 "setup.ml"
 open OASISTypes;;
 let setup () =
   BaseSetup.setup
@@ -4893,8 +4966,23 @@ let setup () =
             ("manual",
               CustomPlugin.Doc.main
                 {
-                   CustomPlugin.cmd_main = [];
-                   cmd_clean = [(EBool true, None)];
+                   CustomPlugin.cmd_main =
+                     [
+                        (EFlag "gettext",
+                          ("$OASIS",
+                            [
+                               "--gettext-language";
+                               "C";
+                               "-documentation";
+                               ">";
+                               "doc/MANUAL.mkd"
+                            ]));
+                        (ENot (EFlag "gettext"),
+                          ("$OASIS",
+                            ["-documentation"; ">"; "doc/MANUAL.mkd"]))
+                     ];
+                   cmd_clean =
+                     [(EBool true, Some (("rm", ["doc/MANUAL.mkd"])))];
                    cmd_distclean = [(EBool true, None)];
                    });
             ("oasis",
@@ -4956,55 +5044,6 @@ let setup () =
                         "BaseTest";
                         "BaseDynVar"
                      ];
-                   });
-            ("plugin-stdfiles",
-              OCamlbuildDocPlugin.doc_build
-                {
-                   OCamlbuildDocPlugin.path = "src/plugins/extra/stdfiles";
-                   modules = ["StdFilesPlugin"];
-                   });
-            ("plugin-ocamlbuild",
-              OCamlbuildDocPlugin.doc_build
-                {
-                   OCamlbuildDocPlugin.path = "src/plugins/ocamlbuild";
-                   modules = ["OCamlbuildPlugin"; "OCamlbuildDocPlugin"];
-                   });
-            ("plugin-none",
-              OCamlbuildDocPlugin.doc_build
-                {
-                   OCamlbuildDocPlugin.path = "src/plugins/none";
-                   modules = ["NonePlugin"];
-                   });
-            ("plugin-meta",
-              OCamlbuildDocPlugin.doc_build
-                {
-                   OCamlbuildDocPlugin.path = "src/plugins/extra/META";
-                   modules = ["METAPlugin"];
-                   });
-            ("plugin-internal",
-              OCamlbuildDocPlugin.doc_build
-                {
-                   OCamlbuildDocPlugin.path = "src/plugins/internal";
-                   modules =
-                     ["InternalConfigurePlugin"; "InternalInstallPlugin"];
-                   });
-            ("plugin-devfiles",
-              OCamlbuildDocPlugin.doc_build
-                {
-                   OCamlbuildDocPlugin.path = "src/plugins/extra/devfiles";
-                   modules = ["DevFilesPlugin"];
-                   });
-            ("plugin-custom",
-              OCamlbuildDocPlugin.doc_build
-                {
-                   OCamlbuildDocPlugin.path = "src/plugins/custom";
-                   modules = ["CustomPlugin"];
-                   });
-            ("builtin-plugins",
-              OCamlbuildDocPlugin.doc_build
-                {
-                   OCamlbuildDocPlugin.path = "src";
-                   modules = ["OASISBuiltinPlugins"];
                    })
          ];
        install = InternalInstallPlugin.install;
@@ -5025,8 +5064,23 @@ let setup () =
             ("manual",
               CustomPlugin.Doc.clean
                 {
-                   CustomPlugin.cmd_main = [];
-                   cmd_clean = [(EBool true, None)];
+                   CustomPlugin.cmd_main =
+                     [
+                        (EFlag "gettext",
+                          ("$OASIS",
+                            [
+                               "--gettext-language";
+                               "C";
+                               "-documentation";
+                               ">";
+                               "doc/MANUAL.mkd"
+                            ]));
+                        (ENot (EFlag "gettext"),
+                          ("$OASIS",
+                            ["-documentation"; ">"; "doc/MANUAL.mkd"]))
+                     ];
+                   cmd_clean =
+                     [(EBool true, Some (("rm", ["doc/MANUAL.mkd"])))];
                    cmd_distclean = [(EBool true, None)];
                    });
             ("oasis",
@@ -5088,55 +5142,6 @@ let setup () =
                         "BaseTest";
                         "BaseDynVar"
                      ];
-                   });
-            ("plugin-stdfiles",
-              OCamlbuildDocPlugin.doc_clean
-                {
-                   OCamlbuildDocPlugin.path = "src/plugins/extra/stdfiles";
-                   modules = ["StdFilesPlugin"];
-                   });
-            ("plugin-ocamlbuild",
-              OCamlbuildDocPlugin.doc_clean
-                {
-                   OCamlbuildDocPlugin.path = "src/plugins/ocamlbuild";
-                   modules = ["OCamlbuildPlugin"; "OCamlbuildDocPlugin"];
-                   });
-            ("plugin-none",
-              OCamlbuildDocPlugin.doc_clean
-                {
-                   OCamlbuildDocPlugin.path = "src/plugins/none";
-                   modules = ["NonePlugin"];
-                   });
-            ("plugin-meta",
-              OCamlbuildDocPlugin.doc_clean
-                {
-                   OCamlbuildDocPlugin.path = "src/plugins/extra/META";
-                   modules = ["METAPlugin"];
-                   });
-            ("plugin-internal",
-              OCamlbuildDocPlugin.doc_clean
-                {
-                   OCamlbuildDocPlugin.path = "src/plugins/internal";
-                   modules =
-                     ["InternalConfigurePlugin"; "InternalInstallPlugin"];
-                   });
-            ("plugin-devfiles",
-              OCamlbuildDocPlugin.doc_clean
-                {
-                   OCamlbuildDocPlugin.path = "src/plugins/extra/devfiles";
-                   modules = ["DevFilesPlugin"];
-                   });
-            ("plugin-custom",
-              OCamlbuildDocPlugin.doc_clean
-                {
-                   OCamlbuildDocPlugin.path = "src/plugins/custom";
-                   modules = ["CustomPlugin"];
-                   });
-            ("builtin-plugins",
-              OCamlbuildDocPlugin.doc_clean
-                {
-                   OCamlbuildDocPlugin.path = "src";
-                   modules = ["OASISBuiltinPlugins"];
                    })
          ];
        distclean = [];
@@ -5155,8 +5160,23 @@ let setup () =
             ("manual",
               CustomPlugin.Doc.distclean
                 {
-                   CustomPlugin.cmd_main = [];
-                   cmd_clean = [(EBool true, None)];
+                   CustomPlugin.cmd_main =
+                     [
+                        (EFlag "gettext",
+                          ("$OASIS",
+                            [
+                               "--gettext-language";
+                               "C";
+                               "-documentation";
+                               ">";
+                               "doc/MANUAL.mkd"
+                            ]));
+                        (ENot (EFlag "gettext"),
+                          ("$OASIS",
+                            ["-documentation"; ">"; "doc/MANUAL.mkd"]))
+                     ];
+                   cmd_clean =
+                     [(EBool true, Some (("rm", ["doc/MANUAL.mkd"])))];
                    cmd_distclean = [(EBool true, None)];
                    })
          ];
@@ -5808,182 +5828,6 @@ let setup () =
                         doc_build = [(EBool true, true)];
                         doc_install = [(EBool true, true)];
                         doc_install_dir = "$htmldir/base";
-                        doc_data_files = [];
-                        doc_build_tools =
-                          [ExternalTool "ocamldoc"; ExternalTool "ocamlbuild"
-                          ];
-                        });
-                 Doc
-                   ({
-                       cs_name = "plugin-stdfiles";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        doc_type =
-                          ("ocamlbuild",
-                            Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-                        doc_custom =
-                          {
-                             pre_command = [(EBool true, None)];
-                             post_command = [(EBool true, None)];
-                             };
-                        doc_build = [(EBool true, true)];
-                        doc_install = [(EBool true, false)];
-                        doc_install_dir = "$htmldir/plugin-stdfiles";
-                        doc_data_files = [];
-                        doc_build_tools =
-                          [ExternalTool "ocamldoc"; ExternalTool "ocamlbuild"
-                          ];
-                        });
-                 Doc
-                   ({
-                       cs_name = "plugin-ocamlbuild";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        doc_type =
-                          ("ocamlbuild",
-                            Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-                        doc_custom =
-                          {
-                             pre_command = [(EBool true, None)];
-                             post_command = [(EBool true, None)];
-                             };
-                        doc_build = [(EBool true, true)];
-                        doc_install = [(EBool true, false)];
-                        doc_install_dir = "$htmldir/plugin-ocamlbuild";
-                        doc_data_files = [];
-                        doc_build_tools =
-                          [ExternalTool "ocamldoc"; ExternalTool "ocamlbuild"
-                          ];
-                        });
-                 Doc
-                   ({
-                       cs_name = "plugin-none";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        doc_type =
-                          ("ocamlbuild",
-                            Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-                        doc_custom =
-                          {
-                             pre_command = [(EBool true, None)];
-                             post_command = [(EBool true, None)];
-                             };
-                        doc_build = [(EBool true, true)];
-                        doc_install = [(EBool true, false)];
-                        doc_install_dir = "$htmldir/plugin-none";
-                        doc_data_files = [];
-                        doc_build_tools =
-                          [ExternalTool "ocamldoc"; ExternalTool "ocamlbuild"
-                          ];
-                        });
-                 Doc
-                   ({
-                       cs_name = "plugin-meta";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        doc_type =
-                          ("ocamlbuild",
-                            Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-                        doc_custom =
-                          {
-                             pre_command = [(EBool true, None)];
-                             post_command = [(EBool true, None)];
-                             };
-                        doc_build = [(EBool true, true)];
-                        doc_install = [(EBool true, false)];
-                        doc_install_dir = "$htmldir/plugin-meta";
-                        doc_data_files = [];
-                        doc_build_tools =
-                          [ExternalTool "ocamldoc"; ExternalTool "ocamlbuild"
-                          ];
-                        });
-                 Doc
-                   ({
-                       cs_name = "plugin-internal";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        doc_type =
-                          ("ocamlbuild",
-                            Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-                        doc_custom =
-                          {
-                             pre_command = [(EBool true, None)];
-                             post_command = [(EBool true, None)];
-                             };
-                        doc_build = [(EBool true, true)];
-                        doc_install = [(EBool true, false)];
-                        doc_install_dir = "$htmldir/plugin-internal";
-                        doc_data_files = [];
-                        doc_build_tools =
-                          [ExternalTool "ocamldoc"; ExternalTool "ocamlbuild"
-                          ];
-                        });
-                 Doc
-                   ({
-                       cs_name = "plugin-devfiles";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        doc_type =
-                          ("ocamlbuild",
-                            Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-                        doc_custom =
-                          {
-                             pre_command = [(EBool true, None)];
-                             post_command = [(EBool true, None)];
-                             };
-                        doc_build = [(EBool true, true)];
-                        doc_install = [(EBool true, false)];
-                        doc_install_dir = "$htmldir/plugin-devfiles";
-                        doc_data_files = [];
-                        doc_build_tools =
-                          [ExternalTool "ocamldoc"; ExternalTool "ocamlbuild"
-                          ];
-                        });
-                 Doc
-                   ({
-                       cs_name = "plugin-custom";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        doc_type =
-                          ("ocamlbuild",
-                            Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-                        doc_custom =
-                          {
-                             pre_command = [(EBool true, None)];
-                             post_command = [(EBool true, None)];
-                             };
-                        doc_build = [(EBool true, true)];
-                        doc_install = [(EBool true, false)];
-                        doc_install_dir = "$htmldir/plugin-custom";
-                        doc_data_files = [];
-                        doc_build_tools =
-                          [ExternalTool "ocamldoc"; ExternalTool "ocamlbuild"
-                          ];
-                        });
-                 Doc
-                   ({
-                       cs_name = "builtin-plugins";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        doc_type =
-                          ("ocamlbuild",
-                            Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-                        doc_custom =
-                          {
-                             pre_command = [(EBool true, None)];
-                             post_command = [(EBool true, None)];
-                             };
-                        doc_build = [(EBool true, true)];
-                        doc_install = [(EBool true, false)];
-                        doc_install_dir = "$htmldir/builtin-plugins";
                         doc_data_files = [];
                         doc_build_tools =
                           [ExternalTool "ocamldoc"; ExternalTool "ocamlbuild"

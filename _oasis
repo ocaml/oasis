@@ -80,7 +80,6 @@ Library oasis
                    OASISCustom,
                    OASISQuickstart
   CompiledObject: byte
-#  XOCamlbuildExtern: false
   BuildDepends: fileutils, unix, str, extlib, findlib, odn, ocamlgraph
   BuildTools: ocamlmod, ocamlyacc, ocamllex, ocamlify
 
@@ -108,7 +107,6 @@ Library base
            BaseTest,
            BaseDynVar
   CompiledObject: byte
-#  XOCamlbuildExtern: false
   BuildDepends: oasis
   BuildTools: ocamlmod, ocamlify
 
@@ -120,6 +118,7 @@ Library "plugin-none"
   CompiledObject: byte
   BuildDepends: oasis
   BuildTools: ocamlmod, ocamlify
+  XOCamlbuildAutoDoc: false
 
 Library "plugin-internal"
   Path: src/plugins/internal
@@ -131,6 +130,7 @@ Library "plugin-internal"
   CompiledObject: byte
   BuildDepends: oasis, base
   BuildTools: ocamlmod, ocamlify
+  XOCamlbuildAutoDoc: false
 
 Library "plugin-ocamlbuild"
   Path: src/plugins/ocamlbuild
@@ -145,6 +145,7 @@ Library "plugin-ocamlbuild"
   CompiledObject: byte
   BuildDepends: oasis, base
   BuildTools: ocamlmod, ocamlify
+  XOCamlbuildAutoDoc: false
 
 Library "plugin-custom"
   Path: src/plugins/custom 
@@ -154,6 +155,7 @@ Library "plugin-custom"
   CompiledObject: byte
   BuildDepends: oasis, base
   BuildTools: ocamlmod, ocamlify
+  XOCamlbuildAutoDoc: false
 
 Library "plugin-meta"
   Path: src/plugins/extra/META
@@ -163,6 +165,7 @@ Library "plugin-meta"
   CompiledObject: byte
   BuildDepends: oasis, base
   BuildTools: ocamlmod, ocamlify
+  XOCamlbuildAutoDoc: false
 
 Library "plugin-devfiles"
   Path: src/plugins/extra/devfiles
@@ -172,6 +175,7 @@ Library "plugin-devfiles"
   CompiledObject: byte
   BuildDepends: oasis, base
   BuildTools: ocamlmod, ocamlify
+  XOCamlbuildAutoDoc: false
 
 Library "plugin-stdfiles"
   Path: src/plugins/extra/stdfiles
@@ -181,6 +185,7 @@ Library "plugin-stdfiles"
   CompiledObject: byte
   BuildDepends: oasis, base
   BuildTools: ocamlmod, ocamlify
+  XOCamlbuildAutoDoc: false
 
 Library "builtin-plugins"
   Path: src
@@ -194,6 +199,7 @@ Library "builtin-plugins"
                 plugin-meta,
                 plugin-devfiles,
                 plugin-stdfiles
+  XOCamlbuildAutoDoc: false
 
 Executable OASIS
   Path:   src
@@ -215,6 +221,9 @@ Test main
 
 Documentation manual
   Type: custom (0.1.0)
-  XCustom: env LANG=C $OASIS -documentation > doc/MANUAL.mkd
+  if flag(gettext) 
+    XCustom: $OASIS --gettext-language C -documentation > doc/MANUAL.mkd
+  else
+    XCustom: $OASIS -documentation > doc/MANUAL.mkd
   XCustomClean: rm doc/MANUAL.mkd
 

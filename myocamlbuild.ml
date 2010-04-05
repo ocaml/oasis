@@ -113,7 +113,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: aa43b8ecb9035f164724bbfc26a14b7f) *)
+(* DO NOT EDIT (digest: 2fd73dc4193f0b538377270ce58bb4e8) *)
 module BaseEnvLight = struct
 # 0 "/home/gildor/programmation/oasis/src/base/BaseEnvLight.ml"
   
@@ -322,7 +322,7 @@ module MyOCamlbuildBase = struct
   
   type t =
       {
-        lib_ocaml: (name * dir list * bool) list;
+        lib_ocaml: (name * dir list) list;
         lib_c:     (name * dir) list; 
         flags:     (string list * spec) list;
       } 
@@ -368,10 +368,10 @@ module MyOCamlbuildBase = struct
           (* Declare OCaml libraries *)
           List.iter 
             (function
-               | lib, [], extern ->
-                   ocaml_lib ~extern lib;
-               | lib, dir :: tl, extern ->
-                   ocaml_lib ~extern ~dir:dir lib;
+               | lib, [] ->
+                   ocaml_lib lib;
+               | lib, dir :: tl ->
+                   ocaml_lib ~dir:dir lib;
                    List.iter 
                      (fun dir -> 
                         flag 
@@ -429,48 +429,22 @@ let package_default =
   {
      MyOCamlbuildBase.lib_ocaml =
        [
-          ("src/oasis/oasis", ["src/oasis"], true);
-          ("src/base/base", ["src/base"], true);
+          ("src/oasis/oasis", ["src/oasis"]);
+          ("src/base/base", ["src/base"]);
           ("src/plugins/extra/stdfiles/plugin-stdfiles",
-            ["src/plugins/extra/stdfiles"],
-            true);
+            ["src/plugins/extra/stdfiles"]);
           ("src/plugins/ocamlbuild/plugin-ocamlbuild",
-            ["src/plugins/ocamlbuild"],
-            true);
-          ("src/plugins/none/plugin-none", ["src/plugins/none"], true);
-          ("src/plugins/extra/META/plugin-meta",
-            ["src/plugins/extra/META"],
-            true);
-          ("src/plugins/internal/plugin-internal",
-            ["src/plugins/internal"],
-            true);
+            ["src/plugins/ocamlbuild"]);
+          ("src/plugins/none/plugin-none", ["src/plugins/none"]);
+          ("src/plugins/extra/META/plugin-meta", ["src/plugins/extra/META"]);
+          ("src/plugins/internal/plugin-internal", ["src/plugins/internal"]);
           ("src/plugins/extra/devfiles/plugin-devfiles",
-            ["src/plugins/extra/devfiles"],
-            true);
-          ("src/plugins/custom/plugin-custom", ["src/plugins/custom"], true);
-          ("src/builtin-plugins", ["src"], true)
+            ["src/plugins/extra/devfiles"]);
+          ("src/plugins/custom/plugin-custom", ["src/plugins/custom"]);
+          ("src/builtin-plugins", ["src"])
        ];
      lib_c = [];
-     flags =
-       [
-          (["doc"; "ocaml"; "use_oasis"], S [A "-I"; P "src/oasis"]);
-          (["doc"; "ocaml"; "use_base"], S [A "-I"; P "src/base"]);
-          (["doc"; "ocaml"; "use_plugin-stdfiles"],
-            S [A "-I"; P "src/plugins/extra/stdfiles"]);
-          (["doc"; "ocaml"; "use_plugin-ocamlbuild"],
-            S [A "-I"; P "src/plugins/ocamlbuild"]);
-          (["doc"; "ocaml"; "use_plugin-none"],
-            S [A "-I"; P "src/plugins/none"]);
-          (["doc"; "ocaml"; "use_plugin-meta"],
-            S [A "-I"; P "src/plugins/extra/META"]);
-          (["doc"; "ocaml"; "use_plugin-internal"],
-            S [A "-I"; P "src/plugins/internal"]);
-          (["doc"; "ocaml"; "use_plugin-devfiles"],
-            S [A "-I"; P "src/plugins/extra/devfiles"]);
-          (["doc"; "ocaml"; "use_plugin-custom"],
-            S [A "-I"; P "src/plugins/custom"]);
-          (["doc"; "ocaml"; "use_builtin-plugins"], S [A "-I"; P "src"])
-       ];
+     flags = [];
      }
   ;;
 
