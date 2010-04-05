@@ -157,6 +157,17 @@ let uninstall t args =
 
 (** Clean and distclean steps *)
 let clean, distclean = 
+  let failsafe f a =
+    try 
+      f a
+    with e ->
+      OASISMessage.warning 
+        (f_ "Action fail with error: %s")
+        (match e with 
+           | Failure msg -> msg
+           | e -> Printexc.to_string e)
+  in
+
   let generic_clean t cstm mains docs tests args = 
     BaseCustom.hook
       ~failsafe:true
@@ -172,7 +183,9 @@ let clean, distclean =
                     with Not_found ->
                       fun _ _ _ -> ()
                   in
-                    f t.package (cs, test) args
+                    failsafe
+                      (f t.package (cs, test))
+                      args
               | Doc (cs, doc) ->
                   let f =
                     try
@@ -180,7 +193,9 @@ let clean, distclean =
                     with Not_found ->
                       fun _ _ _ -> ()
                   in
-                    f t.package (cs, doc) args
+                    failsafe 
+                      (f t.package (cs, doc))
+                      args
               | Library _ 
               | Executable _
               | Flag _ 
@@ -190,7 +205,9 @@ let clean, distclean =
          (* Clean whole package *)
          List.iter
            (fun f -> 
-              f t.package args)
+              failsafe
+                (f t.package)
+                args)
            mains)
       ()
   in
