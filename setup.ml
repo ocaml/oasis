@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 58674c9866762345cca13aaab8c05e83) *)
+(* DO NOT EDIT (digest: 95698292fa628645a0633faae627ded6) *)
 module OASISGettext = struct
 # 0 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
   
@@ -3017,6 +3017,25 @@ module BaseStandardVar = struct
             | _ -> ""
          ))
   
+  
+  let rm =
+    var_define
+      ~short_desc:(fun () -> s_ "Remove a file")
+      "rm"
+      (lazy 
+         (match os_type () with
+            | "Win32" -> "rd"
+            | _ -> "rm -f"))
+  
+  let rmdir =
+    var_define
+      ~short_desc:(fun () -> s_ "Remove a directory")
+      "rmdir"
+      (lazy 
+         (match os_type () with
+            | "Win32" -> "rd"
+            | _ -> "rm -rf"))
+  
   (** Initialize some variables 
     *)
   let init pkg = 
@@ -4006,7 +4025,7 @@ module BaseDev = struct
 end
 
 
-# 4009 "setup.ml"
+# 4028 "setup.ml"
 module InternalConfigurePlugin = struct
 # 0 "/home/gildor/programmation/oasis/src/plugins/internal/InternalConfigurePlugin.ml"
   
@@ -4513,7 +4532,7 @@ module InternalInstallPlugin = struct
 end
 
 
-# 4516 "setup.ml"
+# 4535 "setup.ml"
 module OCamlbuildCommon = struct
 # 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildCommon.ml"
   
@@ -4821,7 +4840,7 @@ module OCamlbuildDocPlugin = struct
 end
 
 
-# 4824 "setup.ml"
+# 4843 "setup.ml"
 module CustomPlugin = struct
 # 0 "/home/gildor/programmation/oasis/src/plugins/custom/CustomPlugin.ml"
   
@@ -4944,7 +4963,7 @@ module CustomPlugin = struct
 end
 
 
-# 4947 "setup.ml"
+# 4966 "setup.ml"
 open OASISTypes;;
 let setup () =
   BaseSetup.setup
@@ -4982,7 +5001,7 @@ let setup () =
                             ["-documentation"; ">"; "doc/MANUAL.mkd"]))
                      ];
                    cmd_clean =
-                     [(EBool true, Some (("rm", ["doc/MANUAL.mkd"])))];
+                     [(EBool true, Some (("$rm", ["doc/MANUAL.mkd"])))];
                    cmd_distclean = [(EBool true, None)];
                    });
             ("oasis",
@@ -5080,7 +5099,7 @@ let setup () =
                             ["-documentation"; ">"; "doc/MANUAL.mkd"]))
                      ];
                    cmd_clean =
-                     [(EBool true, Some (("rm", ["doc/MANUAL.mkd"])))];
+                     [(EBool true, Some (("$rm", ["doc/MANUAL.mkd"])))];
                    cmd_distclean = [(EBool true, None)];
                    });
             ("oasis",
@@ -5176,7 +5195,7 @@ let setup () =
                             ["-documentation"; ">"; "doc/MANUAL.mkd"]))
                      ];
                    cmd_clean =
-                     [(EBool true, Some (("rm", ["doc/MANUAL.mkd"])))];
+                     [(EBool true, Some (("$rm", ["doc/MANUAL.mkd"])))];
                    cmd_distclean = [(EBool true, None)];
                    })
          ];

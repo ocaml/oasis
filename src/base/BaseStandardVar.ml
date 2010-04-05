@@ -275,6 +275,25 @@ let suffix_program =
           | _ -> ""
        ))
 
+
+let rm =
+  var_define
+    ~short_desc:(fun () -> s_ "Remove a file")
+    "rm"
+    (lazy 
+       (match os_type () with
+          | "Win32" -> "rd"
+          | _ -> "rm -f"))
+
+let rmdir =
+  var_define
+    ~short_desc:(fun () -> s_ "Remove a directory")
+    "rmdir"
+    (lazy 
+       (match os_type () with
+          | "Win32" -> "rd"
+          | _ -> "rm -rf"))
+
 (** Initialize some variables 
   *)
 let init pkg = 

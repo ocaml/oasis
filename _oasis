@@ -225,5 +225,5 @@ Documentation manual
     XCustom: $OASIS --gettext-language C -documentation > doc/MANUAL.mkd
   else
     XCustom: $OASIS -documentation > doc/MANUAL.mkd
-  XCustomClean: rm doc/MANUAL.mkd
+  XCustomClean: $rm doc/MANUAL.mkd
 
