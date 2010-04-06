@@ -120,6 +120,7 @@ let () =
          TestFull.tests         ctxt;
          TestMETA.tests         ctxt;
          TestLog.tests          ctxt;
+         TestLicense.tests      ctxt;
        ])
   in
 

@@ -68,7 +68,7 @@ Library oasis
            OASISUtils,
            OASISValues,
            OASISVersion,
-           OASISData
+           OASISLicense
   InternalModules: OASISVersion_lexer,
                    OASISVersion_parser,
                    OASISSection,
@@ -78,7 +78,8 @@ Library oasis
                    OASISCheck,
                    OASISRecDescParser,
                    OASISCustom,
-                   OASISQuickstart
+                   OASISQuickstart,
+                   OASISData
   CompiledObject: byte
   BuildDepends: fileutils, unix, str, extlib, findlib, odn, ocamlgraph
   BuildTools: ocamlmod, ocamlyacc, ocamllex, ocamlify

@@ -163,41 +163,7 @@ let schema, generator =
   in
   let license =
     new_field schm "License"
-      (
-        let std_licenses = 
-          [
-            "GPL", GPL;
-            "LGPL", LGPL;
-            "BSD3", BSD3;
-            "BSD4", BSD4;
-            "PUBLICDOMAIN", PublicDomain;
-            "LGPL-LINK-EXN", LGPL_link_exn;
-          ]
-        in
-        let base_value = 
-          choices (fun () -> s_ "license") std_licenses
-        in
-          {
-            parse =
-              (fun str ->
-                 try 
-                   base_value.parse str
-                 with _ ->
-                   begin
-                     try
-                       OtherLicense (url.parse str)
-                     with _ ->
-                       failwithf2
-                         (f_ "'%s' is not an URL or a common license name (%s).")
-                         str
-                         (String.concat ", " (List.map fst std_licenses))
-                   end);
-            update = base_value.update;
-            print = 
-              (function
-                 | OtherLicense v -> url.print v
-                 | v -> base_value.print v);
-          })
+      OASISLicense.value
       (fun () ->
          s_ "License type of the package.")
   in

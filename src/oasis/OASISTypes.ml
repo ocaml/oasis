@@ -63,16 +63,25 @@ type version_comparator =
   | VAnd of version_comparator * version_comparator
   with odn
 
+(** Valid licenses exception
+  *)
+type license_exception = 
+  | OCamlLinkingException
+  | OtherException of url
+  with odn
+
 (** Valid licenses
   *)
 type license =
-  | AllRightsReserved
+  | Proprietary
   | BSD3
   | BSD4
   | GPL
   | LGPL
-  | LGPL_link_exn
-  | PublicDomain
+  | QPL
+  | LicenseWithVersion of license * version
+  | LicenseWithLaterVersion of license * version
+  | LicenseWithException of license * license_exception
   | OtherLicense of url
   with odn
 

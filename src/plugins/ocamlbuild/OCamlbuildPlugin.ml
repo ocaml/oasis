@@ -382,10 +382,7 @@ let create_ocamlbuild_files pkg () =
                   | FindlibPackage (findlib_pkg, _) ->
                       ("pkg_"^findlib_pkg) :: acc
                   | InternalLibrary nm ->
-                      (* Just ignore internal library, they 
-                       * are included through "include" directive
-                       *)
-                      acc)
+                      ("use_"^nm) :: acc)
              []
              (OASISSection.MapSection.find sct mp)),
         myocamlbuild_t

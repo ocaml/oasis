@@ -7,7 +7,7 @@ Homepage: http://foo.com
 Authors: J. R. Hacker <hacker@example.com>
 Maintainers: J. R. Hacker <hacker@example.com>
 LicenseFile: LICENSE
-License: LGPL-link-exn
+License: LGPL with OCaml linking exception
 Buildtype: None (0.0.1)
 
 # blank lines are ignored, as are comments

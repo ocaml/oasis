@@ -5,7 +5,7 @@ Authors: Mauricio Fernandez <mfp@acm.org>
 Maintainers: Mauricio Fernandez <mfp@acm.org>
 Copyrights: (C) 2008 Mauricio Fernandez
 LicenseFile: LICENSE
-License: LGPL-link-exn
+License: LGPL with OCaml linking exception
 ConfType:              custom (0.0.1)
 if os_type(Win32) 
   XCustomConf: myconfigure.bat

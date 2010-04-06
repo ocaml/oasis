@@ -173,7 +173,7 @@ OASISFormat:  0.1
 Name:         ocaml-data-notation
 Version:      0.0.1
 Synopsis:     store data using OCaml notation
-License:      LGPL-LINK-EXN
+License:      LGPL with OCaml linking exception
 Authors:      me
 
 Library odn
@@ -209,7 +209,7 @@ OASISFormat:  0.1
 Name:         ocaml-data-notation
 Version:      0.0.1
 Synopsis:     store data using OCaml notation
-License:      LGPL-LINK-EXN
+License:      LGPL with OCaml linking exception
 Authors:      me
 
 Library odn
@@ -226,7 +226,7 @@ OASISFormat:  0.1
 Name:         ocaml-data-notation
 Version:      0.0.1
 Synopsis:     store data using OCaml notation
-License:      LGPL-LINK-EXN
+License:      LGPL with OCaml linking exception
 Authors:      me
 
 Library odn

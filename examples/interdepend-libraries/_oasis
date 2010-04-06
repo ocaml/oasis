@@ -3,7 +3,7 @@ Name:        interdepend-libraries
 Version:     0.1
 Synopsis:    Executable and libraries with interdependencies
 Authors:     Sylvain Le Gall
-License:     LGPL-LINK-EXN
+License:     LGPL with OCaml linking exception
 
 Library liba
   Modules:         A

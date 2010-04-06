@@ -3,7 +3,7 @@ Name:        order-matter
 Version:     0.1
 Synopsis:    Reorder _oasis section for building
 Authors:     Sylvain Le Gall
-License:     LGPL-LINK-EXN
+License:     LGPL with OCaml linking exception
 
 Library foo
   Path:    src/foo
