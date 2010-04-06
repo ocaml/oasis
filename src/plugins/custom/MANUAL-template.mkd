@@ -14,9 +14,9 @@ Package fields:
 
 $ListOASISPackageFields
 
-Documentation fields:
+Document fields:
 
-$ListOASISDocumentationFields
+$ListOASISDocumentFields
 
 Test fields:
 

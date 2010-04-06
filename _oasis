@@ -53,7 +53,7 @@ Library oasis
            PropList,
            OASIS,
            OASISBuildSection,
-           OASISDocumentation,
+           OASISDocument,
            OASISExecutable,
            OASISExpr,
            OASISFlag,
@@ -220,8 +220,9 @@ Test main
   WorkingDirectory: test 
   TestTools: OASIS, test
 
-Documentation manual
+Document manual
   Type: custom (0.1.0)
+  Title: OASIS User Manual
   if flag(gettext) 
     XCustom: $OASIS --gettext-language C -documentation > doc/MANUAL.mkd
   else

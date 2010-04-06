@@ -420,7 +420,7 @@ let quickstart fmt lvl =
            | Flag _ ->
                OASISFlag.schema
            | Doc _ ->
-               OASISDocumentation.schema
+               OASISDocument.schema
        in
 
        let {cs_name = nm; cs_data = data} = 

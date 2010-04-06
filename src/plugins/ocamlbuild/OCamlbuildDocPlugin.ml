@@ -87,7 +87,7 @@ let auto_doc =
 let of_data = 
   let path =
     new_field
-      OASISDocumentation.schema
+      OASISDocument.schema
       "Path"
       directory
       (fun () ->
@@ -96,7 +96,7 @@ let of_data =
 
   let modules =
     new_field
-      OASISDocumentation.schema
+      OASISDocument.schema
       "Modules"
       modules
       (fun () ->
@@ -165,6 +165,10 @@ let auto_doc_section pkg =
                           doc_build       = bs.bs_build;
                           doc_install     = bs.bs_install;
                           doc_install_dir = "$htmldir/"^cs.cs_name;
+                          doc_title       = "OCamldoc API for library "^cs.cs_name;
+                          doc_abstract    = None;
+                          doc_format      = HTML "index.html";
+                          doc_authors     = [];
                           doc_data_files  = [];
                           doc_build_tools = [];
                         }) :: docs

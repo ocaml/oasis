@@ -13,8 +13,9 @@ Library "with-a"
   CompiledObject: byte
   XOCamlbuildAutoDoc: false
 
-Documentation "manual-custom"
+Document "manual-custom"
   Type: custom (0.1.0)
+  Title: Manual
   XCustom: $make doc
   XCustomClean: $make doc-clean
   BuildTools: make

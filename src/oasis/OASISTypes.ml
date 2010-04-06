@@ -233,7 +233,19 @@ type test =
       test_tools:              tool list;
     } with odn
 
-(** Documentation definition
+(** Document formats
+  *)
+type doc_format =
+  | HTML of filename
+  | DocText
+  | PDF
+  | PostScript
+  | Info of filename
+  | DVI
+  | OtherDoc
+  with odn
+
+(** Document definition
   *)
 type doc =
     {
@@ -242,6 +254,10 @@ type doc =
       doc_build:       bool conditional;
       doc_install:     bool conditional;
       doc_install_dir: filename;
+      doc_title:       string;
+      doc_authors:     string list;
+      doc_abstract:    string option;
+      doc_format:      doc_format;
       doc_data_files:  (filename * filename option) list;
       doc_build_tools: tool list;
     } with odn

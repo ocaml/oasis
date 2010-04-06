@@ -101,7 +101,7 @@ let build t args =
     (t.build t.package)
     args
 
-(** Documentation step *)
+(** Document step *)
 let doc t args =
   BaseDoc.doc
     (join_plugin_sections

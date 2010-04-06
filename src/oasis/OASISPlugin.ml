@@ -258,7 +258,7 @@ module Build =
          (fun () -> f_ "Unknown build plugin '%s' (available: %s)")
      end)
 
-(** Documentation plugins 
+(** Document plugins 
   *)
 module Doc =
   Make

@@ -162,8 +162,8 @@ let vars ?plugin () =
     "ListOASISExecutableFields",
     (fun () -> pp_section_fields ?plugin OASISExecutable.schema);
 
-    "ListOASISDocumentationFields",
-    (fun () -> pp_section_fields ?plugin OASISDocumentation.schema);
+    "ListOASISDocumentFields",
+    (fun () -> pp_section_fields ?plugin OASISDocument.schema);
 
     "ListOASISTestFields",
     (fun () -> pp_section_fields ?plugin OASISTest.schema);

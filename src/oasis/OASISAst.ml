@@ -203,11 +203,11 @@ let to_package conf st =
             acc
             stmt
 
-      | TSDocumentation (nm, stmt) ->
+      | TSDocument (nm, stmt) ->
           schema_stmt 
-            OASISDocumentation.generator
+            OASISDocument.generator
             nm
-            OASISDocumentation.schema
+            OASISDocument.schema
             acc
             stmt
 

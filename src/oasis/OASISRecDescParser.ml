@@ -403,7 +403,7 @@ let parse_stream conf st =
         (* Section *)
         "Flag"; "Library"; "Executable"; 
         "SourceRepository"; "Test";
-        "Documentation";
+        "Document";
         (* Expression *)
         "!"; "&&"; "||"; "("; ")"; "true"; "false" 
       ]
@@ -524,8 +524,8 @@ let parse_stream conf st =
       | [< 'Kwd "Test"; nm = id_or_string; test_blk = parse_stmt>] ->
           TSTest (nm, test_blk)
 
-      | [< 'Kwd "Documentation"; nm = id_or_string; test_blk = parse_stmt>] ->
-          TSDocumentation (nm, test_blk)
+      | [< 'Kwd "Document"; nm = id_or_string; test_blk = parse_stmt>] ->
+          TSDocument (nm, test_blk)
 
       | [< 'Kwd "{"; lst = parse_top_stmt_list; 'Kwd "}">] ->
           TSBlock lst

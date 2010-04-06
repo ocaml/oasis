@@ -211,13 +211,13 @@ Fields:
 $ListOASISExecutableFields
  * Include all common fields.
 
-### Documentation
+### Document
 
-Define a generated documentation.
+Define a generated document.
 
 Fields:
 
-$ListOASISDocumentationFields
+$ListOASISDocumentFields
 
 ### Test 
 

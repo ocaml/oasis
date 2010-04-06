@@ -313,7 +313,7 @@ let install_init () =
   in
     PU.register (doit_install, doit_uninstall)
 
-(* Documentation plugin *)
+(* Document plugin *)
 let doc_init () =
   let module PU = OASISPlugin.Doc.Make(Id)
   in
@@ -324,7 +324,7 @@ let doc_init () =
       (* TODO: we must attach a type to schema, so we can pick sooner errors
        * on creating a field in a schema and fetching it in another schema.
        *)
-      ~schema:OASISDocumentation.schema
+      ~schema:OASISDocument.schema
       ""
       (fun () -> s_ "Run command to build documentation.")
       (fun () -> s_ "Run command to clean build documentation step.")

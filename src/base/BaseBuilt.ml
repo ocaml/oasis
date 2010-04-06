@@ -33,7 +33,7 @@ type t =
   | BExec    (* Executable *)
   | BExecLib (* Library coming with executable *)
   | BLib     (* Library *)
-  | BDoc     (* Documentation *)
+  | BDoc     (* Document *)
 
 let to_log_event t nm = 
   "built_"^

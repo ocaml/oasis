@@ -5,6 +5,6 @@ Library fields:
 
 $ListOASISLibraryFields
 
-Documentation fields:
+Document fields:
 
-$ListOASISDocumentationFields
+$ListOASISDocumentFields
