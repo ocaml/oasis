@@ -278,7 +278,7 @@ let suffix_program =
 
 let rm =
   var_define
-    ~short_desc:(fun () -> s_ "Remove a file")
+    ~short_desc:(fun () -> s_ "Remove a file.")
     "rm"
     (lazy 
        (match os_type () with
@@ -287,12 +287,24 @@ let rm =
 
 let rmdir =
   var_define
-    ~short_desc:(fun () -> s_ "Remove a directory")
+    ~short_desc:(fun () -> s_ "Remove a directory.")
     "rmdir"
     (lazy 
        (match os_type () with
           | "Win32" -> "rd"
           | _ -> "rm -rf"))
+
+let ocaml_with_debug =
+  var_define
+    ~short_desc:(fun () -> s_ "Compile with ocaml debug flag on.")
+    "ocaml_with_debug"
+    (lazy "true")
+
+let ocaml_with_profile =
+  var_define
+    ~short_desc:(fun () -> s_ "Compile with ocaml profile flag on.")
+    "ocaml_with_profile"
+    (lazy "false")
 
 (** Initialize some variables 
   *)

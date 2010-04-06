@@ -22,11 +22,18 @@
 (** Functions common to OCamlbuild build and doc plugin
   *)
 
+open OASISGettext
 open BaseEnv
 open BaseStandardVar
 
 let ocamlbuild_clean_ev =
   "ocamlbuild-clean"
+
+let ocamlbuildflags =
+  var_define
+    ~short_desc:(fun () -> "OCamlbuild additional flags")
+    "ocamlbuildflags"
+    (lazy "")
 
 (** Fix special arguments depending on environment *)
 let fix_args args extra_argv =
@@ -50,6 +57,19 @@ let fix_args args extra_argv =
       else
         [];
       args;
+
+      if bool_of_string (ocaml_with_debug ()) then
+        ["-tag"; "debug"]
+      else
+        [];
+
+      if bool_of_string (ocaml_with_profile ()) then
+        ["-tag"; "profile"]
+      else
+        [];
+
+      OASISUtils.split ' ' (ocamlbuildflags ());
+
       Array.to_list extra_argv;
     ]
 
