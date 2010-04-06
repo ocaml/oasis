@@ -53,7 +53,7 @@ let rec odn_of_spec =
 
 type t =
     {
-      lib_ocaml: (name * dir list * bool) list;
+      lib_ocaml: (name * dir list) list;
       lib_c:     (name * dir) list; 
       flags:     (string list * spec) list;
     } with odn
@@ -99,10 +99,10 @@ let dispatch t =
         (* Declare OCaml libraries *)
         List.iter 
           (function
-             | lib, [], extern ->
-                 ocaml_lib ~extern lib;
-             | lib, dir :: tl, extern ->
-                 ocaml_lib ~extern ~dir:dir lib;
+             | lib, [] ->
+                 ocaml_lib lib;
+             | lib, dir :: tl ->
+                 ocaml_lib ~dir:dir lib;
                  List.iter 
                    (fun dir -> 
                       flag 

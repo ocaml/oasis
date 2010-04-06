@@ -28,13 +28,11 @@ Library libd
   Modules:           D
   Path:              src/libd
   Install:           false
-  XOCamlbuildExtern: false
 
 Library libe
   Modules:           E
   Path:              src/libe
   Install:           false
-  XOCamlbuildExtern: false
   BuildDepends:      libd
   
 Executable execa

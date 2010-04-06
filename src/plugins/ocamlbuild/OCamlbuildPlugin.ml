@@ -210,18 +210,6 @@ open Ocamlbuild_plugin
 
 module PU = OASISPlugin.Build.Make(OCamlbuildId)
 
-let extern = 
-  PU.new_field
-    OASISLibrary.schema
-    "Extern"
-    ~default:true
-    boolean
-    (fun () ->
-       s_ "By default a library is considered external. This allow to \
-           have very limited export. If set to false, the `_tags` file \
-           will include all directories of the library. This can be a \
-           problem if there are conflicting modules.")
-
 let create_ocamlbuild_files pkg () = 
 
   let add_tags tag_t tgts tags = 
@@ -388,43 +376,20 @@ let create_ocamlbuild_files pkg () =
              link_tgt :: src_tgts
            else
              src_tgts)
-          (List.rev_map 
-             (function
-                | FindlibPackage (findlib_pkg, _) ->
-                    "pkg_"^findlib_pkg
-                | InternalLibrary nm ->
-                    "use_"^nm)
+          (List.fold_left 
+             (fun acc ->
+                function
+                  | FindlibPackage (findlib_pkg, _) ->
+                      ("pkg_"^findlib_pkg) :: acc
+                  | InternalLibrary nm ->
+                      (* Just ignore internal library, they 
+                       * are included through "include" directive
+                       *)
+                      acc)
+             []
              (OASISSection.MapSection.find sct mp)),
         myocamlbuild_t
     in
-
-    (* Add included paths for the section to itself, this
-       TODO: see if the following fix for PR#5015 make
-       this mandatory
-    let tag_t, myocamlbuild_t =
-      let tag_name = 
-        (* e.g. oasis_library_foo_include *)
-        varname_concat 
-          "oasis"
-          (varname_concat
-             (varname_of_string 
-                (OASISSection.string_of_section sct))
-             "include")
-      in
-      let include_spec = 
-        mkspec (Some (A"-I")) path (src_dirs @ src_internal_dirs)
-      in
-        add_tags
-          tag_t
-          src_tgts
-          [tag_name],
-        {myocamlbuild_t with
-             flags = 
-               (["compile"; tag_name], include_spec)
-             (*::(["ocamldep"; tag_name], include_spec)*)
-             :: myocamlbuild_t.flags}
-    in
-     *)
 
     (* Fix for PR#5015, unable to compile depends in subdir *)
     let tag_t, myocamlbuild_t =
@@ -494,25 +459,13 @@ let create_ocamlbuild_files pkg () =
 
                  (* Add include tag if the library is internal *)
                  let tag_t, myocamlbuild_t =
-                   if not (extern cs.cs_data) then
                      add_tags 
                        tag_t
-                       (List.rev_map (Printf.sprintf "\"%s\"") (src_dirs @ src_internal_dirs))
+                       (List.rev_map 
+                          (Printf.sprintf "\"%s\"") 
+                          (src_dirs @ src_internal_dirs))
                        ["include"],
                      myocamlbuild_t
-                   else
-                     tag_t,
-                     (* Fix for ocaml < 3.11.2, ocamlbuild doesn't include enough
-                      * for external library 
-                      *)
-                     {myocamlbuild_t with
-                          flags = 
-                            (["doc"; "ocaml"; "use_"^cs.cs_name], 
-                             S(List.fold_right
-                                 (fun e acc -> A"-I" :: P e :: acc)
-                                 src_dirs
-                                 []))
-                            :: myocamlbuild_t.flags}
                  in
 
                  let tag_t, myocamlbuild_t =
@@ -529,8 +482,7 @@ let create_ocamlbuild_files pkg () =
                    {myocamlbuild_t with 
                         lib_ocaml = 
                           (FilePath.UnixPath.concat bs.bs_path cs.cs_name, 
-                           src_dirs, 
-                           extern cs.cs_data) :: myocamlbuild_t.lib_ocaml}
+                           src_dirs) :: myocamlbuild_t.lib_ocaml}
                  in
 
                  (* Generate .mllib files *)
