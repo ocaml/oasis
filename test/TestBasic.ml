@@ -23,16 +23,25 @@ open OUnit;;
 open TestCommon;;
 
 let tests ctxt =
-
- "Basic" >:::
- [
-   "Help" >::
-   (fun () -> 
-      assert_command
-        ~exit_code:0
-        ctxt
-        ctxt.oasis
-        (ctxt.oasis_args @ ["--help"]))
- ]
+  "Basic" >:::
+  [
+    "Help" >::
+    (fun () -> 
+       assert_command
+         ~exit_code:0
+         ctxt
+         ctxt.oasis
+         (ctxt.oasis_args @ ["--help"]));
+ 
+    "Env dump/load" >::
+    (fun () ->
+       BaseEnv.unload ();
+       BaseEnv.load ~filename:(in_data "dir.data") ();
+       (* Reset lazy values ? *)
+       assert_equal 
+         ~printer:(fun s -> s)
+         "toto"
+         (BaseStandardVar.bindir ()));
+  ]
 ;;
    

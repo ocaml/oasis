@@ -72,6 +72,11 @@ let schema =
 let env = 
   Data.create ()
 
+(** Environment data from file
+  *)
+let env_from_file = 
+  ref MapString.empty
+
 (** Lexer for var
   *)
 let var_lxr = 
@@ -134,7 +139,15 @@ let rec var_expand str =
   *)
 and var_get name =
   let vl = 
-    Schema.get schema env ~preset:true name
+    try 
+      Schema.get schema env name
+    with Unknown_field _ as e ->
+      begin
+        try 
+          MapString.find name !env_from_file
+        with Not_found ->
+          raise e
+      end
   in
     var_expand vl
 
@@ -175,8 +188,9 @@ let var_define
 
   let default =
     [
-      ODefault, dflt;
-      OGetEnv, lazy (Sys.getenv name);
+      OFileLoad, lazy (MapString.find name !env_from_file);
+      ODefault,  dflt;
+      OGetEnv,   lazy (Sys.getenv name);
     ]
   in
 
@@ -316,60 +330,15 @@ let default_filename =
 
 (** Initialize environment.
   *)
-let load ?(allow_empty=false) ?(filename=default_filename) () =
-  if Sys.file_exists filename then
-    begin
-      let chn =
-        open_in_bin filename
-      in
-      let st =
-        Stream.of_channel chn
-      in
-      let line =
-        ref 1
-      in
-      let st_line = 
-        Stream.from
-          (fun _ ->
-             try
-               match Stream.next st with 
-                 | '\n' -> incr line; Some '\n'
-                 | c -> Some c
-             with Stream.Failure -> None)
-      in
-      let lexer = 
-        Genlex.make_lexer ["="] st_line
-      in
-      let rec read_file () =
-        match Stream.npeek 3 lexer with 
-          | [Genlex.Ident nm; Genlex.Kwd "="; Genlex.String value] ->
-              Stream.junk lexer; 
-              Stream.junk lexer; 
-              Stream.junk lexer;
-              Schema.preset schema env nm ~context:OFileLoad value;
-              read_file ()
-          | [] ->
-              ()
-          | _ ->
-              failwithf2
-                (f_ "Malformed data file '%s' line %d")
-                filename !line
-      in
-        read_file ();
-        close_in chn
-    end
-  else if not allow_empty then
-    begin
-      failwithf1
-        (f_ "Unable to load environment, the file '%s' doesn't exist.")
-        filename
-    end
+let load ?allow_empty ?filename () =
+  env_from_file := BaseEnvLight.load ?allow_empty ?filename ()
 
 (** Uninitialize environment 
   *)
 let unload () = 
-  (* TODO *)
-  ()
+  (* TODO: reset lazy values *)
+  env_from_file := MapString.empty;
+  Data.clear env
 
 (** Save environment on disk.
   *)

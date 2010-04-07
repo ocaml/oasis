@@ -41,23 +41,44 @@ let load ?(allow_empty=false) ?(filename=default_filename) () =
       let chn =
         open_in_bin filename
       in
-      let rmp =
-        ref MapString.empty
+      let st =
+        Stream.of_channel chn
       in
-        begin
-          try 
-            while true do 
-              let line = 
-                input_line chn
-              in
-                Scanf.sscanf line "%s = %S" 
-                  (fun nm vl -> rmp := MapString.add nm vl !rmp)
-            done;
-            ()
-          with End_of_file ->
-            close_in chn
-        end;
-        !rmp
+      let line =
+        ref 1
+      in
+      let st_line = 
+        Stream.from
+          (fun _ ->
+             try
+               match Stream.next st with 
+                 | '\n' -> incr line; Some '\n'
+                 | c -> Some c
+             with Stream.Failure -> None)
+      in
+      let lexer = 
+        Genlex.make_lexer ["="] st_line
+      in
+      let rec read_file mp =
+        match Stream.npeek 3 lexer with 
+          | [Genlex.Ident nm; Genlex.Kwd "="; Genlex.String value] ->
+              Stream.junk lexer; 
+              Stream.junk lexer; 
+              Stream.junk lexer;
+              read_file (MapString.add nm value mp)
+          | [] ->
+              mp
+          | _ ->
+              failwith
+                (Printf.sprintf
+                   "Malformed data file '%s' line %d"
+                   filename !line)
+      in
+      let mp =
+        read_file MapString.empty
+      in
+        close_in chn;
+        mp
     end
   else if allow_empty then
     begin

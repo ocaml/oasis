@@ -56,6 +56,9 @@ struct
   let create () =
     Hashtbl.create 13
 
+  let clear t =
+    Hashtbl.clear t
+
 (* END EXPORT *)
   let odn_of_t t =
     ODN.APP ("PropList.Data.create", [], [ODN.UNT])
@@ -77,7 +80,6 @@ struct
       {
         name:      name_t;
         fields:    (name_t, ('ctxt, 'extra) value_t) Hashtbl.t;
-        presets:   (name_t, 'ctxt option * string) Hashtbl.t;
         order:     name_t Queue.t;
         name_norm: string -> string;
       }
@@ -86,7 +88,6 @@ struct
     {
       name      = nm;
       fields    = Hashtbl.create 13;
-      presets   = Hashtbl.create 13;
       order     = Queue.create ();
       name_norm = 
         (if case_insensitive then 
@@ -98,30 +99,6 @@ struct
   let add t nm set get extra help = 
     let key = 
       t.name_norm nm
-    in
-
-    (* If available, set preset values *)
-    let update_preset data =
-      if Hashtbl.mem t.presets nm then
-        begin
-          let context, v = 
-            Hashtbl.find t.presets nm
-          in
-            Hashtbl.remove t.presets nm;
-            set data ?context v
-        end
-    in
-
-    (* Set preset value before any other *)
-    let set data ?context x =
-      update_preset data;
-      set data ?context x
-    in
-
-    (* Before get, set preset value *)
-    let get data =
-      update_preset data;
-      get data
     in
 
       if Hashtbl.mem t.fields key then
@@ -149,26 +126,14 @@ struct
     with Not_found ->
       raise (Unknown_field (nm, t.name))
 
-  let get t data ?(preset=false) nm =
-    try 
-      (find t nm).get 
-        data
-    with Unknown_field _ as e when preset->
-      begin
-        try 
-          snd (Hashtbl.find t.presets nm)
-        with Not_found ->
-          raise e
-      end
+  let get t data nm =
+    (find t nm).get data
 
   let set t data nm ?context x =
     (find t nm).set 
       data 
       ?context 
       x
-
-  let preset t data nm ?context x = 
-    Hashtbl.add t.presets nm (context, x)
 
   let fold f acc t =
     Queue.fold 
