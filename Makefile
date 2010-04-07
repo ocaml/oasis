@@ -108,7 +108,8 @@ wc:
 
 headache:
 	find ./ -name _darcs -prune -false -o -name _build -prune \
-	  -o -name ext -prune -false -o -type f \
+	  -false -o -name ext -prune -false -o -name bindist -prune -false \
+	  -o -type f \
 	  | xargs headache -h _header -c _headache.config
 
 # Binary distribution 
