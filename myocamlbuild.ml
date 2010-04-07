@@ -489,7 +489,7 @@ dispatch
                                  & S[A"-package"; A pkg];
                                flag ["ocaml"; "infer_interface"; "cond_pkg_"^pkg] 
                                  & S[A"-package"; A pkg])
-                            ["gettext.base"; "gettext-camomile"]
+                            ["gettext.base"; "gettext-stub"]
                         end
                   with Not_found ->
                     ()

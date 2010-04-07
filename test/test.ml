@@ -32,7 +32,7 @@ module Gettext =
        let dir          = None
        let dependencies = Gettext.init @ OASISGettext.init
      end)
-    (GettextCamomile.Map)
+    (GettextStub.Native)
 ELSE
 module Gettext =
 struct 
