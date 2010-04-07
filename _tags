@@ -149,9 +149,9 @@
 
 "src/oasis/OASISGettext.ml": syntax_camlp4o, pkg_camlp4.macro
 "src/oasis/OASISGettext.ml": cond_pkg_gettext.base
-"src/OASISMain.ml": syntax_camlp4o, pkg_camlp4.macro
-"src/OASISMain.ml": cond_pkg_gettext-stub
-"src/OASISMain.byte": cond_pkg_gettext-stub
+"src/OASISMainGettext.ml": syntax_camlp4o, pkg_camlp4.macro
+"src/OASISMainGettext.ml": cond_pkg_gettext-stub, use_oasis
+"src/OASISMain.byte": cond_pkg_gettext-stub, use_oasis
 "test/test.ml": syntax_camlp4o, pkg_camlp4.macro
 "test/test.ml": cond_pkg_gettext-stub
 "test/test.byte": cond_pkg_gettext-stub

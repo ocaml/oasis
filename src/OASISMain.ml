@@ -27,27 +27,6 @@ open OASISUtils
 open OASISPlugin
 open OASISBuiltinPlugins
 
-IFDEF HAS_GETTEXT THEN
-module Gettext =
-  Gettext.Program
-    (struct
-       let textdomain   = "oasis"
-       let codeset      = None
-       let dependencies = Gettext.init @ OASISGettext.init
-       let dir = 
-         try 
-           Some (Sys.getenv "OASIS_GETTEXT_DIR")
-         with Not_found ->
-           None
-     end)
-    (GettextStub.Native)
-ELSE
-module Gettext =
-struct 
-  let init = [], ""
-end
-ENDIF
-
 type action_t =
   | Generate 
   | Quickstart
@@ -79,7 +58,7 @@ let () =
   in
 
   let (gettext_args, _) =
-    Gettext.init
+    OASISMainGettext.init
   in
 
   let args = 
