@@ -9,6 +9,7 @@ Authors:      Sylvain Le Gall
 Copyrights:   (C) 2008-2010 OCamlCore SARL
 Homepage:     http://oasis.forge.ocamlcore.org/
 Plugins:      DevFiles (0.1.0), StdFiles (0.1.0), META (0.1.0)
+FilesAB:      src/oasis/OASISConf.ml.ab
 
 Synopsis: Architecture for building OCaml libraries and applications
 Description:

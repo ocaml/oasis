@@ -20,7 +20,7 @@
 (********************************************************************************)
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: edf328e31f7b72a63294ba765a50da52) *)
+(* DO NOT EDIT (digest: b8059b88b14fbbed9ee08a2be8439fcc) *)
 module OASISGettext = struct
 # 0 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
   
@@ -33,74 +33,12 @@ module OASISGettext = struct
   let f_ (str : ('a, 'b, 'c) format) =
     str
   
-end
-
-module OASISMessage = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISMessage.ml"
-  
-  (** Message to user
-      @author Sylvain Le Gall
-    *)
-  
-  open OASISGettext
-  
-  let verbose =
-    ref true
-  
-  let debug =
-    ref false
-  
-  (** Command line arguments
-    *)
-  let args () =
-    ["-quiet",
-     Arg.Clear verbose,
-     (s_ " Run quietly");
-  
-     "-debug",
-     Arg.Set debug,
-     (s_ " Output debug message")]
-  
-  (**/**)
-  let generic_message ?(after=ignore) cond beg fmt =
-    if cond then
-      begin
-        Printf.fprintf stderr "%s: " beg;
-        Printf.kfprintf 
-          (fun chn -> 
-             Printf.fprintf chn "\n%!";
-             after ())
-          stderr
-          fmt
-      end
+  let fn_ fmt1 fmt2 n =
+    if n = 1 then
+      fmt1^^""
     else
-      begin
-        Printf.ifprintf 
-          stderr
-          fmt
-      end
-  (**/**)
+      fmt2^^""
   
-  
-  (** Print a debug message
-    *)
-  let debug fmt =
-    generic_message !debug "D" fmt
-  
-  (** Print information message.
-    *)
-  let info fmt = 
-    generic_message !verbose "I" fmt
-  
-  (** Print a warning message 
-    *)
-  let warning fmt =
-    generic_message !verbose "W" fmt
-  
-  (** Print an error message and exit.
-    *)
-  let error fmt =
-    generic_message ~after:(fun () -> exit 1) !verbose "E" fmt
 end
 
 module PropList = struct
@@ -382,6 +320,86 @@ module PropList = struct
         fun data -> Field.fget data fld
   
   end
+end
+
+module OASISMessage = struct
+# 0 "/home/gildor/programmation/oasis/src/oasis/OASISMessage.ml"
+  
+  (** Message to user
+      @author Sylvain Le Gall
+    *)
+  
+  open OASISGettext
+  
+  let verbose =
+    ref true
+  
+  let debug =
+    ref false
+  
+  (** Command line arguments
+    *)
+  let args () =
+    ["-quiet",
+     Arg.Clear verbose,
+     (s_ " Run quietly");
+  
+     "-debug",
+     Arg.Set debug,
+     (s_ " Output debug message")]
+  
+  (**/**)
+  let generic_message ?(after=ignore) cond beg fmt =
+    if cond then
+      begin
+        Printf.fprintf stderr "%s: " beg;
+        Printf.kfprintf 
+          (fun chn -> 
+             Printf.fprintf chn "\n%!";
+             after ())
+          stderr
+          fmt
+      end
+    else
+      begin
+        Printf.ifprintf 
+          stderr
+          fmt
+      end
+  (**/**)
+  
+  
+  (** Print a debug message
+    *)
+  let debug fmt =
+    generic_message !debug "D" fmt
+  
+  (** Print information message.
+    *)
+  let info fmt = 
+    generic_message !verbose "I" fmt
+  
+  (** Print a warning message 
+    *)
+  let warning fmt =
+    generic_message !verbose "W" fmt
+  
+  (** Print an error message and exit.
+    *)
+  let error ?(exit=true) fmt =
+    generic_message 
+      ~after:(fun () -> if exit then Pervasives.exit 1) 
+      !verbose 
+      "E" fmt
+  
+  let string_of_exception e = 
+    try 
+      PropList.string_of_exception e
+    with 
+      | Failure s ->
+          s
+      | e ->
+          Printexc.to_string e
 end
 
 module OASISTypes = struct
@@ -1602,7 +1620,7 @@ module OASISDocument = struct
 end
 
 
-# 1584 "setup.ml"
+# 1602 "setup.ml"
 module BaseEnvLight = struct
 # 0 "/home/gildor/programmation/oasis/src/base/BaseEnvLight.ml"
   
@@ -1705,7 +1723,7 @@ module BaseEnvLight = struct
 end
 
 
-# 1687 "setup.ml"
+# 1705 "setup.ml"
 module BaseFilePath = struct
 # 0 "/home/gildor/programmation/oasis/src/base/BaseFilePath.ml"
   
@@ -3955,15 +3973,7 @@ module BaseSetup = struct
           !act_ref t (Array.of_list (List.rev !extra_args_ref))
   
       with e when !catch_exn ->
-        begin
-          try 
-            error "%s" (PropList.string_of_exception e)
-          with 
-            | Failure s ->
-                error "%s" s
-            | e ->
-                error "%s" (Printexc.to_string e)
-        end
+        error "%s" (string_of_exception e)
   
 end
 
@@ -4038,7 +4048,7 @@ module BaseDev = struct
 end
 
 
-# 4020 "setup.ml"
+# 4030 "setup.ml"
 module InternalConfigurePlugin = struct
 # 0 "/home/gildor/programmation/oasis/src/plugins/internal/InternalConfigurePlugin.ml"
   
@@ -4050,6 +4060,7 @@ module InternalConfigurePlugin = struct
   open OASISTypes
   open OASISUtils
   open OASISGettext
+  open OASISMessage
   
   (** Configure build using provided series of check to be done
     * and then output corresponding file.
@@ -4062,12 +4073,39 @@ module InternalConfigurePlugin = struct
         ()
     in
   
+    let errors = 
+      ref SetString.empty
+    in
+  
+    let buff =
+      Buffer.create 13
+    in
+  
+    let add_errors fmt =
+      Printf.kbprintf
+        (fun b ->
+           errors := SetString.add (Buffer.contents b) !errors;
+           Buffer.clear b)
+        buff
+        fmt
+    in
+  
+    let warn_exception e =
+      warning "%s" (string_of_exception e)
+    in
+  
     (* Check tools *)
     let check_tools lst =
       List.iter 
         (function
            | ExternalTool tool -> 
-               var_ignore_eval (BaseCheck.prog tool)
+               begin
+                 try 
+                   var_ignore_eval (BaseCheck.prog tool)
+                 with e ->
+                   warn_exception e;
+                   add_errors (f_ "Cannot find external tool '%s'") tool
+               end
            | InternalExecutable nm1 ->
                (* Check that matching tool is built *)
                List.iter
@@ -4076,7 +4114,7 @@ module InternalConfigurePlugin = struct
                                   {bs_build = build}, 
                                   _) when nm1 = nm2 ->
                          if not (var_choose build) then
-                           failwithf1
+                           add_errors
                              (f_ "Cannot find buildable internal executable \
                                   '%s' when checking build depends")
                              nm1
@@ -4093,8 +4131,9 @@ module InternalConfigurePlugin = struct
             begin
               try 
                 var_ignore_eval BaseStandardVar.ocamlopt
-              with PropList.Not_set _ ->
-                failwithf1
+              with e ->
+                warn_exception e;
+                add_errors
                   (f_ "Section %s requires native compilation")
                   (OASISSection.string_of_section sct)
             end;
@@ -4106,8 +4145,23 @@ module InternalConfigurePlugin = struct
           List.iter  
             (function
                | FindlibPackage (findlib_pkg, version_comparator) ->
-                   var_ignore_eval
-                     (BaseCheck.package ?version_comparator findlib_pkg)
+                   begin
+                     try 
+                       var_ignore_eval
+                         (BaseCheck.package ?version_comparator findlib_pkg)
+                     with e ->
+                       warn_exception e;
+                       match version_comparator with
+                         | None ->
+                             add_errors
+                               (f_ "Cannot find findlib package %s")
+                               findlib_pkg
+                         | Some ver_cmp ->
+                             add_errors
+                               (f_ "Cannot find findlib package %s (%s)")
+                               findlib_pkg
+                               (OASISVersion.string_of_comparator ver_cmp)
+                   end
                | InternalLibrary nm1 ->
                    (* Check that matching library is built *)
                    List.iter
@@ -4116,7 +4170,7 @@ module InternalConfigurePlugin = struct
                                    {bs_build = build}, 
                                    _) when nm1 = nm2 ->
                              if not (var_choose build) then
-                               failwithf1 
+                               add_errors
                                  (f_ "Cannot find buildable internal library \
                                       '%s' when checking build depends")
                                  nm1
@@ -4127,24 +4181,52 @@ module InternalConfigurePlugin = struct
         end
     in
   
-    let ver_opt_check prefix std_var  =
-      function
-        | Some ver_cmp ->
-            var_ignore_eval
-              (BaseCheck.version prefix ver_cmp std_var)
-        | None ->
-            ()
-    in
-  
-  
     (* Parse command line *)
-    BaseArgExt.parse argv (args ());
+    BaseArgExt.parse argv (BaseEnv.args ());
   
     (* OCaml version *)
-    ver_opt_check "ocaml" BaseStandardVar.ocaml_version pkg.ocaml_version;
-  
+    begin
+      match pkg.ocaml_version with 
+        | Some ver_cmp ->
+            begin
+              try 
+                var_ignore_eval
+                  (BaseCheck.version 
+                     "ocaml" 
+                     ver_cmp 
+                     BaseStandardVar.ocaml_version)
+              with e ->
+                warn_exception e;
+                add_errors 
+                  (f_ "OCaml version %s doesn't match version constraint %s")
+                  (BaseStandardVar.ocaml_version ())
+                  (OASISVersion.string_of_comparator ver_cmp)
+            end
+        | None ->
+            ()
+    end;
+     
     (* Findlib version *)
-    ver_opt_check "findlib" BaseStandardVar.findlib_version pkg.findlib_version;
+    begin
+      match pkg.findlib_version with 
+        | Some ver_cmp ->
+            begin
+              try 
+                var_ignore_eval
+                  (BaseCheck.version 
+                     "findlib" 
+                     ver_cmp 
+                     BaseStandardVar.findlib_version)
+              with e ->
+                warn_exception e;
+                add_errors 
+                  (f_ "Findlib version %s doesn't match version constraint %s")
+                  (BaseStandardVar.findlib_version ())
+                  (OASISVersion.string_of_comparator ver_cmp)
+            end
+        | None ->
+            ()
+    end;
   
     (* Check build depends *)
     List.iter
@@ -4163,8 +4245,23 @@ module InternalConfigurePlugin = struct
       pkg.sections;
   
     (* Save and print environment *)
-    dump ();
-    print ()
+    if SetString.empty = !errors then
+      begin
+        dump ();
+        print ()
+      end
+    else
+      begin
+        List.iter
+          (fun e -> error ~exit:false "%s" e)
+          (SetString.elements !errors);
+        failwithf1
+          (fn_ 
+             "%d configuration error"
+             "%d configuration errors"
+             (SetString.cardinal !errors))
+          (SetString.cardinal !errors)
+      end
   
 end
 
@@ -4545,7 +4642,7 @@ module InternalInstallPlugin = struct
 end
 
 
-# 4527 "setup.ml"
+# 4624 "setup.ml"
 module OCamlbuildCommon = struct
 # 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildCommon.ml"
   
@@ -4873,7 +4970,7 @@ module OCamlbuildDocPlugin = struct
 end
 
 
-# 4855 "setup.ml"
+# 4952 "setup.ml"
 module CustomPlugin = struct
 # 0 "/home/gildor/programmation/oasis/src/plugins/custom/CustomPlugin.ml"
   
@@ -4996,7 +5093,7 @@ module CustomPlugin = struct
 end
 
 
-# 4978 "setup.ml"
+# 5075 "setup.ml"
 open OASISTypes;;
 let setup () =
   BaseSetup.setup
@@ -5325,7 +5422,7 @@ let setup () =
                  pre_command = [(EBool true, None)];
                  post_command = [(EBool true, None)];
                  };
-            files_ab = [];
+            files_ab = ["src/oasis/OASISConf.ml.ab"];
             sections =
               [
                  Executable

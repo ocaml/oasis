@@ -82,3 +82,4 @@
 ^setup.log$
 ^boot/
 ^bindist(/|)
+^src/oasis/OASISConf.ml$
