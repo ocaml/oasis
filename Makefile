@@ -110,4 +110,42 @@ headache:
 	  -o -name ext -prune -false -o -type f \
 	  | xargs headache -h _header -c _headache.config
 
-.PHONY: build-backup test-backup clean-backup wc headache
+# Binary distribution 
+
+BINDIST_DEBUG=false
+
+CP_OR_LN=cp
+ifeq ($(BINDIST_DEBUG),true)
+  CP_OR_LN=ln -sf
+endif
+
+bindist:
+	if ! $(BINDIST_DEBUG); then $(SETUP) -distclean; fi
+	$(SETUP) -configure
+	$(MAKE) bindist-step2 BINDIST_CUSTOM=true
+
+-include setup.data
+BINDISTDIR=$(CURDIR)/bindist
+BINDIR=$(BINDISTDIR)/bin-$(system)-$(architecture)
+ifeq ($(BINDIST_CUSTOM),true)
+ocamlbuildflags = -classic-display -tag custom
+export ocamlbuildflags
+endif
+bindist-step2:
+	if ! $(BINDIST_DEBUG); then $(SETUP) -distclean; fi
+	if test -d $(BINDISTDIR); then $(RM) -r $(BINDISTDIR); fi
+	mkdir -p "$(BINDISTDIR)"
+	mkdir -p "$(BINDISTDIR)/share/doc"
+	mkdir -p "$(BINDIR)"
+	$(SETUP) -configure \
+	  --prefix "$(BINDISTDIR)" \
+	  --bindir "$(BINDIR)" \
+	  --docdir "$(BINDISTDIR)/share/doc" \
+	  --disable-libraries 
+	$(SETUP) -build 
+	if ! $(BINDIST_DEBUG); then $(SETUP) -test; fi
+	$(SETUP) -doc 
+	$(SETUP) -install
+	echo gettext=$(gettext) >> "$(BINDIR)/oasis-default.sh"
+
+.PHONY: build-backup test-backup clean-backup wc headache bindist bindist-step2

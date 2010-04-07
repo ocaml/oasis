@@ -81,3 +81,4 @@
 ^setup.data$
 ^setup.log$
 ^boot/
+^bindist(/|)
