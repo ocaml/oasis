@@ -113,7 +113,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 2fd73dc4193f0b538377270ce58bb4e8) *)
+(* DO NOT EDIT (digest: 063eaa9a821239194d1fc7098b2b540e) *)
 module BaseEnvLight = struct
 # 0 "/home/gildor/programmation/oasis/src/base/BaseEnvLight.ml"
   
@@ -139,23 +139,44 @@ module BaseEnvLight = struct
         let chn =
           open_in_bin filename
         in
-        let rmp =
-          ref MapString.empty
+        let st =
+          Stream.of_channel chn
         in
-          begin
-            try 
-              while true do 
-                let line = 
-                  input_line chn
-                in
-                  Scanf.sscanf line "%s = %S" 
-                    (fun nm vl -> rmp := MapString.add nm vl !rmp)
-              done;
-              ()
-            with End_of_file ->
-              close_in chn
-          end;
-          !rmp
+        let line =
+          ref 1
+        in
+        let st_line = 
+          Stream.from
+            (fun _ ->
+               try
+                 match Stream.next st with 
+                   | '\n' -> incr line; Some '\n'
+                   | c -> Some c
+               with Stream.Failure -> None)
+        in
+        let lexer = 
+          Genlex.make_lexer ["="] st_line
+        in
+        let rec read_file mp =
+          match Stream.npeek 3 lexer with 
+            | [Genlex.Ident nm; Genlex.Kwd "="; Genlex.String value] ->
+                Stream.junk lexer; 
+                Stream.junk lexer; 
+                Stream.junk lexer;
+                read_file (MapString.add nm value mp)
+            | [] ->
+                mp
+            | _ ->
+                failwith
+                  (Printf.sprintf
+                     "Malformed data file '%s' line %d"
+                     filename !line)
+        in
+        let mp =
+          read_file MapString.empty
+        in
+          close_in chn;
+          mp
       end
     else if allow_empty then
       begin
@@ -195,7 +216,7 @@ module BaseEnvLight = struct
 end
 
 
-# 84 "myocamlbuild.ml"
+# 105 "myocamlbuild.ml"
 module MyOCamlbuildFindlib = struct
 # 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml"
   
@@ -423,7 +444,7 @@ module MyOCamlbuildBase = struct
 end
 
 
-# 312 "myocamlbuild.ml"
+# 333 "myocamlbuild.ml"
 open Ocamlbuild_plugin;;
 let package_default =
   {
@@ -431,16 +452,6 @@ let package_default =
        [
           ("src/oasis/oasis", ["src/oasis"]);
           ("src/base/base", ["src/base"]);
-          ("src/plugins/extra/stdfiles/plugin-stdfiles",
-            ["src/plugins/extra/stdfiles"]);
-          ("src/plugins/ocamlbuild/plugin-ocamlbuild",
-            ["src/plugins/ocamlbuild"]);
-          ("src/plugins/none/plugin-none", ["src/plugins/none"]);
-          ("src/plugins/extra/META/plugin-meta", ["src/plugins/extra/META"]);
-          ("src/plugins/internal/plugin-internal", ["src/plugins/internal"]);
-          ("src/plugins/extra/devfiles/plugin-devfiles",
-            ["src/plugins/extra/devfiles"]);
-          ("src/plugins/custom/plugin-custom", ["src/plugins/custom"]);
           ("src/builtin-plugins", ["src"])
        ];
      lib_c = [];

@@ -1,0 +1,14 @@
+# OASIS_START
+# DO NOT EDIT (digest: c230e4c4abf8f709db20ea1524cc41ee)
+version = "0.1.0"
+description = "_oasis file functions"
+requires = "fileutils unix str extlib findlib odn ocamlgraph"
+archive(byte) = "oasis.cma"
+package "base" (
+ version = "0.1.0"
+ description = "setup.ml modules for OASIS"
+ requires = "oasis"
+ archive(byte) = "base.cma"
+)
+# OASIS_STOP
+

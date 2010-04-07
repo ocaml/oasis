@@ -2,13 +2,13 @@ OASISFormat:  0.1
 OCamlVersion: >= 3.10.2
 Name:         oasis
 Version:      0.1.0
-LicenseFile:  LICENSE.txt
-License:      LGPL-link-exn
+LicenseFile:  COPYING.txt
+License:      LGPL-2.1 with OCaml linking exception
 BuildType:    ocamlbuild (0.1.0)
 Authors:      Sylvain Le Gall
 Copyrights:   (C) 2008-2010 OCamlCore SARL
 Homepage:     http://oasis.forge.ocamlcore.org/
-Plugins:      DevFiles (0.1.0), StdFiles (0.1.0)
+Plugins:      DevFiles (0.1.0), StdFiles (0.1.0), META (0.1.0)
 
 Synopsis: Architecture for building OCaml libraries and applications
 Description:
@@ -30,7 +30,10 @@ Description:
   .
   It also allows to have standard entry points and description. It helps to 
   integrates your libraries and software with third parties tools like GODI.
-  
+
+Flag libraries
+  Description: Install oasis and base libraries, for plugins development
+
 Flag gettext
   Description: Use ocaml-gettext for i18n
 
@@ -38,11 +41,14 @@ BuildTools: make
 if flag(gettext) 
   PostBuildCommand: $make -C po all
   PostCleanCommand: $make -C po clean
+  PostInstallCommand:   $make -C po install PODIR=$prefix/share/locale
+  PostUninstallCommand: $make -C po install PODIR=$prefix/share/locale
 
 Executable ocamlmod
   Path:   src/tools
   MainIs: ocamlmod.ml
   BuildDepends: fileutils, str
+  Install: false
   
 Library oasis
   Path: src/oasis
@@ -83,6 +89,8 @@ Library oasis
   CompiledObject: byte
   BuildDepends: fileutils, unix, str, extlib, findlib, odn, ocamlgraph
   BuildTools: ocamlmod, ocamlyacc, ocamllex, ocamlify
+  XMETADescription: _oasis file functions
+  Install$: flag(libraries)
 
 Library base
   Path: src/base
@@ -110,109 +118,51 @@ Library base
   CompiledObject: byte
   BuildDepends: oasis
   BuildTools: ocamlmod, ocamlify
-
-Library "plugin-none"
-  Path: src/plugins/none
-  Modules: NonePlugin
-  InternalModules: NoneData
-  Install: false
-  CompiledObject: byte
-  BuildDepends: oasis
-  BuildTools: ocamlmod, ocamlify
-  XOCamlbuildAutoDoc: false
-
-Library "plugin-internal"
-  Path: src/plugins/internal
-  Modules: InternalConfigurePlugin, 
-           InternalInstallPlugin
-  InternalModules: InternalData,
-                   InternalId
-  Install: false
-  CompiledObject: byte
-  BuildDepends: oasis, base
-  BuildTools: ocamlmod, ocamlify
-  XOCamlbuildAutoDoc: false
-
-Library "plugin-ocamlbuild"
-  Path: src/plugins/ocamlbuild
-  Modules: OCamlbuildPlugin,
-           OCamlbuildDocPlugin
-  InternalModules: OCamlbuildData,
-                   OCamlbuildCommon,
-                   OCamlbuildId,
-                   MyOCamlbuildBase,
-                   MyOCamlbuildFindlib
-  Install: false
-  CompiledObject: byte
-  BuildDepends: oasis, base
-  BuildTools: ocamlmod, ocamlify
-  XOCamlbuildAutoDoc: false
-
-Library "plugin-custom"
-  Path: src/plugins/custom 
-  Modules: CustomPlugin
-  InternalModules: CustomData
-  Install: false
-  CompiledObject: byte
-  BuildDepends: oasis, base
-  BuildTools: ocamlmod, ocamlify
-  XOCamlbuildAutoDoc: false
-
-Library "plugin-meta"
-  Path: src/plugins/extra/META
-  Modules: METAPlugin
-  InternalModules: METAData
-  Install: false
-  CompiledObject: byte
-  BuildDepends: oasis, base
-  BuildTools: ocamlmod, ocamlify
-  XOCamlbuildAutoDoc: false
-
-Library "plugin-devfiles"
-  Path: src/plugins/extra/devfiles
-  Modules: DevFilesPlugin
-  InternalModules: DevFilesData 
-  Install: false
-  CompiledObject: byte
-  BuildDepends: oasis, base
-  BuildTools: ocamlmod, ocamlify
-  XOCamlbuildAutoDoc: false
-
-Library "plugin-stdfiles"
-  Path: src/plugins/extra/stdfiles
-  Modules: StdFilesPlugin
-  InternalModules: StdFilesData
-  Install: false
-  CompiledObject: byte
-  BuildDepends: oasis, base
-  BuildTools: ocamlmod, ocamlify
-  XOCamlbuildAutoDoc: false
+  FindlibParent: oasis
+  XMETADescription: setup.ml modules for OASIS
+  Install$: flag(libraries)
 
 Library "builtin-plugins"
   Path: src
   Modules: OASISBuiltinPlugins
+  InternalModules: plugins/none/NonePlugin,
+                   plugins/none/NoneData,
+                   plugins/internal/InternalConfigurePlugin, 
+                   plugins/internal/InternalInstallPlugin,
+                   plugins/internal/InternalData,
+                   plugins/internal/InternalId,
+                   plugins/ocamlbuild/OCamlbuildPlugin,
+                   plugins/ocamlbuild/OCamlbuildDocPlugin,
+                   plugins/ocamlbuild/OCamlbuildData,
+                   plugins/ocamlbuild/OCamlbuildCommon,
+                   plugins/ocamlbuild/OCamlbuildId,
+                   plugins/ocamlbuild/MyOCamlbuildBase,
+                   plugins/ocamlbuild/MyOCamlbuildFindlib,
+                   plugins/custom/CustomPlugin,
+                   plugins/custom/CustomData,
+                   plugins/extra/META/METAPlugin,
+                   plugins/extra/META/METAData,
+                   plugins/extra/devfiles/DevFilesPlugin,
+                   plugins/extra/devfiles/DevFilesData,
+                   plugins/extra/stdfiles/StdFilesPlugin,
+                   plugins/extra/stdfiles/StdFilesData
   Install: false
   CompiledObject: byte
-  BuildDepends: plugin-none, 
-                plugin-internal, 
-                plugin-ocamlbuild, 
-                plugin-custom,
-                plugin-meta,
-                plugin-devfiles,
-                plugin-stdfiles
+  BuildDepends: oasis, oasis.base
   XOCamlbuildAutoDoc: false
+  XMETAEnable: false
 
 Executable OASIS
   Path:   src
   MainIs: OASISMain.ml
-  BuildDepends: oasis, base, builtin-plugins
+  BuildDepends: oasis, oasis.base, builtin-plugins
 
 Executable test
   Path: test
   MainIs: test.ml
   Install: false
   CompiledObject: byte
-  BuildDepends: oUnit, oasis, base, builtin-plugins
+  BuildDepends: oUnit, oasis, oasis.base, builtin-plugins
 
 Test main
   Type: custom (0.1.0)
@@ -228,4 +178,5 @@ Document manual
   else
     XCustom: $OASIS -documentation > doc/MANUAL.mkd
   XCustomClean: $rm doc/MANUAL.mkd
+  DataFiles: doc/MANUAL.mkd
 

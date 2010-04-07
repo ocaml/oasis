@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: cca881c17176fb874505f84ab96efc2e)
+# DO NOT EDIT (digest: ab223bc8d6bd6528d15af43ef9dc34b5)
 FormatExt
 OASISGettext
 OASISMessage
@@ -22,5 +22,5 @@ OASISUnixPath
 OASISUtils
 OASISValues
 OASISVersion
-OASISData
+OASISLicense
 # OASIS_STOP

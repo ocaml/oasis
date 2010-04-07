@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 212e05d2a48245650e7c620c5f66dcd7)
+# DO NOT EDIT (digest: 4c13c04d5e72a452a86dcca47bb65716)
 # Executable ocamlmod
 <src/tools/ocamlmod.byte>: pkg_str
 <src/tools/ocamlmod.byte>: pkg_fileutils
@@ -16,6 +16,7 @@
 <src/oasis/*.ml>: pkg_extlib
 # Library base
 "src/base": include
+<src/base/*.ml>: use_oasis
 <src/base/*.ml>: pkg_unix
 <src/base/*.ml>: pkg_str
 <src/base/*.ml>: pkg_odn
@@ -23,62 +24,9 @@
 <src/base/*.ml>: pkg_findlib
 <src/base/*.ml>: pkg_fileutils
 <src/base/*.ml>: pkg_extlib
-# Library plugin-stdfiles
-"src/plugins/extra/stdfiles": include
-<src/plugins/extra/stdfiles/*.ml>: pkg_unix
-<src/plugins/extra/stdfiles/*.ml>: pkg_str
-<src/plugins/extra/stdfiles/*.ml>: pkg_odn
-<src/plugins/extra/stdfiles/*.ml>: pkg_ocamlgraph
-<src/plugins/extra/stdfiles/*.ml>: pkg_findlib
-<src/plugins/extra/stdfiles/*.ml>: pkg_fileutils
-<src/plugins/extra/stdfiles/*.ml>: pkg_extlib
-# Library plugin-ocamlbuild
-"src/plugins/ocamlbuild": include
-<src/plugins/ocamlbuild/*.ml>: pkg_unix
-<src/plugins/ocamlbuild/*.ml>: pkg_str
-<src/plugins/ocamlbuild/*.ml>: pkg_odn
-<src/plugins/ocamlbuild/*.ml>: pkg_ocamlgraph
-<src/plugins/ocamlbuild/*.ml>: pkg_findlib
-<src/plugins/ocamlbuild/*.ml>: pkg_fileutils
-<src/plugins/ocamlbuild/*.ml>: pkg_extlib
-# Library plugin-none
-"src/plugins/none": include
-<src/plugins/none/*.ml>: pkg_unix
-<src/plugins/none/*.ml>: pkg_str
-<src/plugins/none/*.ml>: pkg_odn
-<src/plugins/none/*.ml>: pkg_ocamlgraph
-<src/plugins/none/*.ml>: pkg_findlib
-<src/plugins/none/*.ml>: pkg_fileutils
-<src/plugins/none/*.ml>: pkg_extlib
-# Library plugin-meta
-"src/plugins/extra/META": include
-<src/plugins/extra/META/*.ml>: pkg_unix
-<src/plugins/extra/META/*.ml>: pkg_str
-<src/plugins/extra/META/*.ml>: pkg_odn
-<src/plugins/extra/META/*.ml>: pkg_ocamlgraph
-<src/plugins/extra/META/*.ml>: pkg_findlib
-<src/plugins/extra/META/*.ml>: pkg_fileutils
-<src/plugins/extra/META/*.ml>: pkg_extlib
-# Library plugin-internal
-"src/plugins/internal": include
-<src/plugins/internal/*.ml>: pkg_unix
-<src/plugins/internal/*.ml>: pkg_str
-<src/plugins/internal/*.ml>: pkg_odn
-<src/plugins/internal/*.ml>: pkg_ocamlgraph
-<src/plugins/internal/*.ml>: pkg_findlib
-<src/plugins/internal/*.ml>: pkg_fileutils
-<src/plugins/internal/*.ml>: pkg_extlib
-# Library plugin-devfiles
-"src/plugins/extra/devfiles": include
-<src/plugins/extra/devfiles/*.ml>: pkg_unix
-<src/plugins/extra/devfiles/*.ml>: pkg_str
-<src/plugins/extra/devfiles/*.ml>: pkg_odn
-<src/plugins/extra/devfiles/*.ml>: pkg_ocamlgraph
-<src/plugins/extra/devfiles/*.ml>: pkg_findlib
-<src/plugins/extra/devfiles/*.ml>: pkg_fileutils
-<src/plugins/extra/devfiles/*.ml>: pkg_extlib
-# Library plugin-custom
-"src/plugins/custom": include
+# Library builtin-plugins
+<src/plugins/custom/*.ml>: use_base
+<src/plugins/custom/*.ml>: use_oasis
 <src/plugins/custom/*.ml>: pkg_unix
 <src/plugins/custom/*.ml>: pkg_str
 <src/plugins/custom/*.ml>: pkg_odn
@@ -86,9 +34,72 @@
 <src/plugins/custom/*.ml>: pkg_findlib
 <src/plugins/custom/*.ml>: pkg_fileutils
 <src/plugins/custom/*.ml>: pkg_extlib
-# Library builtin-plugins
+<src/plugins/extra/META/*.ml>: use_base
+<src/plugins/extra/META/*.ml>: use_oasis
+<src/plugins/extra/META/*.ml>: pkg_unix
+<src/plugins/extra/META/*.ml>: pkg_str
+<src/plugins/extra/META/*.ml>: pkg_odn
+<src/plugins/extra/META/*.ml>: pkg_ocamlgraph
+<src/plugins/extra/META/*.ml>: pkg_findlib
+<src/plugins/extra/META/*.ml>: pkg_fileutils
+<src/plugins/extra/META/*.ml>: pkg_extlib
+<src/plugins/extra/devfiles/*.ml>: use_base
+<src/plugins/extra/devfiles/*.ml>: use_oasis
+<src/plugins/extra/devfiles/*.ml>: pkg_unix
+<src/plugins/extra/devfiles/*.ml>: pkg_str
+<src/plugins/extra/devfiles/*.ml>: pkg_odn
+<src/plugins/extra/devfiles/*.ml>: pkg_ocamlgraph
+<src/plugins/extra/devfiles/*.ml>: pkg_findlib
+<src/plugins/extra/devfiles/*.ml>: pkg_fileutils
+<src/plugins/extra/devfiles/*.ml>: pkg_extlib
+<src/plugins/extra/stdfiles/*.ml>: use_base
+<src/plugins/extra/stdfiles/*.ml>: use_oasis
+<src/plugins/extra/stdfiles/*.ml>: pkg_unix
+<src/plugins/extra/stdfiles/*.ml>: pkg_str
+<src/plugins/extra/stdfiles/*.ml>: pkg_odn
+<src/plugins/extra/stdfiles/*.ml>: pkg_ocamlgraph
+<src/plugins/extra/stdfiles/*.ml>: pkg_findlib
+<src/plugins/extra/stdfiles/*.ml>: pkg_fileutils
+<src/plugins/extra/stdfiles/*.ml>: pkg_extlib
+<src/plugins/internal/*.ml>: use_base
+<src/plugins/internal/*.ml>: use_oasis
+<src/plugins/internal/*.ml>: pkg_unix
+<src/plugins/internal/*.ml>: pkg_str
+<src/plugins/internal/*.ml>: pkg_odn
+<src/plugins/internal/*.ml>: pkg_ocamlgraph
+<src/plugins/internal/*.ml>: pkg_findlib
+<src/plugins/internal/*.ml>: pkg_fileutils
+<src/plugins/internal/*.ml>: pkg_extlib
+<src/plugins/none/*.ml>: use_base
+<src/plugins/none/*.ml>: use_oasis
+<src/plugins/none/*.ml>: pkg_unix
+<src/plugins/none/*.ml>: pkg_str
+<src/plugins/none/*.ml>: pkg_odn
+<src/plugins/none/*.ml>: pkg_ocamlgraph
+<src/plugins/none/*.ml>: pkg_findlib
+<src/plugins/none/*.ml>: pkg_fileutils
+<src/plugins/none/*.ml>: pkg_extlib
+<src/plugins/ocamlbuild/*.ml>: use_base
+<src/plugins/ocamlbuild/*.ml>: use_oasis
+<src/plugins/ocamlbuild/*.ml>: pkg_unix
+<src/plugins/ocamlbuild/*.ml>: pkg_str
+<src/plugins/ocamlbuild/*.ml>: pkg_odn
+<src/plugins/ocamlbuild/*.ml>: pkg_ocamlgraph
+<src/plugins/ocamlbuild/*.ml>: pkg_findlib
+<src/plugins/ocamlbuild/*.ml>: pkg_fileutils
+<src/plugins/ocamlbuild/*.ml>: pkg_extlib
+"src/plugins/ocamlbuild": include
+"src/plugins/none": include
+"src/plugins/internal": include
+"src/plugins/extra/stdfiles": include
+"src/plugins/extra/devfiles": include
+"src/plugins/extra/META": include
+"src/plugins/custom": include
 "src": include
 # Executable test
+<test/test.byte>: use_builtin-plugins
+<test/test.byte>: use_base
+<test/test.byte>: use_oasis
 <test/test.byte>: pkg_unix
 <test/test.byte>: pkg_str
 <test/test.byte>: pkg_odn
@@ -97,6 +108,9 @@
 <test/test.byte>: pkg_findlib
 <test/test.byte>: pkg_fileutils
 <test/test.byte>: pkg_extlib
+<test/*.ml>: use_builtin-plugins
+<test/*.ml>: use_base
+<test/*.ml>: use_oasis
 <test/*.ml>: pkg_unix
 <test/*.ml>: pkg_str
 <test/*.ml>: pkg_odn
@@ -106,6 +120,9 @@
 <test/*.ml>: pkg_fileutils
 <test/*.ml>: pkg_extlib
 # Executable OASIS
+<src/OASISMain.byte>: use_builtin-plugins
+<src/OASISMain.byte>: use_base
+<src/OASISMain.byte>: use_oasis
 <src/OASISMain.byte>: pkg_unix
 <src/OASISMain.byte>: pkg_str
 <src/OASISMain.byte>: pkg_odn
@@ -113,6 +130,9 @@
 <src/OASISMain.byte>: pkg_findlib
 <src/OASISMain.byte>: pkg_fileutils
 <src/OASISMain.byte>: pkg_extlib
+<src/*.ml>: use_builtin-plugins
+<src/*.ml>: use_base
+<src/*.ml>: use_oasis
 <src/*.ml>: pkg_unix
 <src/*.ml>: pkg_str
 <src/*.ml>: pkg_odn
@@ -130,11 +150,11 @@
 "src/oasis/OASISGettext.ml": syntax_camlp4o, pkg_camlp4.macro
 "src/oasis/OASISGettext.ml": cond_pkg_gettext.base
 "src/OASISMain.ml": syntax_camlp4o, pkg_camlp4.macro
-"src/OASISMain.ml": cond_pkg_gettext-camomile
-"src/OASISMain.byte": cond_pkg_gettext-camomile
+"src/OASISMain.ml": cond_pkg_gettext-stub
+"src/OASISMain.byte": cond_pkg_gettext-stub
 "test/test.ml": syntax_camlp4o, pkg_camlp4.macro
-"test/test.ml": cond_pkg_gettext-camomile
-"test/test.byte": cond_pkg_gettext-camomile
+"test/test.ml": cond_pkg_gettext-stub
+"test/test.byte": cond_pkg_gettext-stub
 
 "src/oasis/OASISTypes.ml": syntax_camlp4o, pkg_odn.with.syntax
 "src/oasis/OASISRecDescParser.ml": syntax_camlp4o, pkg_camlp4
@@ -151,3 +171,8 @@
 "src/plugins/ocamlbuild/OCamlbuildPlugin.ml": use_ocamlbuild
 "src/plugins/ocamlbuild/OCamlbuildDocPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
 
+# TODO: The fact that we need to remove these tags is maybe a bug
+<test/test.byte>: -use_base
+<test/test.byte>: -use_oasis
+<src/OASISMain.byte>: -use_base
+<src/OASISMain.byte>: -use_oasis

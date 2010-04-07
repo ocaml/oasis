@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 95698292fa628645a0633faae627ded6) *)
+(* DO NOT EDIT (digest: edf328e31f7b72a63294ba765a50da52) *)
 module OASISGettext = struct
 # 0 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
   
@@ -122,7 +122,10 @@ module PropList = struct
     let create () =
       Hashtbl.create 13
   
-# 62 "/home/gildor/programmation/oasis/src/oasis/PropList.ml"
+    let clear t =
+      Hashtbl.clear t
+  
+# 65 "/home/gildor/programmation/oasis/src/oasis/PropList.ml"
   end
   
   module Schema = 
@@ -140,7 +143,6 @@ module PropList = struct
         {
           name:      name_t;
           fields:    (name_t, ('ctxt, 'extra) value_t) Hashtbl.t;
-          presets:   (name_t, 'ctxt option * string) Hashtbl.t;
           order:     name_t Queue.t;
           name_norm: string -> string;
         }
@@ -149,7 +151,6 @@ module PropList = struct
       {
         name      = nm;
         fields    = Hashtbl.create 13;
-        presets   = Hashtbl.create 13;
         order     = Queue.create ();
         name_norm = 
           (if case_insensitive then 
@@ -161,30 +162,6 @@ module PropList = struct
     let add t nm set get extra help = 
       let key = 
         t.name_norm nm
-      in
-  
-      (* If available, set preset values *)
-      let update_preset data =
-        if Hashtbl.mem t.presets nm then
-          begin
-            let context, v = 
-              Hashtbl.find t.presets nm
-            in
-              Hashtbl.remove t.presets nm;
-              set data ?context v
-          end
-      in
-  
-      (* Set preset value before any other *)
-      let set data ?context x =
-        update_preset data;
-        set data ?context x
-      in
-  
-      (* Before get, set preset value *)
-      let get data =
-        update_preset data;
-        get data
       in
   
         if Hashtbl.mem t.fields key then
@@ -212,26 +189,14 @@ module PropList = struct
       with Not_found ->
         raise (Unknown_field (nm, t.name))
   
-    let get t data ?(preset=false) nm =
-      try 
-        (find t nm).get 
-          data
-      with Unknown_field _ as e when preset->
-        begin
-          try 
-            snd (Hashtbl.find t.presets nm)
-          with Not_found ->
-            raise e
-        end
+    let get t data nm =
+      (find t nm).get data
   
     let set t data nm ?context x =
       (find t nm).set 
         data 
         ?context 
         x
-  
-    let preset t data nm ?context x = 
-      Hashtbl.add t.presets nm (context, x)
   
     let fold f acc t =
       Queue.fold 
@@ -445,16 +410,25 @@ module OASISTypes = struct
     | VAnd of version_comparator * version_comparator
     
   
+  (** Valid licenses exception
+    *)
+  type license_exception = 
+    | OCamlLinkingException
+    | OtherException of url
+    
+  
   (** Valid licenses
     *)
   type license =
-    | AllRightsReserved
+    | Proprietary
     | BSD3
     | BSD4
     | GPL
     | LGPL
-    | LGPL_link_exn
-    | PublicDomain
+    | QPL
+    | LicenseWithVersion of license * version
+    | LicenseWithLaterVersion of license * version
+    | LicenseWithException of license * license_exception
     | OtherLicense of url
     
   
@@ -606,7 +580,19 @@ module OASISTypes = struct
         test_tools:              tool list;
       } 
   
-  (** Documentation definition
+  (** Document formats
+    *)
+  type doc_format =
+    | HTML of filename
+    | DocText
+    | PDF
+    | PostScript
+    | Info of filename
+    | DVI
+    | OtherDoc
+    
+  
+  (** Document definition
     *)
   type doc =
       {
@@ -615,6 +601,10 @@ module OASISTypes = struct
         doc_build:       bool conditional;
         doc_install:     bool conditional;
         doc_install_dir: filename;
+        doc_title:       string;
+        doc_authors:     string list;
+        doc_abstract:    string option;
+        doc_format:      doc_format;
         doc_data_files:  (filename * filename option) list;
         doc_build_tools: tool list;
       } 
@@ -1581,8 +1571,8 @@ module OASISTest = struct
   
 end
 
-module OASISDocumentation = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISDocumentation.ml"
+module OASISDocument = struct
+# 0 "/home/gildor/programmation/oasis/src/oasis/OASISDocument.ml"
   
   (** Test schema and generator
       @author Sylvain Le Gall
@@ -1591,7 +1581,7 @@ module OASISDocumentation = struct
 end
 
 
-# 1594 "setup.ml"
+# 1584 "setup.ml"
 module BaseEnvLight = struct
 # 0 "/home/gildor/programmation/oasis/src/base/BaseEnvLight.ml"
   
@@ -1617,23 +1607,44 @@ module BaseEnvLight = struct
         let chn =
           open_in_bin filename
         in
-        let rmp =
-          ref MapString.empty
+        let st =
+          Stream.of_channel chn
         in
-          begin
-            try 
-              while true do 
-                let line = 
-                  input_line chn
-                in
-                  Scanf.sscanf line "%s = %S" 
-                    (fun nm vl -> rmp := MapString.add nm vl !rmp)
-              done;
-              ()
-            with End_of_file ->
-              close_in chn
-          end;
-          !rmp
+        let line =
+          ref 1
+        in
+        let st_line = 
+          Stream.from
+            (fun _ ->
+               try
+                 match Stream.next st with 
+                   | '\n' -> incr line; Some '\n'
+                   | c -> Some c
+               with Stream.Failure -> None)
+        in
+        let lexer = 
+          Genlex.make_lexer ["="] st_line
+        in
+        let rec read_file mp =
+          match Stream.npeek 3 lexer with 
+            | [Genlex.Ident nm; Genlex.Kwd "="; Genlex.String value] ->
+                Stream.junk lexer; 
+                Stream.junk lexer; 
+                Stream.junk lexer;
+                read_file (MapString.add nm value mp)
+            | [] ->
+                mp
+            | _ ->
+                failwith
+                  (Printf.sprintf
+                     "Malformed data file '%s' line %d"
+                     filename !line)
+        in
+        let mp =
+          read_file MapString.empty
+        in
+          close_in chn;
+          mp
       end
     else if allow_empty then
       begin
@@ -1673,7 +1684,7 @@ module BaseEnvLight = struct
 end
 
 
-# 1676 "setup.ml"
+# 1687 "setup.ml"
 module BaseFilePath = struct
 # 0 "/home/gildor/programmation/oasis/src/base/BaseFilePath.ml"
   
@@ -1766,6 +1777,11 @@ module BaseEnv = struct
   let env = 
     Data.create ()
   
+  (** Environment data from file
+    *)
+  let env_from_file = 
+    ref MapString.empty
+  
   (** Lexer for var
     *)
   let var_lxr = 
@@ -1828,7 +1844,15 @@ module BaseEnv = struct
     *)
   and var_get name =
     let vl = 
-      Schema.get schema env ~preset:true name
+      try 
+        Schema.get schema env name
+      with Unknown_field _ as e ->
+        begin
+          try 
+            MapString.find name !env_from_file
+          with Not_found ->
+            raise e
+        end
     in
       var_expand vl
   
@@ -1869,8 +1893,9 @@ module BaseEnv = struct
   
     let default =
       [
-        ODefault, dflt;
-        OGetEnv, lazy (Sys.getenv name);
+        OFileLoad, lazy (MapString.find name !env_from_file);
+        ODefault,  dflt;
+        OGetEnv,   lazy (Sys.getenv name);
       ]
     in
   
@@ -2010,60 +2035,15 @@ module BaseEnv = struct
   
   (** Initialize environment.
     *)
-  let load ?(allow_empty=false) ?(filename=default_filename) () =
-    if Sys.file_exists filename then
-      begin
-        let chn =
-          open_in_bin filename
-        in
-        let st =
-          Stream.of_channel chn
-        in
-        let line =
-          ref 1
-        in
-        let st_line = 
-          Stream.from
-            (fun _ ->
-               try
-                 match Stream.next st with 
-                   | '\n' -> incr line; Some '\n'
-                   | c -> Some c
-               with Stream.Failure -> None)
-        in
-        let lexer = 
-          Genlex.make_lexer ["="] st_line
-        in
-        let rec read_file () =
-          match Stream.npeek 3 lexer with 
-            | [Genlex.Ident nm; Genlex.Kwd "="; Genlex.String value] ->
-                Stream.junk lexer; 
-                Stream.junk lexer; 
-                Stream.junk lexer;
-                Schema.preset schema env nm ~context:OFileLoad value;
-                read_file ()
-            | [] ->
-                ()
-            | _ ->
-                failwithf2
-                  (f_ "Malformed data file '%s' line %d")
-                  filename !line
-        in
-          read_file ();
-          close_in chn
-      end
-    else if not allow_empty then
-      begin
-        failwithf1
-          (f_ "Unable to load environment, the file '%s' doesn't exist.")
-          filename
-      end
+  let load ?allow_empty ?filename () =
+    env_from_file := BaseEnvLight.load ?allow_empty ?filename ()
   
   (** Uninitialize environment 
     *)
   let unload () = 
-    (* TODO *)
-    ()
+    (* TODO: reset lazy values *)
+    env_from_file := MapString.empty;
+    Data.clear env
   
   (** Save environment on disk.
     *)
@@ -3020,7 +3000,7 @@ module BaseStandardVar = struct
   
   let rm =
     var_define
-      ~short_desc:(fun () -> s_ "Remove a file")
+      ~short_desc:(fun () -> s_ "Remove a file.")
       "rm"
       (lazy 
          (match os_type () with
@@ -3029,12 +3009,24 @@ module BaseStandardVar = struct
   
   let rmdir =
     var_define
-      ~short_desc:(fun () -> s_ "Remove a directory")
+      ~short_desc:(fun () -> s_ "Remove a directory.")
       "rmdir"
       (lazy 
          (match os_type () with
             | "Win32" -> "rd"
             | _ -> "rm -rf"))
+  
+  let ocaml_with_debug =
+    var_define
+      ~short_desc:(fun () -> s_ "Compile with ocaml debug flag on.")
+      "ocaml_with_debug"
+      (lazy "true")
+  
+  let ocaml_with_profile =
+    var_define
+      ~short_desc:(fun () -> s_ "Compile with ocaml profile flag on.")
+      "ocaml_with_profile"
+      (lazy "false")
   
   (** Initialize some variables 
     *)
@@ -3237,7 +3229,7 @@ module BaseBuilt = struct
     | BExec    (* Executable *)
     | BExecLib (* Library coming with executable *)
     | BLib     (* Library *)
-    | BDoc     (* Documentation *)
+    | BDoc     (* Document *)
   
   let to_log_event t nm = 
     "built_"^
@@ -3675,7 +3667,7 @@ module BaseSetup = struct
       (t.build t.package)
       args
   
-  (** Documentation step *)
+  (** Document step *)
   let doc t args =
     BaseDoc.doc
       (join_plugin_sections
@@ -4025,7 +4017,7 @@ module BaseDev = struct
 end
 
 
-# 4028 "setup.ml"
+# 4020 "setup.ml"
 module InternalConfigurePlugin = struct
 # 0 "/home/gildor/programmation/oasis/src/plugins/internal/InternalConfigurePlugin.ml"
   
@@ -4532,18 +4524,25 @@ module InternalInstallPlugin = struct
 end
 
 
-# 4535 "setup.ml"
+# 4527 "setup.ml"
 module OCamlbuildCommon = struct
 # 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildCommon.ml"
   
   (** Functions common to OCamlbuild build and doc plugin
     *)
   
+  open OASISGettext
   open BaseEnv
   open BaseStandardVar
   
   let ocamlbuild_clean_ev =
     "ocamlbuild-clean"
+  
+  let ocamlbuildflags =
+    var_define
+      ~short_desc:(fun () -> "OCamlbuild additional flags")
+      "ocamlbuildflags"
+      (lazy "")
   
   (** Fix special arguments depending on environment *)
   let fix_args args extra_argv =
@@ -4567,6 +4566,19 @@ module OCamlbuildCommon = struct
         else
           [];
         args;
+  
+        if bool_of_string (ocaml_with_debug ()) then
+          ["-tag"; "debug"]
+        else
+          [];
+  
+        if bool_of_string (ocaml_with_profile ()) then
+          ["-tag"; "profile"]
+        else
+          [];
+  
+        OASISUtils.split ' ' (ocamlbuildflags ());
+  
         Array.to_list extra_argv;
       ]
   
@@ -4840,7 +4852,7 @@ module OCamlbuildDocPlugin = struct
 end
 
 
-# 4843 "setup.ml"
+# 4855 "setup.ml"
 module CustomPlugin = struct
 # 0 "/home/gildor/programmation/oasis/src/plugins/custom/CustomPlugin.ml"
   
@@ -4963,7 +4975,7 @@ module CustomPlugin = struct
 end
 
 
-# 4966 "setup.ml"
+# 4978 "setup.ml"
 open OASISTypes;;
 let setup () =
   BaseSetup.setup
@@ -5017,7 +5029,7 @@ let setup () =
                         "PropList";
                         "OASIS";
                         "OASISBuildSection";
-                        "OASISDocumentation";
+                        "OASISDocument";
                         "OASISExecutable";
                         "OASISExpr";
                         "OASISFlag";
@@ -5032,7 +5044,7 @@ let setup () =
                         "OASISUtils";
                         "OASISValues";
                         "OASISVersion";
-                        "OASISData"
+                        "OASISLicense"
                      ];
                    });
             ("base",
@@ -5115,7 +5127,7 @@ let setup () =
                         "PropList";
                         "OASIS";
                         "OASISBuildSection";
-                        "OASISDocumentation";
+                        "OASISDocument";
                         "OASISExecutable";
                         "OASISExpr";
                         "OASISFlag";
@@ -5130,7 +5142,7 @@ let setup () =
                         "OASISUtils";
                         "OASISValues";
                         "OASISVersion";
-                        "OASISData"
+                        "OASISLicense"
                      ];
                    });
             ("base",
@@ -5207,8 +5219,11 @@ let setup () =
             findlib_version = None;
             name = "oasis";
             version = VInt (0, VInt (1, VInt (0, VEnd)));
-            license = LGPL_link_exn;
-            license_file = Some "LICENSE.txt";
+            license =
+              LicenseWithException
+                (LicenseWithVersion (LGPL, VInt (2, VInt (1, VEnd))),
+                  OCamlLinkingException);
+            license_file = Some "COPYING.txt";
             copyrights = ["(C) 2008-2010 OCamlCore SARL"];
             maintainers = [];
             authors = ["Sylvain Le Gall"];
@@ -5217,7 +5232,7 @@ let setup () =
               "Architecture for building OCaml libraries and applications";
             description =
               Some
-                "OASIS generates a full configure, build and install system for your application. It starts with a simple `_oasis` file at the toplevel of your project and creates everything required.\nIt uses external tools like OCamlbuild and it can be considered as the glue between various subsystems that do the job. It should support the following tools: - OCamlbuild - OMake (todo) - OCamlMakefile (todo), - ocaml-autoconf (todo)\nIt also features a do-it-yourself command line invocation and an internal configure/install scheme. Libraries are managed through findlib. It has been tested on GNU Linux and Windows.\nIt also allows to have standard entry points and description. It helps to integrates your libraries and software with third parties tools like GODI. \n";
+                "OASIS generates a full configure, build and install system for your application. It starts with a simple `_oasis` file at the toplevel of your project and creates everything required.\nIt uses external tools like OCamlbuild and it can be considered as the glue between various subsystems that do the job. It should support the following tools: - OCamlbuild - OMake (todo) - OCamlMakefile (todo), - ocaml-autoconf (todo)\nIt also features a do-it-yourself command line invocation and an internal configure/install scheme. Libraries are managed through findlib. It has been tested on GNU Linux and Windows.\nIt also allows to have standard entry points and description. It helps to integrates your libraries and software with third parties tools like GODI.";
             categories = [];
             conf_type =
               ("internal", Some (VInt (0, VInt (1, VInt (0, VEnd)))));
@@ -5243,12 +5258,36 @@ let setup () =
             install_custom =
               {
                  pre_command = [(EBool true, None)];
-                 post_command = [(EBool true, None)];
+                 post_command =
+                   [
+                      (EBool true, None);
+                      (EFlag "gettext",
+                        Some
+                          (("$make",
+                             [
+                                "-C";
+                                "po";
+                                "install";
+                                "PODIR=$prefix/share/locale"
+                             ])))
+                   ];
                  };
             uninstall_custom =
               {
                  pre_command = [(EBool true, None)];
-                 post_command = [(EBool true, None)];
+                 post_command =
+                   [
+                      (EBool true, None);
+                      (EFlag "gettext",
+                        Some
+                          (("$make",
+                             [
+                                "-C";
+                                "po";
+                                "install";
+                                "PODIR=$prefix/share/locale"
+                             ])))
+                   ];
                  };
             clean_custom =
               {
@@ -5273,7 +5312,7 @@ let setup () =
                     },
                      {
                         bs_build = [(EBool true, true)];
-                        bs_install = [(EBool true, true)];
+                        bs_install = [(EBool true, false)];
                         bs_path = "src/tools";
                         bs_compiled_object = Byte;
                         bs_build_depends =
@@ -5297,7 +5336,8 @@ let setup () =
                    ({cs_name = "oasis"; cs_data = PropList.Data.create (); },
                      {
                         bs_build = [(EBool true, true)];
-                        bs_install = [(EBool true, true)];
+                        bs_install =
+                          [(EBool true, false); (EFlag "libraries", true)];
                         bs_path = "src/oasis";
                         bs_compiled_object = Byte;
                         bs_build_depends =
@@ -5338,7 +5378,7 @@ let setup () =
                              "PropList";
                              "OASIS";
                              "OASISBuildSection";
-                             "OASISDocumentation";
+                             "OASISDocument";
                              "OASISExecutable";
                              "OASISExpr";
                              "OASISFlag";
@@ -5353,7 +5393,7 @@ let setup () =
                              "OASISUtils";
                              "OASISValues";
                              "OASISVersion";
-                             "OASISData"
+                             "OASISLicense"
                           ];
                         lib_internal_modules =
                           [
@@ -5366,7 +5406,8 @@ let setup () =
                              "OASISCheck";
                              "OASISRecDescParser";
                              "OASISCustom";
-                             "OASISQuickstart"
+                             "OASISQuickstart";
+                             "OASISData"
                           ];
                         lib_findlib_parent = None;
                         lib_findlib_name = None;
@@ -5376,7 +5417,8 @@ let setup () =
                    ({cs_name = "base"; cs_data = PropList.Data.create (); },
                      {
                         bs_build = [(EBool true, true)];
-                        bs_install = [(EBool true, true)];
+                        bs_install =
+                          [(EBool true, false); (EFlag "libraries", true)];
                         bs_path = "src/base";
                         bs_compiled_object = Byte;
                         bs_build_depends = [InternalLibrary "oasis"];
@@ -5422,261 +5464,7 @@ let setup () =
                              "BaseDynVar"
                           ];
                         lib_internal_modules = [];
-                        lib_findlib_parent = None;
-                        lib_findlib_name = None;
-                        lib_findlib_containers = [];
-                        });
-                 Library
-                   ({
-                       cs_name = "plugin-stdfiles";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        bs_build = [(EBool true, true)];
-                        bs_install = [(EBool true, false)];
-                        bs_path = "src/plugins/extra/stdfiles";
-                        bs_compiled_object = Byte;
-                        bs_build_depends =
-                          [InternalLibrary "oasis"; InternalLibrary "base"];
-                        bs_build_tools =
-                          [
-                             ExternalTool "ocamlbuild";
-                             ExternalTool "make";
-                             InternalExecutable "ocamlmod";
-                             ExternalTool "ocamlify"
-                          ];
-                        bs_c_sources = [];
-                        bs_data_files = [];
-                        bs_ccopt = [(EBool true, [])];
-                        bs_cclib = [(EBool true, [])];
-                        bs_dlllib = [(EBool true, [])];
-                        bs_dllpath = [(EBool true, [])];
-                        bs_byteopt = [(EBool true, [])];
-                        bs_nativeopt = [(EBool true, [])];
-                        },
-                     {
-                        lib_modules = ["StdFilesPlugin"];
-                        lib_internal_modules = ["StdFilesData"];
-                        lib_findlib_parent = None;
-                        lib_findlib_name = None;
-                        lib_findlib_containers = [];
-                        });
-                 Library
-                   ({
-                       cs_name = "plugin-ocamlbuild";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        bs_build = [(EBool true, true)];
-                        bs_install = [(EBool true, false)];
-                        bs_path = "src/plugins/ocamlbuild";
-                        bs_compiled_object = Byte;
-                        bs_build_depends =
-                          [InternalLibrary "oasis"; InternalLibrary "base"];
-                        bs_build_tools =
-                          [
-                             ExternalTool "ocamlbuild";
-                             ExternalTool "make";
-                             InternalExecutable "ocamlmod";
-                             ExternalTool "ocamlify"
-                          ];
-                        bs_c_sources = [];
-                        bs_data_files = [];
-                        bs_ccopt = [(EBool true, [])];
-                        bs_cclib = [(EBool true, [])];
-                        bs_dlllib = [(EBool true, [])];
-                        bs_dllpath = [(EBool true, [])];
-                        bs_byteopt = [(EBool true, [])];
-                        bs_nativeopt = [(EBool true, [])];
-                        },
-                     {
-                        lib_modules =
-                          ["OCamlbuildPlugin"; "OCamlbuildDocPlugin"];
-                        lib_internal_modules =
-                          [
-                             "OCamlbuildData";
-                             "OCamlbuildCommon";
-                             "OCamlbuildId";
-                             "MyOCamlbuildBase";
-                             "MyOCamlbuildFindlib"
-                          ];
-                        lib_findlib_parent = None;
-                        lib_findlib_name = None;
-                        lib_findlib_containers = [];
-                        });
-                 Library
-                   ({
-                       cs_name = "plugin-none";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        bs_build = [(EBool true, true)];
-                        bs_install = [(EBool true, false)];
-                        bs_path = "src/plugins/none";
-                        bs_compiled_object = Byte;
-                        bs_build_depends = [InternalLibrary "oasis"];
-                        bs_build_tools =
-                          [
-                             ExternalTool "ocamlbuild";
-                             ExternalTool "make";
-                             InternalExecutable "ocamlmod";
-                             ExternalTool "ocamlify"
-                          ];
-                        bs_c_sources = [];
-                        bs_data_files = [];
-                        bs_ccopt = [(EBool true, [])];
-                        bs_cclib = [(EBool true, [])];
-                        bs_dlllib = [(EBool true, [])];
-                        bs_dllpath = [(EBool true, [])];
-                        bs_byteopt = [(EBool true, [])];
-                        bs_nativeopt = [(EBool true, [])];
-                        },
-                     {
-                        lib_modules = ["NonePlugin"];
-                        lib_internal_modules = ["NoneData"];
-                        lib_findlib_parent = None;
-                        lib_findlib_name = None;
-                        lib_findlib_containers = [];
-                        });
-                 Library
-                   ({
-                       cs_name = "plugin-meta";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        bs_build = [(EBool true, true)];
-                        bs_install = [(EBool true, false)];
-                        bs_path = "src/plugins/extra/META";
-                        bs_compiled_object = Byte;
-                        bs_build_depends =
-                          [InternalLibrary "oasis"; InternalLibrary "base"];
-                        bs_build_tools =
-                          [
-                             ExternalTool "ocamlbuild";
-                             ExternalTool "make";
-                             InternalExecutable "ocamlmod";
-                             ExternalTool "ocamlify"
-                          ];
-                        bs_c_sources = [];
-                        bs_data_files = [];
-                        bs_ccopt = [(EBool true, [])];
-                        bs_cclib = [(EBool true, [])];
-                        bs_dlllib = [(EBool true, [])];
-                        bs_dllpath = [(EBool true, [])];
-                        bs_byteopt = [(EBool true, [])];
-                        bs_nativeopt = [(EBool true, [])];
-                        },
-                     {
-                        lib_modules = ["METAPlugin"];
-                        lib_internal_modules = ["METAData"];
-                        lib_findlib_parent = None;
-                        lib_findlib_name = None;
-                        lib_findlib_containers = [];
-                        });
-                 Library
-                   ({
-                       cs_name = "plugin-internal";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        bs_build = [(EBool true, true)];
-                        bs_install = [(EBool true, false)];
-                        bs_path = "src/plugins/internal";
-                        bs_compiled_object = Byte;
-                        bs_build_depends =
-                          [InternalLibrary "oasis"; InternalLibrary "base"];
-                        bs_build_tools =
-                          [
-                             ExternalTool "ocamlbuild";
-                             ExternalTool "make";
-                             InternalExecutable "ocamlmod";
-                             ExternalTool "ocamlify"
-                          ];
-                        bs_c_sources = [];
-                        bs_data_files = [];
-                        bs_ccopt = [(EBool true, [])];
-                        bs_cclib = [(EBool true, [])];
-                        bs_dlllib = [(EBool true, [])];
-                        bs_dllpath = [(EBool true, [])];
-                        bs_byteopt = [(EBool true, [])];
-                        bs_nativeopt = [(EBool true, [])];
-                        },
-                     {
-                        lib_modules =
-                          ["InternalConfigurePlugin"; "InternalInstallPlugin"
-                          ];
-                        lib_internal_modules = ["InternalData"; "InternalId"];
-                        lib_findlib_parent = None;
-                        lib_findlib_name = None;
-                        lib_findlib_containers = [];
-                        });
-                 Library
-                   ({
-                       cs_name = "plugin-devfiles";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        bs_build = [(EBool true, true)];
-                        bs_install = [(EBool true, false)];
-                        bs_path = "src/plugins/extra/devfiles";
-                        bs_compiled_object = Byte;
-                        bs_build_depends =
-                          [InternalLibrary "oasis"; InternalLibrary "base"];
-                        bs_build_tools =
-                          [
-                             ExternalTool "ocamlbuild";
-                             ExternalTool "make";
-                             InternalExecutable "ocamlmod";
-                             ExternalTool "ocamlify"
-                          ];
-                        bs_c_sources = [];
-                        bs_data_files = [];
-                        bs_ccopt = [(EBool true, [])];
-                        bs_cclib = [(EBool true, [])];
-                        bs_dlllib = [(EBool true, [])];
-                        bs_dllpath = [(EBool true, [])];
-                        bs_byteopt = [(EBool true, [])];
-                        bs_nativeopt = [(EBool true, [])];
-                        },
-                     {
-                        lib_modules = ["DevFilesPlugin"];
-                        lib_internal_modules = ["DevFilesData"];
-                        lib_findlib_parent = None;
-                        lib_findlib_name = None;
-                        lib_findlib_containers = [];
-                        });
-                 Library
-                   ({
-                       cs_name = "plugin-custom";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        bs_build = [(EBool true, true)];
-                        bs_install = [(EBool true, false)];
-                        bs_path = "src/plugins/custom";
-                        bs_compiled_object = Byte;
-                        bs_build_depends =
-                          [InternalLibrary "oasis"; InternalLibrary "base"];
-                        bs_build_tools =
-                          [
-                             ExternalTool "ocamlbuild";
-                             ExternalTool "make";
-                             InternalExecutable "ocamlmod";
-                             ExternalTool "ocamlify"
-                          ];
-                        bs_c_sources = [];
-                        bs_data_files = [];
-                        bs_ccopt = [(EBool true, [])];
-                        bs_cclib = [(EBool true, [])];
-                        bs_dlllib = [(EBool true, [])];
-                        bs_dllpath = [(EBool true, [])];
-                        bs_byteopt = [(EBool true, [])];
-                        bs_nativeopt = [(EBool true, [])];
-                        },
-                     {
-                        lib_modules = ["CustomPlugin"];
-                        lib_internal_modules = ["CustomData"];
-                        lib_findlib_parent = None;
+                        lib_findlib_parent = Some "oasis";
                         lib_findlib_name = None;
                         lib_findlib_containers = [];
                         });
@@ -5691,15 +5479,7 @@ let setup () =
                         bs_path = "src";
                         bs_compiled_object = Byte;
                         bs_build_depends =
-                          [
-                             InternalLibrary "plugin-none";
-                             InternalLibrary "plugin-internal";
-                             InternalLibrary "plugin-ocamlbuild";
-                             InternalLibrary "plugin-custom";
-                             InternalLibrary "plugin-meta";
-                             InternalLibrary "plugin-devfiles";
-                             InternalLibrary "plugin-stdfiles"
-                          ];
+                          [InternalLibrary "oasis"; InternalLibrary "base"];
                         bs_build_tools =
                           [ExternalTool "ocamlbuild"; ExternalTool "make"];
                         bs_c_sources = [];
@@ -5713,7 +5493,30 @@ let setup () =
                         },
                      {
                         lib_modules = ["OASISBuiltinPlugins"];
-                        lib_internal_modules = [];
+                        lib_internal_modules =
+                          [
+                             "plugins/none/NonePlugin";
+                             "plugins/none/NoneData";
+                             "plugins/internal/InternalConfigurePlugin";
+                             "plugins/internal/InternalInstallPlugin";
+                             "plugins/internal/InternalData";
+                             "plugins/internal/InternalId";
+                             "plugins/ocamlbuild/OCamlbuildPlugin";
+                             "plugins/ocamlbuild/OCamlbuildDocPlugin";
+                             "plugins/ocamlbuild/OCamlbuildData";
+                             "plugins/ocamlbuild/OCamlbuildCommon";
+                             "plugins/ocamlbuild/OCamlbuildId";
+                             "plugins/ocamlbuild/MyOCamlbuildBase";
+                             "plugins/ocamlbuild/MyOCamlbuildFindlib";
+                             "plugins/custom/CustomPlugin";
+                             "plugins/custom/CustomData";
+                             "plugins/extra/META/METAPlugin";
+                             "plugins/extra/META/METAData";
+                             "plugins/extra/devfiles/DevFilesPlugin";
+                             "plugins/extra/devfiles/DevFilesData";
+                             "plugins/extra/stdfiles/StdFilesPlugin";
+                             "plugins/extra/stdfiles/StdFilesData"
+                          ];
                         lib_findlib_parent = None;
                         lib_findlib_name = None;
                         lib_findlib_containers = [];
@@ -5776,6 +5579,17 @@ let setup () =
                         flag_description = Some "Use ocaml-gettext for i18n";
                         flag_default = [(EBool true, true)];
                         });
+                 Flag
+                   ({
+                       cs_name = "libraries";
+                       cs_data = PropList.Data.create ();
+                       },
+                     {
+                        flag_description =
+                          Some
+                            "Install oasis and base libraries, for plugins development";
+                        flag_default = [(EBool true, true)];
+                        });
                  Test
                    ({cs_name = "main"; cs_data = PropList.Data.create (); },
                      {
@@ -5811,7 +5625,11 @@ let setup () =
                         doc_build = [(EBool true, true)];
                         doc_install = [(EBool true, true)];
                         doc_install_dir = "$docdir";
-                        doc_data_files = [];
+                        doc_title = "OASIS User Manual";
+                        doc_authors = [];
+                        doc_abstract = None;
+                        doc_format = OtherDoc;
+                        doc_data_files = [("doc/MANUAL.mkd", None)];
                         doc_build_tools = [ExternalTool "make"];
                         });
                  Doc
@@ -5826,8 +5644,13 @@ let setup () =
                              post_command = [(EBool true, None)];
                              };
                         doc_build = [(EBool true, true)];
-                        doc_install = [(EBool true, true)];
+                        doc_install =
+                          [(EBool true, false); (EFlag "libraries", true)];
                         doc_install_dir = "$htmldir/oasis";
+                        doc_title = "OCamldoc API for library oasis";
+                        doc_authors = [];
+                        doc_abstract = None;
+                        doc_format = HTML "index.html";
                         doc_data_files = [];
                         doc_build_tools =
                           [ExternalTool "ocamldoc"; ExternalTool "ocamlbuild"
@@ -5845,8 +5668,13 @@ let setup () =
                              post_command = [(EBool true, None)];
                              };
                         doc_build = [(EBool true, true)];
-                        doc_install = [(EBool true, true)];
+                        doc_install =
+                          [(EBool true, false); (EFlag "libraries", true)];
                         doc_install_dir = "$htmldir/base";
+                        doc_title = "OCamldoc API for library base";
+                        doc_authors = [];
+                        doc_abstract = None;
+                        doc_format = HTML "index.html";
                         doc_data_files = [];
                         doc_build_tools =
                           [ExternalTool "ocamldoc"; ExternalTool "ocamlbuild"
@@ -5856,7 +5684,8 @@ let setup () =
             plugins =
               [
                  ("DevFiles", Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-                 ("StdFiles", Some (VInt (0, VInt (1, VInt (0, VEnd)))))
+                 ("StdFiles", Some (VInt (0, VInt (1, VInt (0, VEnd)))));
+                 ("META", Some (VInt (0, VInt (1, VInt (0, VEnd)))))
               ];
             schema_data = PropList.Data.create ();
             };

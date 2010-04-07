@@ -19,13 +19,14 @@
 #  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               #
 ################################################################################
 
-default: test
 
-OCAMLBUILDFLAGS =-tag debug -classic-display
-BUILDFLAGS     +=$(OCAMLBUILDFLAGS)
+ocamlbuildflags = -classic-display
+export ocamlbuildflags 
+
+default: test
 #TESTFLAGS      += -long 
 #TESTFLAGS      += -verbose
-#TESTFLAGS      += -only-test OASIS:5:TestFull:11
+#TESTFLAGS      += -only-test OASIS:4:Basic:1
 
 # OASIS_START
 # DO NOT EDIT (digest: c670bbc06ab2e6f432b790475d6ad412)

@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 86ba42e8fe46d2de32a5fcc8302c25d8) *)
+(* DO NOT EDIT (digest: 574b65678c599c6f3c771661e79c50b8) *)
 This is the README file for the oasis distribution.
 
 (C) 2008-2010 OCamlCore SARL
@@ -20,12 +20,10 @@ configure/install scheme. Libraries are managed through findlib. It has been
 tested on GNU Linux and Windows.
 
 It also allows to have standard entry points and description. It helps to
-integrates your libraries and software with third parties tools like GODI. 
-
-
+integrates your libraries and software with third parties tools like GODI.
 
 See the files INSTALL.txt for building and installation instructions. See the
-file LICENSE.txt for copying conditions. 
+file COPYING.txt for copying conditions. 
 
 Home page: http://oasis.forge.ocamlcore.org/
 
