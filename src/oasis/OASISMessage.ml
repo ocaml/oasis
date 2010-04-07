@@ -80,5 +80,17 @@ let warning fmt =
 
 (** Print an error message and exit.
   *)
-let error fmt =
-  generic_message ~after:(fun () -> exit 1) !verbose "E" fmt
+let error ?(exit=true) fmt =
+  generic_message 
+    ~after:(fun () -> if exit then Pervasives.exit 1) 
+    !verbose 
+    "E" fmt
+
+let string_of_exception e = 
+  try 
+    PropList.string_of_exception e
+  with 
+    | Failure s ->
+        s
+    | e ->
+        Printexc.to_string e

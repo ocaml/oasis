@@ -368,15 +368,7 @@ let setup t =
         !act_ref t (Array.of_list (List.rev !extra_args_ref))
 
     with e when !catch_exn ->
-      begin
-        try 
-          error "%s" (PropList.string_of_exception e)
-        with 
-          | Failure s ->
-              error "%s" s
-          | e ->
-              error "%s" (Printexc.to_string e)
-      end
+      error "%s" (string_of_exception e)
 
 (* END EXPORT *)
 

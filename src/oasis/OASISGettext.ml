@@ -28,6 +28,12 @@ let s_ str =
 let f_ (str : ('a, 'b, 'c) format) =
   str
 
+let fn_ fmt1 fmt2 n =
+  if n = 1 then
+    fmt1^^""
+  else
+    fmt2^^""
+
 (* END EXPORT *)
 
 IFDEF HAS_GETTEXT THEN

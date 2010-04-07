@@ -27,6 +27,7 @@ open BaseEnv
 open OASISTypes
 open OASISUtils
 open OASISGettext
+open OASISMessage
 
 (** Configure build using provided series of check to be done
   * and then output corresponding file.
@@ -39,12 +40,39 @@ let configure pkg argv =
       ()
   in
 
+  let errors = 
+    ref SetString.empty
+  in
+
+  let buff =
+    Buffer.create 13
+  in
+
+  let add_errors fmt =
+    Printf.kbprintf
+      (fun b ->
+         errors := SetString.add (Buffer.contents b) !errors;
+         Buffer.clear b)
+      buff
+      fmt
+  in
+
+  let warn_exception e =
+    warning "%s" (string_of_exception e)
+  in
+
   (* Check tools *)
   let check_tools lst =
     List.iter 
       (function
          | ExternalTool tool -> 
-             var_ignore_eval (BaseCheck.prog tool)
+             begin
+               try 
+                 var_ignore_eval (BaseCheck.prog tool)
+               with e ->
+                 warn_exception e;
+                 add_errors (f_ "Cannot find external tool '%s'") tool
+             end
          | InternalExecutable nm1 ->
              (* Check that matching tool is built *)
              List.iter
@@ -53,7 +81,7 @@ let configure pkg argv =
                                 {bs_build = build}, 
                                 _) when nm1 = nm2 ->
                        if not (var_choose build) then
-                         failwithf1
+                         add_errors
                            (f_ "Cannot find buildable internal executable \
                                 '%s' when checking build depends")
                            nm1
@@ -70,8 +98,9 @@ let configure pkg argv =
           begin
             try 
               var_ignore_eval BaseStandardVar.ocamlopt
-            with PropList.Not_set _ ->
-              failwithf1
+            with e ->
+              warn_exception e;
+              add_errors
                 (f_ "Section %s requires native compilation")
                 (OASISSection.string_of_section sct)
           end;
@@ -83,8 +112,23 @@ let configure pkg argv =
         List.iter  
           (function
              | FindlibPackage (findlib_pkg, version_comparator) ->
-                 var_ignore_eval
-                   (BaseCheck.package ?version_comparator findlib_pkg)
+                 begin
+                   try 
+                     var_ignore_eval
+                       (BaseCheck.package ?version_comparator findlib_pkg)
+                   with e ->
+                     warn_exception e;
+                     match version_comparator with
+                       | None ->
+                           add_errors
+                             (f_ "Cannot find findlib package %s")
+                             findlib_pkg
+                       | Some ver_cmp ->
+                           add_errors
+                             (f_ "Cannot find findlib package %s (%s)")
+                             findlib_pkg
+                             (OASISVersion.string_of_comparator ver_cmp)
+                 end
              | InternalLibrary nm1 ->
                  (* Check that matching library is built *)
                  List.iter
@@ -93,7 +137,7 @@ let configure pkg argv =
                                  {bs_build = build}, 
                                  _) when nm1 = nm2 ->
                            if not (var_choose build) then
-                             failwithf1 
+                             add_errors
                                (f_ "Cannot find buildable internal library \
                                     '%s' when checking build depends")
                                nm1
@@ -104,24 +148,52 @@ let configure pkg argv =
       end
   in
 
-  let ver_opt_check prefix std_var  =
-    function
-      | Some ver_cmp ->
-          var_ignore_eval
-            (BaseCheck.version prefix ver_cmp std_var)
-      | None ->
-          ()
-  in
-
-
   (* Parse command line *)
-  BaseArgExt.parse argv (args ());
+  BaseArgExt.parse argv (BaseEnv.args ());
 
   (* OCaml version *)
-  ver_opt_check "ocaml" BaseStandardVar.ocaml_version pkg.ocaml_version;
-
+  begin
+    match pkg.ocaml_version with 
+      | Some ver_cmp ->
+          begin
+            try 
+              var_ignore_eval
+                (BaseCheck.version 
+                   "ocaml" 
+                   ver_cmp 
+                   BaseStandardVar.ocaml_version)
+            with e ->
+              warn_exception e;
+              add_errors 
+                (f_ "OCaml version %s doesn't match version constraint %s")
+                (BaseStandardVar.ocaml_version ())
+                (OASISVersion.string_of_comparator ver_cmp)
+          end
+      | None ->
+          ()
+  end;
+   
   (* Findlib version *)
-  ver_opt_check "findlib" BaseStandardVar.findlib_version pkg.findlib_version;
+  begin
+    match pkg.findlib_version with 
+      | Some ver_cmp ->
+          begin
+            try 
+              var_ignore_eval
+                (BaseCheck.version 
+                   "findlib" 
+                   ver_cmp 
+                   BaseStandardVar.findlib_version)
+            with e ->
+              warn_exception e;
+              add_errors 
+                (f_ "Findlib version %s doesn't match version constraint %s")
+                (BaseStandardVar.findlib_version ())
+                (OASISVersion.string_of_comparator ver_cmp)
+          end
+      | None ->
+          ()
+  end;
 
   (* Check build depends *)
   List.iter
@@ -140,8 +212,23 @@ let configure pkg argv =
     pkg.sections;
 
   (* Save and print environment *)
-  dump ();
-  print ()
+  if SetString.empty = !errors then
+    begin
+      dump ();
+      print ()
+    end
+  else
+    begin
+      List.iter
+        (fun e -> error ~exit:false "%s" e)
+        (SetString.elements !errors);
+      failwithf1
+        (fn_ 
+           "%d configuration error"
+           "%d configuration errors"
+           (SetString.cardinal !errors))
+        (SetString.cardinal !errors)
+    end
 
 (* END EXPORT *)
 

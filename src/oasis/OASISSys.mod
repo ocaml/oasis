@@ -1,6 +1,6 @@
 OASISGettext.ml
-OASISMessage.ml
 PropList.ml
+OASISMessage.ml
 OASISTypes.ml
 OASISUtils.ml
 OASISUnixPath.ml
