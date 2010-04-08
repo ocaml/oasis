@@ -20,10 +20,12 @@
 ################################################################################
 
 
-CONFIGUREFLAGS = --override ocamlbuildflags -classic-display
+CONFIGUREFLAGS += --override ocamlbuildflags -classic-display
+
+CONFIGUREFLAGS += $(if $(shell ocamlfind query gettext),--enable-gettext,--disable-gettext)
 
 default: test
-TESTFLAGS      += -long 
+#TESTFLAGS      += -long 
 #TESTFLAGS      += -verbose
 #TESTFLAGS      += -only-test OASIS:4:Basic:1
 

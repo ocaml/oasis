@@ -37,6 +37,7 @@ Flag libraries
 
 Flag gettext
   Description: Use ocaml-gettext for i18n
+  Default: false
 
 BuildTools: make
 if flag(gettext) 
