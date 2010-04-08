@@ -113,14 +113,11 @@ headache:
 	  -o -type f \
 	  | xargs headache -h _header -c _headache.config
 
+.PHONY: build-backup test-backup clean-backup wc headache
+
 # Binary distribution 
 
 BINDIST_DEBUG=false
-
-CP_OR_LN=cp
-ifeq ($(BINDIST_DEBUG),true)
-  CP_OR_LN=ln -sf
-endif
 
 bindist:
 	if ! $(BINDIST_DEBUG); then $(SETUP) -distclean; fi
@@ -133,16 +130,17 @@ BINDIR=$(BINDISTDIR)/bin-$(system)-$(architecture)
 
 
 ifeq ($(os_type),"Win32")
-gettextflags = --disable-gettext
 tr_path = cygpath -w
 else
-gettextflags = 
 tr_path = echo 
 endif 
+
+BINDISTGZ=$(pkg_name)-$(pkg_version)-bindist.tar.gz
 
 bindist-step2:
 	if ! $(BINDIST_DEBUG); then $(SETUP) -distclean; fi
 	if test -d $(BINDISTDIR); then $(RM) -r $(BINDISTDIR); fi
+	if test -e $(BINDISTGZ); then tar xzf $(BINDISTGZ); fi
 	mkdir -p "$(BINDISTDIR)"
 	mkdir -p "$(BINDISTDIR)/share/doc"
 	mkdir -p "$(BINDIR)"
@@ -151,11 +149,34 @@ bindist-step2:
 	  --bindir "$$($(tr_path) $(BINDIR))" \
 	  --docdir "$$($(tr_path) $(BINDISTDIR)/share/doc)" \
 	  --disable-libraries \
-	  $(gettextflags) \
-	  --override ocamlbuildflags "-classic-display -tag custom"
+	  --override ocamlbuildflags "-classic-display -tag custom" \
+	  $(CONFIGUREFLAGS)
 	$(SETUP) -build 
 	if ! $(BINDIST_DEBUG); then $(SETUP) -test; fi
 	if ! [ "$(os_type)" = "Win32" ]; then $(SETUP) -doc; fi
 	$(SETUP) -install
+	tar czf $(BINDISTGZ) bindist
+	-$(RM) -r $(BINDISTDIR)
 
 .PHONY: build-backup test-backup clean-backup wc headache bindist bindist-step2
+
+# Source distribution
+
+dist: setup.data
+	if ! [ "$$(darcs diff | wc -l)" = 0 ]; then \
+	  echo E: Uncommited changes >&2 ; exit 1; \
+	fi
+	$(MAKE) test
+	$(MAKE) dist-step2
+
+-include setup.data
+dist-step2:
+	darcs dist --dist-name $(pkg_name)-$(pkg_version)
+	if ! (darcs query tag | grep "$(pkg_version)" > /dev/null); then \
+	  darcs tag "$(pkg_version)"; \
+	else \
+	  echo W: Version $(pkg_version) already tagged >&2; \
+	fi 
+	gpg -s -a -b "$(pkg_name)-$(pkg_version).tar.gz"
+
+.PHONY: dist dist-step2
