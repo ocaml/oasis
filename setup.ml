@@ -20,7 +20,7 @@
 (********************************************************************************)
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: b8059b88b14fbbed9ee08a2be8439fcc) *)
+(* DO NOT EDIT (digest: 8e627fd58400ced2192e864a01b2f5bd) *)
 module OASISGettext = struct
 # 0 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
   
@@ -5695,7 +5695,7 @@ let setup () =
                     },
                      {
                         flag_description = Some "Use ocaml-gettext for i18n";
-                        flag_default = [(EBool true, true)];
+                        flag_default = [(EBool true, false)];
                         });
                  Flag
                    ({
