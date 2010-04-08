@@ -20,8 +20,7 @@
 ################################################################################
 
 
-ocamlbuildflags = -classic-display
-export ocamlbuildflags 
+CONFIGUREFLAGS = --override ocamlbuildflags -classic-display
 
 default: test
 TESTFLAGS      += -long 
@@ -129,10 +128,16 @@ bindist:
 -include setup.data
 BINDISTDIR=$(CURDIR)/bindist
 BINDIR=$(BINDISTDIR)/bin-$(system)-$(architecture)
-ifeq ($(BINDIST_CUSTOM),true)
-ocamlbuildflags = -classic-display -tag custom
-export ocamlbuildflags
-endif
+
+
+ifeq ($(os_type),"Win32")
+gettextflags = --disable-gettext
+tr_path = cygpath -w
+else
+gettextflags = 
+tr_path = echo 
+endif 
+
 bindist-step2:
 	if ! $(BINDIST_DEBUG); then $(SETUP) -distclean; fi
 	if test -d $(BINDISTDIR); then $(RM) -r $(BINDISTDIR); fi
@@ -140,14 +145,15 @@ bindist-step2:
 	mkdir -p "$(BINDISTDIR)/share/doc"
 	mkdir -p "$(BINDIR)"
 	$(SETUP) -configure \
-	  --prefix "$(BINDISTDIR)" \
-	  --bindir "$(BINDIR)" \
-	  --docdir "$(BINDISTDIR)/share/doc" \
-	  --disable-libraries 
+	  --prefix "$$($(tr_path) $(BINDISTDIR))" \
+	  --bindir "$$($(tr_path) $(BINDIR))" \
+	  --docdir "$$($(tr_path) $(BINDISTDIR)/share/doc)" \
+	  --disable-libraries \
+	  $(gettextflags) \
+	  --override ocamlbuildflags "-classic-display -tag custom"
 	$(SETUP) -build 
 	if ! $(BINDIST_DEBUG); then $(SETUP) -test; fi
-	$(SETUP) -doc 
+	if ! [ "$(os_type)" = "Win32" ]; then $(SETUP) -doc; fi
 	$(SETUP) -install
-	echo gettext=$(gettext) >> "$(BINDIR)/oasis-default.sh"
 
 .PHONY: build-backup test-backup clean-backup wc headache bindist bindist-step2
