@@ -97,7 +97,11 @@ let () =
       oasis =
         FilePath.make_filename
           [FileUtil.pwd ();FilePath.parent_dir;
-           "_build";"src";"OASIS"];
+           "_build";"src";
+           if Sys.os_type = "Win32" then
+             "OASIS.exe"
+           else
+             "OASIS"];
       oasis_args = [];
     }
   in
