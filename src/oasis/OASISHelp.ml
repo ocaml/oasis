@@ -134,6 +134,103 @@ let pp_cmd_usage args msg =
     pp_close_box fmt ();
     flush_str_formatter ()
 
+let pp_short_licenses () = 
+  let fmt =
+    str_formatter
+  in
+    pp_set_margin fmt 80;
+    pp_open_vbox fmt 0;
+    pp_print_list
+      (fun fmt (_, short, descr, vers) ->
+         match vers with
+           | [] ->
+               fprintf fmt 
+                 (f_ " * @[`%s`: %a@]") 
+                 short
+                 pp_print_string_spaced descr
+           | lst ->
+               fprintf fmt
+                 (f_ " * @[`%s`: %a (version@ %a)@]")
+                 short
+                 pp_print_string_spaced descr
+                 (pp_print_list pp_print_string ",@, ") lst)
+        "@,"
+        fmt
+        OASISLicense.license_data;
+    pp_close_box fmt ();
+    flush_str_formatter ()
+
+let pp_license_exceptions () = 
+  let fmt =
+    str_formatter
+  in
+    pp_set_margin fmt 80;
+    pp_open_vbox fmt 0;
+    pp_print_list
+      (fun fmt (_, txt, compats) ->
+         match compats with
+           | [] ->
+               fprintf fmt 
+                 (f_ " * `%s`") 
+                 txt
+           | lst ->
+               fprintf fmt
+                 (f_ " * @[`%s` compatible with %a@]")
+                 txt
+                 (pp_print_list 
+                    (fun fmt l -> 
+                       pp_print_string fmt (OASISLicense.to_string l))
+                    ",@, ") 
+                 lst)
+        "@,"
+        fmt
+        OASISLicense.license_exception_data;
+    pp_close_box fmt ();
+    flush_str_formatter ()
+
+let pp_standard_variables display schm = 
+  let env =
+    PropList.Data.create ()
+  in
+  let fmt =
+    str_formatter
+  in
+  let vars = 
+    List.rev
+      (PropList.Schema.fold
+         (fun acc name def short_descr_opt ->
+            if display name def then
+              (name,
+               (match short_descr_opt with
+                  | Some txt -> Some (txt ())
+                  | None -> None),
+               (try 
+                  Some (PropList.Schema.get schm env name)
+                with PropList.Not_set _ -> 
+                  None))
+              :: acc
+            else 
+              acc)
+         []
+         schm)
+  in
+    pp_set_margin fmt 80;
+    pp_open_vbox fmt 0;
+    pp_print_list
+      (fun fmt ->
+         function 
+           | name, None, _ ->
+               fprintf fmt (f_ " * `%s`") name
+           | name, Some descr, _ ->
+               fprintf fmt (f_ " * @[`%s`: %a@]")
+                 name
+                 pp_print_string_spaced descr)
+        "@,"
+        fmt
+        vars;
+    pp_close_box fmt ();
+    flush_str_formatter ()
+
 (** Standard variables to replace in help files *)
 let vars ?plugin () =
   [
@@ -186,7 +283,7 @@ let pp_help_replace vars fmt str =
                 (List.assoc nm vars) ()
               with Not_found ->
                 failwithf2
-                  (f_ "Unknown variable %s in documentationi (line is '%s')")
+                  (f_ "Unknown variable %s in documentation (line is '%s')")
                   nm
                   str)
            str;
@@ -195,7 +292,7 @@ let pp_help_replace vars fmt str =
          Buffer.clear buff)
       str
 
-let pp_help ?plugin fmt args msg =
+let pp_help ?plugin fmt args msg env_schm env_display =
   let build_section_fields, library_fields, executable_fields =
     let set_fields_of_section schm = 
       set_string_of_list (List.rev_map fst (fields_of_section ?plugin schm))
@@ -245,6 +342,21 @@ let pp_help ?plugin fmt args msg =
 
     pp_help_replace 
       ([
+        "ListShortLicenses",
+        pp_short_licenses;
+
+        "ListLicenseExceptions",
+        pp_license_exceptions;
+
+        "ListStandardVariables",
+        (fun () ->
+           pp_standard_variables env_display env_schm);
+
+        (* TODO *)
+        "ListFunctionVariables",
+        (fun () -> 
+           "TODO");
+
         "ListOASISBuildFields",
         (fun () -> 
            pp_section_fields 

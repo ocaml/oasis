@@ -161,7 +161,14 @@ let () =
             end
         | Documentation ->
             begin
-              OASISHelp.pp_help Format.std_formatter args msg
+              OASISHelp.pp_help Format.std_formatter 
+                args msg 
+                BaseEnv.schema
+                (let lst = 
+                   BaseEnv.var_all ()
+                 in
+                   fun nm _ ->
+                     List.mem nm lst)
             end
     with Failure s ->
       begin

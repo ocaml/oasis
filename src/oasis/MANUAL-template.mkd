@@ -9,7 +9,7 @@ install systems in their projects. It should help to create standard entry
 points in the source code build system, allowing external tools to analyse
 projects easily.
 
-This tool is freely inspired by [Cabal][] which is the same kind of tools for
+This tool is freely inspired by [Cabal][] which is the same kind of tool for
 [Haskell][].
 
   [Cabal]: http://www.haskell.org/cabal
@@ -23,8 +23,7 @@ This file is used to generate a skeleton for build, configure and install
 systems. Generation can be customized through extra fields or directly inside
 generated files.
 
-The main entry point is a toplevel OCaml script `setup.ml` which can be used as
-a standard entry point for building project.  It is self contained.  Once
+The main entry point is an OCaml script `setup.ml`. It is self contained. Once
 generated there is no additional dependencies (just like an autoconf
 `configure` script).
 
@@ -141,18 +140,17 @@ Tests and flags can be combined using standard boolean operation:
 * `expr1 || expr2`: boolean or.
 * `true` and `false`.
 
-Toplevel
---------
+Package
+-------
 
-Toplevel fields are the defined outside sections. They apply to the whole
-project.
+Package fields are defined outside sections. They apply to the whole project.
 
 Fields:
 
 $ListOASISPackageFields
 
 `BuildDepends` and `BuildTools` are appended to all sections and not used
-directly at toplevel.
+directly in the package.
 
 Sections
 --------
@@ -240,6 +238,34 @@ $ListOASISSourceRepositoryFields
 
 Supported VCS types are: darcs, git, svn, cvs, hg, bzr, arch, monotone.
 
+License
+-------
+
+We have adopted a [DEP-5][] license style description. 
+
+ [DEP-5]: http://dep.debian.net/deps/dep5/
+
+The reason of this format is to have machine-readable license description.
+Using this former work, we hope to be compatible with future standards of
+Debian.
+
+We have limited the number of license to:
+
+$ListShortLicenses
+ * or an URL describing the license
+
+And license exception to:
+
+$ListLicenseExceptions
+ * or an URL describing the license exception
+
+You can specify a license version using a dash and only digits or dashes at the
+end of the license short name. 
+
+Examples :
+ * `LGPL-2.1 with OCaml linking exception`: LGPL v2.1 with OCaml linking exception
+ * `GPL-2+`: GPL v2 or later
+
 Data files
 ----------
 
@@ -262,7 +288,37 @@ from `_oasis` file, `ocamlc -config` output and configure tests. So environment
 variables depends of each project. You can have a precise idea of what variables
 is available looking at the file `setup.data`. 
 
-TODO: standard variables.
+Here is a list of standard variables:
+
+$ListStandardVariables
+
+Other variables are defined depending on your `_oasis` file:
+ * Variables from BuildDepends:  `pkg_`  and the name of the findlib package.
+   It points to the directory containing the package.
+   If there is a version constraint, it is also translated to a variable. It
+   contains a boolean value to know if the version is ok or not.
+   Internal findlib packages don't create variables.
+   Example: `BuildDepends: oUnit (>= 1.0.3)` becomes two variables 
+   `pkg_oUnit = /usr/lib/ocaml/ounit` and `pkg_oUnit_ge_1_0_3 = true`.
+ * Variables from external BuildTools: the variable is the name given
+   in the field and its value the filename of the executable. 
+   Example: `BuildTools: make` becomes `make = /usr/bin/make`.
+ * Dynamic variables from internal BuildTools: the variable is the name
+   of the Executable section and its value the filename of the executable.
+   Example: `Executable ocamlmod` becomes `ocamlmod =
+   _build/src/tools/ocamlmod`. These variables are set through `setup.log`
+   rather than `setup.data`. They are set only when the corresponding files
+   is built.
+
+
+It is also possible to apply transformation through functions. This is useful
+when you need to use properties that need to be determined at runtime:
+
+ * `utoh`: convert an Unix filename into a host filename (e.g. UNIX -> Win32
+    conversion).
+ * `ocaml_escaped`: call to `String.escaped`. 
+
+For example `\$(utoh src/test.ml)` will be replaced by `src\test.ml` on Windows.
 
 Customization of generated files
 --------------------------------

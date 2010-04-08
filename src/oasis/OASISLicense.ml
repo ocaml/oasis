@@ -54,7 +54,7 @@ let license_data =
 
     LGPL,
     "LGPL",
-    "GNU Lesser General Public License,
+    "GNU Lesser General Public License, \
      (GNU Library General Public License for versions lower than 2.1).",
     ["2.0"; "2.1"; "3.0"];
 

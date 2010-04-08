@@ -24,7 +24,7 @@ ocamlbuildflags = -classic-display
 export ocamlbuildflags 
 
 default: test
-#TESTFLAGS      += -long 
+TESTFLAGS      += -long 
 #TESTFLAGS      += -verbose
 #TESTFLAGS      += -only-test OASIS:4:Basic:1
 
