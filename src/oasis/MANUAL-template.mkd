@@ -341,6 +341,16 @@ Moreover it can be customized through hook in the code directly.
 
 TODO: explains hook.
 
+Using OASIS during software development
+---------------------------------------
+
+Since `_oasis` becomes a central place of information about the building
+process, it can be quite cumbersome to run again and again `OASIS`. You can 
+avoid it using the `-dev` flags when calling `OASIS` for the first time. This
+way it will rebuilt very dependents build files each time you call `ocaml
+setup.ml`. A `setup.ml` built this way, should not be distributed. This intended
+for development purpose only.
+
 Plugins 
 -------
 
