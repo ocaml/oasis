@@ -282,7 +282,7 @@ let rm =
     "rm"
     (lazy 
        (match os_type () with
-          | "Win32" -> "rd"
+          | "Win32" -> "del"
           | _ -> "rm -f"))
 
 let rmdir =
