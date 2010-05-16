@@ -259,6 +259,19 @@ let create_ocamlbuild_files pkg () =
               bs.bs_c_sources))
     in
 
+    let clib_tgts =
+      if bs.bs_c_sources <> []
+      then
+	[Printf.sprintf "<%s/{dll%s%s,lib%s%s}>"
+	   bs.bs_path
+	   cs.cs_name
+	   (ext_dll ())
+	   cs.cs_name
+	   (ext_lib ());]
+      else
+	[]
+    in
+
     (* Manipulate ocamlbuild's spec *)
     let atom s = A s
     in
@@ -311,6 +324,12 @@ let create_ocamlbuild_files pkg () =
                    else
                      tag_t
                  in
+                 let tag_t =
+                   if List.mem "ocamlmklib" tags then
+                     add_tags tag_t clib_tgts [tag_name]
+                   else
+                     tag_t
+                 in
                    tag_t,
                    {myocamlbuild_t with
                         flags = (all_tags, spec) :: myocamlbuild_t.flags}
@@ -325,6 +344,7 @@ let create_ocamlbuild_files pkg () =
         [
           "ccopt",   ["compile"], Some (A"-ccopt"),   atom, bs.bs_ccopt;
           "cclib",   ["link"],    Some (A"-cclib"),   atom, bs.bs_cclib;
+          "cclib",   ["ocamlmklib"; "c"], None,       atom, bs.bs_cclib;
           "dlllib",  ["link"],    Some (A"-dllib"),   path, bs.bs_dlllib;
           "dllpath", ["link"],    Some (A"-dllpath"), path, bs.bs_dllpath;
           "byte",    ["byte"],    None,               atom, bs.bs_byteopt;
