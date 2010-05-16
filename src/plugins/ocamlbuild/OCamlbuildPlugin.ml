@@ -249,7 +249,7 @@ let create_ocamlbuild_files pkg () =
       List.rev_append
         (* .ml files *)
         (List.rev_map 
-           (Printf.sprintf "<%s/*.ml>")
+           (Printf.sprintf "<%s/*.ml{,i}>")
            (src_dirs @ src_internal_dirs))
         (* .c files *)
         (List.rev_map
