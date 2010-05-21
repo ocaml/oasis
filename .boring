@@ -83,3 +83,6 @@
 ^boot/
 ^bindist(/|)
 ^src/oasis/OASISConf.ml$
+\.tar\.gz$
+\.tar\.gz\.asc$
+^OASISMain.byte$
