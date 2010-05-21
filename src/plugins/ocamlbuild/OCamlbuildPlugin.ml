@@ -345,8 +345,8 @@ let create_ocamlbuild_files pkg () =
           "ccopt",   ["compile"],         Some (A"-ccopt"),   atom, bs.bs_ccopt;
           "cclib",   ["link"],            Some (A"-cclib"),   atom, bs.bs_cclib;
           "cclib",   ["ocamlmklib"; "c"], None,               atom, bs.bs_cclib;
-          "dlllib",  ["link"],            Some (A"-dllib"),   path, bs.bs_dlllib;
-          "dllpath", ["link"],            Some (A"-dllpath"), path, bs.bs_dllpath;
+          "dlllib",  ["link"; "byte"],    Some (A"-dllib"),   path, bs.bs_dlllib;
+          "dllpath", ["link"; "byte"],    Some (A"-dllpath"), path, bs.bs_dllpath;
           "dllpath", ["ocamlmklib"; "c"], Some(A"-dllpath"),  path, bs.bs_dllpath;
           "byte",    ["byte"],            None,               atom, bs.bs_byteopt;
           "native",  ["native"],          None,               atom, bs.bs_nativeopt;
