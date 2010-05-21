@@ -57,7 +57,11 @@ let () =
     ref "setup.ml"
   in
 
-  let (gettext_args, _) =
+  let ruse_oasis_real_filename =
+    ref false
+  in
+
+  let _ =
     OASISMainGettext.init
   in
 
@@ -98,11 +102,14 @@ let () =
       "-setup-fn",
       Arg.Set_string rsetup_fn,
       (s_ "fn Change the default name of setup.ml. This option should be \
-              used with caution, it is reserved for internal use.");                   
+              used with caution, it is reserved for internal use.");
 
+      "-real-oasis",
+      Arg.Set ruse_oasis_real_filename,
+      (s_ " Use the real OASIS filename when generating developper mode \
+            setup.ml.");
     ] 
     @ (OASISMessage.args ())
-    @ gettext_args
   in
 
   let copyright = 
@@ -136,7 +143,11 @@ let () =
               let pkg =
                 OASIS.from_file !oasis_fn 
               in
-                BaseGenerate.generate pkg !rdev !rsetup_fn
+                BaseGenerate.generate 
+                  pkg 
+                  !rdev 
+                  !rsetup_fn
+                  !ruse_oasis_real_filename
             end
         | Quickstart ->
             begin

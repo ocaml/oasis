@@ -40,7 +40,7 @@ let required_modules =
 
 (** Generate setup.ml and the rest of the build system 
   *)
-let generate pkg dev setup_fn = 
+let generate pkg dev setup_fn use_real_oasis_filename = 
 
   let pkg, setup_t_odn, other_actions, moduls =
     BaseSetup.odn_of_oasis pkg
@@ -77,7 +77,10 @@ let generate pkg dev setup_fn =
       (if dev then
          APP ("BaseDev.update_and_run", 
               [], 
-              [BaseDev.odn_of_t (BaseDev.create setup_fn)])
+              [BaseDev.odn_of_t 
+                 (BaseDev.create 
+                    use_real_oasis_filename 
+                    setup_fn)])
        else
          APP ("BaseSetup.setup", 
               [], 

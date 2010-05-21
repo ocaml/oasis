@@ -86,7 +86,7 @@ let update_and_run t =
 
 (* END EXPORT *)
 
-let create setup_fn = 
+let create use_real_filename setup_fn = 
   let args =
     let rec filter_opt =
       function 
@@ -104,7 +104,10 @@ let create setup_fn =
            (Array.to_list Sys.argv))
   in
     {
-      oasis_cmd  = Sys.executable_name;
+      oasis_cmd  = (if use_real_filename then 
+                      Sys.argv.(0)
+                    else
+                      "OASIS");
       oasis_args = args;
       self_fn    = setup_fn;
     }
