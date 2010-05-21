@@ -31,7 +31,7 @@ open OASISGettext
 
 let test lst pkg extra_args =
 
-  let one_test (test_plugin, cs, test) =
+  let one_test (failure, n) (test_plugin, cs, test) =
     if var_choose 
          ~name:(Printf.sprintf
                   (f_ "test %s run")
@@ -66,7 +66,7 @@ let test lst pkg extra_args =
                 extra_args 
             in
               back_cwd ();
-              failure_percent
+              (failure_percent +. failure, n + 1)
           with e ->
             begin
               back_cwd ();
@@ -76,22 +76,20 @@ let test lst pkg extra_args =
     else
       begin
         info (f_ "Skipping test '%s'") cs.cs_name;
-        0.0
+        (failure, n)
       end
   in
-  let res =
-    List.map
+  let (failed, n) =
+    List.fold_left
       one_test
+      (0.0, 0)
       lst
   in
-  let n = 
-    float_of_int (List.length res)
-  in
   let failure_percent =
-    List.fold_left
-      (fun r e -> r +. (e /. n))
+    if n = 0 then
       0.0
-      res
+    else
+      failed /. (float_of_int n)
   in
     (if failure_percent > 0.0 then
        warning 
