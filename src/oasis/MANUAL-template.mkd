@@ -263,6 +263,7 @@ You can specify a license version using a dash and only digits or dashes at the
 end of the license short name. 
 
 Examples :
+
  * `LGPL-2.1 with OCaml linking exception`: LGPL v2.1 with OCaml linking exception
  * `GPL-2+`: GPL v2 or later
 
@@ -293,6 +294,7 @@ Here is a list of standard variables:
 $ListStandardVariables
 
 Other variables are defined depending on your `_oasis` file:
+
  * Variables from BuildDepends:  `pkg_`  and the name of the findlib package.
    It points to the directory containing the package.
    If there is a version constraint, it is also translated to a variable. It
