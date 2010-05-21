@@ -1042,6 +1042,18 @@ let tests ctxt =
              ["META"; "A.ml"; "A.cmi"; "with-a.cma"];
          ],
          [];
+
+         (* Use cclib option *)
+         "data/with-cclib",
+         true,
+         ["src/META"; 
+          "Makefile"; 
+          "configure"; 
+          "src/libtest_oasis_c_dependency.clib"; 
+          "src/test_oasis_c_dependency.mllib"; 
+          "src/test_oasis_c_dependency.odocl"] @ oasis_ocamlbuild_files,
+         [],
+         [];
        ]
     )
 ;;

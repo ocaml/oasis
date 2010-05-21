@@ -1,0 +1,20 @@
+OASISFormat: 0.1
+Name:        test-oasis-c-dependency
+Version:     0.1
+Synopsis:    test oasis with c dependency
+Authors:     test
+License:     LGPL-2.1 with OCaml linking exception
+Plugins:     DevFiles (0.1), Meta (0.1)
+
+Library test_oasis_c_dependency
+  Path:	    src
+  Modules:  Stringprep
+  CSources: stringprep_stubs.c
+  CCLib:    -lidn
+  Install:  false
+
+Executable test_compile
+  Path: src
+  MainIs: test_compile.ml
+  BuildDepends: test_oasis_c_dependency
+  Install:  false
