@@ -21,6 +21,9 @@
 
 open OUnit;;
 
-run_test_tt_main
-  ("main" >:: (fun () -> ()))
+let myrun = 
+  run_test_tt_main
+;;
+
+myrun ("main" >:: (fun () -> ()))
 ;;
