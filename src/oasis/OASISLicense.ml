@@ -62,6 +62,21 @@ let license_data =
     "QPL",
     "Q Public License.",
     ["1.0"];
+
+    CeCILL,
+    "CeCILL",
+    "CEA-CNRS-INRIA Logiciel Libre, GPL-like",
+    ["1"; "2"];
+
+    CeCILLB,
+    "CeCILL-B",
+    "CEA-CNRS-INRIA Logiciel Libre, BSD-like",
+    [];
+
+    CeCILLC,
+    "CeCILL-C",
+    "CEA-CNRS-INRIA Logiciel Libre, LGPL-like",
+    [];
   ]
 
 let license_exception_data =
@@ -194,7 +209,10 @@ let rec to_string =
     | BSD4
     | GPL
     | LGPL
-    | QPL as l1 ->
+    | QPL 
+    | CeCILL
+    | CeCILLB
+    | CeCILLC as l1 ->
         begin
           try 
             let _, shrt, _, _=

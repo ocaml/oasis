@@ -80,6 +80,15 @@ let tests ctxt =
 
          "http://some.stuff.com/license",
          Some (OtherLicense "http://some.stuff.com/license");
+
+         "CeCILL",
+         Some (CeCILL);
+
+         "CeCILL-B",
+         Some (CeCILLB);
+
+         "CeCILL-C",
+         Some (CeCILLC);
        ]
 
     )

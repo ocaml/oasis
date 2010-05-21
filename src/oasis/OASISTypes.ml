@@ -79,6 +79,9 @@ type license =
   | GPL
   | LGPL
   | QPL
+  | CeCILL
+  | CeCILLB
+  | CeCILLC
   | LicenseWithVersion of license * version
   | LicenseWithLaterVersion of license * version
   | LicenseWithException of license * license_exception
