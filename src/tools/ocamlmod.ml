@@ -54,8 +54,11 @@ let dump_ml chn_out fn =
   in
 
   let export_extract chn_out fn = 
-    let chn_in =
-      open_in fn 
+    let is_rgxp s_rgxp = 
+      let rgxp = 
+        Str.regexp s_rgxp 
+      in
+        fun s -> Str.string_match rgxp s 0
     in
     let with_odn = 
       Str.regexp "with +odn\\($\\| \\)"
@@ -63,68 +66,67 @@ let dump_ml chn_out fn =
     let type_conv_path =
       Str.regexp "TYPE_CONV_PATH +\"[^\"]*\""
     in
-    let export_end =
-      Str.regexp "(\\* +END +EXPORT +\\*)"
+    let is_export_end =
+      is_rgxp "(\\* +END +EXPORT +\\*)"
     in
-    let export_start = 
-      Str.regexp "(\\* +START +EXPORT +\\*)"
+    let is_export_start = 
+      is_rgxp "(\\* +START +EXPORT +\\*)"
     in
-    let beg_comment = 
-      Str.regexp "(\\*.*" 
+    let is_beg_comment = 
+      is_rgxp "(\\*.*" 
     in
-    let pass_beg_comment =
-      ref false
-    in
-    let export =
-      ref false
-    in
+
     let line_num = 
       ref 0
     in
-    let mark_source_line () =
-      Printf.fprintf chn_out "# %d %S\n" !line_num real_fn
+    let chn_in =
+      open_in fn 
     in
-      (
-        mark_source_line ();
-        try
-          while true do
+    let input_line () =
+      incr line_num;
+      input_line chn_in
+    in
+
+    let rec skip_header line = 
+      if is_export_start line then
+        start_export (input_line ())
+      else if is_beg_comment line then
+        skip_header (input_line ())
+      else
+        start_export line
+
+    and skip_export line = 
+      if is_export_start line then
+        start_export (input_line ())
+      else
+        skip_export (input_line ())
+
+    and start_export line =
+      Printf.fprintf chn_out "# %d %S\n" !line_num real_fn;
+      parse_body line
+
+    and parse_body line =
+        if is_export_end line then
+          skip_export (input_line ())
+        else
+          begin
             let line = 
-              incr line_num;
-              input_line chn_in
+              (* Remove ODN elements *)
+              List.fold_left
+                (fun str rgxp -> Str.global_replace rgxp "" str)
+                line
+                [with_odn; type_conv_path]
             in
-              if not !pass_beg_comment 
-              && not (Str.string_match beg_comment line 0) then
-                begin
-                  pass_beg_comment := true;
-                  export := true
-                end;
-
-              if Str.string_match export_end line 0 then
-                begin
-                  export := false;
-                end
-
-              else if Str.string_match export_start line 0 then
-                begin
-                  export := true;
-                  mark_source_line ()
-                end
-
-              else if !export then  
-                begin
-                  let line = 
-                    (* Remove ODN elements *)
-                    List.fold_left
-                      (fun str rgxp -> Str.global_replace rgxp "" str)
-                      line
-                      [with_odn; type_conv_path]
-                  in
-                    Printf.fprintf chn_out "  %s\n" line
-                end
-          done
+              Printf.fprintf chn_out "  %s\n" line;
+              parse_body (input_line ())
+          end
+    in
+      begin
+        try
+          skip_header (input_line ());
         with End_of_file ->
           ()
-      );
+      end;
       close_in chn_in
   in
 
