@@ -1061,6 +1061,13 @@ let tests ctxt =
          [] @ oasis_ocamlbuild_files,
          [],
          [];
+        
+         (* Need to create a a parent directory *)
+         "data/create-parent-dir",
+         true,
+         [] @ oasis_ocamlbuild_files,
+         [in_data_dir ["toto/toto/toto.txt"]],
+         [];
        ]
     )
 ;;

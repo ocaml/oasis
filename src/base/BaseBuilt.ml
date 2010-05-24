@@ -162,19 +162,3 @@ let of_library ffn (cs, bs, lib) =
   in
     evs, unix_lst
 
-(* Unregister all build event related to a package
- *)
-let clean_all pkg =
-    List.fold_left
-      (fun () ->
-         function
-           | Library (cs, _, _) -> 
-               unregister BLib cs.cs_name
-           | Executable (cs, _, _) ->
-               unregister BExec cs.cs_name;
-               unregister BExecLib cs.cs_name
-           | Flag _ | SrcRepo _ | Doc _ | Test _ ->
-               ())
-      ()
-      pkg.sections
-

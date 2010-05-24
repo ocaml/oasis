@@ -64,8 +64,8 @@ module Build =
 struct 
   let main t pkg extra_args =
     main t pkg extra_args;
-    List.fold_left
-      (fun () sct ->
+    List.iter
+      (fun sct ->
          let evs =
            match sct with 
              | Library (cs, bs, lib) when var_choose bs.bs_build ->
@@ -92,12 +92,20 @@ struct
            List.iter
              (fun (bt, bnm, lst) -> BaseBuilt.register bt bnm lst)
              evs)
-      ()
       pkg.sections
 
   let clean t pkg extra_args =
     clean t pkg extra_args;
-    BaseBuilt.clean_all pkg
+    List.iter
+      (function
+         | Library (cs, _, _) ->
+             BaseBuilt.unregister BaseBuilt.BLib cs.cs_name
+         | Executable (cs, _, _) ->
+             BaseBuilt.unregister BaseBuilt.BExec cs.cs_name;
+             BaseBuilt.unregister BaseBuilt.BExecLib cs.cs_name
+         | _ ->
+             ())
+      pkg.sections
 
   let distclean t pkg extra_args =
     distclean t pkg extra_args
@@ -126,10 +134,12 @@ end
 module Doc =
 struct
   let main t pkg (cs, _) extra_args =
-    main t pkg extra_args
+    main t pkg extra_args;
+    BaseBuilt.register BaseBuilt.BDoc cs.cs_name []
 
   let clean t pkg (cs, _) extra_args =
-    clean t pkg extra_args
+    clean t pkg extra_args;
+    BaseBuilt.unregister BaseBuilt.BDoc cs.cs_name
 
   let distclean t pkg (cs, _) extra_args =
     distclean t pkg extra_args

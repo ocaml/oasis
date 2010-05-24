@@ -73,13 +73,12 @@ let install pkg argv =
         tgt_dir
         (Filename.basename src_file)
     in
-      (* Check that target directory exist *)
-      if not (Sys.file_exists tgt_dir) then
-        (
-          info (f_ "Creating directory '%s'") tgt_dir;
-          BaseFileUtil.mkdir tgt_dir;
-          BaseLog.register install_dir_ev tgt_dir
-        );
+      (* Create target directory if needed *)
+      BaseFileUtil.mkdir_parent 
+        (fun dn ->
+           info (f_ "Creating directory '%s'") dn;
+           BaseLog.register install_dir_ev dn)
+        tgt_dir;
 
       (* Really install files *)
       info (f_ "Copying file '%s' to '%s'") src_file tgt_file;

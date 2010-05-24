@@ -119,6 +119,28 @@ let mkdir tgt =
        | _ -> "mkdir")
     [q tgt]
 
+(** [mkdir_parent f tgt] Create a directory and its parent, call f with 
+    directory name created, in order.
+  *)
+let rec mkdir_parent f tgt =
+  if Sys.file_exists tgt then
+    begin
+      if not (Sys.is_directory tgt) then
+        OASISUtils.failwithf1
+          (f_ "Cannot create directory '%s', a file of the same name already \
+               exists")
+          tgt
+    end
+  else
+    begin
+      mkdir_parent f (Filename.dirname tgt);
+      if not (Sys.file_exists tgt) then 
+        begin
+          f tgt;
+          mkdir tgt
+        end
+    end
+
 (** Remove a directory
   *)
 let rmdir tgt =

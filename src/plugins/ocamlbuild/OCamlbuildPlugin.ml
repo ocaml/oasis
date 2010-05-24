@@ -193,7 +193,16 @@ let build pkg argv =
 
 let clean pkg extra_args  = 
   OCamlbuildCommon.run_clean extra_args;
-  BaseBuilt.clean_all pkg
+  List.iter
+    (function
+       | Library (cs, _, _) ->
+           BaseBuilt.unregister BaseBuilt.BLib cs.cs_name
+       | Executable (cs, _, _) ->
+           BaseBuilt.unregister BaseBuilt.BExec cs.cs_name;
+           BaseBuilt.unregister BaseBuilt.BExecLib cs.cs_name
+       | _ ->
+           ())
+    pkg.sections
 
 (* END EXPORT *)
 
