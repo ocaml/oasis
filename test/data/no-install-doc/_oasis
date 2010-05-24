@@ -1,0 +1,13 @@
+OASISFormat: 0.1
+Name:        no-install-doc
+Version:     0.1
+Synopsis:    Test to not install non built doc
+Authors:     Me
+License:     GPL
+
+Document toto
+ Type: None (0.1.0)
+ Title: Nothing
+ Install: false
+ Build: false
+ DataFiles: toto.txt

@@ -1054,6 +1054,13 @@ let tests ctxt =
           "src/test_oasis_c_dependency.odocl"] @ oasis_ocamlbuild_files,
          [],
          [];
+
+         (* With a documentation that is not built *)
+         "data/no-install-doc",
+         true,
+         [] @ oasis_ocamlbuild_files,
+         [],
+         [];
        ]
     )
 ;;

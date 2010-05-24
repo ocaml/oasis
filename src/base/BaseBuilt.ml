@@ -35,7 +35,7 @@ type t =
   | BLib     (* Library *)
   | BDoc     (* Document *)
 
-let to_log_event t nm = 
+let to_log_event_file t nm =
   "built_"^
   (match t with 
      | BExec -> "exec"
@@ -44,27 +44,35 @@ let to_log_event t nm =
      | BDoc -> "doc")^
   "_"^nm
 
-(* Register files built *)
+let to_log_event_done t nm =
+  "is_"^(to_log_event_file t nm)
+
+(** Register files built *)
 let register t nm lst = 
+  BaseLog.register
+    (to_log_event_done t nm)
+    "true";
   List.iter
     (fun fn ->
        BaseLog.register 
-         (to_log_event t nm)
+         (to_log_event_file t nm)
          (if Filename.is_relative fn then
             Filename.concat (Sys.getcwd ()) fn
           else 
             fn))
     lst
 
-(* Unregister all files built *)
+(** Unregister all files built *)
 let unregister t nm =
   List.iter
     (fun (e, d) ->
        BaseLog.unregister e d)
-    (BaseLog.filter [to_log_event t nm])
+    (BaseLog.filter 
+       [to_log_event_file t nm; 
+        to_log_event_done t nm])
 
-(* Fold-left files built, filter existing
-   and non-existing files.
+(** Fold-left files built, filter existing
+    and non-existing files.
  *)
 let fold t nm f acc = 
   List.fold_left 
@@ -92,7 +100,20 @@ let fold t nm f acc =
          end)
     acc
     (BaseLog.filter
-       [to_log_event t nm])
+       [to_log_event_file t nm])
+
+(** Check if a library/doc/exec has been built 
+  *)
+let is_built t nm =
+  List.fold_left
+    (fun is_built (_, d) ->
+       (try 
+          bool_of_string d
+        with _ ->
+          false))
+    false
+    (BaseLog.filter
+       [to_log_event_done t nm])
 
 (** Generate the list of files that should be built for 
     an executable.

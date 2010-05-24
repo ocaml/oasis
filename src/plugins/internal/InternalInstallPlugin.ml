@@ -87,64 +87,42 @@ let install pkg argv =
       BaseLog.register install_file_ev tgt_file
   in
 
-  (* Install all datas *)
-  let install_datas pkg = 
-
-    (* Install data into defined directory *)
-    let install_data srcdir lst tgtdir =
-      let tgtdir = 
-        var_expand tgtdir
-      in
-        List.iter
-          (fun (src, tgt_opt) ->
-             let real_srcs = 
-               BaseFileUtil.glob 
-                 (Filename.concat srcdir src)
-             in
-               if real_srcs = [] then
-                 failwithf1
-                   (f_ "Wildcard '%s' doesn't match any files")
-                   src;
-               List.iter 
-                 (fun fn -> 
-                    install_file 
-                      fn 
-                      (fun () -> 
-                         match tgt_opt with 
-                           | Some s -> var_expand s
-                           | None -> tgtdir))
-                 real_srcs)
-          lst
-    in       
-
+  (* Install data into defined directory *)
+  let install_data srcdir lst tgtdir =
+    let tgtdir = 
+      var_expand tgtdir
+    in
       List.iter
-        (function
-           | Library (_, bs, _)
-           | Executable (_, bs, _) ->
-               install_data
-                 bs.bs_path
-                 bs.bs_data_files
-                 (Filename.concat 
-                    (datarootdir ())
-                    pkg.name)
-           | Doc (_, doc) ->
-               install_data
-                 Filename.current_dir_name
-                 doc.doc_data_files
-                 doc.doc_install_dir
-           | _ ->
-               ())
-        pkg.sections
-  in
+        (fun (src, tgt_opt) ->
+           let real_srcs = 
+             BaseFileUtil.glob 
+               (Filename.concat srcdir src)
+           in
+             if real_srcs = [] then
+               failwithf1
+                 (f_ "Wildcard '%s' doesn't match any files")
+                 src;
+             List.iter 
+               (fun fn -> 
+                  install_file 
+                    fn 
+                    (fun () -> 
+                       match tgt_opt with 
+                         | Some s -> var_expand s
+                         | None -> tgtdir))
+               real_srcs)
+        lst
+  in       
 
   (** Install all libraries *)
   let install_libs pkg =
 
-    let files_of_library acc data_lib = 
+    let files_of_library (f_data, acc) data_lib = 
       let cs, bs, lib, lib_extra =
         !lib_hook data_lib
       in
-        if var_choose bs.bs_install then
+        if var_choose bs.bs_install && 
+           BaseBuilt.is_built BaseBuilt.BLib cs.cs_name then
           begin
             let acc = 
               (* Start with acc + lib_extra *)
@@ -180,33 +158,49 @@ let install pkg argv =
                   acc
                   lib.lib_modules
             in
+
+            let acc = 
              (* Get generated files *)
              BaseBuilt.fold 
                BaseBuilt.BLib 
                cs.cs_name
                (fun acc fn -> fn :: acc)
                acc
+            in
+
+            let f_data () =
+              (* Install data associated with the library *)
+              install_data
+                bs.bs_path
+                bs.bs_data_files
+                (Filename.concat 
+                   (datarootdir ())
+                   pkg.name);
+              f_data ()
+            in
+
+              (f_data, acc)
           end
          else
           begin
-            acc
+            (f_data, acc)
           end
     in
 
     (* Install one group of library *)
     let install_group_lib grp = 
       (* Iterate through all group nodes *)
-      let rec install_group_lib_aux acc grp =
-        let acc, children = 
+      let rec install_group_lib_aux data_and_files grp =
+        let data_and_files, children = 
           match grp with 
             | Container (_, children) ->
-                acc, children
+                data_and_files, children
             | Package (_, cs, bs, lib, children) ->
-                files_of_library acc (cs, bs, lib), children
+                files_of_library data_and_files (cs, bs, lib), children
         in
           List.fold_left
             install_group_lib_aux
-            acc
+            data_and_files
             children
       in
 
@@ -221,8 +215,8 @@ let install pkg argv =
       in
 
       (* All files to install for this library *)
-      let files =
-        install_group_lib_aux [] grp
+      let f_data, files =
+        install_group_lib_aux (ignore, []) grp
       in
 
         (* Really install, if there is something to install *)
@@ -256,7 +250,11 @@ let install pkg argv =
                 (ocamlfind ()) 
                 ("install" :: findlib_name :: meta :: files);
               BaseLog.register install_findlib_ev findlib_name 
-          end
+          end;
+
+        (* Install data files *)
+        f_data ();
+
     in
 
       (* We install libraries in groups *)
@@ -270,7 +268,8 @@ let install pkg argv =
       let (cs, bs, exec) =
         !exec_hook data_exec
       in
-        if var_choose bs.bs_install then
+        if var_choose bs.bs_install &&
+           BaseBuilt.is_built BaseBuilt.BExec cs.cs_name then
           begin
             let exec_libdir () =
               Filename.concat 
@@ -292,7 +291,13 @@ let install pkg argv =
                    install_file
                      fn
                      exec_libdir)
-                ()
+                ();
+              install_data
+                bs.bs_path
+                bs.bs_data_files
+                (Filename.concat 
+                   (datarootdir ())
+                   pkg.name)
           end
     in
       List.iter
@@ -309,7 +314,8 @@ let install pkg argv =
       let (cs, doc) =
         !doc_hook data
       in
-        if var_choose doc.doc_install then
+        if var_choose doc.doc_install &&
+           BaseBuilt.is_built BaseBuilt.BDoc cs.cs_name then
           begin
             let tgt_dir =
               var_expand doc.doc_install_dir
@@ -321,7 +327,11 @@ let install pkg argv =
                    install_file 
                      fn 
                      (fun () -> tgt_dir))
-              ()
+              ();
+              install_data
+                Filename.current_dir_name
+                doc.doc_data_files
+                doc.doc_install_dir
           end
     in
       List.iter
@@ -335,8 +345,7 @@ let install pkg argv =
   
     install_libs  pkg;
     install_execs pkg;
-    install_docs  pkg;
-    install_datas pkg
+    install_docs  pkg
 
 (* Uninstall already installed data *)
 let uninstall _ argv =
