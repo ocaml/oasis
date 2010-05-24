@@ -152,13 +152,37 @@ let () =
         | Quickstart ->
             begin
               let fn =
-                "_oasis"
+                !oasis_fn
               in
-              let chn = 
-                open_out_gen 
-                  [Open_wronly; Open_creat; Open_excl; Open_text] 
-                  0o644
-                  "_oasis"
+              let () = 
+                if Sys.file_exists fn then
+                  begin
+                    let a = 
+                      OASISQuickstart.ask_yes_no 
+                        ~default:(OASISQuickstart.Default_exists false)
+                        (Printf.sprintf
+                           (f_ "File '%s' already exists, overwrite it?")
+                           fn)
+                    in
+                      if not a then
+                        failwithf1
+                          (f_ "File '%s' already exists, remove it first")
+                          fn
+                  end
+              in
+              let tmp_fn, chn = 
+                Filename.open_temp_file fn ".tmp"
+              in
+              let () = 
+                at_exit
+                  (fun () ->
+                     if Sys.file_exists tmp_fn then
+                       begin
+                         try
+                           FileUtil.rm [tmp_fn]
+                         with _ ->
+                           ()
+                       end)
               in
               let fmt = 
                 Format.formatter_of_out_channel chn
@@ -168,7 +192,10 @@ let () =
                   fmt
                   !qckstrt_lvl;
                 Format.pp_print_flush fmt ();
-                close_out chn
+                close_out chn;
+                if Sys.file_exists fn then
+                  FileUtil.rm [fn];
+                FileUtil.mv tmp_fn fn;
             end
         | Documentation ->
             begin
