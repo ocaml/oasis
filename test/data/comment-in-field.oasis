@@ -1,0 +1,11 @@
+OASISFormat: 0.1
+Name:        test
+Version:     test
+Synopsis:    test
+Authors:     test
+License:     GPL
+Synopsis:    toto
+             et toto
+Plugins:     META (0.1),
+#            StdFiles (0.1),
+             DevFiles (0.1)

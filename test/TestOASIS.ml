@@ -272,7 +272,10 @@ let tests ctxt =
                   (choose_with_env
                      ~vars:["test", "false"]
                      test_main.test_command);
-            )
+            );
+
+            "comment-in-field.oasis",
+            ignore;
           ])
       @
        (List.rev_map file_of_vector

@@ -41,357 +41,402 @@ let stream_debugger st =
        with Stream.Failure ->
          None)
 
+type line_pos = int
+type char_pos = int
+
+type t =
+  | RealLine of line_pos * char_pos * string (* line, begin char, data *)
+  | BlockBegin
+  | BlockEnd
+  | StringBegin
+  | StringEnd
+
 let parse_stream conf st = 
 
-  (* Get rid of MS-DOS file format *)
-  let dos2unix st = 
-    Stream.from
-      (fun _ ->
-         try
-           match Stream.next st with 
-             | '\r' when Stream.peek st = Some '\n' ->
-                 Some ' '
-             | c ->
-                 Some c
-         with Stream.Failure ->
-           None)
+  let is_blank =
+    function 
+      | ' ' | '\r' | '\t' -> true
+      | _ -> false
   in
 
-  (* Get rid of '\t' for indent *)
-  let notab st =
-    Stream.from
-      (fun _ ->
-         try
-           match Stream.next st with 
-             | '\t' ->
-                 Some ' '
-             | c ->
-                 Some c
-         with Stream.Failure ->
-           None)
+    (*
+  let string_fold f acc str =
+    let racc =
+      ref acc
+    in
+      for i = 0 to (String.length str) - 1 do 
+        racc := f acc str.(i)
+      done;
+      !racc
+  in
+     *)
+
+  let apply_transformations ops =
+    List.fold_left
+      (fun lines (msg, f) ->
+         let new_lines = 
+           f lines
+         in
+           if conf.debug && lines <> new_lines then 
+             begin
+               let rec pp_lines mode = 
+                 function
+                   | RealLine (lineno, charstart, str) :: tl -> 
+                       Printf.eprintf "%s%04d:%s%s\n%!"
+                         mode
+                         lineno
+                         (String.make charstart ' ')
+                         str;
+                       pp_lines mode tl
+
+                   | (BlockBegin as e) :: tl
+                   | (BlockEnd as e) :: tl ->
+                       pp_blocks mode 1 e tl
+                   | StringBegin :: tl ->
+                       pp_lines "s" tl
+                   | StringEnd :: tl ->
+                       pp_lines " " tl
+                   | [] ->
+                       ()
+
+               and pp_blocks mode lvl e =
+                 function 
+                   | b :: tl when b = e ->
+                       pp_blocks mode (lvl + 1) e tl 
+                   | lst ->
+                       Printf.eprintf "%s----:%s\n%!"
+                         mode
+                         (String.make
+                            lvl
+                            (match e with
+                               | BlockBegin -> '{'
+                               | BlockEnd   -> '}'
+                               | RealLine _ | StringBegin | StringEnd -> 
+                                   assert(false)));
+                       pp_lines mode lst
+               in
+
+                 prerr_endline (msg^":");
+                 pp_lines " " new_lines;
+                 prerr_endline "EOF";
+                 prerr_endline ""
+             end
+           else if conf.debug then
+             begin
+               prerr_endline ("Nothing changed for '"^msg^"'");
+               prerr_endline ""
+             end;
+           new_lines)
+      []
+      ops
   in
 
-  (* Skip comment *)
-  let skip_comment st =
-    Stream.from
-      (fun _ ->
-         try 
-           match Stream.next st with
-             | '#' ->
-                 while Stream.next st <> '\n' do
-                   ()
-                 done;
-                 Some '\n'
-             | c -> 
-                 Some c
-         with Stream.Failure ->
-           None)
-  in
-
-  (* Regroup freeform data inside a single string *)
-  let string_of_freeform st =
-    let indent_level =
-      ref 0
-    in
-    let indent_count =
-      ref true
-    in
-    let buffer = 
-      Stack.create ()
-    in
-    let buffer_rev =
-      Stack.create ()
-    in
-
-    (* Blank skipping *)
-    let rec skip_begin_blank () = 
-      match Stream.peek st with 
-        | Some ' ' | Some '\t' | Some '\r' ->
-            Stream.junk st;
-            skip_begin_blank ()
-        | _ ->
-            ()
-    in
-    let rec skip_end_blank () = 
-      if not (Stack.is_empty buffer_rev) then
-        (
-          match Stack.pop buffer_rev with 
-            | ' ' | '\t' | '\r' ->
-                skip_end_blank ()
-            | c -> 
-                Stack.push c buffer_rev
-        )
-      else
-        ()
-    in
-
-    let rec input_line () = 
-      let rec input_line_aux () = 
-        match Stream.peek st with 
-          | Some '\n' ->
-              skip_end_blank ();
-              Stack.push '\n' buffer_rev;
-              Stream.junk st;
-              check_continuation ()
-          | Some ('"' as c) ->
-              Stack.push '\\' buffer_rev;
-              Stack.push c buffer_rev;
-              Stream.junk st;
-              input_line_aux ()
-          | Some c ->
-              Stack.push c buffer_rev;
-              Stream.junk st;
-              input_line_aux ()
-          | None ->
-              skip_end_blank ()
-      in
-        skip_begin_blank ();
-        input_line_aux ()
-
-    and check_continuation () = 
-      let continuation_indent = 
-        !indent_level + 1
-      in
-      let begin_new_line =
-        Stream.npeek continuation_indent st
-      in
-      let all_is_blank =
-        List.fold_left 
-          (fun all_blank c -> all_blank && c = ' ') 
-          true
-          begin_new_line 
-      in
-        if all_is_blank then
-          input_line ()
-    in
-    let lookup_freeform () = 
-      (* Empty buffer_rev and fill buffer *)
-      Stack.push '\n' buffer;
-      Stack.push '"' buffer;
-      (
-        let npeek stk n = 
-          let rec npeek_aux acc n = 
-            if n > 0 then
-              (
-                try
-                  let c = 
-                    Stack.pop stk
-                  in
-                    npeek_aux (c :: acc) (n - 1)
-                with Stack.Empty ->
-                  npeek_aux acc 0
-              )
-            else
-              (
-                (* Refill stack *)
-                List.iter (fun c -> Stack.push c stk) acc;
-                List.rev acc
-              )
-          in
-            npeek_aux [] n
-        in
-
-        let rec njunk stk n =
-          if n > 0 then 
-            (
-              try 
-                ignore (Stack.pop stk);
-                njunk stk (n - 1)
-              with Stack.Empty ->
-                ()
-            )
-          else
-            ()
-        in
-
-        let is_blank =
-          function 
-            | ' ' | '\r' | '\t' -> true
-            | _ -> false
-        in
-
-          input_line ();
-          while not (Stack.is_empty buffer_rev) do 
-            match npeek buffer_rev 4 with 
-              | '\n' :: '.' :: '\n' :: _ ->
-                  njunk buffer_rev 3;
-                  Stack.push 'n'  buffer;
-                  Stack.push '\\' buffer
-              | a :: '\n' :: b :: c :: _ when 
-                  not (is_blank a) && 
-                  not (is_blank b) && 
-                  not (b = '.' && c = '\n') ->
-                  njunk buffer_rev 3;
-                  Stack.push a   buffer;
-                  Stack.push ' ' buffer;
-                  Stack.push b   buffer
-              | '\n' :: _ ->
-                  njunk buffer_rev 1
-              | c :: _ ->
-                  njunk buffer_rev 1;
-                  Stack.push c buffer
-              | [] ->
-                  ()
-          done
-      );
-      Stack.push '"' buffer
-    in
-      Stream.from
+  let lines = 
+    apply_transformations
+      [
+        "Extract all lines from the stream",
         (fun _ ->
-           try
-             if Stack.is_empty buffer then
-               (
-                 match Stream.next st with
-                   | ':' ->
-                       lookup_freeform ();
-                       Some ':'
+           let lines =
+             ref []
+           in
+           let buff =
+             Buffer.create 13
+           in
+           let lineno =
+             ref 1
+           in
+           let add_line () = 
+             lines := (RealLine (!lineno, 0, Buffer.contents buff)) :: !lines;
+             Buffer.clear buff;
+             incr lineno
+           in
+             Stream.iter
+               (function
+                  | '\n' -> 
+                      add_line ()
+                  | c ->
+                      Buffer.add_char buff c)
+               st;
+             add_line ();
+             List.rev !lines);
 
-                   (* Indent level counting *)
-                   | '\n' as c ->
-                       indent_count := true;
-                       indent_level := 0;
-                       Some c
-                   | ' ' | '\t' as c ->
-                       if !indent_count then
-                         incr indent_level;
-                       Some c
-                   | c ->
-                       indent_count := false;
-                       Some c
-               )
-             else
-               (
-                 Some (Stack.pop buffer)
-               )
-           with Stream.Failure ->
-             None)
+      "Get rid of MS-DOS file format",
+      List.map 
+        (function 
+           | RealLine (lineno, charstart, str) ->
+               begin
+                 let len = 
+                   String.length str
+                 in
+                 let str = 
+                   if len > 0 && str.[len - 1] = '\r' then
+                     String.sub str 0 (len - 1)
+                   else
+                     str
+                 in
+                   RealLine (lineno, charstart, str)
+               end
+           | e -> e);
+
+      "Remove comments",
+      List.map 
+        (function
+           | RealLine (lineno, charstart, str) ->
+               begin
+                 try
+                   let idx =
+                     String.index str '#'
+                   in
+                     RealLine (lineno, charstart, String.sub str 0 idx)
+                 with Not_found ->
+                   RealLine(lineno, charstart, str)
+               end
+           | e -> e);
+
+      "Remove trailing whitespaces",
+      List.map 
+        (function 
+           | RealLine (lineno, charstart, str) ->
+               begin
+                 let pos = 
+                   ref ((String.length str) - 1)
+                 in
+                   while !pos > 0 && is_blank str.[!pos] do 
+                     decr pos
+                   done;
+                   RealLine(lineno, charstart, String.sub str 0 (!pos + 1))
+               end
+           | e -> e);
+
+      "Remove empty lines",
+      List.filter
+        (function
+           | RealLine (lineno, charstart, "") -> false
+           | _ -> true);
+
+      "Remove leading whitespaces and replace them with begin/end block",
+      (fun lines ->
+         let add_blocks n lst = 
+           List.rev_append
+             (Array.to_list 
+                (Array.init 
+                   (abs n) 
+                   (if n < 0 then
+                      (fun _ -> BlockEnd)
+                    else
+                      (fun _ -> BlockBegin))))
+             lst
+         in
+         let lines, last_indent_level = 
+           List.fold_left
+             (fun (lines, prv_indent_level) ->
+                function
+                  | RealLine (lineno, charstart, str) ->
+                      begin
+                        let cur_indent_level =
+                          let pos =
+                            ref 0
+                          in
+                            while !pos < String.length str && 
+                                  is_blank str.[!pos] do
+                              incr pos
+                            done;
+                            !pos
+                        in
+                        let charstart = 
+                          charstart + cur_indent_level
+                        in
+                        let str = 
+                          String.sub 
+                            str 
+                            cur_indent_level 
+                            ((String.length str) - cur_indent_level)
+                        in
+                        let diff_indent_level =
+                          cur_indent_level - prv_indent_level
+                        in
+                        let lines =
+                          RealLine (lineno, charstart, str)
+                          ::
+                          add_blocks diff_indent_level lines
+                        in
+                          lines, cur_indent_level
+                      end
+                  | BlockBegin as e -> 
+                      (e :: lines), prv_indent_level + 1
+                  | BlockEnd as e ->
+                      (e :: lines), prv_indent_level - 1
+                  | StringBegin | StringEnd as e ->
+                      (e :: lines), prv_indent_level)
+             ([], 0)
+             lines
+         in
+           List.rev 
+             (add_blocks 
+                (* Return back to indent level 0 *)
+                (~- last_indent_level) 
+                lines));
+
+      "Split values and detect multi-line values",
+      (fun lines ->
+         let rec find_field acc =
+           function
+             | RealLine (lineno, charstart, str) as e :: tl ->
+                 begin
+                   try 
+                     let colon_pos = 
+                       String.index str ':'
+                     in
+                     let pos = 
+                       ref (colon_pos + 1)
+                     in
+                     let () =
+                       while !pos < String.length str && is_blank str.[!pos] do
+                         incr pos
+                       done
+                     in
+                     let line_begin = 
+                       RealLine (lineno, charstart, String.sub str 0 (colon_pos + 1))
+                     in
+                     let acc =
+                       if !pos < String.length str then
+                         begin 
+                           (* Split end of line *)
+                           let line_end =
+                             RealLine 
+                               (lineno, 
+                                charstart + !pos, 
+                                String.sub str !pos (String.length str - !pos))
+                           in
+                             line_end :: StringBegin :: line_begin :: acc
+                         end
+                       else
+                         begin
+                           StringBegin :: line_begin :: acc
+                         end
+                     in
+                       fetch_multiline acc 0 tl
+
+                   with Not_found ->
+                     find_field (e :: acc) tl
+                 end
+
+             | e :: tl ->
+                 find_field (e :: acc) tl 
+
+             | [] ->
+                 List.rev acc
+
+         and fetch_multiline acc lvl =
+          function 
+            | BlockBegin :: tl ->
+                fetch_multiline acc (lvl + 1) tl 
+
+            | BlockEnd :: tl -> 
+                if lvl > 1 then
+                  fetch_multiline acc (lvl - 1) tl
+                else if lvl = 1 then
+                  find_field (StringEnd :: acc) tl
+                else 
+                  find_field (StringEnd :: acc) (BlockEnd :: tl)
+
+            | RealLine _ as e :: tl ->
+                if lvl > 0 then
+                  fetch_multiline (e :: acc) lvl tl
+                else
+                  find_field (StringEnd :: acc) (e :: tl)
+
+            | (StringBegin as e) :: tl
+            | (StringEnd as e) :: tl ->
+                if lvl > 0 then
+                  fetch_multiline acc lvl tl
+                else
+                  find_field (StringEnd :: acc) (e :: tl)
+
+            | [] ->
+                find_field (StringEnd :: acc) []
+         in
+           find_field [] lines);
+      ]
   in
 
-  (* Add required { } regarding indentation *)
-  let braces_of_indent st =
-    let former_line_indent =
+  let position, st = 
+    let lineno =
       ref 0
     in
-    let cur_line_indent =
+    let charno =
       ref 0
     in
-    let indent_count =
-      ref true
+    let virtual_pos =
+      ref None
     in
-    let last_line =
-      ref false
+
+    let lines_q = 
+      let q =
+        Queue.create ()
+      in
+        List.iter 
+          (fun s -> Queue.add s q)
+          lines;
+        q
     in
-    let brace_buffer =
+
+    let chars_q =
       Queue.create ()
     in
-    let compensate_diff_indent () = 
-      let diff_indent =
-        !former_line_indent - !cur_line_indent
-      in
-      let brace = 
-        if diff_indent < 0 then
-          '{'
-        else
-          '}'
-      in
-        for i = 1 to abs diff_indent do 
-          Queue.push brace brace_buffer
-        done
+
+    let in_string =
+      ref false
     in
-      Stream.from
-        (fun _ ->
-           try
-             if Queue.is_empty brace_buffer then
-               (
-                 match Stream.next st with 
-                   | '\n' as c ->
-                       (* Don't take into account blank line *)
-                       if not !indent_count then
-                         former_line_indent := !cur_line_indent;
-                       indent_count := true;
-                       cur_line_indent := 0;
-                       Some c
-                   | ' ' | '\t' as c ->
-                       if !indent_count then
-                         incr cur_line_indent;
-                       Some c
-                   | c ->
-                       if !indent_count then
-                         (
-                           indent_count := false;
-                           compensate_diff_indent ();
-                           Queue.push c brace_buffer;
-                           Some (Queue.pop brace_buffer)
-                         )
+
+    let rec getc () = 
+      try 
+        incr charno;
+        Some (Queue.take chars_q)
+      with Queue.Empty ->
+        begin
+          (* Refill the char queue *)
+          try 
+            let () = 
+              match Queue.take lines_q with
+                | RealLine (nlineno, ncharno, str) ->
+                    lineno := nlineno;
+                    charno := ncharno;
+                    String.iter
+                      (fun c -> Queue.add c chars_q)
+                      (if !in_string then
+                         String.escaped str
                        else
-                         (
-                           Some c
-                         )
-               )
-             else
-               (
-                 Some (Queue.pop brace_buffer)
-               )
-           with Stream.Failure ->
-             (
-               if not !last_line then
-                 (
-                   if not !indent_count then
-                     former_line_indent := !cur_line_indent;
-                   cur_line_indent := 0;
-                   last_line := true;
-                   compensate_diff_indent ()
-                 );
+                         str)
+                | BlockBegin ->
+                    virtual_pos := Some "block begin";
+                    Queue.add '{'chars_q 
+                | BlockEnd ->
+                    virtual_pos := Some "block end";
+                    Queue.add '}' chars_q
+                | StringBegin | StringEnd ->
+                    virtual_pos := Some "string marker";
+                    in_string := not !in_string;
+                    Queue.add '"' chars_q
+            in
+              getc ()
 
-               if Queue.is_empty brace_buffer then
-                 None
-               else
-                 Some (Queue.pop brace_buffer)
-             )
-        )
-  in
+          with Queue.Empty ->
+            (* lines and char queue are empty -> nothing left *)
+            None
+        end
+    in
 
-  (* Count line *)
-  let lineno =
-    ref 1
-  in
-  let charno =
-    ref 0
-  in
-  let count_line st =
-    Stream.from
-      (fun _ ->
-         try
-           incr charno;
-           match Stream.next st with
-             | '\n' -> charno := 0; incr lineno; Some '\n'
-             | c -> Some c
-         with Stream.Failure ->
-           None)
-  in
+      (fun fmt ->
+        Printf.sprintf 
+          (f_ "in file '%s' at line %d, char %d")
+          (match conf.oasisfn with 
+             | Some fn -> fn
+             | None -> "<>")
+          !lineno
+          !charno),
 
-  (* Text stream transformed to be parseable *)
-  let st =
-    braces_of_indent
-      (string_of_freeform
-         (skip_comment 
-            (dos2unix 
-               (notab
-                 (count_line 
-                    (if conf.debug then
-                       stream_debugger st
-                     else
-                       st))))))
-  in
-
-  let position fmt = 
-    Printf.sprintf 
-      (f_ "in file '%s' at line %d, char %d")
-      (match conf.oasisfn with 
-         | Some fn -> fn
-         | None -> "<>")
-      !lineno
-      !charno
+      Stream.from (fun _ -> getc ())
   in
 
   (* Lexer for OASIS language *)
