@@ -460,9 +460,13 @@ let tests ctxt =
       }
   in
 
+  let long_test () =
+    skip_if (not ctxt.long) "Long test"
+  in
+
   (* Run standard test *)
   let test_of_vector (srcdir, 
-                      long,
+                      skip_cond,
                       oasis_extra_files,
                       installed_files,
                       post_install_runs) =
@@ -498,9 +502,7 @@ let tests ctxt =
       (* Run test *)
       (fun (cur_dir, loc, pristine) ->
          let () = 
-           skip_if 
-             (long && not ctxt.long)
-             "Long test"
+           skip_cond ()
          in
 
          let expected_post_oasis_files = 
@@ -736,7 +738,7 @@ let tests ctxt =
        [
          (* Use flags *)
          "../examples/flags", 
-         false,
+         ignore,
          oasis_ocamlbuild_files
          @
          [
@@ -787,7 +789,7 @@ let tests ctxt =
 
          (* Complete library *)
          "../examples/simplelib", 
-         true,
+         long_test,
          oasis_ocamlbuild_files @ 
          [
            "src/simplelib.mllib";
@@ -818,7 +820,7 @@ let tests ctxt =
 
          (* Complete library with findlib package to check *)
          "../examples/findlib",
-         true,
+         long_test,
          oasis_ocamlbuild_files,
          [],
          [
@@ -828,7 +830,7 @@ let tests ctxt =
 
          (* Complete library with custom build system *)
          "../examples/custom", 
-         true,
+         long_test,
          [],
          [
            in_ocaml_library "simplelib"
@@ -844,7 +846,7 @@ let tests ctxt =
 
          (* Library/executable using C files *)
          "../examples/with-c",
-         true,
+         long_test,
          [
            "src/META"; 
            "src/libtest-with-c-custom.clib"; 
@@ -907,7 +909,7 @@ let tests ctxt =
 
          (* Library/executable using data files *)
          "../examples/with-data",
-         true,
+         long_test,
          [
            "src/META";
            "src/test.mllib";
@@ -936,14 +938,14 @@ let tests ctxt =
 
          (* Test executable *)
          "../examples/with-test",
-         true,
+         long_test,
          oasis_ocamlbuild_files,
          [],
          [];
 
          (* Use sub-packages *)
          "../examples/with-subpackage",
-         true,
+         long_test,
          [
            "src/META";
            "src/test.mllib";
@@ -973,7 +975,7 @@ let tests ctxt =
 
          (* Interdependencies *)
          "../examples/interdepend-libraries",
-         true,
+         long_test,
          [
            "src/liba/liba.mllib";
            "src/liba/liba.odocl";
@@ -991,7 +993,7 @@ let tests ctxt =
 
          (* Build order *)
          "../examples/order-matter",
-         true,
+         long_test,
          [
            "src/foo/foo.mllib";
            "src/foo/foo.odocl";
@@ -1005,7 +1007,7 @@ let tests ctxt =
 
          (* Single level package *)
          "data/1level",
-         true,
+         long_test,
          [
            "META";
            "with-a.mllib";
@@ -1035,7 +1037,7 @@ let tests ctxt =
 
          (* Try custom document build *)
          "data/customdoc",
-         true,
+         long_test,
          ["META"; "with-a.mllib"] @ oasis_ocamlbuild_files,
          [
            in_ocaml_library "with-a"
@@ -1045,7 +1047,11 @@ let tests ctxt =
 
          (* Use cclib option *)
          "data/with-cclib",
-         true,
+         (fun () ->
+            long_test ();
+            skip_if 
+              (not (Sys.file_exists "/usr/include/stringprep.h"))
+              "Cannot find 'stringprep.h'"),
          ["src/META"; 
           "Makefile"; 
           "configure"; 
@@ -1057,14 +1063,14 @@ let tests ctxt =
 
          (* With a documentation that is not built *)
          "data/no-install-doc",
-         true,
+         long_test,
          [] @ oasis_ocamlbuild_files,
          [],
          [];
         
          (* Need to create a a parent directory *)
          "data/create-parent-dir",
-         true,
+         long_test,
          [] @ oasis_ocamlbuild_files,
          [in_data_dir ["toto/toto/toto.txt"]],
          [];
