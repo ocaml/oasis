@@ -1074,6 +1074,26 @@ let tests ctxt =
          [] @ oasis_ocamlbuild_files,
          [in_data_dir ["toto/toto/toto.txt"]],
          [];
+
+         "data/bug588",
+         (fun () ->
+            long_test ();
+            let cmd = 
+              Printf.sprintf
+                "ocamlfind query bitstring > %s 2>&1"
+                (if Sys.os_type = "Win32" then
+                   "NUL"
+                 else
+                   "/dev/null")
+            in
+              skip_if 
+                (Sys.command cmd <> 0)
+                "Cannot find package bitstring"),
+         ["libtest.mllib"; "libtest.odocl"] 
+         @ 
+         (List.filter (( <> ) "_tags") oasis_ocamlbuild_files),
+         [],
+         [];
        ]
     )
 ;;

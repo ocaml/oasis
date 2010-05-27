@@ -1,0 +1,19 @@
+OASISFormat: 0.1
+Name:        test
+Version:     0.0.1
+Synopsis:    test OASIS
+Authors:     ygrek
+License:     BSD3
+
+Library libtest
+  Path:    .
+  Install: false
+  Modules: Libtest
+  BuildDepends: bitstring.syntax, bitstring
+  
+Executable test
+  Path:   .
+  Install: false
+  MainIs: test.ml
+  BuildDepends: libtest
+  

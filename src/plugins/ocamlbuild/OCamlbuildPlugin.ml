@@ -221,27 +221,47 @@ module PU = OASISPlugin.Build.Make(OCamlbuildId)
 
 let create_ocamlbuild_files pkg () = 
 
+  let quote_target fn =
+    let test_char =
+      String.contains fn 
+    in
+      if test_char '*' ||
+         test_char '?' ||
+         test_char '{' ||
+         test_char '[' then
+        "<"^fn^">"
+      else
+        "\""^fn^"\""
+  in
+
   let add_tags tag_t tgts tags = 
     List.fold_left
       (fun tag_t tgt ->
          List.fold_left
            (fun tag_t tag ->
-              (tgt^": "^tag) :: tag_t)
+              ((quote_target tgt)^": "^tag) :: tag_t)
            tag_t
            tags)
       tag_t
       tgts
   in
 
+  let prepend_bs_path bs fn =
+    FilePath.UnixPath.concat
+      (FilePath.UnixPath.reduce bs.bs_path)
+      fn
+  in
+
+
   let bs_paths bs files = 
     SetString.elements
      (set_string_of_list
-        (bs.bs_path
+        (FilePath.UnixPath.reduce bs.bs_path
          ::
          List.rev_map
            FilePath.UnixPath.dirname
            (List.rev_map
-              (FilePath.UnixPath.concat bs.bs_path)
+              (prepend_bs_path bs)
               files)))
   in
 
@@ -258,25 +278,24 @@ let create_ocamlbuild_files pkg () =
       List.rev_append
         (* .ml files *)
         (List.rev_map 
-           (Printf.sprintf "<%s/*.ml{,i}>")
+           (fun dn -> FilePath.UnixPath.concat dn "*.ml{,i}")
            (src_dirs @ src_internal_dirs))
         (* .c files *)
-        (List.rev_map
-           (Printf.sprintf "\"%s\"")
-           (List.rev_map 
-              (FilePath.UnixPath.concat bs.bs_path) 
-              bs.bs_c_sources))
+        (List.map (prepend_bs_path bs) bs.bs_c_sources)
     in
 
     let clib_tgts =
-      if bs.bs_c_sources <> []
-      then
-	[Printf.sprintf "<%s/{dll%s%s,lib%s%s}>"
-	   bs.bs_path
-	   cs.cs_name
-	   (ext_dll ())
-	   cs.cs_name
-	   (ext_lib ());]
+      if bs.bs_c_sources <> [] then
+        (List.rev_map
+           (fun fmt -> (prepend_bs_path bs) (Printf.sprintf fmt cs.cs_name))
+           [
+             (* Unix *)
+             "dll%s.so";
+             "lib%s.a";
+             (* Win32 *)
+             "dll%s.dll";
+             "lib%s.lib";
+           ])
       else
 	[]
     in
@@ -369,7 +388,7 @@ let create_ocamlbuild_files pkg () =
           (* Generate .clib files *)
           let fn_clib = 
             FilePath.add_extension 
-              (FilePath.concat bs.bs_path ("lib"^cs.cs_name))
+              (prepend_bs_path bs ("lib"^cs.cs_name))
               "clib"
           in
             file_generate 
@@ -426,7 +445,9 @@ let create_ocamlbuild_files pkg () =
         (if List.length dirs > 1 then
            add_tags 
              tag_t
-             (List.rev_map (Printf.sprintf "\"%s\"") dirs)
+             (List.filter 
+                (fun fn -> not (FilePath.UnixPath.is_current fn))
+                dirs)
              ["include"]
          else
            tag_t),
@@ -476,7 +497,10 @@ let create_ocamlbuild_files pkg () =
                        | Native ->
                            "cmxa"
                    in
-                     Printf.sprintf "<%s/%s.%s>" bs.bs_path cs.cs_name ext
+                     prepend_bs_path bs
+                       (FilePath.UnixPath.add_extension
+                          cs.cs_name
+                          ext)
                  in
 
                  (* Start comment *)
@@ -486,13 +510,13 @@ let create_ocamlbuild_files pkg () =
 
                  (* Add include tag if the library is internal *)
                  let tag_t, myocamlbuild_t =
-                     add_tags 
-                       tag_t
-                       (List.rev_map 
-                          (Printf.sprintf "\"%s\"") 
-                          (src_dirs @ src_internal_dirs))
-                       ["include"],
-                     myocamlbuild_t
+                   add_tags 
+                     tag_t
+                     (List.filter
+                        (fun fn -> not (FilePath.UnixPath.is_current fn))
+                        (src_dirs @ src_internal_dirs))
+                     ["include"],
+                   myocamlbuild_t
                  in
 
                  let tag_t, myocamlbuild_t =
@@ -508,14 +532,14 @@ let create_ocamlbuild_files pkg () =
                  let myocamlbuild_t = 
                    {myocamlbuild_t with 
                         lib_ocaml = 
-                          (FilePath.UnixPath.concat bs.bs_path cs.cs_name, 
+                          (prepend_bs_path bs cs.cs_name, 
                            src_dirs) :: myocamlbuild_t.lib_ocaml}
                  in
 
                  (* Generate .mllib files *)
                  let () =
                    let fn_base = 
-                     FilePath.concat bs.bs_path cs.cs_name
+                     prepend_bs_path bs cs.cs_name
                    in
                    let fn_generate ext =
                      file_generate
@@ -550,13 +574,9 @@ let create_ocamlbuild_files pkg () =
                        | Native ->
                            "native"
                    in
-                     Printf.sprintf 
-                       "<%s.%s>" 
-                       (FilePath.UnixPath.concat 
-                          bs.bs_path 
-                          (FilePath.UnixPath.chop_extension 
-                             (exec.exec_main_is)))
-                       ext
+                     prepend_bs_path bs
+                       (FilePath.UnixPath.replace_extension 
+                          (exec.exec_main_is) ext)
                  in
 
                  let tag_t = 

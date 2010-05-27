@@ -10,6 +10,7 @@ Plugins:     META
 Library "with-a"
   Path: .
   Modules: A
+  BuildDepends: oUnit
 
 Executable "test-with-a"
   Path: .
