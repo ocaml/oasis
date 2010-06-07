@@ -69,6 +69,10 @@ let ask_until_correct q ?help ?(default=NoDefault) parse =
                   print_endline hlp;
                   flush stdout;
                   ask_until_correct_aux ()
+              | "?", None, _ ->
+                  print_endline (s_ "No help for this question.");
+                  flush stdout;
+                  ask_until_correct_aux ()
               | "", _, Default_exists v ->
                   v
               | "", _, Default_is s ->
