@@ -1,0 +1,11 @@
+OASISFormat: 0.1
+Name:        test
+Version:     0.0.1
+Synopsis:    test OASIS
+Authors:     Me
+License:     BSD3
+
+Flag "pf-inet6"
+	Description: Test INET6 sockets
+	Default: true
+

@@ -1094,6 +1094,12 @@ let tests ctxt =
          (List.filter (( <> ) "_tags") oasis_ocamlbuild_files),
          [],
          [];
+
+         "data/bug619",
+         long_test,
+         oasis_ocamlbuild_files,
+         [],
+         [];
        ]
     )
 ;;

@@ -342,7 +342,7 @@ let setup t =
                        (var_define
                           ~cli:CLIEnable
                           ?short_desc
-                          cs.cs_name
+                          (OASISUtils.varname_of_string cs.cs_name)
                           (lazy (string_of_bool 
                                    (var_choose 
                                       ~name:(Printf.sprintf 
