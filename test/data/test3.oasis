@@ -13,7 +13,7 @@ Description:
  Coucou.
 
 BuildDepends:
-	extlib
+ extlib
 
 Library stuff
   Path: src/stuff

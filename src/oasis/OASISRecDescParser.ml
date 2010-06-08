@@ -59,17 +59,15 @@ let parse_stream conf st =
       | _ -> false
   in
 
-    (*
-  let string_fold f acc str =
-    let racc =
-      ref acc
-    in
-      for i = 0 to (String.length str) - 1 do 
-        racc := f acc str.(i)
-      done;
-      !racc
+  let position lineno charno = 
+    Printf.sprintf 
+      (f_ "in file '%s' at line %d, char %d")
+      (match conf.oasisfn with 
+         | Some fn -> fn
+         | None -> "<>")
+      lineno
+      charno
   in
-     *)
 
   let apply_transformations ops =
     List.fold_left
@@ -227,21 +225,55 @@ let parse_stream conf st =
                       (fun _ -> BlockBegin))))
              lst
          in
-         let lines, last_indent_level = 
+         let lines, last_indent_level, _ = 
            List.fold_left
-             (fun (lines, prv_indent_level) ->
+             (fun (lines, prv_indent_level, only_tab) ->
                 function
                   | RealLine (lineno, charstart, str) ->
                       begin
-                        let cur_indent_level =
+                        let cur_indent_level, use_tab, use_space =
                           let pos =
                             ref 0
                           in
+                          let use_tab =
+                            ref false
+                          in
+                          let use_space =
+                            ref false
+                          in
                             while !pos < String.length str && 
                                   is_blank str.[!pos] do
+                              use_tab   := str.[!pos] = '\t' || !use_tab;
+                              use_space := not (str.[!pos] = '\t') || !use_space;
                               incr pos
                             done;
-                            !pos
+                            !pos, !use_tab, !use_space
+                        in
+                        let only_tab =
+                          if use_space && use_tab then
+                            begin
+                              OASISMessage.warning 
+                                (f_ "Mixed use of '\\t' and ' ' to indent lines %s")
+                                (position lineno charstart);
+                              only_tab
+                            end
+                          else
+                            begin
+                              match only_tab with 
+                                | Some use_tab_before ->
+                                    if use_tab_before && not use_tab then
+                                      OASISMessage.warning
+                                        (f_ "Use of ' ' but '\\t' was used before to indent lines %s")
+                                        (position lineno charstart);
+                                    if not use_tab_before && use_tab then
+                                      OASISMessage.warning
+                                        (f_ "Use of '\\t' but ' ' was used before to indent lines %s")
+                                        (position lineno charstart);
+
+                                    only_tab
+                                | None ->
+                                    Some use_tab
+                            end
                         in
                         let charstart = 
                           charstart + cur_indent_level
@@ -260,15 +292,15 @@ let parse_stream conf st =
                           ::
                           add_blocks diff_indent_level lines
                         in
-                          lines, cur_indent_level
+                          lines, cur_indent_level, only_tab
                       end
                   | BlockBegin as e -> 
-                      (e :: lines), prv_indent_level + 1
+                      (e :: lines), prv_indent_level + 1, only_tab
                   | BlockEnd as e ->
-                      (e :: lines), prv_indent_level - 1
+                      (e :: lines), prv_indent_level - 1, only_tab
                   | StringBegin | StringEnd as e ->
-                      (e :: lines), prv_indent_level)
-             ([], 0)
+                      (e :: lines), prv_indent_level, only_tab)
+             ([], 0, None)
              lines
          in
            List.rev 
@@ -427,15 +459,7 @@ let parse_stream conf st =
         end
     in
 
-      (fun fmt ->
-        Printf.sprintf 
-          (f_ "in file '%s' at line %d, char %d")
-          (match conf.oasisfn with 
-             | Some fn -> fn
-             | None -> "<>")
-          !lineno
-          !charno),
-
+      (fun fmt -> position !lineno !charno),
       Stream.from (fun _ -> getc ())
   in
 

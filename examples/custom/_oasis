@@ -24,7 +24,7 @@ Description:
 
 Homepage: http://example.com
 BuildDepends:
-	extlib
+ extlib
 
 Library simplelib
   Path: src
