@@ -50,24 +50,41 @@ let load () =
       let chn = 
         open_in default_filename
       in
-      let rec read_aux (st, acc) =
-        try 
-          let line = 
-            input_line chn
-          in
-          let t = 
-            Scanf.sscanf line "%S %S" 
-              (fun e d ->  e, d)
-          in
-            read_aux 
-              (if SetTupleString.mem t st then
-                 st, acc
-               else
-                 SetTupleString.add t st,
-                 t :: acc)
-        with End_of_file ->
-          close_in chn;
-          List.rev acc
+      let scbuf = 
+        Scanf.Scanning.from_file default_filename
+      in
+      let rec read_aux (st, lst) =
+        if not (Scanf.Scanning.end_of_input scbuf) then
+          begin
+            let acc = 
+              try 
+                Scanf.bscanf scbuf "%S %S@\n" 
+                  (fun e d ->  
+                     let t = 
+                       e, d
+                     in
+                       if SetTupleString.mem t st then
+                         st, lst
+                       else
+                         SetTupleString.add t st,
+                         t :: lst)
+              with Scanf.Scan_failure _ ->
+                failwith 
+                  (Scanf.bscanf scbuf
+                     "%l" 
+                     (fun line ->
+                        Printf.sprintf
+                          "Malformed log file '%s' at line %d"
+                          default_filename
+                          line))
+            in
+              read_aux acc
+          end
+        else
+          begin
+            close_in chn;
+            List.rev lst
+          end
       in
         read_aux (SetTupleString.empty, [])
     )
