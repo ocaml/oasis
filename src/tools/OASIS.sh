@@ -22,7 +22,7 @@
 
 set -e 
 
-ROOTDIR="$(readlink -f $(dirname "$0")/..)"
+ROOTDIR="$(dirname $(readlink -m "$0"))/.."
 
 # Environment variables for OASIS
 
