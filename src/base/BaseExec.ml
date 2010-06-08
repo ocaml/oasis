@@ -28,18 +28,19 @@ open OASISUtils
 
 (** Run a command 
   *)
-let run cmd args =
+let run ?f_exit_code cmd args =
   let cmdline =
     String.concat " " (cmd :: args)
   in
     OASISMessage.info (f_ "Running command '%s'") cmdline;
-    match Sys.command cmdline with 
-      | 0 ->
-          ()
-      | i ->
+    match f_exit_code, Sys.command cmdline with 
+      | None, 0 -> ()
+      | None, i ->
           failwithf2
             (f_ "Command '%s' terminated with error code %d")
             cmdline i
+      | Some f, i -> 
+          f i
 
 (** Run a command and returns its output
   *)

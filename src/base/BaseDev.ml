@@ -25,6 +25,7 @@
 TYPE_CONV_PATH "BaseDev"
 
 open OASISGettext
+open OASISMessage
 
 type t = 
     {
@@ -58,31 +59,43 @@ let update_and_run t =
       Sys.remove dev_fn
   in
 
+  let exit_on_child_error = 
+    function
+      | 0 -> ()
+      | i -> exit i
+  in
+
+    at_exit safe_exit;
+
     if Sys.file_exists dev_fn then
-      OASISMessage.error
-        (f_ "File %s already exists, cannot generate it for \
-             dev-mode. Please remove it first.")
-        dev_fn;
+      begin
+        OASISMessage.error
+          (f_ "File %s already exists, cannot generate it for \
+               dev-mode. Please remove it first.")
+          dev_fn;
+      end
+    else
+      begin
+        try 
 
-    try 
-      (* Run OASIS to generate a temporary setup.ml
-       *)
-      BaseExec.run 
-        t.oasis_cmd 
-        ("-quiet" :: "-setup-fn" :: dev_fn :: t.oasis_args);
-      (* Run own command line by replacing setup.ml by 
-       * setup-dev.ml
-       *)
-      BaseExec.run
-        bootstrap_ocaml
-        bootstrap_args;
+          (* Run OASIS to generate a temporary setup.ml
+           *)
+          BaseExec.run 
+            ~f_exit_code:exit_on_child_error
+            t.oasis_cmd 
+            ("-quiet" :: "-setup-fn" :: dev_fn :: t.oasis_args);
 
-      (* Clean dev file *)
-      safe_exit ()
+          (* Run own command line by replacing setup.ml by 
+           * setup-dev.ml
+           *)
+          BaseExec.run
+            ~f_exit_code:exit_on_child_error
+            bootstrap_ocaml
+            bootstrap_args;
 
-    with e ->
-      safe_exit ();
-      raise e
+        with e ->
+          error "%s" (string_of_exception e)
+      end
 
 (* END EXPORT *)
 
