@@ -1100,6 +1100,12 @@ let tests ctxt =
          oasis_ocamlbuild_files,
          [],
          [];
+
+         "data/bug571",
+         long_test,
+         oasis_ocamlbuild_files,
+         [],
+         [];
        ]
     )
 ;;

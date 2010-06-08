@@ -297,7 +297,7 @@ let create_ocamlbuild_files pkg () =
              "lib%s.lib";
            ])
       else
-	[]
+        []
     in
 
     (* Manipulate ocamlbuild's spec *)
@@ -319,7 +319,7 @@ let create_ocamlbuild_files pkg () =
     let tag_t, myocamlbuild_t = 
       List.fold_left
         (fun (tag_t, myocamlbuild_t) 
-               (basename, tags, pre_arg, tr_arg, args_cond) ->
+               (basename, tgts, tags, pre_arg, tr_arg, args_cond) ->
            let args = 
              var_choose args_cond
            in
@@ -341,22 +341,7 @@ let create_ocamlbuild_files pkg () =
                    mkspec pre_arg tr_arg args
                  in
                  let tag_t =
-                   if List.mem "compile" tags then
-                     add_tags tag_t src_tgts [tag_name]
-                   else
-                     tag_t
-                 in
-                 let tag_t =
-                   if List.mem "link" tags then 
-                     add_tags tag_t [link_tgt] [tag_name]
-                   else
-                     tag_t
-                 in
-                 let tag_t =
-                   if List.mem "ocamlmklib" tags then
-                     add_tags tag_t clib_tgts [tag_name]
-                   else
-                     tag_t
+                   add_tags tag_t tgts [tag_name]
                  in
                    tag_t,
                    {myocamlbuild_t with
@@ -369,16 +354,70 @@ let create_ocamlbuild_files pkg () =
 
         (tag_t, myocamlbuild_t)
 
-        [
-          "ccopt",   ["compile"],         Some (A"-ccopt"),   atom, bs.bs_ccopt;
-          "cclib",   ["link"],            Some (A"-cclib"),   atom, bs.bs_cclib;
-          "cclib",   ["ocamlmklib"; "c"], None,               atom, bs.bs_cclib;
-          "dlllib",  ["link"; "byte"],    Some (A"-dllib"),   path, bs.bs_dlllib;
-          "dllpath", ["link"; "byte"],    Some (A"-dllpath"), path, bs.bs_dllpath;
-          "dllpath", ["ocamlmklib"; "c"], Some(A"-dllpath"),  path, bs.bs_dllpath;
-          "byte",    ["byte"],            None,               atom, bs.bs_byteopt;
-          "native",  ["native"],          None,               atom, bs.bs_nativeopt;
+        ([
+          "ccopt", 
+          src_tgts, ["compile"],
+          Some (A"-ccopt"),
+          atom, 
+          bs.bs_ccopt;
+
+
+          "cclib",
+          [link_tgt],
+          ["link"],
+          Some (A"-cclib"),
+          atom,
+          bs.bs_cclib;
+
+          "cclib",
+          clib_tgts,
+          ["ocamlmklib"; "c"],
+          None,
+          atom, bs.bs_cclib;
+
+          "dlllib",
+          [link_tgt],
+          ["link"; "byte"],
+          Some (A"-dllib"),
+          path,
+          bs.bs_dlllib;
+
+          "dllpath",
+          [link_tgt],
+          ["link"; "byte"],
+          Some (A"-dllpath"),
+          path,
+          bs.bs_dllpath;
+
+          "dllpath",
+          clib_tgts,
+          ["ocamlmklib"; "c"],
+          Some(A"-dllpath"),
+          path,
+          bs.bs_dllpath;
         ]
+        @
+        (List.fold_left
+           (fun acc flg ->
+              ("byte",
+               link_tgt :: src_tgts,
+               ["ocaml"; flg; "byte"],
+               None,
+               atom,
+               bs.bs_byteopt)
+              ::
+              ("native",
+               link_tgt :: src_tgts,
+               ["ocaml"; flg; "native"],
+               None,
+               atom,
+               bs.bs_nativeopt)
+              ::
+              acc)
+           []
+           ["compile"; 
+            "ocamldep"; 
+            "link"]))
     in
 
     (* Add tag for dependency on C part of the library *)

@@ -276,6 +276,9 @@ let tests ctxt =
 
             "comment-in-field.oasis",
             ignore;
+
+            "bug571/_oasis",
+            ignore;
           ])
       @
        (List.rev_map file_of_vector
