@@ -257,3 +257,43 @@ let value =
     update = OASISValues.update_fail;
     print  = to_string;
   }
+
+
+let help () = 
+  (s_ "\n\
+
+A correct license string follow the DEP-5 standard:
+
+XXX-VVV(+)?( with OCaml linking exception)?
+
+XXX: shortname of the license
+VVV: optional version of the license, '+' means this 
+version or later. XXX and VVV need to be consistent.
+
+Recommended license: 
+
+  LGPL-2.1 with OCaml linking exception
+
+Available licenses: ")^
+  (String.concat (s_ ", ")
+     (List.map
+        to_string
+        (List.fold_left
+           (fun acc ->
+              function
+                | e, _, _, [] ->
+                    e :: acc
+                | e, _, _, lst ->
+                    List.fold_left
+                      (fun acc v -> 
+                         LicenseWithVersion 
+                           (e, (OASISVersion.version_of_string v)) 
+                         :: acc)
+                      acc
+                      lst)
+           []
+           license_data)))
+
+
+                    
+     

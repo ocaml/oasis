@@ -139,7 +139,7 @@ let schema, generator =
       ~default:None
       (opt file)
       (fun () -> 
-         s_ "File containing license.");
+         s_ "File containing the license.");
   in
   let authors =
     new_field schm "Authors" 
@@ -165,7 +165,8 @@ let schema, generator =
     new_field schm "License"
       OASISLicense.value
       (fun () ->
-         s_ "License type of the package.")
+         (s_ "License type of the package.")^
+         (OASISLicense.help ()))
   in
   let ocaml_version =
     new_field schm "OCamlVersion"
