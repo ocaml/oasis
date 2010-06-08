@@ -297,6 +297,14 @@ let quickstart fmt lvl =
                 OASISTest.generator
                 OASISTest.schema
                 (s_ "Test name?")));
+
+        s_ "d", s_ "create a document",
+        (Some
+           (fun () ->
+              section
+                OASISDocument.generator
+                OASISDocument.schema
+                (s_ "Document name?")));
       ]
     in
 
