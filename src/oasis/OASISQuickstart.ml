@@ -42,19 +42,12 @@ let ask_until_correct q ?help ?(default=NoDefault) parse =
       (* Short introduction *)
       Printf.printf "\n%s " q;
       begin
-        match default, help with 
-          | Default_is dflt, Some _ ->
-              Printf.printf (f_ "(default is '%s', type '?' for help) ") dflt
-          | Default_exists _, Some _ ->
-              Printf.printf (f_ "(default exists, type '?' for help) ") 
-          | NoDefault, Some _ ->
-              Printf.printf (f_ "(type '?' for help) ")
-
-          | Default_is dflt, None ->
+        match default with 
+          | Default_is dflt ->
               Printf.printf (f_ "(default is '%s') ") dflt
-          | Default_exists _, None ->
-              Printf.printf (f_ "(default exists) ")
-          | NoDefault, None ->
+          | Default_exists _ ->
+              Printf.printf (f_ "(default exists) ") 
+          | NoDefault ->
               ()
       end;
       Printf.printf "%!"
@@ -85,6 +78,8 @@ let ask_until_correct q ?help ?(default=NoDefault) parse =
       with e -> 
         begin
           error ~exit:false "%s" (string_of_exception e);
+          if help <> None then
+            print_endline (s_ "Answer '?' for help on this question.");
           ask_until_correct_aux ()
         end
     in
