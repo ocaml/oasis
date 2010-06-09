@@ -170,6 +170,43 @@ let build pkg argv =
       (List.flatten (List.rev_map fst rtargets))
   in
 
+  (* Compare two files, return true if they differ *)
+  let diff fn1 fn2 =
+    if Sys.file_exists fn1 && Sys.file_exists fn2 then
+      begin
+        let chn1 = open_in fn1 in
+        let chn2 = open_in fn2 in
+        let res =
+          if in_channel_length chn1 = in_channel_length chn2 then
+            begin
+              let len =
+                4096
+              in
+              let str1 = 
+                String.make len '\000'
+              in
+              let str2 =
+                String.copy str1
+              in
+                try
+                  while (String.compare str1 str2) = 0 do 
+                    really_input chn1 str1 0 len;
+                    really_input chn2 str2 0 len
+                  done;
+                  true
+                with End_of_file ->
+                  false
+            end
+          else
+            true
+        in
+          close_in chn1; close_in chn2;
+          res
+      end
+    else
+      true
+  in
+
   let last_rtargets =
     List.fold_left
       (fun acc (built, tgt) ->
@@ -177,14 +214,25 @@ let build pkg argv =
            | Std nm -> 
                (built, nm) :: acc
            | StdRename (src, tgt) ->
-               (* We run with a fake list for event registering *)
-               run_ocamlbuild (([], src) :: acc);
-               (* And then copy and register *)
-               BaseFileUtil.cp 
-                 (in_build_dir_of_unix src)
-                 tgt;
-               List.iter check_and_register built;
-               [])
+               begin
+                 (* We run with a fake list for event registering *)
+                 run_ocamlbuild (([], src) :: acc);
+
+                 (* And then copy and register *)
+                 begin
+                   let src_fn = 
+                     in_build_dir_of_unix src 
+                   in
+                     if diff src_fn tgt then
+                       BaseFileUtil.cp src_fn tgt
+                     else
+                       OASISMessage.info 
+                         (f_ "No need to copy file '%s' to '%s', same content")
+                         src_fn tgt
+                 end;
+                 List.iter check_and_register built;
+                 []
+               end)
       []
       (!cond_targets_hook cond_targets)
   in
