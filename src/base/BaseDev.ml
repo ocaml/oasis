@@ -104,7 +104,8 @@ let create use_real_filename setup_fn =
     let rec filter_opt =
       function 
         | "-setup-fn" :: _ :: lst 
-        | "-dev" :: lst ->
+        | "-dev" :: lst 
+        | "-quickstart" :: lst ->
             filter_opt lst
         | hd :: tl ->
             hd :: (filter_opt tl)

@@ -333,7 +333,7 @@ let ask_package lvl =
     pkg_data, section_data
 
 (** Create an _oasis file *)
-let to_file fn lvl =
+let to_file fn lvl oasis_dev =
 
   let () = 
     (* Print introduction *)
@@ -370,28 +370,169 @@ let to_file fn lvl =
     ask_package lvl
   in
 
-  let tmp_fn, chn = 
-    Filename.open_temp_file fn ".tmp"
-  in
-  let () = 
-    at_exit
-      (fun () ->
-         if Sys.file_exists tmp_fn then
-           begin
-             try
-               FileUtil.rm [tmp_fn]
-             with _ ->
-               ()
-           end)
+  let content =
+    let buf =
+      Buffer.create 13
+    in
+    let fmt =
+      formatter_of_buffer buf
+    in
+      OASISFormat.pp_print_package_proplist 
+        fmt 
+        (pkg_data, section_data);
+      Format.pp_print_flush fmt ();
+      buf
   in
 
-  let fmt = 
-    Format.formatter_of_out_channel chn
+  let default_program env_var prg = 
+    try
+      begin
+        let prg = 
+          Sys.getenv env_var
+        in
+          info (f_ "Environment variable %s is set to '%s'") env_var prg;
+          Some prg
+      end
+    with Not_found ->
+      begin
+        try 
+          begin
+            let prg = 
+              FileUtil.which prg
+            in
+              info (f_ "Program '%s' exists") prg;
+              Some prg
+          end
+        with Not_found ->
+          info 
+            (f_ "Environment variable %s is not set and program '%s' \
+               doesn't exists")
+            env_var prg;
+          None
+      end
   in
-    info (f_ "Creating %s file\n%!") fn;
-    OASISFormat.pp_print_package_proplist fmt (pkg_data, section_data);
-    Format.pp_print_flush fmt ();
-    close_out chn;
-    if Sys.file_exists fn then
-      FileUtil.rm [fn];
-    FileUtil.mv tmp_fn fn
+
+  let cmd_exec prg fn = 
+    let cmd =
+      (Filename.quote prg)
+      ^" "^
+      (Filename.quote fn)
+    in
+      info (f_ "Running command '%s'") cmd;
+      match Sys.command cmd with
+        | 0 -> ()
+        | i -> 
+            failwithf2
+              (f_ "Command '%s' exited with status code %d")
+              cmd
+              i
+  in
+
+  let dump_tmp content = 
+    let tmp_fn, chn = 
+      Filename.open_temp_file fn ".tmp"
+    in
+      Buffer.output_buffer chn content;
+      close_out chn;
+      tmp_fn
+  in
+
+  let editor content =
+    match default_program "EDITOR" "editor" with 
+      | Some prg ->
+          begin
+            let tmp_fn =
+              dump_tmp content
+            in
+              begin
+                try 
+                  (* Edit content *)
+                  cmd_exec prg tmp_fn;
+
+                  (* Reload content *)
+                  begin
+                    let chn = 
+                      open_in tmp_fn
+                    in
+                      Buffer.clear content;
+                      Buffer.add_channel content chn (in_channel_length chn);
+                      close_in chn
+                  end;
+
+                  (* Remove temporary file *)
+                  Sys.remove tmp_fn 
+
+                with e ->
+                  Sys.remove tmp_fn;
+                  error "%s" (string_of_exception e)
+              end
+          end
+      | None ->
+          error ~exit:false "No way to edit the generated file."
+  in
+
+  let pager content =
+    match default_program "PAGER" "pager" with
+      | Some prg ->
+          begin
+            let tmp_fn =
+              dump_tmp content
+            in
+              try 
+                cmd_exec prg tmp_fn;
+                Sys.remove tmp_fn
+              with e ->
+                Sys.remove tmp_fn;
+                error "%s" (string_of_exception e)
+          end
+      | None ->
+          begin
+            Buffer.output_buffer stdout content;
+            flush stdout
+          end
+  in
+
+  let create_fn content fn = 
+    let chn = 
+      open_out fn
+    in
+      info (f_ "Creating %s file\n%!") fn;
+      Buffer.output_buffer chn content;
+      close_out chn
+  in
+
+  let ask_end () = 
+    ask_shortcut_choices 
+      "Package definition is complete, what do you want to do now?"
+      [
+        s_ "d", s_ "display the generated file",
+        (fun () -> 
+           (* Send to pager *)
+           pager content;
+           true);
+
+        s_ "e", s_ "edit the generated file",
+        (fun () -> 
+           (* Send to editor *)
+           editor content;
+           true);
+
+        s_ "w", s_ "write and exit",
+        (fun () -> 
+           create_fn content fn;
+           false);
+
+        s_ "r", s_ "write, run 'OASIS -dev' and exit",
+        (fun () ->
+           create_fn content fn;
+           oasis_dev ();
+           false);
+        
+        s_ "q", s_ "exit without saving",
+        (fun () -> false);
+      ]
+  in
+
+    while (ask_end ()) () do 
+      ()
+    done

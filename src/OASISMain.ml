@@ -151,7 +151,14 @@ let () =
             begin
               OASISQuickstart.to_file 
                 !oasis_fn
-                !qckstrt_lvl;
+                !qckstrt_lvl
+                (* OASIS -dev *)
+                (fun () ->
+                   BaseGenerate.generate
+                     (OASIS.from_file !oasis_fn)
+                     true
+                     !rsetup_fn
+                     !ruse_oasis_real_filename);
             end
         | Documentation ->
             begin
