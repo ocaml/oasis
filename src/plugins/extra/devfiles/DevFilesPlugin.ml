@@ -45,6 +45,7 @@ let all_targets =
     "test";
     "install";
     "uninstall";
+    "reinstall";
     "clean";
     "distclean";
     "configure";
