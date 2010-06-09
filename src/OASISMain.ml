@@ -26,6 +26,7 @@ open OASISTypes
 open OASISUtils
 open OASISPlugin
 open OASISBuiltinPlugins
+open OASISMessage
 
 type action_t =
   | Generate 
@@ -140,62 +141,17 @@ let () =
       match !action with 
         | Generate ->
             begin
-              let pkg =
-                OASIS.from_file !oasis_fn 
-              in
-                BaseGenerate.generate 
-                  pkg 
-                  !rdev 
-                  !rsetup_fn
-                  !ruse_oasis_real_filename
+              BaseGenerate.generate 
+                (OASIS.from_file !oasis_fn)
+                !rdev 
+                !rsetup_fn
+                !ruse_oasis_real_filename
             end
         | Quickstart ->
             begin
-              let fn =
+              OASISQuickstart.to_file 
                 !oasis_fn
-              in
-              let () = 
-                if Sys.file_exists fn then
-                  begin
-                    let a = 
-                      OASISQuickstart.ask_yes_no 
-                        ~default:(OASISQuickstart.Default_exists false)
-                        (Printf.sprintf
-                           (f_ "File '%s' already exists, overwrite it?")
-                           fn)
-                    in
-                      if not a then
-                        failwithf1
-                          (f_ "File '%s' already exists, remove it first")
-                          fn
-                  end
-              in
-              let tmp_fn, chn = 
-                Filename.open_temp_file fn ".tmp"
-              in
-              let () = 
-                at_exit
-                  (fun () ->
-                     if Sys.file_exists tmp_fn then
-                       begin
-                         try
-                           FileUtil.rm [tmp_fn]
-                         with _ ->
-                           ()
-                       end)
-              in
-              let fmt = 
-                Format.formatter_of_out_channel chn
-              in
-                Printf.printf (f_ "Creating %s file\n%!") fn;
-                OASISQuickstart.quickstart 
-                  fmt
-                  !qckstrt_lvl;
-                Format.pp_print_flush fmt ();
-                close_out chn;
-                if Sys.file_exists fn then
-                  FileUtil.rm [fn];
-                FileUtil.mv tmp_fn fn;
+                !qckstrt_lvl;
             end
         | Documentation ->
             begin
@@ -208,8 +164,5 @@ let () =
                    fun nm _ ->
                      List.mem nm lst)
             end
-    with Failure s ->
-      begin
-        prerr_endline s;
-        exit 1
-      end
+    with e ->
+      error "%s" (string_of_exception e)

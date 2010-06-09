@@ -26,9 +26,10 @@
 open OASISGettext
 open OASISSchema
 open OASISTypes
-open OASISUtils
 open Format
 open FormatExt
+open OASISUtils
+open OASISMessage
 
 type 'a default =
   | Default_exists of 'a
@@ -81,9 +82,9 @@ let ask_until_correct q ?help ?(default=NoDefault) parse =
               | s, _, _ ->
                   parse s
         end
-      with Failure s -> 
+      with e -> 
         begin
-          print_endline ("Error: "^s);
+          error ~exit:false "%s" (string_of_exception e);
           ask_until_correct_aux ()
         end
     in
@@ -159,10 +160,12 @@ let ask_yes_no ?help ?default q =
       (s_ "n"), (s_ "no"),  false;
     ]
 
+(** Ask a single field *)
 let ask_field =
   ask_until_correct
 
-let quickstart fmt lvl =
+(** Ask questions for a schema (Package, Library, Executable...) *)
+let ask_schema schema lvl =
   let fake_context = 
     {
       OASISAstTypes.cond = None;
@@ -171,87 +174,87 @@ let quickstart fmt lvl =
     }
   in
 
-  let of_schema schema =
-    PropList.Schema.fold
-      (fun data key extra help -> 
-         if extra.plugin = None then 
-           begin
-             let has_default, default = 
-               try 
-                 let s = 
-                   PropList.Schema.get
-                     schema
-                     data
-                     key
-                 in
-                   true, Default_is s 
-               with 
-                 | OASISValues.Not_printable ->
-                     (* Value exist but cannot be represented *)
-                     true, Default_exists ()
-                 | PropList.Not_set _ ->
-                     false, NoDefault
-             in
+  PropList.Schema.fold
+    (fun data key extra help -> 
+       if extra.plugin = None then 
+         begin
+           let has_default, default = 
+             try 
+               let s = 
+                 PropList.Schema.get
+                   schema
+                   data
+                   key
+               in
+                 true, Default_is s 
+             with 
+               | OASISValues.Not_printable ->
+                   (* Value exist but cannot be represented *)
+                   true, Default_exists ()
+               | PropList.Not_set _ ->
+                   false, NoDefault
+           in
 
-             let parse = 
-               PropList.Schema.set 
-                 schema
-                 data
-                 key
-                 ~context:fake_context
-             in
-               begin
-                 match extra.qckstrt_lvl with 
-                   | NoChoice s -> 
-                       begin
-                         try
-                           parse s
-                         with e ->
-                           failwithf3
-                             (f_ "Trying to set field '%s' using mandatory value '%s': %s")
-                             key s (Printexc.to_string e)
-                       end
-                   | _ when not has_default || lvl >= extra.qckstrt_lvl ->
-                       begin
-                         let help = 
-                           match help with 
-                             | Some f ->
-                                 Some (f ())
-                             | None ->
-                                 None
-                         in
-                           match extra.qckstrt_q with 
-                             | _ ->
-                                 (* TODO: handle other kind of questions *)
-                                 ask_field 
-                                   (Printf.sprintf (f_ "Value for field '%s'?") key)
-                                   ?help
-                                   ~default
-                                   parse
-                       end
-                   | _ ->
-                       ()
-               end;
+           let parse = 
+             PropList.Schema.set 
+               schema
                data
-           end
-         else
-           begin
+               key
+               ~context:fake_context
+           in
+             begin
+               match extra.qckstrt_lvl with 
+                 | NoChoice s -> 
+                     begin
+                       try
+                         parse s
+                       with e ->
+                         failwithf3
+                           (f_ "Trying to set field '%s' using mandatory value '%s': %s")
+                           key s (Printexc.to_string e)
+                     end
+                 | _ when not has_default || lvl >= extra.qckstrt_lvl ->
+                     begin
+                       let help = 
+                         match help with 
+                           | Some f ->
+                               Some (f ())
+                           | None ->
+                               None
+                       in
+                         match extra.qckstrt_q with 
+                           | _ ->
+                               (* TODO: handle other kind of questions *)
+                               ask_field 
+                                 (Printf.sprintf (f_ "Value for field '%s'?") key)
+                                 ?help
+                                 ~default
+                                 parse
+                     end
+                 | _ ->
+                     ()
+             end;
              data
-           end)
-      (PropList.Data.create ())
-      schema
-  in
+         end
+       else
+         begin
+           data
+         end)
+    (PropList.Data.create ())
+    schema
 
+(** Ask questions for a package and its sections *)
+let ask_package lvl = 
   let pkg_data = 
-    of_schema OASISPackage.schema
+    ask_schema OASISPackage.schema lvl
   in
 
-  let sections =
+  let section_data =
     let section gen schema q_name =
       let nm = 
         ask_field q_name (fun s -> s)
       in
-        gen nm (of_schema schema)
+        gen nm (ask_schema schema lvl)
     in
 
     let sections = 
@@ -325,132 +328,75 @@ let quickstart fmt lvl =
      * order for package/library/test
      *)
 
+    (* TODO: create a real function that do the check *)
+
     OASISPackage.generator 
       pkg_data 
-      sections 
+      section_data 
   in
 
-  (** Pretty print the package 
-    *)
-  let pp_fields fmt (schm, data) = 
-    let fake_data =
-      PropList.Data.create ()
+    pkg_data, section_data
+
+(** Create an _oasis file *)
+let to_file fn lvl =
+
+  let () = 
+    (* Print introduction *)
+    let fmt =
+      std_formatter
     in
-    let key_value =
-      List.rev
-        (PropList.Schema.fold 
-           (fun acc key extra _ ->
-              try 
-                let str =
-                  PropList.Schema.get 
-                    schm
-                    data
-                    key
-                in
-                let is_default =
-                  try 
-                    let default =
-                      PropList.Schema.get 
-                        schm
-                        fake_data
-                        key 
-                    in
-                      str = default
-                  with 
-                    | OASISValues.Not_printable 
-                    | PropList.Not_set _ ->
-                        (* Unable to compare so this is not default *)
-                        false
-                in
-                  if not is_default then
-                    (key, str) :: acc
-                  else
-                    acc
-              with 
-                | OASISValues.Not_printable ->
-                    acc 
-                | PropList.Not_set _  when extra.plugin <> None ->
-                    acc)
-           []
-           schm)
-    in
-
-    let max_key_length =
-      (* ":" *)
-      1 
-      +
-      (* Maximum length of a key *)
-      (List.fold_left
-         max
-         0
-
-         (* Only consider length of key *)
-         (List.rev_map
-            fst
-
-            (* Remove key/value that exceed line length *)
-            (List.filter 
-               (fun (k, v) -> k + v < pp_get_margin fmt ())
-               
-               (* Consider only length of key/value *)
-               (List.rev_map
-                  (fun (k, v) -> String.length k, String.length v)
-                  key_value))))
-    in
-
-      pp_open_vbox fmt 0;
-      List.iter
-        (fun (k, v) ->
-           pp_open_box fmt 2;
-           pp_print_string fmt k;
-           pp_print_string fmt ":";
-           pp_print_break fmt (max 0 (max_key_length - String.length k)) 0;
-           pp_print_string_spaced fmt v;
-           pp_close_box fmt ();
-           pp_print_cut fmt ())
-        key_value;
-      pp_close_box fmt ()
+      pp_open_box fmt 0;
+      pp_print_string_spaced fmt
+        (s_ "The program will ask some questions to create the OASIS file. \
+             If you answer '?' to a question, an help text will be displayed.");
+      pp_close_box fmt ();
+      pp_print_flush fmt ();
+      print_endline ""
   in
 
-  pp_open_vbox fmt 0;
+  let () = 
+    if Sys.file_exists fn then
+      begin
+        let a = 
+          ask_yes_no 
+            ~default:(Default_exists false)
+            (Printf.sprintf
+               (f_ "File '%s' already exists, overwrite it?")
+               fn)
+        in
+          if not a then
+            failwithf1
+              (f_ "File '%s' already exists, remove it first")
+              fn
+      end
+  in
 
-  pp_fields fmt (OASISPackage.schema, pkg_data);
-  pp_print_cut fmt ();
+  let (pkg_data, section_data) = 
+    ask_package lvl
+  in
 
-  List.iter 
-    (fun sct ->
-       let schm = 
-         match sct with 
-           | Library _ ->
-               OASISLibrary.schema
-           | Executable _ -> 
-               OASISExecutable.schema
-           | SrcRepo _ ->
-               OASISSourceRepository.schema
-           | Test _ ->
-               OASISTest.schema
-           | Flag _ ->
-               OASISFlag.schema
-           | Doc _ ->
-               OASISDocument.schema
-       in
+  let tmp_fn, chn = 
+    Filename.open_temp_file fn ".tmp"
+  in
+  let () = 
+    at_exit
+      (fun () ->
+         if Sys.file_exists tmp_fn then
+           begin
+             try
+               FileUtil.rm [tmp_fn]
+             with _ ->
+               ()
+           end)
+  in
 
-       let {cs_name = nm; cs_data = data} = 
-         OASISSection.section_common sct
-       in 
-
-       let pp_id_or_string fmt str =
-         (* A string is an id if varname_of_string doesn't change it *)
-         if str = (OASISUtils.varname_of_string str) then 
-           fprintf fmt "%s" str
-         else 
-           fprintf fmt "%S" str
-       in
-         fprintf fmt "@[<v 2>%s %a@,%a@]@,"
-           schm.PropList.Schema.name
-           pp_id_or_string nm
-           pp_fields (schm, data))
-    sections;
-
-  pp_close_box fmt ()
-
+  let fmt = 
+    Format.formatter_of_out_channel chn
+  in
+    info (f_ "Creating %s file\n%!") fn;
+    OASISFormat.pp_print_package_proplist fmt (pkg_data, section_data);
+    Format.pp_print_flush fmt ();
+    close_out chn;
+    if Sys.file_exists fn then
+      FileUtil.rm [fn];
+    FileUtil.mv tmp_fn fn

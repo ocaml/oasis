@@ -183,7 +183,8 @@ let var_define
       ?(cli=CLINone)
       ?arg_help
       ?group 
-      name
+      name (* TODO: type constraint on the fact that name must be a valid OCaml
+                id *)
       dflt =
 
   let default =
