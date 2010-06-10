@@ -141,6 +141,59 @@ let test t args =
     t.package
     args
 
+let all t args =
+  let rno_doc = 
+    ref false
+  in
+  let rno_test =
+    ref false
+  in
+    Arg.parse_argv
+      ~current:(ref 0)
+      (Array.of_list 
+         ((Sys.executable_name^" all") :: 
+          (Array.to_list args)))
+      [
+        "-no-doc",
+        Arg.Set rno_doc,
+        s_ "Don't run doc target";
+
+        "-no-test",
+        Arg.Set rno_test,
+        s_ "Don't run test target";
+      ]
+      (failwithf1 (f_ "Don't know what to do with '%s'"))
+      "";
+    
+    info "Running configure step";
+    configure t [||];
+    
+    info "Running build step";
+    build     t [||];
+
+    (* Load setup.log dynamic variables *)
+    BaseDynVar.init t.package;
+    
+    if not !rno_doc then
+      begin
+        info "Running doc step";
+        doc t [||];
+      end
+    else
+      begin
+        info "Skipping doc step"
+      end;
+
+    if not !rno_test then
+      begin
+        info "Running test step";
+        test t [||]
+      end
+    else
+      begin
+        info "Skipping test step"
+      end
+
 (** Install step *)
 let install t args =
   BaseCustom.hook
@@ -306,6 +359,10 @@ let setup t =
                "-test",
                arg_handle test,
                s_ "[options*] Run tests.";
+
+               "-all",
+               arg_handle all,
+               s_ "[options*] Run configure, build, doc and test targets.";
 
                "-install",
                arg_handle install,

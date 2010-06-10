@@ -43,6 +43,7 @@ let all_targets =
     "build"; 
     "doc";
     "test";
+    "all";
     "install";
     "uninstall";
     "reinstall";
@@ -113,7 +114,7 @@ let main pkg =
         Buffer.add_string buff "\nSETUP = ocaml setup.ml\n\n";
         List.iter
           (function
-             | "clean" | "distclean" as nm ->
+             | "all" | "clean" | "distclean" as nm ->
                  add_one_target ~need_configure:false nm
              | "test" | "doc" as nm ->
                  add_one_target ~other_depends:["build"] nm

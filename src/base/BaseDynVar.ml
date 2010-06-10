@@ -36,7 +36,7 @@ let init pkg =
     (function
        | Executable (cs, bs, exec) ->
            var_ignore
-             (var_define 
+             (var_redefine 
                 (* We don't save this variable *)
                 ~dump:false
                 ~short_desc:(fun () -> 
