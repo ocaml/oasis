@@ -9,6 +9,14 @@ Plugins:     META (0.0.1)
 Library test
   Path:    src
   Modules: A, B
+
+Document test
+  Title:                API reference for test
+  Type:                 ocamlbuild (0.1.0)
+  InstallDir:           $htmldir/test
+  BuildTools:           ocamlbuild, ocamldoc
+  XOCamlbuildPath:      src
+  XOCamlbuildLibraries: test
   
 # This library will be installed with library 'test' above
 # and will be named 'test.syntax'.
@@ -18,8 +26,6 @@ Library pa_test
   FindlibName:    syntax
   FindlibParent:  test
   CompiledObject: byte
-  XOCamlbuildAutoDoc: false
-  
 
 Executable mytest
   Path:    src 

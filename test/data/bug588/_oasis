@@ -11,6 +11,15 @@ Library libtest
   Modules: Libtest
   BuildDepends: bitstring.syntax, bitstring
   
+Document libtest
+  Title:                API reference for libtest
+  Type:                 ocamlbuild (0.1.0)
+  InstallDir:           $htmldir/libtest
+  BuildTools:           ocamlbuild, ocamldoc
+  Install:              false
+  XOCamlbuildPath:      .
+  XOCamlbuildLibraries: libtest
+
 Executable test
   Path:   .
   Install: false

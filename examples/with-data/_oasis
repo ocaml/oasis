@@ -18,3 +18,10 @@ Library test
  Modules: Test
  DataFiles: test.txt ($datarootdir/$pkg_name-$pkg_version)
 
+Document test
+  Title:                API reference for test
+  Type:                 ocamlbuild (0.1.0)
+  InstallDir:           $htmldir/test
+  BuildTools:           ocamlbuild, ocamldoc
+  XOCamlbuildPath:      src
+  XOCamlbuildLibraries: test

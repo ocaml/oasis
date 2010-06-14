@@ -93,6 +93,8 @@ let run_clean extra_argv =
 
 (** Run ocamlbuild, unregister all clean events *)
 let run_ocamlbuild args extra_argv =
+  (* TODO: enforce that target in args must be UNIX encoded i.e. toto/index.html
+   *)
   BaseExec.run (ocamlbuild ()) (fix_args args extra_argv);
   (* Remove any clean event, we must run it again *)
   List.iter

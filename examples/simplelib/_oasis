@@ -21,3 +21,10 @@ Library simplelib
   Path: src
   Modules: Foo, Bar
 
+Document simplelib
+  Title:                API reference for simplelib
+  Type:                 ocamlbuild (0.1.0)
+  InstallDir:           $htmldir/simplelib
+  BuildTools:           ocamlbuild, ocamldoc
+  XOCamlbuildPath:      src
+  XOCamlbuildLibraries: simplelib

@@ -13,6 +13,14 @@ Library "with-c"
   CSources: A_stub.c
   CCOpt: -D OPTION_PASSED
 
+Document "with-c"
+  Title:                API reference for with-c
+  Type:                 ocamlbuild (0.1.0)
+  InstallDir:           $htmldir/with-c
+  BuildTools:           ocamlbuild, ocamldoc
+  XOCamlbuildPath:      src
+  XOCamlbuildLibraries: with-c
+
 Executable "test-with-c"
   Path: src
   MainIs: main.ml

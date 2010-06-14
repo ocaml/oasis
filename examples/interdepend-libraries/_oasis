@@ -40,3 +40,12 @@ Executable execa
   Path:         src/execa
   BuildDepends: libc, libe
   Install:      false
+
+Document interdepend
+  Title:                API reference for interdepend
+  Type:                 ocamlbuild (0.1.0)
+  InstallDir:           $htmldir/interdepend
+  Install:              false
+  BuildTools:           ocamlbuild, ocamldoc
+  XOCamlbuildPath:      src
+  XOCamlbuildLibraries: liba, libb, libc, libd, libe

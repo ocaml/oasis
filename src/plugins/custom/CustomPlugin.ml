@@ -233,8 +233,7 @@ struct
 
             other_action = 
               ignore;
-          },
-          pkg
+          }
 end
 
 (* Configure plugin *)
@@ -296,8 +295,7 @@ let build_init () =
 
         other_action = 
           ignore;
-      },
-      pkg
+      }
   in
     PU.register doit
 
@@ -371,10 +369,7 @@ let doc_init () =
 
           other_action = 
             ignore;
-        },
-        pkg,
-        cs,
-        doc
+        }
   in
     PU.register doit
 
@@ -433,10 +428,7 @@ let test_init () =
 
           other_action = 
             ignore;
-        },
-        pkg,
-        cs,
-        test
+        }
   in
     PU.register doit
 

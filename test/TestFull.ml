@@ -977,16 +977,12 @@ let tests ctxt =
          "../examples/interdepend-libraries",
          long_test,
          [
+           "src/interdepend.odocl";
            "src/liba/liba.mllib";
-           "src/liba/liba.odocl";
            "src/libb/libb.mllib";
-           "src/libb/libb.odocl";
            "src/libc/libc.mllib";
-           "src/libc/libc.odocl";
            "src/libd/libd.mllib";
-           "src/libd/libd.odocl";
            "src/libe/libe.mllib";
-           "src/libe/libe.odocl";
          ] @ oasis_ocamlbuild_files,
          [],
          [];
@@ -995,12 +991,10 @@ let tests ctxt =
          "../examples/order-matter",
          long_test,
          [
+           "src/order-matter.odocl";
            "src/foo/foo.mllib";
-           "src/foo/foo.odocl";
            "src/bar/bar.mllib";
-           "src/bar/bar.odocl";
            "src/baz/baz.mllib";
-           "src/baz/baz.odocl";
          ] @ oasis_ocamlbuild_files,
          [],
          [];

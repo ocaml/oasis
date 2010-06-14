@@ -187,7 +187,7 @@ let group_libs pkg =
       []
       pkg.sections
 
-(** Compute internal library findlib names, including subpackage
+(** Compute internal to findlib library matchings, including subpackage
     and return a map of it.
   *)
 let findlib_name_map pkg = 
@@ -234,6 +234,24 @@ let findlib_of_name ?(recurse=false) map nm =
     failwithf1
       (f_ "Unable to translate internal library '%s' to findlib name")
       nm
+
+(** Compute findlib to internal library matching 
+  *)
+let name_findlib_map pkg =
+  let mp = 
+    findlib_name_map pkg
+  in
+    MapString.fold
+      (fun nm _ acc -> 
+         let fndlb_nm_full =
+           findlib_of_name 
+             ~recurse:true 
+             mp 
+             nm
+         in
+           MapString.add fndlb_nm_full nm acc)
+      mp
+      MapString.empty
 
 (** Return the findlib root name of a group, it takes into account
     containers. So the return group name is the toplevel name

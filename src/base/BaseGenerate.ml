@@ -42,7 +42,7 @@ let required_modules =
   *)
 let generate pkg dev setup_fn use_real_oasis_filename = 
 
-  let pkg, setup_t_odn, other_actions, moduls =
+  let setup_t_odn, other_actions, moduls =
     BaseSetup.odn_of_oasis pkg
   in
 

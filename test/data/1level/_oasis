@@ -12,6 +12,14 @@ Library "with-a"
   Modules: A
   BuildDepends: oUnit
 
+Document "with-a"
+  Title:                API reference for with-a
+  Type:                 ocamlbuild (0.1.0)
+  InstallDir:           $htmldir/with-a
+  BuildTools:           ocamlbuild, ocamldoc
+  XOCamlbuildPath:      .
+  XOCamlbuildLibraries: with-a
+
 Executable "test-with-a"
   Path: .
   MainIs: main.ml

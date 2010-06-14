@@ -22,3 +22,11 @@ Library baz
   Install: false
   BuildDepends: bar
   
+Document "order-matter"
+  Title:                API reference for order-matter
+  Type:                 ocamlbuild (0.1.0)
+  InstallDir:           $htmldir/order-matter
+  Install:              false
+  BuildTools:           ocamlbuild, ocamldoc
+  XOCamlbuildPath:      src
+  XOCamlbuildLibraries: foo, bar, baz

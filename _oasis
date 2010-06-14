@@ -1,5 +1,5 @@
 OASISFormat:  0.1
-OCamlVersion: >= 3.10.2
+OCamlVersion: >= 3.11.0
 Name:         oasis
 Version:      0.1.0
 LicenseFile:  COPYING.txt

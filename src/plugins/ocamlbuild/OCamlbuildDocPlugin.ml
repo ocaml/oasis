@@ -30,21 +30,20 @@ open BaseStandardVar
 
 TYPE_CONV_PATH "OCamlbuildDocPlugin"
 
-type t =
-    {
-      path:    dirname;
-      modules: string list;
-    } with odn
-
-let doc_build t pkg (cs, doc) argv =
+let doc_build path pkg (cs, doc) argv =
   let index_html =
-    t.path^"/"^cs.cs_name^".docdir/index.html"
+    BaseFilePath.Unix.make
+      [
+        path;
+        cs.cs_name^".docdir";
+        "index.html";
+      ]
   in
   let tgt_dir =
     BaseFilePath.make
       [
         OCamlbuildCommon.build_dir argv;
-        BaseFilePath.of_unix t.path;
+        BaseFilePath.of_unix path;
         cs.cs_name^".docdir";
       ]
   in
@@ -67,153 +66,177 @@ let doc_clean t pkg (cs, doc) argv =
 open BaseFileGenerate
 open OASISPlugin
 open OASISValues
-
-(* Field to store precomputed data *)
-let auto_doc_data: (unit, t, OASISSchema.extra) PropList.Field.t =
-  OASISSchema.new_field_phantom ()
+open OASISUtils
 
 module PU = OASISPlugin.Doc.Make(OCamlbuildId)
 open PU
 
-let auto_doc =
+let path =
   new_field
-    OASISLibrary.schema
-    "AutoDoc"
-    ~default:true
-    boolean
+    OASISDocument.schema
+    "Path"
+    directory
     (fun () ->
-       s_ "Build documentation associated to the library.")
+       s_ "Top level directory for building ocamldoc documentation")
 
-let of_data = 
+
+let modules =
+  new_field
+    OASISDocument.schema
+    "Modules"
+    ~default:[]
+    modules
+    (fun () ->
+       s_ "List of OCaml modules used to generate ocamldoc documentation")
+
+let libraries =
+  new_field
+    OASISDocument.schema
+    "Libraries"
+    ~default:[]
+    (comma_separated pkgname)
+    (fun () ->
+       s_ "Findlib names of internal libraries used to generate the ocamldoc documentation")
+
+(* TODO: the following 2 options require to edit _tags after OCamlbuildDoc
+ *)
+let intro =
+  new_field 
+    OASISDocument.schema
+    "Intro"
+    (opt file)
+    (fun () ->
+       s_ "OCamldoc formatted file used to generate index.html of the ocamldoc documentation")
+
+let flags =
+  new_field
+    OASISDocument.schema
+    "Flags"
+    space_separated 
+    (fun () ->
+       s_ "OCamldoc flags")
+
+let doit pkg (cs, doc) = 
+
   let path =
-    new_field
-      OASISDocument.schema
-      "Path"
-      directory
-      (fun () ->
-         s_ "Top level directory for building ocamldoc documentation")
+    path cs.cs_data
   in
 
-  let modules =
-    new_field
-      OASISDocument.schema
-      "Modules"
-      modules
-      (fun () ->
-         s_ "List of OCaml modules used to generate ocamldoc documentation")
+  let modules_from_libraries =
+    (* Convert findlib name to internal library and compute 
+     * the module they shipped 
+     *)
+    let lib_of_findlib =
+      let name_of_findlib =
+        OASISLibrary.name_findlib_map pkg
+      in
+      let lib_of_name =
+        List.fold_left
+          (fun mp ->
+             function
+               | Library ({cs_name = name}, bs, lib) ->
+                   MapString.add name (bs, lib) mp
+               | _ ->
+                   mp)
+          MapString.empty
+          pkg.sections
+      in
+        fun fndlb_nm ->
+          try
+            let nm = 
+              MapString.find fndlb_nm name_of_findlib
+            in
+              MapString.find nm lib_of_name
+          with Not_found ->
+            failwithf1
+              (f_ "Findlib library %s is not an internal library")
+              fndlb_nm
+    in
+
+    let fake_root =
+      FilePath.UnixPath.make_absolute "/fake_root/"
+    in
+
+    let fake_doc_path =
+      fake_root path
+    in
+
+      (* Fetch modules from internal libraries *)
+      List.flatten
+        (List.map
+           (fun fndlb_nm ->
+              let bs, lib =
+                lib_of_findlib fndlb_nm
+              in
+                (* Rebase modules in the doc path *)
+                List.map
+                  (fun modul ->
+                     FilePath.UnixPath.make_relative
+                       fake_doc_path
+                       (fake_root
+                          (FilePath.UnixPath.concat 
+                             bs.bs_path
+                             modul)))
+                  lib.lib_modules)
+
+           (libraries cs.cs_data))
   in
 
-    (fun data ->
-       let default_not_set f d =
-         try 
-           f data
-         with PropList.Not_set _ ->
-           d data
-       in
-       let t = 
-         default_not_set 
-           (fun data ->
-              PropList.Field.fget data auto_doc_data)
-           (fun cs_data ->
-              {
-                path    = path data;
-                modules = modules data;
-              })
-       in
-         {
-           path    = default_not_set path (fun _ -> t.path);
-           modules = default_not_set modules (fun _ -> t.modules)
-         })
-
-let create_ocamlbuild_odocl_files cs t () =
-   if t.modules = [] then
-     warning 
-       (f_ "No module defined for documentation of library %s")
-       cs.cs_name;
-   file_generate
-     (FilePath.add_extension 
-        (FilePath.concat t.path cs.cs_name)
-        "odocl")
-     comment_ocamlbuild
-     (Split ([], t.modules, []))
-
-(** Automatically add a doc section to generate API reference out of libraries
-  *)
-let auto_doc_section pkg = 
-  let docs = 
-    List.fold_left
-      (fun docs ->
-         function
-           | Library (cs, bs, lib) when auto_doc cs.cs_data ->
-               begin
-                 let data =
-                   PropList.Data.create ()
-                 in
-                   PropList.Field.fset
-                     data
-                     auto_doc_data
-                     {
-                       path    = bs.bs_path;
-                       modules = lib.lib_modules;
-                     };
-                   Doc ({cs_name = cs.cs_name;
-                         cs_data = data},
-                        {
-                          doc_type        = OASISPlugin.builtin "ocamlbuild";
-                          doc_custom      = {pre_command  = [EBool true, None]; 
-                                             post_command = [EBool true, None]};
-                          doc_build       = bs.bs_build;
-                          doc_install     = bs.bs_install;
-                          doc_install_dir = "$htmldir/"^cs.cs_name;
-                          doc_title       = "OCamldoc API for library "^cs.cs_name;
-                          doc_abstract    = None;
-                          doc_format      = HTML "index.html";
-                          doc_authors     = [];
-                          doc_data_files  = [];
-                          doc_build_tools = [];
-                        }) :: docs
-               end
-           | _ ->
-               docs)
-      []
-      pkg.sections
+  let modules_from_doc = 
+    (* Fetch modules defined directly *)
+    modules cs.cs_data
   in
-    {pkg with 
-         sections = pkg.sections @ (List.rev docs)}
+
+  let modules = 
+    modules_from_libraries @ modules_from_doc
+  in
+
+  let create_ocamlbuild_odocl_files () =
+     file_generate
+       (FilePath.add_extension 
+          (FilePath.concat path cs.cs_name)
+          "odocl")
+       comment_ocamlbuild
+       (Split ([], modules, []))
+  in
+
+    (* Checks consistency of options *)
+    if List.mem (ExternalTool "ocamldoc") doc.doc_build_tools then
+      (* TODO: create a specific error context for this *)
+      error ~exit:false 
+        (f_ "ocamldoc in field BuildTools of document %s is mandatory.")
+        cs.cs_name;
+    if List.mem (ExternalTool "ocamlbuild") doc.doc_build_tools then
+      (* TODO: create a specific error context for this *)
+      error ~exit:false
+        (f_ "ocamlbuild in field BuildTools of document %s is mandatory.")
+        cs.cs_name;
+    if modules = [] then
+      error ~exit:false
+        (f_ "No module defined for document %s.")
+        cs.cs_name;
+
+    {
+      moduls = 
+        [OCamlbuildData.ocamlbuildsys_ml];
+
+      setup = 
+        ODNFunc.func_with_arg 
+          doc_build "OCamlbuildDocPlugin.doc_build"
+          path ODN.of_string;
+
+      clean = 
+        Some 
+          (ODNFunc.func_with_arg
+             doc_clean "OCamlbuildDocPlugin.doc_clean"
+             path ODN.of_string);
+
+      distclean = 
+        None;
+
+      other_action = 
+        create_ocamlbuild_odocl_files;
+    }
 
 let init () = 
-  let doit pkg (cs, doc) = 
-    let t = 
-      of_data cs.cs_data
-    in
-      {
-        moduls = 
-          [OCamlbuildData.ocamlbuildsys_ml];
-
-        setup = 
-          ODNFunc.func_with_arg 
-            doc_build "OCamlbuildDocPlugin.doc_build"
-            t odn_of_t;
-
-        clean = 
-          Some 
-            (ODNFunc.func_with_arg
-               doc_clean "OCamlbuildDocPlugin.doc_clean"
-               t odn_of_t);
-
-        distclean = 
-          None;
-
-        other_action = 
-          create_ocamlbuild_odocl_files cs t;
-      },
-      pkg,
-      cs, 
-      {doc with 
-           doc_build_tools = (ExternalTool "ocamldoc" 
-                              :: 
-                              ExternalTool "ocamlbuild"
-                              :: 
-                              doc.doc_build_tools)}
-  in
-    register doit
+  register doit

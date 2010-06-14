@@ -443,82 +443,76 @@ module PLG = OASISPlugin
 
 let odn_of_oasis pkg = 
 
-  let build_gen, pkg = 
+  let build_gen = 
     (PLG.Build.find pkg.build_type) pkg
   in
 
-  let test_odn, test_gens, pkg = 
-    let test_odns, test_gens, pkg = 
+  let test_odn, test_gens = 
+    let test_odns, test_gens = 
       List.fold_left
-        (fun (test_odns, test_gens, pkg) -> 
+        (fun (test_odns, test_gens) -> 
            function
              | Test (cs, tst) ->
                  begin
-                   let gen, pkg, cs, tst = 
+                   let gen = 
                      (PLG.Test.find tst.test_type) pkg (cs, tst)
                    in
                      (ODN.TPL [ODN.STR cs.cs_name; 
                                ODNFunc.odn_of_func gen.PLG.setup] 
                       :: 
                       test_odns),
-                     (cs.cs_name, gen) :: test_gens,
-                     {pkg with sections = (Test (cs, tst)) :: pkg.sections}
+                     (cs.cs_name, gen) :: test_gens
                  end
              | sct ->
                  test_odns,
-                 test_gens,
-                 {pkg with sections = sct :: pkg.sections})
-        ([], [], {pkg with sections = []})
+                 test_gens)
+        ([], [])
         pkg.sections
     in
       ODN.LST (List.rev test_odns),
-      List.rev test_gens,
-      {pkg with sections = List.rev pkg.sections}
+      List.rev test_gens
   in
 
-  let doc_odn, doc_gens, pkg = 
-    let doc_odns, doc_gens, pkg =
+  let doc_odn, doc_gens = 
+    let doc_odns, doc_gens =
       List.fold_left
-        (fun (doc_odns, doc_gens, pkg) -> 
+        (fun (doc_odns, doc_gens) -> 
            function
              | Doc (cs, doc) ->
                  begin
-                   let gen, pkg, cs, doc = 
+                   let gen = 
                      (PLG.Doc.find doc.doc_type) pkg (cs, doc)
                    in
                      (ODN.TPL [ODN.STR cs.cs_name; 
                                ODNFunc.odn_of_func gen.PLG.setup] 
                       :: 
                       doc_odns),
-                     (cs.cs_name, gen) :: doc_gens,
-                     {pkg with sections = (Doc (cs, doc)) :: pkg.sections}
+                     (cs.cs_name, gen) :: doc_gens
                  end
              | sct ->
                  doc_odns,
-                 doc_gens,
-                 {pkg with sections = sct :: pkg.sections})
-        ([], [], {pkg with sections = []})
+                 doc_gens)
+        ([], [])
         pkg.sections
     in
       ODN.LST (List.rev doc_odns),
-      List.rev doc_gens,
-      {pkg with sections = List.rev pkg.sections}
+      List.rev doc_gens
   in
 
-  let install_gen, uninstall_gen, pkg =
+  let install_gen, uninstall_gen =
     let inst, uninst = 
       PLG.Install.find pkg.install_type
     in
-    let install_gen, pkg = 
+    let install_gen = 
       inst pkg
     in
-    let uninstall_gen, pkg =
+    let uninstall_gen =
       uninst pkg
     in
-      install_gen, uninstall_gen, pkg
+      install_gen, uninstall_gen
   in
 
-  let configure_gen, pkg =
+  let configure_gen =
     (PLG.Configure.find pkg.conf_type) pkg
   in
 
@@ -660,4 +654,4 @@ let odn_of_oasis pkg =
           ])
   in
 
-    pkg, setup_t_odn, other_actions, moduls
+    setup_t_odn, other_actions, moduls

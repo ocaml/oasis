@@ -246,7 +246,6 @@ let init () =
       clean        = None;
       distclean    = None;
       other_action = (fun _ -> ());
-    },
-    pkg
+    }
   in
     PU.register doit

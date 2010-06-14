@@ -753,15 +753,24 @@ let create_ocamlbuild_files pkg () =
 
 let init () =
   let doit pkg =
+    List.iter
+      (function
+         | Library (cs, bs, _) 
+         | Executable (cs, bs, _ ) as sct ->
+             if not (List.mem (ExternalTool "ocamlbuild") bs.bs_build_tools) then
+               error ~exit:false
+                 (f_ "ocamlbuild in field BuildTools of %s is mandatory")
+                 (OASISSection.string_of_section sct)
+         | _ -> 
+             ())
+      pkg.sections;
+
       {
         moduls       = [OCamlbuildData.ocamlbuildsys_ml];
         setup        = ODNFunc.func build "OCamlbuildPlugin.build";
         clean        = Some (ODNFunc.func clean "OCamlbuildPlugin.clean");
         distclean    = None;
         other_action = create_ocamlbuild_files pkg;
-      },
-      OASISPackage.add_build_tool ~no_test:true 
-        (ExternalTool "ocamlbuild") 
-        (OCamlbuildDocPlugin.auto_doc_section pkg)
+      }
   in
     PU.register doit

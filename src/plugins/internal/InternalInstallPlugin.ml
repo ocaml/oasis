@@ -413,8 +413,7 @@ let init () =
         clean        = None;
         distclean    = None;
         other_action = ignore;
-      },
-      pkg
+      }
   in
 
   (* Uninstall *)
@@ -425,8 +424,7 @@ let init () =
       clean        = None;
       distclean    = None;
       other_action = ignore;
-    },
-    pkg
+    }
   in
 
     PU.register (doit_install, doit_uninstall)

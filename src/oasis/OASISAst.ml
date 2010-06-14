@@ -250,20 +250,7 @@ let to_package conf st =
   let pkg = 
     (* Map of findlib name to internal libraries *)
     let internal_of_findlib =
-      let mp = 
-        OASISLibrary.findlib_name_map pkg
-      in
-        MapString.fold
-          (fun nm _ acc -> 
-             let fndlb_nm_full =
-               OASISLibrary.findlib_of_name 
-                 ~recurse:true 
-                 mp 
-                 nm
-             in
-               MapString.add fndlb_nm_full nm acc)
-          mp
-          MapString.empty
+      OASISLibrary.name_findlib_map pkg
     in
 
     let map_internal_libraries sct =

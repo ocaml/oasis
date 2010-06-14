@@ -55,19 +55,12 @@ let std_no_generate str pkg =
     clean        = None;
     distclean    = None;
     other_action = ignore;
-  },
-  pkg
+  }
 
 let section_no_generate str pkg (cs, section) =
-  let gen, pkg =
-    std_no_generate 
-      (str^" of section "^cs.cs_name)
-      pkg
-  in
-    gen,
-    pkg,
-    cs,
-    section
+  std_no_generate 
+    (str^" of section "^cs.cs_name)
+    pkg
 
 let init () = 
   let module PU = Configure.Make(Id) in 

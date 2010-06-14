@@ -60,8 +60,7 @@ type ('a, 'b) section_act_t =
        (package -> (common_section * 'a) -> string array -> 'b),
        (* Clean & Distclean *)
        (package -> (common_section * 'a) -> string array -> unit) 
-      ) generator_t * 
-      package * common_section * 'a
+      ) generator_t
 
 (** Action step with a package argument only
   *)
@@ -71,8 +70,7 @@ type package_act_t =
        (package -> string array -> unit),
        (* Clean & Distclean *)
        (package -> string array -> unit)
-      ) generator_t * 
-      package
+      ) generator_t 
 
 (* Functions for building plugins *)
 module type PLUGIN_UTILS_TYPE =
@@ -244,7 +242,7 @@ module Configure =
        type t = package_act_t
        let family_string = "configure"
        let not_found_fmt =  
-         (fun () -> f_ "Unkown configure plugin '%s' (available: %s)")
+         (fun () -> f_ "Unknown configure plugin '%s' (available: %s)")
      end)
 
 (** Build plugins 
@@ -266,7 +264,7 @@ module Doc =
        type t = (doc, unit) section_act_t
        let family_string = "doc"
        let not_found_fmt =
-         (fun () -> f_ "Unkown doc plugin '%s' (available: %s)")
+         (fun () -> f_ "Unknown doc plugin '%s' (available: %s)")
      end)
 
 (** Test plugins
@@ -277,7 +275,7 @@ module Test =
        type t = (test, float) section_act_t
        let family_string = "test"
        let not_found_fmt =
-         (fun () -> f_ "Unkown test plugin '%s' (available: %s)")
+         (fun () -> f_ "Unknown test plugin '%s' (available: %s)")
      end)
 
 (** Install/uninstall plugins
@@ -288,7 +286,7 @@ module Install =
        type t = package_act_t * package_act_t
        let family_string = "install"
        let not_found_fmt =
-         (fun () -> f_ "Unkown install plugin '%s' (available: %s)")
+         (fun () -> f_ "Unknown install plugin '%s' (available: %s)")
      end)
 
 (** Extra plugins
@@ -299,7 +297,7 @@ module Extra =
        type t = package -> unit
        let family_string = "extra"
        let not_found_fmt =
-         (fun () -> f_ "Unkown extra plugin '%s' (available: %s)")
+         (fun () -> f_ "Unknown extra plugin '%s' (available: %s)")
      end)
 
 (** Functions for plugin writer

@@ -172,4 +172,6 @@ let () =
                      List.mem nm lst)
             end
     with e ->
+      if Printexc.backtrace_status () then
+        Printexc.print_backtrace stderr;
       error "%s" (string_of_exception e)
