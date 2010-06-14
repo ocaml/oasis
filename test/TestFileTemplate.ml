@@ -31,57 +31,54 @@ let tests ctxt =
 
   let test_of_vector (fn, content_lst, comment_fmt) = 
     fn >::
-    (fun () ->
-       let real_fn = 
-         in_data fn
-       in
-       let target_fn =
-         Filename.temp_file "filetemplate" ".txt"
-       in
-       let expected_fn =
-         real_fn ^ "-exp"
-       in
-
-       let file_content fn =
-         let chn =
-           open_in_bin fn
+    bracket
+      (fun () ->
+         !OASISMessage.verbose,
+         Filename.temp_file "filetemplate" ".txt")
+      (fun (verbosity, target_fn) ->
+         let real_fn = 
+           in_data fn
          in
-         let size =
-           in_channel_length chn
+         let expected_fn =
+           real_fn ^ "-exp"
          in
-         let buff =
-           Buffer.create size
+
+         let file_content fn =
+           let chn =
+             open_in_bin fn
+           in
+           let size =
+             in_channel_length chn
+           in
+           let buff =
+             Buffer.create size
+           in
+             Buffer.add_channel buff chn size;
+             close_in chn;
+             Buffer.contents buff
          in
-           Buffer.add_channel buff chn size;
-           close_in chn;
-           Buffer.contents buff
-       in
 
-       let verbosity =
-         !OASISMessage.verbose
-       in
+           OASISMessage.verbose := false;
+           file_generate 
+             (let t = 
+                of_string_list
+                  ~template:true
+                  real_fn 
+                  comment_fmt
+                  content_lst
+              in
+                {t with tgt_fn = Some target_fn});
 
-         at_exit 
-           (fun () ->
-              FileUtil.rm [target_fn]);
+           assert_equal 
+             ~msg:"File content"
+             ~printer:(Printf.sprintf "%S")
+             (file_content expected_fn)
+             (file_content target_fn))
 
-         OASISMessage.verbose := false;
-         file_generate 
-           (let t = 
-              of_string_list
-                ~template:true
-                real_fn 
-                comment_fmt
-                content_lst
-            in
-              {t with tgt_fn = Some target_fn});
+      (fun (verbosity, target_fn) ->
          OASISMessage.verbose := verbosity;
+         FileUtil.rm [target_fn])
 
-         assert_equal 
-           ~msg:"File content"
-           ~printer:(Printf.sprintf "%S")
-           (file_content expected_fn)
-           (file_content target_fn))
   in
 
   "FileTemplate" >:::
