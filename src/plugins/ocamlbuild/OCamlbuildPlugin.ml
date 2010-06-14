@@ -254,7 +254,7 @@ let clean pkg extra_args  =
 
 (* END EXPORT *)
 
-open BaseFileGenerate
+open OASISFileTemplate
 open OASISUtils
 open OASISMessage
 open OASISGettext
@@ -479,14 +479,14 @@ let create_ocamlbuild_files pkg () =
               "clib"
           in
             file_generate 
-              fn_clib
-              comment_ocamlbuild
-              (Split 
-                 ([], 
-                  List.map 
+              (file_make
+                 fn_clib
+                 comment_ocamlbuild
+                 []
+                 (List.map 
                     (fun fn -> FilePath.replace_extension fn "o")
-                    bs.bs_c_sources,
-                  []));
+                    bs.bs_c_sources)
+                 []);
 
             add_tags tag_t [link_tgt] ["use_lib"^cs.cs_name],
             {myocamlbuild_t with 
@@ -630,9 +630,12 @@ let create_ocamlbuild_files pkg () =
                    in
                    let fn_generate ext =
                      file_generate
-                       (FilePath.add_extension fn_base ext)
-                       comment_ocamlbuild
-                       (Split ([], lib.lib_modules @ lib.lib_internal_modules, []));
+                       (file_make
+                          (FilePath.add_extension fn_base ext)
+                          comment_ocamlbuild
+                          []
+                          (lib.lib_modules @ lib.lib_internal_modules)
+                          []);
                    in
                      if lib.lib_modules = [] then
                        warning 
@@ -723,12 +726,19 @@ let create_ocamlbuild_files pkg () =
   in
 
   (* Generate _tags *)
-  file_generate "_tags" comment_ocamlbuild (Split ([], tag_t, []));
+  file_generate 
+    (file_make 
+       "_tags" 
+       comment_ocamlbuild 
+       []
+       tag_t
+       []);
 
   (* Generate myocamlbuild.ml *)
-  mlfile_generate 
-    "myocamlbuild.ml"
-    (let content = 
+  file_generate 
+    (of_mlfile 
+      "myocamlbuild.ml"
+       []
        [
          BaseData.basesysenvironment_ml;
          OCamlbuildData.myocamlbuild_ml;
@@ -745,10 +755,7 @@ let create_ocamlbuild_files pkg () =
                 MyOCamlbuildBase.dispatch_default package_default;;"; 
          "";
        ]
-     in
-       Split ([], 
-              content, 
-              ["Ocamlbuild_plugin.dispatch dispatch_default;;"]))
+       ["Ocamlbuild_plugin.dispatch dispatch_default;;"])
 
 
 let init () =

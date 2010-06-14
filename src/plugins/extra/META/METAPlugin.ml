@@ -27,7 +27,7 @@ open OASISGettext
 open OASISTypes
 open OASISValues
 open OASISLibrary
-open BaseFileGenerate
+open OASISFileTemplate
 open Format
 
 module PU = OASISPlugin.Extra.Make
@@ -216,9 +216,10 @@ let main pkg =
                    (Format.formatter_of_buffer buff) 
                    grp;
                  file_generate 
-                   meta_fn 
-                   comment_meta 
-                   (NeedSplit 
+                   (of_string_list
+                      ~template:true
+                      meta_fn 
+                      comment_meta 
                       (ExtString.String.nsplit
                          (Buffer.contents buff)
                          "\n"))

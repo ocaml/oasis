@@ -76,7 +76,8 @@ Library oasis
            OASISUtils,
            OASISValues,
            OASISVersion,
-           OASISLicense
+           OASISLicense,
+					 OASISFileTemplate
   InternalModules: OASISVersion_lexer,
                    OASISVersion_parser,
                    OASISSection,
@@ -107,7 +108,6 @@ Library base
            BaseEnv,
            BaseExec,
            BaseFileAB,
-           BaseFileGenerate,
            BaseFilePath,
            BaseFileUtil,
            BaseGenerate,

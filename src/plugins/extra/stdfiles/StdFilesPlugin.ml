@@ -23,7 +23,7 @@
     @author Sylvain Le Gall
   *)
 
-open BaseFileGenerate
+open OASISFileTemplate
 open OASISPlugin
 open OASISTypes
 open OASISUtils
@@ -401,16 +401,19 @@ let main pkg =
 
   let file_generate (enable, fn) ppf = 
     if enable data then
-      (
+      begin
         let content = 
           ppf str_formatter;
           flush_str_formatter ()
         in
           file_generate 
-            (fn data)
-            comment_ml
-            (Split ([], [content], []))
-      )
+            (file_make
+               (fn data)
+               comment_ml
+               []
+               [content]
+               [])
+      end
   in
 
   let install_enable, install_fn =

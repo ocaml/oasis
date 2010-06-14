@@ -63,7 +63,7 @@ let doc_clean t pkg (cs, doc) argv =
 
 (* END EXPORT *)
 
-open BaseFileGenerate
+open OASISFileTemplate
 open OASISPlugin
 open OASISValues
 open OASISUtils
@@ -193,11 +193,14 @@ let doit pkg (cs, doc) =
 
   let create_ocamlbuild_odocl_files () =
      file_generate
-       (FilePath.add_extension 
-          (FilePath.concat path cs.cs_name)
-          "odocl")
-       comment_ocamlbuild
-       (Split ([], modules, []))
+       (file_make 
+          (FilePath.add_extension 
+             (FilePath.concat path cs.cs_name)
+             "odocl")
+          comment_ocamlbuild
+          []
+          modules
+          [])
   in
 
     (* Checks consistency of options *)

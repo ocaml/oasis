@@ -23,7 +23,7 @@
     @author Sylvain Le Gall
   *)
 
-open BaseFileGenerate
+open OASISFileTemplate
 open OASISGettext
 open OASISTypes
 
@@ -128,21 +128,22 @@ let main pkg =
         Buffer.add_string buff (".PHONY: "^(String.concat " " targets)^"\n");
   
         file_generate
-          "Makefile"
-          comment_sh
-          (Split
-             ([],
-              ExtString.String.nsplit (Buffer.contents buff) "\n",
-              []))
+          (file_make 
+             "Makefile"
+             comment_sh
+             []
+             (ExtString.String.nsplit (Buffer.contents buff) "\n")
+             [])
     end;
 
   (* Generate configure (for standard dev. env.) *)
   if enable_configure pkg.schema_data then
     begin
       file_generate
-        "configure"
-        comment_sh
-        (NeedSplit
+        (of_string_list  
+           ~template:true
+           "configure"
+           comment_sh
            DevFilesData.configure);
       Unix.chmod "configure" 0o755
     end

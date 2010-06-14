@@ -20,7 +20,6 @@
 (********************************************************************************)
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 8e627fd58400ced2192e864a01b2f5bd) *)
 module OASISGettext = struct
 # 0 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
   
@@ -5162,7 +5161,8 @@ let setup () =
                         "OASISUtils";
                         "OASISValues";
                         "OASISVersion";
-                        "OASISLicense"
+                        "OASISLicense";
+                        "OASISFileTemplate";
                      ];
                    });
             ("base",
@@ -5182,7 +5182,6 @@ let setup () =
                         "BaseEnv";
                         "BaseExec";
                         "BaseFileAB";
-                        "BaseFileGenerate";
                         "BaseFilePath";
                         "BaseFileUtil";
                         "BaseGenerate";
@@ -5260,7 +5259,8 @@ let setup () =
                         "OASISUtils";
                         "OASISValues";
                         "OASISVersion";
-                        "OASISLicense"
+                        "OASISLicense";
+                        "OASISFileTemplate";
                      ];
                    });
             ("base",
@@ -5280,7 +5280,6 @@ let setup () =
                         "BaseEnv";
                         "BaseExec";
                         "BaseFileAB";
-                        "BaseFileGenerate";
                         "BaseFilePath";
                         "BaseFileUtil";
                         "BaseGenerate";
@@ -5511,7 +5510,8 @@ let setup () =
                              "OASISUtils";
                              "OASISValues";
                              "OASISVersion";
-                             "OASISLicense"
+                             "OASISLicense";
+                             "OASISFileTemplate";
                           ];
                         lib_internal_modules =
                           [
@@ -5570,7 +5570,6 @@ let setup () =
                              "BaseEnv";
                              "BaseExec";
                              "BaseFileAB";
-                             "BaseFileGenerate";
                              "BaseFilePath";
                              "BaseFileUtil";
                              "BaseGenerate";

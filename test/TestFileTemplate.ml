@@ -19,13 +19,13 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Tests for BaseFileGenerate
+(** Tests for OASISFileTemplate
     @author Sylvain Le Gall
   *)
 
 open OUnit;;
 open TestCommon;;
-open BaseFileGenerate;;
+open OASISFileTemplate;;
 
 let tests ctxt =
 
@@ -36,7 +36,7 @@ let tests ctxt =
          in_data fn
        in
        let target_fn =
-         Filename.temp_file "filegenerate" ".txt"
+         Filename.temp_file "filetemplate" ".txt"
        in
        let expected_fn =
          real_fn ^ "-exp"
@@ -67,12 +67,15 @@ let tests ctxt =
 
          OASISMessage.verbose := false;
          file_generate 
-           ~target:target_fn
-           real_fn
-           comment_fmt
-           (NeedSplit content_lst);
+           (let t = 
+              of_string_list
+                ~template:true
+                real_fn 
+                comment_fmt
+                content_lst
+            in
+              {t with tgt_fn = Some target_fn});
          OASISMessage.verbose := verbosity;
-
 
          assert_equal 
            ~msg:"File content"
@@ -81,11 +84,11 @@ let tests ctxt =
            (file_content target_fn))
   in
 
-  "FileGenerate" >:::
+  "FileTemplate" >:::
   (
     List.map test_of_vector
       [
-        "filegenerate1.txt", 
+        "filetemplate1.txt", 
         [
           "toto";
           "# OASIS_START ";
@@ -93,7 +96,7 @@ let tests ctxt =
         ], 
         comment_sh;
 
-        "filegenerate2.txt", 
+        "filetemplate2.txt", 
         [
           "toto";
           "# OASIS_START ";
@@ -101,7 +104,7 @@ let tests ctxt =
         ], 
         comment_sh;
 
-        "filegenerate3.txt", 
+        "filetemplate3.txt", 
         [
           "toto";
           "# OASIS_START ";
@@ -109,7 +112,7 @@ let tests ctxt =
         ], 
         comment_sh;
 
-        "filegenerate4.txt", 
+        "filetemplate4.txt", 
         [
           "toto";
           "# OASIS_START ";
@@ -117,7 +120,7 @@ let tests ctxt =
         ], 
         comment_sh;
 
-        "filegenerate5.txt", 
+        "filetemplate5.txt", 
         [
           "toto";
           "# OASIS_START ";

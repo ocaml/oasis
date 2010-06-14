@@ -20,7 +20,6 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 8d81f8e0992b36e167ebd29fb60d327d)
 FormatExt
 OASISGettext
 OASISMessage
@@ -54,5 +53,6 @@ OASISCheck
 OASISRecDescParser
 OASISCustom
 OASISQuickstart
+OASISFileTemplate
 OASISData
 # OASIS_STOP

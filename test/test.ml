@@ -119,7 +119,7 @@ let () =
          TestPropList.tests     ctxt;
          TestOASIS.tests        ctxt;
          TestVersion.tests      ctxt;
-         TestFileGenerate.tests ctxt;
+         TestFileTemplate.tests ctxt;
          TestBasic.tests        ctxt;
          TestFull.tests         ctxt;
          TestMETA.tests         ctxt;

@@ -26,7 +26,7 @@
 open Format
 open OASISTypes
 open OASISUtils
-open BaseFileGenerate
+open OASISFileTemplate
 open ODN
 open OASISPlugin
 
@@ -89,22 +89,12 @@ let generate pkg dev setup_fn use_real_oasis_filename =
   in
 
     (* Generate setup.ml *)
-    mlfile_generate
-      setup_fn
-      (Split
-         (
-           (* Header *)
-           [],
-           (* Body *)
-           (List.flatten 
-              [
-                moduls;
-                [setup_fun]
-              ]),
-           (* Footer *)
-           ["let () = setup ();;"]
-         )
-      );
+    file_generate
+      (of_mlfile 
+         setup_fn
+         []
+         (List.flatten [moduls; [setup_fun]])
+         ["let () = setup ();;"]);
 
     (* Generate other files *)
     List.iter
