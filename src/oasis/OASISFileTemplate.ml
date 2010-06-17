@@ -526,9 +526,6 @@ let file_generate t =
   let fn = 
     t.src_fn
   in
-  let fn_backup =
-    fn  ^ ".bak"
-  in
 
     if Sys.file_exists fn then
       begin
@@ -538,15 +535,28 @@ let file_generate t =
 
           if not (digest_check t_org) then
             begin
-              warning 
-                (f_ "File %s has changed, doing a backup in %s")
-                fn fn_backup;
-              if not (Sys.file_exists fn_backup) then
-                FileUtil.cp [fn] fn_backup
-              else
-                failwithf1
-                  (f_ "File %s already exists")
-                  fn_backup
+              let rec backup =
+                function
+                  | ext :: tl ->
+                      let fn_backup = 
+                        fn ^ ext
+                      in
+                        if not (Sys.file_exists fn_backup) then
+                          begin
+                            warning 
+                              (f_ "File %s has changed, doing a backup in %s")
+                              fn fn_backup;
+                            FileUtil.cp [fn] fn_backup
+                          end
+                        else
+                          backup tl
+                  | [] ->
+                      failwithf1
+                        (f_ "File %s has changed and need a backup, \
+                           but all filenames for the backup already exist")
+                        fn
+              in
+                backup ("bak" :: (Array.to_list (Array.init 10 (Printf.sprintf "ba%d"))))
             end;
 
             if t.tgt_fn <> None || body_has_changed t_org t then
