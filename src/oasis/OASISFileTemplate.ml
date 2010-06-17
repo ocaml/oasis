@@ -27,35 +27,16 @@ open OASISMessage
 open OASISGettext
 open OASISUtils
 
-(** {1 Types} *)
+(** {1 Comments} *)
 
 (** Describe comment *)
-type comment_t =
+type comment =
     {
       of_string: string -> string;
       regexp:    quote:bool -> string -> Str.regexp;
       start:     string;
       stop:      string;
     }
-
-type line = string
-
-type body = 
-  | NoBody
-  | Body of line list
-  | BodyWithDigest of Digest.t * line list
-
-type t =
-    {
-      src_fn:      OASISTypes.filename;
-      tgt_fn:      OASISTypes.filename option;
-      comment:     comment_t;
-      header:      line list;
-      body:        body; 
-      footer:      line list;
-    }
-
-(** {1 Comments} *)
 
 (**/**)
 let (start_msg, stop_msg) =
@@ -118,7 +99,27 @@ let comment_bat =
 let comment_meta = 
   comment_sh
 
-(** {1 Template generation } *)
+(** {1 Template generation} *)
+
+(** {1 Types} *)
+
+type line = string
+
+type body = 
+  | NoBody
+  | Body of line list
+  | BodyWithDigest of Digest.t * line list
+
+type template =
+    {
+      src_fn:      OASISTypes.filename;
+      tgt_fn:      OASISTypes.filename option;
+      comment:     comment;
+      header:      line list;
+      body:        body; 
+      footer:      line list;
+      perm:        int;
+    }
 
 (** Create a OASISFileTemplate.t
   *)
@@ -130,6 +131,7 @@ let file_make fn comment header body footer =
     header  = header;
     body    = Body body;
     footer  = footer;
+    perm    = 0o644;
   }
 
 
@@ -223,6 +225,16 @@ let of_string_list ~template fn comment lst =
           lst, NoBody, []
 
   in
+
+  let res = 
+    file_make 
+      fn 
+      comment 
+      header 
+      [] 
+      footer
+  in
+
     if body = NoBody then
       warning 
         (if template then
@@ -230,14 +242,7 @@ let of_string_list ~template fn comment lst =
          else
            (f_ "No replace section found in file %s"))
         fn;
-    {
-      src_fn      = fn;
-      tgt_fn      = None; 
-      comment     = comment;
-      header      = header;
-      body        = body;
-      footer      = footer;
-    }
+    {res with body = body}
 
 
 (** Use a filename to extract OASISFileTemplate.t 
@@ -449,7 +454,9 @@ let to_file t =
    * each part by appropriate comment and digest.
    *)
   let chn_out =
-    open_out_bin 
+    open_out_gen
+      [Open_wronly; Open_creat; Open_trunc; Open_binary]
+      t.perm 
       (match t.tgt_fn with 
          | Some fn -> fn
          | None    -> t.src_fn)
@@ -485,6 +492,7 @@ let to_file t =
     end;
     output_lst t.footer;
     close_out chn_out
+
 
 (** Generate a file using a template. Only the part between OASIS_START and 
     OASIS_END will really be replaced if the file exist. If file doesn't exist
@@ -558,3 +566,53 @@ let file_generate t =
         to_file t
       end
 
+
+(** {1 Multiple templates management }
+  *)
+
+(**/**)
+module S = 
+  Map.Make (
+struct
+  type t = OASISTypes.filename
+
+  let compare = 
+    FilePath.UnixPath.compare
+end)
+(**/**)
+
+exception AlreadyExists of OASISTypes.filename
+
+type templates = template S.t
+
+(** No generated template files
+  *)
+let empty =
+  S.empty
+
+(** Find a generated template file *)
+let find = 
+  S.find
+
+(** Add a generated template file
+    @raise AlreadyExists
+  *)
+let add e t = 
+  if S.mem e.src_fn t then
+    raise (AlreadyExists e.src_fn)
+  else
+    S.add e.src_fn e t
+
+(** Add or replace a generated template file
+  *)
+let replace e t =
+  S.add e.src_fn e t
+
+(** Fold over generated template files
+  *)
+let fold f t acc =
+  S.fold
+    (fun k e acc ->
+       f e acc)
+    t 
+    acc

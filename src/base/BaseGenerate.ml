@@ -38,66 +38,50 @@ let required_modules =
     BaseData.basesys_ml;
   ]
 
-(** Generate setup.ml and the rest of the build system 
+(** Generate setup file and the rest of the build system 
   *)
 let generate pkg dev setup_fn use_real_oasis_filename = 
-
-  let setup_t_odn, other_actions, moduls =
-    BaseSetup.odn_of_oasis pkg
+  let ctxt, _ = 
+    BaseSetup.of_package pkg
   in
 
-  let () = 
-    (* Run extra plugin *)
-    List.iter
-      (fun nm -> Extra.find nm pkg)
-      pkg.plugins
+  let ctxt =
+    (* Change setup_fn name if required *)
+    if setup_fn <> BaseSetup.default_fn then
+      begin
+        let setup_tmpl = 
+          BaseSetup.find ctxt
+        in
+          {ctxt with 
+               files = 
+                 OASISFileTemplate.replace
+                   {setup_tmpl with 
+                        tgt_fn = Some setup_fn}
+                   ctxt.files}
+      end
+    else
+      ctxt
   in
 
-  let moduls =
-    let moduls =
-      required_modules @ moduls
-    in
-    let (rmoduls, _) =
-      List.fold_left
-        (fun ((moduls, moduls_seen) as acc) modul ->
-           if SetString.mem modul moduls_seen then
-             acc
-           else
-             (modul :: moduls, SetString.add modul moduls_seen))
-        ([], SetString.empty)
-        moduls
-    in
-      List.rev rmoduls
+  let ctxt = 
+    (* Use BaseDev if asked to *)
+    if dev then 
+      fst (BaseDev.make use_real_oasis_filename ctxt pkg)
+    else
+      ctxt
   in
 
-  let setup_fun =
-    fprintf str_formatter
-      "@[<v>open OASISTypes;;@,@[<hv2>let setup () =@ %a@,@];;"
-      (pp_odn ~opened_modules:["OASISTypes"]) 
-      (if dev then
-         APP ("BaseDev.update_and_run", 
-              [], 
-              [BaseDev.odn_of_t 
-                 (BaseDev.create 
-                    use_real_oasis_filename 
-                    setup_fn)])
-       else
-         APP ("BaseSetup.setup", 
-              [], 
-              [setup_t_odn]));
-    flush_str_formatter ()
-  in
-
-    (* Generate setup.ml *)
-    file_generate
-      (of_mlfile 
-         setup_fn
-         []
-         (List.flatten [moduls; [setup_fun]])
-         ["let () = setup ();;"]);
+    if ctxt.error then
+      exit 1;
 
     (* Generate other files *)
+    OASISFileTemplate.fold
+      (fun tmpl () -> file_generate tmpl)
+      ctxt.files
+      ();
+
+    (* Do other actions *)
     List.iter
       (fun act -> act ())
-      other_actions
+      ctxt.other_actions
 

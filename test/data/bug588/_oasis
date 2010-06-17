@@ -4,6 +4,7 @@ Version:     0.0.1
 Synopsis:    test OASIS
 Authors:     ygrek
 License:     BSD3
+BuildTools:  ocamlbuild
 
 Library libtest
   Path:    .
@@ -15,7 +16,7 @@ Document libtest
   Title:                API reference for libtest
   Type:                 ocamlbuild (0.1.0)
   InstallDir:           $htmldir/libtest
-  BuildTools:           ocamlbuild, ocamldoc
+  BuildTools+:          ocamldoc
   Install:              false
   XOCamlbuildPath:      .
   XOCamlbuildLibraries: libtest

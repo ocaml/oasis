@@ -6,6 +6,7 @@ LicenseFile: LICENSE
 License:     LGPL with OCaml linking exception
 Synopsis:    Minimal project with C file.
 Plugins:     META (0.0.1)
+BuildTools:  ocamlbuild
 
 Library "with-c"
   Path: src
@@ -17,7 +18,7 @@ Document "with-c"
   Title:                API reference for with-c
   Type:                 ocamlbuild (0.1.0)
   InstallDir:           $htmldir/with-c
-  BuildTools:           ocamlbuild, ocamldoc
+  BuildTools+:          ocamldoc
   XOCamlbuildPath:      src
   XOCamlbuildLibraries: with-c
 

@@ -267,8 +267,7 @@ open Ocamlbuild_plugin
 
 module PU = OASISPlugin.Build.Make(OCamlbuildId)
 
-let create_ocamlbuild_files pkg () = 
-
+let add_tags tag_t tgts tags = 
   let quote_target fn =
     let test_char =
       String.contains fn 
@@ -282,7 +281,6 @@ let create_ocamlbuild_files pkg () =
         "\""^fn^"\""
   in
 
-  let add_tags tag_t tgts tags = 
     List.fold_left
       (fun tag_t tgt ->
          List.fold_left
@@ -292,261 +290,270 @@ let create_ocamlbuild_files pkg () =
            tags)
       tag_t
       tgts
+
+
+let prepend_bs_path bs fn =
+  FilePath.UnixPath.concat
+    (FilePath.UnixPath.reduce bs.bs_path)
+    fn
+
+
+let bs_paths bs files = 
+  SetString.elements
+   (set_string_of_list
+      (FilePath.UnixPath.reduce bs.bs_path
+       ::
+       List.rev_map
+         FilePath.UnixPath.dirname
+         (List.rev_map
+            (prepend_bs_path bs)
+            files)))
+
+
+let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocamlbuild_t = 
+
+  let link_pkg = 
+    (* Only link findlib package with executable *)
+    match sct with 
+      | Executable _ -> true
+      | Library _ | Flag _ | Test _ | SrcRepo _ | Doc _ -> false
   in
 
-  let prepend_bs_path bs fn =
-    FilePath.UnixPath.concat
-      (FilePath.UnixPath.reduce bs.bs_path)
-      fn
+  let src_tgts = 
+    List.rev_append
+      (* .ml files *)
+      (List.rev_map 
+         (fun dn -> FilePath.UnixPath.concat dn "*.ml{,i}")
+         (src_dirs @ src_internal_dirs))
+      (* .c files *)
+      (List.map (prepend_bs_path bs) bs.bs_c_sources)
   in
 
-
-  let bs_paths bs files = 
-    SetString.elements
-     (set_string_of_list
-        (FilePath.UnixPath.reduce bs.bs_path
-         ::
-         List.rev_map
-           FilePath.UnixPath.dirname
-           (List.rev_map
-              (prepend_bs_path bs)
-              files)))
+  let clib_tgts =
+    if bs.bs_c_sources <> [] then
+      (List.rev_map
+         (fun fmt -> (prepend_bs_path bs) (Printf.sprintf fmt cs.cs_name))
+         [
+           (* Unix *)
+           "dll%s.so";
+           "lib%s.a";
+           (* Win32 *)
+           "dll%s.dll";
+           "lib%s.lib";
+         ])
+    else
+      []
   in
 
-  let bs_tags sct cs bs src_dirs src_internal_dirs link_tgt tag_t myocamlbuild_t = 
+  (* Manipulate ocamlbuild's spec *)
+  let atom s = A s
+  in
+  let path s = P s
+  in
+  let mkspec pre_arg tr_arg lst =
+    S (List.fold_left
+         (fun acc arg -> 
+            match pre_arg with 
+              | Some s -> s :: arg :: acc
+              | None -> arg :: acc)
+         []
+         (List.rev_map tr_arg lst))
+  in
 
-    let link_pkg = 
-      (* Only link findlib package with executable *)
-      match sct with 
-        | Executable _ -> true
-        | Library _ | Flag _ | Test _ | SrcRepo _ | Doc _ -> false
-    in
-
-    let src_tgts = 
-      List.rev_append
-        (* .ml files *)
-        (List.rev_map 
-           (fun dn -> FilePath.UnixPath.concat dn "*.ml{,i}")
-           (src_dirs @ src_internal_dirs))
-        (* .c files *)
-        (List.map (prepend_bs_path bs) bs.bs_c_sources)
-    in
-
-    let clib_tgts =
-      if bs.bs_c_sources <> [] then
-        (List.rev_map
-           (fun fmt -> (prepend_bs_path bs) (Printf.sprintf fmt cs.cs_name))
-           [
-             (* Unix *)
-             "dll%s.so";
-             "lib%s.a";
-             (* Win32 *)
-             "dll%s.dll";
-             "lib%s.lib";
-           ])
-      else
-        []
-    in
-
-    (* Manipulate ocamlbuild's spec *)
-    let atom s = A s
-    in
-    let path s = P s
-    in
-    let mkspec pre_arg tr_arg lst =
-      S (List.fold_left
-           (fun acc arg -> 
-              match pre_arg with 
-                | Some s -> s :: arg :: acc
-                | None -> arg :: acc)
-           []
-           (List.rev_map tr_arg lst))
-    in
-
-    (* Create flag for extra command line option *)
-    let tag_t, myocamlbuild_t = 
-      List.fold_left
-        (fun (tag_t, myocamlbuild_t) 
-               (basename, tgts, tags, pre_arg, tr_arg, args_cond) ->
-           let args = 
-             var_choose args_cond
-           in
-             if args <> [] then
-               begin
-                 let tag_name = 
-                   (* e.g. oasis_library_foo_ccopt *)
-                   varname_concat 
-                     "oasis_"
-                     (varname_concat
-                        (varname_of_string 
-                           (OASISSection.string_of_section sct))
-                        basename)
-                 in
-                 let all_tags =
-                   tag_name :: tags 
-                 in
-                 let spec = 
-                   mkspec pre_arg tr_arg args
-                 in
-                 let tag_t =
-                   add_tags tag_t tgts [tag_name]
-                 in
-                   tag_t,
-                   {myocamlbuild_t with
-                        flags = (all_tags, spec) :: myocamlbuild_t.flags}
-               end
-             else
-               begin
-                 tag_t, myocamlbuild_t
-               end)
-
-        (tag_t, myocamlbuild_t)
-
-        ([
-          "ccopt", 
-          src_tgts, ["compile"],
-          Some (A"-ccopt"),
-          atom, 
-          bs.bs_ccopt;
-
-
-          "cclib",
-          [link_tgt],
-          ["link"],
-          Some (A"-cclib"),
-          atom,
-          bs.bs_cclib;
-
-          "cclib",
-          clib_tgts,
-          ["ocamlmklib"; "c"],
-          None,
-          atom, bs.bs_cclib;
-
-          "dlllib",
-          [link_tgt],
-          ["link"; "byte"],
-          Some (A"-dllib"),
-          path,
-          bs.bs_dlllib;
-
-          "dllpath",
-          [link_tgt],
-          ["link"; "byte"],
-          Some (A"-dllpath"),
-          path,
-          bs.bs_dllpath;
-
-          "dllpath",
-          clib_tgts,
-          ["ocamlmklib"; "c"],
-          Some(A"-dllpath"),
-          path,
-          bs.bs_dllpath;
-        ]
-        @
-        (List.fold_left
-           (fun acc flg ->
-              ("byte",
-               link_tgt :: src_tgts,
-               ["ocaml"; flg; "byte"],
-               None,
-               atom,
-               bs.bs_byteopt)
-              ::
-              ("native",
-               link_tgt :: src_tgts,
-               ["ocaml"; flg; "native"],
-               None,
-               atom,
-               bs.bs_nativeopt)
-              ::
-              acc)
-           []
-           ["compile"; 
-            "ocamldep"; 
-            "link"]))
-    in
-
-    (* Add tag for dependency on C part of the library *)
-    let tag_t, myocamlbuild_t =
-      if bs.bs_c_sources <> [] then
-        begin
-          (* Generate .clib files *)
-          let fn_clib = 
-            FilePath.add_extension 
-              (prepend_bs_path bs ("lib"^cs.cs_name))
-              "clib"
-          in
-            file_generate 
-              (file_make
-                 fn_clib
-                 comment_ocamlbuild
-                 []
-                 (List.map 
-                    (fun fn -> FilePath.replace_extension fn "o")
-                    bs.bs_c_sources)
-                 []);
-
-            add_tags tag_t [link_tgt] ["use_lib"^cs.cs_name],
-            {myocamlbuild_t with 
-                 lib_c = 
-                   ((cs.cs_name, bs.bs_path) 
-                   :: 
-                    myocamlbuild_t.lib_c)}
-        end
-      else
-        begin
-          tag_t, myocamlbuild_t
-        end
-    in
-
-    (* Add build depends tags *)
-    let tag_t, myocamlbuild_t =
-      let mp =
-        OASISBuildSection.transitive_build_depends pkg
-      in
-        add_tags 
-          tag_t
-          (if link_pkg then
-             link_tgt :: src_tgts
+  (* Create flag for extra command line option *)
+  let ctxt, tag_t, myocamlbuild_t = 
+    List.fold_left
+      (fun ((ctxt, tag_t, myocamlbuild_t) as acc)
+             (basename, tgts, tags, pre_arg, tr_arg, args_cond) ->
+         let args = 
+           var_choose args_cond
+         in
+           if args <> [] then
+             begin
+               let tag_name = 
+                 (* e.g. oasis_library_foo_ccopt *)
+                 varname_concat 
+                   "oasis_"
+                   (varname_concat
+                      (varname_of_string 
+                         (OASISSection.string_of_section sct))
+                      basename)
+               in
+               let all_tags =
+                 tag_name :: tags 
+               in
+               let spec = 
+                 mkspec pre_arg tr_arg args
+               in
+               let tag_t =
+                 add_tags tag_t tgts [tag_name]
+               in
+                 ctxt,
+                 tag_t,
+                 {myocamlbuild_t with
+                      flags = (all_tags, spec) :: myocamlbuild_t.flags}
+             end
            else
-             src_tgts)
-          (List.fold_left 
-             (fun acc ->
-                function
-                  | FindlibPackage (findlib_pkg, _) ->
-                      ("pkg_"^findlib_pkg) :: acc
-                  | InternalLibrary nm ->
-                      ("use_"^nm) :: acc)
-             []
-             (OASISSection.MapSection.find sct mp)),
-        myocamlbuild_t
-    in
+             acc)
 
-    (* Fix for PR#5015, unable to compile depends in subdir *)
-    let tag_t, myocamlbuild_t =
-      let dirs = 
-        src_dirs @ src_internal_dirs 
-      in
-        (if List.length dirs > 1 then
-           add_tags 
-             tag_t
-             (List.filter 
-                (fun fn -> not (FilePath.UnixPath.is_current fn))
-                dirs)
-             ["include"]
-         else
-           tag_t),
-        myocamlbuild_t
-    in
+      (ctxt, tag_t, myocamlbuild_t)
 
-      tag_t, myocamlbuild_t
+      ([
+        "ccopt", 
+        src_tgts, ["compile"],
+        Some (A"-ccopt"),
+        atom, 
+        bs.bs_ccopt;
+
+
+        "cclib",
+        [link_tgt],
+        ["link"],
+        Some (A"-cclib"),
+        atom,
+        bs.bs_cclib;
+
+        "cclib",
+        clib_tgts,
+        ["ocamlmklib"; "c"],
+        None,
+        atom, bs.bs_cclib;
+
+        "dlllib",
+        [link_tgt],
+        ["link"; "byte"],
+        Some (A"-dllib"),
+        path,
+        bs.bs_dlllib;
+
+        "dllpath",
+        [link_tgt],
+        ["link"; "byte"],
+        Some (A"-dllpath"),
+        path,
+        bs.bs_dllpath;
+
+        "dllpath",
+        clib_tgts,
+        ["ocamlmklib"; "c"],
+        Some(A"-dllpath"),
+        path,
+        bs.bs_dllpath;
+      ]
+      @
+      (List.fold_left
+         (fun acc flg ->
+            ("byte",
+             link_tgt :: src_tgts,
+             ["ocaml"; flg; "byte"],
+             None,
+             atom,
+             bs.bs_byteopt)
+            ::
+            ("native",
+             link_tgt :: src_tgts,
+             ["ocaml"; flg; "native"],
+             None,
+             atom,
+             bs.bs_nativeopt)
+            ::
+            acc)
+         []
+         ["compile"; 
+          "ocamldep"; 
+          "link"]))
   in
 
-  let tag_t, myocamlbuild_t = 
+  (* Add tag for dependency on C part of the library *)
+  let ctxt, tag_t, myocamlbuild_t =
+    if bs.bs_c_sources <> [] then
+      begin
+        (* Generate .clib files *)
+        let fn_clib = 
+          FilePath.add_extension 
+            (prepend_bs_path bs ("lib"^cs.cs_name))
+            "clib"
+        in
+          add_file 
+            (file_make
+               fn_clib
+               comment_ocamlbuild
+               []
+               (List.map 
+                  (fun fn -> FilePath.replace_extension fn "o")
+                  bs.bs_c_sources)
+               [])
+            ctxt,
+
+          add_tags 
+            tag_t 
+            [link_tgt] 
+            ["use_lib"^cs.cs_name],
+
+          {myocamlbuild_t with 
+               lib_c = 
+                 ((cs.cs_name, bs.bs_path) 
+                 :: 
+                  myocamlbuild_t.lib_c)}
+      end
+    else
+      ctxt, tag_t, myocamlbuild_t
+  in
+
+  (* Add build depends tags *)
+  let tag_t =
+    let mp =
+      OASISBuildSection.transitive_build_depends pkg
+    in
+      add_tags 
+        tag_t
+        (if link_pkg then
+           link_tgt :: src_tgts
+         else
+           src_tgts)
+        (List.fold_left 
+           (fun acc ->
+              function
+                | FindlibPackage (findlib_pkg, _) ->
+                    ("pkg_"^findlib_pkg) :: acc
+                | InternalLibrary nm ->
+                    ("use_"^nm) :: acc)
+           []
+           (OASISSection.MapSection.find sct mp))
+  in
+
+  (* Fix for PR#5015, unable to compile depends in subdir *)
+  let tag_t =
+    let dirs = 
+      src_dirs @ src_internal_dirs 
+    in
+      (if List.length dirs > 1 then
+         add_tags 
+           tag_t
+           (List.filter 
+              (fun fn -> not (FilePath.UnixPath.is_current fn))
+              dirs)
+           ["include"]
+       else
+         tag_t)
+  in
+
+  let ctxt = 
+    set_error
+      (not (List.mem (ExternalTool "ocamlbuild") bs.bs_build_tools))
+      (Printf.sprintf 
+         (f_ "ocamlbuild in field BuildTools of %s is mandatory")
+         (OASISSection.string_of_section sct))
+      ctxt
+  in
+
+    ctxt, tag_t, myocamlbuild_t
+
+let add_ocamlbuild_files ctxt pkg = 
+
+  let ctxt, tag_t, myocamlbuild_t = 
     List.fold_left 
-      (fun (tag_t, myocamlbuild_t) ->
+      (fun (ctxt, tag_t, myocamlbuild_t) ->
          function 
            | Library (cs, bs, lib) as sct ->
                begin
@@ -596,22 +603,22 @@ let create_ocamlbuild_files pkg () =
                  in
 
                  (* Add include tag if the library is internal *)
-                 let tag_t, myocamlbuild_t =
+                 let tag_t =
                    add_tags 
                      tag_t
                      (List.filter
                         (fun fn -> not (FilePath.UnixPath.is_current fn))
                         (src_dirs @ src_internal_dirs))
-                     ["include"],
-                   myocamlbuild_t
+                     ["include"]
                  in
 
-                 let tag_t, myocamlbuild_t =
+                 let ctxt, tag_t, myocamlbuild_t =
                    bs_tags 
-                     sct cs bs 
+                     pkg sct cs bs 
                      src_dirs
                      src_internal_dirs
                      target_lib
+                     ctxt
                      tag_t
                      myocamlbuild_t
                  in
@@ -623,28 +630,29 @@ let create_ocamlbuild_files pkg () =
                            src_dirs) :: myocamlbuild_t.lib_ocaml}
                  in
 
-                 (* Generate .mllib files *)
                  let () =
+                   if lib.lib_modules = [] then
+                     warning 
+                       (f_ "No exported module defined for library %s")
+                       cs.cs_name;
+                 in
+
+                 let ctxt =
+                   (* Generate .mllib files *)
                    let fn_base = 
                      prepend_bs_path bs cs.cs_name
                    in
-                   let fn_generate ext =
-                     file_generate
+                     add_file
                        (file_make
-                          (FilePath.add_extension fn_base ext)
+                          (FilePath.add_extension fn_base "mllib")
                           comment_ocamlbuild
                           []
                           (lib.lib_modules @ lib.lib_internal_modules)
-                          []);
-                   in
-                     if lib.lib_modules = [] then
-                       warning 
-                         (f_ "No exported module defined for library %s")
-                         cs.cs_name;
-                     fn_generate "mllib"
+                          [])
+                       ctxt
                  in
 
-                   tag_t, myocamlbuild_t
+                   ctxt, tag_t, myocamlbuild_t
                end
 
            | Executable (cs, bs, exec) as sct ->
@@ -673,12 +681,13 @@ let create_ocamlbuild_files pkg () =
                    (Printf.sprintf "# Executable %s" cs.cs_name) :: tag_t
                  in
 
-                 let tag_t, myocamlbuild_t =
+                 let ctxt, tag_t, myocamlbuild_t =
                    bs_tags 
-                     sct cs bs 
+                     pkg sct cs bs 
                      src_dirs
                      []
                      target_exec
+                     ctxt
                      tag_t
                      myocamlbuild_t
                  in
@@ -690,12 +699,12 @@ let create_ocamlbuild_files pkg () =
                      tag_t
                  in
 
-                   tag_t, myocamlbuild_t
+                   ctxt, tag_t, myocamlbuild_t
                end
 
            | Flag _ | SrcRepo _ | Test _ | Doc _ ->
-               tag_t, myocamlbuild_t)
-      ([], {lib_ocaml = []; lib_c = []; flags = []})
+               ctxt, tag_t, myocamlbuild_t)
+      (ctxt, [], {lib_ocaml = []; lib_c = []; flags = []})
       pkg.sections
   in
 
@@ -725,59 +734,58 @@ let create_ocamlbuild_files pkg () =
     }
   in
 
-  (* Generate _tags *)
-  file_generate 
-    (file_make 
-       "_tags" 
-       comment_ocamlbuild 
-       []
-       tag_t
-       []);
+  let ctxt = 
+    List.fold_left
+      (fun ctxt tmpl -> add_file tmpl ctxt)
+      ctxt
+      [
+        (* Generate _tags *)
+        file_make 
+          "_tags" 
+          comment_ocamlbuild 
+          []
+          tag_t
+          [];
 
-  (* Generate myocamlbuild.ml *)
-  file_generate 
-    (of_mlfile 
-      "myocamlbuild.ml"
-       []
-       [
-         BaseData.basesysenvironment_ml;
-         OCamlbuildData.myocamlbuild_ml;
-         "open Ocamlbuild_plugin;;";
-         (
-           Format.fprintf Format.str_formatter
-             "@[<hv2>let package_default =@ %a@,@];;"
-             (pp_odn ~opened_modules:["Ocamlbuild_plugin"]) 
-             (MyOCamlbuildBase.odn_of_t myocamlbuild_t);
-           Format.flush_str_formatter ()
-         );
-         "";
-         "let dispatch_default = \
-                MyOCamlbuildBase.dispatch_default package_default;;"; 
-         "";
-       ]
-       ["Ocamlbuild_plugin.dispatch dispatch_default;;"])
+        (* Generate myocamlbuild.ml *)
+        of_mlfile 
+         "myocamlbuild.ml"
+          []
+          [
+            BaseData.basesysenvironment_ml;
+            OCamlbuildData.myocamlbuild_ml;
+            "open Ocamlbuild_plugin;;";
+            (
+              Format.fprintf Format.str_formatter
+                "@[<hv2>let package_default =@ %a@,@];;"
+                (pp_odn ~opened_modules:["Ocamlbuild_plugin"]) 
+                (MyOCamlbuildBase.odn_of_t myocamlbuild_t);
+              Format.flush_str_formatter ()
+            );
+            "";
+            "let dispatch_default = \
+                   MyOCamlbuildBase.dispatch_default package_default;;"; 
+            "";
+          ]
+          ["Ocamlbuild_plugin.dispatch dispatch_default;;"];
+      ]
+  in
+
+    ctxt
 
 
 let init () =
-  let doit pkg =
-    List.iter
-      (function
-         | Library (cs, bs, _) 
-         | Executable (cs, bs, _ ) as sct ->
-             if not (List.mem (ExternalTool "ocamlbuild") bs.bs_build_tools) then
-               error ~exit:false
-                 (f_ "ocamlbuild in field BuildTools of %s is mandatory")
-                 (OASISSection.string_of_section sct)
-         | _ -> 
-             ())
-      pkg.sections;
+  let doit ctxt pkg =
+    let ctxt = 
+      add_ocamlbuild_files ctxt pkg
+    in
 
+      ctxt,
       {
-        moduls       = [OCamlbuildData.ocamlbuildsys_ml];
-        setup        = ODNFunc.func build "OCamlbuildPlugin.build";
-        clean        = Some (ODNFunc.func clean "OCamlbuildPlugin.clean");
-        distclean    = None;
-        other_action = create_ocamlbuild_files pkg;
+        chng_moduls       = [OCamlbuildData.ocamlbuildsys_ml];
+        chng_main         = ODNFunc.func build "OCamlbuildPlugin.build";
+        chng_clean        = Some (ODNFunc.func clean "OCamlbuildPlugin.clean");
+        chng_distclean    = None;
       }
   in
     PU.register doit

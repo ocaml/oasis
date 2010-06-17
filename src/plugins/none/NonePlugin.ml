@@ -46,20 +46,22 @@ struct
   let help_order = 10
 end
 
-let std_no_generate str pkg =
+let std_no_generate str ctxt pkg =
+  ctxt,
   {
-    moduls       = [NoneData.nonesys_ml];
-    setup        = ODNFunc.func_with_arg 
-                     not_implemented "NonePlugin.not_implemented"
-                     str ODN.of_string;
-    clean        = None;
-    distclean    = None;
-    other_action = ignore;
+    chng_moduls    = [NoneData.nonesys_ml];
+    chng_clean     = None;
+    chng_distclean = None;
+    chng_main = 
+      (ODNFunc.func_with_arg 
+         not_implemented "NonePlugin.not_implemented"
+         str ODN.of_string);
   }
 
-let section_no_generate str pkg (cs, section) =
+let section_no_generate str ctxt pkg (cs, section) =
   std_no_generate 
     (str^" of section "^cs.cs_name)
+    ctxt 
     pkg
 
 let init () = 

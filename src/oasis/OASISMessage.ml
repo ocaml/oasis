@@ -65,24 +65,27 @@ let generic_message ?(after=ignore) cond beg fmt =
 
 (** Print a debug message
   *)
-let debug fmt =
-  generic_message !debug "D" fmt
+let debug ?after fmt =
+  generic_message ?after !debug "D" fmt
 
 (** Print information message.
   *)
-let info fmt = 
-  generic_message !verbose "I" fmt
+let info ?after fmt = 
+  generic_message ?after !verbose "I" fmt
 
 (** Print a warning message 
   *)
-let warning fmt =
-  generic_message !verbose "W" fmt
+let warning ?after fmt =
+  generic_message ?after !verbose "W" fmt
 
 (** Print an error message and exit.
   *)
-let error ?(exit=true) fmt =
+let error ?(after=ignore) ?(exit=true) fmt =
   generic_message 
-    ~after:(fun () -> if exit then Pervasives.exit 1) 
+    ~after:(fun () -> 
+              if exit then 
+                Pervasives.exit 1;
+              after ()) 
     !verbose 
     "E" fmt
 

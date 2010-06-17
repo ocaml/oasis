@@ -406,24 +406,24 @@ let init () =
   let module PU = Install.Make(InternalId)
   in
   (* Installation *)
-  let doit_install pkg =
-      {
-        moduls       = [InternalData.internalsys_ml];
-        setup        = ODNFunc.func install "InternalInstallPlugin.install";
-        clean        = None;
-        distclean    = None;
-        other_action = ignore;
-      }
+  let doit_install ctxt pkg =
+    ctxt,
+    {
+      chng_moduls    = [InternalData.internalsys_ml];
+      chng_main      = ODNFunc.func install "InternalInstallPlugin.install";
+      chng_clean     = None;
+      chng_distclean = None;
+    }
   in
 
   (* Uninstall *)
-  let doit_uninstall pkg = 
+  let doit_uninstall ctxt pkg =
+    ctxt,
     {
-      moduls       = [InternalData.internalsys_ml];
-      setup        = ODNFunc.func uninstall "InternalInstallPlugin.uninstall";
-      clean        = None;
-      distclean    = None;
-      other_action = ignore;
+      chng_moduls    = [InternalData.internalsys_ml];
+      chng_main      = ODNFunc.func uninstall "InternalInstallPlugin.uninstall";
+      chng_clean     = None;
+      chng_distclean = None;
     }
   in
 

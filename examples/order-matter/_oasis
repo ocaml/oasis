@@ -4,6 +4,7 @@ Version:     0.1
 Synopsis:    Reorder _oasis section for building
 Authors:     Sylvain Le Gall
 License:     LGPL with OCaml linking exception
+BuildTools:  ocamlbuild
 
 Library foo
   Path:    src/foo
@@ -27,6 +28,6 @@ Document "order-matter"
   Type:                 ocamlbuild (0.1.0)
   InstallDir:           $htmldir/order-matter
   Install:              false
-  BuildTools:           ocamlbuild, ocamldoc
+  BuildTools+:          ocamldoc
   XOCamlbuildPath:      src
   XOCamlbuildLibraries: foo, bar, baz

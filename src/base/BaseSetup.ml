@@ -19,7 +19,7 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Entry points for setup.ml
+(** Entry points for setup
     @author Sylvain Le Gall
   *)
 
@@ -439,123 +439,123 @@ let setup t =
 
 (* END EXPORT *)
 
-module PLG = OASISPlugin
+open OASISPlugin
 
-let odn_of_oasis pkg = 
+(** Default filename for the setup file *)
+let default_fn = 
+  "setup.ml"
 
-  let build_gen = 
-    (PLG.Build.find pkg.build_type) pkg
+(** Get template setup file out of the plugin context *)
+let find ctxt = 
+  try 
+    OASISFileTemplate.find default_fn ctxt.files
+  with Not_found ->
+    failwithf1
+      (f_ "Cannot find setup template file '%s'")
+      default_fn
+
+(** Create [t] and plugin context from an OASIS package *)
+let of_package pkg = 
+
+  let ctxt = 
+    (* Initial context *)
+    {
+      error         = false;
+      files         = OASISFileTemplate.empty;
+      other_actions = [];
+    }
   in
 
-  let test_odn, test_gens = 
-    let test_odns, test_gens = 
+  let ctxt, configure_changes =
+    (Configure.find pkg.conf_type) ctxt pkg
+  in
+
+  let ctxt, build_changes = 
+    (Build.find pkg.build_type) ctxt pkg
+  in
+
+  let ctxt, test_odn, test_changes = 
+    let ctxt, test_odns, test_changes = 
       List.fold_left
-        (fun (test_odns, test_gens) -> 
+        (fun ((ctxt, test_odns, test_changes) as acc) -> 
            function
              | Test (cs, tst) ->
                  begin
-                   let gen = 
-                     (PLG.Test.find tst.test_type) pkg (cs, tst)
+                   let ctxt, chng = 
+                     (Test.find tst.test_type) ctxt pkg (cs, tst)
                    in
+                     ctxt, 
                      (ODN.TPL [ODN.STR cs.cs_name; 
-                               ODNFunc.odn_of_func gen.PLG.setup] 
+                               ODNFunc.odn_of_func chng.chng_main] 
                       :: 
                       test_odns),
-                     (cs.cs_name, gen) :: test_gens
+                     (cs.cs_name, chng) :: test_changes
                  end
              | sct ->
-                 test_odns,
-                 test_gens)
-        ([], [])
+                 acc)
+        (ctxt, [], [])
         pkg.sections
     in
+      ctxt,
       ODN.LST (List.rev test_odns),
-      List.rev test_gens
+      List.rev test_changes
   in
 
-  let doc_odn, doc_gens = 
-    let doc_odns, doc_gens =
+  let ctxt, doc_odn, doc_changes = 
+    let ctxt, doc_odns, doc_changes =
       List.fold_left
-        (fun (doc_odns, doc_gens) -> 
+        (fun ((ctxt, doc_odns, doc_changes) as acc) -> 
            function
              | Doc (cs, doc) ->
                  begin
-                   let gen = 
-                     (PLG.Doc.find doc.doc_type) pkg (cs, doc)
+                   let ctxt, chng = 
+                     (Doc.find doc.doc_type) ctxt pkg (cs, doc)
                    in
+                     ctxt,
                      (ODN.TPL [ODN.STR cs.cs_name; 
-                               ODNFunc.odn_of_func gen.PLG.setup] 
+                               ODNFunc.odn_of_func chng.chng_main] 
                       :: 
                       doc_odns),
-                     (cs.cs_name, gen) :: doc_gens
+                     (cs.cs_name, chng) :: doc_changes
                  end
              | sct ->
-                 doc_odns,
-                 doc_gens)
-        ([], [])
+                 acc)
+        (ctxt, [], [])
         pkg.sections
     in
+      ctxt,
       ODN.LST (List.rev doc_odns),
-      List.rev doc_gens
+      List.rev doc_changes
   in
 
-  let install_gen, uninstall_gen =
+  let ctxt, install_changes, uninstall_changes =
     let inst, uninst = 
-      PLG.Install.find pkg.install_type
+      Install.find pkg.install_type
     in
-    let install_gen = 
-      inst pkg
+    let ctxt, install_changes = 
+      inst ctxt pkg
     in
-    let uninstall_gen =
-      uninst pkg
+    let ctxt, uninstall_changes =
+      uninst ctxt pkg
     in
-      install_gen, uninstall_gen
+      ctxt, install_changes, uninstall_changes
   in
 
-  let configure_gen =
-    (PLG.Configure.find pkg.conf_type) pkg
+  let ctxt = 
+    (* Run extra plugin *)
+    List.fold_left
+      (fun ctxt nm -> (Extra.find nm) ctxt pkg)
+      ctxt
+      pkg.plugins
   in
 
-  let std_gens = 
+  let std_changes = 
     [
-      configure_gen;
-      build_gen;
-      install_gen;
-      uninstall_gen;
+      configure_changes;
+      build_changes;
+      install_changes;
+      uninstall_changes;
     ]
-  in
-
-  let moduls = 
-    let moduls_of_gen gen =
-      gen.PLG.moduls
-    in
-    let moduls_of_gens lst =
-      List.rev_map 
-        moduls_of_gen 
-        (List.rev_map snd lst)
-    in
-      List.flatten
-        (List.flatten
-           [
-             List.map moduls_of_gen std_gens;
-             moduls_of_gens doc_gens;
-             moduls_of_gens test_gens;
-           ])
-  in
-
-  let other_actions = 
-    let of_gen gen =
-      gen.PLG.other_action
-    in
-    let of_gens lst = 
-      List.rev_map of_gen (List.rev_map snd lst)
-    in
-      List.flatten
-        [
-          List.map of_gen std_gens;
-          of_gens doc_gens;
-          of_gens test_gens;
-        ]
   in
 
   let clean_funcs,     clean_doc_funcs,     clean_test_funcs,
@@ -578,80 +578,145 @@ let odn_of_oasis pkg =
         acc_non_opt assoc_f 
     in
 
-    let clean_of_gen gen = gen.PLG.clean
+    let clean_of_changes chng = chng.chng_clean
     in
-    let distclean_of_gen gen = gen.PLG.distclean
+    let distclean_of_changes chng = chng.chng_distclean
     in
 
-      acc_non_opt clean_of_gen std_gens,
-      acc_non_opt_assoc clean_of_gen doc_gens,
-      acc_non_opt_assoc clean_of_gen test_gens,
-      acc_non_opt distclean_of_gen std_gens,
-      acc_non_opt_assoc distclean_of_gen doc_gens,
-      acc_non_opt_assoc distclean_of_gen test_gens
+      acc_non_opt clean_of_changes std_changes,
+      acc_non_opt_assoc clean_of_changes doc_changes,
+      acc_non_opt_assoc clean_of_changes test_changes,
+      acc_non_opt distclean_of_changes std_changes,
+      acc_non_opt_assoc distclean_of_changes doc_changes,
+      acc_non_opt_assoc distclean_of_changes test_changes
   in
 
-  let () = 
-    (* Put some type constraints between plugin and
-       BaseSetup.t
-     *)
-    if false then
-      begin
-        let setup_func_calls lst =
-          List.map (fun (nm, gen) -> nm, ODNFunc.func_call gen.PLG.setup) lst
-        in
-        let func_calls lst = 
-          List.map (fun (nm, func) -> nm, ODNFunc.func_call func) lst
-        in
-        let _t: t = 
-          {
-            configure       = ODNFunc.func_call configure_gen.PLG.setup;
-            build           = ODNFunc.func_call build_gen.PLG.setup;
-            doc             = setup_func_calls doc_gens;
-            test            = setup_func_calls test_gens;
-            install         = ODNFunc.func_call install_gen.PLG.setup;
-            uninstall       = ODNFunc.func_call uninstall_gen.PLG.setup;
-            clean           = List.map ODNFunc.func_call clean_funcs;
-            clean_test      = func_calls clean_test_funcs;
-            clean_doc       = func_calls clean_doc_funcs;
-            distclean       = List.map ODNFunc.func_call distclean_funcs;
-            distclean_test  = func_calls distclean_test_funcs;
-            distclean_doc   = func_calls distclean_doc_funcs;
-            package         = pkg;
-          } 
-        in
-          ()
-      end
+  let moduls =
+    (* Extract and deduplicate modules *)
+    let extract lst = 
+      List.map (fun chng -> chng.chng_moduls) lst
+    in
+    let moduls = 
+       List.flatten 
+         ([
+           OASISData.oasissys_ml;
+           BaseData.basesysenvironment_ml;
+           BaseData.basesys_ml;
+         ]
+         ::
+          ((extract std_changes) @
+           (extract (List.map snd doc_changes)) @
+           (extract (List.map snd test_changes))))
+    in
+
+    let rmoduls, _ =
+      List.fold_left
+        (fun ((moduls, moduls_seen) as acc) modul ->
+           if SetString.mem modul moduls_seen then
+             acc
+           else
+             (modul :: moduls, SetString.add modul moduls_seen))
+        ([], SetString.empty)
+        moduls
+    in
+      List.rev rmoduls
   in
 
-  let setup_t_odn =
-    let odn_of_funcs lst =
-      ODN.LST (List.map ODNFunc.odn_of_func lst)
+  let ctxt = 
+    (* Create setup file *)
+    let setup_t_odn =
+      let odn_of_funcs lst =
+        ODN.LST (List.map ODNFunc.odn_of_func lst)
+      in
+      let odn_of_assocs lst =
+        ODN.LST 
+          (List.map 
+             (fun (nm, func) -> 
+                ODN.TPL[ODN.STR nm; ODNFunc.odn_of_func func])
+             lst)
+      in
+        ODN.REC
+          ("BaseSetup",
+           [
+             "configure",      ODNFunc.odn_of_func configure_changes.chng_main;
+             "build",          ODNFunc.odn_of_func build_changes.chng_main;
+             "test",           test_odn;
+             "doc",            doc_odn;
+             "install",        ODNFunc.odn_of_func  install_changes.chng_main;
+             "uninstall",      ODNFunc.odn_of_func  uninstall_changes.chng_main;
+             "clean",          odn_of_funcs clean_funcs;
+             "clean_test",     odn_of_assocs clean_test_funcs;
+             "clean_doc",      odn_of_assocs clean_doc_funcs;
+             "distclean",      odn_of_funcs distclean_funcs;
+             "distclean_test", odn_of_assocs distclean_test_funcs;
+             "distclean_doc",  odn_of_assocs distclean_doc_funcs;
+             "package",        OASISTypes.odn_of_package pkg;
+            ])
     in
-    let odn_of_assocs lst =
-      ODN.LST 
-        (List.map 
-           (fun (nm, func) -> 
-              ODN.TPL[ODN.STR nm; ODNFunc.odn_of_func func])
-           lst)
+
+    let setup_t_str = 
+      Format.fprintf Format.str_formatter 
+        "@[<hv2>let setup_t =@ %a;;@]"
+        (ODN.pp_odn ~opened_modules:["OASISTypes"])
+        setup_t_odn;
+      Format.flush_str_formatter ()
     in
-      ODN.REC
-        ("BaseSetup",
+
+    let setup_tmpl = 
+      OASISFileTemplate.of_mlfile 
+        default_fn
+
+         (* Header *)
          [
-           "configure",      ODNFunc.odn_of_func configure_gen.PLG.setup;
-           "build",          ODNFunc.odn_of_func build_gen.PLG.setup;
-           "test",           test_odn;
-           "doc",            doc_odn;
-           "install",        ODNFunc.odn_of_func  install_gen.PLG.setup;
-           "uninstall",      ODNFunc.odn_of_func  uninstall_gen.PLG.setup;
-           "clean",          odn_of_funcs clean_funcs;
-           "clean_test",     odn_of_assocs clean_test_funcs;
-           "clean_doc",      odn_of_assocs clean_doc_funcs;
-           "distclean",      odn_of_funcs distclean_funcs;
-           "distclean_test", odn_of_assocs distclean_test_funcs;
-           "distclean_doc",  odn_of_assocs distclean_doc_funcs;
-           "package",        OASISTypes.odn_of_package pkg;
+           "(* "^default_fn^" generated for the first time by "^
+           "OASIS v"^OASISConf.version^" *)";
+           "(* Visit http://oasis.forge.ocamlcore.org for more "^
+           "information *)";
+           "";
+         ]
+         (* Body *)
+         (moduls
+          @
+          [
+            "open OASISTypes;;";
+            "";
+            setup_t_str;
+            "";
+            "let setup () = BaseSetup.setup setup_t;;";
+            ""
           ])
+
+       (* Footer *)
+       ["let () = setup ();;"]
+    in
+
+      {ctxt with 
+           files = OASISFileTemplate.replace setup_tmpl ctxt.files}
+
   in
 
-    setup_t_odn, other_actions, moduls
+  let t = 
+    let setup_func_calls lst =
+      List.map (fun (nm, chng) -> nm, ODNFunc.func_call chng.chng_main) lst
+    in
+    let func_calls lst = 
+      List.map (fun (nm, func) -> nm, ODNFunc.func_call func) lst
+    in
+      {
+        configure       = ODNFunc.func_call configure_changes.chng_main;
+        build           = ODNFunc.func_call build_changes.chng_main;
+        doc             = setup_func_calls doc_changes;
+        test            = setup_func_calls test_changes;
+        install         = ODNFunc.func_call install_changes.chng_main;
+        uninstall       = ODNFunc.func_call uninstall_changes.chng_main;
+        clean           = List.map ODNFunc.func_call clean_funcs;
+        clean_test      = func_calls clean_test_funcs;
+        clean_doc       = func_calls clean_doc_funcs;
+        distclean       = List.map ODNFunc.func_call distclean_funcs;
+        distclean_test  = func_calls distclean_test_funcs;
+        distclean_doc   = func_calls distclean_doc_funcs;
+        package         = pkg;
+      } 
+  in
+
+    ctxt, t

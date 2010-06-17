@@ -5,6 +5,7 @@ Synopsis:    test oasis with c dependency
 Authors:     test
 License:     LGPL-2.1 with OCaml linking exception
 Plugins:     DevFiles (0.1), Meta (0.1)
+BuildTools:  ocamlbuild
 
 Library test_oasis_c_dependency
   Path:	    src

@@ -55,7 +55,7 @@ let () =
   in
 
   let rsetup_fn =
-    ref "setup.ml"
+    ref BaseSetup.default_fn
   in
 
   let ruse_oasis_real_filename =

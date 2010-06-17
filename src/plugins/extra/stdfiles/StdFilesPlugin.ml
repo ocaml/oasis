@@ -184,7 +184,7 @@ module SetSection =
   Set.Make
     (struct type t = section let compare = compare end)
 
-let main pkg = 
+let main ctxt pkg = 
   let data =
     pkg.schema_data
   in
@@ -399,79 +399,86 @@ let main pkg =
         split_package_section
   in
 
-  let file_generate (enable, fn) ppf = 
+  let add_file ctxt ((enable, fn), ppf) = 
     if enable data then
       begin
         let content = 
           ppf str_formatter;
           flush_str_formatter ()
         in
-          file_generate 
+          add_file
             (file_make
                (fn data)
                comment_ml
                []
                [content]
                [])
+            ctxt
       end
+    else
+      ctxt
   in
 
   let install_enable, install_fn =
     install
   in
 
-    (* Generate README.txt *)
-    file_generate readme
-      (fun fmt ->
-         pp_open_vbox fmt 0;
-         fprintf fmt 
-           "@[This is the README file for the %s distribution.@]@,@,"
-           pkg.name;
+    List.fold_left
+      add_file
+      ctxt
+      [
+        (* Generate README.txt *)
+        readme,
+        (fun fmt ->
+           pp_open_vbox fmt 0;
+           fprintf fmt 
+             "@[This is the README file for the %s distribution.@]@,@,"
+             pkg.name;
 
-         List.iter
-           (pp_print_para fmt)
-           pkg.copyrights;
-         
-         pp_print_para fmt pkg.synopsis;
-         
-         begin
-           match pkg.description with 
-             | Some str ->
-                 pp_print_para fmt str
-             | None ->
-                 ()
-         end;
-
-         pp_open_box fmt 0;
-         if install_enable data then
+           List.iter
+             (pp_print_para fmt)
+             pkg.copyrights;
+           
+           pp_print_para fmt pkg.synopsis;
+           
            begin
-             fprintf fmt
-               "See@ the@ files@ %s@ for@ building@ and@ installation@ instructions.@ "
-               (install_fn data)
+             match pkg.description with 
+               | Some str ->
+                   pp_print_para fmt str
+               | None ->
+                   ()
            end;
-         begin
-           match pkg.license_file with 
-             | Some fn ->
-                 fprintf fmt "See@ the@ file@ %s@ for@ copying@ conditions.@ " fn
-             | None ->
-                 ()
-         end;
-         pp_close_box fmt ();
-         pp_print_cut2 fmt ();
 
-         begin
-           match pkg.homepage with 
-             | Some url ->
-                 fprintf fmt
-                   "@[<hv2>Home page: %s@]@,@," url;
-             | None -> 
-                 ()
-         end;
+           pp_open_box fmt 0;
+           if install_enable data then
+             begin
+               fprintf fmt
+                 "See@ the@ files@ %s@ for@ building@ and@ installation@ instructions.@ "
+                 (install_fn data)
+             end;
+           begin
+             match pkg.license_file with 
+               | Some fn ->
+                   fprintf fmt "See@ the@ file@ %s@ for@ copying@ conditions.@ " fn
+               | None ->
+                   ()
+           end;
+           pp_close_box fmt ();
+           pp_print_cut2 fmt ();
 
-         pp_close_box fmt ());
+           begin
+             match pkg.homepage with 
+               | Some url ->
+                   fprintf fmt
+                     "@[<hv2>Home page: %s@]@,@," url;
+               | None -> 
+                   ()
+           end;
 
-    (* Generate INSTALL.txt *)
-    file_generate install
+           pp_close_box fmt ());
+
+      (* Generate INSTALL.txt *)
+      install,
       (fun fmt ->
          pp_open_vbox fmt 0;
          fprintf fmt 
@@ -508,9 +515,9 @@ let main pkg =
 
          pp_print_string fmt StdFilesData.install;
          pp_close_box fmt ());
-    
-    (* Generate AUTHORS.txt *)
-    file_generate authors
+      
+      (* Generate AUTHORS.txt *)
+      authors,
       (fun fmt ->
          pp_open_vbox fmt 0;
          fprintf fmt "@[Authors of %s@]@," pkg.name;
@@ -532,7 +539,8 @@ let main pkg =
                pkg.maintainers
            end;
 
-         pp_close_box fmt ())
+         pp_close_box fmt ());
+      ]
 
 let init () = 
   register main

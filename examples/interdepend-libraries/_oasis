@@ -4,6 +4,7 @@ Version:     0.1
 Synopsis:    Executable and libraries with interdependencies
 Authors:     Sylvain Le Gall
 License:     LGPL with OCaml linking exception
+BuildTools:  ocamlbuild
 
 Library liba
   Modules:         A
@@ -46,6 +47,6 @@ Document interdepend
   Type:                 ocamlbuild (0.1.0)
   InstallDir:           $htmldir/interdepend
   Install:              false
-  BuildTools:           ocamlbuild, ocamldoc
+  BuildTools+:          ocamldoc
   XOCamlbuildPath:      src
   XOCamlbuildLibraries: liba, libb, libc, libd, libe

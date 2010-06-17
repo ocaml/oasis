@@ -116,7 +116,7 @@ let flags =
     (fun () ->
        s_ "OCamldoc flags")
 
-let doit pkg (cs, doc) = 
+let doit ctxt pkg (cs, doc) = 
 
   let path =
     path cs.cs_data
@@ -191,54 +191,64 @@ let doit pkg (cs, doc) =
     modules_from_libraries @ modules_from_doc
   in
 
-  let create_ocamlbuild_odocl_files () =
-     file_generate
-       (file_make 
-          (FilePath.add_extension 
-             (FilePath.concat path cs.cs_name)
-             "odocl")
-          comment_ocamlbuild
-          []
-          modules
-          [])
+  let ctxt =
+    (* Create .odocl file *)
+    add_file
+      (file_make 
+         (FilePath.add_extension 
+            (FilePath.concat path cs.cs_name)
+            "odocl")
+         comment_ocamlbuild
+         []
+         modules
+         [])
+      ctxt
   in
 
+  let ctxt = 
     (* Checks consistency of options *)
-    if List.mem (ExternalTool "ocamldoc") doc.doc_build_tools then
-      (* TODO: create a specific error context for this *)
-      error ~exit:false 
-        (f_ "ocamldoc in field BuildTools of document %s is mandatory.")
-        cs.cs_name;
-    if List.mem (ExternalTool "ocamlbuild") doc.doc_build_tools then
-      (* TODO: create a specific error context for this *)
-      error ~exit:false
-        (f_ "ocamlbuild in field BuildTools of document %s is mandatory.")
-        cs.cs_name;
-    if modules = [] then
-      error ~exit:false
-        (f_ "No module defined for document %s.")
-        cs.cs_name;
+    List.fold_left
+      (fun ctxt f -> f ctxt)
+      ctxt
+      [
+        set_error
+          (not (List.mem (ExternalTool "ocamldoc") doc.doc_build_tools))
+          (Printf.sprintf
+             (f_ "ocamldoc in field BuildTools of document %s is mandatory.")
+             cs.cs_name);
 
+        set_error 
+          (not (List.mem (ExternalTool "ocamlbuild") doc.doc_build_tools))
+          (Printf.sprintf
+             (f_ "ocamlbuild in field BuildTools of document %s is mandatory.")
+             cs.cs_name);
+
+        set_error 
+          (modules = [])
+          (Printf.sprintf
+             (f_ "No module defined for document %s.")
+             cs.cs_name);
+      ]
+  in
+
+    ctxt,
     {
-      moduls = 
+      chng_moduls = 
         [OCamlbuildData.ocamlbuildsys_ml];
 
-      setup = 
+      chng_main = 
         ODNFunc.func_with_arg 
           doc_build "OCamlbuildDocPlugin.doc_build"
           path ODN.of_string;
 
-      clean = 
+      chng_clean = 
         Some 
           (ODNFunc.func_with_arg
              doc_clean "OCamlbuildDocPlugin.doc_clean"
              path ODN.of_string);
 
-      distclean = 
+      chng_distclean = 
         None;
-
-      other_action = 
-        create_ocamlbuild_odocl_files;
     }
 
 let init () = 

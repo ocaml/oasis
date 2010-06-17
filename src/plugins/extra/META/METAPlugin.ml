@@ -192,16 +192,15 @@ let pp_print_meta pkg findlib_name_map fmt grp =
     pp_close_box fmt ();
     pp_print_flush fmt ()
 
-let main pkg =
+let main ctxt pkg =
   let findlib_name_map = 
     findlib_name_map pkg
   in
-    List.iter 
-      (fun grp ->
+    List.fold_left 
+      (fun ctxt grp ->
          let root_cs, root_bs, root_lib = 
            root_of_group grp
          in
-           (* TODO: check that enable values are consistent *)
            if enable root_cs.cs_data then
              begin
                let meta_fn =
@@ -215,7 +214,7 @@ let main pkg =
                    findlib_name_map 
                    (Format.formatter_of_buffer buff) 
                    grp;
-                 file_generate 
+                 OASISPlugin.add_file
                    (of_string_list
                       ~template:true
                       meta_fn 
@@ -223,7 +222,11 @@ let main pkg =
                       (ExtString.String.nsplit
                          (Buffer.contents buff)
                          "\n"))
-             end)
+                   ctxt
+             end
+           else
+             ctxt)
+      ctxt
       (group_libs pkg)
 
 

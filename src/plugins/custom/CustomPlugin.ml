@@ -202,7 +202,7 @@ struct
     let cmd_main, cmd_clean, cmd_distclean =
       add_fields nm hlp hlp_clean hlp_distclean 
     in
-      fun pkg -> 
+      fun ctxt pkg -> 
         let t =
           {
             cmd_main      = cmd_main pkg.schema_data;
@@ -210,29 +210,27 @@ struct
             cmd_distclean = cmd_distclean pkg.schema_data;
           }
         in
+          ctxt,
           {
-            OASISPlugin.moduls = 
+            OASISPlugin.chng_moduls = 
               [CustomData.customsys_ml];
 
-            setup = 
+            chng_main = 
               ODNFunc.func_with_arg 
                 main ("CustomPlugin.main")
                 t odn_of_t;
 
-            clean = 
+            chng_clean = 
               Some 
                 (ODNFunc.func_with_arg
                    clean ("CustomPlugin.clean")
                    t odn_of_t);
 
-            distclean = 
+            chng_distclean = 
               Some 
                 (ODNFunc.func_with_arg
                    distclean ("CustomPlugin.distclean")
                    t odn_of_t);
-
-            other_action = 
-              ignore;
           }
 end
 
@@ -264,7 +262,7 @@ let build_init () =
       (fun () -> s_ "Run command to clean build step.")
       (fun () -> s_ "Run command to distclean build step.")
   in
-  let doit pkg = 
+  let doit ctxt pkg = 
     let t =
       {
         cmd_main      = cmd_main pkg.schema_data;
@@ -272,29 +270,27 @@ let build_init () =
         cmd_distclean = cmd_distclean pkg.schema_data;
       }
     in
+      ctxt,
       {
-        OASISPlugin.moduls = 
+        OASISPlugin.chng_moduls = 
           [CustomData.customsys_ml];
 
-        setup = 
+        chng_main = 
           ODNFunc.func_with_arg 
             Build.main ("CustomPlugin.Build.main")
             t odn_of_t;
 
-        clean = 
+        chng_clean = 
           Some 
             (ODNFunc.func_with_arg
                Build.clean ("CustomPlugin.Build.clean")
                t odn_of_t);
 
-        distclean = 
+        chng_distclean = 
           Some 
             (ODNFunc.func_with_arg
                Build.distclean ("CustomPlugin.Build.distclean")
                t odn_of_t);
-
-        other_action = 
-          ignore;
       }
   in
     PU.register doit
@@ -338,7 +334,7 @@ let doc_init () =
       (fun () -> s_ "Run command to clean build documentation step.")
       (fun () -> s_ "Run command to distclean build documentation step.")
   in
-  let doit pkg (cs, doc) =
+  let doit ctxt pkg (cs, doc) =
       let t =
         {
           cmd_main      = cmd_main cs.cs_data;
@@ -346,29 +342,27 @@ let doc_init () =
           cmd_distclean = cmd_distclean cs.cs_data;
         }
       in
+        ctxt,
         {
-          OASISPlugin.moduls = 
+          OASISPlugin.chng_moduls = 
             [CustomData.customsys_ml];
 
-          setup = 
+          chng_main = 
             ODNFunc.func_with_arg 
               Doc.main ("CustomPlugin.Doc.main")
               t odn_of_t;
 
-          clean = 
+          chng_clean = 
             Some 
               (ODNFunc.func_with_arg
                  Doc.clean ("CustomPlugin.Doc.clean")
                  t odn_of_t);
 
-          distclean = 
+          chng_distclean = 
             Some 
               (ODNFunc.func_with_arg
                  Doc.distclean ("CustomPlugin.Doc.distclean")
                  t odn_of_t);
-
-          other_action = 
-            ignore;
         }
   in
     PU.register doit
@@ -397,7 +391,7 @@ let test_init () =
       (fun () ->
          s_ "Run command to distclean test step.")
   in
-  let doit pkg (cs, test) =
+  let doit ctxt pkg (cs, test) =
       let t = 
         { 
           cmd_main      = test.test_command;
@@ -405,29 +399,27 @@ let test_init () =
           cmd_distclean = test_distclean cs.cs_data;
         }
       in
+        ctxt,
         {
-          OASISPlugin.moduls = 
+          OASISPlugin.chng_moduls = 
             [CustomData.customsys_ml];
 
-          setup = 
+          chng_main = 
             ODNFunc.func_with_arg 
               Test.main ("CustomPlugin.Test.main")
               t odn_of_t;
 
-          clean = 
+          chng_clean = 
             Some 
               (ODNFunc.func_with_arg
                  Test.clean ("CustomPlugin.Test.clean")
                  t odn_of_t);
 
-          distclean = 
+          chng_distclean = 
             Some 
               (ODNFunc.func_with_arg
                  Test.distclean ("CustomPlugin.Test.distclean")
                  t odn_of_t);
-
-          other_action = 
-            ignore;
         }
   in
     PU.register doit

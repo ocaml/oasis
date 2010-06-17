@@ -99,7 +99,10 @@ let update_and_run t =
 
 (* END EXPORT *)
 
-let create use_real_filename setup_fn = 
+open OASISFileTemplate
+open OASISPlugin
+
+let make use_real_filename ctxt pkg = 
   let args =
     let rec filter_opt =
       function 
@@ -117,11 +120,60 @@ let create use_real_filename setup_fn =
         (filter_opt 
            (Array.to_list Sys.argv))
   in
+
+  let setup_tmpl =
+    BaseSetup.find ctxt
+  in
+
+  let dev = 
     {
-      oasis_cmd  = (if use_real_filename then 
-                      Sys.argv.(0)
-                    else
-                      "OASIS");
       oasis_args = args;
-      self_fn    = setup_fn;
+
+      oasis_cmd = 
+        (if use_real_filename then 
+           Sys.argv.(0)
+         else
+           "OASIS");
+
+      self_fn = 
+        (match setup_tmpl.tgt_fn with 
+           | Some fn -> fn
+           | None    -> setup_tmpl.src_fn);
     }
+  in
+
+  let dev_str = 
+    Format.fprintf Format.str_formatter
+      "@[<hv2>let dev_t =@ %a;;@]"
+      (fun fmt -> ODN.pp_odn fmt) 
+      (odn_of_t dev);
+    Format.flush_str_formatter ()
+  in
+
+  let setup_tmpl = 
+    let body_lst =
+      match setup_tmpl.body with 
+        | NoBody -> []
+        | Body lst 
+        | BodyWithDigest (_, lst) -> lst
+    in
+      {setup_tmpl with 
+           body = 
+             Body
+               (body_lst 
+                @
+                [
+                  "";
+                  dev_str;
+                  "";
+                  "let setup () = BaseDev.update_and_run dev_t;;";
+                  "";
+                ])}
+  in
+
+  let ctxt =
+    add_file setup_tmpl ctxt
+  in
+
+    ctxt, dev
+

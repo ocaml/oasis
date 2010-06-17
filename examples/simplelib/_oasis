@@ -6,6 +6,7 @@ Maintainers: Mauricio Fernandez <mfp@acm.org>
 Copyrights: (C) 2008 Mauricio Fernandez
 LicenseFile: LICENSE
 License: LGPL with OCaml linking exception
+BuildTools: ocamlbuild
 
 Synopsis: Minimal ADT just to illustrate how libs work.
 Description: 
@@ -25,6 +26,6 @@ Document simplelib
   Title:                API reference for simplelib
   Type:                 ocamlbuild (0.1.0)
   InstallDir:           $htmldir/simplelib
-  BuildTools:           ocamlbuild, ocamldoc
+  BuildTools+:          ocamldoc
   XOCamlbuildPath:      src
   XOCamlbuildLibraries: simplelib

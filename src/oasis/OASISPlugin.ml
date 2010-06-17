@@ -32,45 +32,69 @@ open ODNFunc
   *)
 type modul = string
 
-(** Describe action made by a target
+(** Describe setup file changes 
   *)
-type ('a, 'b) generator_t =
+type ('a, 'b) setup_changes =
     { 
-      (** OCaml module to be added to setup.ml *)
-      moduls: modul list;
+      (** OCaml module to be added to setup file *)
+      chng_moduls: modul list;
 
-      (** Function to be added to BaseSetup.t *)
-      setup: 'a func;
+      (** Main function to be added to BaseSetup.t (i.e. the one that 
+          that really do something: configure, build, test...)
+        *)
+      chng_main: 'a func;
 
       (** Function to be called when cleaning *)
-      clean: ('b func) option;
+      chng_clean: ('b func) option;
 
       (** Function to be called when distcleaning *)
-      distclean: ('b func) option;
-
-      (** Write extra files *)
-      other_action: unit -> unit; 
+      chng_distclean: ('b func) option;
     }
 
-(** Action step for section
+(** Describe context when applying a plugin
   *)
-type ('a, 'b) section_act_t = 
-    package -> (common_section * 'a) -> 
+type context_act = 
+    {
+      (** Are there errors ? *)
+      error: bool;
+
+      (** Generated files *)
+      files: OASISFileTemplate.templates;
+
+      (** Extra action *)
+      other_actions: (unit -> unit) list; 
+    }
+
+(** Generator for sections (document, test)
+  *)
+type ('a, 'b) section_act = 
+    context_act ->
+    package -> 
+    (common_section * 'a) -> 
+
+      (* Result *)
+      context_act 
+      *
       ((* Run *)
        (package -> (common_section * 'a) -> string array -> 'b),
        (* Clean & Distclean *)
        (package -> (common_section * 'a) -> string array -> unit) 
-      ) generator_t
+      ) setup_changes
 
-(** Action step with a package argument only
+(** Generator with a package argument only (build, install)
   *)
-type package_act_t =
+type package_act =
+    context_act ->
     package -> 
+
+      (* Result *)
+      context_act 
+      *
       ((* Run *)
        (package -> string array -> unit),
        (* Clean & Distclean *)
        (package -> string array -> unit)
-      ) generator_t 
+      ) setup_changes
 
 (* Functions for building plugins *)
 module type PLUGIN_UTILS_TYPE =
@@ -239,7 +263,7 @@ module Make =
 module Configure = 
   Make
     (struct
-       type t = package_act_t
+       type t = package_act
        let family_string = "configure"
        let not_found_fmt =  
          (fun () -> f_ "Unknown configure plugin '%s' (available: %s)")
@@ -250,7 +274,7 @@ module Configure =
 module Build =
   Make
     (struct
-       type t = package_act_t
+       type t = package_act
        let family_string = "build"
        let not_found_fmt =
          (fun () -> f_ "Unknown build plugin '%s' (available: %s)")
@@ -261,7 +285,7 @@ module Build =
 module Doc =
   Make
     (struct 
-       type t = (doc, unit) section_act_t
+       type t = (doc, unit) section_act
        let family_string = "doc"
        let not_found_fmt =
          (fun () -> f_ "Unknown doc plugin '%s' (available: %s)")
@@ -272,7 +296,7 @@ module Doc =
 module Test =
   Make
     (struct
-       type t = (test, float) section_act_t
+       type t = (test, float) section_act
        let family_string = "test"
        let not_found_fmt =
          (fun () -> f_ "Unknown test plugin '%s' (available: %s)")
@@ -283,7 +307,7 @@ module Test =
 module Install =
   Make
     (struct
-       type t = package_act_t * package_act_t
+       type t = package_act * package_act
        let family_string = "install"
        let not_found_fmt =
          (fun () -> f_ "Unknown install plugin '%s' (available: %s)")
@@ -294,7 +318,7 @@ module Install =
 module Extra =
   Make
     (struct
-       type t = package -> unit
+       type t = context_act -> package -> context_act
        let family_string = "extra"
        let not_found_fmt =
          (fun () -> f_ "Unknown extra plugin '%s' (available: %s)")
@@ -315,3 +339,21 @@ let builtin nm =
     Some (OASISVersion.version_of_string OASISConf.version)
   in
     nm, builtin_version
+
+(** Add a generated template file 
+  *)
+let add_file tmpl ctxt =
+  {ctxt with 
+       files = OASISFileTemplate.add tmpl ctxt.files}
+
+(** Tests for error and set error status
+  *)
+let set_error tst s ctxt =
+  if tst then
+    begin
+      OASISMessage.error ~exit:false "%s" s;
+      {ctxt with error = true}
+    end
+  else
+    ctxt
+

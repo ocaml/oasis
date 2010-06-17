@@ -5,6 +5,7 @@ License:     GPL
 LicenseFile: LICENSE.txt
 Authors:     Sylvain Le Gall
 Synopsis:    Library and executable with extra data
+BuildTools:  ocamlbuild
 Plugins:     META (0.0.1)
 
 Executable test
@@ -22,6 +23,6 @@ Document test
   Title:                API reference for test
   Type:                 ocamlbuild (0.1.0)
   InstallDir:           $htmldir/test
-  BuildTools:           ocamlbuild, ocamldoc
+  BuildTools+:          ocamldoc
   XOCamlbuildPath:      src
   XOCamlbuildLibraries: test

@@ -6,6 +6,7 @@ LicenseFile: LICENSE
 License:     BSD3
 Plugins:     META (0.0.1), StdFiles (0.1.0), DevFiles (0.1.0)
 Synopsis:    Universally unique identifiers (UUIDs) for OCaml
+BuildTools:  ocamlbuild
 
 Library uuidm
   Path: src
@@ -38,5 +39,4 @@ Executable uuid
   BuildDepends: uuidm
 
 Test uuid
-  Type: Custom (0.0.1)
-  Command: $(utoh "_build/test/uuid")
+  Command: $uuid

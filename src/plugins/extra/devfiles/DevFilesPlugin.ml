@@ -82,71 +82,86 @@ let enable_configure =
     (fun () ->
        s_ "Generate configure script")
 
-let main pkg = 
-  (* Generate Makefile (for standard dev. env.) *)
-  if enable_makefile pkg.schema_data then
-    begin
-      let buff = 
-        Buffer.create 13
-      in
-      let targets =
-        let excludes =
-          OASISUtils.set_string_of_list 
-            (makefile_notargets pkg.schema_data)
+let main ctxt pkg = 
+  let ctxt = 
+    (* Generate Makefile (for standard dev. env.) *)
+    if enable_makefile pkg.schema_data then
+      begin
+        let buff = 
+          Buffer.create 13
         in
-          List.filter
-            (fun t -> not (OASISUtils.SetString.mem t excludes))
-            all_targets
-      in
-      let add_one_target ?(need_configure=true) ?(other_depends=[]) nm = 
-        Printf.bprintf buff 
-          "%s: %s\n\
-           \t$(SETUP) -%s $(%sFLAGS)\n\n" 
-          nm 
-          (String.concat " "
-             ((if need_configure then 
-                 (fun l -> "setup.data" :: l)
-               else 
-                 (fun l -> l))
-                other_depends))
-          nm (String.uppercase nm) 
-      in
-        Buffer.add_string buff "\nSETUP = ocaml setup.ml\n\n";
-        List.iter
-          (function
-             | "all" | "clean" | "distclean" as nm ->
-                 add_one_target ~need_configure:false nm
-             | "test" | "doc" as nm ->
-                 add_one_target ~other_depends:["build"] nm
-             | "configure" ->
-                 Printf.bprintf buff 
-                   "setup.data:\n\
-                    \t$(SETUP) -configure $(CONFIGUREFLAGS)\n\n" 
-             | nm ->
-                 add_one_target nm)
-          all_targets;
-        Buffer.add_string buff (".PHONY: "^(String.concat " " targets)^"\n");
+        let targets =
+          let excludes =
+            OASISUtils.set_string_of_list 
+              (makefile_notargets pkg.schema_data)
+          in
+            List.filter
+              (fun t -> not (OASISUtils.SetString.mem t excludes))
+              all_targets
+        in
+        let add_one_target ?(need_configure=true) ?(other_depends=[]) nm = 
+          Printf.bprintf buff 
+            "%s: %s\n\
+             \t$(SETUP) -%s $(%sFLAGS)\n\n" 
+            nm 
+            (String.concat " "
+               ((if need_configure then 
+                   (fun l -> "setup.data" :: l)
+                 else 
+                   (fun l -> l))
+                  other_depends))
+            nm (String.uppercase nm) 
+        in
+          Buffer.add_string buff "\nSETUP = ocaml setup.ml\n\n";
+          List.iter
+            (function
+               | "all" | "clean" | "distclean" as nm ->
+                   add_one_target ~need_configure:false nm
+               | "test" | "doc" as nm ->
+                   add_one_target ~other_depends:["build"] nm
+               | "configure" ->
+                   Printf.bprintf buff 
+                     "setup.data:\n\
+                      \t$(SETUP) -configure $(CONFIGUREFLAGS)\n\n" 
+               | nm ->
+                   add_one_target nm)
+            all_targets;
+          Buffer.add_string buff (".PHONY: "^(String.concat " " targets)^"\n");
+    
+          OASISPlugin.add_file 
+            (file_make 
+               "Makefile"
+               comment_sh
+               []
+               (ExtString.String.nsplit (Buffer.contents buff) "\n")
+               [])
+            ctxt
+      end
+    else
+      ctxt
+  in
   
-        file_generate
-          (file_make 
-             "Makefile"
-             comment_sh
-             []
-             (ExtString.String.nsplit (Buffer.contents buff) "\n")
-             [])
-    end;
+  let ctxt = 
+    (* Generate configure (for standard dev. env.) *)
+    if enable_configure pkg.schema_data then
+      begin
+        let tmpl = 
+          of_string_list  
+            ~template:true
+            "configure"
+            comment_sh
+            DevFilesData.configure
+        in
+          OASISPlugin.add_file
+            {tmpl with perm = 0o755}
+            ctxt
+      end
+    else
+      ctxt
+  in
 
-  (* Generate configure (for standard dev. env.) *)
-  if enable_configure pkg.schema_data then
-    begin
-      file_generate
-        (of_string_list  
-           ~template:true
-           "configure"
-           comment_sh
-           DevFilesData.configure);
-      Unix.chmod "configure" 0o755
-    end
+    ctxt
+
 
 let init () =
   register main

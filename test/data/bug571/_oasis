@@ -4,6 +4,7 @@ Version:     0
 Synopsis:    test
 Authors:     me
 License:     GPL
+BuildTools:  ocamlbuild
 
 Executable test
   Path:    ./

@@ -6,6 +6,7 @@ LicenseFile: LICENSE.txt
 Authors:     Sylvain Le Gall
 Synopsis:    Library and executable with test
 Plugins:     META (0.0.1)
+BuildTools:  ocamlbuild
 
 Executable test
  Install: false

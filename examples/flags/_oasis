@@ -6,6 +6,7 @@ LicenseFile:  LICENSE
 License:      LGPL with OCaml linking exception
 Synopsis:     Demonstrate the use of Flag.
 BuildDepends: extlib
+BuildTools:   ocamlbuild
 FilesAB:      src/simplelib/Conf.ml.ab
 
 Flag buildext
@@ -19,7 +20,7 @@ Document simplelib
   Title:                API reference for simplelib
   Type:                 ocamlbuild (0.1.0)
   InstallDir:           $htmldir/simplelib
-  BuildTools:           ocamlbuild, ocamldoc
+  BuildTools+:          ocamldoc
   XOCamlbuildPath:      src/simplelib
   XOCamlbuildLibraries: simplelib
 
@@ -34,7 +35,7 @@ Document simplelibext
   Title:                API reference for simplelibext
   Type:                 ocamlbuild (0.1.0)
   InstallDir:           $htmldir/simplelibext
-  BuildTools:           ocamlbuild, ocamldoc
+  BuildTools+:          ocamldoc
   XOCamlbuildPath:      src/simplelibext
   XOCamlbuildLibraries: simplelibext
 

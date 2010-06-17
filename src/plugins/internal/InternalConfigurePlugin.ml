@@ -237,15 +237,16 @@ open OASISPlugin
 let init () =
   let module PU = Configure.Make(InternalId)
   in
-  let doit pkg =  
+  let doit ctxt pkg =  
+    ctxt, 
     {
-      moduls       = [InternalData.internalsys_ml];
-      setup        = ODNFunc.func 
-                       configure 
-                       "InternalConfigurePlugin.configure";
-      clean        = None;
-      distclean    = None;
-      other_action = (fun _ -> ());
+      chng_moduls    = [InternalData.internalsys_ml];
+      chng_clean     = None;
+      chng_distclean = None;
+      chng_main = 
+        (ODNFunc.func 
+           configure 
+           "InternalConfigurePlugin.configure");
     }
   in
     PU.register doit

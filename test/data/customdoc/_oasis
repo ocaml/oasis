@@ -6,6 +6,7 @@ LicenseFile: LICENSE
 License:     LGPL with OCaml linking exception
 Synopsis:    Minimal project in a single directory.
 Plugins:     META
+BuildTools:  ocamlbuild
 
 Library "with-a"
   Path: .

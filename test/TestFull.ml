@@ -1050,8 +1050,7 @@ let tests ctxt =
           "Makefile"; 
           "configure"; 
           "src/libtest_oasis_c_dependency.clib"; 
-          "src/test_oasis_c_dependency.mllib"; 
-          "src/test_oasis_c_dependency.odocl"] @ oasis_ocamlbuild_files,
+          "src/test_oasis_c_dependency.mllib"] @ oasis_ocamlbuild_files,
          [],
          [];
 
