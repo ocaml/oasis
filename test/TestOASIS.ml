@@ -279,6 +279,15 @@ let tests ctxt =
 
             "bug571/_oasis",
             ignore;
+
+            "test-freeform.oasis",
+            (fun pkg ->
+               assert_equal
+                 ~printer:(function
+                             | Some s -> Printf.sprintf "%S" s
+                             | None -> "<none>")
+                 (Some "a\nb\n\nc")
+                 pkg.description);
           ])
       @
        (List.rev_map file_of_vector

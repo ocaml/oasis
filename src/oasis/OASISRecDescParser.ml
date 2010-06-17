@@ -389,6 +389,61 @@ let parse_stream conf st =
                 find_field (StringEnd :: acc) []
          in
            find_field [] lines);
+
+
+      "Replace line containing '.' only by blank line",
+      (let rec replace_dot = 
+         function
+           | (RealLine (l1, _, _) as e1) :: 
+             RealLine (l2, c, ".") :: 
+             (RealLine (l3, _, _) as e2) ::
+             tl when l1 <> l2 && l2 <> l3 -> 
+               e1 :: RealLine (l2, c, "") :: replace_dot (e2 :: tl)
+
+           | (RealLine (l1, _, _) as e1) ::
+             RealLine (l2, c, ".") :: 
+             StringEnd :: tl when l1 <> l2 ->
+               e1 :: RealLine (l2, c, "") :: StringEnd :: lookup_string tl
+
+            | e :: tl -> 
+                e :: replace_dot tl
+
+           | [] ->
+               []
+
+       and lookup_string =
+         function 
+           | StringBegin :: tl ->
+               StringBegin :: replace_dot tl
+           | e :: tl ->
+               e :: lookup_string tl
+           | [] ->
+               []
+       in
+         lookup_string);
+
+      "Add EOL",
+      (let rec concat_string =
+         function
+           | RealLine (l1, charstart, str) :: 
+             ((RealLine (l2, _, _) :: _) as tl) when l2 <> l1 ->
+               RealLine (l1, charstart, str^"\n") :: concat_string tl
+           | StringEnd :: tl ->
+               StringEnd :: lookup_string tl
+           | hd :: tl ->
+               hd :: concat_string tl
+           | [] -> 
+               []
+       and lookup_string =
+         function 
+           | StringBegin :: tl ->
+               StringBegin :: concat_string tl
+           | e :: tl ->
+               e :: lookup_string tl
+           | [] ->
+               []
+       in
+         lookup_string)
       ]
   in
 
@@ -439,7 +494,7 @@ let parse_stream conf st =
                       (if !in_string then
                          String.escaped str
                        else
-                         str)
+                         str);
                 | BlockBegin ->
                     virtual_pos := Some "block begin";
                     Queue.add '{'chars_q 

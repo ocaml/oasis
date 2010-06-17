@@ -20,7 +20,7 @@
 (********************************************************************************)
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 774f2ea6331756f836b915521b922ee8) *)
+(* DO NOT EDIT (digest: 3847dd54affa36199ce056fbeabe5938) *)
 module OASISGettext = struct
 # 21 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
   
@@ -5451,7 +5451,7 @@ let setup_t =
             "Architecture for building OCaml libraries and applications";
           description =
             Some
-              "OASIS generates a full configure, build and install system for yourapplication. It starts with a simple `_oasis` file at the toplevel of yourproject and creates everything required..It uses external tools like OCamlbuild and it can be considered as the gluebetween various subsystems that do the job. It should support the followingtools:- OCamlbuild- OMake (todo)- OCamlMakefile (todo),- ocaml-autoconf (todo).It also features a do-it-yourself command line invocation and an internalconfigure/install scheme. Libraries are managed through findlib. It has beentested on GNU Linux and Windows..It also allows to have standard entry points and description. It helps tointegrates your libraries and software with third parties tools like GODI.";
+              "OASIS generates a full configure, build and install system for your\napplication. It starts with a simple `_oasis` file at the toplevel of your\nproject and creates everything required.\n\nIt uses external tools like OCamlbuild and it can be considered as the glue\nbetween various subsystems that do the job. It should support the following\ntools:\n- OCamlbuild\n- OMake (todo)\n- OCamlMakefile (todo),\n- ocaml-autoconf (todo)\n\nIt also features a do-it-yourself command line invocation and an internal\nconfigure/install scheme. Libraries are managed through findlib. It has been\ntested on GNU Linux and Windows.\n\nIt also allows to have standard entry points and description. It helps to\nintegrates your libraries and software with third parties tools like GODI.";
           categories = [];
           conf_type = ("internal", Some (VInt (0, VInt (1, VInt (0, VEnd)))));
           conf_custom =

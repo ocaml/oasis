@@ -195,20 +195,42 @@ let main ctxt pkg =
   in
 
   let pp_print_para fmt str = 
-    pp_open_vbox fmt 0;
-    pp_open_box fmt 0;
-    String.iter 
-      (function
-         | ' ' -> pp_print_space fmt ()
-         | '\n' -> 
-             pp_close_box fmt ();
-             pp_print_cut2 fmt ();
-             pp_open_box fmt 0;
-         | c -> pp_print_char fmt c)
-      str;
-    pp_close_box fmt ();
-    pp_print_cut2 fmt ();
-    pp_close_box fmt ()
+    let str_len =
+      String.length str
+    in
+    let rec decode_string i = 
+      if i < str_len then
+        begin
+          match str.[i] with 
+            | ' ' -> 
+                pp_print_space fmt ();
+                decode_string (i + 1)
+
+            | '\n' -> 
+                if i + 1 < str_len && str.[i + 1] = '\n' then
+                  begin
+                    pp_close_box fmt ();
+                    pp_print_cut2 fmt ();
+                    pp_open_box fmt 0;
+                    decode_string (i + 2)
+                  end
+                else
+                  begin
+                    pp_print_space fmt ();
+                    decode_string (i + 1)
+                  end
+
+            | c -> 
+                pp_print_char fmt c;
+                decode_string (i + 1)
+        end;
+    in
+      pp_open_vbox fmt 0;
+      pp_open_box fmt 0;
+      decode_string 0;
+      pp_close_box fmt ();
+      pp_print_cut2 fmt ();
+      pp_close_box fmt ()
   in
 
   let pp_print_title fmt str =
