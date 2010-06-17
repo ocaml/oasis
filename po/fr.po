@@ -22,7 +22,7 @@ msgstr " (__obligatoire__)"
 
 #: ../src/oasis/OASISHelp.ml:88
 msgid " * @[`%s`: %a@]"
-msgstr "·*·@[`%s` :·%a@]"
+msgstr " * @[`%s` : %a@]"
 
 #: ../src/OASISMain.ml:95
 msgid " Create a developper mode setup.ml. It will be automatically updated at each run."
@@ -66,7 +66,7 @@ msgstr "### Plugin: %s\n\n"
 
 #: ../src/base/BaseEnv.ml:500 ../src/base/BaseEnv.ml:494
 msgid "%s %s%s"
-msgstr "%s·%s%s"
+msgstr "%s %s%s"
 
 #: ../src/oasis/OASISValues.ml:421
 msgid "'%s' contains unbalanced curly braces"
@@ -129,11 +129,11 @@ msgstr "<vide>"
 
 #: ../src/oasis/OASISHelp.ml:117
 msgid "@[`%s %s`: %a@]"
-msgstr "@[`%s·%s` :·%a@]"
+msgstr "@[`%s·%s` : %a@]"
 
 #: ../src/oasis/OASISHelp.ml:122
 msgid "@[`%s`: %a@]"
-msgstr "@[`%s` :·%a@]"
+msgstr "@[`%s` : %a@]"
 
 #: ../src/base/BaseSetup.ml:165
 msgid "Action fail with error: %s"
@@ -1258,7 +1258,7 @@ msgstr "objet compilé"
 
 #: ../src/base/BaseArgExt.ml:41
 msgid "configure options:"
-msgstr "options de configuration :"
+msgstr "options de configuration : "
 
 #: ../src/oasis/OASISQuickstart.ml:273
 msgid "create a flag"
