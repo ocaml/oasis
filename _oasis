@@ -10,6 +10,7 @@ Copyrights:   (C) 2008-2010 OCamlCore SARL
 Homepage:     http://oasis.forge.ocamlcore.org/
 Plugins:      DevFiles (0.1.0), StdFiles (0.1.0), META (0.1.0)
 FilesAB:      src/oasis/OASISConf.ml.ab
+BuildTools:   ocamlbuild, make
 
 Synopsis: Architecture for building OCaml libraries and applications
 Description:
@@ -39,7 +40,6 @@ Flag gettext
   Description: Use ocaml-gettext for i18n
   Default: false
 
-BuildTools: make
 if flag(gettext) 
   PostBuildCommand: $make -C po all
   PostCleanCommand: $make -C po clean
@@ -77,7 +77,7 @@ Library oasis
            OASISValues,
            OASISVersion,
            OASISLicense,
-					 OASISFileTemplate
+           OASISFileTemplate
   InternalModules: OASISVersion_lexer,
                    OASISVersion_parser,
                    OASISSection,
@@ -91,7 +91,7 @@ Library oasis
                    OASISData
   CompiledObject: byte
   BuildDepends: fileutils, unix, str, extlib, findlib, odn, ocamlgraph
-  BuildTools: ocamlmod, ocamlyacc, ocamllex, ocamlify
+  BuildTools+: ocamlmod, ocamlyacc, ocamllex, ocamlify
   XMETADescription: _oasis file functions
   Install$: flag(libraries)
 
@@ -119,7 +119,7 @@ Library base
            BaseDynVar
   CompiledObject: byte
   BuildDepends: oasis
-  BuildTools: ocamlmod, ocamlify
+  BuildTools+: ocamlmod, ocamlify
   FindlibParent: oasis
   XMETADescription: setup.ml modules for OASIS
   Install$: flag(libraries)
@@ -151,12 +151,11 @@ Library "builtin-plugins"
   Install: false
   CompiledObject: byte
   BuildDepends: oasis, oasis.base
-  XOCamlbuildAutoDoc: false
   XMETAEnable: false
 
 Executable OASIS
-  Path:   src
-  MainIs: OASISMain.ml
+  Path:   src/cli
+  MainIs: Main.ml
   BuildDepends: oasis, oasis.base, builtin-plugins
 
 Executable test

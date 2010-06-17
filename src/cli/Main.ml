@@ -63,7 +63,7 @@ let () =
   in
 
   let _ =
-    OASISMainGettext.init
+    MainGettext.init
   in
 
   let args = 

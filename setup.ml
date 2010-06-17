@@ -20,8 +20,9 @@
 (********************************************************************************)
 
 (* OASIS_START *)
+(* DO NOT EDIT (digest: 774f2ea6331756f836b915521b922ee8) *)
 module OASISGettext = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
   
   (** Gettext interface
     *)
@@ -41,7 +42,7 @@ module OASISGettext = struct
 end
 
 module PropList = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/PropList.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/PropList.ml"
   
   (** Property list 
       @author Sylvain Le Gall
@@ -83,7 +84,7 @@ module PropList = struct
     let clear t =
       Hashtbl.clear t
   
-# 65 "/home/gildor/programmation/oasis/src/oasis/PropList.ml"
+# 66 "/home/gildor/programmation/oasis/src/oasis/PropList.ml"
   end
   
   module Schema = 
@@ -322,7 +323,7 @@ module PropList = struct
 end
 
 module OASISMessage = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISMessage.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISMessage.ml"
   
   (** Message to user
       @author Sylvain Le Gall
@@ -370,24 +371,27 @@ module OASISMessage = struct
   
   (** Print a debug message
     *)
-  let debug fmt =
-    generic_message !debug "D" fmt
+  let debug ?after fmt =
+    generic_message ?after !debug "D" fmt
   
   (** Print information message.
     *)
-  let info fmt = 
-    generic_message !verbose "I" fmt
+  let info ?after fmt = 
+    generic_message ?after !verbose "I" fmt
   
   (** Print a warning message 
     *)
-  let warning fmt =
-    generic_message !verbose "W" fmt
+  let warning ?after fmt =
+    generic_message ?after !verbose "W" fmt
   
   (** Print an error message and exit.
     *)
-  let error ?(exit=true) fmt =
+  let error ?(after=ignore) ?(exit=true) fmt =
     generic_message 
-      ~after:(fun () -> if exit then Pervasives.exit 1) 
+      ~after:(fun () -> 
+                if exit then 
+                  Pervasives.exit 1;
+                after ()) 
       !verbose 
       "E" fmt
   
@@ -402,7 +406,7 @@ module OASISMessage = struct
 end
 
 module OASISTypes = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISTypes.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISTypes.ml"
   
   (** OASIS types and exceptions
      @author Sylvain Le Gall
@@ -464,6 +468,9 @@ module OASISTypes = struct
     | GPL
     | LGPL
     | QPL
+    | CeCILL
+    | CeCILLB
+    | CeCILLC
     | LicenseWithVersion of license * version
     | LicenseWithLaterVersion of license * version
     | LicenseWithException of license * license_exception
@@ -697,7 +704,7 @@ module OASISTypes = struct
 end
 
 module OASISUtils = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISUtils.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISUtils.ml"
   
   (** Various utilities for OASIS.
     *)
@@ -857,7 +864,7 @@ module OASISUtils = struct
 end
 
 module OASISUnixPath = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISUnixPath.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISUnixPath.ml"
   
   (** Manipulate Unix style path
       @author Sylvain Le Gall
@@ -925,7 +932,7 @@ module OASISUnixPath = struct
 end
 
 module OASISVersion = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISVersion.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISVersion.ml"
   
   (** Version comparisons
       @author Sylvain Le Gall
@@ -1087,7 +1094,7 @@ module OASISVersion = struct
 end
 
 module OASISExpr = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISExpr.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISExpr.ml"
   
   (** OASIS expression manipulation
     *)
@@ -1196,7 +1203,7 @@ module OASISExpr = struct
 end
 
 module OASISSection = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISSection.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISSection.ml"
   
   (** Manipulate section 
       @author Sylvain Le Gall
@@ -1258,7 +1265,7 @@ module OASISSection = struct
 end
 
 module OASISBuildSection = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISBuildSection.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISBuildSection.ml"
   
   (** Build section functions
       @author Sylvain Le Gall
@@ -1269,7 +1276,7 @@ module OASISBuildSection = struct
 end
 
 module OASISExecutable = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISExecutable.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISExecutable.ml"
   
   (** Executable schema and generator
       @author Sylvain Le Gall
@@ -1308,7 +1315,7 @@ module OASISExecutable = struct
 end
 
 module OASISLibrary = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISLibrary.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISLibrary.ml"
   
   (** Library schema and generator 
       @author Sylvain Le Gall
@@ -1478,7 +1485,7 @@ module OASISLibrary = struct
         []
         pkg.sections
   
-  (** Compute internal library findlib names, including subpackage
+  (** Compute internal to findlib library matchings, including subpackage
       and return a map of it.
     *)
   let findlib_name_map pkg = 
@@ -1526,6 +1533,24 @@ module OASISLibrary = struct
         (f_ "Unable to translate internal library '%s' to findlib name")
         nm
   
+  (** Compute findlib to internal library matching 
+    *)
+  let name_findlib_map pkg =
+    let mp = 
+      findlib_name_map pkg
+    in
+      MapString.fold
+        (fun nm _ acc -> 
+           let fndlb_nm_full =
+             findlib_of_name 
+               ~recurse:true 
+               mp 
+               nm
+           in
+             MapString.add fndlb_nm_full nm acc)
+        mp
+        MapString.empty
+  
   (** Return the findlib root name of a group, it takes into account
       containers. So the return group name is the toplevel name
       for both libraries and theirs containers.
@@ -1568,7 +1593,7 @@ module OASISLibrary = struct
 end
 
 module OASISFlag = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISFlag.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISFlag.ml"
   
   (** Flag schema and generator
       @author Sylvain Le Gall
@@ -1579,7 +1604,7 @@ module OASISFlag = struct
 end
 
 module OASISPackage = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISPackage.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISPackage.ml"
   
   (** Package schema and generator 
       @author Sylvain Le Gall
@@ -1590,7 +1615,7 @@ module OASISPackage = struct
 end
 
 module OASISSourceRepository = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISSourceRepository.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISSourceRepository.ml"
   
   (** SourceRepository schema and generator
       @author Sylvain Le Gall
@@ -1601,7 +1626,7 @@ module OASISSourceRepository = struct
 end
 
 module OASISTest = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISTest.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISTest.ml"
   
   (** Test schema and generator
       @author Sylvain Le Gall
@@ -1610,7 +1635,7 @@ module OASISTest = struct
 end
 
 module OASISDocument = struct
-# 0 "/home/gildor/programmation/oasis/src/oasis/OASISDocument.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISDocument.ml"
   
   (** Test schema and generator
       @author Sylvain Le Gall
@@ -1619,9 +1644,9 @@ module OASISDocument = struct
 end
 
 
-# 1602 "setup.ml"
+# 1629 "setup.ml"
 module BaseEnvLight = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseEnvLight.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseEnvLight.ml"
   
   (** Simple environment, allowing only to read values
     *)
@@ -1722,9 +1747,9 @@ module BaseEnvLight = struct
 end
 
 
-# 1705 "setup.ml"
+# 1732 "setup.ml"
 module BaseFilePath = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseFilePath.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseFilePath.ml"
   
   (** Manipulate filename
       @author Sylvain Le Gall
@@ -1760,7 +1785,7 @@ module BaseFilePath = struct
 end
 
 module BaseEnv = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseEnv.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseEnv.ml"
   
   (** Read-only environment
       @author Sylvain Le Gall
@@ -1926,7 +1951,8 @@ module BaseEnv = struct
         ?(cli=CLINone)
         ?arg_help
         ?group 
-        name
+        name (* TODO: type constraint on the fact that name must be a valid OCaml
+                  id *)
         dflt =
   
     let default =
@@ -2269,7 +2295,7 @@ module BaseEnv = struct
 end
 
 module BaseExec = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseExec.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseExec.ml"
   
   (** Running commands 
       @author Sylvain Le Gall
@@ -2280,18 +2306,19 @@ module BaseExec = struct
   
   (** Run a command 
     *)
-  let run cmd args =
+  let run ?f_exit_code cmd args =
     let cmdline =
       String.concat " " (cmd :: args)
     in
       OASISMessage.info (f_ "Running command '%s'") cmdline;
-      match Sys.command cmdline with 
-        | 0 ->
-            ()
-        | i ->
+      match f_exit_code, Sys.command cmdline with 
+        | None, 0 -> ()
+        | None, i ->
             failwithf2
               (f_ "Command '%s' terminated with error code %d")
               cmdline i
+        | Some f, i -> 
+            f i
   
   (** Run a command and returns its output
     *)
@@ -2338,7 +2365,7 @@ module BaseExec = struct
 end
 
 module BaseFileUtil = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseFileUtil.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseFileUtil.ml"
   
   (** {1 File operation (install, which...)}
     *)
@@ -2440,6 +2467,28 @@ module BaseFileUtil = struct
          | _ -> "mkdir")
       [q tgt]
   
+  (** [mkdir_parent f tgt] Create a directory and its parent, call f with 
+      directory name created, in order.
+    *)
+  let rec mkdir_parent f tgt =
+    if Sys.file_exists tgt then
+      begin
+        if not (Sys.is_directory tgt) then
+          OASISUtils.failwithf1
+            (f_ "Cannot create directory '%s', a file of the same name already \
+                 exists")
+            tgt
+      end
+    else
+      begin
+        mkdir_parent f (Filename.dirname tgt);
+        if not (Sys.file_exists tgt) then 
+          begin
+            f tgt;
+            mkdir tgt
+          end
+      end
+  
   (** Remove a directory
     *)
   let rmdir tgt =
@@ -2500,7 +2549,7 @@ module BaseFileUtil = struct
 end
 
 module BaseArgExt = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseArgExt.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseArgExt.ml"
   
   (** Handle command line argument
       @author Sylvain Le Gall
@@ -2532,7 +2581,7 @@ module BaseArgExt = struct
 end
 
 module BaseCheck = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseCheck.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseCheck.ml"
   
   (** {1 Checking for particular features} 
     *)
@@ -2672,7 +2721,7 @@ module BaseCheck = struct
 end
 
 module BaseOCamlcConfig = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseOCamlcConfig.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseOCamlcConfig.ml"
   
   (** Read output of command ocamlc -config and transform it
     * into enviornment variable
@@ -2777,7 +2826,7 @@ module BaseOCamlcConfig = struct
 end
 
 module BaseStandardVar = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseStandardVar.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseStandardVar.ml"
   
   (** Most standard variables for OCaml 
       @author Sylvain Le Gall
@@ -3042,7 +3091,7 @@ module BaseStandardVar = struct
       "rm"
       (lazy 
          (match os_type () with
-            | "Win32" -> "rd"
+            | "Win32" -> "del"
             | _ -> "rm -f"))
   
   let rmdir =
@@ -3074,7 +3123,7 @@ module BaseStandardVar = struct
 end
 
 module BaseFileAB = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseFileAB.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseFileAB.ml"
   
   (** File .ab which content will be replaced by environment variable
      
@@ -3133,7 +3182,7 @@ module BaseFileAB = struct
 end
 
 module BaseLog = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseLog.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseLog.ml"
   
   (** Maintain a DB of what has been done
       @author Sylvain Le Gall
@@ -3166,24 +3215,41 @@ module BaseLog = struct
         let chn = 
           open_in default_filename
         in
-        let rec read_aux (st, acc) =
-          try 
-            let line = 
-              input_line chn
-            in
-            let t = 
-              Scanf.sscanf line "%S %S" 
-                (fun e d ->  e, d)
-            in
-              read_aux 
-                (if SetTupleString.mem t st then
-                   st, acc
-                 else
-                   SetTupleString.add t st,
-                   t :: acc)
-          with End_of_file ->
-            close_in chn;
-            List.rev acc
+        let scbuf = 
+          Scanf.Scanning.from_file default_filename
+        in
+        let rec read_aux (st, lst) =
+          if not (Scanf.Scanning.end_of_input scbuf) then
+            begin
+              let acc = 
+                try 
+                  Scanf.bscanf scbuf "%S %S@\n" 
+                    (fun e d ->  
+                       let t = 
+                         e, d
+                       in
+                         if SetTupleString.mem t st then
+                           st, lst
+                         else
+                           SetTupleString.add t st,
+                           t :: lst)
+                with Scanf.Scan_failure _ ->
+                  failwith 
+                    (Scanf.bscanf scbuf
+                       "%l" 
+                       (fun line ->
+                          Printf.sprintf
+                            "Malformed log file '%s' at line %d"
+                            default_filename
+                            line))
+              in
+                read_aux acc
+            end
+          else
+            begin
+              close_in chn;
+              List.rev lst
+            end
         in
           read_aux (SetTupleString.empty, [])
       )
@@ -3251,7 +3317,7 @@ module BaseLog = struct
 end
 
 module BaseBuilt = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseBuilt.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseBuilt.ml"
   
   (** Register files built to be installed
       @author Sylvain Le Gall
@@ -3269,7 +3335,7 @@ module BaseBuilt = struct
     | BLib     (* Library *)
     | BDoc     (* Document *)
   
-  let to_log_event t nm = 
+  let to_log_event_file t nm =
     "built_"^
     (match t with 
        | BExec -> "exec"
@@ -3278,27 +3344,35 @@ module BaseBuilt = struct
        | BDoc -> "doc")^
     "_"^nm
   
-  (* Register files built *)
+  let to_log_event_done t nm =
+    "is_"^(to_log_event_file t nm)
+  
+  (** Register files built *)
   let register t nm lst = 
+    BaseLog.register
+      (to_log_event_done t nm)
+      "true";
     List.iter
       (fun fn ->
          BaseLog.register 
-           (to_log_event t nm)
+           (to_log_event_file t nm)
            (if Filename.is_relative fn then
               Filename.concat (Sys.getcwd ()) fn
             else 
               fn))
       lst
   
-  (* Unregister all files built *)
+  (** Unregister all files built *)
   let unregister t nm =
     List.iter
       (fun (e, d) ->
          BaseLog.unregister e d)
-      (BaseLog.filter [to_log_event t nm])
+      (BaseLog.filter 
+         [to_log_event_file t nm; 
+          to_log_event_done t nm])
   
-  (* Fold-left files built, filter existing
-     and non-existing files.
+  (** Fold-left files built, filter existing
+      and non-existing files.
    *)
   let fold t nm f acc = 
     List.fold_left 
@@ -3326,7 +3400,20 @@ module BaseBuilt = struct
            end)
       acc
       (BaseLog.filter
-         [to_log_event t nm])
+         [to_log_event_file t nm])
+  
+  (** Check if a library/doc/exec has been built 
+    *)
+  let is_built t nm =
+    List.fold_left
+      (fun is_built (_, d) ->
+         (try 
+            bool_of_string d
+          with _ ->
+            false))
+      false
+      (BaseLog.filter
+         [to_log_event_done t nm])
   
   (** Generate the list of files that should be built for 
       an executable.
@@ -3375,26 +3462,10 @@ module BaseBuilt = struct
     in
       evs, unix_lst
   
-  (* Unregister all build event related to a package
-   *)
-  let clean_all pkg =
-      List.fold_left
-        (fun () ->
-           function
-             | Library (cs, _, _) -> 
-                 unregister BLib cs.cs_name
-             | Executable (cs, _, _) ->
-                 unregister BExec cs.cs_name;
-                 unregister BExecLib cs.cs_name
-             | Flag _ | SrcRepo _ | Doc _ | Test _ ->
-                 ())
-        ()
-        pkg.sections
-  
 end
 
 module BaseCustom = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseCustom.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseCustom.ml"
   
   (** Run custom command for pre/post hook
       @author Sylvain Le Gall
@@ -3450,7 +3521,7 @@ module BaseCustom = struct
 end
 
 module BaseDynVar = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseDynVar.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseDynVar.ml"
   
   (** Dynamic variables which are set in setup.log during compilation
       @author Sylvain Le Gall
@@ -3469,7 +3540,7 @@ module BaseDynVar = struct
       (function
          | Executable (cs, bs, exec) ->
              var_ignore
-               (var_define 
+               (var_redefine 
                   (* We don't save this variable *)
                   ~dump:false
                   ~short_desc:(fun () -> 
@@ -3501,7 +3572,7 @@ module BaseDynVar = struct
 end
 
 module BaseTest = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseTest.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseTest.ml"
   
   (** Run test
       @author Sylvain Le Gall
@@ -3515,7 +3586,7 @@ module BaseTest = struct
   
   let test lst pkg extra_args =
   
-    let one_test (test_plugin, cs, test) =
+    let one_test (failure, n) (test_plugin, cs, test) =
       if var_choose 
            ~name:(Printf.sprintf
                     (f_ "test %s run")
@@ -3550,7 +3621,7 @@ module BaseTest = struct
                   extra_args 
               in
                 back_cwd ();
-                failure_percent
+                (failure_percent +. failure, n + 1)
             with e ->
               begin
                 back_cwd ();
@@ -3560,22 +3631,20 @@ module BaseTest = struct
       else
         begin
           info (f_ "Skipping test '%s'") cs.cs_name;
-          0.0
+          (failure, n)
         end
     in
-    let res =
-      List.map
+    let (failed, n) =
+      List.fold_left
         one_test
+        (0.0, 0)
         lst
     in
-    let n = 
-      float_of_int (List.length res)
-    in
     let failure_percent =
-      List.fold_left
-        (fun r e -> r +. (e /. n))
+      if n = 0 then
         0.0
-        res
+      else
+        failed /. (float_of_int n)
     in
       (if failure_percent > 0.0 then
          warning 
@@ -3587,7 +3656,7 @@ module BaseTest = struct
 end
 
 module BaseDoc = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseDoc.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseDoc.ml"
   
   (** Build documentation
       @author Sylvain Le Gall
@@ -3621,9 +3690,9 @@ module BaseDoc = struct
 end
 
 module BaseSetup = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseSetup.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseSetup.ml"
   
-  (** Entry points for setup.ml
+  (** Entry points for setup
       @author Sylvain Le Gall
     *)
   
@@ -3745,6 +3814,59 @@ module BaseSetup = struct
       t.package
       args
   
+  let all t args =
+    let rno_doc = 
+      ref false
+    in
+    let rno_test =
+      ref false
+    in
+      Arg.parse_argv
+        ~current:(ref 0)
+        (Array.of_list 
+           ((Sys.executable_name^" all") :: 
+            (Array.to_list args)))
+        [
+          "-no-doc",
+          Arg.Set rno_doc,
+          s_ "Don't run doc target";
+  
+          "-no-test",
+          Arg.Set rno_test,
+          s_ "Don't run test target";
+        ]
+        (failwithf1 (f_ "Don't know what to do with '%s'"))
+        "";
+      
+      info "Running configure step";
+      configure t [||];
+      
+      info "Running build step";
+      build     t [||];
+  
+      (* Load setup.log dynamic variables *)
+      BaseDynVar.init t.package;
+      
+      if not !rno_doc then
+        begin
+          info "Running doc step";
+          doc t [||];
+        end
+      else
+        begin
+          info "Skipping doc step"
+        end;
+  
+      if not !rno_test then
+        begin
+          info "Running test step";
+          test t [||]
+        end
+      else
+        begin
+          info "Skipping test step"
+        end
+  
   (** Install step *)
   let install t args =
     BaseCustom.hook
@@ -3758,6 +3880,11 @@ module BaseSetup = struct
       t.package.uninstall_custom
       (t.uninstall t.package)
       args
+  
+  (** Reinstall step *)
+  let reinstall t args =
+    uninstall t args;
+    install t args
   
   (** Clean and distclean steps *)
   let clean, distclean = 
@@ -3892,37 +4019,46 @@ module BaseSetup = struct
                [
                  "-configure",
                  arg_handle ~allow_empty_env:true configure,
-                 s_ "[options*] Configure build process.";
+                 s_ "[options*] Configure the whole build process.";
   
                  "-build",
                  arg_handle build,
-                 s_ "[options*] Run build process.";
+                 s_ "[options*] Build executables and libraries.";
   
                  "-doc",
                  arg_handle doc,
-                 s_ "[options*] Build documentation.";
+                 s_ "[options*] Build documents.";
   
                  "-test",
                  arg_handle test,
                  s_ "[options*] Run tests.";
   
+                 "-all",
+                 arg_handle all,
+                 s_ "[options*] Run configure, build, doc and test targets.";
+  
                  "-install",
                  arg_handle install,
                  s_ "[options*] Install libraries, data, executables \
-                                and documentations.";
+                                and documents.";
   
                  "-uninstall",
                  arg_handle uninstall,
                  s_ "[options*] Uninstall libraries, data, executables \
-                                and documentations.";
+                                and documents.";
   
+                 "-reinstall",
+                 arg_handle reinstall,
+                 s_ "[options*] Uninstall and install libraries, data, \
+                                executables and documents.";
+                                 
                  "-clean",
                  arg_handle ~allow_empty_env:true clean,
-                 s_ "[options*] Clean build environment.";
+                 s_ "[options*] Clean files generated by a build.";
   
                  "-distclean",
                  arg_handle ~allow_empty_env:true distclean,
-                 s_ "[options*] Clean build and configure environment.";
+                 s_ "[options*] Clean files generated by a build and configure.";
   
                  "-no-catch-exn",
                  Arg.Clear catch_exn,
@@ -3946,7 +4082,7 @@ module BaseSetup = struct
                          (var_define
                             ~cli:CLIEnable
                             ?short_desc
-                            cs.cs_name
+                            (OASISUtils.varname_of_string cs.cs_name)
                             (lazy (string_of_bool 
                                      (var_choose 
                                         ~name:(Printf.sprintf 
@@ -3977,7 +4113,7 @@ module BaseSetup = struct
 end
 
 module BaseDev = struct
-# 0 "/home/gildor/programmation/oasis/src/base/BaseDev.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseDev.ml"
   
   (** Entry points for setup.ml in dev mode
     *)
@@ -3985,6 +4121,7 @@ module BaseDev = struct
   
   
   open OASISGettext
+  open OASISMessage
   
   type t = 
       {
@@ -4018,38 +4155,50 @@ module BaseDev = struct
         Sys.remove dev_fn
     in
   
+    let exit_on_child_error = 
+      function
+        | 0 -> ()
+        | i -> exit i
+    in
+  
+      at_exit safe_exit;
+  
       if Sys.file_exists dev_fn then
-        OASISMessage.error
-          (f_ "File %s already exists, cannot generate it for \
-               dev-mode. Please remove it first.")
-          dev_fn;
+        begin
+          OASISMessage.error
+            (f_ "File %s already exists, cannot generate it for \
+                 dev-mode. Please remove it first.")
+            dev_fn;
+        end
+      else
+        begin
+          try 
   
-      try 
-        (* Run OASIS to generate a temporary setup.ml
-         *)
-        BaseExec.run 
-          t.oasis_cmd 
-          ("-quiet" :: "-setup-fn" :: dev_fn :: t.oasis_args);
-        (* Run own command line by replacing setup.ml by 
-         * setup-dev.ml
-         *)
-        BaseExec.run
-          bootstrap_ocaml
-          bootstrap_args;
+            (* Run OASIS to generate a temporary setup.ml
+             *)
+            BaseExec.run 
+              ~f_exit_code:exit_on_child_error
+              t.oasis_cmd 
+              ("-quiet" :: "-setup-fn" :: dev_fn :: t.oasis_args);
   
-        (* Clean dev file *)
-        safe_exit ()
+            (* Run own command line by replacing setup.ml by 
+             * setup-dev.ml
+             *)
+            BaseExec.run
+              ~f_exit_code:exit_on_child_error
+              bootstrap_ocaml
+              bootstrap_args;
   
-      with e ->
-        safe_exit ();
-        raise e
+          with e ->
+            error "%s" (string_of_exception e)
+        end
   
 end
 
 
-# 4030 "setup.ml"
+# 4181 "setup.ml"
 module InternalConfigurePlugin = struct
-# 0 "/home/gildor/programmation/oasis/src/plugins/internal/InternalConfigurePlugin.ml"
+# 21 "/home/gildor/programmation/oasis/src/plugins/internal/InternalConfigurePlugin.ml"
   
   (** Configure using internal scheme
       @author Sylvain Le Gall
@@ -4265,7 +4414,7 @@ module InternalConfigurePlugin = struct
 end
 
 module InternalInstallPlugin = struct
-# 0 "/home/gildor/programmation/oasis/src/plugins/internal/InternalInstallPlugin.ml"
+# 21 "/home/gildor/programmation/oasis/src/plugins/internal/InternalInstallPlugin.ml"
   
   (** Install using internal scheme
       @author Sylvain Le Gall
@@ -4321,13 +4470,12 @@ module InternalInstallPlugin = struct
           tgt_dir
           (Filename.basename src_file)
       in
-        (* Check that target directory exist *)
-        if not (Sys.file_exists tgt_dir) then
-          (
-            info (f_ "Creating directory '%s'") tgt_dir;
-            BaseFileUtil.mkdir tgt_dir;
-            BaseLog.register install_dir_ev tgt_dir
-          );
+        (* Create target directory if needed *)
+        BaseFileUtil.mkdir_parent 
+          (fun dn ->
+             info (f_ "Creating directory '%s'") dn;
+             BaseLog.register install_dir_ev dn)
+          tgt_dir;
   
         (* Really install files *)
         info (f_ "Copying file '%s' to '%s'") src_file tgt_file;
@@ -4335,64 +4483,42 @@ module InternalInstallPlugin = struct
         BaseLog.register install_file_ev tgt_file
     in
   
-    (* Install all datas *)
-    let install_datas pkg = 
-  
-      (* Install data into defined directory *)
-      let install_data srcdir lst tgtdir =
-        let tgtdir = 
-          var_expand tgtdir
-        in
-          List.iter
-            (fun (src, tgt_opt) ->
-               let real_srcs = 
-                 BaseFileUtil.glob 
-                   (Filename.concat srcdir src)
-               in
-                 if real_srcs = [] then
-                   failwithf1
-                     (f_ "Wildcard '%s' doesn't match any files")
-                     src;
-                 List.iter 
-                   (fun fn -> 
-                      install_file 
-                        fn 
-                        (fun () -> 
-                           match tgt_opt with 
-                             | Some s -> var_expand s
-                             | None -> tgtdir))
-                   real_srcs)
-            lst
-      in       
-  
+    (* Install data into defined directory *)
+    let install_data srcdir lst tgtdir =
+      let tgtdir = 
+        var_expand tgtdir
+      in
         List.iter
-          (function
-             | Library (_, bs, _)
-             | Executable (_, bs, _) ->
-                 install_data
-                   bs.bs_path
-                   bs.bs_data_files
-                   (Filename.concat 
-                      (datarootdir ())
-                      pkg.name)
-             | Doc (_, doc) ->
-                 install_data
-                   Filename.current_dir_name
-                   doc.doc_data_files
-                   doc.doc_install_dir
-             | _ ->
-                 ())
-          pkg.sections
-    in
+          (fun (src, tgt_opt) ->
+             let real_srcs = 
+               BaseFileUtil.glob 
+                 (Filename.concat srcdir src)
+             in
+               if real_srcs = [] then
+                 failwithf1
+                   (f_ "Wildcard '%s' doesn't match any files")
+                   src;
+               List.iter 
+                 (fun fn -> 
+                    install_file 
+                      fn 
+                      (fun () -> 
+                         match tgt_opt with 
+                           | Some s -> var_expand s
+                           | None -> tgtdir))
+                 real_srcs)
+          lst
+    in       
   
     (** Install all libraries *)
     let install_libs pkg =
   
-      let files_of_library acc data_lib = 
+      let files_of_library (f_data, acc) data_lib = 
         let cs, bs, lib, lib_extra =
           !lib_hook data_lib
         in
-          if var_choose bs.bs_install then
+          if var_choose bs.bs_install && 
+             BaseBuilt.is_built BaseBuilt.BLib cs.cs_name then
             begin
               let acc = 
                 (* Start with acc + lib_extra *)
@@ -4428,33 +4554,49 @@ module InternalInstallPlugin = struct
                     acc
                     lib.lib_modules
               in
+  
+              let acc = 
                (* Get generated files *)
                BaseBuilt.fold 
                  BaseBuilt.BLib 
                  cs.cs_name
                  (fun acc fn -> fn :: acc)
                  acc
+              in
+  
+              let f_data () =
+                (* Install data associated with the library *)
+                install_data
+                  bs.bs_path
+                  bs.bs_data_files
+                  (Filename.concat 
+                     (datarootdir ())
+                     pkg.name);
+                f_data ()
+              in
+  
+                (f_data, acc)
             end
            else
             begin
-              acc
+              (f_data, acc)
             end
       in
   
       (* Install one group of library *)
       let install_group_lib grp = 
         (* Iterate through all group nodes *)
-        let rec install_group_lib_aux acc grp =
-          let acc, children = 
+        let rec install_group_lib_aux data_and_files grp =
+          let data_and_files, children = 
             match grp with 
               | Container (_, children) ->
-                  acc, children
+                  data_and_files, children
               | Package (_, cs, bs, lib, children) ->
-                  files_of_library acc (cs, bs, lib), children
+                  files_of_library data_and_files (cs, bs, lib), children
           in
             List.fold_left
               install_group_lib_aux
-              acc
+              data_and_files
               children
         in
   
@@ -4469,8 +4611,8 @@ module InternalInstallPlugin = struct
         in
   
         (* All files to install for this library *)
-        let files =
-          install_group_lib_aux [] grp
+        let f_data, files =
+          install_group_lib_aux (ignore, []) grp
         in
   
           (* Really install, if there is something to install *)
@@ -4504,7 +4646,11 @@ module InternalInstallPlugin = struct
                   (ocamlfind ()) 
                   ("install" :: findlib_name :: meta :: files);
                 BaseLog.register install_findlib_ev findlib_name 
-            end
+            end;
+  
+          (* Install data files *)
+          f_data ();
+  
       in
   
         (* We install libraries in groups *)
@@ -4518,7 +4664,8 @@ module InternalInstallPlugin = struct
         let (cs, bs, exec) =
           !exec_hook data_exec
         in
-          if var_choose bs.bs_install then
+          if var_choose bs.bs_install &&
+             BaseBuilt.is_built BaseBuilt.BExec cs.cs_name then
             begin
               let exec_libdir () =
                 Filename.concat 
@@ -4540,7 +4687,13 @@ module InternalInstallPlugin = struct
                      install_file
                        fn
                        exec_libdir)
-                  ()
+                  ();
+                install_data
+                  bs.bs_path
+                  bs.bs_data_files
+                  (Filename.concat 
+                     (datarootdir ())
+                     pkg.name)
             end
       in
         List.iter
@@ -4557,7 +4710,8 @@ module InternalInstallPlugin = struct
         let (cs, doc) =
           !doc_hook data
         in
-          if var_choose doc.doc_install then
+          if var_choose doc.doc_install &&
+             BaseBuilt.is_built BaseBuilt.BDoc cs.cs_name then
             begin
               let tgt_dir =
                 var_expand doc.doc_install_dir
@@ -4569,7 +4723,11 @@ module InternalInstallPlugin = struct
                      install_file 
                        fn 
                        (fun () -> tgt_dir))
-                ()
+                ();
+                install_data
+                  Filename.current_dir_name
+                  doc.doc_data_files
+                  doc.doc_install_dir
             end
       in
         List.iter
@@ -4583,8 +4741,7 @@ module InternalInstallPlugin = struct
     
       install_libs  pkg;
       install_execs pkg;
-      install_docs  pkg;
-      install_datas pkg
+      install_docs  pkg
   
   (* Uninstall already installed data *)
   let uninstall _ argv =
@@ -4641,9 +4798,9 @@ module InternalInstallPlugin = struct
 end
 
 
-# 4624 "setup.ml"
+# 4783 "setup.ml"
 module OCamlbuildCommon = struct
-# 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildCommon.ml"
+# 21 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildCommon.ml"
   
   (** Functions common to OCamlbuild build and doc plugin
     *)
@@ -4719,6 +4876,8 @@ module OCamlbuildCommon = struct
   
   (** Run ocamlbuild, unregister all clean events *)
   let run_ocamlbuild args extra_argv =
+    (* TODO: enforce that target in args must be UNIX encoded i.e. toto/index.html
+     *)
     BaseExec.run (ocamlbuild ()) (fix_args args extra_argv);
     (* Remove any clean event, we must run it again *)
     List.iter
@@ -4740,7 +4899,7 @@ module OCamlbuildCommon = struct
 end
 
 module OCamlbuildPlugin = struct
-# 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildPlugin.ml"
+# 21 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildPlugin.ml"
   
   (** Build using ocamlbuild  
       @author Sylvain Le Gall
@@ -4893,6 +5052,43 @@ module OCamlbuildPlugin = struct
         (List.flatten (List.rev_map fst rtargets))
     in
   
+    (* Compare two files, return true if they differ *)
+    let diff fn1 fn2 =
+      if Sys.file_exists fn1 && Sys.file_exists fn2 then
+        begin
+          let chn1 = open_in fn1 in
+          let chn2 = open_in fn2 in
+          let res =
+            if in_channel_length chn1 = in_channel_length chn2 then
+              begin
+                let len =
+                  4096
+                in
+                let str1 = 
+                  String.make len '\000'
+                in
+                let str2 =
+                  String.copy str1
+                in
+                  try
+                    while (String.compare str1 str2) = 0 do 
+                      really_input chn1 str1 0 len;
+                      really_input chn2 str2 0 len
+                    done;
+                    true
+                  with End_of_file ->
+                    false
+              end
+            else
+              true
+          in
+            close_in chn1; close_in chn2;
+            res
+        end
+      else
+        true
+    in
+  
     let last_rtargets =
       List.fold_left
         (fun acc (built, tgt) ->
@@ -4900,14 +5096,25 @@ module OCamlbuildPlugin = struct
              | Std nm -> 
                  (built, nm) :: acc
              | StdRename (src, tgt) ->
-                 (* We run with a fake list for event registering *)
-                 run_ocamlbuild (([], src) :: acc);
-                 (* And then copy and register *)
-                 BaseFileUtil.cp 
-                   (in_build_dir_of_unix src)
-                   tgt;
-                 List.iter check_and_register built;
-                 [])
+                 begin
+                   (* We run with a fake list for event registering *)
+                   run_ocamlbuild (([], src) :: acc);
+  
+                   (* And then copy and register *)
+                   begin
+                     let src_fn = 
+                       in_build_dir_of_unix src 
+                     in
+                       if diff src_fn tgt then
+                         BaseFileUtil.cp src_fn tgt
+                       else
+                         OASISMessage.info 
+                           (f_ "No need to copy file '%s' to '%s', same content")
+                           src_fn tgt
+                   end;
+                   List.iter check_and_register built;
+                   []
+                 end)
         []
         (!cond_targets_hook cond_targets)
     in
@@ -4916,12 +5123,21 @@ module OCamlbuildPlugin = struct
   
   let clean pkg extra_args  = 
     OCamlbuildCommon.run_clean extra_args;
-    BaseBuilt.clean_all pkg
+    List.iter
+      (function
+         | Library (cs, _, _) ->
+             BaseBuilt.unregister BaseBuilt.BLib cs.cs_name
+         | Executable (cs, _, _) ->
+             BaseBuilt.unregister BaseBuilt.BExec cs.cs_name;
+             BaseBuilt.unregister BaseBuilt.BExecLib cs.cs_name
+         | _ ->
+             ())
+      pkg.sections
   
 end
 
 module OCamlbuildDocPlugin = struct
-# 0 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildDocPlugin.ml"
+# 21 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/OCamlbuildDocPlugin.ml"
   
   (* Create documentation using ocamlbuild .odocl files
      @author Sylvain Le Gall
@@ -4934,21 +5150,20 @@ module OCamlbuildDocPlugin = struct
   
   
   
-  type t =
-      {
-        path:    dirname;
-        modules: string list;
-      } 
-  
-  let doc_build t pkg (cs, doc) argv =
+  let doc_build path pkg (cs, doc) argv =
     let index_html =
-      t.path^"/"^cs.cs_name^".docdir/index.html"
+      BaseFilePath.Unix.make
+        [
+          path;
+          cs.cs_name^".docdir";
+          "index.html";
+        ]
     in
     let tgt_dir =
       BaseFilePath.make
         [
           OCamlbuildCommon.build_dir argv;
-          BaseFilePath.of_unix t.path;
+          BaseFilePath.of_unix path;
           cs.cs_name^".docdir";
         ]
     in
@@ -4969,9 +5184,9 @@ module OCamlbuildDocPlugin = struct
 end
 
 
-# 4952 "setup.ml"
+# 5169 "setup.ml"
 module CustomPlugin = struct
-# 0 "/home/gildor/programmation/oasis/src/plugins/custom/CustomPlugin.ml"
+# 21 "/home/gildor/programmation/oasis/src/plugins/custom/CustomPlugin.ml"
   
   (** Generate custom configure/build/doc/test/install system
       @author
@@ -5018,8 +5233,8 @@ module CustomPlugin = struct
   struct 
     let main t pkg extra_args =
       main t pkg extra_args;
-      List.fold_left
-        (fun () sct ->
+      List.iter
+        (fun sct ->
            let evs =
              match sct with 
                | Library (cs, bs, lib) when var_choose bs.bs_build ->
@@ -5046,12 +5261,20 @@ module CustomPlugin = struct
              List.iter
                (fun (bt, bnm, lst) -> BaseBuilt.register bt bnm lst)
                evs)
-        ()
         pkg.sections
   
     let clean t pkg extra_args =
       clean t pkg extra_args;
-      BaseBuilt.clean_all pkg
+      List.iter
+        (function
+           | Library (cs, _, _) ->
+               BaseBuilt.unregister BaseBuilt.BLib cs.cs_name
+           | Executable (cs, _, _) ->
+               BaseBuilt.unregister BaseBuilt.BExec cs.cs_name;
+               BaseBuilt.unregister BaseBuilt.BExecLib cs.cs_name
+           | _ ->
+               ())
+        pkg.sections
   
     let distclean t pkg extra_args =
       distclean t pkg extra_args
@@ -5080,10 +5303,12 @@ module CustomPlugin = struct
   module Doc =
   struct
     let main t pkg (cs, _) extra_args =
-      main t pkg extra_args
+      main t pkg extra_args;
+      BaseBuilt.register BaseBuilt.BDoc cs.cs_name []
   
     let clean t pkg (cs, _) extra_args =
-      clean t pkg extra_args
+      clean t pkg extra_args;
+      BaseBuilt.unregister BaseBuilt.BDoc cs.cs_name
   
     let distclean t pkg (cs, _) extra_args =
       distclean t pkg extra_args
@@ -5092,721 +5317,546 @@ module CustomPlugin = struct
 end
 
 
-# 5075 "setup.ml"
+# 5302 "setup.ml"
 open OASISTypes;;
-let setup () =
-  BaseSetup.setup
-    {
-       BaseSetup.configure = InternalConfigurePlugin.configure;
-       build = OCamlbuildPlugin.build;
-       test =
-         [
-            ("main",
-              CustomPlugin.Test.main
-                {
-                   CustomPlugin.cmd_main = [(EBool true, ("$test", []))];
-                   cmd_clean = [(EBool true, None)];
-                   cmd_distclean = [(EBool true, None)];
-                   })
-         ];
-       doc =
-         [
-            ("manual",
-              CustomPlugin.Doc.main
-                {
-                   CustomPlugin.cmd_main =
-                     [
-                        (EFlag "gettext",
-                          ("$OASIS",
-                            [
-                               "--gettext-language";
-                               "C";
-                               "-documentation";
-                               ">";
-                               "doc/MANUAL.mkd"
-                            ]));
-                        (ENot (EFlag "gettext"),
-                          ("$OASIS",
-                            ["-documentation"; ">"; "doc/MANUAL.mkd"]))
-                     ];
-                   cmd_clean =
-                     [(EBool true, Some (("$rm", ["doc/MANUAL.mkd"])))];
-                   cmd_distclean = [(EBool true, None)];
-                   });
-            ("oasis",
-              OCamlbuildDocPlugin.doc_build
-                {
-                   OCamlbuildDocPlugin.path = "src/oasis";
-                   modules =
-                     [
-                        "FormatExt";
-                        "OASISGettext";
-                        "OASISMessage";
-                        "ODNFunc";
-                        "PropList";
-                        "OASIS";
-                        "OASISBuildSection";
-                        "OASISDocument";
-                        "OASISExecutable";
-                        "OASISExpr";
-                        "OASISFlag";
-                        "OASISHelp";
-                        "OASISLibrary";
-                        "OASISPackage";
-                        "OASISPlugin";
-                        "OASISSourceRepository";
-                        "OASISTest";
-                        "OASISTypes";
-                        "OASISUnixPath";
-                        "OASISUtils";
-                        "OASISValues";
-                        "OASISVersion";
-                        "OASISLicense";
-                        "OASISFileTemplate";
-                     ];
-                   });
-            ("base",
-              OCamlbuildDocPlugin.doc_build
-                {
-                   OCamlbuildDocPlugin.path = "src/base";
-                   modules =
-                     [
-                        "BaseArgExt";
-                        "BaseBuilt";
-                        "BaseCheck";
-                        "BaseCustom";
-                        "BaseData";
-                        "BaseDev";
-                        "BaseDoc";
-                        "BaseEnvLight";
-                        "BaseEnv";
-                        "BaseExec";
-                        "BaseFileAB";
-                        "BaseFilePath";
-                        "BaseFileUtil";
-                        "BaseGenerate";
-                        "BaseLog";
-                        "BaseOCamlcConfig";
-                        "BaseSetup";
-                        "BaseStandardVar";
-                        "BaseTest";
-                        "BaseDynVar"
-                     ];
-                   })
-         ];
-       install = InternalInstallPlugin.install;
-       uninstall = InternalInstallPlugin.uninstall;
-       clean = [OCamlbuildPlugin.clean];
-       clean_test =
-         [
-            ("main",
-              CustomPlugin.Test.clean
-                {
-                   CustomPlugin.cmd_main = [(EBool true, ("$test", []))];
-                   cmd_clean = [(EBool true, None)];
-                   cmd_distclean = [(EBool true, None)];
-                   })
-         ];
-       clean_doc =
-         [
-            ("manual",
-              CustomPlugin.Doc.clean
-                {
-                   CustomPlugin.cmd_main =
-                     [
-                        (EFlag "gettext",
-                          ("$OASIS",
-                            [
-                               "--gettext-language";
-                               "C";
-                               "-documentation";
-                               ">";
-                               "doc/MANUAL.mkd"
-                            ]));
-                        (ENot (EFlag "gettext"),
-                          ("$OASIS",
-                            ["-documentation"; ">"; "doc/MANUAL.mkd"]))
-                     ];
-                   cmd_clean =
-                     [(EBool true, Some (("$rm", ["doc/MANUAL.mkd"])))];
-                   cmd_distclean = [(EBool true, None)];
-                   });
-            ("oasis",
-              OCamlbuildDocPlugin.doc_clean
-                {
-                   OCamlbuildDocPlugin.path = "src/oasis";
-                   modules =
-                     [
-                        "FormatExt";
-                        "OASISGettext";
-                        "OASISMessage";
-                        "ODNFunc";
-                        "PropList";
-                        "OASIS";
-                        "OASISBuildSection";
-                        "OASISDocument";
-                        "OASISExecutable";
-                        "OASISExpr";
-                        "OASISFlag";
-                        "OASISHelp";
-                        "OASISLibrary";
-                        "OASISPackage";
-                        "OASISPlugin";
-                        "OASISSourceRepository";
-                        "OASISTest";
-                        "OASISTypes";
-                        "OASISUnixPath";
-                        "OASISUtils";
-                        "OASISValues";
-                        "OASISVersion";
-                        "OASISLicense";
-                        "OASISFileTemplate";
-                     ];
-                   });
-            ("base",
-              OCamlbuildDocPlugin.doc_clean
-                {
-                   OCamlbuildDocPlugin.path = "src/base";
-                   modules =
-                     [
-                        "BaseArgExt";
-                        "BaseBuilt";
-                        "BaseCheck";
-                        "BaseCustom";
-                        "BaseData";
-                        "BaseDev";
-                        "BaseDoc";
-                        "BaseEnvLight";
-                        "BaseEnv";
-                        "BaseExec";
-                        "BaseFileAB";
-                        "BaseFilePath";
-                        "BaseFileUtil";
-                        "BaseGenerate";
-                        "BaseLog";
-                        "BaseOCamlcConfig";
-                        "BaseSetup";
-                        "BaseStandardVar";
-                        "BaseTest";
-                        "BaseDynVar"
-                     ];
-                   })
-         ];
-       distclean = [];
-       distclean_test =
-         [
-            ("main",
-              CustomPlugin.Test.distclean
-                {
-                   CustomPlugin.cmd_main = [(EBool true, ("$test", []))];
-                   cmd_clean = [(EBool true, None)];
-                   cmd_distclean = [(EBool true, None)];
-                   })
-         ];
-       distclean_doc =
-         [
-            ("manual",
-              CustomPlugin.Doc.distclean
-                {
-                   CustomPlugin.cmd_main =
-                     [
-                        (EFlag "gettext",
-                          ("$OASIS",
-                            [
-                               "--gettext-language";
-                               "C";
-                               "-documentation";
-                               ">";
-                               "doc/MANUAL.mkd"
-                            ]));
-                        (ENot (EFlag "gettext"),
-                          ("$OASIS",
-                            ["-documentation"; ">"; "doc/MANUAL.mkd"]))
-                     ];
-                   cmd_clean =
-                     [(EBool true, Some (("$rm", ["doc/MANUAL.mkd"])))];
-                   cmd_distclean = [(EBool true, None)];
-                   })
-         ];
-       package =
-         {
-            oasis_version = VInt (0, VInt (1, VEnd));
-            ocaml_version =
-              Some (VGreaterEqual (VInt (3, VInt (10, VInt (2, VEnd)))));
-            findlib_version = None;
-            name = "oasis";
-            version = VInt (0, VInt (1, VInt (0, VEnd)));
-            license =
-              LicenseWithException
-                (LicenseWithVersion (LGPL, VInt (2, VInt (1, VEnd))),
-                  OCamlLinkingException);
-            license_file = Some "COPYING.txt";
-            copyrights = ["(C) 2008-2010 OCamlCore SARL"];
-            maintainers = [];
-            authors = ["Sylvain Le Gall"];
-            homepage = Some "http://oasis.forge.ocamlcore.org/";
-            synopsis =
-              "Architecture for building OCaml libraries and applications";
-            description =
-              Some
-                "OASIS generates a full configure, build and install system for your application. It starts with a simple `_oasis` file at the toplevel of your project and creates everything required.\nIt uses external tools like OCamlbuild and it can be considered as the glue between various subsystems that do the job. It should support the following tools: - OCamlbuild - OMake (todo) - OCamlMakefile (todo), - ocaml-autoconf (todo)\nIt also features a do-it-yourself command line invocation and an internal configure/install scheme. Libraries are managed through findlib. It has been tested on GNU Linux and Windows.\nIt also allows to have standard entry points and description. It helps to integrates your libraries and software with third parties tools like GODI.";
-            categories = [];
-            conf_type =
-              ("internal", Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-            conf_custom =
+
+let setup_t =
+  {
+     BaseSetup.configure = InternalConfigurePlugin.configure;
+     build = OCamlbuildPlugin.build;
+     test =
+       [
+          ("main",
+            CustomPlugin.Test.main
               {
-                 pre_command = [(EBool true, None)];
-                 post_command = [(EBool true, None)];
-                 };
-            build_type =
-              ("ocamlbuild", Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-            build_custom =
+                 CustomPlugin.cmd_main = [(EBool true, ("$test", []))];
+                 cmd_clean = [(EBool true, None)];
+                 cmd_distclean = [(EBool true, None)];
+                 })
+       ];
+     doc =
+       [
+          ("manual",
+            CustomPlugin.Doc.main
               {
-                 pre_command = [(EBool true, None)];
-                 post_command =
+                 CustomPlugin.cmd_main =
                    [
-                      (EBool true, None);
                       (EFlag "gettext",
-                        Some (("$make", ["-C"; "po"; "all"])))
+                        ("$OASIS",
+                          [
+                             "--gettext-language";
+                             "C";
+                             "-documentation";
+                             ">";
+                             "doc/MANUAL.mkd"
+                          ]));
+                      (ENot (EFlag "gettext"),
+                        ("$OASIS", ["-documentation"; ">"; "doc/MANUAL.mkd"]))
                    ];
-                 };
-            install_type =
-              ("internal", Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-            install_custom =
+                 cmd_clean =
+                   [(EBool true, Some (("$rm", ["doc/MANUAL.mkd"])))];
+                 cmd_distclean = [(EBool true, None)];
+                 })
+       ];
+     install = InternalInstallPlugin.install;
+     uninstall = InternalInstallPlugin.uninstall;
+     clean = [OCamlbuildPlugin.clean];
+     clean_test =
+       [
+          ("main",
+            CustomPlugin.Test.clean
               {
-                 pre_command = [(EBool true, None)];
-                 post_command =
+                 CustomPlugin.cmd_main = [(EBool true, ("$test", []))];
+                 cmd_clean = [(EBool true, None)];
+                 cmd_distclean = [(EBool true, None)];
+                 })
+       ];
+     clean_doc =
+       [
+          ("manual",
+            CustomPlugin.Doc.clean
+              {
+                 CustomPlugin.cmd_main =
                    [
-                      (EBool true, None);
                       (EFlag "gettext",
+                        ("$OASIS",
+                          [
+                             "--gettext-language";
+                             "C";
+                             "-documentation";
+                             ">";
+                             "doc/MANUAL.mkd"
+                          ]));
+                      (ENot (EFlag "gettext"),
+                        ("$OASIS", ["-documentation"; ">"; "doc/MANUAL.mkd"]))
+                   ];
+                 cmd_clean =
+                   [(EBool true, Some (("$rm", ["doc/MANUAL.mkd"])))];
+                 cmd_distclean = [(EBool true, None)];
+                 })
+       ];
+     distclean = [];
+     distclean_test =
+       [
+          ("main",
+            CustomPlugin.Test.distclean
+              {
+                 CustomPlugin.cmd_main = [(EBool true, ("$test", []))];
+                 cmd_clean = [(EBool true, None)];
+                 cmd_distclean = [(EBool true, None)];
+                 })
+       ];
+     distclean_doc =
+       [
+          ("manual",
+            CustomPlugin.Doc.distclean
+              {
+                 CustomPlugin.cmd_main =
+                   [
+                      (EFlag "gettext",
+                        ("$OASIS",
+                          [
+                             "--gettext-language";
+                             "C";
+                             "-documentation";
+                             ">";
+                             "doc/MANUAL.mkd"
+                          ]));
+                      (ENot (EFlag "gettext"),
+                        ("$OASIS", ["-documentation"; ">"; "doc/MANUAL.mkd"]))
+                   ];
+                 cmd_clean =
+                   [(EBool true, Some (("$rm", ["doc/MANUAL.mkd"])))];
+                 cmd_distclean = [(EBool true, None)];
+                 })
+       ];
+     package =
+       {
+          oasis_version = VInt (0, VInt (1, VEnd));
+          ocaml_version =
+            Some (VGreaterEqual (VInt (3, VInt (11, VInt (0, VEnd)))));
+          findlib_version = None;
+          name = "oasis";
+          version = VInt (0, VInt (1, VInt (0, VEnd)));
+          license =
+            LicenseWithException
+              (LicenseWithVersion (LGPL, VInt (2, VInt (1, VEnd))),
+                OCamlLinkingException);
+          license_file = Some "COPYING.txt";
+          copyrights = ["(C) 2008-2010 OCamlCore SARL"];
+          maintainers = [];
+          authors = ["Sylvain Le Gall"];
+          homepage = Some "http://oasis.forge.ocamlcore.org/";
+          synopsis =
+            "Architecture for building OCaml libraries and applications";
+          description =
+            Some
+              "OASIS generates a full configure, build and install system for yourapplication. It starts with a simple `_oasis` file at the toplevel of yourproject and creates everything required..It uses external tools like OCamlbuild and it can be considered as the gluebetween various subsystems that do the job. It should support the followingtools:- OCamlbuild- OMake (todo)- OCamlMakefile (todo),- ocaml-autoconf (todo).It also features a do-it-yourself command line invocation and an internalconfigure/install scheme. Libraries are managed through findlib. It has beentested on GNU Linux and Windows..It also allows to have standard entry points and description. It helps tointegrates your libraries and software with third parties tools like GODI.";
+          categories = [];
+          conf_type = ("internal", Some (VInt (0, VInt (1, VInt (0, VEnd)))));
+          conf_custom =
+            {
+               pre_command = [(EBool true, None)];
+               post_command = [(EBool true, None)];
+               };
+          build_type =
+            ("ocamlbuild", Some (VInt (0, VInt (1, VInt (0, VEnd)))));
+          build_custom =
+            {
+               pre_command = [(EBool true, None)];
+               post_command =
+                 [
+                    (EBool true, None);
+                    (EFlag "gettext", Some (("$make", ["-C"; "po"; "all"])))
+                 ];
+               };
+          install_type =
+            ("internal", Some (VInt (0, VInt (1, VInt (0, VEnd)))));
+          install_custom =
+            {
+               pre_command = [(EBool true, None)];
+               post_command =
+                 [
+                    (EBool true, None);
+                    (EFlag "gettext",
+                      Some
+                        (("$make",
+                           [
+                              "-C";
+                              "po";
+                              "install";
+                              "PODIR=$prefix/share/locale"
+                           ])))
+                 ];
+               };
+          uninstall_custom =
+            {
+               pre_command = [(EBool true, None)];
+               post_command =
+                 [
+                    (EBool true, None);
+                    (EFlag "gettext",
+                      Some
+                        (("$make",
+                           [
+                              "-C";
+                              "po";
+                              "install";
+                              "PODIR=$prefix/share/locale"
+                           ])))
+                 ];
+               };
+          clean_custom =
+            {
+               pre_command = [(EBool true, None)];
+               post_command =
+                 [
+                    (EBool true, None);
+                    (EFlag "gettext",
+                      Some (("$make", ["-C"; "po"; "clean"])))
+                 ];
+               };
+          distclean_custom =
+            {
+               pre_command = [(EBool true, None)];
+               post_command = [(EBool true, None)];
+               };
+          files_ab = ["src/oasis/OASISConf.ml.ab"];
+          sections =
+            [
+               Executable
+                 ({cs_name = "ocamlmod"; cs_data = PropList.Data.create (); },
+                   {
+                      bs_build = [(EBool true, true)];
+                      bs_install = [(EBool true, false)];
+                      bs_path = "src/tools";
+                      bs_compiled_object = Byte;
+                      bs_build_depends =
+                        [
+                           FindlibPackage ("fileutils", None);
+                           FindlibPackage ("str", None)
+                        ];
+                      bs_build_tools =
+                        [ExternalTool "ocamlbuild"; ExternalTool "make"];
+                      bs_c_sources = [];
+                      bs_data_files = [];
+                      bs_ccopt = [(EBool true, [])];
+                      bs_cclib = [(EBool true, [])];
+                      bs_dlllib = [(EBool true, [])];
+                      bs_dllpath = [(EBool true, [])];
+                      bs_byteopt = [(EBool true, [])];
+                      bs_nativeopt = [(EBool true, [])];
+                      },
+                   {exec_custom = false; exec_main_is = "ocamlmod.ml"; });
+               Library
+                 ({cs_name = "oasis"; cs_data = PropList.Data.create (); },
+                   {
+                      bs_build = [(EBool true, true)];
+                      bs_install =
+                        [(EBool true, false); (EFlag "libraries", true)];
+                      bs_path = "src/oasis";
+                      bs_compiled_object = Byte;
+                      bs_build_depends =
+                        [
+                           FindlibPackage ("fileutils", None);
+                           FindlibPackage ("unix", None);
+                           FindlibPackage ("str", None);
+                           FindlibPackage ("extlib", None);
+                           FindlibPackage ("findlib", None);
+                           FindlibPackage ("odn", None);
+                           FindlibPackage ("ocamlgraph", None)
+                        ];
+                      bs_build_tools =
+                        [
+                           ExternalTool "ocamlbuild";
+                           ExternalTool "make";
+                           InternalExecutable "ocamlmod";
+                           ExternalTool "ocamlyacc";
+                           ExternalTool "ocamllex";
+                           ExternalTool "ocamlify"
+                        ];
+                      bs_c_sources = [];
+                      bs_data_files = [];
+                      bs_ccopt = [(EBool true, [])];
+                      bs_cclib = [(EBool true, [])];
+                      bs_dlllib = [(EBool true, [])];
+                      bs_dllpath = [(EBool true, [])];
+                      bs_byteopt = [(EBool true, [])];
+                      bs_nativeopt = [(EBool true, [])];
+                      },
+                   {
+                      lib_modules =
+                        [
+                           "FormatExt";
+                           "OASISGettext";
+                           "OASISMessage";
+                           "ODNFunc";
+                           "PropList";
+                           "OASIS";
+                           "OASISBuildSection";
+                           "OASISDocument";
+                           "OASISExecutable";
+                           "OASISExpr";
+                           "OASISFlag";
+                           "OASISHelp";
+                           "OASISLibrary";
+                           "OASISPackage";
+                           "OASISPlugin";
+                           "OASISSourceRepository";
+                           "OASISTest";
+                           "OASISTypes";
+                           "OASISUnixPath";
+                           "OASISUtils";
+                           "OASISValues";
+                           "OASISVersion";
+                           "OASISLicense";
+                           "OASISFileTemplate"
+                        ];
+                      lib_internal_modules =
+                        [
+                           "OASISVersion_lexer";
+                           "OASISVersion_parser";
+                           "OASISSection";
+                           "OASISSchema";
+                           "OASISConf";
+                           "OASISAst";
+                           "OASISCheck";
+                           "OASISRecDescParser";
+                           "OASISCustom";
+                           "OASISQuickstart";
+                           "OASISData"
+                        ];
+                      lib_findlib_parent = None;
+                      lib_findlib_name = None;
+                      lib_findlib_containers = [];
+                      });
+               Library
+                 ({cs_name = "base"; cs_data = PropList.Data.create (); },
+                   {
+                      bs_build = [(EBool true, true)];
+                      bs_install =
+                        [(EBool true, false); (EFlag "libraries", true)];
+                      bs_path = "src/base";
+                      bs_compiled_object = Byte;
+                      bs_build_depends = [InternalLibrary "oasis"];
+                      bs_build_tools =
+                        [
+                           ExternalTool "ocamlbuild";
+                           ExternalTool "make";
+                           InternalExecutable "ocamlmod";
+                           ExternalTool "ocamlify"
+                        ];
+                      bs_c_sources = [];
+                      bs_data_files = [];
+                      bs_ccopt = [(EBool true, [])];
+                      bs_cclib = [(EBool true, [])];
+                      bs_dlllib = [(EBool true, [])];
+                      bs_dllpath = [(EBool true, [])];
+                      bs_byteopt = [(EBool true, [])];
+                      bs_nativeopt = [(EBool true, [])];
+                      },
+                   {
+                      lib_modules =
+                        [
+                           "BaseArgExt";
+                           "BaseBuilt";
+                           "BaseCheck";
+                           "BaseCustom";
+                           "BaseData";
+                           "BaseDev";
+                           "BaseDoc";
+                           "BaseEnvLight";
+                           "BaseEnv";
+                           "BaseExec";
+                           "BaseFileAB";
+                           "BaseFilePath";
+                           "BaseFileUtil";
+                           "BaseGenerate";
+                           "BaseLog";
+                           "BaseOCamlcConfig";
+                           "BaseSetup";
+                           "BaseStandardVar";
+                           "BaseTest";
+                           "BaseDynVar"
+                        ];
+                      lib_internal_modules = [];
+                      lib_findlib_parent = Some "oasis";
+                      lib_findlib_name = None;
+                      lib_findlib_containers = [];
+                      });
+               Library
+                 ({
+                     cs_name = "builtin-plugins";
+                     cs_data = PropList.Data.create ();
+                     },
+                   {
+                      bs_build = [(EBool true, true)];
+                      bs_install = [(EBool true, false)];
+                      bs_path = "src";
+                      bs_compiled_object = Byte;
+                      bs_build_depends =
+                        [InternalLibrary "oasis"; InternalLibrary "base"];
+                      bs_build_tools =
+                        [ExternalTool "ocamlbuild"; ExternalTool "make"];
+                      bs_c_sources = [];
+                      bs_data_files = [];
+                      bs_ccopt = [(EBool true, [])];
+                      bs_cclib = [(EBool true, [])];
+                      bs_dlllib = [(EBool true, [])];
+                      bs_dllpath = [(EBool true, [])];
+                      bs_byteopt = [(EBool true, [])];
+                      bs_nativeopt = [(EBool true, [])];
+                      },
+                   {
+                      lib_modules = ["OASISBuiltinPlugins"];
+                      lib_internal_modules =
+                        [
+                           "plugins/none/NonePlugin";
+                           "plugins/none/NoneData";
+                           "plugins/internal/InternalConfigurePlugin";
+                           "plugins/internal/InternalInstallPlugin";
+                           "plugins/internal/InternalData";
+                           "plugins/internal/InternalId";
+                           "plugins/ocamlbuild/OCamlbuildPlugin";
+                           "plugins/ocamlbuild/OCamlbuildDocPlugin";
+                           "plugins/ocamlbuild/OCamlbuildData";
+                           "plugins/ocamlbuild/OCamlbuildCommon";
+                           "plugins/ocamlbuild/OCamlbuildId";
+                           "plugins/ocamlbuild/MyOCamlbuildBase";
+                           "plugins/ocamlbuild/MyOCamlbuildFindlib";
+                           "plugins/custom/CustomPlugin";
+                           "plugins/custom/CustomData";
+                           "plugins/extra/META/METAPlugin";
+                           "plugins/extra/META/METAData";
+                           "plugins/extra/devfiles/DevFilesPlugin";
+                           "plugins/extra/devfiles/DevFilesData";
+                           "plugins/extra/stdfiles/StdFilesPlugin";
+                           "plugins/extra/stdfiles/StdFilesData"
+                        ];
+                      lib_findlib_parent = None;
+                      lib_findlib_name = None;
+                      lib_findlib_containers = [];
+                      });
+               Executable
+                 ({cs_name = "test"; cs_data = PropList.Data.create (); },
+                   {
+                      bs_build = [(EBool true, true)];
+                      bs_install = [(EBool true, false)];
+                      bs_path = "test";
+                      bs_compiled_object = Byte;
+                      bs_build_depends =
+                        [
+                           FindlibPackage ("oUnit", None);
+                           InternalLibrary "oasis";
+                           InternalLibrary "base";
+                           InternalLibrary "builtin-plugins"
+                        ];
+                      bs_build_tools =
+                        [ExternalTool "ocamlbuild"; ExternalTool "make"];
+                      bs_c_sources = [];
+                      bs_data_files = [];
+                      bs_ccopt = [(EBool true, [])];
+                      bs_cclib = [(EBool true, [])];
+                      bs_dlllib = [(EBool true, [])];
+                      bs_dllpath = [(EBool true, [])];
+                      bs_byteopt = [(EBool true, [])];
+                      bs_nativeopt = [(EBool true, [])];
+                      },
+                   {exec_custom = false; exec_main_is = "test.ml"; });
+               Executable
+                 ({cs_name = "OASIS"; cs_data = PropList.Data.create (); },
+                   {
+                      bs_build = [(EBool true, true)];
+                      bs_install = [(EBool true, true)];
+                      bs_path = "src/cli";
+                      bs_compiled_object = Byte;
+                      bs_build_depends =
+                        [
+                           InternalLibrary "oasis";
+                           InternalLibrary "base";
+                           InternalLibrary "builtin-plugins"
+                        ];
+                      bs_build_tools =
+                        [ExternalTool "ocamlbuild"; ExternalTool "make"];
+                      bs_c_sources = [];
+                      bs_data_files = [];
+                      bs_ccopt = [(EBool true, [])];
+                      bs_cclib = [(EBool true, [])];
+                      bs_dlllib = [(EBool true, [])];
+                      bs_dllpath = [(EBool true, [])];
+                      bs_byteopt = [(EBool true, [])];
+                      bs_nativeopt = [(EBool true, [])];
+                      },
+                   {exec_custom = false; exec_main_is = "Main.ml"; });
+               Flag
+                 ({cs_name = "gettext"; cs_data = PropList.Data.create (); },
+                   {
+                      flag_description = Some "Use ocaml-gettext for i18n";
+                      flag_default = [(EBool true, false)];
+                      });
+               Flag
+                 ({cs_name = "libraries"; cs_data = PropList.Data.create (); 
+                  },
+                   {
+                      flag_description =
                         Some
-                          (("$make",
-                             [
-                                "-C";
-                                "po";
-                                "install";
-                                "PODIR=$prefix/share/locale"
-                             ])))
-                   ];
-                 };
-            uninstall_custom =
-              {
-                 pre_command = [(EBool true, None)];
-                 post_command =
-                   [
-                      (EBool true, None);
-                      (EFlag "gettext",
-                        Some
-                          (("$make",
-                             [
-                                "-C";
-                                "po";
-                                "install";
-                                "PODIR=$prefix/share/locale"
-                             ])))
-                   ];
-                 };
-            clean_custom =
-              {
-                 pre_command = [(EBool true, None)];
-                 post_command =
-                   [
-                      (EBool true, None);
-                      (EFlag "gettext",
-                        Some (("$make", ["-C"; "po"; "clean"])))
-                   ];
-                 };
-            distclean_custom =
-              {
-                 pre_command = [(EBool true, None)];
-                 post_command = [(EBool true, None)];
-                 };
-            files_ab = ["src/oasis/OASISConf.ml.ab"];
-            sections =
-              [
-                 Executable
-                   ({cs_name = "ocamlmod"; cs_data = PropList.Data.create (); 
-                    },
-                     {
-                        bs_build = [(EBool true, true)];
-                        bs_install = [(EBool true, false)];
-                        bs_path = "src/tools";
-                        bs_compiled_object = Byte;
-                        bs_build_depends =
-                          [
-                             FindlibPackage ("fileutils", None);
-                             FindlibPackage ("str", None)
-                          ];
-                        bs_build_tools =
-                          [ExternalTool "ocamlbuild"; ExternalTool "make"];
-                        bs_c_sources = [];
-                        bs_data_files = [];
-                        bs_ccopt = [(EBool true, [])];
-                        bs_cclib = [(EBool true, [])];
-                        bs_dlllib = [(EBool true, [])];
-                        bs_dllpath = [(EBool true, [])];
-                        bs_byteopt = [(EBool true, [])];
-                        bs_nativeopt = [(EBool true, [])];
-                        },
-                     {exec_custom = false; exec_main_is = "ocamlmod.ml"; });
-                 Library
-                   ({cs_name = "oasis"; cs_data = PropList.Data.create (); },
-                     {
-                        bs_build = [(EBool true, true)];
-                        bs_install =
-                          [(EBool true, false); (EFlag "libraries", true)];
-                        bs_path = "src/oasis";
-                        bs_compiled_object = Byte;
-                        bs_build_depends =
-                          [
-                             FindlibPackage ("fileutils", None);
-                             FindlibPackage ("unix", None);
-                             FindlibPackage ("str", None);
-                             FindlibPackage ("extlib", None);
-                             FindlibPackage ("findlib", None);
-                             FindlibPackage ("odn", None);
-                             FindlibPackage ("ocamlgraph", None)
-                          ];
-                        bs_build_tools =
-                          [
-                             ExternalTool "ocamlbuild";
-                             ExternalTool "make";
-                             InternalExecutable "ocamlmod";
-                             ExternalTool "ocamlyacc";
-                             ExternalTool "ocamllex";
-                             ExternalTool "ocamlify"
-                          ];
-                        bs_c_sources = [];
-                        bs_data_files = [];
-                        bs_ccopt = [(EBool true, [])];
-                        bs_cclib = [(EBool true, [])];
-                        bs_dlllib = [(EBool true, [])];
-                        bs_dllpath = [(EBool true, [])];
-                        bs_byteopt = [(EBool true, [])];
-                        bs_nativeopt = [(EBool true, [])];
-                        },
-                     {
-                        lib_modules =
-                          [
-                             "FormatExt";
-                             "OASISGettext";
-                             "OASISMessage";
-                             "ODNFunc";
-                             "PropList";
-                             "OASIS";
-                             "OASISBuildSection";
-                             "OASISDocument";
-                             "OASISExecutable";
-                             "OASISExpr";
-                             "OASISFlag";
-                             "OASISHelp";
-                             "OASISLibrary";
-                             "OASISPackage";
-                             "OASISPlugin";
-                             "OASISSourceRepository";
-                             "OASISTest";
-                             "OASISTypes";
-                             "OASISUnixPath";
-                             "OASISUtils";
-                             "OASISValues";
-                             "OASISVersion";
-                             "OASISLicense";
-                             "OASISFileTemplate";
-                          ];
-                        lib_internal_modules =
-                          [
-                             "OASISVersion_lexer";
-                             "OASISVersion_parser";
-                             "OASISSection";
-                             "OASISSchema";
-                             "OASISConf";
-                             "OASISAst";
-                             "OASISCheck";
-                             "OASISRecDescParser";
-                             "OASISCustom";
-                             "OASISQuickstart";
-                             "OASISData"
-                          ];
-                        lib_findlib_parent = None;
-                        lib_findlib_name = None;
-                        lib_findlib_containers = [];
-                        });
-                 Library
-                   ({cs_name = "base"; cs_data = PropList.Data.create (); },
-                     {
-                        bs_build = [(EBool true, true)];
-                        bs_install =
-                          [(EBool true, false); (EFlag "libraries", true)];
-                        bs_path = "src/base";
-                        bs_compiled_object = Byte;
-                        bs_build_depends = [InternalLibrary "oasis"];
-                        bs_build_tools =
-                          [
-                             ExternalTool "ocamlbuild";
-                             ExternalTool "make";
-                             InternalExecutable "ocamlmod";
-                             ExternalTool "ocamlify"
-                          ];
-                        bs_c_sources = [];
-                        bs_data_files = [];
-                        bs_ccopt = [(EBool true, [])];
-                        bs_cclib = [(EBool true, [])];
-                        bs_dlllib = [(EBool true, [])];
-                        bs_dllpath = [(EBool true, [])];
-                        bs_byteopt = [(EBool true, [])];
-                        bs_nativeopt = [(EBool true, [])];
-                        },
-                     {
-                        lib_modules =
-                          [
-                             "BaseArgExt";
-                             "BaseBuilt";
-                             "BaseCheck";
-                             "BaseCustom";
-                             "BaseData";
-                             "BaseDev";
-                             "BaseDoc";
-                             "BaseEnvLight";
-                             "BaseEnv";
-                             "BaseExec";
-                             "BaseFileAB";
-                             "BaseFilePath";
-                             "BaseFileUtil";
-                             "BaseGenerate";
-                             "BaseLog";
-                             "BaseOCamlcConfig";
-                             "BaseSetup";
-                             "BaseStandardVar";
-                             "BaseTest";
-                             "BaseDynVar"
-                          ];
-                        lib_internal_modules = [];
-                        lib_findlib_parent = Some "oasis";
-                        lib_findlib_name = None;
-                        lib_findlib_containers = [];
-                        });
-                 Library
-                   ({
-                       cs_name = "builtin-plugins";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        bs_build = [(EBool true, true)];
-                        bs_install = [(EBool true, false)];
-                        bs_path = "src";
-                        bs_compiled_object = Byte;
-                        bs_build_depends =
-                          [InternalLibrary "oasis"; InternalLibrary "base"];
-                        bs_build_tools =
-                          [ExternalTool "ocamlbuild"; ExternalTool "make"];
-                        bs_c_sources = [];
-                        bs_data_files = [];
-                        bs_ccopt = [(EBool true, [])];
-                        bs_cclib = [(EBool true, [])];
-                        bs_dlllib = [(EBool true, [])];
-                        bs_dllpath = [(EBool true, [])];
-                        bs_byteopt = [(EBool true, [])];
-                        bs_nativeopt = [(EBool true, [])];
-                        },
-                     {
-                        lib_modules = ["OASISBuiltinPlugins"];
-                        lib_internal_modules =
-                          [
-                             "plugins/none/NonePlugin";
-                             "plugins/none/NoneData";
-                             "plugins/internal/InternalConfigurePlugin";
-                             "plugins/internal/InternalInstallPlugin";
-                             "plugins/internal/InternalData";
-                             "plugins/internal/InternalId";
-                             "plugins/ocamlbuild/OCamlbuildPlugin";
-                             "plugins/ocamlbuild/OCamlbuildDocPlugin";
-                             "plugins/ocamlbuild/OCamlbuildData";
-                             "plugins/ocamlbuild/OCamlbuildCommon";
-                             "plugins/ocamlbuild/OCamlbuildId";
-                             "plugins/ocamlbuild/MyOCamlbuildBase";
-                             "plugins/ocamlbuild/MyOCamlbuildFindlib";
-                             "plugins/custom/CustomPlugin";
-                             "plugins/custom/CustomData";
-                             "plugins/extra/META/METAPlugin";
-                             "plugins/extra/META/METAData";
-                             "plugins/extra/devfiles/DevFilesPlugin";
-                             "plugins/extra/devfiles/DevFilesData";
-                             "plugins/extra/stdfiles/StdFilesPlugin";
-                             "plugins/extra/stdfiles/StdFilesData"
-                          ];
-                        lib_findlib_parent = None;
-                        lib_findlib_name = None;
-                        lib_findlib_containers = [];
-                        });
-                 Executable
-                   ({cs_name = "test"; cs_data = PropList.Data.create (); },
-                     {
-                        bs_build = [(EBool true, true)];
-                        bs_install = [(EBool true, false)];
-                        bs_path = "test";
-                        bs_compiled_object = Byte;
-                        bs_build_depends =
-                          [
-                             FindlibPackage ("oUnit", None);
-                             InternalLibrary "oasis";
-                             InternalLibrary "base";
-                             InternalLibrary "builtin-plugins"
-                          ];
-                        bs_build_tools =
-                          [ExternalTool "ocamlbuild"; ExternalTool "make"];
-                        bs_c_sources = [];
-                        bs_data_files = [];
-                        bs_ccopt = [(EBool true, [])];
-                        bs_cclib = [(EBool true, [])];
-                        bs_dlllib = [(EBool true, [])];
-                        bs_dllpath = [(EBool true, [])];
-                        bs_byteopt = [(EBool true, [])];
-                        bs_nativeopt = [(EBool true, [])];
-                        },
-                     {exec_custom = false; exec_main_is = "test.ml"; });
-                 Executable
-                   ({cs_name = "OASIS"; cs_data = PropList.Data.create (); },
-                     {
-                        bs_build = [(EBool true, true)];
-                        bs_install = [(EBool true, true)];
-                        bs_path = "src";
-                        bs_compiled_object = Byte;
-                        bs_build_depends =
-                          [
-                             InternalLibrary "oasis";
-                             InternalLibrary "base";
-                             InternalLibrary "builtin-plugins"
-                          ];
-                        bs_build_tools =
-                          [ExternalTool "ocamlbuild"; ExternalTool "make"];
-                        bs_c_sources = [];
-                        bs_data_files = [];
-                        bs_ccopt = [(EBool true, [])];
-                        bs_cclib = [(EBool true, [])];
-                        bs_dlllib = [(EBool true, [])];
-                        bs_dllpath = [(EBool true, [])];
-                        bs_byteopt = [(EBool true, [])];
-                        bs_nativeopt = [(EBool true, [])];
-                        },
-                     {exec_custom = false; exec_main_is = "OASISMain.ml"; });
-                 Flag
-                   ({cs_name = "gettext"; cs_data = PropList.Data.create (); 
-                    },
-                     {
-                        flag_description = Some "Use ocaml-gettext for i18n";
-                        flag_default = [(EBool true, false)];
-                        });
-                 Flag
-                   ({
-                       cs_name = "libraries";
-                       cs_data = PropList.Data.create ();
-                       },
-                     {
-                        flag_description =
-                          Some
-                            "Install oasis and base libraries, for plugins development";
-                        flag_default = [(EBool true, true)];
-                        });
-                 Test
-                   ({cs_name = "main"; cs_data = PropList.Data.create (); },
-                     {
-                        test_type =
-                          ("custom",
-                            Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-                        test_command = [(EBool true, ("$test", []))];
-                        test_custom =
-                          {
-                             pre_command = [(EBool true, None)];
-                             post_command = [(EBool true, None)];
-                             };
-                        test_working_directory = Some "test";
-                        test_run = [(EBool true, true)];
-                        test_tools =
-                          [
-                             ExternalTool "make";
-                             InternalExecutable "OASIS";
-                             InternalExecutable "test"
-                          ];
-                        });
-                 Doc
-                   ({cs_name = "manual"; cs_data = PropList.Data.create (); },
-                     {
-                        doc_type =
-                          ("custom",
-                            Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-                        doc_custom =
-                          {
-                             pre_command = [(EBool true, None)];
-                             post_command = [(EBool true, None)];
-                             };
-                        doc_build = [(EBool true, true)];
-                        doc_install = [(EBool true, true)];
-                        doc_install_dir = "$docdir";
-                        doc_title = "OASIS User Manual";
-                        doc_authors = [];
-                        doc_abstract = None;
-                        doc_format = OtherDoc;
-                        doc_data_files = [("doc/MANUAL.mkd", None)];
-                        doc_build_tools = [ExternalTool "make"];
-                        });
-                 Doc
-                   ({cs_name = "oasis"; cs_data = PropList.Data.create (); },
-                     {
-                        doc_type =
-                          ("ocamlbuild",
-                            Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-                        doc_custom =
-                          {
-                             pre_command = [(EBool true, None)];
-                             post_command = [(EBool true, None)];
-                             };
-                        doc_build = [(EBool true, true)];
-                        doc_install =
-                          [(EBool true, false); (EFlag "libraries", true)];
-                        doc_install_dir = "$htmldir/oasis";
-                        doc_title = "OCamldoc API for library oasis";
-                        doc_authors = [];
-                        doc_abstract = None;
-                        doc_format = HTML "index.html";
-                        doc_data_files = [];
-                        doc_build_tools =
-                          [ExternalTool "ocamldoc"; ExternalTool "ocamlbuild"
-                          ];
-                        });
-                 Doc
-                   ({cs_name = "base"; cs_data = PropList.Data.create (); },
-                     {
-                        doc_type =
-                          ("ocamlbuild",
-                            Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-                        doc_custom =
-                          {
-                             pre_command = [(EBool true, None)];
-                             post_command = [(EBool true, None)];
-                             };
-                        doc_build = [(EBool true, true)];
-                        doc_install =
-                          [(EBool true, false); (EFlag "libraries", true)];
-                        doc_install_dir = "$htmldir/base";
-                        doc_title = "OCamldoc API for library base";
-                        doc_authors = [];
-                        doc_abstract = None;
-                        doc_format = HTML "index.html";
-                        doc_data_files = [];
-                        doc_build_tools =
-                          [ExternalTool "ocamldoc"; ExternalTool "ocamlbuild"
-                          ];
-                        })
-              ];
-            plugins =
-              [
-                 ("DevFiles", Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-                 ("StdFiles", Some (VInt (0, VInt (1, VInt (0, VEnd)))));
-                 ("META", Some (VInt (0, VInt (1, VInt (0, VEnd)))))
-              ];
-            schema_data = PropList.Data.create ();
-            };
-       }
-  ;;
+                          "Install oasis and base libraries, for plugins development";
+                      flag_default = [(EBool true, true)];
+                      });
+               Test
+                 ({cs_name = "main"; cs_data = PropList.Data.create (); },
+                   {
+                      test_type =
+                        ("custom", Some (VInt (0, VInt (1, VInt (0, VEnd)))));
+                      test_command = [(EBool true, ("$test", []))];
+                      test_custom =
+                        {
+                           pre_command = [(EBool true, None)];
+                           post_command = [(EBool true, None)];
+                           };
+                      test_working_directory = Some "test";
+                      test_run = [(EBool true, true)];
+                      test_tools =
+                        [
+                           ExternalTool "ocamlbuild";
+                           ExternalTool "make";
+                           InternalExecutable "OASIS";
+                           InternalExecutable "test"
+                        ];
+                      });
+               Doc
+                 ({cs_name = "manual"; cs_data = PropList.Data.create (); },
+                   {
+                      doc_type =
+                        ("custom", Some (VInt (0, VInt (1, VInt (0, VEnd)))));
+                      doc_custom =
+                        {
+                           pre_command = [(EBool true, None)];
+                           post_command = [(EBool true, None)];
+                           };
+                      doc_build = [(EBool true, true)];
+                      doc_install = [(EBool true, true)];
+                      doc_install_dir = "$docdir";
+                      doc_title = "OASIS User Manual";
+                      doc_authors = [];
+                      doc_abstract = None;
+                      doc_format = OtherDoc;
+                      doc_data_files = [("doc/MANUAL.mkd", None)];
+                      doc_build_tools =
+                        [ExternalTool "ocamlbuild"; ExternalTool "make"];
+                      })
+            ];
+          plugins =
+            [
+               ("DevFiles", Some (VInt (0, VInt (1, VInt (0, VEnd)))));
+               ("StdFiles", Some (VInt (0, VInt (1, VInt (0, VEnd)))));
+               ("META", Some (VInt (0, VInt (1, VInt (0, VEnd)))))
+            ];
+          schema_data = PropList.Data.create ();
+          };
+     };;
+
+let setup () = BaseSetup.setup setup_t;;
+
 (* OASIS_STOP *)
 let () = setup ();;
