@@ -22,11 +22,6 @@
 (** Main gettext interfaces
   *)
 
-open OASISGettext
-
-let init = 
-  [], ""
-
 IFDEF HAS_GETTEXT THEN
 include
   Gettext.Program
@@ -41,5 +36,9 @@ include
            None
      end)
     (GettextStub.Native)
+
+(* Auto initialization of gettext *)
+let _ =
+  init
 ENDIF
 

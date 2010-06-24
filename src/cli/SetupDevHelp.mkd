@@ -1,0 +1,13 @@
+This subcommand is the developper counterpart of the Setup subcommand. It
+acts the same way but it produces a `setup.ml` that still requires an 
+installation of `OASIS` in order to recompile the `_oasis` file at each 
+invocation.
+
+The big advantage to create a `setup.ml` this way is that you don't have
+to call `OASIS setup` each time you update the `_oasis` file. The other
+advantage is that it keeps clean your build system, i.e. it generates a file,
+use it and reset it to its pristine state, which helps to maintain the changes 
+in this file to the bare minimum. 
+
+This subcommand is suited for developpers, but you should use the Setup
+subcommand when you want to distribute your work.

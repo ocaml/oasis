@@ -19,6 +19,8 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
+(* TODO: move this file to src/cli/Manual.ml *)
+
 (** Display help for OASIS
     @author Sylvain Le Gall
   *)
@@ -94,45 +96,6 @@ let pp_section_fields ?plugin ?allowed_fields schm =
     pp_close_box fmt ();
     flush_str_formatter ()
 
-let pp_cmd_usage args msg = 
-  let fmt =
-    str_formatter 
-  in
-  let pp_cmd_arg fmt (cli, t, hlp) = 
-    let arg, hlp =
-      match split ' ' hlp with
-        | hd :: tl ->
-            hd, (String.concat " " tl)
-        | [] ->
-            "", ""
-    in
-    let arg =
-      match t with 
-        | Arg.Symbol (lst, _) ->
-            "{"^(String.concat "|" lst)^"}"
-        | _ ->
-            arg
-    in
-      if arg <> "" then
-        fprintf fmt (f_ "@[`%s %s`: %a@]")
-          cli
-          arg
-          pp_print_string_spaced hlp
-      else
-        fprintf fmt (f_ "@[`%s`: %a@]")
-          cli
-          pp_print_string_spaced hlp
-  in
-    pp_set_margin fmt 80;
-    pp_open_vbox fmt 0;
-    pp_open_box fmt 0;
-    pp_print_string_spaced fmt msg;
-    pp_close_box fmt ();
-    pp_print_cut fmt ();
-    pp_print_cut fmt ();
-    pp_print_list pp_cmd_arg "@,@," fmt args;
-    pp_close_box fmt ();
-    flush_str_formatter ()
 
 let pp_short_licenses () = 
   let fmt =
@@ -292,7 +255,7 @@ let pp_help_replace vars fmt str =
          Buffer.clear buff)
       str
 
-let pp_help ?plugin fmt args msg env_schm env_display =
+let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
   let build_section_fields, library_fields, executable_fields =
     let set_fields_of_section schm = 
       set_string_of_list (List.rev_map fst (fields_of_section ?plugin schm))
@@ -379,7 +342,13 @@ let pp_help ?plugin fmt args msg env_schm env_display =
              OASISExecutable.schema);
 
         "OASISCommandLineHelp",
-        (fun () -> pp_cmd_usage args msg);
+        (fun () -> 
+           let fmt = 
+             str_formatter 
+           in
+             pp_set_margin fmt 80;
+             pp_print_cli_help fmt ();
+             flush_str_formatter ());
 
         "ListOASISPlugins",
         (fun () ->

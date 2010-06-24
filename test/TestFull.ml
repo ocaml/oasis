@@ -534,7 +534,7 @@ let tests ctxt =
            assert_command 
              ctxt
              ctxt.oasis 
-             ctxt.oasis_args;
+             (ctxt.oasis_args @ ["setup"]);
 
            (* Check generated files *)
            OUnitSetFile.assert_equal 

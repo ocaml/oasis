@@ -1,0 +1,10 @@
+OASISFormat: 0.1
+Name:        bug623
+Version:     0
+Synopsis:    Test bug 623
+Authors:     Me
+License:     GPL
+
+Test "false"
+  Command: toto
+  

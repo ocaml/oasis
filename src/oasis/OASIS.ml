@@ -70,7 +70,3 @@ let from_string ?(conf=default_conf) str =
     conf
     (Stream.of_string str)
 
-(** Print help about OASIS fields.
-  *)
-let pp_help = OASISHelp.pp_help
-

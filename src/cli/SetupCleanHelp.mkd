@@ -1,0 +1,6 @@
+This subcommand go through every generated files and remove the replaceable
+part in it. It also tries to clean backup files made by a failed SetupDev
+subcommand invocation.
+
+The replaceable part of a generated file is everything between `OASIS_START`
+and `OASIS_STOP`.

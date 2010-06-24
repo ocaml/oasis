@@ -49,12 +49,3 @@ let pp_print_list pp_elem lst_sep fmt =
              fprintf fmt lst_sep;
              pp_elem fmt e)
           tl
-
-(** Print a title 
-  *)
-let pp_print_title fmt str =
-  pp_print_newline fmt ();
-  pp_print_newline fmt ();
-  pp_print_string fmt str;
-  pp_print_newline fmt ();
-  pp_print_newline fmt ()

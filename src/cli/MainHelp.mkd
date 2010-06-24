@@ -1,0 +1,6 @@
+This program allows to manipulate OASIS enabled package, i.e. package that
+contains an `_oasis` file. It is made of several subcommands that provide
+features around this file. Some subcommands require the installation of
+third party plugins.
+
+You need to specify a subcommand as defined in the following above.

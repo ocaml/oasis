@@ -30,7 +30,6 @@ open OASISMessage
 type t = 
     {
       oasis_cmd:  string;
-      oasis_args: string list;
       self_fn:    string;
     } with odn
 
@@ -83,7 +82,7 @@ let update_and_run t =
           BaseExec.run 
             ~f_exit_code:exit_on_child_error
             t.oasis_cmd 
-            ("-quiet" :: "-setup-fn" :: dev_fn :: t.oasis_args);
+            ["-quiet"; "setup"; "-setup-fn"; dev_fn];
 
           (* Run own command line by replacing setup.ml by 
            * setup-dev.ml
@@ -103,23 +102,6 @@ open OASISFileTemplate
 open OASISPlugin
 
 let make use_real_filename ctxt pkg = 
-  let args =
-    let rec filter_opt =
-      function 
-        | "-setup-fn" :: _ :: lst 
-        | "-dev" :: lst 
-        | "-quickstart" :: lst ->
-            filter_opt lst
-        | hd :: tl ->
-            hd :: (filter_opt tl)
-        | [] ->
-            []
-    in
-      (* Remove exec name = Sys.argv.(0) *)
-      List.tl 
-        (filter_opt 
-           (Array.to_list Sys.argv))
-  in
 
   let setup_tmpl =
     BaseSetup.find ctxt
@@ -127,8 +109,6 @@ let make use_real_filename ctxt pkg =
 
   let dev = 
     {
-      oasis_args = args;
-
       oasis_cmd = 
         (if use_real_filename then 
            Sys.argv.(0)
@@ -172,7 +152,11 @@ let make use_real_filename ctxt pkg =
   in
 
   let ctxt =
-    add_file setup_tmpl ctxt
+    {ctxt with 
+         files = 
+           OASISFileTemplate.replace 
+             setup_tmpl
+             ctxt.files}
   in
 
     ctxt, dev

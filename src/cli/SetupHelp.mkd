@@ -1,0 +1,3 @@
+This is the main subcommand of `OASIS`, it compiles the `_oasis` file into a
+self contained `setup.ml`. The generated file handle the various step to
+configure, build and install your project.

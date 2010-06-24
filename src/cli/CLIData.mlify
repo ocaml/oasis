@@ -1,0 +1,7 @@
+VarString manual_mkd "ManualHelp.mkd"
+VarString setup_mkd "SetupHelp.mkd"
+VarString setup_dev_mkd "SetupDevHelp.mkd"
+VarString setup_clean_mkd "SetupCleanHelp.mkd"
+VarString quickstart_mkd "QuickstartHelp.mkd"
+VarString main_mkd "MainHelp.mkd"
+VarString help_mkd "HelpHelp.mkd"
