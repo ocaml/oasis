@@ -58,7 +58,7 @@ msgstr " [%s]"
 
 #: ../src/base/BaseEnv.ml:516 ../src/base/BaseEnv.ml:508
 msgid " [default]"
-msgstr ".[défaut]"
+msgstr " [défaut]"
 
 #: ../src/oasis/OASISHelp.ml:240
 msgid "### Plugin %s\n\n"
@@ -129,7 +129,7 @@ msgstr "<vide>"
 
 #: ../src/oasis/OASISHelp.ml:117
 msgid "@[`%s %s`: %a@]"
-msgstr "@[`%s·%s` : %a@]"
+msgstr "@[`%s %s` : %a@]"
 
 #: ../src/oasis/OASISHelp.ml:122
 msgid "@[`%s`: %a@]"
@@ -363,8 +363,8 @@ msgid ""
 "Copyright must follow the convention '(C) 2008-2009 J.R. Hacker', here it is "
 "'%s'"
 msgstr ""
-"Le champ 'Copyright' doit suivre la convention suivante '(C)·2008-2009·J.R."
-"·Hacker' ; sa valeur est '%s' ici"
+"Le champ 'Copyright' doit suivre la convention suivante '(C) 2008-2009 J.R."
+" Hacker' ; sa valeur est '%s' ici"
 
 #: ../src/oasis/OASISPackage.ml:155
 msgid "Copyright owners."
@@ -758,7 +758,7 @@ msgstr "Rien à installer pour la librairie findlib '%s'"
 
 #: ../src/OASISMain.ml:109
 msgid "OASIS (C) 2009-2010 OCamlCore SARL"
-msgstr "OASIS·(C)·2009-2010·OCamlCore·SARL"
+msgstr "OASIS (C) 2009-2010 OCamlCore SARL"
 
 #: ../src/base/BaseStandardVar.ml:48
 msgid "OASIS Package is not set"
@@ -766,7 +766,7 @@ msgstr "Le paquet OASIS n'est pas défini"
 
 #: ../src/OASISMain.ml:113
 msgid "OASIS [options] -action [action-options]"
-msgstr "OASIS·[options]·-action·[action-options]"
+msgstr "OASIS [options] -action [action-options]"
 
 #: ../src/oasis/OASISPackage.ml:106
 msgid "OASIS format version '%s' is not supported."
@@ -1326,7 +1326,7 @@ msgstr "flag"
 
 #: ../src/OASISMain.ml:100
 msgid "fn Change the default name of setup.ml. This option should be used with caution, it is reserved for internal use."
-msgstr "fn Change le nom par défaut du fichier setup.ml. Cette option doit être manipuler avec précaution, elle est réservée pour un usage interne."
+msgstr "fn Change le nom par défaut du fichier setup.ml. Cette option doit être manipulée avec précaution, elle est réservée pour un usage interne."
 
 #: ../src/oasis/OASISRecDescParser.ml:389
 msgid "in file '%s' at line %d, char %d"
