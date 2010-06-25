@@ -43,18 +43,14 @@ let required_modules =
 (**/**)
 let ev_create, ev_backup = 
   "restore_create", "restore_backup"
-(**/**)
 
-(** Register a generated file
-  *)
-let register =
+let log_change f =
   function
     | Create fn -> 
-        BaseLog.register ev_create fn
+        f ev_create fn
 
     | Change (fn, Some bak) ->
-        BaseLog.register ev_backup 
-          (Printf.sprintf "%S -> %S" fn bak)
+        f ev_backup (Printf.sprintf "%S -> %S" fn bak)
 
     | Change (fn, None) ->
         warning
@@ -63,6 +59,18 @@ let register =
 
     | NoChange ->
         ()
+
+(**/**)
+
+(** Register a generated file
+  *)
+let register =
+  log_change BaseLog.register
+
+(** Unregister a generated file
+  *)
+let unregister =
+  log_change BaseLog.unregister
 
 (** Restore generated files, when [generate] has been called with 
     [~restore:true]
@@ -116,9 +124,11 @@ let generate ~restore ~backup ~dev ~setup_fn ?oasis_exec pkg =
               FileUtil.cp [default_fn] setup_fn;
             {ctxt with 
                  files = 
-                   OASISFileTemplate.replace
+                   OASISFileTemplate.add
                      {setup_tmpl with fn = setup_fn}
-                     ctxt.files}
+                     (OASISFileTemplate.remove 
+                        setup_tmpl.fn
+                        ctxt.files)}
         end
       else
         ctxt
@@ -162,23 +172,28 @@ let generate ~restore ~backup ~dev ~setup_fn ?oasis_exec pkg =
       ctxt.other_actions;
 
     if change_setup_fn then
-      (* Look for the change of the setup_fn.
-       * If we change the name of setup.ml
-       * we have made a copy of it and its
-       * a creation rather than a change, also
-       * remove the backup file, which are
-       * not required.
+      (* Look for the change of the setup_fn. If we change the name of setup.ml
+       * we have made a copy of it and it's a creation rather than a changer.
+       * So remove the backup file and change the matching file event.
        *)
       List.map
         (function
-           | Change (fn, bak) when setup_fn = fn ->
+           | Change (fn, bak) as chng when setup_fn = fn ->
                begin
-                 begin 
-                   match bak with
-                     | Some fn -> FileUtil.rm [fn]
-                     | None    -> ()
-                 end;
-                 Create fn
+                 let () = 
+                   unregister chng;
+                   begin 
+                     match bak with
+                       | Some fn -> FileUtil.rm [fn]
+                       | None    -> ()
+                   end
+                 in
+                 let chng = 
+                   Create fn
+                 in
+                   if restore then 
+                     register chng;
+                   chng
                end
 
            | e ->

@@ -690,6 +690,10 @@ let add e t =
   else
     S.add e.fn e t
 
+(** Remove a generated template file *)
+let remove fn t =
+  S.remove fn t 
+
 (** Add or replace a generated template file
   *)
 let replace e t =

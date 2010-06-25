@@ -30,83 +30,49 @@ open OASISMessage
 type t = 
     {
       oasis_cmd:  string;
-      self_fn:    string;
     } with odn
 
 let update_and_run t = 
-  let dev_fn = 
-    "setup-dev.ml"
-  in
-
-  (* Command to run after creation of dev_fn *)
-  let bootstrap_ocaml = 
-    Sys.executable_name
-  in
-  let bootstrap_args =
-    Array.to_list
-      (Array.map
-         (fun a ->
-            if a = t.self_fn then
-              dev_fn
-            else
-              a)
-         Sys.argv)
-  in
-
-  let safe_exit () = 
-    if Sys.file_exists dev_fn then
-      Sys.remove dev_fn;
-
-    (* Restore backup files *)
-    BaseExec.run 
-      ~f_exit_code:(function
-                      | 0 -> () 
-                      | n -> error ~exit:false
-                               (f_ "'%s setup-clean exit with code %d")
-                               t.oasis_cmd
-                               n)
-      t.oasis_cmd 
-      ["-quiet"; "setup-clean"];
-
+  (* Command line to run setup-dev *)
+  let oasis_args =
+    "setup-dev" :: "-run" ::
+    Sys.executable_name ::
+    (Array.to_list Sys.argv)
   in
 
   let exit_on_child_error = 
     function
       | 0 -> ()
-      | i -> exit i
+      | 2 ->
+          (* Bad CLI arguments *)
+          error 
+            (f_ "The command '%s %s' exit with code 2. It often means that we \
+                 don't use the right command-line arguments, rerun \
+                 'OASIS setup-dev'.")
+            t.oasis_cmd
+            (String.concat " " oasis_args)
+
+      | 127 -> 
+          (* Cannot find OASIS *)
+          error 
+            (f_ "Cannot find executable '%s', check where OASIS is located \
+                 and rerun 'OASIS setup-dev'")
+            t.oasis_cmd
+
+      | i -> 
+          exit i
   in
 
-    at_exit safe_exit;
+  let () = 
+    (* Run OASIS to generate a temporary setup.ml
+     *)
+    BaseExec.run 
+      ~f_exit_code:exit_on_child_error
+      t.oasis_cmd 
+      oasis_args
+  in
 
-    if Sys.file_exists dev_fn then
-      begin
-        OASISMessage.error
-          (f_ "File %s already exists, cannot generate it for \
-               dev-mode. Please remove it first.")
-          dev_fn;
-      end
-    else
-      begin
-        try 
-
-          (* Run OASIS to generate a temporary setup.ml
-           *)
-          BaseExec.run 
-            ~f_exit_code:exit_on_child_error
-            t.oasis_cmd 
-            ["-quiet"; "setup"; "-setup-fn"; dev_fn; "-backup"];
-
-          (* Run own command line by replacing setup.ml by 
-           * setup-dev.ml
-           *)
-          BaseExec.run
-            ~f_exit_code:exit_on_child_error
-            bootstrap_ocaml
-            bootstrap_args;
-
-        with e ->
-          error "%s" (string_of_exception e)
-      end
+    ()
 
 (* END EXPORT *)
 
@@ -125,8 +91,6 @@ let make ?oasis_exec ctxt pkg =
         (match oasis_exec with 
            | Some fn -> fn
            | None    -> "OASIS");
-
-      self_fn = setup_tmpl.fn;
     }
   in
 

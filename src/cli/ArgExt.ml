@@ -227,7 +227,7 @@ let parse () =
             pp_print_help hext Output err_formatter ();
             prerr_newline ();
             prerr_endline (get_bad txt);
-            exit 1
+            exit 2
         | Arg.Help txt ->
             pp_print_help hext Output std_formatter ();
             exit 0
