@@ -13,12 +13,19 @@ let oasis_fn =
 let rsetup_fn =
   ref BaseSetup.default_fn
 
-let main args =
-  BaseGenerate.generate 
-    (OASIS.from_file !oasis_fn)
-    false
-    !rsetup_fn
-    false
+let rbackup =
+  ref false
+
+let main () =
+  let _chngs : OASISFileTemplate.file_generate_change list = 
+    BaseGenerate.generate 
+      ~backup:!rbackup
+      ~dev:false
+      ~setup_fn:!rsetup_fn
+      ~restore:false
+      (OASIS.from_file !oasis_fn)
+  in
+    ()
 
 let scmd = 
   {(SubCommand.make 
@@ -34,6 +41,11 @@ let scmd =
              Arg.Set_string rsetup_fn,
              (s_ "fn Change the default name of setup.ml. This option should \
                      be used with caution, it is reserved for internal use.");
+
+             "-backup",
+             Arg.Set rbackup,
+             (s_ " Backup generated files and register them in the log \
+                   file.")
            ];
          scmd_main = main}
 

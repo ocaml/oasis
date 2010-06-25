@@ -34,8 +34,8 @@ let tests ctxt =
     bracket
       (fun () ->
          !OASISMessage.verbose,
-         Filename.temp_file "filetemplate" ".txt")
-      (fun (verbosity, target_fn) ->
+         ref NoChange)
+      (fun (verbosity, rchng) ->
          let real_fn = 
            in_data fn
          in
@@ -59,25 +59,23 @@ let tests ctxt =
          in
 
            OASISMessage.verbose := false;
-           file_generate 
-             (let t = 
-                of_string_list
-                  ~template:true
-                  real_fn 
-                  comment_fmt
-                  content_lst
-              in
-                {t with tgt_fn = Some target_fn});
+           rchng := file_generate 
+                      ~backup:true
+                      (of_string_list
+                         ~template:true
+                         real_fn 
+                         comment_fmt
+                         content_lst);
 
            assert_equal 
              ~msg:"File content"
              ~printer:(Printf.sprintf "%S")
              (file_content expected_fn)
-             (file_content target_fn))
+             (file_content real_fn))
 
-      (fun (verbosity, target_fn) ->
-         OASISMessage.verbose := verbosity;
-         FileUtil.rm [target_fn])
+      (fun (verbosity, rchng) ->
+         file_rollback !rchng;
+         OASISMessage.verbose := verbosity)
 
   in
 

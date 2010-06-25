@@ -46,7 +46,7 @@ module SetTupleString =
   *)
 let load () = 
   if Sys.file_exists default_filename then
-    (
+    begin
       let chn = 
         open_in default_filename
       in
@@ -87,11 +87,11 @@ let load () =
           end
       in
         read_aux (SetTupleString.empty, [])
-    )
+    end
   else
-    (
+    begin
       []
-    )
+    end
 
 (** Add an event to the log file
   *)

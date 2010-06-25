@@ -112,21 +112,19 @@ type body =
 
 type template =
     {
-      src_fn:      OASISTypes.filename;
-      tgt_fn:      OASISTypes.filename option;
-      comment:     comment;
-      header:      line list;
-      body:        body; 
-      footer:      line list;
-      perm:        int;
+      fn:      OASISTypes.filename;
+      comment: comment;
+      header:  line list;
+      body:    body; 
+      footer:  line list;
+      perm:    int;
     }
 
 (** Create a OASISFileTemplate.t
   *)
 let file_make fn comment header body footer =
   {
-    src_fn  = fn;
-    tgt_fn  = None;
+    fn      = fn;
     comment = comment;
     header  = header;
     body    = Body body;
@@ -457,9 +455,7 @@ let to_file t =
     open_out_gen
       [Open_wronly; Open_creat; Open_trunc; Open_binary]
       t.perm 
-      (match t.tgt_fn with 
-         | Some fn -> fn
-         | None    -> t.src_fn)
+      t.fn
   in
   let output_line str =
     output_string chn_out str;
@@ -493,14 +489,56 @@ let to_file t =
     output_lst t.footer;
     close_out chn_out
 
+type filename = OASISTypes.filename
+
+type file_generate_change =
+  | Create of filename
+  | Change of filename * filename option
+  | NoChange
+
+(** Reset to pristine a generated file
+  *)
+let file_rollback =
+  function 
+    | Create fn ->
+        info 
+          (f_ "Remove generated file '%s'")
+          fn;
+        FileUtil.rm [fn]
+
+    | Change (fn, Some bak) ->
+        begin
+          if Sys.file_exists bak then
+            begin
+              info 
+                (f_ "Restore file '%s' with backup file '%s'.")
+                fn bak;
+              FileUtil.mv bak fn
+            end
+          else
+            begin
+              warning 
+                (f_ "Backup file '%s' disappear, cannot restore \
+                     file '%s'.")
+                bak fn
+            end
+        end
+
+    | Change (fn, None) ->
+        warning
+          (f_ "Cannot restore file '%s', no backup.")
+          fn
+
+    | NoChange ->
+        ()
 
 (** Generate a file using a template. Only the part between OASIS_START and 
     OASIS_END will really be replaced if the file exist. If file doesn't exist
     use the whole template.
  *)
-let file_generate t = 
+let file_generate ~backup t = 
 
-  (* Check that file has changed 
+  (* Check that the files differ
    *)
   let body_has_changed t_org t_new = 
     if t_org.body <> t_new.body then
@@ -523,57 +561,96 @@ let file_generate t =
       false
   in
 
-  let fn = 
-    t.src_fn
+  (* Create a backup for a file and return its name 
+   *)
+  let do_backup fn = 
+    let rec backup_aux =
+      function
+        | ext :: tl ->
+            begin
+              let fn_backup = 
+                fn ^ "." ^ ext
+              in
+                if not (Sys.file_exists fn_backup) then
+                  begin
+                    FileUtil.cp [fn] fn_backup;
+                    fn_backup
+                  end
+                else
+                  begin
+                    backup_aux tl
+                  end
+            end
+
+        | [] ->
+            failwithf1
+              (f_ "File %s need a backup, but all filenames for \
+                   the backup already exist")
+              fn
+
+    in
+      backup_aux 
+        ("bak" :: 
+         (Array.to_list 
+            (Array.init 10 (Printf.sprintf "ba%d"))))
   in
 
-    if Sys.file_exists fn then
+    if Sys.file_exists t.fn then
       begin
         let t_org = 
-          of_file ~template:false fn t.comment
+          of_file ~template:false t.fn t.comment
         in
 
-          if not (digest_check t_org) then
-            begin
-              let rec backup =
-                function
-                  | ext :: tl ->
-                      let fn_backup = 
-                        fn ^ ext
-                      in
-                        if not (Sys.file_exists fn_backup) then
-                          begin
-                            warning 
-                              (f_ "File %s has changed, doing a backup in %s")
-                              fn fn_backup;
-                            FileUtil.cp [fn] fn_backup
-                          end
-                        else
-                          backup tl
-                  | [] ->
-                      failwithf1
-                        (f_ "File %s has changed and need a backup, \
-                           but all filenames for the backup already exist")
-                        fn
-              in
-                backup ("bak" :: (Array.to_list (Array.init 10 (Printf.sprintf "ba%d"))))
-            end;
+          match t_org.body, body_has_changed t_org t with 
+            | NoBody, _ -> (* No body, nothing to do *)
+                begin
+                  NoChange
+                end
 
-            if t.tgt_fn <> None || body_has_changed t_org t then
+            | _, true      (* Body has changed -> regenerate *)
+            | Body _, _ -> (* Missing digest -> regenerate *)
+                begin
+                  (* Regenerate *)
+                  let () = 
+                    info (f_ "Regenerating file %s") t.fn
+                  in
+
+                  let fn_backup = 
+                    (* Create a backup if required *)
+                    if not (digest_check t_org) then
+                      begin
+                        let fn_bak = 
+                          do_backup t.fn
+                        in
+                          warning 
+                            (f_ "File %s has changed, doing a backup in %s")
+                            t.fn fn_bak;
+                          Some fn_bak
+                      end
+                    else if backup then
+                      begin
+                        Some (do_backup t.fn)
+                      end
+                    else
+                      None
+                  in
+                    to_file (merge t_org t);
+                    Change (t.fn, fn_backup)
+
+                end
+
+            | _, false -> (* No change *)
               begin
-                (* Regenerate *)
-                info (f_ "Regenerating file %s") fn;
-                to_file (merge t_org t)
-              end
-            else
-              begin
-                info (f_ "File %s has not changed, skipping") fn
+                info (f_ "File %s has not changed, skipping") t.fn;
+                NoChange
               end
       end
     else
       begin
-        info (f_ "File %s doesn't exist, creating it.") fn;
-        to_file t
+        info (f_ "File %s doesn't exist, creating it.") t.fn;
+        to_file t;
+        Create t.fn
+
       end
 
 
@@ -608,15 +685,15 @@ let find =
     @raise AlreadyExists
   *)
 let add e t = 
-  if S.mem e.src_fn t then
-    raise (AlreadyExists e.src_fn)
+  if S.mem e.fn t then
+    raise (AlreadyExists e.fn)
   else
-    S.add e.src_fn e t
+    S.add e.fn e t
 
 (** Add or replace a generated template file
   *)
 let replace e t =
-  S.add e.src_fn e t
+  S.add e.fn e t
 
 (** Fold over generated template files
   *)

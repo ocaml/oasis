@@ -55,7 +55,19 @@ let update_and_run t =
 
   let safe_exit () = 
     if Sys.file_exists dev_fn then
-      Sys.remove dev_fn
+      Sys.remove dev_fn;
+
+    (* Restore backup files *)
+    BaseExec.run 
+      ~f_exit_code:(function
+                      | 0 -> () 
+                      | n -> error ~exit:false
+                               (f_ "'%s setup-clean exit with code %d")
+                               t.oasis_cmd
+                               n)
+      t.oasis_cmd 
+      ["-quiet"; "setup-clean"];
+
   in
 
   let exit_on_child_error = 
@@ -82,7 +94,7 @@ let update_and_run t =
           BaseExec.run 
             ~f_exit_code:exit_on_child_error
             t.oasis_cmd 
-            ["-quiet"; "setup"; "-setup-fn"; dev_fn];
+            ["-quiet"; "setup"; "-setup-fn"; dev_fn; "-backup"];
 
           (* Run own command line by replacing setup.ml by 
            * setup-dev.ml
@@ -101,7 +113,7 @@ let update_and_run t =
 open OASISFileTemplate
 open OASISPlugin
 
-let make use_real_filename ctxt pkg = 
+let make ?oasis_exec ctxt pkg = 
 
   let setup_tmpl =
     BaseSetup.find ctxt
@@ -110,15 +122,11 @@ let make use_real_filename ctxt pkg =
   let dev = 
     {
       oasis_cmd = 
-        (if use_real_filename then 
-           Sys.argv.(0)
-         else
-           "OASIS");
-
-      self_fn = 
-        (match setup_tmpl.tgt_fn with 
+        (match oasis_exec with 
            | Some fn -> fn
-           | None    -> setup_tmpl.src_fn);
+           | None    -> "OASIS");
+
+      self_fn = setup_tmpl.fn;
     }
   in
 

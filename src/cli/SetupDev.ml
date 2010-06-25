@@ -5,16 +5,46 @@
 
 open MainGettext
 open SubCommand
+open OASISFileTemplate
 
-let ruse_oasis_real_filename =
-  ref false
+let roasis_exec =
+  ref None
 
 let main args =
-  BaseGenerate.generate 
-    (OASIS.from_file !Setup.oasis_fn)
-    true
-    !Setup.rsetup_fn
-    !ruse_oasis_real_filename
+  let oasis_exec = !roasis_exec in
+  let setup_fn   = !Setup.rsetup_fn in
+
+  let chngs = 
+    BaseGenerate.generate 
+      ~dev:true
+      ~backup:true
+      ~restore:false
+      ?oasis_exec
+      ~setup_fn
+      (OASIS.from_file !Setup.oasis_fn)
+  in
+    (* Restore everything, except setup.ml *)
+    List.iter 
+      (function
+         | Change (fn, bak) as chng ->
+             if fn <> setup_fn then
+               begin
+                 file_rollback chng
+               end
+             else 
+               begin
+                 match bak with 
+                   | Some fn -> FileUtil.rm [fn]
+                   | None    -> ()
+               end
+
+         | Create fn as chng ->
+             if fn <> setup_fn then
+               file_rollback chng
+
+         | NoChange ->
+             ())
+      chngs
 
 let scmd = 
   {(SubCommand.make
@@ -27,9 +57,10 @@ let scmd =
          scmd_specs =
            [
              "-real-oasis",
-             Arg.Set ruse_oasis_real_filename,
+             Arg.Unit (fun () -> roasis_exec := Some Sys.argv.(0)),
              (s_ " Use the real OASIS filename when generating developper mode \
                    setup.ml.");
+
            ]}
 
 let () = 
