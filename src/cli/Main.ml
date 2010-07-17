@@ -26,7 +26,7 @@ open OASISTypes
 open OASISUtils
 open OASISPlugin
 open OASISBuiltinPlugins
-open OASISMessage
+open BaseMessage
 open SubCommand
 open Format
 open FormatExt
@@ -46,7 +46,6 @@ open Help
 
 
 let () =
-
   (* Run subcommand *)
   try 
     let () = 

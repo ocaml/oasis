@@ -55,6 +55,9 @@ type ('a, 'b) setup_changes =
   *)
 type context_act = 
     {
+      (** Messages context *)
+      ctxt: OASISContext.t;
+
       (** Are there errors ? *)
       error: bool;
 
@@ -107,7 +110,7 @@ sig
     OASISSchema.t -> 
     name -> 
     ?default:'a -> 
-    'a OASISTypes.value -> 
+    'a OASISValues.t -> 
     (unit -> string) -> 
     PropList.Data.t -> 
     'a
@@ -116,7 +119,7 @@ sig
     OASISSchema.t -> 
     name -> 
     ?default:'a -> 
-    'a OASISTypes.value -> 
+    'a OASISValues.t -> 
     (unit -> string) -> 
     PropList.Data.t -> 
     (OASISTypes.expr * 'a) list
@@ -157,11 +160,15 @@ module Make =
                   unit -> (string -> string -> string, unit, string) format
               end)) ->
   struct 
+
+    open OASISValues
+
     let all : ((F.t * string) MapPlugin.t) ref = 
       ref MapPlugin.empty
 
     module Make (PI: PLUGIN_ID_TYPE) : PLUGIN_UTILS_TYPE with type t = F.t =
     struct
+
        type t = F.t
 
        let () = 
@@ -226,35 +233,36 @@ module Make =
     (** Parse value for plugin *)
     let value =
       let base = 
-        OASISValues.with_optional_parentheses
-          OASISValues.string_not_empty
-          OASISValues.version
+        with_optional_parentheses
+          string_not_empty
+          version
       in
-      let check_compat ((nm, ver_opt) as k) =
-        let (_, plg_ver) = 
-          find_full k
+      let parse ~ctxt s =
+        let (nm, ver_opt) as k = 
+          base.OASISValues.parse ~ctxt s
         in
-          match ver_opt with 
-            | Some v ->
-                ()
-            | None ->
-                OASISMessage.warning
-                  (f_ "Plugin %s is defined without version, use current version at least: %s.")
-                  nm 
-                  (base.print (nm, Some (OASISVersion.version_of_string plg_ver)))
+          begin
+            match ver_opt with 
+              | Some v ->
+                  ()
+              | None ->
+                  begin
+                    let (_, plg_ver) = 
+                      find_full k
+                    in
+                      OASISMessage.warning ~ctxt
+                        (f_ "Plugin %s is defined without version, use current \
+                             version at least: %s.")
+                        nm 
+                        (base.OASISValues.print (nm, Some (OASISVersion.version_of_string plg_ver)))
+                  end
+          end;
+          k
       in
         {
-          parse = 
-            (fun s ->
-               let res =
-                 base.parse s
-               in
-                 check_compat res;
-                 res);
-          update = 
-            OASISValues.update_fail;
-          print = 
-            (fun e -> base.print e)
+          parse  = parse;
+          update = OASISValues.update_fail;
+          print  = (fun e -> base.print e)
         }
   end
 
@@ -351,7 +359,7 @@ let add_file tmpl ctxt =
 let set_error tst s ctxt =
   if tst then
     begin
-      OASISMessage.error ~exit:false "%s" s;
+      OASISMessage.error ~ctxt:ctxt.ctxt ~exit:false "%s" s;
       {ctxt with error = true}
     end
   else

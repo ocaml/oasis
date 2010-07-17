@@ -25,7 +25,7 @@
 TYPE_CONV_PATH "BaseDev"
 
 open OASISGettext
-open OASISMessage
+open BaseMessage
 
 type t = 
     {

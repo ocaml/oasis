@@ -25,6 +25,7 @@
 
 open OASISGettext
 open OASISUtils
+open BaseMessage
 
 (** Run a command 
   *)
@@ -32,7 +33,7 @@ let run ?f_exit_code cmd args =
   let cmdline =
     String.concat " " (cmd :: args)
   in
-    OASISMessage.info (f_ "Running command '%s'") cmdline;
+    info (f_ "Running command '%s'") cmdline;
     match f_exit_code, Sys.command cmdline with 
       | None, 0 -> ()
       | None, i ->

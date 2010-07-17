@@ -314,25 +314,6 @@ type package =
 
 (* END EXPORT *)
 
-(** Configuration for parsing and checking 
-  *)
-type conf =
-  {
-    oasisfn:        filename option;
-    srcdir:         dirname option;
-    debug:          bool;
-    ignore_unknown: bool;
-  }
-
-(** Definition of a value in OASIS file
-  *)
-type 'a value =
-    {
-      parse:  string -> 'a;
-      update: 'a -> 'a -> 'a;
-      print:  'a -> string;
-    }
-
 (** Quickstart level
   *)
 type 'a quickstart_level =

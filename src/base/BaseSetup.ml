@@ -24,7 +24,7 @@
   *)
 
 open BaseEnv
-open OASISMessage
+open BaseMessage
 open OASISTypes
 open OASISSection
 open OASISGettext
@@ -219,7 +219,7 @@ let clean, distclean =
     try 
       f a
     with e ->
-      OASISMessage.warning 
+      warning 
         (f_ "Action fail with error: %s")
         (match e with 
            | Failure msg -> msg
@@ -391,7 +391,7 @@ let setup t =
                Arg.Clear catch_exn,
                s_ " Don't catch exception, useful for debugging.";
              ] 
-           @ (OASISMessage.args ()))
+           @ (BaseContext.args ()))
           (failwithf1 (f_ "Don't know what to do with '%s'"))
           (s_ "Setup and run build process current package\n");
 
@@ -463,6 +463,7 @@ let of_package pkg =
       error         = false;
       files         = OASISFileTemplate.empty;
       other_actions = [];
+      ctxt          = !BaseContext.default;
     }
   in
 

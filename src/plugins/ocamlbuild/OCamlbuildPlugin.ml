@@ -28,6 +28,7 @@ open OASISGettext
 open OASISUtils
 open BaseEnv
 open BaseStandardVar
+open BaseMessage
 
 type target =
   | Std of string 
@@ -226,7 +227,7 @@ let build pkg argv =
                      if diff src_fn tgt then
                        BaseFileUtil.cp src_fn tgt
                      else
-                       OASISMessage.info 
+                       info 
                          (f_ "No need to copy file '%s' to '%s', same content")
                          src_fn tgt
                  end;
@@ -633,6 +634,7 @@ let add_ocamlbuild_files ctxt pkg =
                  let () =
                    if lib.lib_modules = [] then
                      warning 
+                       ~ctxt:ctxt.ctxt
                        (f_ "No exported module defined for library %s")
                        cs.cs_name;
                  in

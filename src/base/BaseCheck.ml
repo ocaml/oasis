@@ -23,6 +23,7 @@
   *)
 
 open BaseEnv
+open BaseMessage
 open OASISUtils
 open OASISGettext
 
@@ -86,8 +87,9 @@ let version
                     try 
                       (var_get "ocaml_version")
                     with Not_found ->
-                      OASISMessage.warning 
-                        "Variable ocaml_version not defined, fallback to default";
+                      warning 
+                        (f_ "Variable ocaml_version not defined, fallback \
+                             to default");
                       Sys.ocaml_version
                   end
               | res ->

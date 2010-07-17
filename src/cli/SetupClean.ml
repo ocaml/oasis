@@ -27,6 +27,7 @@ let main () =
                  begin
                    let _chng: file_generate_change =
                      file_generate 
+                       ~ctxt:!BaseContext.default
                        ~backup:false 
                        {tmpl with body = Body []}
                    in

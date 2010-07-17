@@ -216,6 +216,7 @@ let main ctxt pkg =
                    grp;
                  OASISPlugin.add_file
                    (of_string_list
+                      ~ctxt:ctxt.OASISPlugin.ctxt
                       ~template:true
                       meta_fn 
                       comment_meta 

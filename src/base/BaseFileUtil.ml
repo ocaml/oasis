@@ -64,9 +64,7 @@ let find_file paths exts =
       ((combined_paths paths) * exts)
   in
     List.find 
-      (fun fn ->
-         OASISMessage.debug (f_ "Testing file existence '%s'") fn;
-         Sys.file_exists fn)
+      Sys.file_exists
       alternatives
 
 (** Find real filename of an executable

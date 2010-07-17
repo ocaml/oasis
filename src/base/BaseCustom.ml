@@ -24,6 +24,7 @@
   *)
 
 open BaseEnv
+open BaseMessage
 open OASISTypes
 open OASISGettext
 
@@ -54,7 +55,7 @@ let hook ?(failsafe=false) cstm f e =
               try 
                 run cmd args [||]
               with e when failsafe ->
-                OASISMessage.warning 
+                warning 
                   (f_ "Command '%s' fail with error: %s")
                   (String.concat " " (cmd :: args))
                   (match e with 

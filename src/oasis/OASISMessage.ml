@@ -24,29 +24,13 @@
   *)
 
 open OASISGettext
-
-let verbose =
-  ref true
-
-let debug =
-  ref false
-
-(** Command line arguments
-  *)
-let args () =
-  ["-quiet",
-   Arg.Clear verbose,
-   (s_ " Run quietly");
-
-   "-debug",
-   Arg.Set debug,
-   (s_ " Output debug message")]
+open OASISContext
 
 (**/**)
 let generic_message ?(after=ignore) cond beg fmt =
   if cond then
     begin
-      Printf.fprintf stderr "%s: " beg;
+      Printf.fprintf stderr (f_ "%s: ") beg;
       Printf.kfprintf 
         (fun chn -> 
            Printf.fprintf chn "\n%!";
@@ -65,29 +49,30 @@ let generic_message ?(after=ignore) cond beg fmt =
 
 (** Print a debug message
   *)
-let debug ?after fmt =
-  generic_message ?after !debug "D" fmt
+let debug ?after ~ctxt fmt =
+  generic_message ?after ctxt.debug "D" fmt
 
 (** Print information message.
   *)
-let info ?after fmt = 
-  generic_message ?after !verbose "I" fmt
+let info ?after ~ctxt fmt = 
+  generic_message ?after ctxt.verbose "I" fmt
 
 (** Print a warning message 
   *)
-let warning ?after fmt =
-  generic_message ?after !verbose "W" fmt
+let warning ?after ~ctxt fmt =
+  generic_message ?after ctxt.verbose "W" fmt
 
 (** Print an error message and exit.
   *)
-let error ?(after=ignore) ?(exit=true) fmt =
+let error ?(after=ignore) ?(exit=true) ~ctxt fmt =
   generic_message 
     ~after:(fun () -> 
               if exit then 
                 Pervasives.exit 1;
               after ()) 
-    !verbose 
+    ctxt.verbose 
     "E" fmt
+
 
 let string_of_exception e = 
   try 
@@ -97,3 +82,8 @@ let string_of_exception e =
         s
     | e ->
         Printexc.to_string e
+
+(* TODO
+let register_exn_printer f =
+ *)
+

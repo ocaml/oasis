@@ -35,6 +35,14 @@ exception Not_printable
   *)
 exception Not_combinable
 
+(** Definition of a value in OASIS file
+  *)
+type 'a t =
+    {
+      parse:  ctxt:OASISContext.t -> string -> 'a;
+      update: 'a -> 'a -> 'a;
+      print:  'a -> string;
+    }
 
 (** Always fail on update
   *)
@@ -46,7 +54,7 @@ let update_fail _ _ =
 let blackbox =
   {
     parse  = 
-      (fun s -> 
+      (fun ~ctxt s -> 
          failwithf1
            (f_ "Blackbox type cannot be set to the value '%s'")
            s);
@@ -67,7 +75,7 @@ end
 let regexp regexp error = 
   {
     parse = 
-      (fun str -> 
+      (fun ~ctxt str -> 
          if Str.string_match regexp str 0 && 
             (Str.match_beginning ()) = 0 &&
             (Str.match_end ()) = (String.length str) then
@@ -91,7 +99,7 @@ let url =
 let copyright =
   {
     parse = 
-      (fun str ->
+      (fun ~ctxt str ->
          if Str.string_match StdRegexp.copyright str 0 then
            str
          else
@@ -107,7 +115,7 @@ let copyright =
 (** String *)
 let string =
   { 
-    parse =  (fun s -> s);
+    parse =  (fun ~ctxt s -> s);
     update = (fun s1 s2 -> s1^" "^s2); 
     print =  (fun s -> s);
   }
@@ -116,7 +124,7 @@ let string =
 let string_not_empty =
   {
     parse =
-      (fun str ->
+      (fun ~ctxt str ->
          if str <> "" then
            str
          else
@@ -148,9 +156,9 @@ let expand value =
 let dot_separated value =
   {
     parse =
-      (fun s ->
+      (fun ~ctxt s ->
          List.map
-           value.parse
+           (value.parse ~ctxt)
            (String.nsplit
               s
               "."));
@@ -168,11 +176,10 @@ let dot_separated value =
 let comma_separated value =
   { 
     parse = 
-      (fun s ->
+      (fun ~ctxt s ->
          List.map 
            (fun s -> 
-              value.parse 
-                (String.strip s))
+              value.parse ~ctxt (String.strip s))
            (String.nsplit 
               s 
               ","));
@@ -190,7 +197,7 @@ let comma_separated value =
 let space_separated = 
   {
     parse = 
-      (fun s ->
+      (fun ~ctxt s ->
          List.filter 
            (fun s -> s <> "")
            (String.nsplit s " "));
@@ -204,7 +211,7 @@ let space_separated =
 (** Check that we have a version number *)
 let version =
   {
-    parse  = OASISVersion.version_of_string;
+    parse  = (fun ~ctxt s -> OASISVersion.version_of_string s);
     update = update_fail;
     print  = OASISVersion.string_of_version;
   }
@@ -212,7 +219,7 @@ let version =
 (** Check that we have a version constraint *)
 let version_comparator = 
   {
-    parse  = OASISVersion.comparator_of_string;
+    parse  = (fun ~ctxt s -> OASISVersion.comparator_of_string s);
     update = update_fail;
     print  = OASISVersion.string_of_comparator;
   }
@@ -224,7 +231,7 @@ let with_optional_parentheses main_value optional_value =
   in
     {
       parse = 
-        (fun str ->
+        (fun ~ctxt str ->
            if Str.string_match split_parentheses str 0 then
              begin
                let s1, s2 = 
@@ -232,18 +239,16 @@ let with_optional_parentheses main_value optional_value =
                  Str.matched_group 2 str
                in
                let e1 = 
-                 main_value.parse
-                   (String.strip s1)
+                 main_value.parse ~ctxt (String.strip s1)
                in
                let e2 =
-                 optional_value.parse
-                   (String.strip s2)
+                 optional_value.parse ~ctxt (String.strip s2)
                in
                  e1, Some e2
              end
            else 
              begin
-               main_value.parse str, None
+               main_value.parse ~ctxt str, None
              end);
       update = update_fail;
       print =
@@ -259,7 +264,7 @@ let with_optional_parentheses main_value optional_value =
 (** Optional value *)
 let opt value =
   {
-    parse = (fun str -> Some (value.parse str));
+    parse = (fun ~ctxt str -> Some (value.parse ~ctxt str));
     update = update_fail;
     print =
       (function
@@ -277,7 +282,7 @@ let modules =
     comma_separated
       {
         parse = 
-         (fun s ->
+         (fun ~ctxt s ->
             let path = 
               OASISUnixPath.dirname s
             in
@@ -290,7 +295,7 @@ let modules =
                   s;
               OASISUnixPath.concat
                 path
-                (base_value.parse modul));
+                (base_value.parse ~ctxt modul));
         update = update_fail;
         print  = (fun s -> s);
       }
@@ -308,7 +313,7 @@ let categories =
 let choices nm lst =
   {
     parse = 
-      (fun str ->
+      (fun ~ctxt str ->
          try 
            List.assoc 
              (String.lowercase str)
@@ -347,7 +352,7 @@ let boolean =
 let pkgname =
   {
     parse = 
-      (fun s ->
+      (fun ~ctxt s ->
          if String.contains s '.' then
            failwith (s_ "Findlib package name cannot contain '.'")
          else
@@ -463,7 +468,7 @@ let command_line =
     
     { 
       parse = 
-        (fun s ->
+        (fun ~ctxt s ->
            match split_expandable s with 
              | cmd :: args ->
                  cmd, args

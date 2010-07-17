@@ -25,7 +25,7 @@
 
 open BaseEnv
 open BaseStandardVar
-open OASISMessage
+open BaseMessage
 open OASISTypes
 open OASISLibrary
 open OASISGettext

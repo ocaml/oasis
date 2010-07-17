@@ -118,7 +118,7 @@ struct
       main t pkg extra_args;
       0.0
     with Failure s ->
-      OASISMessage.warning 
+      BaseMessage.warning 
         (f_ "Test '%s' fails: %s")
         cs.cs_name
         s;

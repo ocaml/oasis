@@ -27,7 +27,7 @@ open BaseEnv
 open OASISTypes
 open OASISUtils
 open OASISGettext
-open OASISMessage
+open BaseMessage
 
 (** Configure build using provided series of check to be done
   * and then output corresponding file.

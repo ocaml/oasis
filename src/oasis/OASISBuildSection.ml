@@ -43,11 +43,11 @@ let build_depends_field schm =
      in
        {
          parse = 
-           (fun str ->
+           (fun ~ctxt str ->
               List.map 
                 (fun (pkg, ver_constr_opt) -> 
                    FindlibPackage (pkg, ver_constr_opt))
-                (base_value.parse str));
+                (base_value.parse ~ctxt str));
 
          update = 
            List.append;
@@ -69,10 +69,10 @@ let build_tools_value =
    in
      {
        parse = 
-         (fun str ->
+         (fun ~ctxt str ->
             List.map 
               (fun s -> ExternalTool s) 
-              (base.parse str));
+              (base.parse ~ctxt str));
 
        update =
          List.append;

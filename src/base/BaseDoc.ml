@@ -24,6 +24,7 @@
   *)
 
 open BaseEnv
+open BaseMessage
 open OASISTypes
 open OASISGettext
 
@@ -37,7 +38,7 @@ let doc lst pkg extra_args =
          ~printer:string_of_bool
          doc.doc_build then
       begin
-        OASISMessage.info (f_ "Building documentation '%s'") cs.cs_name;
+        info (f_ "Building documentation '%s'") cs.cs_name;
         BaseCustom.hook
           doc.doc_custom
           (doc_plugin pkg (cs, doc))

@@ -27,6 +27,7 @@ open OUnit
 open TestCommon
 open OASISLicense
 open OASISTypes
+open OASISContext
 
 let tests ctxt =
   let ver =
@@ -43,10 +44,10 @@ let tests ctxt =
                    assert_equal 
                      ~printer:to_string
                      exp
-                     (parse txt)
+                     (parse ~ctxt:quiet txt)
                | None ->
                    try 
-                     ignore (parse txt);
+                     ignore (parse ~ctxt:quiet txt);
                      assert_failure 
                        (Printf.sprintf
                           "License '%s' is not valid but parse without problem"

@@ -26,6 +26,7 @@
 open OASISTypes
 open OASISGettext
 open BaseStandardVar
+open BaseMessage
 
 type filenames = filename list
 
@@ -83,7 +84,7 @@ let fold t nm f acc =
          end
        else
          begin
-           OASISMessage.warning 
+           warning 
              (f_ "File '%s' has been marked as built \
                 for %s but doesn't exist")
              fn
@@ -147,6 +148,7 @@ let of_executable ffn (cs, bs, exec) =
 let of_library ffn (cs, bs, lib) = 
   let unix_lst = 
     OASISLibrary.generated_unix_files
+      ~ctxt:!BaseContext.default
       (cs, bs, lib)
       (fun fn ->
          Sys.file_exists (BaseFilePath.of_unix fn))

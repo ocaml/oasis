@@ -29,6 +29,17 @@ open OASISGettext
 open OASISUtils
 open Genlex
 
+(** Configuration for parsing and checking 
+  *)
+type conf =
+  {
+    oasisfn:        filename option;
+    srcdir:         dirname option;
+    debug:          bool;
+    ignore_unknown: bool;
+    ctxt:           OASISContext.t;
+  }
+
 let stream_debugger st = 
   Stream.from
     (fun _ ->
@@ -253,6 +264,7 @@ let parse_stream conf st =
                           if use_space && use_tab then
                             begin
                               OASISMessage.warning 
+                                ~ctxt:conf.ctxt
                                 (f_ "Mixed use of '\\t' and ' ' to indent lines %s")
                                 (position lineno charstart);
                               only_tab
@@ -263,10 +275,12 @@ let parse_stream conf st =
                                 | Some use_tab_before ->
                                     if use_tab_before && not use_tab then
                                       OASISMessage.warning
+                                        ~ctxt:conf.ctxt
                                         (f_ "Use of ' ' but '\\t' was used before to indent lines %s")
                                         (position lineno charstart);
                                     if not use_tab_before && use_tab then
                                       OASISMessage.warning
+                                        ~ctxt:conf.ctxt
                                         (f_ "Use of '\\t' but ' ' was used before to indent lines %s")
                                         (position lineno charstart);
 

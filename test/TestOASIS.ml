@@ -27,6 +27,8 @@ open OUnit
 open TestCommon
 open OASISTypes
 open OASIS
+open OASISRecDescParser
+open OASISValues
 open FileUtil
 
 let tests ctxt =
@@ -112,7 +114,8 @@ let tests ctxt =
       "ValueParser" >:::
       (List.map test_value_parser_of_vector 
          (List.map 
-            (fun (v, f) -> (v, OASISValues.version_comparator.parse, f))
+            (fun (v, f) -> 
+               (v, version_comparator.parse ~ctxt:OASISContext.quiet, f))
             [
               ">= 3.11.1", false;
               ">= 3.11",   false;

@@ -147,6 +147,7 @@ let main ctxt pkg =
       begin
         let tmpl = 
           of_string_list  
+            ~ctxt:ctxt.OASISPlugin.ctxt
             ~template:true
             "configure"
             comment_sh

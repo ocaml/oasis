@@ -79,7 +79,9 @@ let schema, generator =
            (fun () -> s_ ".ml file")
        in
          {
-           parse  = (fun str -> file.parse (base_value.parse str));
+           parse  = (fun ~ctxt str -> 
+                       file.parse ~ctxt 
+                         (base_value.parse ~ctxt str));
            update = update_fail;
            print  = (fun fn -> file.print (base_value.print fn));
          })

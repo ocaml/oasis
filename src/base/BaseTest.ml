@@ -24,7 +24,7 @@
   *)
 
 open BaseEnv
-open OASISMessage
+open BaseMessage
 open OASISTypes
 open OASISExpr
 open OASISGettext

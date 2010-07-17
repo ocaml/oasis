@@ -94,9 +94,9 @@ let schema, generator =
         ~quickstart_level:(NoChoice current_version)
         {
           parse = 
-            (fun str ->
+            (fun ~ctxt str ->
                let v = 
-                 version.parse str
+                 version.parse ~ctxt str
                in
                  if not 
                       (List.mem 

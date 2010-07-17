@@ -24,9 +24,10 @@
   *)
 
 open OASISTypes
-open OASISAstTypes
 open OASISUtils
 open OASISGettext
+open OASISRecDescParser
+open OASISAstTypes
 
 (** Convert OASIS stream into package 
   *)
@@ -43,6 +44,7 @@ let to_package conf st =
       cond        = None;
       append      = false;
       valid_flags = [];
+      ctxt        = conf.OASISRecDescParser.ctxt;
     }
   in
 

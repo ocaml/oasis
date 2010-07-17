@@ -3,7 +3,7 @@
   *)
 
 open MainGettext
-open OASISMessage
+open BaseMessage
 open SubCommand
 open OASISUtils
 open Format
@@ -16,7 +16,7 @@ let specs, usage_msg =
     Arg.String (fun str -> Sys.chdir str),
     (s_ "dir Change directory before running.");
   ] 
-  @ (OASISMessage.args ()),
+  @ (BaseContext.args ()),
 
   s_ "OASIS (C) 2009-2010 OCamlCore SARL\n\
       \n\

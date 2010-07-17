@@ -27,6 +27,7 @@ open OASISTypes
 open OASISAstTypes
 open OASISGettext
 open OASISUtils
+open OASISValues
 open PropList
 
 type extra =
@@ -123,22 +124,22 @@ let new_field_conditional
   in
 
   let parse ?context s = 
-     let real_cond =
-       match context with 
-         | Some ctxt ->
-             begin
+     match context with 
+       | Some ctxt ->
+           begin
+             let real_cond =
                match ctxt.cond with 
                  | Some e -> e
                  | None -> EBool true
-             end
-         | None ->
-             (* TODO: this is ugly, try to find a solution without ?context *)
-             failwithf2
-               (f_ "No context defined for field '%s' when parsing value %S")
-               name 
-               s
-     in
-       [real_cond, value.parse s]
+             in
+               [real_cond, value.parse ~ctxt:ctxt.ctxt s]
+           end
+       | None ->
+           (* TODO: this is ugly, try to find a solution without ?context *)
+           failwithf2
+             (f_ "No context defined for field '%s' when parsing value %S")
+             name 
+             s
   in
 
   let print =
@@ -189,7 +190,7 @@ let new_field
           begin
             if ctxt.cond <> None then
               failwithf1 (f_ "Field '%s' cannot be conditional") name;
-            value.parse s
+            value.parse ~ctxt:ctxt.ctxt s
           end
       | None ->
           (* TODO: this is ugly, try to find a solution without ?context *)

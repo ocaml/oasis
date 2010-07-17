@@ -23,19 +23,18 @@
     @author Sylvain Le Gall
   *)
 
-open OUnit;;
-open TestCommon;;
-open OASISFileTemplate;;
+open OUnit
+open TestCommon
+open OASISFileTemplate
+open OASISContext
 
 let tests ctxt =
 
   let test_of_vector (fn, content_lst, comment_fmt) = 
     fn >::
     bracket
-      (fun () ->
-         !OASISMessage.verbose,
-         ref NoChange)
-      (fun (verbosity, rchng) ->
+      (fun () -> ref NoChange)
+      (fun rchng ->
          let real_fn = 
            in_data fn
          in
@@ -58,10 +57,11 @@ let tests ctxt =
              Buffer.contents buff
          in
 
-           OASISMessage.verbose := false;
            rchng := file_generate 
+                      ~ctxt:quiet
                       ~backup:true
                       (of_string_list
+                         ~ctxt:quiet
                          ~template:true
                          real_fn 
                          comment_fmt
@@ -73,9 +73,7 @@ let tests ctxt =
              (file_content expected_fn)
              (file_content real_fn))
 
-      (fun (verbosity, rchng) ->
-         file_rollback !rchng;
-         OASISMessage.verbose := verbosity)
+      (fun rchng -> file_rollback ~ctxt:quiet !rchng)
 
   in
 

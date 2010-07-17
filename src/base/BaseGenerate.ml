@@ -29,7 +29,7 @@ open OASISUtils
 open OASISFileTemplate
 open ODN
 open OASISPlugin
-open OASISMessage
+open BaseMessage
 open OASISGettext
 
 let required_modules =
@@ -75,32 +75,43 @@ let unregister =
 (** Restore generated files, when [generate] has been called with 
     [~restore:true]
   *)
-let restore () = 
-  List.iter
-    (fun (ev, d) ->
-       let chng = 
-         if ev = ev_create then
-           Create d
-         else if ev = ev_backup then
-           Scanf.sscanf 
-             d
-             "%S -> %S"
-             (fun fn bak -> 
-                Change (fn, Some bak))
-         else 
-           NoChange
-       in
-         file_rollback chng;
-         BaseLog.unregister ev d)
-    (BaseLog.filter 
-       [ev_create; ev_backup])
+let restore ?msg () = 
+  let msg = 
+    match msg with 
+      | Some e -> e 
+      | None -> !BaseContext.default 
+  in
+    List.iter
+      (fun (ev, d) ->
+         let chng = 
+           if ev = ev_create then
+             Create d
+           else if ev = ev_backup then
+             Scanf.sscanf 
+               d
+               "%S -> %S"
+               (fun fn bak -> 
+                  Change (fn, Some bak))
+           else 
+             NoChange
+         in
+           file_rollback ~ctxt:msg chng;
+           BaseLog.unregister ev d)
+      (BaseLog.filter 
+         [ev_create; ev_backup])
 
 
 (** Generate setup file and the rest of the build system 
   *)
-let generate ~restore ~backup ~dev ~setup_fn ?oasis_exec pkg = 
+let generate ?msg ~restore ~backup ~dev ~setup_fn ?oasis_exec pkg = 
   let ctxt, _ = 
     BaseSetup.of_package pkg
+  in
+
+  let msg = 
+    match msg with 
+      | Some e -> e 
+      | None -> !BaseContext.default 
   in
 
   let change_setup_fn = 
@@ -153,9 +164,9 @@ let generate ~restore ~backup ~dev ~setup_fn ?oasis_exec pkg =
       (fun tmpl acc -> 
          let chng = 
            try 
-             file_generate ~backup tmpl
+             file_generate ~ctxt:msg ~backup tmpl
            with e ->
-             List.iter file_rollback acc;
+             List.iter (file_rollback ~ctxt:msg) acc;
              raise e
          in
            if restore then 

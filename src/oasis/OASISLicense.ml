@@ -27,6 +27,7 @@
 (* END EXPORT *)
 
 open OASISTypes
+open OASISValues
 open OASISGettext
 open OASISUtils
 
@@ -199,7 +200,7 @@ let parse =
           s
       end
   in
-    parse_aux
+    (fun ~ctxt s -> parse_aux s)
   
 
 let rec to_string = 

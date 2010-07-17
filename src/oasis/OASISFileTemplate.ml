@@ -135,7 +135,7 @@ let file_make fn comment header body footer =
 
 (** Split a list of string containing a file template. 
   *)
-let of_string_list ~template fn comment lst =
+let of_string_list ~ctxt ~template fn comment lst =
 
   (* Convert a Digest.to_hex string back into Digest.t *)
   let digest_of_hex s =
@@ -234,7 +234,7 @@ let of_string_list ~template fn comment lst =
   in
 
     if body = NoBody then
-      warning 
+      warning ~ctxt
         (if template then
            (f_ "No replace section found in template for file %s") 
          else
@@ -498,10 +498,11 @@ type file_generate_change =
 
 (** Reset to pristine a generated file
   *)
-let file_rollback =
+let file_rollback ~ctxt =
   function 
     | Create fn ->
         info 
+          ~ctxt
           (f_ "Remove generated file '%s'")
           fn;
         FileUtil.rm [fn]
@@ -510,14 +511,13 @@ let file_rollback =
         begin
           if Sys.file_exists bak then
             begin
-              info 
-                (f_ "Restore file '%s' with backup file '%s'.")
+              info ~ctxt (f_ "Restore file '%s' with backup file '%s'.")
                 fn bak;
               FileUtil.mv bak fn
             end
           else
             begin
-              warning 
+              warning ~ctxt
                 (f_ "Backup file '%s' disappear, cannot restore \
                      file '%s'.")
                 bak fn
@@ -525,7 +525,7 @@ let file_rollback =
         end
 
     | Change (fn, None) ->
-        warning
+        warning ~ctxt
           (f_ "Cannot restore file '%s', no backup.")
           fn
 
@@ -536,7 +536,7 @@ let file_rollback =
     OASIS_END will really be replaced if the file exist. If file doesn't exist
     use the whole template.
  *)
-let file_generate ~backup t = 
+let file_generate ~ctxt ~backup t = 
 
   (* Check that the files differ
    *)
@@ -598,7 +598,7 @@ let file_generate ~backup t =
     if Sys.file_exists t.fn then
       begin
         let t_org = 
-          of_file ~template:false t.fn t.comment
+          of_file ~ctxt ~template:false t.fn t.comment
         in
 
           match t_org.body, body_has_changed t_org t with 
@@ -612,7 +612,7 @@ let file_generate ~backup t =
                 begin
                   (* Regenerate *)
                   let () = 
-                    info (f_ "Regenerating file %s") t.fn
+                    info ~ctxt (f_ "Regenerating file %s") t.fn
                   in
 
                   let fn_backup = 
@@ -622,7 +622,7 @@ let file_generate ~backup t =
                         let fn_bak = 
                           do_backup t.fn
                         in
-                          warning 
+                          warning ~ctxt 
                             (f_ "File %s has changed, doing a backup in %s")
                             t.fn fn_bak;
                           Some fn_bak
@@ -641,13 +641,13 @@ let file_generate ~backup t =
 
             | _, false -> (* No change *)
               begin
-                info (f_ "File %s has not changed, skipping") t.fn;
+                info ~ctxt (f_ "File %s has not changed, skipping") t.fn;
                 NoChange
               end
       end
     else
       begin
-        info (f_ "File %s doesn't exist, creating it.") t.fn;
+        info ~ctxt (f_ "File %s doesn't exist, creating it.") t.fn;
         to_file t;
         Create t.fn
 

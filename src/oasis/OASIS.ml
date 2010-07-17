@@ -25,6 +25,7 @@
   *)  
 
 open OASISTypes
+open OASISRecDescParser
 
 (** Default configuration for parser/checker *)
 let default_conf =
@@ -33,6 +34,7 @@ let default_conf =
     srcdir         = None;
     ignore_unknown = false;
     debug          = false;
+    ctxt           = !OASISContext.default;
   }
 
 (** [from_file ~conf fn] Parse the OASIS file [fn] and check it using

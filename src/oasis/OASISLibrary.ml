@@ -29,7 +29,7 @@ open OASISGettext
 
 (** Compute all files expected by a build of the library
   *)
-let generated_unix_files (cs, bs, lib) 
+let generated_unix_files ~ctxt (cs, bs, lib) 
       source_file_exists is_native ext_lib ext_dll =  
   (* The headers that should be compiled along *)
   let headers = 
@@ -52,6 +52,7 @@ let generated_unix_files (cs, bs, lib)
              (base_fn^".cmi") :: hdrs
          with Not_found ->
            OASISMessage.warning
+             ~ctxt
              (f_ "Cannot find source file matching \
                   module '%s' in library %s")
              modul cs.cs_name;

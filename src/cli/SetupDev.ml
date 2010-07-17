@@ -6,7 +6,7 @@
 open MainGettext
 open SubCommand
 open OASISFileTemplate
-open OASISMessage
+open BaseMessage
 
 let roasis_exec =
   ref None
@@ -19,6 +19,9 @@ let run_args =
 let main () =
   let oasis_exec = !roasis_exec in
   let setup_fn   = BaseSetup.default_fn in
+  let msg = 
+    {(!BaseContext.default) with OASISContext.verbose = false}
+  in
 
     match !run_args with 
       | [] ->
@@ -26,6 +29,7 @@ let main () =
             (* Default mode: generate setup.ml *)
             let chngs = 
               BaseGenerate.generate 
+                ~msg
                 ~dev:true
                 ~backup:true
                 ~restore:false
@@ -39,7 +43,7 @@ let main () =
                    | Change (fn, bak) as chng ->
                        if fn <> setup_fn then
                          begin
-                           file_rollback chng
+                           file_rollback ~ctxt:msg chng
                          end
                        else 
                          begin
@@ -50,7 +54,7 @@ let main () =
 
                    | Create fn as chng ->
                        if fn <> setup_fn then
-                         file_rollback chng
+                         file_rollback ~ctxt:msg chng
 
                    | NoChange ->
                        ())
@@ -61,7 +65,7 @@ let main () =
           begin
             let () = 
               (* Clean everything before running *)
-              BaseGenerate.restore ()
+              BaseGenerate.restore ~msg ()
             in
 
             (* Run mode: generate setup-dev.ml and run it *)
@@ -72,12 +76,12 @@ let main () =
               let rec find_fn fn n =
                 if n <= 100 then
                   begin
-                      if Sys.file_exists fn then
-                        find_fn 
-                          (Printf.sprintf "setup-dev-%02d.ml" n)                    
-                          (n + 1)
-                      else
-                        fn
+                    if Sys.file_exists fn then
+                      find_fn
+                        (Printf.sprintf "setup-dev-%02d.ml" n)
+                        (n + 1)
+                    else
+                      fn
                   end
                 else
                   OASISUtils.failwithf1
@@ -90,6 +94,7 @@ let main () =
 
             let _chngs: file_generate_change list = 
               BaseGenerate.generate 
+                ~msg
                 ~dev:false
                 ~backup:true
                 ~restore:true
@@ -99,7 +104,7 @@ let main () =
 
             let safe_exit () = 
               (* Restore backup files *)
-              BaseGenerate.restore ()
+              BaseGenerate.restore ~msg ()
             in
 
             let bootstrap_args = 

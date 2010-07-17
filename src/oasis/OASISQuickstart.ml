@@ -36,7 +36,7 @@ type 'a default =
   | Default_is of string
   | NoDefault
 
-let ask_until_correct q ?help ?(default=NoDefault) parse = 
+let ask_until_correct q ~ctxt ?help ?(default=NoDefault) parse = 
   let rec ask_until_correct_aux () =
     let () = 
       (* Short introduction *)
@@ -77,7 +77,7 @@ let ask_until_correct q ?help ?(default=NoDefault) parse =
         end
       with e -> 
         begin
-          error ~exit:false "%s" (string_of_exception e);
+          error ~ctxt ~exit:false "%s" (string_of_exception e);
           if help <> None then
             print_endline (s_ "Answer '?' for help on this question.");
           ask_until_correct_aux ()
@@ -87,7 +87,7 @@ let ask_until_correct q ?help ?(default=NoDefault) parse =
   in
     ask_until_correct_aux ()
 
-let ask_shortcut_choices ?help ?(default=NoDefault) q choices = 
+let ask_shortcut_choices ~ctxt ?help ?(default=NoDefault) q choices = 
   let help = 
     let fmt =
       str_formatter
@@ -134,6 +134,7 @@ let ask_shortcut_choices ?help ?(default=NoDefault) q choices =
           end
   in
     ask_until_correct 
+      ~ctxt
       ?help
       ~default
       q
@@ -145,8 +146,9 @@ let ask_shortcut_choices ?help ?(default=NoDefault) q choices =
          with Not_found ->
            failwithf1 (f_ "'%s' is not valid answer") s)
 
-let ask_yes_no ?help ?default q =
+let ask_yes_no ~ctxt ?help ?default q =
   ask_shortcut_choices 
+    ~ctxt
     ?help 
     ?default
     q
@@ -160,12 +162,13 @@ let ask_field =
   ask_until_correct
 
 (** Ask questions for a schema (Package, Library, Executable...) *)
-let ask_schema schema lvl =
+let ask_schema ~ctxt schema lvl =
   let fake_context = 
     {
       OASISAstTypes.cond = None;
       append             = false;
-      valid_flags        = []
+      valid_flags        = [];
+      ctxt               = ctxt;
     }
   in
 
@@ -221,6 +224,7 @@ let ask_schema schema lvl =
                            | _ ->
                                (* TODO: handle other kind of questions *)
                                ask_field 
+                                 ~ctxt 
                                  (Printf.sprintf (f_ "Value for field '%s'?") key)
                                  ?help
                                  ~default
@@ -239,17 +243,17 @@ let ask_schema schema lvl =
     schema
 
 (** Ask questions for a package and its sections *)
-let ask_package lvl = 
+let ask_package ~ctxt lvl = 
   let pkg_data = 
-    ask_schema OASISPackage.schema lvl
+    ask_schema ~ctxt OASISPackage.schema lvl
   in
 
   let section_data =
     let section gen schema q_name =
       let nm = 
-        ask_field q_name (fun s -> s)
+        ask_field ~ctxt q_name (fun s -> s)
       in
-        gen nm (ask_schema schema lvl)
+        gen nm (ask_schema ~ctxt schema lvl)
     in
 
     let sections = 
@@ -307,7 +311,7 @@ let ask_package lvl =
     in
 
     let rec new_section acc q = 
-      match ask_shortcut_choices ~default:(Default_exists None) q sections with 
+      match ask_shortcut_choices ~ctxt ~default:(Default_exists None) q sections with 
         | None ->
             List.rev acc
         | Some f ->
@@ -333,7 +337,7 @@ let ask_package lvl =
     pkg_data, section_data
 
 (** Create an _oasis file *)
-let to_file fn lvl oasis_dev =
+let to_file ~ctxt fn lvl oasis_dev =
 
   let () = 
     (* Print introduction *)
@@ -354,6 +358,7 @@ let to_file fn lvl oasis_dev =
       begin
         let a = 
           ask_yes_no 
+            ~ctxt
             ~default:(Default_exists false)
             (Printf.sprintf
                (f_ "File '%s' already exists, overwrite it?")
@@ -367,7 +372,7 @@ let to_file fn lvl oasis_dev =
   in
 
   let (pkg_data, section_data) = 
-    ask_package lvl
+    ask_package ~ctxt lvl
   in
 
   let content =
@@ -390,7 +395,9 @@ let to_file fn lvl oasis_dev =
         let prg = 
           Sys.getenv env_var
         in
-          info (f_ "Environment variable %s is set to '%s'") env_var prg;
+          info 
+            ~ctxt 
+            (f_ "Environment variable %s is set to '%s'") env_var prg;
           Some prg
       end
     with Not_found ->
@@ -400,11 +407,14 @@ let to_file fn lvl oasis_dev =
             let prg = 
               FileUtil.which prg
             in
-              info (f_ "Program '%s' exists") prg;
+              info 
+                ~ctxt 
+                (f_ "Program '%s' exists") prg;
               Some prg
           end
         with Not_found ->
           info 
+            ~ctxt
             (f_ "Environment variable %s is not set and program '%s' \
                doesn't exists")
             env_var prg;
@@ -418,7 +428,7 @@ let to_file fn lvl oasis_dev =
       ^" "^
       (Filename.quote fn)
     in
-      info (f_ "Running command '%s'") cmd;
+      info ~ctxt (f_ "Running command '%s'") cmd;
       match Sys.command cmd with
         | 0 -> ()
         | i -> 
@@ -464,11 +474,11 @@ let to_file fn lvl oasis_dev =
 
                 with e ->
                   Sys.remove tmp_fn;
-                  error "%s" (string_of_exception e)
+                  error ~ctxt "%s" (string_of_exception e)
               end
           end
       | None ->
-          error ~exit:false "No way to edit the generated file."
+          error ~ctxt ~exit:false "No way to edit the generated file."
   in
 
   let pager content =
@@ -483,7 +493,7 @@ let to_file fn lvl oasis_dev =
                 Sys.remove tmp_fn
               with e ->
                 Sys.remove tmp_fn;
-                error "%s" (string_of_exception e)
+                error ~ctxt "%s" (string_of_exception e)
           end
       | None ->
           begin
@@ -496,13 +506,14 @@ let to_file fn lvl oasis_dev =
     let chn = 
       open_out fn
     in
-      info (f_ "Creating %s file\n%!") fn;
+      info ~ctxt (f_ "Creating %s file\n%!") fn;
       Buffer.output_buffer chn content;
       close_out chn
   in
 
   let ask_end () = 
     ask_shortcut_choices 
+      ~ctxt
       "Package definition is complete, what do you want to do now?"
       [
         s_ "d", s_ "display the generated file",
