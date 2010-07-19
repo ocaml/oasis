@@ -353,13 +353,35 @@ let pkgname =
   {
     parse = 
       (fun ~ctxt s ->
-         if String.contains s '.' then
-           failwith (s_ "Findlib package name cannot contain '.'")
+         if s = "" then
+           failwith (s_ "Empty string is not a valid findlib package")
+         else if String.contains s '"' || String.contains s '.' then
+           failwith (s_ "Findlib package name cannot contain '.' or '\"'")
          else
            s);
     update = update_fail;
-    print =
-      (fun s -> s);
+    print = (fun s -> s);
+  }
+
+(** Findlib package name with path (i.e. oasis.base)
+  *)
+let full_pkgname = 
+  {
+    parse = 
+      (fun ~ctxt s -> 
+         let cpnts = 
+           String.nsplit s "."
+         in
+           List.iter 
+             (fun cpnt -> 
+                let _s : string = 
+                  pkgname.parse ~ctxt cpnt
+                in 
+                  ())
+             cpnts;
+           s);
+    update = update_fail;
+    print = (fun s -> s);
   }
 
 (** Internal library

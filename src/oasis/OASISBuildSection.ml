@@ -38,7 +38,7 @@ let build_depends_field schm =
     (let base_value = 
        comma_separated 
          (with_optional_parentheses
-            string_not_empty
+            full_pkgname
             version_comparator)
      in
        {

@@ -94,7 +94,7 @@ let libraries =
     OASISDocument.schema
     "Libraries"
     ~default:[]
-    (comma_separated pkgname)
+    (comma_separated full_pkgname)
     (fun () ->
        s_ "Findlib names of internal libraries used to generate the ocamldoc documentation")
 
