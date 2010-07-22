@@ -19,17 +19,12 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Generate files with auto-generated part
-    @author Sylvain Le Gall
-  *)
 
 open OASISMessage
 open OASISGettext
 open OASISUtils
+open OASISTypes
 
-(** {1 Comments} *)
-
-(** Describe comment *)
 type comment =
     {
       of_string: string -> string;
@@ -38,7 +33,23 @@ type comment =
       stop:      string;
     }
 
-(**/**)
+type line = string
+
+type body = 
+  | NoBody
+  | Body of line list
+  | BodyWithDigest of Digest.t * line list
+
+type template =
+    {
+      fn:      host_filename;
+      comment: comment;
+      header:  line list;
+      body:    body; 
+      footer:  line list;
+      perm:    int;
+    }
+
 let (start_msg, stop_msg) =
   "OASIS_START",
   "OASIS_STOP"
@@ -79,8 +90,6 @@ let comment cmt_beg cmt_end =
       stop      = of_string stop_msg;
     }
 
-(**/**)
-
 let comment_ml =
   comment "(*" (Some "*)")
 
@@ -99,30 +108,8 @@ let comment_bat =
 let comment_meta = 
   comment_sh
 
-(** {1 Template generation} *)
 
-(** {1 Types} *)
-
-type line = string
-
-type body = 
-  | NoBody
-  | Body of line list
-  | BodyWithDigest of Digest.t * line list
-
-type template =
-    {
-      fn:      OASISTypes.filename;
-      comment: comment;
-      header:  line list;
-      body:    body; 
-      footer:  line list;
-      perm:    int;
-    }
-
-(** Create a OASISFileTemplate.t
-  *)
-let file_make fn comment header body footer =
+let template_make fn comment header body footer =
   {
     fn      = fn;
     comment = comment;
@@ -133,9 +120,7 @@ let file_make fn comment header body footer =
   }
 
 
-(** Split a list of string containing a file template. 
-  *)
-let of_string_list ~ctxt ~template fn comment lst =
+let template_of_string_list ~ctxt ~template fn comment lst =
 
   (* Convert a Digest.to_hex string back into Digest.t *)
   let digest_of_hex s =
@@ -225,7 +210,7 @@ let of_string_list ~ctxt ~template fn comment lst =
   in
 
   let res = 
-    file_make 
+    template_make 
       fn 
       comment 
       header 
@@ -243,9 +228,7 @@ let of_string_list ~ctxt ~template fn comment lst =
     {res with body = body}
 
 
-(** Use a filename to extract OASISFileTemplate.t 
-  *)
-let of_file ~template fn comment =
+let template_of_file ~template fn comment =
  let lst =
    let chn_in =
      open_in_bin fn 
@@ -264,14 +247,10 @@ let of_file ~template fn comment =
      close_in chn_in;
      List.rev !lst
  in
-   of_string_list ~template fn comment lst
+   template_of_string_list ~template fn comment lst
 
 
-
-(** Create an OCaml file template taking into account subtleties, like line
-    modifier. 
-  *)
-let of_mlfile fn header body footer  = 
+let template_of_mlfile fn header body footer  = 
 
   let rec count_line str line_cur str_start =
     if str_start < String.length str then 
@@ -390,18 +369,13 @@ let of_mlfile fn header body footer  =
       [], line_end
   in
 
-    file_make
+    template_make
       fn
       comment_ml
       header
       body
       footer
 
-
-
-
-(** Set the digest of body to match the current body
-  *)
 let digest_update t =
   {t with 
        body = 
@@ -413,10 +387,6 @@ let digest_update t =
                  (Digest.string (String.concat "\n" lst),
                   lst)}
 
-
-(** Check that the body's digest match the published digest. 
-    Return true if this is the case.
-  *)
 let digest_check t =
   let t' = digest_update t in
     match t'.body, t.body with 
@@ -425,10 +395,6 @@ let digest_check t =
       | _, _ ->
           true
 
-
-(** [merge t_org t_new] Use header and footer from [t_org] and the rest from
-    [t_new]
-  *)
 let merge t_org t_new =
   {t_new with 
        header = t_org.header;
@@ -439,9 +405,6 @@ let merge t_org t_new =
             t_new.body);
        footer = t_org.footer}
 
-
-(** Write the target file
-  *)
 let to_file t = 
   (* Be sure that digest match body content *)
   let t =
@@ -489,15 +452,11 @@ let to_file t =
     output_lst t.footer;
     close_out chn_out
 
-type filename = OASISTypes.filename
-
 type file_generate_change =
-  | Create of filename
-  | Change of filename * filename option
+  | Create of host_filename
+  | Change of host_filename * host_filename option
   | NoChange
 
-(** Reset to pristine a generated file
-  *)
 let file_rollback ~ctxt =
   function 
     | Create fn ->
@@ -532,10 +491,6 @@ let file_rollback ~ctxt =
     | NoChange ->
         ()
 
-(** Generate a file using a template. Only the part between OASIS_START and 
-    OASIS_END will really be replaced if the file exist. If file doesn't exist
-    use the whole template.
- *)
 let file_generate ~ctxt ~backup t = 
 
   (* Check that the files differ
@@ -598,7 +553,7 @@ let file_generate ~ctxt ~backup t =
     if Sys.file_exists t.fn then
       begin
         let t_org = 
-          of_file ~ctxt ~template:false t.fn t.comment
+          template_of_file ~ctxt ~template:false t.fn t.comment
         in
 
           match t_org.body, body_has_changed t_org t with 
@@ -654,53 +609,37 @@ let file_generate ~ctxt ~backup t =
       end
 
 
-(** {1 Multiple templates management }
-  *)
-
-(**/**)
 module S = 
   Map.Make (
 struct
-  type t = OASISTypes.filename
+  type t = host_filename
 
   let compare = 
-    FilePath.UnixPath.compare
+    FilePath.compare
 end)
-(**/**)
 
-exception AlreadyExists of OASISTypes.filename
+exception AlreadyExists of host_filename
 
 type templates = template S.t
 
-(** No generated template files
-  *)
 let empty =
   S.empty
 
-(** Find a generated template file *)
 let find = 
   S.find
 
-(** Add a generated template file
-    @raise AlreadyExists
-  *)
 let add e t = 
   if S.mem e.fn t then
     raise (AlreadyExists e.fn)
   else
     S.add e.fn e t
 
-(** Remove a generated template file *)
 let remove fn t =
   S.remove fn t 
 
-(** Add or replace a generated template file
-  *)
 let replace e t =
   S.add e.fn e t
 
-(** Fold over generated template files
-  *)
 let fold f t acc =
   S.fold
     (fun k e acc ->

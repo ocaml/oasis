@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 2123d08da019beec946b5c61fda4975c)
+# DO NOT EDIT (digest: ecf8bf64865fb17041801ebe2cd64e42)
 # Executable ocamlmod
 "src/tools/ocamlmod.byte": pkg_str
 "src/tools/ocamlmod.byte": pkg_fileutils
@@ -126,6 +126,8 @@
 "src/plugins/internal": include
 "src/plugins/none": include
 "src/plugins/ocamlbuild": include
+# Library cli
+"src/cli": include
 # Executable test
 "test/test.byte": use_builtin-plugins
 "test/test.byte": use_base
@@ -150,6 +152,7 @@
 <test/*.ml{,i}>: pkg_fileutils
 <test/*.ml{,i}>: pkg_extlib
 # Executable OASIS
+"src/cli/Main.byte": use_cli
 "src/cli/Main.byte": use_builtin-plugins
 "src/cli/Main.byte": use_base
 "src/cli/Main.byte": use_oasis
@@ -160,6 +163,7 @@
 "src/cli/Main.byte": pkg_findlib
 "src/cli/Main.byte": pkg_fileutils
 "src/cli/Main.byte": pkg_extlib
+<src/cli/*.ml{,i}>: use_cli
 <src/cli/*.ml{,i}>: use_builtin-plugins
 <src/cli/*.ml{,i}>: use_base
 <src/cli/*.ml{,i}>: use_oasis
@@ -188,6 +192,9 @@
 
 "src/oasis/OASISTypes.ml": syntax_camlp4o, pkg_odn.with.syntax
 "src/oasis/OASISRecDescParser.ml": syntax_camlp4o, pkg_camlp4
+"src/oasis/OASISVersion.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/oasis/OASISLicense.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/oasis/OASISExpr.ml": syntax_camlp4o, pkg_odn.with.syntax
 
 "src/base/BaseDev.ml": syntax_camlp4o, pkg_odn.with.syntax
 

@@ -19,40 +19,26 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Read-only environment
-    @author Sylvain Le Gall
-  *)
-
 open OASISTypes
 open OASISGettext
 open OASISUtils
 open PropList
 
-(** Origin of the variable, if a variable has been already set
-    with a higher origin, it won't be set again
-  *)
-type origin_t = 
-  | ODefault     (** Default computed value *)
-  | OGetEnv      (** Extracted from environment, using Sys.getenv *)
-  | OFileLoad    (** From loading file setup.data *)
-  | OCommandLine (** Set on command line *)
+module MapString = BaseEnvLight.MapString
 
-(** Command line handling for variable 
-  *)
+type origin_t = 
+  | ODefault
+  | OGetEnv
+  | OFileLoad
+  | OCommandLine
+
 type cli_handle_t =
-  (** No command line argument *)
   | CLINone
-  (** Build using variable name and help text *)
   | CLIAuto
-   (** Use prefix --with- *)
   | CLIWith
-  (** Use --enable/--disable *)
   | CLIEnable
-  (** Fully define the command line arguments *)
   | CLIUser of (Arg.key * Arg.spec * Arg.doc) list
 
-(** Variable type
-  *)
 type definition_t =
     {
       hide:       bool;
@@ -62,29 +48,21 @@ type definition_t =
       group:      string option;
     }
 
-(** Schema for environment 
-  *)
 let schema =
   Schema.create "environment"
 
-(** Environment data 
-  *)
+(* Environment data *)
 let env = 
   Data.create ()
 
-(** Environment data from file
-  *)
+(* Environment data from file *)
 let env_from_file = 
   ref MapString.empty
 
-(** Lexer for var
-  *)
+(* Lexer for var *)
 let var_lxr = 
   Genlex.make_lexer []
 
-(** Expand variable that can be found in string. Variable follow definition of
-  * variable for {!Buffer.add_substitute}.
-  *)
 let rec var_expand str =
   let buff =
     Buffer.create ((String.length str) * 2)
@@ -135,8 +113,6 @@ let rec var_expand str =
       str;
     Buffer.contents buff
 
-(** Get variable 
-  *)
 and var_get name =
   let vl = 
     try 
@@ -151,18 +127,14 @@ and var_get name =
   in
     var_expand vl
 
-(** Choose a value among conditional expression
-  *)
 let var_choose ?printer ?name lst =
   OASISExpr.choose 
     ?printer
     ?name
     var_get 
-    (fun et -> var_get (OASISExpr.string_of_expr_test et))
+    (fun et -> var_get (OASISExpr.string_of_test et))
     lst
 
-(** Protect a variable content, to avoid expansion
-  *)
 let var_protect vl = 
   let buff = 
     Buffer.create (String.length vl)
@@ -174,8 +146,6 @@ let var_protect vl =
       vl;
     Buffer.contents buff
 
-(** Define a variable 
-  *)
 let var_define 
       ?(hide=false) 
       ?(dump=true) 
@@ -266,8 +236,6 @@ let var_define
     fun () ->
       var_expand (var_get_low (var_get_lst env))
 
-(** Define a variable or redefine it
-  *)
 let var_redefine 
       ?hide
       ?dump
@@ -295,13 +263,9 @@ let var_redefine
         dflt
     end
 
-(** Well-typed ignore for var_define 
-  *)
 let var_ignore (e : unit -> string) = 
   ()
 
-(** Display all variable 
-  *)
 let print_hidden =
   var_define 
     ~hide:true
@@ -311,8 +275,6 @@ let print_hidden =
     "print_hidden"
     (lazy "false")
 
-(** Get all variable
-  *)
 let var_all () =
   List.rev
     (Schema.fold
@@ -324,25 +286,17 @@ let var_all () =
        []
        schema)
 
-(** Environment default file 
-  *)
 let default_filename =
   BaseEnvLight.default_filename
 
-(** Initialize environment.
-  *)
 let load ?allow_empty ?filename () =
   env_from_file := BaseEnvLight.load ?allow_empty ?filename ()
 
-(** Uninitialize environment 
-  *)
 let unload () = 
   (* TODO: reset lazy values *)
   env_from_file := MapString.empty;
   Data.clear env
 
-(** Save environment on disk.
-  *)
 let dump ?(filename=default_filename) () = 
   let chn =
     open_out_bin filename
@@ -365,8 +319,6 @@ let dump ?(filename=default_filename) () =
       schema;
     close_out chn
 
-(** Display environment to user.
-  *)
 let print () =
   let printable_vars =
     Schema.fold
@@ -413,8 +365,6 @@ let print () =
   Printf.printf "%!";
   print_newline ()
 
-(** Default command line arguments 
-  *)
 let args () =
   let arg_concat =
     OASISUtils.varname_concat ~hyphen:'-'

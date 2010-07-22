@@ -116,7 +116,7 @@ A condition is defined using a `if ... else ...` construct.
 
 Example:
     Library bar
-      if os\_type(Win32) 
+      if os_type(Win32)
         Build: true
       else 
         Build: false

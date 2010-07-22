@@ -1,8 +1,4 @@
 
-(** Global context for OASIS, include message management and i18n
-    @author Sylvain Le Gall
-  *)
-
 open OASISGettext 
 
 type t =
@@ -25,8 +21,6 @@ let quiet =
   }
 
 
-(** Command line arguments
-  *)
 let args () =
   ["-quiet",
    Arg.Unit (fun () -> default := {!default with verbose = false}),

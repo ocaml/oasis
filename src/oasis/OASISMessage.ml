@@ -19,14 +19,10 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Message to user
-    @author Sylvain Le Gall
-  *)
 
 open OASISGettext
 open OASISContext
 
-(**/**)
 let generic_message ?(after=ignore) cond beg fmt =
   if cond then
     begin
@@ -44,26 +40,16 @@ let generic_message ?(after=ignore) cond beg fmt =
         stderr
         fmt
     end
-(**/**)
 
-
-(** Print a debug message
-  *)
 let debug ?after ~ctxt fmt =
   generic_message ?after ctxt.debug "D" fmt
 
-(** Print information message.
-  *)
 let info ?after ~ctxt fmt = 
   generic_message ?after ctxt.verbose "I" fmt
 
-(** Print a warning message 
-  *)
 let warning ?after ~ctxt fmt =
   generic_message ?after ctxt.verbose "W" fmt
 
-(** Print an error message and exit.
-  *)
 let error ?(after=ignore) ?(exit=true) ~ctxt fmt =
   generic_message 
     ~after:(fun () -> 

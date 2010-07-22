@@ -19,24 +19,13 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Parse, print and check values of OASIS file
-    @author Sylvain Le Gall
-  *)
-
-open OASISTypes
 open OASISGettext
 open OASISUtils
 open ExtString
 
-(** The value exist but there is no easy way to represent it
-  *)
 exception Not_printable
-(** It is not possible to combine values
-  *)
 exception Not_combinable
 
-(** Definition of a value in OASIS file
-  *)
 type 'a t =
     {
       parse:  ctxt:OASISContext.t -> string -> 'a;
@@ -44,13 +33,9 @@ type 'a t =
       print:  'a -> string;
     }
 
-(** Always fail on update
-  *)
 let update_fail _ _ =
   raise Not_combinable
 
-(** Hidden value to build phantom data storage
-  *)
 let blackbox =
   {
     parse  = 
@@ -71,8 +56,7 @@ struct
   let modul     = r "[A-Z][A-Za-z0-9_]*"
 end
 
-(* Check that string match a Str.regexp *)
-let regexp regexp error = 
+let regexp regexp nm = 
   {
     parse = 
       (fun ~ctxt str -> 
@@ -84,18 +68,16 @@ let regexp regexp error =
            failwithf2
              (f_ "String '%s' is not a %s")
              str 
-             (error ()));
+             (nm ()));
     update = update_fail;
     print = (fun s -> s);
   }
 
-(** Check that we have an URL *)
 let url = 
   regexp
     StdRegexp.url
     (fun () -> s_ "URL")
 
-(** Check that we a (C) copyright *)
 let copyright =
   {
     parse = 
@@ -111,8 +93,6 @@ let copyright =
     print = (fun s -> s);
   }
 
-
-(** String *)
 let string =
   { 
     parse =  (fun ~ctxt s -> s);
@@ -120,7 +100,6 @@ let string =
     print =  (fun s -> s);
   }
 
-(** String is not empty *)
 let string_not_empty =
   {
     parse =
@@ -133,26 +112,20 @@ let string_not_empty =
     print = (fun s -> s);
   }
 
-(** File *)
 let file = 
   {string_not_empty with update = update_fail}
 
-(** File with glob *)
 let file_glob =
   {string_not_empty with update = update_fail}
 
-(** Directory *)
 let directory =
   {string_not_empty with update = update_fail}
 
 
-(** Variable that should be first expanded (i.e. replace $(...) by values 
-  *)
-let expand value =
+let expandable value =
   (* TODO: check expandable value *)
   value
 
-(** Convert a dot separated string into list, don't strip whitespace *)
 let dot_separated value =
   {
     parse =
@@ -172,7 +145,6 @@ let dot_separated value =
               lst));
   }
 
-(** Convert a comma separated string into list, strip whitespace *)
 let comma_separated value =
   { 
     parse = 
@@ -193,7 +165,6 @@ let comma_separated value =
               lst));
   }
 
-(** Convert a blank separated string into list, strip empty component *)
 let space_separated = 
   {
     parse = 
@@ -208,23 +179,6 @@ let space_separated =
          String.concat " " lst);
   }
 
-(** Check that we have a version number *)
-let version =
-  {
-    parse  = (fun ~ctxt s -> OASISVersion.version_of_string s);
-    update = update_fail;
-    print  = OASISVersion.string_of_version;
-  }
-
-(** Check that we have a version constraint *)
-let version_comparator = 
-  {
-    parse  = (fun ~ctxt s -> OASISVersion.comparator_of_string s);
-    update = update_fail;
-    print  = OASISVersion.string_of_comparator;
-  }
-
-(** Split a string that with an optional value: "e1 (e2)" *)
 let with_optional_parentheses main_value optional_value =
   let split_parentheses =
     Str.regexp "\\([^(]*\\)(\\([^)]*\\))"
@@ -261,7 +215,6 @@ let with_optional_parentheses main_value optional_value =
                  (optional_value.print opt));
     }
 
-(** Optional value *)
 let opt value =
   {
     parse = (fun ~ctxt str -> Some (value.parse ~ctxt str));
@@ -272,7 +225,6 @@ let opt value =
          | None -> raise Not_printable);
   }
 
-(** Convert string to module list *)
 let modules =
   let base_value = 
     regexp 
@@ -300,16 +252,12 @@ let modules =
         print  = (fun s -> s);
       }
 
-(** Convert string to file list *)
 let files = 
   comma_separated file
 
-(** Convert string to URL *)
 let categories = 
   comma_separated url 
 
-(** Choices 
-  *)
 let choices nm lst =
   {
     parse = 
@@ -341,15 +289,12 @@ let choices nm lst =
              (nm ()));
   }
 
-(** Convert string to boolean *)
 let boolean =
   choices 
     (fun () -> s_ "boolean")
     ["true", true; "false", false]
 
-(** Findlib package name 
-  *)
-let pkgname =
+let findlib_name =
   {
     parse = 
       (fun ~ctxt s ->
@@ -363,9 +308,7 @@ let pkgname =
     print = (fun s -> s);
   }
 
-(** Findlib package name with path (i.e. oasis.base)
-  *)
-let full_pkgname = 
+let findlib_full = 
   {
     parse = 
       (fun ~ctxt s -> 
@@ -375,7 +318,7 @@ let full_pkgname =
            List.iter 
              (fun cpnt -> 
                 let _s : string = 
-                  pkgname.parse ~ctxt cpnt
+                  findlib_name.parse ~ctxt cpnt
                 in 
                   ())
              cpnts;
@@ -384,14 +327,10 @@ let full_pkgname =
     print = (fun s -> s);
   }
 
-(** Internal library
-  *)
 let internal_library =
   (* TODO: check that the library really exists *)
   {string with update = update_fail}
 
-(** Command line 
-  *)
 let command_line = 
   let split_expandable str =
 

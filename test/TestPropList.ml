@@ -34,7 +34,7 @@ let tests ctxt =
      let toto =
        Field.create
          ~default:1
-         ~parse:(no_context int_of_string)
+         ~parse:(fun ?context s -> int_of_string s)
          ()
      in
 

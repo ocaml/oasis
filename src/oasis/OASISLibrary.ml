@@ -1,34 +1,9 @@
-(********************************************************************************)
-(*  OASIS: architecture for building OCaml libraries and applications           *)
-(*                                                                              *)
-(*  Copyright (C) 2008-2010, OCamlCore SARL                                     *)
-(*                                                                              *)
-(*  This library is free software; you can redistribute it and/or modify it     *)
-(*  under the terms of the GNU Lesser General Public License as published by    *)
-(*  the Free Software Foundation; either version 2.1 of the License, or (at     *)
-(*  your option) any later version, with the OCaml static compilation           *)
-(*  exception.                                                                  *)
-(*                                                                              *)
-(*  This library is distributed in the hope that it will be useful, but         *)
-(*  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY  *)
-(*  or FITNESS FOR A PARTICULAR PURPOSE. See the file COPYING for more          *)
-(*  details.                                                                    *)
-(*                                                                              *)
-(*  You should have received a copy of the GNU Lesser General Public License    *)
-(*  along with this library; if not, write to the Free Software Foundation,     *)
-(*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
-(********************************************************************************)
-
-(** Library schema and generator 
-    @author Sylvain Le Gall
-  *)
-
 open OASISTypes
 open OASISUtils
 open OASISGettext
 
-(** Compute all files expected by a build of the library
-  *)
+type library_name = name
+
 let generated_unix_files ~ctxt (cs, bs, lib) 
       source_file_exists is_native ext_lib ext_dll =  
   (* The headers that should be compiled along *)
@@ -105,8 +80,6 @@ let generated_unix_files ~ctxt (cs, bs, lib)
       headers
 
 
-(** Library group are organized in trees
-  *)
 type group_t = 
   | Container of findlib_name * (group_t list)
   | Package of (findlib_name * 
@@ -115,11 +88,6 @@ type group_t =
                 library * 
                 (group_t list))
 
-(** Compute groups of libraries, associate root libraries with 
-    a tree of its children. A group of libraries is defined by 
-    the fact that these libraries has a parental relationship 
-    and must be isntalled together, with the same META file.
-  *)
 let group_libs pkg =
   (** Associate a name with its children *)
   let children =
@@ -221,7 +189,6 @@ let findlib_name_map pkg =
       (group_libs pkg)
 
 
-(** Return the findlib name of the library without parents *)
 let findlib_of_name ?(recurse=false) map nm =
   try 
     let (path, fndlb_nm) = 
@@ -236,8 +203,6 @@ let findlib_of_name ?(recurse=false) map nm =
       (f_ "Unable to translate internal library '%s' to findlib name")
       nm
 
-(** Compute findlib to internal library matching 
-  *)
 let name_findlib_map pkg =
   let mp = 
     findlib_name_map pkg
@@ -254,18 +219,11 @@ let name_findlib_map pkg =
       mp
       MapString.empty
 
-(** Return the findlib root name of a group, it takes into account
-    containers. So the return group name is the toplevel name
-    for both libraries and theirs containers.
-  *)
 let findlib_of_group = 
   function
     | Container (fndlb_nm, _) 
     | Package (fndlb_nm, _, _, _, _) -> fndlb_nm
 
-(** Return the root library, i.e. the first found into the group tree
-    that has no parent.
-  *)
 let root_of_group grp =
   let rec root_lib_aux =
     function 
@@ -293,75 +251,7 @@ let root_of_group grp =
         (f_ "Unable to determine root library of findlib library '%s'")
         (findlib_of_group grp)
 
+
 (* END EXPORT *)
 
-open OASISSchema
-open OASISValues
-open OASISGettext
-open PropList.Field
-
-let schema, generator =
-  let schm =
-    schema "Library"
-  in
-  let cmn_section_gen =
-    OASISSection.section_fields (fun () -> (s_ "library")) schm
-  in
-  let build_section_gen =
-    OASISBuildSection.section_fields (fun () -> (s_ "library")) Best schm
-  in
-  let external_modules =
-    new_field schm "Modules" 
-      ~default:[]
-      ~quickstart_level:Beginner
-      modules
-      (fun () ->
-         s_ "List of modules to compile.") 
-  in
-  let internal_modules = 
-    new_field schm "InternalModules"
-      ~default:[]
-      ~quickstart_level:Beginner
-      modules
-      (fun () ->
-         s_ "List of modules to compile which are not exported.")
-  in
-  let findlib_parent =
-    new_field schm "FindlibParent"
-      ~default:None
-      (opt internal_library)
-      (fun () ->
-         s_ "Library which includes the current library. The current library \
-             will be built as its parents and installed along it.")
-  in
-  let findlib_name = 
-    new_field schm "FindlibName"
-      ~default:None
-      (* TODO: Check that the name is correct if this value is None, the
-               package name must be correct 
-       *)
-      (opt pkgname)
-      (fun () ->
-         s_ "Name used by findlib.")
-  in
-  let findlib_containers =
-    new_field schm "FindlibContainers"
-      ~default:[]
-      (* TODO: check that a container doesn't overwrite a real package 
-       *)
-      (dot_separated string_not_empty)
-      (fun () ->
-         s_ "Virtual containers for sub-package, dot-separated")
-  in
-    schm,
-    (fun nm data ->
-       Library
-         (cmn_section_gen nm data,
-          (build_section_gen nm data),
-          {
-            lib_modules            = external_modules data;
-            lib_internal_modules   = internal_modules data;
-            lib_findlib_parent     = findlib_parent data;
-            lib_findlib_name       = findlib_name data;
-            lib_findlib_containers = findlib_containers data;
-          }))
+let schema = OASISLibrary_intern.schema

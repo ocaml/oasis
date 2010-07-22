@@ -55,30 +55,31 @@ Executable ocamlmod
 Library oasis
   Path: src/oasis
   Modules: FormatExt,
-           OASISGettext,
-           OASISMessage,
            ODNFunc,
            PropList,
-           OASIS,
+           OASISUtils,
+           OASISUnixPath,
+           OASISContext,
+           OASISGettext,
+           OASISMessage,
+           OASISTypes,
+           OASISParse,
+           OASISValues,
+           OASISExpr,
+           OASISVersion,
+           OASISLicense,
+           OASISFileTemplate,
            OASISBuildSection,
            OASISDocument,
            OASISExecutable,
-           OASISExpr,
            OASISFlag,
-           OASISHelp,
            OASISLibrary,
            OASISPackage,
-           OASISPlugin,
            OASISSourceRepository,
            OASISTest,
-           OASISTypes,
-           OASISUnixPath,
-           OASISUtils,
-           OASISValues,
-           OASISVersion,
-           OASISLicense,
-           OASISFileTemplate
-  InternalModules: OASISVersion_lexer,
+           OASISPlugin
+  InternalModules: OASISVersion_types,
+                   OASISVersion_lexer,
                    OASISVersion_parser,
                    OASISSection,
                    OASISSchema,
@@ -88,7 +89,16 @@ Library oasis
                    OASISRecDescParser,
                    OASISCustom,
                    OASISQuickstart,
-                   OASISData
+                   OASISData,
+                   OASISHelp,
+                   OASISBuildSection_intern,
+                   OASISDocument_intern,
+                   OASISExecutable_intern,
+                   OASISFlag_intern,
+                   OASISLibrary_intern,
+                   OASISPackage_intern,
+                   OASISSourceRepository_intern,
+                   OASISTest_intern
   CompiledObject: byte
   BuildDepends: fileutils, unix, str, extlib, findlib, odn, ocamlgraph
   BuildTools+: ocamlmod, ocamlyacc, ocamllex, ocamlify
@@ -116,12 +126,14 @@ Library base
            BaseSetup,
            BaseStandardVar,
            BaseTest,
-           BaseDynVar
+           BaseDynVar,
+           BaseMessage,
+           BaseContext
   CompiledObject: byte
   BuildDepends: oasis
   BuildTools+: ocamlmod, ocamlify
   FindlibParent: oasis
-  XMETADescription: setup.ml modules for OASIS
+  XMETADescription: 'setup.ml' modules for OASIS
   Install$: flag(libraries)
 
 Library "builtin-plugins"
@@ -153,10 +165,20 @@ Library "builtin-plugins"
   BuildDepends: oasis, oasis.base
   XMETAEnable: false
 
+Library cli
+  Path:             src/cli
+  Modules:          SubCommand
+  CompiledObject:   byte
+  BuildDepends:     oasis
+  FindlibParent:    oasis
+  XMETADescription: 'setup.ml' modules for OASIS
+  Install$:         flag(libraries)
+
+
 Executable OASIS
   Path:   src/cli
   MainIs: Main.ml
-  BuildDepends: oasis, oasis.base, builtin-plugins
+  BuildDepends: oasis, oasis.base, oasis.cli, builtin-plugins
 
 Executable test
   Path: test
@@ -175,9 +197,17 @@ Document manual
   Type: custom (0.1.0)
   Title: OASIS User Manual
   if flag(gettext) 
-    XCustom: $OASIS --gettext-language C -documentation > doc/MANUAL.mkd
+    XCustom: env LANG=C $OASIS manual > doc/MANUAL.mkd
   else
-    XCustom: $OASIS -documentation > doc/MANUAL.mkd
+    XCustom: $OASIS manual > doc/MANUAL.mkd
   XCustomClean: $rm doc/MANUAL.mkd
   DataFiles: doc/MANUAL.mkd
+
+Document "api-oasis"
+  Title:                API reference for OASIS 
+  Type:                 ocamlbuild (0.1.0)
+  InstallDir:           $htmldir/oasis
+  BuildTools+:          ocamldoc
+  XOCamlbuildPath:      src/
+  XOCamlbuildLibraries: oasis, oasis.base, oasis.cli
 

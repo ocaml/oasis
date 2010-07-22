@@ -19,9 +19,6 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Entry points for setup.ml in dev mode
-  *)
-
 TYPE_CONV_PATH "BaseDev"
 
 open OASISGettext

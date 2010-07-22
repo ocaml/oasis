@@ -125,7 +125,7 @@ let pp_print_package_proplist fmt (pkg_data, section_data) =
            fprintf fmt "%S" str
        in
          fprintf fmt "@[<v 2>%s %a@,%a@]@,"
-           schm.PropList.Schema.name
+           (PropList.Schema.name schm)
            pp_id_or_string nm
            pp_print_fields (schm, data))
     section_data;

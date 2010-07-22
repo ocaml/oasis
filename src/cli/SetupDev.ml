@@ -18,7 +18,7 @@ let run_args =
 
 let main () =
   let oasis_exec = !roasis_exec in
-  let setup_fn   = BaseSetup.default_fn in
+  let setup_fn   = BaseSetup.default_filename in
   let msg = 
     {(!BaseContext.default) with OASISContext.verbose = false}
   in
@@ -35,7 +35,9 @@ let main () =
                 ~restore:false
                 ?oasis_exec
                 ~setup_fn
-                (OASIS.from_file !Setup.oasis_fn)
+                (OASISParse.from_file 
+                   ~ctxt:!BaseContext.default 
+                   !Setup.oasis_fn)
             in
               (* Restore everything, except setup.ml *)
               List.iter 
@@ -99,7 +101,9 @@ let main () =
                 ~backup:true
                 ~restore:true
                 ~setup_fn:dev_fn
-                (OASIS.from_file !Setup.oasis_fn)
+                (OASISParse.from_file 
+                   ~ctxt:!BaseContext.default
+                   !Setup.oasis_fn)
             in
 
             let safe_exit () = 
@@ -111,7 +115,7 @@ let main () =
               List.map
                 (fun e ->
                    (* Replace setup.ml by setup-dev.ml *)
-                   if e = BaseSetup.default_fn then
+                   if e = BaseSetup.default_filename then
                      dev_fn
                    else
                      e)

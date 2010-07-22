@@ -19,87 +19,47 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Manage plugins
-    @author Sylvain Le Gall
-  *)
 
 open OASISTypes
 open OASISGettext
 open OASISUtils
 open ODNFunc
 
-(** Type for OCaml module embedded code
-  *)
 type modul = string
 
-(** Describe setup file changes 
-  *)
 type ('a, 'b) setup_changes =
     { 
-      (** OCaml module to be added to setup file *)
       chng_moduls: modul list;
-
-      (** Main function to be added to BaseSetup.t (i.e. the one that 
-          that really do something: configure, build, test...)
-        *)
       chng_main: 'a func;
-
-      (** Function to be called when cleaning *)
       chng_clean: ('b func) option;
-
-      (** Function to be called when distcleaning *)
       chng_distclean: ('b func) option;
     }
 
-(** Describe context when applying a plugin
-  *)
 type context_act = 
     {
-      (** Messages context *)
       ctxt: OASISContext.t;
-
-      (** Are there errors ? *)
       error: bool;
-
-      (** Generated files *)
       files: OASISFileTemplate.templates;
-
-      (** Extra action *)
       other_actions: (unit -> unit) list; 
     }
 
-(** Generator for sections (document, test)
-  *)
 type ('a, 'b) section_act = 
     context_act ->
     package -> 
     (common_section * 'a) -> 
-
-      (* Result *)
-      context_act 
-      *
-      ((* Run *)
-       (package -> (common_section * 'a) -> string array -> 'b),
-       (* Clean & Distclean *)
+      context_act *
+      ((package -> (common_section * 'a) -> string array -> 'b),
        (package -> (common_section * 'a) -> string array -> unit) 
       ) setup_changes
 
-(** Generator with a package argument only (build, install)
-  *)
 type package_act =
     context_act ->
     package -> 
-
-      (* Result *)
-      context_act 
-      *
-      ((* Run *)
-       (package -> string array -> unit),
-       (* Clean & Distclean *)
+      context_act *
+      ((package -> string array -> unit),
        (package -> string array -> unit)
       ) setup_changes
 
-(* Functions for building plugins *)
 module type PLUGIN_UTILS_TYPE =
 sig
   type t 
@@ -122,11 +82,10 @@ sig
     'a OASISValues.t -> 
     (unit -> string) -> 
     PropList.Data.t -> 
-    (OASISTypes.expr * 'a) list
+    (OASISExpr.t * 'a) list
 
 end
 
-(* Plugin data *)
 module type PLUGIN_ID_TYPE = 
 sig 
   val name: string
@@ -134,6 +93,15 @@ sig
   val help: string list
   val help_extra_vars: (string * (unit -> string)) list
   val help_order: int
+end
+
+module type PLUGINS =
+sig
+  type t
+  module Make: functor (PI : PLUGIN_ID_TYPE) -> PLUGIN_UTILS_TYPE with type t = t
+  val ls :        unit ->      name list
+  val find :      name * 'a -> t
+  val value :     (name * OASISVersion.t option) OASISValues.t
 end
 
 module MapPlugin = Map.Make (
@@ -163,10 +131,12 @@ module Make =
 
     open OASISValues
 
+    type t = F.t
+
     let all : ((F.t * string) MapPlugin.t) ref = 
       ref MapPlugin.empty
 
-    module Make (PI: PLUGIN_ID_TYPE) : PLUGIN_UTILS_TYPE with type t = F.t =
+    module Make (PI: PLUGIN_ID_TYPE) : PLUGIN_UTILS_TYPE with type t = t =
     struct
 
        type t = F.t
@@ -235,10 +205,11 @@ module Make =
       let base = 
         with_optional_parentheses
           string_not_empty
-          version
+          OASISVersion.value
       in
       let parse ~ctxt s =
         let (nm, ver_opt) as k = 
+          (* TODO: check for plugin availability *)
           base.OASISValues.parse ~ctxt s
         in
           begin

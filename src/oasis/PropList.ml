@@ -19,20 +19,13 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Property list 
-    @author Sylvain Le Gall
-  *)
-
 open OASISGettext
 
-type name_t = string
+type name = string
 
-let no_context f =
-  fun ?context s -> f s
-
-exception Not_set of name_t * string option 
-exception No_printer of name_t
-exception Unknown_field of name_t * name_t
+exception Not_set of name * string option 
+exception No_printer of name
+exception Unknown_field of name * name
 
 let string_of_exception =
   function
@@ -51,7 +44,7 @@ module Data =
 struct
 
   type t = 
-      (name_t, unit -> unit) Hashtbl.t
+      (name, unit -> unit) Hashtbl.t
 
   let create () =
     Hashtbl.create 13
@@ -68,7 +61,7 @@ end
 module Schema = 
 struct
 
-  type ('ctxt, 'extra) value_t =
+  type ('ctxt, 'extra) value =
       {
         get:   Data.t -> string;
         set:   Data.t -> ?context:'ctxt -> string -> unit;
@@ -78,9 +71,9 @@ struct
 
   type ('ctxt, 'extra) t =
       {
-        name:      name_t;
-        fields:    (name_t, ('ctxt, 'extra) value_t) Hashtbl.t;
-        order:     name_t Queue.t;
+        name:      name;
+        fields:    (name, ('ctxt, 'extra) value) Hashtbl.t;
+        order:     name Queue.t;
         name_norm: string -> string;
       }
 
@@ -151,6 +144,8 @@ struct
       ()
       t
 
+  let name t = 
+    t.name
 end
 
 module Field =

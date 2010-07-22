@@ -19,24 +19,18 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Most standard variables for OCaml 
-    @author Sylvain Le Gall
-  *)
 
 open OASISGettext
 open OASISTypes
+open OASISExpr
 open BaseCheck
 open BaseEnv
-
-(** {2 Programs} *)
 
 let ocamlfind  = BaseCheck.ocamlfind
 let ocamlc     = BaseOCamlcConfig.ocamlc
 let ocamlopt   = prog_opt "ocamlopt"
 let ocamlbuild = prog "ocamlbuild"
 
-(** {2 Variables from OASIS package} 
-  *)
 
 (**/**)
 let rpkg = 
@@ -61,10 +55,8 @@ let pkg_version =
     (lazy 
        (OASISVersion.string_of_version (pkg_get ()).version))
 
-(** {2 OCaml config variable} *) 
-
 let c = BaseOCamlcConfig.var_define 
-let stdc et = BaseOCamlcConfig.var_define (OASISExpr.string_of_expr_test et)
+let stdc et = BaseOCamlcConfig.var_define (OASISExpr.string_of_test et)
 
 let os_type        = stdc TOs_type
 let system         = stdc TSystem
@@ -84,7 +76,7 @@ let () =
         | TOCaml_version -> ocaml_version  
     in
     let _lst : 'a list =
-      List.map v_of_et OASISExpr.expr_tests
+      List.map v_of_et OASISExpr.tests
     in 
       ()
 
@@ -101,8 +93,6 @@ let ext_dll                  = c "ext_dll"
 let default_executable_name  = c "default_executable_name"
 let systhread_supported      = c "systhread_supported"
 
-
-(** {2 Paths} *)
 
 (**/**)
 let p name hlp dflt = 
@@ -236,19 +226,12 @@ let destdir =
              ("destdir", 
               Some (s_ "undefined by construct")))))
 
-(** {2 ...} *)
-
-(** Findlib version
-  *)
 let findlib_version =
   var_define
     "findlib_version"
     (lazy 
        (BaseCheck.package_version "findlib"))
 
-(** Check that the platform is a native platform (can compile native
-    exec/library).
-  *)
 let is_native =
   var_define
     "is_native"
@@ -264,9 +247,7 @@ let is_native =
           in
             "false"))
 
-(** Compute the default suffix for program (target OS dependent)
-  *)
-let suffix_program =
+let ext_program =
   var_define
     "suffix_program"
     (lazy
@@ -274,7 +255,6 @@ let suffix_program =
           | "Win32" -> ".exe" 
           | _ -> ""
        ))
-
 
 let rm =
   var_define
@@ -294,20 +274,18 @@ let rmdir =
           | "Win32" -> "rd"
           | _ -> "rm -rf"))
 
-let ocaml_with_debug =
+let debug =
   var_define
     ~short_desc:(fun () -> s_ "Compile with ocaml debug flag on.")
-    "ocaml_with_debug"
+    "debug"
     (lazy "true")
 
-let ocaml_with_profile =
+let profile =
   var_define
     ~short_desc:(fun () -> s_ "Compile with ocaml profile flag on.")
-    "ocaml_with_profile"
+    "profile"
     (lazy "false")
 
-(** Initialize some variables 
-  *)
 let init pkg = 
   rpkg := Some pkg
 

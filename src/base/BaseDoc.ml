@@ -19,10 +19,6 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Build documentation
-    @author Sylvain Le Gall
-  *)
-
 open BaseEnv
 open BaseMessage
 open OASISTypes
@@ -48,5 +44,3 @@ let doc lst pkg extra_args =
     List.iter 
       one_doc
       lst
-
-(* END EXPORT *)

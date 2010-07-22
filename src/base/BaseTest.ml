@@ -19,10 +19,6 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Run test
-    @author Sylvain Le Gall
-  *)
-
 open BaseEnv
 open BaseMessage
 open OASISTypes
@@ -97,5 +93,3 @@ let test lst pkg extra_args =
        info)
       (f_ "Tests had a %.2f%% failure rate")
       (100. *. failure_percent)
-
-(* END EXPORT *)

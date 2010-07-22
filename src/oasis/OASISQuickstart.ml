@@ -264,7 +264,7 @@ let ask_package ~ctxt lvl =
         (Some 
            (fun () -> 
               section
-                OASISLibrary.generator
+                OASISLibrary_intern.generator
                 OASISLibrary.schema
                 (s_ "Library name?")));
 
@@ -272,7 +272,7 @@ let ask_package ~ctxt lvl =
         (Some 
            (fun () ->
               section
-                OASISExecutable.generator
+                OASISExecutable_intern.generator
                 OASISExecutable.schema
                 (s_ "Executable name?")));
 
@@ -280,7 +280,7 @@ let ask_package ~ctxt lvl =
         (Some 
            (fun () ->
               section
-                OASISFlag.generator
+                OASISFlag_intern.generator
                 OASISFlag.schema
                 (s_ "Flag name?")));
 
@@ -288,7 +288,7 @@ let ask_package ~ctxt lvl =
         (Some 
            (fun () ->
               section
-                OASISSourceRepository.generator
+                OASISSourceRepository_intern.generator
                 OASISSourceRepository.schema
                 (s_ "Source repository identifier?")));
 
@@ -296,7 +296,7 @@ let ask_package ~ctxt lvl =
         (Some 
            (fun () ->
               section
-                OASISTest.generator
+                OASISTest_intern.generator
                 OASISTest.schema
                 (s_ "Test name?")));
 
@@ -304,7 +304,7 @@ let ask_package ~ctxt lvl =
         (Some
            (fun () ->
               section
-                OASISDocument.generator
+                OASISDocument_intern.generator
                 OASISDocument.schema
                 (s_ "Document name?")));
       ]
@@ -329,7 +329,7 @@ let ask_package ~ctxt lvl =
 
     (* TODO: create a real function that do the check *)
 
-    OASISPackage.generator 
+    OASISPackage_intern.generator 
       pkg_data 
       section_data 
   in

@@ -94,7 +94,7 @@ let libraries =
     OASISDocument.schema
     "Libraries"
     ~default:[]
-    (comma_separated full_pkgname)
+    (comma_separated findlib_full)
     (fun () ->
        s_ "Findlib names of internal libraries used to generate the ocamldoc documentation")
 
@@ -115,6 +115,8 @@ let flags =
     space_separated 
     (fun () ->
        s_ "OCamldoc flags")
+
+(* TODO: use -t for title *)
 
 let doit ctxt pkg (cs, doc) = 
 
@@ -194,7 +196,7 @@ let doit ctxt pkg (cs, doc) =
   let ctxt =
     (* Create .odocl file *)
     add_file
-      (file_make 
+      (template_make 
          (FilePath.add_extension 
             (FilePath.concat path cs.cs_name)
             "odocl")

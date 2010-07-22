@@ -20,16 +20,23 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: c230e4c4abf8f709db20ea1524cc41ee)
+# DO NOT EDIT (digest: 695461057aa6f1d75889b61ede83abb9)
 version = "0.1.0"
 description = "_oasis file functions"
 requires = "fileutils unix str extlib findlib odn ocamlgraph"
 archive(byte) = "oasis.cma"
 package "base" (
  version = "0.1.0"
- description = "setup.ml modules for OASIS"
+ description = "'setup.ml' modules for OASIS"
  requires = "oasis"
  archive(byte) = "base.cma"
+)
+
+package "cli" (
+ version = "0.1.0"
+ description = "'setup.ml' modules for OASIS"
+ requires = "oasis"
+ archive(byte) = "cli.cma"
 )
 # OASIS_STOP
 

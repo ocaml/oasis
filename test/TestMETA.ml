@@ -38,7 +38,8 @@ let tests ctxt =
        (fun fn ->
           (* Parse string to get OASIS package *)
           let pkg = 
-            OASIS.from_string 
+            OASISParse.from_string 
+              ~ctxt:!OASISContext.default
               oasis_str
           in
 

@@ -27,30 +27,19 @@ open OASISTypes
 open OASISAstTypes
 open OASISGettext
 open OASISUtils
+open OASISExpr
+open OASISContext
+open OASISMessage
 open Genlex
 
 (** Configuration for parsing and checking 
   *)
 type conf =
   {
-    oasisfn:        filename option;
-    srcdir:         dirname option;
-    debug:          bool;
+    oasisfn:        host_filename option;
     ignore_unknown: bool;
     ctxt:           OASISContext.t;
   }
-
-let stream_debugger st = 
-  Stream.from
-    (fun _ ->
-       try
-         let c =
-           Stream.next st
-         in
-           prerr_char c; flush stderr;
-           Some c
-       with Stream.Failure ->
-         None)
 
 type line_pos = int
 type char_pos = int
@@ -80,18 +69,26 @@ let parse_stream conf st =
       charno
   in
 
+  (* Override OASISMessage functions *)
+  let debug =
+    debug ~ctxt:conf.ctxt
+  in
+  let warning =
+    warning ~ctxt:conf.ctxt
+  in
+
   let apply_transformations ops =
     List.fold_left
       (fun lines (msg, f) ->
          let new_lines = 
            f lines
          in
-           if conf.debug && lines <> new_lines then 
+           if conf.ctxt.debug && lines <> new_lines then 
              begin
                let rec pp_lines mode = 
                  function
                    | RealLine (lineno, charstart, str) :: tl -> 
-                       Printf.eprintf "%s%04d:%s%s\n%!"
+                       debug "%s%04d:%s%s"
                          mode
                          lineno
                          (String.make charstart ' ')
@@ -113,7 +110,7 @@ let parse_stream conf st =
                    | b :: tl when b = e ->
                        pp_blocks mode (lvl + 1) e tl 
                    | lst ->
-                       Printf.eprintf "%s----:%s\n%!"
+                       debug "%s----:%s"
                          mode
                          (String.make
                             lvl
@@ -125,15 +122,13 @@ let parse_stream conf st =
                        pp_lines mode lst
                in
 
-                 prerr_endline (msg^":");
+                 debug "%s:" msg;
                  pp_lines " " new_lines;
-                 prerr_endline "EOF";
-                 prerr_endline ""
+                 debug (f_ "EOF")
              end
-           else if conf.debug then
+           else if conf.ctxt.debug then
              begin
-               prerr_endline ("Nothing changed for '"^msg^"'");
-               prerr_endline ""
+               debug (f_ "Nothing changed for '%s'") msg
              end;
            new_lines)
       []
@@ -263,8 +258,7 @@ let parse_stream conf st =
                         let only_tab =
                           if use_space && use_tab then
                             begin
-                              OASISMessage.warning 
-                                ~ctxt:conf.ctxt
+                              warning 
                                 (f_ "Mixed use of '\\t' and ' ' to indent lines %s")
                                 (position lineno charstart);
                               only_tab
@@ -274,13 +268,11 @@ let parse_stream conf st =
                               match only_tab with 
                                 | Some use_tab_before ->
                                     if use_tab_before && not use_tab then
-                                      OASISMessage.warning
-                                        ~ctxt:conf.ctxt
+                                      warning
                                         (f_ "Use of ' ' but '\\t' was used before to indent lines %s")
                                         (position lineno charstart);
                                     if not use_tab_before && use_tab then
-                                      OASISMessage.warning
-                                        ~ctxt:conf.ctxt
+                                      warning
                                         (f_ "Use of '\\t' but ' ' was used before to indent lines %s")
                                         (position lineno charstart);
 
@@ -562,7 +554,7 @@ let parse_stream conf st =
           if nm = "flag" then
             EFlag vl
           else
-            ETest (OASISExpr.expr_test_of_string nm, vl)
+            ETest (OASISExpr.test_of_string nm, vl)
   and parse_term_follow = 
     parser
       | [< 'Kwd "&&"; e1 = parse_factor; e2 = parse_term_follow >] ->

@@ -15,9 +15,9 @@ let main () =
     BaseGenerate.generate 
       ~backup:false
       ~dev:false
-      ~setup_fn:BaseSetup.default_fn
+      ~setup_fn:BaseSetup.default_filename
       ~restore:false
-      (OASIS.from_file !oasis_fn)
+      (OASISParse.from_file ~ctxt:!BaseContext.default !oasis_fn)
   in
     ()
 

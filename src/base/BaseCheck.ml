@@ -19,17 +19,11 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** {1 Checking for particular features} 
-  *)
-
 open BaseEnv
 open BaseMessage
 open OASISUtils
 open OASISGettext
 
-(** Look for a program among a list of alternative program
-  * the first found is returned. 
-  *)
 let prog_best prg prg_lst =
   var_redefine
     prg 
@@ -52,21 +46,15 @@ let prog_best prg prg_lst =
             | Some prg -> prg
             | None -> raise Not_found))
 
-(** Check the presence of a particular program.
-  *)
 let prog prg =
   prog_best prg [prg]
 
-(** Check the presence of a program or its native version
-  *)
 let prog_opt prg = 
   prog_best prg [prg^".opt"; prg]
 
 let ocamlfind = 
   prog "ocamlfind"
 
-(** Check version, following Sys.ocaml_version convention
-  *)
 let version 
       var_prefix 
       cmp
@@ -108,15 +96,11 @@ let version
                 version_str))
       ()
 
-(** Get findlib package version 
-  *)
 let package_version pkg =
   BaseExec.run_read_one_line 
     (ocamlfind ())
     ["query"; "-format"; "%v"; pkg]
 
-(** Check for findlib package
-  *)
 let package ?version_comparator pkg () =
   let var =
     OASISUtils.varname_concat 

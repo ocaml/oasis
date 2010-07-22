@@ -19,15 +19,8 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Extra function for Format module
-    
-   @author Sylvain Le Gall
-  *)
-
 open Format
 
-(** Print a string considering ' ' as Format space
-  *)
 let pp_print_string_spaced fmt str =
   String.iter
     (function
@@ -36,8 +29,6 @@ let pp_print_string_spaced fmt str =
        | c -> Format.pp_print_char fmt c)
     str
 
-(** Print a list of element
-  *)
 let pp_print_list pp_elem lst_sep fmt =
   function
     | [] ->

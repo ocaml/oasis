@@ -20,70 +20,93 @@
 (********************************************************************************)
 
 (** License for _oasis fields
-  
     @author Sylvain Le Gall
   *)
 
+TYPE_CONV_PATH "OASISLicense"
+
+type url = string with odn 
+
+type license_exception = 
+  | OCamlLinkingException
+  | OtherException of url
+  with odn
+
+type t =
+  | Proprietary
+  | BSD3
+  | BSD4
+  | GPL
+  | LGPL
+  | QPL
+  | CeCILL
+  | CeCILLB
+  | CeCILLC
+  | LicenseWithVersion of t * OASISVersion.t
+  | LicenseWithLaterVersion of t * OASISVersion.t
+  | LicenseWithException of t * license_exception
+  | OtherLicense of url
+  with odn
+
 (* END EXPORT *)
 
-open OASISTypes
 open OASISValues
 open OASISGettext
 open OASISUtils
 
-let license_data = 
+let license_data () = 
   [
     Proprietary,
     "PROP",
-    "Proprietary license, all rights reserved",
+    s_ "Proprietary license, all rights reserved",
     [];
 
     BSD3,
     "BSD3",
-    "Berkeley software distribution license (3 clauses)",
+    s_ "Berkeley software distribution license (3 clauses)",
     [];
 
     BSD4,
     "BSD4",
-    "Berkeley software distribution license (3 clauses)",
+    s_ "Berkeley software distribution license (3 clauses)",
     [];
 
     GPL,
     "GPL",
-    "GNU General Public License.",
+    s_ "GNU General Public License.",
     ["1.0"; "2.0"; "3.0"];
 
     LGPL,
     "LGPL",
-    "GNU Lesser General Public License, \
+    s_ "GNU Lesser General Public License, \
      (GNU Library General Public License for versions lower than 2.1).",
     ["2.0"; "2.1"; "3.0"];
 
     QPL,
     "QPL",
-    "Q Public License.",
+    s_ "Q Public License.",
     ["1.0"];
 
     CeCILL,
     "CeCILL",
-    "CEA-CNRS-INRIA Logiciel Libre, GPL-like",
+    s_ "CEA-CNRS-INRIA Logiciel Libre, GPL-like",
     ["1"; "2"];
 
     CeCILLB,
     "CeCILL-B",
-    "CEA-CNRS-INRIA Logiciel Libre, BSD-like",
+    s_ "CEA-CNRS-INRIA Logiciel Libre, BSD-like",
     [];
 
     CeCILLC,
     "CeCILL-C",
-    "CEA-CNRS-INRIA Logiciel Libre, LGPL-like",
+    s_ "CEA-CNRS-INRIA Logiciel Libre, LGPL-like",
     [];
   ]
 
-let license_exception_data =
+let license_exception_data () =
   [
     OCamlLinkingException,
-    "OCaml linking",
+    s_ "OCaml linking",
     [LGPL];
   ]
 
@@ -118,7 +141,7 @@ let parse =
       (comparable_string s1) = (comparable_string s2)
   in
 
-  let rec parse_aux s =
+  let rec parse_aux ~ctxt s =
     if Str.string_match rgxp_exception s 0 then
       begin
         let str_l =
@@ -126,28 +149,28 @@ let parse =
         in
         let excpt = 
           let str_excpt1 = 
-            String.lowercase 
-              (Str.matched_group 2 s)
+            Str.matched_group 2 s
           in
             try 
               let excpt, _, _ =
                 List.find 
                   (fun (_, str_excpt2, _) ->
                      is_equal str_excpt1 str_excpt2)
-                  license_exception_data
+                  (license_exception_data ())
               in
                 excpt
             with Not_found ->
               begin
-                if Str.string_match OASISValues.StdRegexp.url str_excpt1 0 then
-                  OtherException str_excpt1
-                else
+                try 
+                  OtherException 
+                    (OASISValues.url.parse ~ctxt str_excpt1)
+                with Failure _ -> 
                   failwithf1
                     (f_ "Cannot find license exception '%s'")
                     str_excpt1
               end
         in
-          LicenseWithException (parse_aux str_l, excpt)
+          LicenseWithException (parse_aux ~ctxt str_l, excpt)
       end
     else if Str.string_match rgxp_version s 0 then
       begin
@@ -161,7 +184,7 @@ let parse =
           (Str.matched_group 3 s) = "+" 
         in
         let l = 
-          parse_aux str_l
+          parse_aux ~ctxt str_l
         in
         let ver =
           OASISVersion.version_of_string str_ver
@@ -181,7 +204,7 @@ let parse =
             List.find 
               (fun (_, str_l2, _, _) ->
                  is_equal str_l1 str_l2)
-              license_data
+              (license_data ())
           with Not_found -> 
             failwithf1
               (f_ "Cannot find license shortname '%s'")
@@ -189,18 +212,18 @@ let parse =
         in
           l
       end
-    else if Str.string_match OASISValues.StdRegexp.url s 0 then
+    else 
       begin
-        OtherLicense s
-      end
-    else
-      begin
-        failwithf1
-          (f_ "Cannot parse license '%s'")
-          s
+        try 
+          OtherLicense
+            (OASISValues.url.parse ~ctxt s)
+        with Failure _ ->
+          failwithf1
+            (f_ "Cannot parse license '%s'")
+            s
       end
   in
-    (fun ~ctxt s -> parse_aux s)
+    parse_aux 
   
 
 let rec to_string = 
@@ -219,7 +242,7 @@ let rec to_string =
             let _, shrt, _, _=
               List.find  
                 (fun (l2, _, _, _) -> l1 = l2)
-                license_data
+                (license_data ())
             in
               shrt
           with Not_found ->
@@ -241,7 +264,7 @@ let rec to_string =
                     let _, str, _ =
                       List.find
                         (fun (excpt2, _, _) -> excpt1 = excpt2)
-                        license_exception_data
+                        (license_exception_data ())
                     in
                       str
                   end
@@ -293,7 +316,7 @@ Available licenses: ")^
                       acc
                       lst)
            []
-           license_data)))
+           (license_data ()))))
 
 
                     

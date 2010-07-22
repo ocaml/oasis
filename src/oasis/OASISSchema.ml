@@ -28,6 +28,7 @@ open OASISAstTypes
 open OASISGettext
 open OASISUtils
 open OASISValues
+open OASISExpr
 open PropList
 
 type extra =

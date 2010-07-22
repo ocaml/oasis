@@ -19,20 +19,30 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Version comparisons
-    @author Sylvain Le Gall
-  *)
-
-open OASISTypes
 open OASISGettext
 
-(** Compare versions
-  *)
+TYPE_CONV_PATH "OASISVersion"
+
+type s = string
+
+type t =
+  | VInt of int * t
+  | VNonInt of string * t
+  | VEnd with odn
+
+type comparator = 
+  | VGreater of t
+  | VGreaterEqual of t
+  | VEqual of t
+  | VLesser of t
+  | VLesserEqual of t
+  | VOr of  comparator * comparator
+  | VAnd of comparator * comparator
+  with odn
+
 let rec version_compare v1 v2 =
   compare v1 v2
 
-(** Convert a string into a version
-  *)
 let version_of_string str =
   let is_digit c =
     '0' <= c && c <= '9'
@@ -111,8 +121,6 @@ let version_of_string str =
 
     compress (parse_aux 0)
 
-(** Convert a version to a string
-  *)
 let rec string_of_version =
   function
     | VInt (i, (VInt _ as tl)) ->
@@ -123,8 +131,6 @@ let rec string_of_version =
         s^(string_of_version tl)
     | VEnd -> ""
 
-(** Apply version comparator expression
-  *)
 let rec comparator_apply v op =
   match op with
     | VGreater cv ->
@@ -142,8 +148,6 @@ let rec comparator_apply v op =
     | VAnd (op1, op2) ->
         (comparator_apply v op1) && (comparator_apply v op2)
 
-(** Convert a comparator to string 
-  *)
 let rec string_of_comparator =
   function 
     | VGreater v  -> "> "^(string_of_version v)
@@ -156,8 +160,6 @@ let rec string_of_comparator =
     | VAnd (c1, c2) -> 
         (string_of_comparator c1)^" && "^(string_of_comparator c2)
 
-(** Convert a comparator to a varname 
-  *)
 let rec varname_of_comparator =
   let concat p v = 
     OASISUtils.varname_concat
@@ -178,12 +180,13 @@ let rec varname_of_comparator =
 
 (* END EXPORT *)
 
-open OASISAstTypes
 open OASISUtils
+open OASISVersion_types
 
-(** Convert a string into a comparator
-  *)
 let comparator_of_string str =
+  let lexbuf =
+    Lexing.from_string str
+  in
   let rec parse_aux =
     function
       | VCAnd (c1, c2) -> VAnd (parse_aux c1, parse_aux c2)
@@ -193,9 +196,6 @@ let comparator_of_string str =
       | VCEq s -> VEqual (version_of_string s)
       | VCLt s -> VLesser (version_of_string s)
       | VCLe s -> VLesserEqual (version_of_string s)
-  in
-  let lexbuf =
-    Lexing.from_string str
   in
     try 
       parse_aux 
@@ -207,8 +207,6 @@ let comparator_of_string str =
         str
         (Printexc.to_string e)
 
-(** Simplify comparator, if possible 
-  *)
 let rec comparator_reduce =
   function
     | VAnd (v1, v2) ->
@@ -225,3 +223,20 @@ let rec comparator_reduce =
             VAnd (v1, v2) 
     | cmp ->
         cmp
+
+open OASISValues
+
+let value =
+  {
+    parse  = (fun ~ctxt s -> version_of_string s);
+    update = update_fail;
+    print  = string_of_version;
+  }
+
+let comparator_value = 
+  {
+    parse  = (fun ~ctxt s -> comparator_of_string s);
+    update = update_fail;
+    print  = string_of_comparator;
+  }
+

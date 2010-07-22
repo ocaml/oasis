@@ -19,39 +19,26 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Various utilities for OASIS.
-  *)
-
 module MapString = Map.Make(String)
 
-(** Build a MapString with an association list 
-  *)
 let map_string_of_assoc assoc =
   List.fold_left
     (fun acc (k, v) -> MapString.add k v acc)
     MapString.empty
     assoc
 
-(** Set for String 
-  *)
 module SetString = Set.Make(String)
 
-(** Add a list to a SetString
-  *)
 let set_string_add_list st lst =
   List.fold_left 
     (fun acc e -> SetString.add e acc)
     st
     lst
 
-(** Build a set out of list 
-  *)
 let set_string_of_list =
   set_string_add_list
     SetString.empty
 
-(** Split a string, separator not included
-  *)
 let split sep str =
   let str_len =
     String.length str
@@ -94,10 +81,6 @@ let split sep str =
     split_aux [] 0
 
 
-(** [varname_of_string ~hyphen:c s] Transform a string [s] into a variable name, 
-    following this convention: no digit at the beginning, lowercase, only a-z
-    and 0-9 chars. Whenever there is a problem, use an hyphen char.
-  *)
 let varname_of_string ?(hyphen='_') s = 
   if String.length s = 0 then
     begin
@@ -127,9 +110,6 @@ let varname_of_string ?(hyphen='_') s =
         String.lowercase (Buffer.contents buff)
     end
 
-(** [varname_concat ~hyphen p s] Concat variable name, removing hyphen at end
-    of [p] and at beginning of [s].
-  *)
 let varname_concat ?(hyphen='_') p s = 
   let p = 
     let p_len =
@@ -152,13 +132,6 @@ let varname_concat ?(hyphen='_') p s =
     Printf.sprintf "%s%c%s" p hyphen s
 
 
-(** Fail with a format string, with 1 to 5 args.
-    This is ugly but trying to use 
-    Printf.ksprintf failwith, fails because the 
-    return function should also be polymorphic
-    but is constrained by the format types ->
-    return is typed string and not 'a...
-  *)
 let failwithf1 fmt a =
   failwith (Printf.sprintf fmt a)
 

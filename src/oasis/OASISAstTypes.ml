@@ -29,7 +29,7 @@ open OASISTypes
 type ctxt =
     {
       (** Current condition for conditional fields. *)
-      cond: expr option; 
+      cond: OASISExpr.t option; 
 
       (** Valid flags *)
       valid_flags: name list;
@@ -47,11 +47,11 @@ type ctxt =
 type field_op =
   | FSet of string
   | FAdd of string
-  | FEval of expr
+  | FEval of OASISExpr.t
 
 type stmt =
   | SField of name * field_op
-  | SIfThenElse of expr * stmt * stmt
+  | SIfThenElse of OASISExpr.t * stmt * stmt
   | SBlock of stmt list
 
 type top_stmt = 
@@ -63,13 +63,4 @@ type top_stmt =
   | TSDocument of name * stmt
   | TSStmt of stmt
   | TSBlock of top_stmt list
-
-type ver_cmp_t =
-  | VCGt of string
-  | VCGe of string
-  | VCEq of string
-  | VCLt of string
-  | VCLe of string
-  | VCOr  of ver_cmp_t * ver_cmp_t
-  | VCAnd of ver_cmp_t * ver_cmp_t
 

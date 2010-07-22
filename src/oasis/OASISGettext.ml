@@ -19,8 +19,6 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Gettext interface
-  *)
 
 let s_ str = 
   str
@@ -33,6 +31,9 @@ let fn_ fmt1 fmt2 n =
     fmt1^^""
   else
     fmt2^^""
+
+let init = 
+  []
 
 (* END EXPORT *)
 

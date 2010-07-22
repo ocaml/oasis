@@ -20,6 +20,7 @@
 ################################################################################
 
 # OASIS_START
+# DO NOT EDIT (digest: ecbd7f4ae09b2eded9e2e42a88579a51)
 BaseArgExt
 BaseBuilt
 BaseCheck
@@ -40,4 +41,6 @@ BaseSetup
 BaseStandardVar
 BaseTest
 BaseDynVar
+BaseMessage
+BaseContext
 # OASIS_STOP

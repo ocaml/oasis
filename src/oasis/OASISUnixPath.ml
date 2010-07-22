@@ -19,9 +19,7 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Manipulate Unix style path
-    @author Sylvain Le Gall
-  *)
+type unix_filename = string
 
 let current_dir_name = "."
 

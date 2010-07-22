@@ -21,7 +21,7 @@
 
 %{
 
-open OASISAstTypes
+  open OASISVersion_types
 
 %}
 
@@ -33,7 +33,7 @@ open OASISAstTypes
 %left AND  /* highest precedence */
 
 %start main 
-%type <OASISAstTypes.ver_cmp_t> main
+%type <OASISVersion_types.t> main
 %%
 main:
   cmp EOF { $1 }

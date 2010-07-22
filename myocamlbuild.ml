@@ -113,26 +113,19 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 87fb8db275ed2b6815c854c39b57c9f0) *)
+(* DO NOT EDIT (digest: 2ea96356c0eb6fd4538f6fc3d19e15f8) *)
 module BaseEnvLight = struct
 # 21 "/home/gildor/programmation/oasis/src/base/BaseEnvLight.ml"
-  
-  (** Simple environment, allowing only to read values
-    *)
   
   module MapString = Map.Make(String)
   
   type t = string MapString.t
   
-  (** Environment default file 
-    *)
   let default_filename =
     Filename.concat 
       (Sys.getcwd ())
       "setup.data"
   
-  (** Load environment.
-    *)
   let load ?(allow_empty=false) ?(filename=default_filename) () =
     if Sys.file_exists filename then
       begin
@@ -190,9 +183,6 @@ module BaseEnvLight = struct
              filename)
       end
   
-  (** Get a variable that evaluate expression that can be found in it (see
-      {!Buffer.add_substitute}.
-    *)
   let var_get name env =
     let rec var_expand str =
       let buff =
@@ -216,7 +206,7 @@ module BaseEnvLight = struct
 end
 
 
-# 105 "myocamlbuild.ml"
+# 95 "myocamlbuild.ml"
 module MyOCamlbuildFindlib = struct
 # 21 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml"
   
@@ -444,7 +434,7 @@ module MyOCamlbuildBase = struct
 end
 
 
-# 333 "myocamlbuild.ml"
+# 323 "myocamlbuild.ml"
 open Ocamlbuild_plugin;;
 let package_default =
   {
@@ -452,7 +442,8 @@ let package_default =
        [
           ("src/oasis/oasis", ["src/oasis"]);
           ("src/base/base", ["src/base"]);
-          ("src/builtin-plugins", ["src"])
+          ("src/builtin-plugins", ["src"]);
+          ("src/cli/cli", ["src/cli"])
        ];
      lib_c = [];
      flags = [];

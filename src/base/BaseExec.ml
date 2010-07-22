@@ -19,16 +19,10 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Running commands 
-    @author Sylvain Le Gall
-  *)
-
 open OASISGettext
 open OASISUtils
 open BaseMessage
 
-(** Run a command 
-  *)
 let run ?f_exit_code cmd args =
   let cmdline =
     String.concat " " (cmd :: args)
@@ -43,8 +37,6 @@ let run ?f_exit_code cmd args =
       | Some f, i -> 
           f i
 
-(** Run a command and returns its output
-  *)
 let run_read_output cmd args =
   let fn = 
     Filename.temp_file "oasis-" ".txt"
@@ -74,8 +66,6 @@ let run_read_output cmd args =
     Sys.remove fn;
     List.rev !routput
 
-(** Run a command and returns only first line 
-  *)
 let run_read_one_line cmd args = 
   match run_read_output cmd args with 
     | [fst] -> 
@@ -84,5 +74,3 @@ let run_read_one_line cmd args =
         failwithf1
           (f_ "Command return unexpected output %S")
           (String.concat "\n" lst)
-
-(* END EXPORT *)

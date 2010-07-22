@@ -19,16 +19,11 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Manipulate filename
-    @author Sylvain Le Gall
-  *)
 
 open Filename
 
 module Unix = OASISUnixPath
 
-(** Concat elements of a path
-  *)
 let make =
   function 
     | [] ->
@@ -36,8 +31,6 @@ let make =
     | hd :: tl ->
         List.fold_left Filename.concat hd tl
 
-(** Convert a unix filename into host filename
-  *)
 let of_unix ufn =
   make
     (List.map

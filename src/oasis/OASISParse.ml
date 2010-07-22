@@ -19,46 +19,25 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** OASIS library
 
-    @author Sylvain Le Gall
-  *)  
-
-open OASISTypes
 open OASISRecDescParser
 
-(** Default configuration for parser/checker *)
-let default_conf =
-  {
-    oasisfn        = None;
-    srcdir         = None;
-    ignore_unknown = false;
-    debug          = false;
-    ctxt           = !OASISContext.default;
-  }
+let from_stream ~ctxt ?(ignore_unknown=false) ?fn st = 
+  OASISAst.to_package 
+    {
+      oasisfn        = fn;
+      ignore_unknown = ignore_unknown;
+      ctxt           = ctxt;
+    }
+    st
 
-(** [from_file ~conf fn] Parse the OASIS file [fn] and check it using
-    context [conf].
-  *)
-let from_file ?(conf=default_conf) fn = 
-  let conf =
-    (* Add srcdir information to configuration *)
-    match conf.srcdir with 
-      | Some _ -> conf
-      | None -> {conf with srcdir = Some (Filename.dirname fn)}
-  in
-  let conf =
-    (* Add OASIS filename information to configuration *)
-    match conf.oasisfn with
-      | Some _ -> conf
-      | None -> {conf with oasisfn = Some fn}
-  in
+let from_file ~ctxt ?ignore_unknown fn = 
   let chn =
     open_in fn
   in
   let pkg = 
-    OASISAst.to_package 
-      conf
+    from_stream 
+      ~ctxt ?ignore_unknown ~fn
       (Stream.of_channel chn)
   in
     close_in chn;
@@ -67,8 +46,8 @@ let from_file ?(conf=default_conf) fn =
 (** [from_string ~conf str] Parse the OASIS string [str] and check it using
     context [conf].
   *)
-let from_string ?(conf=default_conf) str =
-  OASISAst.to_package 
-    conf
+let from_string ~ctxt ?ignore_unknown ?fn str =
+  from_stream 
+    ~ctxt ?ignore_unknown ?fn
     (Stream.of_string str)
 

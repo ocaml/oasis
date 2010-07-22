@@ -29,6 +29,7 @@ open OASISTypes
 open OASISUtils
 open OASISValues
 open OASISGettext
+open OASISVersion
 open Format
 open FormatExt
 
@@ -44,9 +45,9 @@ open PU
 
 type package =
     (* Standalone executable *)
-  | LTool of filename
+  | LTool of prog
     (* Findlib package *)  
-  | LFindlibPackage of name * (version_comparator option)
+  | LFindlibPackage of name * (OASISVersion.comparator option)
 
 let facts = 
   [
@@ -429,7 +430,7 @@ let main ctxt pkg =
           flush_str_formatter ()
         in
           add_file
-            (file_make
+            (template_make
                (fn data)
                comment_ml
                []

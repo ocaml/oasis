@@ -26,9 +26,11 @@
 open OUnit
 open TestCommon
 open OASISTypes
-open OASIS
+open OASISParse
 open OASISRecDescParser
 open OASISValues
+open OASISVersion
+open OASISExpr
 open FileUtil
 
 let tests ctxt =
@@ -77,9 +79,8 @@ let tests ctxt =
     (fun () ->
        let pkg =
          from_file 
-           ~conf:{default_conf with 
-                      debug = ctxt.dbug; 
-                      ignore_unknown = true}
+           ~ctxt:!OASISContext.default
+           ~ignore_unknown:true
            fn
        in
          test pkg)
@@ -94,7 +95,7 @@ let tests ctxt =
     (fun () ->
        try
          ( 
-           let _s : version_comparator = 
+           let _s : comparator = 
              value_parse str
            in
              if fail then
@@ -115,7 +116,10 @@ let tests ctxt =
       (List.map test_value_parser_of_vector 
          (List.map 
             (fun (v, f) -> 
-               (v, version_comparator.parse ~ctxt:OASISContext.quiet, f))
+               (v, 
+                OASISVersion.comparator_value.parse 
+                  ~ctxt:OASISContext.quiet, 
+                f))
             [
               ">= 3.11.1", false;
               ">= 3.11",   false;

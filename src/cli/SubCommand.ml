@@ -1,8 +1,4 @@
 
-(** SubCommand definition 
-    @author Sylvain Le Gall
-  *)
-
 open OASISUtils
 open MainGettext
 
@@ -28,9 +24,9 @@ let make ?(std_usage=false) nm snps hlp main =
     scmd_main      = main;
   }
 
-type t' = t
 module Set = Set.Make (
 struct
+  type t' = t
   type t = t'
   let compare t1 t2 = String.compare t1.scmd_name t2.scmd_name
 end)

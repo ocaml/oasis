@@ -19,10 +19,6 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Handle command line argument
-    @author Sylvain Le Gall
-  *)
-
 open OASISUtils
 open OASISGettext
 

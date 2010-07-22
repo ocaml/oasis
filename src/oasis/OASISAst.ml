@@ -28,6 +28,7 @@ open OASISUtils
 open OASISGettext
 open OASISRecDescParser
 open OASISAstTypes
+open OASISExpr
 
 (** Convert OASIS stream into package 
   *)
@@ -122,7 +123,7 @@ let to_package conf st =
       | SIfThenElse (e, stmt1, stmt2) -> 
           begin
             (* Check that we have a valid expression *)
-            OASISExpr.check ctxt e;
+            OASISExpr.check ctxt.valid_flags e;
             (* Explore if branch *)
             stmt 
               schm
@@ -153,7 +154,7 @@ let to_package conf st =
     in
       stmt schm data ctxt stmt';
       OASISCheck.check_schema 
-        (schm.PropList.Schema.name ^" "^nm)
+        ((PropList.Schema.name schm)^" "^nm)
         schm 
         data;
       (gen nm data) :: scts
@@ -167,7 +168,7 @@ let to_package conf st =
     function
       | TSLibrary (nm, stmt) -> 
           schema_stmt 
-            OASISLibrary.generator
+            OASISLibrary_intern.generator
             nm
             OASISLibrary.schema 
             acc
@@ -175,7 +176,7 @@ let to_package conf st =
 
       | TSExecutable (nm, stmt) -> 
           schema_stmt
-            OASISExecutable.generator
+            OASISExecutable_intern.generator
             nm
             OASISExecutable.schema
             acc
@@ -183,7 +184,7 @@ let to_package conf st =
 
       | TSFlag (nm, stmt) -> 
           schema_stmt 
-            OASISFlag.generator 
+            OASISFlag_intern.generator 
             nm
             OASISFlag.schema 
             acc
@@ -191,7 +192,7 @@ let to_package conf st =
 
       | TSSourceRepository (nm, stmt) ->
           schema_stmt
-            OASISSourceRepository.generator
+            OASISSourceRepository_intern.generator
             nm
             OASISSourceRepository.schema
             acc
@@ -199,7 +200,7 @@ let to_package conf st =
 
       | TSTest (nm, stmt) ->
           schema_stmt
-            OASISTest.generator
+            OASISTest_intern.generator
             nm
             OASISTest.schema
             acc
@@ -207,7 +208,7 @@ let to_package conf st =
 
       | TSDocument (nm, stmt) ->
           schema_stmt 
-            OASISDocument.generator
+            OASISDocument_intern.generator
             nm
             OASISDocument.schema
             acc
@@ -243,7 +244,7 @@ let to_package conf st =
       "package"
       OASISPackage.schema 
       data;
-    OASISPackage.generator 
+    OASISPackage_intern.generator 
       data
       sections
   in

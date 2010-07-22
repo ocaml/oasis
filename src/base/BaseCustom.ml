@@ -19,16 +19,11 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Run custom command for pre/post hook
-    @author Sylvain Le Gall
-  *)
-
 open BaseEnv
 open BaseMessage
 open OASISTypes
 open OASISGettext
 
-(* Expand and run command *)
 let run cmd args extra_args =
   BaseExec.run 
     (var_expand cmd)
@@ -36,8 +31,6 @@ let run cmd args extra_args =
        var_expand
        (args @ (Array.to_list extra_args)))
 
-(* Apply a function nested in a custom block
- *)
 let hook ?(failsafe=false) cstm f e =
   let optional_command lst = 
     let printer =

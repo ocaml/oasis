@@ -20,31 +20,32 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 60b73e73cc68b0be2a52bc5b04c90e59)
+# DO NOT EDIT (digest: dab611bedba3b60c7f00ccaa4627e421)
 FormatExt
-OASISGettext
-OASISMessage
 ODNFunc
 PropList
-OASIS
-OASISBuildSection
-OASISDocument
-OASISExecutable
-OASISExpr
-OASISFlag
-OASISHelp
-OASISLibrary
-OASISPackage
-OASISPlugin
-OASISSourceRepository
-OASISTest
-OASISTypes
-OASISUnixPath
 OASISUtils
+OASISUnixPath
+OASISContext
+OASISGettext
+OASISMessage
+OASISTypes
+OASISParse
 OASISValues
+OASISExpr
 OASISVersion
 OASISLicense
 OASISFileTemplate
+OASISBuildSection
+OASISDocument
+OASISExecutable
+OASISFlag
+OASISLibrary
+OASISPackage
+OASISSourceRepository
+OASISTest
+OASISPlugin
+OASISVersion_types
 OASISVersion_lexer
 OASISVersion_parser
 OASISSection
@@ -56,4 +57,13 @@ OASISRecDescParser
 OASISCustom
 OASISQuickstart
 OASISData
+OASISHelp
+OASISBuildSection_intern
+OASISDocument_intern
+OASISExecutable_intern
+OASISFlag_intern
+OASISLibrary_intern
+OASISPackage_intern
+OASISSourceRepository_intern
+OASISTest_intern
 # OASIS_STOP

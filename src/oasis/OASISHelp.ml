@@ -119,7 +119,7 @@ let pp_short_licenses () =
                  (pp_print_list pp_print_string ",@, ") lst)
         "@,"
         fmt
-        OASISLicense.license_data;
+        (OASISLicense.license_data ());
     pp_close_box fmt ();
     flush_str_formatter ()
 
@@ -147,7 +147,7 @@ let pp_license_exceptions () =
                  lst)
         "@,"
         fmt
-        OASISLicense.license_exception_data;
+        (OASISLicense.license_exception_data ());
     pp_close_box fmt ();
     flush_str_formatter ()
 
@@ -204,8 +204,8 @@ let vars ?plugin () =
          (List.map
             (fun et ->
                Printf.sprintf "* `%s(X)`" 
-                 (OASISExpr.string_of_expr_test et))
-            OASISExpr.expr_tests));
+                 (OASISExpr.string_of_test et))
+            OASISExpr.tests));
 
     "ListOASISPackageFields",
     (fun () -> pp_section_fields ?plugin OASISPackage.schema);

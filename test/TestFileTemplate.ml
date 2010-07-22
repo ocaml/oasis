@@ -60,7 +60,7 @@ let tests ctxt =
            rchng := file_generate 
                       ~ctxt:quiet
                       ~backup:true
-                      (of_string_list
+                      (template_of_string_list
                          ~ctxt:quiet
                          ~template:true
                          real_fn 

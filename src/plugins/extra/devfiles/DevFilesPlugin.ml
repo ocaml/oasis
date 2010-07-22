@@ -129,7 +129,7 @@ let main ctxt pkg =
           Buffer.add_string buff (".PHONY: "^(String.concat " " targets)^"\n");
     
           OASISPlugin.add_file 
-            (file_make 
+            (template_make 
                "Makefile"
                comment_sh
                []
@@ -146,7 +146,7 @@ let main ctxt pkg =
     if enable_configure pkg.schema_data then
       begin
         let tmpl = 
-          of_string_list  
+          template_of_string_list  
             ~ctxt:ctxt.OASISPlugin.ctxt
             ~template:true
             "configure"

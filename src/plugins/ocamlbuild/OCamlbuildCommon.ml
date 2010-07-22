@@ -58,12 +58,12 @@ let fix_args args extra_argv =
         [];
       args;
 
-      if bool_of_string (ocaml_with_debug ()) then
+      if bool_of_string (debug ()) then
         ["-tag"; "debug"]
       else
         [];
 
-      if bool_of_string (ocaml_with_profile ()) then
+      if bool_of_string (profile ()) then
         ["-tag"; "profile"]
       else
         [];

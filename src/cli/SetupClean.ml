@@ -17,7 +17,9 @@ let main () =
     begin
       let ctxt, _ = 
         BaseSetup.of_package 
-          (OASIS.from_file !Setup.oasis_fn)
+          (OASISParse.from_file 
+             ~ctxt:!BaseContext.default
+             !Setup.oasis_fn)
       in
         OASISFileTemplate.fold
           (fun tmpl () ->

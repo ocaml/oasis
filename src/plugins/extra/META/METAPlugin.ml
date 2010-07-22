@@ -215,7 +215,7 @@ let main ctxt pkg =
                    (Format.formatter_of_buffer buff) 
                    grp;
                  OASISPlugin.add_file
-                   (of_string_list
+                   (template_of_string_list
                       ~ctxt:ctxt.OASISPlugin.ctxt
                       ~template:true
                       meta_fn 

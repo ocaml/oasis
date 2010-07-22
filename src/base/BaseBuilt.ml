@@ -19,16 +19,10 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Register files built to be installed
-    @author Sylvain Le Gall
-  *)
-
 open OASISTypes
 open OASISGettext
 open BaseStandardVar
 open BaseMessage
-
-type filenames = filename list
 
 type t =
   | BExec    (* Executable *)
@@ -48,7 +42,6 @@ let to_log_event_file t nm =
 let to_log_event_done t nm =
   "is_"^(to_log_event_file t nm)
 
-(** Register files built *)
 let register t nm lst = 
   BaseLog.register
     (to_log_event_done t nm)
@@ -63,7 +56,6 @@ let register t nm lst =
             fn))
     lst
 
-(** Unregister all files built *)
 let unregister t nm =
   List.iter
     (fun (e, d) ->
@@ -72,9 +64,6 @@ let unregister t nm =
        [to_log_event_file t nm; 
         to_log_event_done t nm])
 
-(** Fold-left files built, filter existing
-    and non-existing files.
- *)
 let fold t nm f acc = 
   List.fold_left 
     (fun acc (_, fn) ->
@@ -103,8 +92,6 @@ let fold t nm f acc =
     (BaseLog.filter
        [to_log_event_file t nm])
 
-(** Check if a library/doc/exec has been built 
-  *)
 let is_built t nm =
   List.fold_left
     (fun is_built (_, d) ->
@@ -116,9 +103,6 @@ let is_built t nm =
     (BaseLog.filter
        [to_log_event_done t nm])
 
-(** Generate the list of files that should be built for 
-    an executable.
-  *)
 let of_executable ffn (cs, bs, exec) = 
   let unix_exec_is, unix_dll_opt = 
     OASISExecutable.unix_exec_is 
@@ -127,7 +111,7 @@ let of_executable ffn (cs, bs, exec) =
          bool_of_string 
            (is_native ()))
       ext_dll
-      suffix_program
+      ext_program
   in
   let evs = 
     (BExec, cs.cs_name, [ffn unix_exec_is])
@@ -142,9 +126,6 @@ let of_executable ffn (cs, bs, exec) =
     unix_exec_is,
     unix_dll_opt
 
-(** Generate the list of files that should be built for
-    a library
-  *)
 let of_library ffn (cs, bs, lib) = 
   let unix_lst = 
     OASISLibrary.generated_unix_files

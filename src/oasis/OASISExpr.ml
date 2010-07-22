@@ -19,14 +19,30 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** OASIS expression manipulation
-  *)
+TYPE_CONV_PATH "OASISExpr"
 
-open OASISTypes
 open OASISGettext
 open OASISUtils
 
-(** Evaluate each conditions and choose the right one. *)
+type test = 
+  | TOs_type
+  | TSystem
+  | TArchitecture
+  | TCcomp_type
+  | TOCaml_version
+  with odn
+  
+type flag = string with odn
+
+type t =
+  | EBool of bool
+  | ENot of t
+  | EAnd of t * t
+  | EOr of t * t
+  | EFlag of flag
+  | ETest of test * string
+  with odn
+  
 let choose ?printer ?name var_get test_get lst =
   let rec eval =
     function
@@ -90,10 +106,7 @@ let choose ?printer ?name var_get test_get lst =
   in
     choose_aux (List.rev lst)
 
-(** All availbable expression tests and functions to convert it
-    to string and reverse
-  *)
-let expr_tests, string_of_expr_test, expr_test_of_string =
+let tests, string_of_test, test_of_string =
   let all =
     [
       TOs_type;
@@ -125,33 +138,28 @@ let expr_tests, string_of_expr_test, expr_test_of_string =
 
 (* END EXPORT *)
 
-open OASISAstTypes
-
-(* Check that expression only use valid tests/flags *)
-let check ctxt =
+let check valid_flags =
   let lowercase_eq str1 str2 =
     (String.lowercase str1) = (String.lowercase str2)
   in
 
-  let rec check_aux ctxt =
+  let rec check_aux valid_flags =
     function
       | EBool _ -> 
           ()
       | ENot e -> 
-          check_aux ctxt e 
+          check_aux valid_flags e 
       | EAnd (e1, e2) | EOr (e1, e2) -> 
-          check_aux ctxt e1; 
-          check_aux ctxt e2
+          check_aux valid_flags e1; 
+          check_aux valid_flags e2
       | EFlag nm ->
-          if not (List.exists (lowercase_eq nm) ctxt.valid_flags) then
+          if not (List.exists (lowercase_eq nm) valid_flags) then
             failwithf1 (f_ "Unknown flag '%s'") nm
       | ETest (_, _) ->
           ()
   in
-    check_aux ctxt 
+    check_aux valid_flags 
 
-(** Reduce expression 
-  *)
 let rec reduce e =
   let e =
     match e with
@@ -181,8 +189,6 @@ let rec reduce e =
       | (ENot _ | EAnd (_, _) | EOr (_, _) | EFlag _ | ETest (_, _) | (EBool _)) as e ->
           e
 
-(** Reduce choices
-  *)
 let reduce_choices choices =
   (* Naive reduction, we only look for exactly the same condition in
    * after one condition. It works but is not complete and not efficient

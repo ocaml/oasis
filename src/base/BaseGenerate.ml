@@ -19,10 +19,6 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Generate package files
-    @author Sylvain Le Gall
-  *)
-
 open Format
 open OASISTypes
 open OASISUtils
@@ -72,9 +68,6 @@ let register =
 let unregister =
   log_change BaseLog.unregister
 
-(** Restore generated files, when [generate] has been called with 
-    [~restore:true]
-  *)
 let restore ?msg () = 
   let msg = 
     match msg with 
@@ -101,8 +94,6 @@ let restore ?msg () =
          [ev_create; ev_backup])
 
 
-(** Generate setup file and the rest of the build system 
-  *)
 let generate ?msg ~restore ~backup ~dev ~setup_fn ?oasis_exec pkg = 
   let ctxt, _ = 
     BaseSetup.of_package pkg
@@ -115,13 +106,13 @@ let generate ?msg ~restore ~backup ~dev ~setup_fn ?oasis_exec pkg =
   in
 
   let change_setup_fn = 
-    (* Do we need to change setup_fn name *)
-    setup_fn <> BaseSetup.default_fn
+    (* Do we need to change setup filename *)
+    setup_fn <> BaseSetup.default_filename
   in
 
   let ctxt =
     let default_fn =
-      BaseSetup.default_fn
+      BaseSetup.default_filename
     in
       if change_setup_fn then
         begin

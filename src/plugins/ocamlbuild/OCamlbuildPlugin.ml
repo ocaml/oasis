@@ -476,7 +476,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
             "clib"
         in
           add_file 
-            (file_make
+            (template_make
                fn_clib
                comment_ocamlbuild
                []
@@ -645,7 +645,7 @@ let add_ocamlbuild_files ctxt pkg =
                      prepend_bs_path bs cs.cs_name
                    in
                      add_file
-                       (file_make
+                       (template_make
                           (FilePath.add_extension fn_base "mllib")
                           comment_ocamlbuild
                           []
@@ -742,7 +742,7 @@ let add_ocamlbuild_files ctxt pkg =
       ctxt
       [
         (* Generate _tags *)
-        file_make 
+        template_make 
           "_tags" 
           comment_ocamlbuild 
           []
@@ -750,7 +750,7 @@ let add_ocamlbuild_files ctxt pkg =
           [];
 
         (* Generate myocamlbuild.ml *)
-        of_mlfile 
+        template_of_mlfile 
          "myocamlbuild.ml"
           []
           [

@@ -19,13 +19,8 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** {1 File operation (install, which...)}
-  *)
-
 open OASISGettext
 
-(** Find a file among all provided alternatives
-  *)
 let find_file paths exts = 
 
   (* Cardinal product of two list *)
@@ -67,8 +62,6 @@ let find_file paths exts =
       Sys.file_exists
       alternatives
 
-(** Find real filename of an executable
-  *)
 let which prg =
   let path_sep =
     match Sys.os_type with 
@@ -99,8 +92,6 @@ let which prg =
 let q = Filename.quote
 (**/**)
 
-(** Copy a file 
-  *)
 let cp src tgt = 
   BaseExec.run
     (match Sys.os_type with 
@@ -108,8 +99,6 @@ let cp src tgt =
      | _ -> "cp")
     [q src; q tgt]
 
-(** Create a directory
-  *)
 let mkdir tgt =
   BaseExec.run 
     (match Sys.os_type with 
@@ -117,9 +106,6 @@ let mkdir tgt =
        | _ -> "mkdir")
     [q tgt]
 
-(** [mkdir_parent f tgt] Create a directory and its parent, call f with 
-    directory name created, in order.
-  *)
 let rec mkdir_parent f tgt =
   if Sys.file_exists tgt then
     begin
@@ -139,8 +125,6 @@ let rec mkdir_parent f tgt =
         end
     end
 
-(** Remove a directory
-  *)
 let rmdir tgt =
   if Sys.readdir tgt = [||] then
     begin
@@ -151,9 +135,6 @@ let rmdir tgt =
             BaseExec.run "rm" ["-r"; q tgt]
     end
 
-(** Expand a filename containing '*.ext' into corresponding
-    real files
-  *)
 let glob fn = 
  let basename = 
    Filename.basename fn

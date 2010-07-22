@@ -19,22 +19,15 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Simple environment, allowing only to read values
-  *)
-
 module MapString = Map.Make(String)
 
 type t = string MapString.t
 
-(** Environment default file 
-  *)
 let default_filename =
   Filename.concat 
     (Sys.getcwd ())
     "setup.data"
 
-(** Load environment.
-  *)
 let load ?(allow_empty=false) ?(filename=default_filename) () =
   if Sys.file_exists filename then
     begin
@@ -92,9 +85,6 @@ let load ?(allow_empty=false) ?(filename=default_filename) () =
            filename)
     end
 
-(** Get a variable that evaluate expression that can be found in it (see
-    {!Buffer.add_substitute}.
-  *)
 let var_get name env =
   let rec var_expand str =
     let buff =

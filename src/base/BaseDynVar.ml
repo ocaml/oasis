@@ -19,12 +19,6 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Dynamic variables which are set in setup.log during compilation
-    @author Sylvain Le Gall
-  
-    This variables are typically executable real name that are initially not
-    set and then are set while building.
-  *)
 
 open OASISTypes
 open OASISGettext
@@ -64,5 +58,3 @@ let init pkg =
        | Library _ | Flag _ | Test _ | SrcRepo _ | Doc _ ->
            ())
     pkg.sections
-
-(* END EXPORT *)
