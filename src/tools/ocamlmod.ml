@@ -56,24 +56,24 @@ let dump_ml chn_out fn =
   let export_extract chn_out fn = 
     let is_rgxp s_rgxp = 
       let rgxp = 
-        Str.regexp s_rgxp 
+        Pcre.regexp s_rgxp 
       in
-        fun s -> Str.string_match rgxp s 0
+        fun s -> Pcre.pmatch ~rex:rgxp s
     in
     let with_odn = 
-      Str.regexp "with +odn\\($\\| \\)"
+      Pcre.regexp "with +odn($| )"
     in
     let type_conv_path =
-      Str.regexp "TYPE_CONV_PATH +\"[^\"]*\""
+      Pcre.regexp "TYPE_CONV_PATH +\"[^\"]*\""
     in
     let is_export_end =
-      is_rgxp "(\\* +END +EXPORT +\\*)"
+      is_rgxp "\\(\\* +END +EXPORT +\\*\\)"
     in
     let is_export_start = 
-      is_rgxp "(\\* +START +EXPORT +\\*)"
+      is_rgxp "\\(\\* +START +EXPORT +\\*\\)"
     in
     let is_beg_comment = 
-      is_rgxp "(\\*.*" 
+      is_rgxp "\\(\\*.*" 
     in
 
     let line_num = 
@@ -113,7 +113,7 @@ let dump_ml chn_out fn =
             let line = 
               (* Remove ODN elements *)
               List.fold_left
-                (fun str rgxp -> Str.global_replace rgxp "" str)
+                (fun str rgxp -> Pcre.replace ~rex:rgxp str)
                 line
                 [with_odn; type_conv_path]
             in

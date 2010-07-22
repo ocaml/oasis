@@ -20,16 +20,16 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: ecf8bf64865fb17041801ebe2cd64e42)
+# DO NOT EDIT (digest: c00a5107775d513edab9d399952f44a9)
 # Executable ocamlmod
-"src/tools/ocamlmod.byte": pkg_str
+"src/tools/ocamlmod.byte": pkg_pcre
 "src/tools/ocamlmod.byte": pkg_fileutils
-<src/tools/*.ml{,i}>: pkg_str
+<src/tools/*.ml{,i}>: pkg_pcre
 <src/tools/*.ml{,i}>: pkg_fileutils
 # Library oasis
 "src/oasis": include
 <src/oasis/*.ml{,i}>: pkg_unix
-<src/oasis/*.ml{,i}>: pkg_str
+<src/oasis/*.ml{,i}>: pkg_pcre
 <src/oasis/*.ml{,i}>: pkg_odn
 <src/oasis/*.ml{,i}>: pkg_ocamlgraph
 <src/oasis/*.ml{,i}>: pkg_findlib
@@ -39,7 +39,7 @@
 "src/base": include
 <src/base/*.ml{,i}>: use_oasis
 <src/base/*.ml{,i}>: pkg_unix
-<src/base/*.ml{,i}>: pkg_str
+<src/base/*.ml{,i}>: pkg_pcre
 <src/base/*.ml{,i}>: pkg_odn
 <src/base/*.ml{,i}>: pkg_ocamlgraph
 <src/base/*.ml{,i}>: pkg_findlib
@@ -49,7 +49,7 @@
 <src/*.ml{,i}>: use_base
 <src/*.ml{,i}>: use_oasis
 <src/*.ml{,i}>: pkg_unix
-<src/*.ml{,i}>: pkg_str
+<src/*.ml{,i}>: pkg_pcre
 <src/*.ml{,i}>: pkg_odn
 <src/*.ml{,i}>: pkg_ocamlgraph
 <src/*.ml{,i}>: pkg_findlib
@@ -58,7 +58,7 @@
 <src/plugins/custom/*.ml{,i}>: use_base
 <src/plugins/custom/*.ml{,i}>: use_oasis
 <src/plugins/custom/*.ml{,i}>: pkg_unix
-<src/plugins/custom/*.ml{,i}>: pkg_str
+<src/plugins/custom/*.ml{,i}>: pkg_pcre
 <src/plugins/custom/*.ml{,i}>: pkg_odn
 <src/plugins/custom/*.ml{,i}>: pkg_ocamlgraph
 <src/plugins/custom/*.ml{,i}>: pkg_findlib
@@ -67,7 +67,7 @@
 <src/plugins/extra/META/*.ml{,i}>: use_base
 <src/plugins/extra/META/*.ml{,i}>: use_oasis
 <src/plugins/extra/META/*.ml{,i}>: pkg_unix
-<src/plugins/extra/META/*.ml{,i}>: pkg_str
+<src/plugins/extra/META/*.ml{,i}>: pkg_pcre
 <src/plugins/extra/META/*.ml{,i}>: pkg_odn
 <src/plugins/extra/META/*.ml{,i}>: pkg_ocamlgraph
 <src/plugins/extra/META/*.ml{,i}>: pkg_findlib
@@ -76,7 +76,7 @@
 <src/plugins/extra/devfiles/*.ml{,i}>: use_base
 <src/plugins/extra/devfiles/*.ml{,i}>: use_oasis
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_unix
-<src/plugins/extra/devfiles/*.ml{,i}>: pkg_str
+<src/plugins/extra/devfiles/*.ml{,i}>: pkg_pcre
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_odn
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_ocamlgraph
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_findlib
@@ -85,7 +85,7 @@
 <src/plugins/extra/stdfiles/*.ml{,i}>: use_base
 <src/plugins/extra/stdfiles/*.ml{,i}>: use_oasis
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_unix
-<src/plugins/extra/stdfiles/*.ml{,i}>: pkg_str
+<src/plugins/extra/stdfiles/*.ml{,i}>: pkg_pcre
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_odn
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_ocamlgraph
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_findlib
@@ -94,7 +94,7 @@
 <src/plugins/internal/*.ml{,i}>: use_base
 <src/plugins/internal/*.ml{,i}>: use_oasis
 <src/plugins/internal/*.ml{,i}>: pkg_unix
-<src/plugins/internal/*.ml{,i}>: pkg_str
+<src/plugins/internal/*.ml{,i}>: pkg_pcre
 <src/plugins/internal/*.ml{,i}>: pkg_odn
 <src/plugins/internal/*.ml{,i}>: pkg_ocamlgraph
 <src/plugins/internal/*.ml{,i}>: pkg_findlib
@@ -103,7 +103,7 @@
 <src/plugins/none/*.ml{,i}>: use_base
 <src/plugins/none/*.ml{,i}>: use_oasis
 <src/plugins/none/*.ml{,i}>: pkg_unix
-<src/plugins/none/*.ml{,i}>: pkg_str
+<src/plugins/none/*.ml{,i}>: pkg_pcre
 <src/plugins/none/*.ml{,i}>: pkg_odn
 <src/plugins/none/*.ml{,i}>: pkg_ocamlgraph
 <src/plugins/none/*.ml{,i}>: pkg_findlib
@@ -112,7 +112,7 @@
 <src/plugins/ocamlbuild/*.ml{,i}>: use_base
 <src/plugins/ocamlbuild/*.ml{,i}>: use_oasis
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_unix
-<src/plugins/ocamlbuild/*.ml{,i}>: pkg_str
+<src/plugins/ocamlbuild/*.ml{,i}>: pkg_pcre
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_odn
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_ocamlgraph
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_findlib
@@ -133,7 +133,7 @@
 "test/test.byte": use_base
 "test/test.byte": use_oasis
 "test/test.byte": pkg_unix
-"test/test.byte": pkg_str
+"test/test.byte": pkg_pcre
 "test/test.byte": pkg_odn
 "test/test.byte": pkg_ocamlgraph
 "test/test.byte": pkg_oUnit
@@ -144,7 +144,7 @@
 <test/*.ml{,i}>: use_base
 <test/*.ml{,i}>: use_oasis
 <test/*.ml{,i}>: pkg_unix
-<test/*.ml{,i}>: pkg_str
+<test/*.ml{,i}>: pkg_pcre
 <test/*.ml{,i}>: pkg_odn
 <test/*.ml{,i}>: pkg_ocamlgraph
 <test/*.ml{,i}>: pkg_oUnit
@@ -157,7 +157,7 @@
 "src/cli/Main.byte": use_base
 "src/cli/Main.byte": use_oasis
 "src/cli/Main.byte": pkg_unix
-"src/cli/Main.byte": pkg_str
+"src/cli/Main.byte": pkg_pcre
 "src/cli/Main.byte": pkg_odn
 "src/cli/Main.byte": pkg_ocamlgraph
 "src/cli/Main.byte": pkg_findlib
@@ -168,7 +168,7 @@
 <src/cli/*.ml{,i}>: use_base
 <src/cli/*.ml{,i}>: use_oasis
 <src/cli/*.ml{,i}>: pkg_unix
-<src/cli/*.ml{,i}>: pkg_str
+<src/cli/*.ml{,i}>: pkg_pcre
 <src/cli/*.ml{,i}>: pkg_odn
 <src/cli/*.ml{,i}>: pkg_ocamlgraph
 <src/cli/*.ml{,i}>: pkg_findlib

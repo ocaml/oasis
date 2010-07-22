@@ -49,7 +49,7 @@ if flag(gettext)
 Executable ocamlmod
   Path:   src/tools
   MainIs: ocamlmod.ml
-  BuildDepends: fileutils, str
+  BuildDepends: fileutils, pcre
   Install: false
   
 Library oasis
@@ -100,7 +100,7 @@ Library oasis
                    OASISSourceRepository_intern,
                    OASISTest_intern
   CompiledObject: byte
-  BuildDepends: fileutils, unix, str, extlib, findlib, odn, ocamlgraph
+  BuildDepends: fileutils, unix, pcre, extlib, findlib, odn, ocamlgraph
   BuildTools+: ocamlmod, ocamlyacc, ocamllex, ocamlify
   XMETADescription: _oasis file functions
   Install$: flag(libraries)

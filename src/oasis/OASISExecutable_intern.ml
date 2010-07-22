@@ -44,7 +44,7 @@ let schema, generator =
     new_field schm "MainIs" 
       (let base_value =
          regexp
-           (Str.regexp ".*\\.ml$")
+           (Pcre.regexp ".*\\.ml$")
            (fun () -> s_ ".ml file")
        in
          {

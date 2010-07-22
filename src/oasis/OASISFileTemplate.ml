@@ -28,7 +28,7 @@ open OASISTypes
 type comment =
     {
       of_string: string -> string;
-      regexp:    quote:bool -> string -> Str.regexp;
+      regexp:    quote:bool -> string -> Pcre.regexp;
       start:     string;
       stop:      string;
     }
@@ -54,9 +54,6 @@ let (start_msg, stop_msg) =
   "OASIS_START",
   "OASIS_STOP"
 
-let white_space =
-  "[ \t]*"
-
 let comment cmt_beg cmt_end =
   let of_string =
       match cmt_end with
@@ -67,21 +64,23 @@ let comment cmt_beg cmt_end =
                Printf.sprintf "%s %s %s" cmt_beg str cmt_end)
   in
   let regexp ~quote str = 
-    match cmt_end with 
-      | Some cmt_end ->
-          Str.regexp ("^"^white_space^
-                      (Str.quote cmt_beg)^
-                      white_space^
-                      (if quote then Str.quote str else str)^
-                      white_space^
-                      (Str.quote cmt_end)^
-                      white_space^"$")
-      | None ->
-          Str.regexp ("^"^white_space^
-                      (Str.quote cmt_beg)^
-                      white_space^
-                      (if quote then Str.quote str else str)^
-                      white_space^"$")
+    let q = 
+      Pcre.quote 
+    in
+    let rstr = 
+      if quote then 
+        q str 
+      else 
+        str
+    in
+    let lst = 
+      match cmt_end with 
+        | Some cmt_end ->
+            ["^"; q cmt_beg; rstr; q cmt_end; "$"]
+        | None ->
+            ["^"; q cmt_beg; rstr; "$"]
+    in
+      Pcre.regexp (String.concat "\\s*" lst)
   in
     {
       of_string = of_string;
@@ -141,7 +140,7 @@ let template_of_string_list ~ctxt ~template fn comment lst =
         comment.regexp ~quote:true msg
       in
         fun str ->
-          Str.string_match rgxp str 0
+          Pcre.pmatch ~rex:rgxp str
     in
       (match_regexp start_msg),
       (match_regexp stop_msg)
@@ -149,7 +148,7 @@ let template_of_string_list ~ctxt ~template fn comment lst =
 
   (* Match do not edit comment *)
   let do_not_edit =
-    comment.regexp ~quote:false "DO NOT EDIT (digest: \\(.*\\))"
+    comment.regexp ~quote:false "DO NOT EDIT \\(digest: ([^\\)]*)\\)"
   in
 
   (* Separate a list into three part: header, body and footer.
@@ -175,17 +174,34 @@ let template_of_string_list ~ctxt ~template fn comment lst =
         try
           let lst_header, tl =
             split_cond 
-              (fun str -> not (is_start str))
+              (fun str -> 
+                if not (is_start str) then
+                  begin
+                    debug ~ctxt "Not start: %s" str;
+                    true
+                  end
+                else
+                  begin
+                    debug ~ctxt "Start: %s" str;
+                    false
+                  end)
               []
               lst
           in
           let digest_body, tl = 
             match tl with 
-              | hd :: tl when Str.string_match do_not_edit hd 0 ->
-                  let digest =
-                    Str.matched_group 1 hd
-                  in
-                    Some (digest_of_hex digest), tl
+              | (hd :: tl) as lst->
+                  begin
+                    try 
+                      let digest =
+                        Pcre.get_substring 
+                          (Pcre.exec ~rex:do_not_edit hd) 
+                          1
+                      in
+                        Some (digest_of_hex digest), tl
+                    with Not_found ->
+                      None, lst
+                  end
               | lst ->
                   None, lst
           in
@@ -236,14 +252,14 @@ let template_of_file ~template fn comment =
    let lst =
      ref []
    in
-     (
+     begin
        try
          while true do
            lst := (input_line chn_in) :: !lst
          done
        with End_of_file ->
          ()
-     );
+     end;
      close_in chn_in;
      List.rev !lst
  in
@@ -254,7 +270,7 @@ let template_of_mlfile fn header body footer  =
 
   let rec count_line str line_cur str_start =
     if str_start < String.length str then 
-      (
+      begin
         try 
           count_line 
             str
@@ -262,11 +278,11 @@ let template_of_mlfile fn header body footer  =
             ((String.index_from str str_start '\n') + 1)
         with Not_found ->
           (line_cur + 1)
-      )
+      end
     else
-      (
+      begin
         line_cur + 1
-      )
+      end
   in
 
   (* Make sure that line modifier contains reference to file that
@@ -274,49 +290,46 @@ let template_of_mlfile fn header body footer  =
    *)
   let check_line_modifier str =
     let rgxp =
-      Str.regexp "^#[ \\t]*[0-9]+[ \\t]+\"\\([^\"]*\\)\""
+      Pcre.regexp "^#\\s*\\d+\\s+\"([^\"]*)\""
     in
     let rec check_line_modifier_aux (prev_find, prev_str, prev_idx) = 
       try
-        let idx =
-          Str.search_forward rgxp prev_str prev_idx
+        let substrs =
+          Pcre.exec ~rex:rgxp ~pos:prev_idx prev_str
         in
         let line_modifier =
-          Str.matched_string prev_str
+          Pcre.get_substring substrs 0
         in
         let line_modifier_fn = 
-          Str.matched_group 1 prev_str
+          Pcre.get_substring substrs 1
+        in
+        let idx, next_idx = 
+          Pcre.get_substring_ofs substrs 0
         in
         let acc = 
           if Sys.file_exists line_modifier_fn then
-            (
+            begin
               (* We found a valid match, continue to search
                *)
-              true, prev_str, idx + (String.length line_modifier)
-            )
+              assert(idx + (String.length line_modifier) = next_idx );
+              true, prev_str, next_idx
+            end
           else
-            (
+            begin
               (* The line modifier filename is not available, better
                * comment it
                *)
-              let replace_regexp = 
-                Str.regexp 
-                  ("^"^(Str.quote line_modifier))
-              in
-              let line_modifier_commented =
-                "(* "^line_modifier^" *)"
-              in
               let str = 
-                Str.global_replace 
-                  replace_regexp 
-                  line_modifier_commented
+                Pcre.qreplace 
+                  ~pat:("^"^(Pcre.quote line_modifier))
+                  ~templ:("(* "^line_modifier^" *)")
                   prev_str
               in
                 (* Restart search before we replace the string, at this
                  * point index has not been modified.
                  *)
                 prev_find, str, prev_idx
-            )
+            end
         in
           check_line_modifier_aux acc
       with Not_found ->

@@ -49,10 +49,10 @@ let blackbox =
 
 module StdRegexp = 
 struct 
-  let r = Str.regexp
+  let r = Pcre.regexp
 
   let url       = r "http://[a-zA-Z0-9\\./_?&;=-]+"
-  let copyright = r "\\((c)\\|(C)\\) * [0-9]+\\(-[0-9]+\\)?,? .*" 
+  let copyright = r "\\((c|C)\\) *\\d+(-\\d+)?,? .*" 
   let modul     = r "[A-Z][A-Za-z0-9_]*"
 end
 
@@ -60,11 +60,22 @@ let regexp regexp nm =
   {
     parse = 
       (fun ~ctxt str -> 
-         if Str.string_match regexp str 0 && 
-            (Str.match_beginning ()) = 0 &&
-            (Str.match_end ()) = (String.length str) then
-           str
-         else
+         try 
+           let substrs = 
+             Pcre.exec ~rex:regexp str
+           in
+           let str_matched = 
+             Pcre.get_substring substrs 0
+           in
+             if str_matched = str then
+               str
+             else
+               failwithf3
+                 (f_ "Only substring '%s' of '%s' is a %s")
+                 str_matched
+                 str
+                 (nm ())
+         with Not_found ->
            failwithf2
              (f_ "String '%s' is not a %s")
              str 
@@ -82,7 +93,7 @@ let copyright =
   {
     parse = 
       (fun ~ctxt str ->
-         if Str.string_match StdRegexp.copyright str 0 then
+         if Pcre.pmatch ~rex:StdRegexp.copyright str then
            str
          else
            failwithf1
@@ -181,29 +192,28 @@ let space_separated =
 
 let with_optional_parentheses main_value optional_value =
   let split_parentheses =
-    Str.regexp "\\([^(]*\\)(\\([^)]*\\))"
+    Pcre.regexp "([^\\(]*)\\(([^\\)]*)\\)"
   in
     {
       parse = 
         (fun ~ctxt str ->
-           if Str.string_match split_parentheses str 0 then
-             begin
-               let s1, s2 = 
-                 Str.matched_group 1 str,
-                 Str.matched_group 2 str
-               in
-               let e1 = 
-                 main_value.parse ~ctxt (String.strip s1)
-               in
-               let e2 =
-                 optional_value.parse ~ctxt (String.strip s2)
-               in
-                 e1, Some e2
-             end
-           else 
-             begin
-               main_value.parse ~ctxt str, None
-             end);
+           try 
+             let substrs =
+               Pcre.exec ~rex:split_parentheses str
+             in
+             let s1, s2 = 
+               Pcre.get_substring substrs 1,
+               Pcre.get_substring substrs 2
+             in
+             let e1 = 
+               main_value.parse ~ctxt (String.strip s1)
+             in
+             let e2 =
+               optional_value.parse ~ctxt (String.strip s2)
+             in
+               e1, Some e2
+           with Not_found ->
+             main_value.parse ~ctxt str, None);
       update = update_fail;
       print =
         (function

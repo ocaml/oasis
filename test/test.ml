@@ -75,7 +75,7 @@ let () =
         "-long",
         Arg.Set long,
         "Run long tests";
-      ] @ gettext_args)
+      ] @ gettext_args @ (BaseContext.args ()))
       invalid_arg
       ("usage: "^Sys.executable_name^" [options*]")
   in

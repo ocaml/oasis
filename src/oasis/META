@@ -20,10 +20,10 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 695461057aa6f1d75889b61ede83abb9)
+# DO NOT EDIT (digest: bef238efb9c21cb300fe0fbc68ab9715)
 version = "0.1.0"
 description = "_oasis file functions"
-requires = "fileutils unix str extlib findlib odn ocamlgraph"
+requires = "fileutils unix pcre extlib findlib odn ocamlgraph"
 archive(byte) = "oasis.cma"
 package "base" (
  version = "0.1.0"

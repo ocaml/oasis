@@ -112,15 +112,15 @@ let license_exception_data () =
 
 let parse = 
   let rgxp_short_license =
-    Str.regexp_case_fold "^ *\\([A-Z0-9\\-]*[A-Z0-9]+\\) *$"
+    Pcre.regexp ~flags:[`CASELESS] "^ *([A-Z0-9\\-]*[A-Z0-9]+) *$"
   in
 
   let rgxp_version = 
-    Str.regexp_case_fold "^ *\\(.*\\)-\\([0-9\\.]+\\)\\(+?\\) *$"
+    Pcre.regexp ~flags:[`CASELESS] "^ *(.*)-([0-9\\.]+)(\\+?) *$"
   in
 
   let rgxp_exception =
-    Str.regexp_case_fold "^ *\\(.*\\) *with *\\(.*\\) *exception$"
+    Pcre.regexp ~flags:[`CASELESS] "^ *(.*) *with *(.*) *exception$"
   in
 
   let is_equal s1 s2 = 
@@ -142,14 +142,17 @@ let parse =
   in
 
   let rec parse_aux ~ctxt s =
-    if Str.string_match rgxp_exception s 0 then
-      begin
+    try 
+      begin 
+        let substrs = 
+          Pcre.exec ~rex:rgxp_exception s 
+        in
         let str_l =
-          Str.matched_group 1 s
+          Pcre.get_substring substrs 1
         in
         let excpt = 
           let str_excpt1 = 
-            Str.matched_group 2 s
+            Pcre.get_substring substrs 2
           in
             try 
               let excpt, _, _ =
@@ -172,55 +175,67 @@ let parse =
         in
           LicenseWithException (parse_aux ~ctxt str_l, excpt)
       end
-    else if Str.string_match rgxp_version s 0 then
-      begin
-        let str_l =
-          Str.matched_group 1 s
-        in
-        let str_ver =
-          Str.matched_group 2 s
-        in
-        let and_later =
-          (Str.matched_group 3 s) = "+" 
-        in
-        let l = 
-          parse_aux ~ctxt str_l
-        in
-        let ver =
-          OASISVersion.version_of_string str_ver
-        in
-          if and_later then
-            LicenseWithLaterVersion(l, ver)
-          else
-            LicenseWithVersion(l, ver)
-      end
-    else if Str.string_match rgxp_short_license s 0 then
-      begin
-        let str_l1 =
-          Str.matched_group 1 s
-        in
-        let l, _, _, _ =
-          try 
-            List.find 
-              (fun (_, str_l2, _, _) ->
-                 is_equal str_l1 str_l2)
-              (license_data ())
-          with Not_found -> 
-            failwithf1
-              (f_ "Cannot find license shortname '%s'")
-              str_l1
-        in
-          l
-      end
-    else 
+    with Not_found -> (* No exception *)
       begin
         try 
-          OtherLicense
-            (OASISValues.url.parse ~ctxt s)
-        with Failure _ ->
-          failwithf1
-            (f_ "Cannot parse license '%s'")
-            s
+          begin
+            let substrs = 
+              Pcre.exec ~rex:rgxp_version s
+            in
+            let str_l =
+              Pcre.get_substring substrs 1
+            in
+            let str_ver =
+              Pcre.get_substring substrs 2
+            in
+            let and_later =
+              (Pcre.get_substring substrs 3) = "+" 
+            in
+            let l = 
+              parse_aux ~ctxt str_l
+            in
+            let ver =
+              OASISVersion.version_of_string str_ver
+            in
+              if and_later then
+                LicenseWithLaterVersion(l, ver)
+              else
+                LicenseWithVersion(l, ver)
+          end
+        with Not_found -> (* No version *)
+          begin
+            try 
+              begin
+                let substrs = 
+                  Pcre.exec ~rex:rgxp_short_license s
+                in
+                let str_l1 =
+                  Pcre.get_substring substrs 1
+                in
+                let l, _, _, _ =
+                  try 
+                    List.find 
+                      (fun (_, str_l2, _, _) ->
+                         is_equal str_l1 str_l2)
+                      (license_data ())
+                  with Not_found -> 
+                    failwithf1
+                      (f_ "Cannot find license shortname '%s'")
+                      str_l1
+                in
+                  l
+              end
+            with Not_found -> (* No short license *) 
+              begin
+                try 
+                  OtherLicense
+                    (OASISValues.url.parse ~ctxt s)
+                with Failure _ ->
+                  failwithf1
+                    (f_ "Cannot parse license '%s'")
+                    s
+              end
+          end
       end
   in
     parse_aux 

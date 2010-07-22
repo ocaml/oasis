@@ -26,7 +26,7 @@
 
 #use "topfind";;
 #require "unix";;
-#require "str";;
+#require "pcre";;
 
 let warning msg = 
   prerr_endline msg
@@ -84,15 +84,10 @@ let cmx_of_cma cma =
   in
   let unit_name =
     let reg = 
-      Str.regexp "Unit name: \\([A-Z][A-Za-z0-9]*\\)"
+      Pcre.regexp "Unit name: ([A-Z][A-Za-z0-9]*)"
     in
       fun line ->
-        (
-          let _i : int = 
-            Str.search_forward reg line 0
-          in
-            Str.matched_group 1 line
-        )
+        Pcre.get_substring (Pcre.exec ~rex:reg line) 1
   in
   let unit_list = 
     ref []
