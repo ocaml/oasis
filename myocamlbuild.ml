@@ -113,7 +113,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 2ea96356c0eb6fd4538f6fc3d19e15f8) *)
+(* DO NOT EDIT (digest: cd9cd779a5fdd4ecf9d1e5db3989ee3f) *)
 module BaseEnvLight = struct
 # 21 "/home/gildor/programmation/oasis/src/base/BaseEnvLight.ml"
   
@@ -206,7 +206,6 @@ module BaseEnvLight = struct
 end
 
 
-# 95 "myocamlbuild.ml"
 module MyOCamlbuildFindlib = struct
 # 21 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml"
   
@@ -434,7 +433,6 @@ module MyOCamlbuildBase = struct
 end
 
 
-# 323 "myocamlbuild.ml"
 open Ocamlbuild_plugin;;
 let package_default =
   {

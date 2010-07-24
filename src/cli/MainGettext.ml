@@ -22,6 +22,10 @@
 (** Main gettext interfaces
   *)
 
+let s_ s = s
+
+let f_ fmt = fmt^^""
+
 IFDEF HAS_GETTEXT THEN
 include
   Gettext.Program
