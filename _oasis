@@ -91,6 +91,7 @@ Library oasis
                    OASISQuickstart,
                    OASISData,
                    OASISHelp,
+                   OASISFormat,
                    OASISBuildSection_intern,
                    OASISDocument_intern,
                    OASISExecutable_intern,
