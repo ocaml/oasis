@@ -114,7 +114,7 @@ let to_package conf st =
                         (string_of_bool true)
                     end
             with (PropList.Unknown_field _) as exc ->
-              if OASISPlugin.test_field_name nm && conf.ignore_unknown then
+              if OASISPlugin.test_field_name nm && conf.ignore_plugins then
                 ()
               else
                 raise exc

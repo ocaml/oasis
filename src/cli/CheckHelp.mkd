@@ -1,0 +1,1 @@
+This subcommand load and `_oasis` file and apply standard checks. 

@@ -22,22 +22,22 @@
 
 open OASISRecDescParser
 
-let from_stream ~ctxt ?(ignore_unknown=false) ?fn st = 
+let from_stream ~ctxt ?(ignore_plugins=false) ?fn st = 
   OASISAst.to_package 
     {
       oasisfn        = fn;
-      ignore_unknown = ignore_unknown;
+      ignore_plugins = ignore_plugins;
       ctxt           = ctxt;
     }
     st
 
-let from_file ~ctxt ?ignore_unknown fn = 
+let from_file ~ctxt ?ignore_plugins fn = 
   let chn =
     open_in fn
   in
   let pkg = 
     from_stream 
-      ~ctxt ?ignore_unknown ~fn
+      ~ctxt ?ignore_plugins ~fn
       (Stream.of_channel chn)
   in
     close_in chn;
@@ -46,8 +46,8 @@ let from_file ~ctxt ?ignore_unknown fn =
 (** [from_string ~conf str] Parse the OASIS string [str] and check it using
     context [conf].
   *)
-let from_string ~ctxt ?ignore_unknown ?fn str =
+let from_string ~ctxt ?ignore_plugins ?fn str =
   from_stream 
-    ~ctxt ?ignore_unknown ?fn
+    ~ctxt ?ignore_plugins ?fn
     (Stream.of_string str)
 

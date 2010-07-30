@@ -37,7 +37,7 @@ open Genlex
 type conf =
   {
     oasisfn:        host_filename option;
-    ignore_unknown: bool;
+    ignore_plugins: bool;
     ctxt:           OASISContext.t;
   }
 

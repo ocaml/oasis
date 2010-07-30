@@ -80,7 +80,7 @@ let tests ctxt =
        let pkg =
          from_file 
            ~ctxt:!OASISContext.default
-           ~ignore_unknown:true
+           ~ignore_plugins:true
            fn
        in
          test pkg)
