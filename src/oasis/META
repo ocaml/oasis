@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 88557e6a759b00eed60338cc7f38cc21)
+# DO NOT EDIT (digest: 35f5569b6642d3153bafd5ae3ea5afa1)
 version = "0.2.0~alpha1"
 description = "_oasis file functions"
 requires = "fileutils unix pcre extlib findlib odn ocamlgraph"
@@ -30,6 +30,13 @@ package "base" (
  description = "'setup.ml' modules for OASIS"
  requires = "oasis"
  archive(byte) = "base.cma"
+)
+
+package "builtin-plugins" (
+ version = "0.2.0~alpha1"
+ description = "_oasis file functions"
+ requires = "oasis oasis.base"
+ archive(byte) = "builtin-plugins.cma"
 )
 
 package "cli" (

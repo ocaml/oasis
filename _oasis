@@ -161,10 +161,9 @@ Library "builtin-plugins"
                    plugins/extra/devfiles/DevFilesData,
                    plugins/extra/stdfiles/StdFilesPlugin,
                    plugins/extra/stdfiles/StdFilesData
-  Install: false
   CompiledObject: byte
   BuildDepends: oasis, oasis.base
-  XMETAEnable: false
+  FindlibParent: oasis
 
 Library cli
   Path:             src/cli
@@ -179,14 +178,14 @@ Library cli
 Executable OASIS
   Path:   src/cli
   MainIs: Main.ml
-  BuildDepends: oasis, oasis.base, oasis.cli, builtin-plugins
+  BuildDepends: oasis, oasis.base, oasis.cli, oasis.builtin-plugins
 
 Executable test
   Path: test
   MainIs: test.ml
   Install: false
   CompiledObject: byte
-  BuildDepends: oUnit, oasis, oasis.base, builtin-plugins
+  BuildDepends: oUnit, oasis, oasis.base, oasis.builtin-plugins
 
 Test main
   Type: custom (0.1.0)

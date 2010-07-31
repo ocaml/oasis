@@ -213,3 +213,5 @@
 <test/test.byte>: -use_oasis
 <src/cli/Main.byte>: -use_base
 <src/cli/Main.byte>: -use_oasis
+
+<src/builtin-plugins.cm{,x}a>: use_ocamlbuild
