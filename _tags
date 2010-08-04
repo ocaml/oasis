@@ -214,4 +214,4 @@
 <src/cli/Main.byte>: -use_base
 <src/cli/Main.byte>: -use_oasis
 
-<src/builtin-plugins.cm{,x}a>: use_ocamlbuild
+<src/builtin-plugins.cma>: use_ocamlbuild

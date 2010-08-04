@@ -100,7 +100,7 @@ Library oasis
                    OASISPackage_intern,
                    OASISSourceRepository_intern,
                    OASISTest_intern
-  CompiledObject: byte
+  CompiledObject: Best
   BuildDepends: fileutils, unix, pcre, extlib, findlib, odn, ocamlgraph
   BuildTools+: ocamlmod, ocamlyacc, ocamllex, ocamlify
   XMETADescription: _oasis file functions
@@ -130,7 +130,7 @@ Library base
            BaseDynVar,
            BaseMessage,
            BaseContext
-  CompiledObject: byte
+  CompiledObject: Best
   BuildDepends: oasis
   BuildTools+: ocamlmod, ocamlify
   FindlibParent: oasis
@@ -161,7 +161,7 @@ Library "builtin-plugins"
                    plugins/extra/devfiles/DevFilesData,
                    plugins/extra/stdfiles/StdFilesPlugin,
                    plugins/extra/stdfiles/StdFilesData
-  CompiledObject: byte
+  CompiledObject: Best
   BuildDepends: oasis, oasis.base
   FindlibParent: oasis
 
