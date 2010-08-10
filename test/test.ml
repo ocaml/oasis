@@ -125,6 +125,7 @@ let () =
          TestMETA.tests         ctxt;
          TestLog.tests          ctxt;
          TestLicense.tests      ctxt;
+         TestValues.tests       ctxt;
        ])
   in
 
