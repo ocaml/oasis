@@ -268,6 +268,19 @@ open Ocamlbuild_plugin
 
 module PU = OASISPlugin.Build.Make(OCamlbuildId)
 
+(* TODO: check everywhere that having .h and .c in CSources
+ * doesn't disturb things too much 
+ *)
+let only_h_files lst = 
+  List.filter 
+    (fun fn -> FilePath.UnixPath.check_extension fn "h")
+    lst
+
+let only_c_files lst =
+  List.filter 
+    (fun fn -> FilePath.UnixPath.check_extension fn "c")
+    lst
+
 let add_tags tag_t tgts tags = 
   let quote_target fn =
     let test_char =
@@ -327,7 +340,9 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
          (fun dn -> FilePath.UnixPath.concat dn "*.ml{,i}")
          (src_dirs @ src_internal_dirs))
       (* .c files *)
-      (List.map (prepend_bs_path bs) bs.bs_c_sources)
+      (List.map 
+         (prepend_bs_path bs) 
+         (only_c_files bs.bs_c_sources))
   in
 
   let clib_tgts =
@@ -482,7 +497,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
                []
                (List.map 
                   (fun fn -> FilePath.replace_extension fn "o")
-                  bs.bs_c_sources)
+                  (only_c_files bs.bs_c_sources))
                [])
             ctxt,
 
@@ -493,7 +508,11 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
 
           {myocamlbuild_t with 
                lib_c = 
-                 ((cs.cs_name, bs.bs_path) 
+                 ((cs.cs_name, 
+                   bs.bs_path, 
+                   List.map 
+                     (fun fn -> prepend_bs_path bs fn)
+                     (only_h_files bs.bs_c_sources))
                  :: 
                   myocamlbuild_t.lib_c)}
       end

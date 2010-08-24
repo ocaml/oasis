@@ -11,7 +11,7 @@ BuildTools:  ocamlbuild
 Library "with-c"
   Path: src
   Modules: A
-  CSources: A_stub.c
+  CSources: A_stub.c, A_header.h
   CCOpt: -D OPTION_PASSED
 
 Document "with-c"

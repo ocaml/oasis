@@ -20,6 +20,7 @@
 /********************************************************************************/
 
 #include <caml/memory.h>
+#include "A_header.h"
 
 #ifndef OPTION_PASSED
 #error "CCOpt doesn't work"

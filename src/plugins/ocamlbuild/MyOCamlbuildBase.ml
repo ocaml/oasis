@@ -28,6 +28,7 @@ TYPE_CONV_PATH "MyOCamlbuildBase"
 open Ocamlbuild_plugin
 
 type dir = string with odn
+type file = string with odn
 type name = string with odn
 
 (* END EXPORT *)
@@ -54,7 +55,7 @@ let rec odn_of_spec =
 type t =
     {
       lib_ocaml: (name * dir list) list;
-      lib_c:     (name * dir) list; 
+      lib_c:     (name * dir * file list) list; 
       flags:     (string list * spec) list;
     } with odn
 
@@ -113,7 +114,7 @@ let dispatch t =
 
         (* Declare C libraries *)
         List.iter
-          (fun (lib, dir) ->
+          (fun (lib, dir, headers) ->
                (* Handle C part of library *)
                flag ["link"; "library"; "ocaml"; "byte"; "use_lib"^lib]
                  (S[A"-dllib"; A("-l"^lib); A"-cclib"; A("-l"^lib)]);
@@ -129,6 +130,11 @@ let dispatch t =
                 *)
                dep  ["link"; "ocaml"; "use_lib"^lib] 
                  [dir/"lib"^lib^"."^(!Options.ext_lib)];
+
+               (* TODO: be more specific about what depends on headers *)
+               (* Depends on .h files *)
+               dep ["compile"; "c"] 
+                 headers;
 
                (* Setup search path for lib *)
                flag ["link"; "ocaml"; "use_"^lib] 
