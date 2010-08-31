@@ -7,6 +7,9 @@
     of version. E.g. ">= 1.0.0" is a version comparator and defines all version
     above "1.0.0", including "1.0.0".
 
+    The version comparison is done using Debian policy for version:
+    http://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
+
     @author Sylvain Le Gall
   *)
 
@@ -14,10 +17,7 @@
 
 type s = string
 
-type t =
-  | VInt of int * t
-  | VNonInt of string * t
-  | VEnd
+type t
 
 (** Compare versions.
   *)

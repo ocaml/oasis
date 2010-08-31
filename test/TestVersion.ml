@@ -29,6 +29,12 @@ open OASISVersion
 
 let tests ctxt =
 
+  let vstr_compare v1 v2 =
+    version_compare 
+      (version_of_string v1)
+      (version_of_string v2)
+  in
+
   let version_compare_of_vector (v1, v2, exp) =
     (Printf.sprintf "version_compare %S %S" v1 v2) >::
     (fun () ->
@@ -47,10 +53,7 @@ let tests ctxt =
                    v2)
            ~printer:string_of_int
             exp
-            (norm_sign 
-               (version_compare 
-                  (version_of_string v1)
-                  (version_of_string v2))))
+            (norm_sign (vstr_compare v1 v2)))
   in
 
   let comparator_apply_of_vector (v, c, exp) =
@@ -80,8 +83,10 @@ let tests ctxt =
          "1.0.1", "1.0.2", -1;
          "1.0.3", "1.0.2", 1;
          "0.6.0", "0.7",   -1;
-         "1.2.0",     "1.2.0~rc1", -1;
-         "1.2.0~rc1", "1.2.0~rc2", -1;
+         "1.2.0",     "1.2.0~rc1",    1;
+         "1.2.0~rc1", "1.2.0~rc2",    -1;
+         "0.1.0",     "0.2.0~alpha1", -1;
+         "0.2.0",     "0.2.0~alpha1", 1;
        ]);
 
     "comparator" >:::
@@ -92,4 +97,14 @@ let tests ctxt =
          "1.0.2", "> 1.0.2", false;
          "1.0.1", ">= 1.0.2", false;
        ]);
+
+    "sort" >::
+    (fun () ->
+       let lst = 
+         ["0.2.0~rc2"; "0.2.0~alpha1"; "0.1.0"; "0.2.0~alpha2"; "0.2.0~beta1"; "0.2.0"]
+       in
+         assert_equal 
+           ~printer:(String.concat "; ")
+           ["0.1.0"; "0.2.0~alpha1"; "0.2.0~alpha2"; "0.2.0~beta1"; "0.2.0~rc2"; "0.2.0"]
+           (List.sort vstr_compare lst))
   ]

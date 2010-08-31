@@ -25,10 +25,7 @@ TYPE_CONV_PATH "OASISVersion"
 
 type s = string
 
-type t =
-  | VInt of int * t
-  | VNonInt of string * t
-  | VEnd with odn
+type t = string with odn
 
 type comparator = 
   | VGreater of t
@@ -40,96 +37,110 @@ type comparator =
   | VAnd of comparator * comparator
   with odn
 
+(* Range of allowed characters *)
+let is_digit c =
+  '0' <= c && c <= '9'
+
+let is_alpha c =
+  ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')
+
+let is_special =
+  function 
+    | '.' | '+' | '-' | '~' -> true
+    | _ -> false
+
 let rec version_compare v1 v2 =
-  compare v1 v2
+  if v1 <> "" || v2 <> "" then
+    begin
+      (* Compare ascii string, using special meaning for version 
+       * related char
+       *)
+      let val_ascii c = 
+        if c = '~' then -1
+        else if is_digit c then 0
+        else if c = '\000' then 0
+        else if is_alpha c then Char.code c
+        else (Char.code c) + 256
+      in
+
+      let len1 = String.length v1 in
+      let len2 = String.length v2 in
+
+      let p = ref 0 in
+
+      (** Compare ascii part *)
+      let compare_vascii () = 
+        let cmp = ref 0 in
+        while !cmp = 0 && 
+              !p < len1 && !p < len2 && 
+              not (is_digit v1.[!p] && is_digit v2.[!p]) do 
+          cmp := (val_ascii v1.[!p]) - (val_ascii v2.[!p]);
+          incr p
+        done;
+        if !cmp = 0 && !p < len1 && !p = len2 then
+          val_ascii v1.[!p] 
+        else if !cmp = 0 && !p = len1 && !p < len2 then
+          - (val_ascii v2.[!p])
+        else
+          !cmp
+      in
+
+      (** Compare digit part *)
+      let compare_digit () = 
+        let extract_int v p =
+          let start_p = !p in
+            while !p < String.length v && is_digit v.[!p] do 
+              incr p
+            done;
+            match String.sub v start_p (!p - start_p) with 
+              | "" -> 0, 
+                      v
+              | s -> int_of_string s, 
+                     String.sub v !p ((String.length v) - !p)
+        in
+        let i1, tl1 = extract_int v1 (ref !p) in
+        let i2, tl2 = extract_int v2 (ref !p) in
+          i1 - i2, tl1, tl2
+      in
+
+        match compare_vascii () with
+          | 0 ->
+              begin
+                match compare_digit () with 
+                  | 0, tl1, tl2 ->
+                      if tl1 <> "" && is_digit tl1.[0] then
+                        1
+                      else if tl2 <> "" && is_digit tl2.[0] then
+                        -1
+                      else
+                        version_compare tl1 tl2
+                  | n, _, _ ->
+                      n
+              end
+          | n ->
+              n
+    end
+  else
+    begin
+      0
+    end
+
 
 let version_of_string str =
-  let is_digit c =
-    '0' <= c && c <= '9'
-  in
+  String.iter 
+    (fun c ->
+       if is_alpha c || is_digit c || is_special c then
+         ()
+       else
+         failwith
+           (Printf.sprintf 
+              (f_ "Char %C is not allowed in version '%s'")
+              c str))
+    str;
+  str
 
-  let str_len =
-    String.length str
-  in
-
-  let buff =
-    Buffer.create str_len
-  in
-
-  let rec extract_filter test start = 
-    if start < str_len && test str.[start] then
-      (
-        Buffer.add_char buff str.[start];
-        extract_filter test (start + 1)
-      )
-    else
-      (
-        let res =
-          Buffer.contents buff
-        in
-          Buffer.clear buff;
-          res, start
-      )
-  in
-
-  let extract_int vpos =
-    let str, vpos =
-      extract_filter is_digit vpos
-    in
-      int_of_string str, vpos
-  in
-
-  let extract_non_int vpos =
-    extract_filter 
-      (fun c -> not (is_digit c)) 
-      vpos
-  in
-
-  let rec parse_aux pos =
-    if pos < str_len then
-      begin
-        if is_digit str.[pos] then
-          begin
-            let vl, end_pos =
-              extract_int pos
-            in
-              VInt (vl, parse_aux end_pos)
-          end
-        else
-          begin
-            let vl, end_pos =
-              extract_non_int pos
-            in
-              VNonInt (vl, parse_aux end_pos)
-          end
-      end
-    else
-      VEnd 
-  in
-
-  let rec compress =
-    function
-      | VInt (i, VNonInt(".", (VInt _ as tl))) ->
-          VInt (i, compress tl)
-      | VInt (i, tl) ->
-          VInt (i, compress tl)
-      | VNonInt (i, tl) ->
-          VNonInt (i, compress tl)
-      | VEnd ->
-          VEnd
-  in
-
-    compress (parse_aux 0)
-
-let rec string_of_version =
-  function
-    | VInt (i, (VInt _ as tl)) ->
-        (string_of_int i)^"."^(string_of_version tl)
-    | VInt (i, tl) -> 
-        (string_of_int i)^(string_of_version tl)
-    | VNonInt (s, tl) -> 
-        s^(string_of_version tl)
-    | VEnd -> ""
+let string_of_version t =
+  t
 
 let rec comparator_apply v op =
   match op with
