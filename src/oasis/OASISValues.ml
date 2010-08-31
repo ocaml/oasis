@@ -51,7 +51,7 @@ module StdRegexp =
 struct 
   let r = Pcre.regexp
 
-  let url       = r "(http|https|mailto|ftp)://[a-zA-Z0-9\\./_?&;=-]+"
+  let url       = r "(http|https|mailto|ftp|svn|svn\\+ssh)://[a-zA-Z0-9\\./_?&;=-]+"
   let copyright = r "\\((c|C)\\) *\\d+(-\\d+)?,? .*" 
   let modul     = r "[A-Z][A-Za-z0-9_]*"
 end

@@ -1,0 +1,105 @@
+OASISFormat: 0.1
+Name:        cryptokit
+Version:     1.4
+Authors:     Xavier Leroy
+License:     LGPL-2 with OCaml linking exception
+BuildTools:  ocamlbuild, ocamldoc
+Plugins:     META (0.2.0~alpha1), DevFiles (0.2.0~alpha1), StdFiles (0.2.0~alpha1)
+
+Synopsis: Cryptographic primitives
+Description:
+  This library provides a variety of cryptographic primitives that can be used
+  to implement cryptographic protocols in security-sensitive applications.  The
+  primitives provided include:
+  . 
+  - Symmetric-key ciphers: AES, DES, Triple-DES, ARCfour,
+    in ECB, CBC, CFB and OFB modes.
+  - Public-key cryptography: RSA encryption, Diffie-Hellman key agreement.
+  - Hash functions and MACs: SHA-1, MD5, and MACs based on AES and DES.
+  - Random number generation.
+  - Encodings and compression: base 64, hexadecimal, Zlib compression.
+  .
+  Additional ciphers and hashes can easily be used in conjunction with
+  the library. In particular, basic mechanisms such as chaining modes,
+  output buffering, and padding are provided by generic classes that can
+  easily be composed with user-provided ciphers. More generally, the library
+  promotes a "Lego"-like style of constructing and composing
+  transformations over character streams.
+
+Flag zlib 
+  Description: Enable ZLib
+  Default$: !os_type(Win32)
+
+Library cryptokit
+  Path:    src
+  Modules: Cryptokit
+  CSources: arcfour.c,
+            arcfour.h,
+            stubs-arcfour.c,
+            blowfish.c,
+            blowfish.h,
+            stubs-blowfish.c,
+            d3des.c,
+            d3des.h,
+            stubs-des.c,
+            rijndael-alg-fst.c,
+            rijndael-alg-fst.h,
+            ripemd160.c,
+            ripemd160.h,
+            stubs-ripemd160.c,
+            sha1.c,
+            sha1.h,
+            stubs-sha1.c,
+            sha256.c,
+            sha256.h,
+            stubs-sha256.c,
+            stubs-aes.c,
+            stubs-md5.c,
+            stubs-misc.c,
+            stubs-rng.c,
+            stubs-zlib.c
+  BuildDepends: unix, num
+  if flag(zlib)
+    CCOpt: -O -DHAVE_ZLIB
+    CCLib: -lz
+  
+Executable test
+  Path:         test
+  MainIs:       test.ml
+  Custom:       true
+  BuildDepends: cryptokit
+  Install:      false
+  
+Test main
+  Command:   $test
+  TestTools: test
+  
+Executable speedtest
+  Path:           test
+  MainIs:         speedtest.ml
+  CompiledObject: native
+  BuildDepends:   cryptokit
+  Install:        false
+  
+Test bench
+  Command:   $speedtest
+  TestTools: speedtest
+
+Document "api-cryptokit"
+  Title:                API reference for Cryptokit
+  Type:                 ocamlbuild (0.2.0~alpha1)
+  InstallDir:           $htmldir/cryptokit
+  BuildTools+:          ocamldoc
+  XOCamlBuildPath:      src/
+  XOCamlbuildLibraries: cryptokit
+  
+SourceRepository head
+  Type:     svn
+  Location: svn://scm.ocamlcore.org/svnroot/cryptokit/trunk
+  Browser:  http://forge.ocamlcore.org/scm/viewvc.php/trunk/?root=cryptokit
+  
+SourceRepository this
+  Type:     svn
+  # TODO: we need to add version here
+  Location: svn://scm.ocamlcore.org/svnroot/cryptokit/tags/release
+  Browser:  http://forge.ocamlcore.org/scm/viewvc.php/tags/release?root=cryptokit

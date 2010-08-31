@@ -8,17 +8,19 @@ open OASISValues
 open OUnit
 
 let tests ctxt =
-  "Values" >::
-  (fun () ->
-     let v =
-       url
-     in
-     let _a =
-       v.parse 
-         ~ctxt:OASISContext.quiet 
-         "https://oasis.forge.ocamlcore.org"
-     in
-       ())
-         
+  "Values" >:::
+  (List.map 
+     (fun (v, txt) ->
+        TestCase
+          (fun () ->
+             let _a =
+               v.parse 
+                 ~ctxt:OASISContext.quiet 
+                 txt
+             in
+               ())))
+    [url, "https://oasis.forge.ocamlcore.org";
+     url, "svn://scm.ocamlcore.org/svnroot/cryptokit/tags";
+     url, "svn+ssh://scm.ocamlcore.org/svnroot/cryptokit/tags"]
 
 
