@@ -113,7 +113,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: cd9cd779a5fdd4ecf9d1e5db3989ee3f) *)
+(* DO NOT EDIT (digest: 3769d3bf9bde4a51437151ce5b430165) *)
 module BaseEnvLight = struct
 # 21 "/home/gildor/programmation/oasis/src/base/BaseEnvLight.ml"
   
@@ -326,14 +326,15 @@ module MyOCamlbuildBase = struct
   open Ocamlbuild_plugin
   
   type dir = string 
+  type file = string 
   type name = string 
   
-# 53 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/MyOCamlbuildBase.ml"
+# 54 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/MyOCamlbuildBase.ml"
   
   type t =
       {
         lib_ocaml: (name * dir list) list;
-        lib_c:     (name * dir) list; 
+        lib_c:     (name * dir * file list) list; 
         flags:     (string list * spec) list;
       } 
   
@@ -392,7 +393,7 @@ module MyOCamlbuildBase = struct
   
           (* Declare C libraries *)
           List.iter
-            (fun (lib, dir) ->
+            (fun (lib, dir, headers) ->
                  (* Handle C part of library *)
                  flag ["link"; "library"; "ocaml"; "byte"; "use_lib"^lib]
                    (S[A"-dllib"; A("-l"^lib); A"-cclib"; A("-l"^lib)]);
@@ -408,6 +409,11 @@ module MyOCamlbuildBase = struct
                   *)
                  dep  ["link"; "ocaml"; "use_lib"^lib] 
                    [dir/"lib"^lib^"."^(!Options.ext_lib)];
+  
+                 (* TODO: be more specific about what depends on headers *)
+                 (* Depends on .h files *)
+                 dep ["compile"; "c"] 
+                   headers;
   
                  (* Setup search path for lib *)
                  flag ["link"; "ocaml"; "use_"^lib] 
