@@ -533,7 +533,7 @@ let to_file ~ctxt fn lvl oasis_dev =
            create_fn content fn;
            false);
 
-        s_ "r", s_ "write, run 'OASIS -dev' and exit",
+        s_ "r", s_ "write, run 'OASIS setup-dev' and exit",
         (fun () ->
            create_fn content fn;
            oasis_dev ();
