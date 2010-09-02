@@ -57,7 +57,7 @@ val var_get : name -> string
 val var_choose :
   ?printer:('a -> string) -> 
   ?name:string -> 
-  (OASISExpr.t * 'a) list -> 
+  'a OASISExpr.choices -> 
   'a
 
 (** Protect a variable content, to avoid expansion.

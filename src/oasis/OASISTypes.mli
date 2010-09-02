@@ -70,7 +70,7 @@ type vcs =
 (** Conditional value, last expression that evaluate to true define
     the value.
   *)
-type 'a conditional = (OASISExpr.t * 'a) list 
+type 'a conditional = 'a OASISExpr.choices
 
 (** Plugin definition, plugin type depends on which fields this
     types is used for.
@@ -372,5 +372,5 @@ val odn_of_args:          args -> ODN.t
 val odn_of_command_line:  prog * args -> ODN.t
 val odn_of_findlib_name:  findlib_name -> ODN.t
 val odn_of_findlib_full:  findlib_name -> ODN.t
-val odn_of_conditional :  ('a -> ODN.t) -> (OASISExpr.t * 'a) list -> ODN.t
+val odn_of_conditional :  ('a -> ODN.t) -> 'a OASISExpr.choices -> ODN.t
 val odn_of_package : package -> ODN.t

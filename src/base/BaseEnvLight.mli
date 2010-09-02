@@ -24,3 +24,7 @@ val load : ?allow_empty:bool -> ?filename:string -> unit -> t
     [Buffer.add_substitute]).
   *)
 val var_get : string -> t -> string
+
+(** Choose a value among conditional expressions.
+  *)
+val var_choose : 'a OASISExpr.choices -> t -> 'a

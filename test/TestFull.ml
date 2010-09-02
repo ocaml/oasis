@@ -1099,6 +1099,12 @@ let tests ctxt =
          oasis_ocamlbuild_files,
          [],
          [];
+
+         "data/flag-ccopt",
+         long_test,
+         "cryptokit.mllib" :: oasis_ocamlbuild_files,
+         [],
+         [];
        ]
     )
 ;;

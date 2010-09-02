@@ -82,7 +82,7 @@ sig
     'a OASISValues.t -> 
     (unit -> string) -> 
     PropList.Data.t -> 
-    (OASISExpr.t * 'a) list
+    'a OASISExpr.choices
 
 end
 

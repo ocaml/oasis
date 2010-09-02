@@ -105,3 +105,8 @@ let var_get name env =
       Buffer.contents buff
   in
     var_expand (MapString.find name env)
+
+let var_choose lst env = 
+  OASISExpr.choose
+    (fun nm -> var_get nm env)
+    lst

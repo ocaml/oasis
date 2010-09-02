@@ -132,7 +132,6 @@ let var_choose ?printer ?name lst =
     ?printer
     ?name
     var_get 
-    (fun et -> var_get (OASISExpr.string_of_test et))
     lst
 
 let var_protect vl = 

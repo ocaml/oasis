@@ -108,7 +108,7 @@ sig
     name ->
     ?default:'a ->
     'a OASISValues.t ->
-    (unit -> string) -> PropList.Data.t -> (OASISExpr.t * 'a) list
+    (unit -> string) -> PropList.Data.t -> 'a OASISExpr.choices
 end
 
 (** Plugin identification *)

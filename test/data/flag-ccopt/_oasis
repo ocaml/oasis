@@ -1,0 +1,22 @@
+OASISFormat: 0.1
+Name:        cryptokit
+Version:     1.4
+Authors:     Me
+License:     LGPL-2 with OCaml linking exception
+BuildTools:  ocamlbuild, ocamldoc
+
+Synopsis: Cryptographic primitives
+
+Flag zlib 
+  Description: Enable ZLib
+  Default$: !os_type(Win32)
+
+Library cryptokit
+  Path:    ./
+  Modules: A
+  BuildDepends: unix, num
+  Install: false
+  if flag(zlib)
+    CCOpt: -O -DHAVE_ZLIB
+    CCLib: -lz
+  

@@ -22,16 +22,9 @@
 TYPE_CONV_PATH "OASISExpr"
 
 open OASISGettext
-open OASISUtils
 
-type test = 
-  | TOs_type
-  | TSystem
-  | TArchitecture
-  | TCcomp_type
-  | TOCaml_version
-  with odn
-  
+type test = string with odn
+
 type flag = string with odn
 
 type t =
@@ -42,21 +35,23 @@ type t =
   | EFlag of flag
   | ETest of test * string
   with odn
-  
-let choose ?printer ?name var_get test_get lst =
-  let rec eval =
+
+type 'a choices = (t * 'a) list with odn
+
+let eval var_get t =
+  let rec eval' = 
     function
       | EBool b ->
           b
 
       | ENot e -> 
-          not (eval e)
+          not (eval' e)
 
       | EAnd (e1, e2) ->
-          (eval e1) && (eval e2)
+          (eval' e1) && (eval' e2)
 
       | EOr (e1, e2) -> 
-          (eval e1) || (eval e2)
+          (eval' e1) || (eval' e2)
 
       | EFlag nm ->
           let v =
@@ -67,15 +62,17 @@ let choose ?printer ?name var_get test_get lst =
 
       | ETest (nm, vl) ->
           let v =
-            test_get nm
+            var_get nm
           in
             (v = vl)
   in
+    eval' t
 
+let choose ?printer ?name var_get lst =
   let rec choose_aux = 
     function
       | (cond, vl) :: tl ->
-          if eval cond then 
+          if eval var_get cond then 
             vl 
           else
             choose_aux tl
@@ -90,53 +87,42 @@ let choose ?printer ?name var_get test_get lst =
                    (fun (cond, vl) ->
                       match printer with
                         | Some p -> p vl
-                        | None -> "<no printer>")
+                        | None -> s_ "<no printer>")
                    lst)
           in
             match name with 
               | Some nm ->
-                  failwithf2
-                    (f_ "No result for the choice list '%s': %s")
-                    nm
-                    str_lst
+                  failwith
+                    (Printf.sprintf 
+                       (f_ "No result for the choice list '%s': %s")
+                       nm str_lst)
               | None ->
-                  failwithf1
-                    (f_ "No result for a choice list: %s")
-                    str_lst
+                  failwith
+                    (Printf.sprintf
+                       (f_ "No result for a choice list: %s")
+                       str_lst)
   in
     choose_aux (List.rev lst)
 
-let tests, string_of_test, test_of_string =
-  let all =
-    [
-      TOs_type;
-      TSystem;
-      TArchitecture;
-      TCcomp_type;
-      TOCaml_version;
-    ]
-  in
-  let to_string = 
-    function 
-      | TOs_type       -> "os_type"
-      | TSystem        -> "system"
-      | TArchitecture  -> "architecture"
-      | TCcomp_type    -> "ccomp_type"
-      | TOCaml_version -> "ocaml_version"
-  in
-  let of_string =
-    let mp =
-      List.rev_map (fun e -> to_string e, e) all
-    in
-      fun s -> 
-        try 
-          List.assoc (String.lowercase s) mp 
-        with Not_found ->
-          failwithf1 (f_ "Unknown OASIS test %s") s
-  in
-    all, to_string, of_string
-
 (* END EXPORT *)
+
+open OASISUtils
+
+let tests =
+  [
+    "os_type";
+    "system";
+    "architecture";
+    "ccomp_type";
+    "ocaml_version";
+  ]
+
+let test_of_string str =
+  (* TODO: check for correct syntax of str *)
+  str
+
+let string_of_test t =
+  t
 
 let check valid_flags =
   let lowercase_eq str1 str2 =

@@ -65,7 +65,7 @@ type vcs =
   | OtherVCS of url
   with odn
 
-type 'a conditional = (OASISExpr.t * 'a) list with odn
+type 'a conditional = 'a OASISExpr.choices with odn
 
 type plugin = name * OASISVersion.t option with odn
 

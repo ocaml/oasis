@@ -222,18 +222,13 @@ let tests ctxt =
                    | Test (_, e)-> e
                    | _ -> assert false
                in
-               let choose_with_env ?(vars=[]) ?(tests=[]) v =
+               let choose_with_env ?(vars=[]) v =
                  OASISExpr.choose 
                    (fun nm -> 
                       try 
                         List.assoc nm vars
                       with Not_found ->
                         failwith ("Unable to find var "^nm))
-                   (fun nm -> 
-                      try
-                        List.assoc nm tests
-                      with Not_found ->
-                        failwith ("Unable to find a test"))
                    v
                in
                  assert_equal
@@ -241,7 +236,7 @@ let tests ctxt =
                    ~printer:string_of_bool
                    true
                    (choose_with_env 
-                      ~tests:[TOs_type, "win32"] 
+                      ~vars:["os_type", "win32"] 
                       flag_test.flag_default);
 
                  assert_equal
@@ -249,7 +244,7 @@ let tests ctxt =
                    ~printer:string_of_bool
                    false
                    (choose_with_env 
-                      ~tests:[TOs_type, "linux"] 
+                      ~vars:["os_type", "linux"] 
                       flag_test.flag_default);
 
                 assert_equal 

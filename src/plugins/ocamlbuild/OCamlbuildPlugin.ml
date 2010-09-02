@@ -381,36 +381,40 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
     List.fold_left
       (fun ((ctxt, tag_t, myocamlbuild_t) as acc)
              (basename, tgts, tags, pre_arg, tr_arg, args_cond) ->
-         let args = 
-           var_choose args_cond
-         in
-           if args <> [] then
-             begin
-               let tag_name = 
-                 (* e.g. oasis_library_foo_ccopt *)
-                 varname_concat 
-                   "oasis_"
-                   (varname_concat
-                      (varname_of_string 
-                         (OASISSection.string_of_section sct))
-                      basename)
-               in
-               let all_tags =
-                 tag_name :: tags 
-               in
-               let spec = 
-                 mkspec pre_arg tr_arg args
-               in
-               let tag_t =
-                 add_tags tag_t tgts [tag_name]
-               in
-                 ctxt,
-                 tag_t,
-                 {myocamlbuild_t with
-                      flags = (all_tags, spec) :: myocamlbuild_t.flags}
-             end
-           else
-             acc)
+         if args_cond <> [OASISExpr.EBool true, []] then
+           begin
+             let tag_name = 
+               (* e.g. oasis_library_foo_ccopt *)
+               varname_concat 
+                 "oasis_"
+                 (varname_concat
+                    (varname_of_string 
+                       (OASISSection.string_of_section sct))
+                    basename)
+             in
+             let all_tags =
+               tag_name :: tags 
+             in
+             let cond_specs = 
+               List.map 
+                 (fun (cond, lst) ->
+                    cond, mkspec pre_arg tr_arg lst)
+                 args_cond
+             in
+             let flags = 
+               (all_tags, cond_specs) :: myocamlbuild_t.flags
+             in
+             let tag_t =
+               add_tags tag_t tgts [tag_name]
+             in
+               ctxt,
+               tag_t,
+               {myocamlbuild_t with flags = flags}
+           end
+         else
+           begin
+             acc
+           end)
 
       (ctxt, tag_t, myocamlbuild_t)
 
@@ -420,7 +424,6 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
         Some (A"-ccopt"),
         atom, 
         bs.bs_ccopt;
-
 
         "cclib",
         [link_tgt],
@@ -773,6 +776,7 @@ let add_ocamlbuild_files ctxt pkg =
          "myocamlbuild.ml"
           []
           [
+            OASISData.oasissyslight_ml; 
             BaseData.basesysenvironment_ml;
             OCamlbuildData.myocamlbuild_ml;
             "open Ocamlbuild_plugin;;";

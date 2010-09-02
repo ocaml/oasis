@@ -56,29 +56,14 @@ let pkg_version =
        (OASISVersion.string_of_version (pkg_get ()).version))
 
 let c = BaseOCamlcConfig.var_define 
-let stdc et = BaseOCamlcConfig.var_define (OASISExpr.string_of_test et)
 
-let os_type        = stdc TOs_type
-let system         = stdc TSystem
-let architecture   = stdc TArchitecture
-let ccomp_type     = stdc TCcomp_type
-let ocaml_version  = stdc TOCaml_version
+let os_type        = c "os_type"
+let system         = c "system"
+let architecture   = c "architecture"
+let ccomp_type     = c "ccomp_type"
+let ocaml_version  = c "ocaml_version"
 
-(* Check variable presence *)
-let () = 
-  if false then 
-    let v_of_et =
-      function
-        | TOs_type       -> os_type        
-        | TSystem        -> system         
-        | TArchitecture  -> architecture   
-        | TCcomp_type    -> ccomp_type     
-        | TOCaml_version -> ocaml_version  
-    in
-    let _lst : 'a list =
-      List.map v_of_et OASISExpr.tests
-    in 
-      ()
+(* TODO: Check standard variable presence at runtime *)
 
 let standard_library_default = c "standard_library_default"
 let standard_library         = c "standard_library"

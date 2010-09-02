@@ -30,6 +30,7 @@ open Ocamlbuild_plugin
 type dir = string with odn
 type file = string with odn
 type name = string with odn
+type tag = string with odn
 
 (* END EXPORT *)
 let rec odn_of_spec =
@@ -56,7 +57,7 @@ type t =
     {
       lib_ocaml: (name * dir list) list;
       lib_c:     (name * dir * file list) list; 
-      flags:     (string list * spec) list;
+      flags:     (tag list * (spec OASISExpr.choices)) list;
     } with odn
 
 let env_filename =
@@ -69,86 +70,89 @@ let dispatch_combine lst =
       (fun dispatch -> dispatch e)
       lst 
 
-let dispatch t = 
-  function
-    | Before_options ->
-        let env = 
-          BaseEnvLight.load 
-            ~filename:env_filename 
-            ~allow_empty:true
-            ()
-        in
-        let no_trailing_dot s =
-          if String.length s >= 1 && s.[0] = '.' then
-            String.sub s 1 ((String.length s) - 1)
-          else
-            s
-        in
+let dispatch t e = 
+  let env = 
+    BaseEnvLight.load 
+      ~filename:env_filename 
+      ~allow_empty:true
+      ()
+  in
+    match e with 
+      | Before_options ->
+          let no_trailing_dot s =
+            if String.length s >= 1 && s.[0] = '.' then
+              String.sub s 1 ((String.length s) - 1)
+            else
+              s
+          in
+            List.iter
+              (fun (opt, var) ->
+                 try 
+                   opt := no_trailing_dot (BaseEnvLight.var_get var env)
+                 with Not_found ->
+                   Printf.eprintf "W: Cannot get variable %s" var)
+              [
+                Options.ext_obj, "ext_obj";
+                Options.ext_lib, "ext_lib";
+                Options.ext_dll, "ext_dll";
+              ]
+
+      | After_rules -> 
+          (* Declare OCaml libraries *)
+          List.iter 
+            (function
+               | lib, [] ->
+                   ocaml_lib lib;
+               | lib, dir :: tl ->
+                   ocaml_lib ~dir:dir lib;
+                   List.iter 
+                     (fun dir -> 
+                        flag 
+                          ["ocaml"; "use_"^lib; "compile"] 
+                          (S[A"-I"; P dir]))
+                     tl)
+            t.lib_ocaml;
+
+          (* Declare C libraries *)
           List.iter
-            (fun (opt, var) ->
-               try 
-                 opt := no_trailing_dot (BaseEnvLight.var_get var env)
-               with Not_found ->
-                 Printf.eprintf "W: Cannot get variable %s" var)
-            [
-              Options.ext_obj, "ext_obj";
-              Options.ext_lib, "ext_lib";
-              Options.ext_dll, "ext_dll";
-            ]
+            (fun (lib, dir, headers) ->
+                 (* Handle C part of library *)
+                 flag ["link"; "library"; "ocaml"; "byte"; "use_lib"^lib]
+                   (S[A"-dllib"; A("-l"^lib); A"-cclib"; A("-l"^lib)]);
 
-    | After_rules -> 
-        (* Declare OCaml libraries *)
-        List.iter 
-          (function
-             | lib, [] ->
-                 ocaml_lib lib;
-             | lib, dir :: tl ->
-                 ocaml_lib ~dir:dir lib;
-                 List.iter 
-                   (fun dir -> 
-                      flag 
-                        ["ocaml"; "use_"^lib; "compile"] 
-                        (S[A"-I"; P dir]))
-                   tl)
-          t.lib_ocaml;
+                 flag ["link"; "library"; "ocaml"; "native"; "use_lib"^lib]
+                   (S[A"-cclib"; A("-l"^lib)]);
+                      
+                 flag ["link"; "program"; "ocaml"; "byte"; "use_lib"^lib]
+                   (S[A"-dllib"; A("dll"^lib)]);
 
-        (* Declare C libraries *)
-        List.iter
-          (fun (lib, dir, headers) ->
-               (* Handle C part of library *)
-               flag ["link"; "library"; "ocaml"; "byte"; "use_lib"^lib]
-                 (S[A"-dllib"; A("-l"^lib); A"-cclib"; A("-l"^lib)]);
+                 (* When ocaml link something that use the C library, then one
+                    need that file to be up to date.
+                  *)
+                 dep  ["link"; "ocaml"; "use_lib"^lib] 
+                   [dir/"lib"^lib^"."^(!Options.ext_lib)];
 
-               flag ["link"; "library"; "ocaml"; "native"; "use_lib"^lib]
-                 (S[A"-cclib"; A("-l"^lib)]);
-                    
-               flag ["link"; "program"; "ocaml"; "byte"; "use_lib"^lib]
-                 (S[A"-dllib"; A("dll"^lib)]);
+                 (* TODO: be more specific about what depends on headers *)
+                 (* Depends on .h files *)
+                 dep ["compile"; "c"] 
+                   headers;
 
-               (* When ocaml link something that use the C library, then one
-                  need that file to be up to date.
-                *)
-               dep  ["link"; "ocaml"; "use_lib"^lib] 
-                 [dir/"lib"^lib^"."^(!Options.ext_lib)];
+                 (* Setup search path for lib *)
+                 flag ["link"; "ocaml"; "use_"^lib] 
+                   (S[A"-I"; P(dir)]);
+            )
+            t.lib_c;
 
-               (* TODO: be more specific about what depends on headers *)
-               (* Depends on .h files *)
-               dep ["compile"; "c"] 
-                 headers;
-
-               (* Setup search path for lib *)
-               flag ["link"; "ocaml"; "use_"^lib] 
-                 (S[A"-I"; P(dir)]);
-          )
-          t.lib_c;
-
-          (* Add flags *)
-          List.iter
-          (fun (tags, spec) ->
-             flag tags & spec)
-          t.flags
-    | _ -> 
-        ()
+            (* Add flags *)
+            List.iter
+            (fun (tags, cond_specs) ->
+               let spec = 
+                 BaseEnvLight.var_choose cond_specs env
+               in
+                 flag tags & spec)
+            t.flags
+      | _ -> 
+          ()
 
 let dispatch_default t =
   dispatch_combine 
