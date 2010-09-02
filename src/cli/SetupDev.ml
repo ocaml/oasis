@@ -23,6 +23,31 @@ let main () =
     {(!BaseContext.default) with OASISContext.verbose = false}
   in
 
+  let clean_changes chngs = 
+    (* Restore everything, except setup.ml *)
+    List.iter 
+      (function
+         | Change (fn, bak) as chng ->
+             if fn <> setup_fn then
+               begin
+                 file_rollback ~ctxt:msg chng
+               end
+             else 
+               begin
+                 match bak with 
+                   | Some fn -> FileUtil.rm [fn]
+                   | None    -> ()
+               end
+
+         | Create fn as chng ->
+             if fn <> setup_fn then
+               file_rollback ~ctxt:msg chng
+
+         | NoChange ->
+             ())
+      chngs
+  in
+
     match !run_args with 
       | [] ->
           begin
@@ -39,28 +64,7 @@ let main () =
                    ~ctxt:!BaseContext.default 
                    !Setup.oasis_fn)
             in
-              (* Restore everything, except setup.ml *)
-              List.iter 
-                (function
-                   | Change (fn, bak) as chng ->
-                       if fn <> setup_fn then
-                         begin
-                           file_rollback ~ctxt:msg chng
-                         end
-                       else 
-                         begin
-                           match bak with 
-                             | Some fn -> FileUtil.rm [fn]
-                             | None    -> ()
-                         end
-
-                   | Create fn as chng ->
-                       if fn <> setup_fn then
-                         file_rollback ~ctxt:msg chng
-
-                   | NoChange ->
-                       ())
-                chngs
+              clean_changes chngs
           end
 
       | bootstrap_ocaml :: bootstrap_args ->
@@ -94,7 +98,7 @@ let main () =
                 find_fn default 0
             in
 
-            let _chngs: file_generate_change list = 
+            let chngs = 
               BaseGenerate.generate 
                 ~msg
                 ~dev:false
@@ -107,8 +111,7 @@ let main () =
             in
 
             let safe_exit () = 
-              (* Restore backup files *)
-              BaseGenerate.restore ~msg ()
+              clean_changes chngs
             in
 
             let bootstrap_args = 
@@ -137,6 +140,7 @@ let main () =
                   safe_exit ();
 
                   if !exit_code <> 0 then
+                    (* TODO: don't use exit *)
                     exit !exit_code
                 end
 

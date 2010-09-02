@@ -521,7 +521,8 @@ let tests ctxt =
            assert_command 
              ctxt
              ctxt.oasis 
-             (ctxt.oasis_args @ ["setup"]);
+             (ctxt.oasis_args @ 
+              (if dev then ["setup-dev"; "-real-oasis"] else ["setup"]));
 
            (* Check generated files *)
            OUnitSetFile.assert_equal 
@@ -575,6 +576,16 @@ let tests ctxt =
            (* Destroy build directory *)
            rm ~recurse:true [loc.build_dir]
       )
+  in
+
+  (* Run devel test *)
+  let test_of_vector_dev (a, skip_cond, _, d, e) =
+    "dev" >::
+    bracket_setup ~dev:true 
+      (a, (fun () -> skip_cond (); long_test ()), ["setup.ml"], d, e)
+      (fun _ ->
+         assert_run_setup ["-all"];
+         assert_run_setup ["-distclean"])
   in
 
   (* Run short test *)
@@ -753,6 +764,7 @@ let tests ctxt =
     [
       test_of_vector_std e;
       test_of_vector_short e;
+      test_of_vector_dev e;
     ]
   in
 
