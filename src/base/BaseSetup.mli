@@ -25,6 +25,7 @@ type t =
       distclean_doc:   (doc, unit) section_args_fun list;
       distclean_test:  (test, unit) section_args_fun list;
       package:         package;
+      version:         string; (* OASIS version that generates this structure *)
     } 
 
 (** Run the configure step.
@@ -66,6 +67,10 @@ val reinstall : t -> arg array -> unit
 (** Run all steps: configure, build, doc, test and install.
   *)
 val all : t -> arg array -> unit
+
+(** Display OASIS version used to generate this setup.ml
+  *)
+val version: t -> arg array -> unit
 
 (** The first function called when running 'setup.ml'.
   *)
