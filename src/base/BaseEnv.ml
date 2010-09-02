@@ -246,8 +246,8 @@ let var_redefine
       dflt =
   if Schema.mem schema name then
     begin
-      fun () -> 
-        var_get name 
+      Schema.set schema env ~context:ODefault name (Lazy.force dflt);
+      fun () -> var_get name
     end
   else
     begin

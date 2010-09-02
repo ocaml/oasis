@@ -347,7 +347,7 @@ let setup t =
                s_ "[options*] Run tests.";
 
                "-all",
-               arg_handle all,
+               arg_handle ~allow_empty_env:true all,
                s_ "[options*] Run configure, build, doc and test targets.";
 
                "-install",

@@ -463,16 +463,16 @@ let tests ctxt =
   let long_test () =
     skip_if (not ctxt.long) "Long test"
   in
-
-  (* Run standard test *)
-  let test_of_vector (srcdir, 
-                      skip_cond,
-                      oasis_extra_files,
-                      installed_files,
-                      post_install_runs) =
-    srcdir >::
+    
+  let bracket_setup 
+        ?(dev=false)
+        (srcdir, 
+         skip_cond, 
+         oasis_extra_files, 
+         installed_files, 
+         post_install_runs) 
+        f = 
     bracket
-      (* Setup test environment *)
       (fun () ->
          let cur_dir = 
            pwd ()
@@ -499,7 +499,6 @@ let tests ctxt =
            (mkloc build_dir),
            pristine)
 
-      (* Run test *)
       (fun (cur_dir, loc, pristine) ->
          let () = 
            skip_cond ()
@@ -517,18 +516,6 @@ let tests ctxt =
                   oasis_extra_files))
          in
 
-         let expected_installed_files loc = 
-           (* Gather all file into a set *)
-           List.fold_left
-             (fun st e -> SetFile.add e st)
-             SetFile.empty
-             (* Compute all file that should have been installed *)
-             (List.fold_left
-                (fun acc f -> f loc acc)
-                []
-                installed_files)
-         in
-
          (* Create build system using OASIS *)
          let () = 
            assert_command 
@@ -542,6 +529,80 @@ let tests ctxt =
              ~printer:fn_printer
              expected_post_oasis_files
              (all_files_cwd ())
+         in
+
+           (* Run the main function *)
+           f (cur_dir, loc, pristine, expected_post_oasis_files);
+
+           (* Clean test environment -- the standard way *)
+           rm oasis_std_files;
+           rm oasis_extra_files;
+
+           (* Check that we are back to pristine ls
+            *)
+           OUnitSetFileDigest.assert_equal
+             ~msg:"Source directory back to pristine"
+             ~printer:(fun (fn, dgst) ->
+                         Printf.sprintf 
+                           "'%s(%s)'" 
+                           (FilePath.make_relative (pwd ()) fn)
+                           (Digest.to_hex dgst))
+             pristine
+             (all_file_digests ())
+      )
+
+      (* Clean test environment -- the backup way *)
+      (fun (cur_dir, loc, pristine) ->
+
+         let st_pristine = 
+           set_file_of_file_digest pristine
+         in
+           (* Remove what was not here *)
+           find
+             Is_file
+             (pwd ())
+             (fun () fn ->
+                if not (SetFile.mem fn st_pristine) then
+                  rm [fn])
+             ();
+
+           rm ~recurse:true ["_build"];
+           rm ["setup.data"; "setup.log"];
+
+           (* Back into current dir *)
+           Sys.chdir cur_dir;
+
+           (* Destroy build directory *)
+           rm ~recurse:true [loc.build_dir]
+      )
+  in
+
+  (* Run short test *)
+  let test_of_vector_short e =
+    "ocaml setup.ml -all" >::
+    bracket_setup e
+      (fun _ -> 
+         assert_run_setup ["-all"];
+         assert_run_setup ["-distclean"])
+  in
+
+  (* Run standard test *)
+  let test_of_vector_std ((_, _, _, installed_files, post_install_runs) as e) =
+    "standard" >::
+    bracket_setup e
+      (* Run test *)
+      (fun (cur_dir, loc, pristine, expected_post_oasis_files) ->
+
+         let expected_installed_files loc = 
+           (* Gather all file into a set *)
+           List.fold_left
+             (fun st e -> SetFile.add e st)
+             SetFile.empty
+             (* Compute all file that should have been installed *)
+             (List.fold_left
+                (fun acc f -> f loc acc)
+                []
+                installed_files)
          in
 
          (* Run configure target *)
@@ -674,7 +735,6 @@ let tests ctxt =
          in
 
          (* Run clean target *)
-         let () = 
            assert_run_setup ["-clean"];
            assert_run_setup ["-distclean"];
 
@@ -684,53 +744,16 @@ let tests ctxt =
              ~printer:fn_printer
              expected_post_oasis_files
              (all_files_cwd ())
-         in
-
-         (* Clean test environment -- the standard way *)
-         let () =
-           rm oasis_std_files;
-           rm oasis_extra_files;
-
-           (* Check that we are back to pristine ls
-            *)
-           OUnitSetFileDigest.assert_equal
-             ~msg:"Source directory back to pristine"
-             ~printer:(fun (fn, dgst) ->
-                         Printf.sprintf 
-                           "'%s(%s)'" 
-                           (FilePath.make_relative (pwd ()) fn)
-                           (Digest.to_hex dgst))
-             pristine
-             (all_file_digests ())
-         in
-
-           ()
       )
 
-      (* Clean test environment -- the backup way *)
-      (fun (cur_dir, loc, pristine) ->
+  in
 
-         let st_pristine = 
-           set_file_of_file_digest pristine
-         in
-           (* Remove what was not here *)
-           find
-             Is_file
-             (pwd ())
-             (fun () fn ->
-                if not (SetFile.mem fn st_pristine) then
-                  rm [fn])
-             ();
-
-           rm ~recurse:true ["_build"];
-           rm ["setup.data"; "setup.log"];
-
-           (* Back into current dir *)
-           Sys.chdir cur_dir;
-
-           (* Destroy build directory *)
-           rm ~recurse:true [loc.build_dir]
-      )
+  let test_of_vector ((srcdir, _, _, _, _) as e) =
+    srcdir >:::
+    [
+      test_of_vector_std e;
+      test_of_vector_short e;
+    ]
   in
 
     "TestFull" >:::
