@@ -518,11 +518,8 @@ let tests ctxt =
 
          (* Create build system using OASIS *)
          let () = 
-           assert_command 
-             ctxt
-             ctxt.oasis 
-             (ctxt.oasis_args @ 
-              (if dev then ["setup-dev"; "-real-oasis"] else ["setup"]));
+           assert_oasis_cli ctxt 
+             (if dev then ["setup-dev"; "-real-oasis"] else ["setup"]);
 
            (* Check generated files *)
            OUnitSetFile.assert_equal 

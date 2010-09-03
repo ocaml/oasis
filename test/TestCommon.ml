@@ -55,7 +55,7 @@ let temp_dir () =
     res
 
 (* Assert checking that command run well *)
-let assert_command ?(exit_code=0) ?(extra_env=[]) ctxt cmd args  =
+let assert_command ?(exit_code=0) ?output ?(extra_env=[]) ctxt cmd args  =
   let cmdline =
     String.concat " " 
       (
@@ -67,18 +67,7 @@ let assert_command ?(exit_code=0) ?(extra_env=[]) ctxt cmd args  =
         (cmd :: args)
       )
   in
-  let fn, chn_out =
-    Filename.open_temp_file "oasis-" ".log"
-  in
-  let fd =
-    Unix.descr_of_out_channel chn_out
-  in
-  let clean_fn () =
-    FileUtil.rm [fn]
-  in
-  let () = 
-    at_exit clean_fn
-  in
+
   let env = 
     let extra_env_map = 
       (* Build a map of asked replacement *)
@@ -135,64 +124,105 @@ let assert_command ?(exit_code=0) ?(extra_env=[]) ctxt cmd args  =
       Array.of_list (List.rev_map (fun (k,v) -> k^"="^v) rev_lst)
   in
 
-  let pid =
-    let res = 
-      if ctxt.dbug then
-        prerr_endline ("Running "^cmdline); 
-      Unix.create_process_env 
-        cmd 
-        (Array.of_list (cmd :: args))
-        env
-        Unix.stdin
-        fd
-        fd
-    in
-      close_out chn_out;
-      res
+  let fn, chn_out =
+    Filename.open_temp_file "oasis-" ".log"
   in
+  let fd =
+    Unix.descr_of_out_channel chn_out
+  in
+  let clean_fn () =
+    FileUtil.rm [fn]
+  in
+
+  let load_stdout_stderr () = 
+    let chn = open_in_bin fn in
+    let str = String.make (in_channel_length chn) 'X' in
+      really_input chn str 0 (String.length str);
+      close_in chn;
+      str
+  in
+
   let dump_stdout_stderr () = 
-    let buff =
-      Buffer.create 13
-    in
-    let chn_in = 
-      open_in_bin fn
-    in
-      Buffer.add_channel buff chn_in (in_channel_length chn_in);
-      Buffer.output_buffer stderr buff;
-      flush stderr;
-      close_in chn_in
+      output_string stderr (load_stdout_stderr ());
+      flush stderr
   in
+
   let err_stdout_stderr () = 
     dump_stdout_stderr ();
     Printf.eprintf "Error running command '%s'\n%!" cmdline
   in
-    begin
-      match Unix.waitpid [] pid with
-        | _, Unix.WEXITED i ->
-            if i <> exit_code then
-              err_stdout_stderr ()
-            else if ctxt.dbug then
-              begin
-              dump_stdout_stderr ();
-              end;
-            assert_equal
-              ~msg:"exit code"
-              ~printer:string_of_int
-              exit_code
-              i;
-        | _, Unix.WSIGNALED i ->
-            err_stdout_stderr ();
-            failwith 
-              (Printf.sprintf
-                 "Process '%s' has been killed by signal %d"
-                 cmdline
-                 i)
-        | _, Unix.WSTOPPED i ->
-            err_stdout_stderr ();
-            failwith
-              (Printf.sprintf
-                 "Process '%s' has been stopped by signal %d"
-                 cmdline
-                 i)
-    end;
-    clean_fn ()
+
+    try 
+      begin
+        let pid =
+          let res = 
+            if ctxt.dbug then
+              prerr_endline ("Running "^cmdline); 
+            Unix.create_process_env 
+              cmd 
+              (Array.of_list (cmd :: args))
+              env
+              Unix.stdin
+              fd
+              fd
+          in
+            close_out chn_out;
+            res
+        in
+
+          (* Check exit code *)
+          begin
+            match Unix.waitpid [] pid with
+              | _, Unix.WEXITED i ->
+                  if i <> exit_code then
+                    err_stdout_stderr ()
+                  else if ctxt.dbug then
+                    begin
+                    dump_stdout_stderr ();
+                    end;
+                  assert_equal
+                    ~msg:(Printf.sprintf "'%s' exit code" cmdline)
+                    ~printer:string_of_int
+                    exit_code
+                    i;
+              | _, Unix.WSIGNALED i ->
+                  err_stdout_stderr ();
+                  failwith 
+                    (Printf.sprintf
+                       "Process '%s' has been killed by signal %d"
+                       cmdline
+                       i)
+              | _, Unix.WSTOPPED i ->
+                  err_stdout_stderr ();
+                  failwith
+                    (Printf.sprintf
+                       "Process '%s' has been stopped by signal %d"
+                       cmdline
+                       i)
+          end;
+
+          (* Check output *)
+          begin
+            match output with 
+              | Some str_exp ->
+                  assert_equal 
+                    ~msg:(Printf.sprintf "'%s' command output" cmdline)
+                    ~printer:(Printf.sprintf "%S")
+                    str_exp
+                    (load_stdout_stderr ())
+              | None ->
+                  ()
+          end;
+
+          clean_fn ()
+      end
+    with e ->
+      begin
+        clean_fn ();
+        raise e
+      end
+
+
+let assert_oasis_cli ?exit_code ?output ?extra_env ctxt args  =
+  assert_command ?exit_code ?output ?extra_env 
+    ctxt ctxt.oasis (ctxt.oasis_args @ args)

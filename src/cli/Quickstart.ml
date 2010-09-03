@@ -14,7 +14,7 @@ let qckstrt_lvl =
 let main () =
   OASISQuickstart.to_file 
     ~ctxt:!BaseContext.default
-    !Setup.oasis_fn
+    !ArgCommon.oasis_fn
     !qckstrt_lvl
     SetupDev.main
 

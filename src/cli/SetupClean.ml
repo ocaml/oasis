@@ -19,7 +19,7 @@ let main () =
         BaseSetup.of_package 
           (OASISParse.from_file 
              ~ctxt:!BaseContext.default
-             !Setup.oasis_fn)
+             !ArgCommon.oasis_fn)
       in
         OASISFileTemplate.fold
           (fun tmpl () ->

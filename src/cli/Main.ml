@@ -38,6 +38,7 @@ open SetupClean
 open Quickstart
 open Manual
 open Check
+open Query
 open PluginDB
 open PluginInstall
 open PluginVCS

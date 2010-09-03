@@ -1,0 +1,16 @@
+This subcommand load an `_oasis` file and search its content for information.
+
+The query string follow this convention:
+
+* `ListSections`: return all the section found
+* `ListFields`: return all the fields, it recurses through sections
+* field: search for this field in the toplevel
+* section.field: search for this field in the section
+
+Query examples:
+
+* version: return the version
+* executable("test").install: return the field "install" of the executable
+  "test".
+
+You can use multiple queries, they will be executed in order.

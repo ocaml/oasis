@@ -7,9 +7,6 @@ open MainGettext
 open OASISUtils
 open SubCommand
 
-let oasis_fn =
-  ref "_oasis"
-
 let main () =
   let _chngs : OASISFileTemplate.file_generate_change list = 
     BaseGenerate.generate 
@@ -17,16 +14,20 @@ let main () =
       ~dev:false
       ~setup_fn:BaseSetup.default_filename
       ~restore:false
-      (OASISParse.from_file ~ctxt:!BaseContext.default !oasis_fn)
+      (OASISParse.from_file 
+         ~ctxt:!BaseContext.default 
+         !ArgCommon.oasis_fn)
   in
     ()
 
 let scmd = 
-  SubCommand.make 
-    "setup" 
-    (s_ "Translate _oasis into a build system")
-    CLIData.setup_mkd
-    main
+  {(SubCommand.make 
+      "setup" 
+      (s_ "Translate _oasis into a build system")
+      CLIData.setup_mkd
+      main)
+     with
+         scmd_specs = ArgCommon.oasis_fn_specs}
 
 let () = 
   SubCommand.register scmd

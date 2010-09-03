@@ -35,6 +35,11 @@ val varname_of_string : ?hyphen:char -> string -> string
   *)
 val varname_concat : ?hyphen:char -> string -> string -> string
 
+(** [is_varname str] Check that the string [str] is a valid varname. See
+    {!varname_of_string} for definition.
+  *)
+val is_varname: string -> bool
+
 (** {2 Fail with Printf.sprintf} *)
 
 (** These functions are combinations of [failwith] and [Printf.sprintf]. The

@@ -6,15 +6,12 @@
 open MainGettext
 open SubCommand
 
-let ignore_plugins =
-  ref false
-
 let main () = 
   let _pkg: OASISTypes.package = 
     OASISParse.from_file
       ~ctxt:!BaseContext.default
-      ~ignore_plugins:!ignore_plugins
-      !Setup.oasis_fn
+      ~ignore_plugins:!ArgCommon.ignore_plugins
+      !ArgCommon.oasis_fn
   in
     ()
 
@@ -26,12 +23,10 @@ let scmd =
       CLIData.check_mkd
       main) 
      with 
-         scmd_specs =
-           [
-             "-ignore-plugins",
-             Arg.Set ignore_plugins,
-             s_ " Ignore plugin's field.";
-           ]}
+         scmd_specs = 
+           (ArgCommon.ignore_plugins_specs 
+            @
+            ArgCommon.oasis_fn_specs)} 
 
 let () = 
   SubCommand.register scmd

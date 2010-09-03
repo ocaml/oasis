@@ -126,6 +126,7 @@ let () =
          TestLog.tests          ctxt;
          TestLicense.tests      ctxt;
          TestValues.tests       ctxt;
+         TestQuery.tests        ctxt;
        ])
   in
 

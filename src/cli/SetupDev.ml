@@ -62,7 +62,7 @@ let main () =
                 ~setup_fn
                 (OASISParse.from_file 
                    ~ctxt:!BaseContext.default 
-                   !Setup.oasis_fn)
+                   !ArgCommon.oasis_fn)
             in
               clean_changes chngs
           end
@@ -107,7 +107,7 @@ let main () =
                 ~setup_fn:dev_fn
                 (OASISParse.from_file 
                    ~ctxt:!BaseContext.default
-                   !Setup.oasis_fn)
+                   !ArgCommon.oasis_fn)
             in
 
             let safe_exit () = 
@@ -161,7 +161,7 @@ let scmd =
       main)
      with 
          scmd_specs =
-           [
+           ([
              "-real-oasis",
              Arg.Unit (fun () -> roasis_exec := Some Sys.argv.(0)),
              s_ " Use the real OASIS filename when generating developper mode \
@@ -173,7 +173,7 @@ let scmd =
                 Arg.Unit (fun () -> run_args := List.rev !run_args)],
              s_ " Run a command after generating files, this is the mode used \
                   by setup.ml in developper mode. Don't use it directly.";
-           ]}
+           ] @ ArgCommon.oasis_fn_specs)}
 
 let () = 
   SubCommand.register scmd

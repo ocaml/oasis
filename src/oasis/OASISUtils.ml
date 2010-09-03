@@ -132,6 +132,9 @@ let varname_concat ?(hyphen='_') p s =
     Printf.sprintf "%s%c%s" p hyphen s
 
 
+let is_varname str = 
+  str = varname_of_string str
+
 let failwithf1 fmt a =
   failwith (Printf.sprintf fmt a)
 

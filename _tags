@@ -198,6 +198,8 @@
 
 "src/base/BaseDev.ml": syntax_camlp4o, pkg_odn.with.syntax
 
+"src/cli/Query.ml": syntax_camlp4o, pkg_camlp4
+
 # Plugins
 
 "src/plugins/custom/CustomPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax

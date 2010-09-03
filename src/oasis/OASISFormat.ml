@@ -119,7 +119,7 @@ let pp_print_package_proplist fmt (pkg_data, section_data) =
 
        let pp_id_or_string fmt str =
          (* A string is an id if varname_of_string doesn't change it *)
-         if str = (OASISUtils.varname_of_string str) then 
+         if OASISUtils.is_varname str then 
            fprintf fmt "%s" str
          else 
            fprintf fmt "%S" str
