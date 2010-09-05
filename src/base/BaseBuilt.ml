@@ -47,13 +47,14 @@ let register t nm lst =
     (to_log_event_done t nm)
     "true";
   List.iter
-    (fun fn ->
-       BaseLog.register 
-         (to_log_event_file t nm)
-         (if Filename.is_relative fn then
-            Filename.concat (Sys.getcwd ()) fn
-          else 
-            fn))
+    (List.iter
+       (fun fn ->
+          BaseLog.register 
+            (to_log_event_file t nm)
+            (if Filename.is_relative fn then
+               Filename.concat (Sys.getcwd ()) fn
+             else 
+               fn)))
     lst
 
 let unregister t nm =
@@ -114,11 +115,11 @@ let of_executable ffn (cs, bs, exec) =
       ext_program
   in
   let evs = 
-    (BExec, cs.cs_name, [ffn unix_exec_is])
+    (BExec, cs.cs_name, [[ffn unix_exec_is]])
     ::
     (match unix_dll_opt with
        | Some fn ->
-           [BExecLib, cs.cs_name, [ffn fn]]
+           [BExecLib, cs.cs_name, [[ffn fn]]]
        | None ->
            [])
   in
@@ -141,7 +142,7 @@ let of_library ffn (cs, bs, lib) =
   let evs =
     [BLib,
      cs.cs_name,
-     List.map ffn unix_lst]
+     List.map (List.map ffn) unix_lst]
   in
     evs, unix_lst
 

@@ -24,14 +24,17 @@ let generated_unix_files ~ctxt (cs, bs, lib)
                    String.uncapitalize modul;
                    String.capitalize modul])
            in
-             (base_fn^".cmi") :: hdrs
+             [base_fn^".cmi"] :: hdrs
          with Not_found ->
            OASISMessage.warning
              ~ctxt
              (f_ "Cannot find source file matching \
                   module '%s' in library %s")
              modul cs.cs_name;
-             (OASISUnixPath.concat bs.bs_path (modul^".cmi")) 
+             (List.map (OASISUnixPath.concat bs.bs_path)
+                [modul^".cmi";
+                 String.uncapitalize modul ^ ".cmi";
+                 String.capitalize modul ^ ".cmi"])
              :: hdrs)
       []
       lib.lib_modules
@@ -44,10 +47,10 @@ let generated_unix_files ~ctxt (cs, bs, lib)
   (* Compute what libraries should be built *)
   let acc_nopath =
     let byte acc =
-      (cs.cs_name^".cma") :: acc
+      [cs.cs_name^".cma"] :: acc
     in
     let native acc =
-      (cs.cs_name^".cmxa") :: (cs.cs_name^(ext_lib ())) :: acc
+      [cs.cs_name^".cmxa"] :: [cs.cs_name^(ext_lib ())] :: acc
     in
       match bs.bs_compiled_object with 
         | Native ->
@@ -62,9 +65,9 @@ let generated_unix_files ~ctxt (cs, bs, lib)
   let acc_nopath = 
     if bs.bs_c_sources <> [] then
       begin
-        ("lib"^cs.cs_name^(ext_lib ()))
+        ["lib"^cs.cs_name^(ext_lib ())]
         ::
-        ("dll"^cs.cs_name^(ext_dll ()))
+        ["dll"^cs.cs_name^(ext_dll ())]
         ::
         acc_nopath
       end
@@ -75,7 +78,8 @@ let generated_unix_files ~ctxt (cs, bs, lib)
     (* All the files generated *)
     List.rev_append
       (List.rev_map
-         (OASISUnixPath.concat bs.bs_path)
+         (List.rev_map
+            (OASISUnixPath.concat bs.bs_path))
          acc_nopath)
       headers
 

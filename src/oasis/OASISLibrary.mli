@@ -6,14 +6,15 @@
 open OASISTypes
 
 (** [generated_unix_files ~ctxt (cs, bs, lib) source_file_exists is_native ext_lib ext_dll] 
-    Compute all files expected by a build of the library.
+    Compute all files expected by a build of the library. For each file a list
+    of alternatives is provided.
   *)
 val generated_unix_files :
   ctxt:OASISContext.t ->
   common_section * build_section * library ->
   (string -> bool) ->
   (unit -> bool) ->
-  (unit -> string) -> (unit -> string) -> unix_filename list
+  (unit -> string) -> (unit -> string) -> unix_filename list list
 
 (** Library groups are organized in trees.
   *)

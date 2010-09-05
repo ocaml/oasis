@@ -53,8 +53,8 @@ let doc_build path pkg (cs, doc) argv =
          BaseBuilt.register
            BaseBuilt.BDoc
            cs.cs_name
-           (BaseFileUtil.glob 
-              (Filename.concat tgt_dir glb)))
+           [BaseFileUtil.glob 
+              (Filename.concat tgt_dir glb)])
       ["*.html"; "*.css"]
 
 let doc_clean t pkg (cs, doc) argv =

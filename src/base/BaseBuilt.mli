@@ -11,7 +11,7 @@ type t =
   | BDoc     (* Document. *)
 
 (** Register files built. *)
-val register : t -> name -> host_filename list -> unit
+val register : t -> name -> host_filename list list -> unit
 
 (** Unregister all files built. *)
 val unregister : t -> name -> unit
@@ -35,7 +35,7 @@ val of_executable :
   (unix_filename -> host_filename) ->
   common_section * build_section *
   executable ->
-  (t * name * host_filename list) list * unix_filename * unix_filename option
+  (t * name * host_filename list list) list * unix_filename * unix_filename option
 
 (** [of_library loc_fn (cs, bs, lib)]  Same as {!of_executable}, but
     using {!OASISLibrary.generated_unix_files}.
@@ -43,4 +43,4 @@ val of_executable :
 val of_library :
   (unix_filename -> host_filename) ->
   common_section * build_section * library ->
-  (t * name * host_filename list) list * unix_filename list
+  (t * name * host_filename list list) list * unix_filename list list

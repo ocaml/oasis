@@ -31,7 +31,7 @@ open BaseStandardVar
 open BaseMessage
 
 type target =
-  | Std of string 
+  | Std of string list
   | StdRename of string * string
 
 let cond_targets_hook =
@@ -77,26 +77,29 @@ let build pkg argv =
 
                  let tgts =
                    List.filter
-                     (fun fn ->
-                        ends_with ".cma" fn ||
-                        ends_with ".cmxa" fn ||
-                        ends_with (ext_lib ()) fn ||
-                        ends_with (ext_dll ()) fn)
-                     unix_files
+                     (fun l -> l <> [])
+                     (List.map
+                        (List.filter
+                           (fun fn ->
+                              ends_with ".cma" fn ||
+                              ends_with ".cmxa" fn ||
+                              ends_with (ext_lib ()) fn ||
+                              ends_with (ext_dll ()) fn))
+                        unix_files)
                  in
 
                    match tgts with 
                      | hd :: tl ->
                          (evs, Std hd)
                          :: 
-                         (List.map (fun tgt -> [], Std tgt) tl)
+                         (List.map (fun tgts -> [], Std tgts) tl)
                          @
                          acc
                      | [] ->
                          failwithf2
                            (f_ "No possible ocamlbuild targets \
                                 in generated files %s for library %s")
-                           (String.concat (s_ ", " ) tgts)
+                           (String.concat (s_ ", " ) (List.map (String.concat (s_ ", ")) tgts))
                            cs.cs_name
                end
 
@@ -122,7 +125,7 @@ let build pkg argv =
 
                      evs,
                      (if unix_tgt = unix_exec_is then
-                        Std unix_tgt
+                        Std [unix_tgt]
                       else
                         StdRename (unix_tgt, host_exec_is))
                  in
@@ -152,11 +155,11 @@ let build pkg argv =
   (* Check and register built files *)
   let check_and_register (bt, bnm, lst) = 
     List.iter
-      (fun fn ->
-         if not (Sys.file_exists fn) then
+      (fun fns ->
+         if not (List.exists Sys.file_exists fns) then
            failwithf1
-             (f_ "Expected built file '%s' doesn't exist")
-             fn)
+             (f_ "No one of expected built files %s exists")
+             (String.concat (s_ ", ") (List.map (Printf.sprintf "'%s'") fns)))
       lst;
       (BaseBuilt.register bt bnm lst) 
   in
@@ -212,8 +215,8 @@ let build pkg argv =
     List.fold_left
       (fun acc (built, tgt) ->
          match tgt with 
-           | Std nm -> 
-               (built, nm) :: acc
+           | Std nms -> 
+               (built, List.hd nms) :: acc
            | StdRename (src, tgt) ->
                begin
                  (* We run with a fake list for event registering *)
