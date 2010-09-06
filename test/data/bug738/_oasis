@@ -1,0 +1,14 @@
+OASISFormat:  0.1
+Name:         test
+Version:      0.1
+License:      BSD3
+Authors:      Jérémie Dimino
+BuildTools:   ocamlbuild
+Synopsis:     test
+Plugins:      META (0.1.0)
+
+Library test
+  Path: src
+  Modules:
+    Foo
+  CompiledObject: Byte

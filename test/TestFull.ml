@@ -483,23 +483,42 @@ let tests ctxt =
            temp_dir "oasis-" ".dir"
          in
 
-         let pristine = 
+         let () = 
            (* Change to srcdir directory *)
-           Sys.chdir srcdir;
+           Sys.chdir srcdir
+         in
 
-           (* Ensure that we are in a clean environment *)
-           rm oasis_extra_files;
-           rm oasis_std_files;
+         (* Make a backup of already existing OASIS files *)
+         let bak_lst = 
+           List.fold_left
+             (fun acc fn ->
+                if Sys.file_exists fn then 
+                  begin
+                    let bak_fn = 
+                      Filename.temp_file "oasis-" ".bak"
+                    in
+                      FileUtil.cp [fn] bak_fn;
+                      (fn, bak_fn) :: acc
+                  end
+                else
+                  begin
+                    acc
+                  end)
+             []
+             oasis_extra_files
+         in
 
+         let pristine = 
            (* Memorize file listing/digest of the current srcdir *)
            all_file_digests ()
          in
 
            cur_dir, 
            (mkloc build_dir),
-           pristine)
+           pristine, 
+           bak_lst)
 
-      (fun (cur_dir, loc, pristine) ->
+      (fun (cur_dir, loc, pristine, bak_lst) ->
          let () = 
            skip_cond ()
          in
@@ -536,6 +555,13 @@ let tests ctxt =
            rm oasis_std_files;
            rm oasis_extra_files;
 
+           (* Restore backup file *)
+           List.iter 
+             (fun (fn, bak_fn) ->
+                FileUtil.cp [bak_fn] fn;
+                FileUtil.rm [bak_fn])
+             bak_lst;
+
            (* Check that we are back to pristine ls
             *)
            OUnitSetFileDigest.assert_equal
@@ -550,7 +576,19 @@ let tests ctxt =
       )
 
       (* Clean test environment -- the backup way *)
-      (fun (cur_dir, loc, pristine) ->
+      (fun (cur_dir, loc, pristine, bak_lst) ->
+
+         (* Restore backup file *)
+         let () = 
+           List.iter 
+             (fun (fn, bak_fn) ->
+                if Sys.file_exists bak_fn then
+                  begin
+                    FileUtil.cp [bak_fn] fn;
+                    FileUtil.rm [bak_fn]
+                  end)
+             bak_lst
+         in
 
          let st_pristine = 
            set_file_of_file_digest pristine
@@ -1136,6 +1174,12 @@ let tests ctxt =
          long_test,
          "cryptokit.mllib" :: oasis_ocamlbuild_files,
          [],
+         [];
+
+         "data/bug738",
+         long_test,
+         "src/test.mllib" :: "src/META" :: oasis_ocamlbuild_files,
+         [in_ocaml_library "test" ["META"; "foo.cmi"; "test.cma"]],
          [];
        ]
     )

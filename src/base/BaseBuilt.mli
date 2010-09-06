@@ -10,7 +10,10 @@ type t =
   | BLib     (* Library. *)
   | BDoc     (* Document. *)
 
-(** Register files built. *)
+(** Register files built. Each files built is provided as a list 
+    of alternatives. At least one alternative file should exist 
+    when registering and we only register existing ones.
+  *)
 val register : t -> name -> host_filename list list -> unit
 
 (** Unregister all files built. *)

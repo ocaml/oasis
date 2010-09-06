@@ -47,14 +47,29 @@ let register t nm lst =
     (to_log_event_done t nm)
     "true";
   List.iter
-    (List.iter
-       (fun fn ->
-          BaseLog.register 
-            (to_log_event_file t nm)
-            (if Filename.is_relative fn then
-               Filename.concat (Sys.getcwd ()) fn
-             else 
-               fn)))
+    (fun alt ->
+       let registered = 
+         List.fold_left
+           (fun registered fn ->
+              if Sys.file_exists fn then
+                begin
+                  BaseLog.register 
+                    (to_log_event_file t nm)
+                    (if Filename.is_relative fn then
+                       Filename.concat (Sys.getcwd ()) fn
+                     else 
+                       fn);
+                  true
+                end
+              else
+                registered)
+           false
+           alt
+       in
+         if not registered then
+           warning
+             (f_ "Cannot find an existing alternative files among: %s")
+             (String.concat (s_ ", ") alt))
     lst
 
 let unregister t nm =
