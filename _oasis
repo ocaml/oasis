@@ -186,7 +186,7 @@ Executable test
   MainIs: test.ml
   Install: false
   CompiledObject: byte
-  BuildDepends: oUnit, oasis, oasis.base, oasis.builtin-plugins
+  BuildDepends: oUnit, oasis, oasis.base, oasis.builtin-plugins, expect
 
 Test main
   Type: custom (0.1.0)

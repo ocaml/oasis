@@ -36,20 +36,21 @@ type 'a default =
   | Default_is of string
   | NoDefault
 
-let ask_until_correct q ~ctxt ?help ?(default=NoDefault) parse = 
+let ask_until_correct q ~ctxt auto ?help ?(default=NoDefault) parse = 
   let rec ask_until_correct_aux () =
     let () = 
       (* Short introduction *)
       Printf.printf "\n%s " q;
-      begin
-        match default with 
-          | Default_is dflt ->
-              Printf.printf (f_ "(default is '%s') ") dflt
-          | Default_exists _ ->
-              Printf.printf (f_ "(default exists) ") 
-          | NoDefault ->
-              ()
-      end;
+      if not auto then
+        begin
+          match default with 
+            | Default_is dflt ->
+                Printf.printf (f_ "(default is '%s') ") dflt
+            | Default_exists _ ->
+                Printf.printf (f_ "(default exists) ") 
+            | NoDefault ->
+                ()
+        end;
       Printf.printf "%!"
     in
     let rec input_until_decided () = 
@@ -87,7 +88,7 @@ let ask_until_correct q ~ctxt ?help ?(default=NoDefault) parse =
   in
     ask_until_correct_aux ()
 
-let ask_shortcut_choices ~ctxt ?help ?(default=NoDefault) q choices = 
+let ask_shortcut_choices ~ctxt auto ?help ?(default=NoDefault) q choices = 
   let help = 
     let fmt =
       str_formatter
@@ -135,6 +136,7 @@ let ask_shortcut_choices ~ctxt ?help ?(default=NoDefault) q choices =
   in
     ask_until_correct 
       ~ctxt
+      auto
       ?help
       ~default
       q
@@ -146,9 +148,10 @@ let ask_shortcut_choices ~ctxt ?help ?(default=NoDefault) q choices =
          with Not_found ->
            failwithf1 (f_ "'%s' is not valid answer") s)
 
-let ask_yes_no ~ctxt ?help ?default q =
+let ask_yes_no ~ctxt auto ?help ?default q =
   ask_shortcut_choices 
     ~ctxt
+    auto
     ?help 
     ?default
     q
@@ -162,7 +165,7 @@ let ask_field =
   ask_until_correct
 
 (** Ask questions for a schema (Package, Library, Executable...) *)
-let ask_schema ~ctxt schema lvl =
+let ask_schema ~ctxt schema lvl auto =
   let fake_context = 
     {
       OASISAstTypes.cond = None;
@@ -225,9 +228,13 @@ let ask_schema ~ctxt schema lvl =
                                (* TODO: handle other kind of questions *)
                                ask_field 
                                  ~ctxt 
-                                 (Printf.sprintf (f_ "Value for field '%s'?") key)
+                                 (if auto then
+                                    "???"^(String.lowercase key)
+                                  else
+                                    Printf.sprintf (f_ "Value for field '%s'?") key)
                                  ?help
                                  ~default
+                                 auto 
                                  parse
                      end
                  | _ ->
@@ -243,17 +250,24 @@ let ask_schema ~ctxt schema lvl =
     schema
 
 (** Ask questions for a package and its sections *)
-let ask_package ~ctxt lvl = 
+let ask_package ~ctxt lvl auto = 
   let pkg_data = 
-    ask_schema ~ctxt OASISPackage.schema lvl
+    ask_schema ~ctxt OASISPackage.schema lvl auto
   in
 
   let section_data =
     let section gen schema q_name =
       let nm = 
-        ask_field ~ctxt q_name (fun s -> s)
+        ask_field ~ctxt q_name auto (fun s -> s)
       in
-        gen nm (ask_schema ~ctxt schema lvl)
+        gen nm (ask_schema ~ctxt schema lvl auto)
+    in
+
+    let auto_name s = 
+      if auto then
+        "???name"
+      else
+        s
     in
 
     let sections = 
@@ -266,7 +280,7 @@ let ask_package ~ctxt lvl =
               section
                 OASISLibrary_intern.generator
                 OASISLibrary.schema
-                (s_ "Library name?")));
+                (auto_name (s_ "Library name?"))));
 
         s_ "e", s_ "create an executable",
         (Some 
@@ -274,7 +288,7 @@ let ask_package ~ctxt lvl =
               section
                 OASISExecutable_intern.generator
                 OASISExecutable.schema
-                (s_ "Executable name?")));
+                (auto_name (s_ "Executable name?"))));
 
         s_ "f", s_ "create a flag",
         (Some 
@@ -282,7 +296,7 @@ let ask_package ~ctxt lvl =
               section
                 OASISFlag_intern.generator
                 OASISFlag.schema
-                (s_ "Flag name?")));
+                (auto_name (s_ "Flag name?"))));
 
         s_ "s", s_ "create a source repository",
         (Some 
@@ -290,7 +304,7 @@ let ask_package ~ctxt lvl =
               section
                 OASISSourceRepository_intern.generator
                 OASISSourceRepository.schema
-                (s_ "Source repository identifier?")));
+                (auto_name (s_ "Source repository identifier?"))));
 
         s_ "t", s_ "create a test",
         (Some 
@@ -298,7 +312,7 @@ let ask_package ~ctxt lvl =
               section
                 OASISTest_intern.generator
                 OASISTest.schema
-                (s_ "Test name?")));
+                (auto_name (s_ "Test name?"))));
 
         s_ "d", s_ "create a document",
         (Some
@@ -306,20 +320,31 @@ let ask_package ~ctxt lvl =
               section
                 OASISDocument_intern.generator
                 OASISDocument.schema
-                (s_ "Document name?")));
+                (auto_name (s_ "Document name?"))));
       ]
     in
 
     let rec new_section acc q = 
-      match ask_shortcut_choices ~ctxt ~default:(Default_exists None) q sections with 
+      match ask_shortcut_choices 
+              ~ctxt 
+              ~default:(Default_exists None) 
+              q auto sections with 
         | None ->
             List.rev acc
         | Some f ->
             new_section
               ((f ()) :: acc)
-              (s_ "Create another section?")
+              (if auto then
+                 "???create_section"
+               else
+                 s_ "Create another section?")
+
     in
-      new_section [] (s_ "Create a section?")
+      new_section [] 
+        (if auto then 
+           "???create_section"
+         else
+           s_ "Create a section?")
   in
 
   let _pkg = 
@@ -337,20 +362,23 @@ let ask_package ~ctxt lvl =
     pkg_data, section_data
 
 (** Create an _oasis file *)
-let to_file ~ctxt fn lvl oasis_dev =
+let to_file ~ctxt fn lvl auto oasis_dev =
 
   let () = 
     (* Print introduction *)
     let fmt =
       std_formatter
     in
-      pp_open_box fmt 0;
-      pp_print_string_spaced fmt
-        (s_ "The program will ask some questions to create the OASIS file. \
-             If you answer '?' to a question, an help text will be displayed.");
-      pp_close_box fmt ();
-      pp_print_flush fmt ();
-      print_endline ""
+      if not auto then
+        begin
+          pp_open_box fmt 0;
+          pp_print_string_spaced fmt
+            (s_ "The program will ask some questions to create the OASIS file. \
+                 If you answer '?' to a question, an help text will be displayed.");
+          pp_close_box fmt ();
+          pp_print_flush fmt ();
+          print_endline ""
+        end
   in
 
   let () = 
@@ -363,6 +391,7 @@ let to_file ~ctxt fn lvl oasis_dev =
             (Printf.sprintf
                (f_ "File '%s' already exists, overwrite it?")
                fn)
+            auto
         in
           if not a then
             failwithf1
@@ -372,7 +401,7 @@ let to_file ~ctxt fn lvl oasis_dev =
   in
 
   let (pkg_data, section_data) = 
-    ask_package ~ctxt lvl
+    ask_package ~ctxt lvl auto
   in
 
   let content =
@@ -514,7 +543,11 @@ let to_file ~ctxt fn lvl oasis_dev =
   let ask_end () = 
     ask_shortcut_choices 
       ~ctxt
-      "Package definition is complete, what do you want to do now?"
+      (if auto then
+         "???end"
+       else
+         s_ "Package definition is complete, what do you want to do now?")
+      auto
       [
         s_ "d", s_ "display the generated file",
         (fun () -> 

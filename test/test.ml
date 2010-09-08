@@ -19,7 +19,7 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Run test for OASIS
+(** Run tests for OASIS
     @author Sylvain Le Gall
   *)
 
@@ -127,6 +127,7 @@ let () =
          TestLicense.tests      ctxt;
          TestValues.tests       ctxt;
          TestQuery.tests        ctxt;
+         TestQuickstart.tests   ctxt;
        ])
   in
 
