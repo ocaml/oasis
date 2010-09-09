@@ -29,7 +29,7 @@ open OASISUtils
 open OASISGettext
 open OASISTypes
 
-let build_depends_field schm = 
+let build_depends_field schm sync = 
   new_field schm "BuildDepends" 
     ~default:[]
     (let base_value = 
@@ -58,7 +58,10 @@ let build_depends_field schm =
                       | InternalLibrary nm -> (nm, None))
                    lst));
        })
-    (fun () -> s_ "Dependencies on findlib packages, including internal findlib packages.")
+    (fun () -> 
+       s_ "Dependencies on findlib packages, including internal \
+           findlib packages.")
+    sync
 
 let build_tools_value =
    let base = 
@@ -84,24 +87,27 @@ let build_tools_value =
               lst))
      }
 
-let build_tools_field schm =
+let build_tools_field schm sync =
   new_field schm "BuildTools"
     ~default:[]
     build_tools_value
     (fun () -> s_ "Tools required to compile, including internal executables.")
+    sync
 
-let build_install_data_fields schm = 
+let build_install_data_fields schm sync_build sync_install sync_datafiles = 
   let build = 
     new_field_conditional schm "Build"
       ~default:true
       boolean
       (fun () -> s_ "Set if the section should be built.")
+      sync_build
   in
   let install =
     new_field_conditional schm "Install"
       ~default:true
       boolean
       (fun () -> s_ "Set if the section should be distributed.")
+      sync_install
   in
   let data_files =
     new_field schm "DataFiles"
@@ -113,23 +119,30 @@ let build_install_data_fields schm =
       (fun () -> 
          s_ "Comma separated list of files to be installed for run-time. \
              ([see here](#data-files))")
+      sync_datafiles
   in
     build, install, data_files
 
-let section_fields nm comp_dflt schm = 
+let section_fields nm comp_dflt schm sync = 
   let path =
     new_field schm "Path" 
       directory
       (fun () -> s_ "Directory containing the section")
+      (fun pkg -> (sync pkg).bs_path)
   in
   let build, install, data_files = 
     build_install_data_fields schm
+      (fun pkg -> (sync pkg).bs_build)
+      (fun pkg -> (sync pkg).bs_install)
+      (fun pkg -> (sync pkg).bs_data_files)
   in
   let build_depends =
     build_depends_field schm
+      (fun pkg -> (sync pkg).bs_build_depends)
   in
   let build_tools =
     build_tools_field schm
+      (fun pkg -> (sync pkg).bs_build_tools)
   in
   let compiled_object =
     new_field schm "CompiledObject"
@@ -139,12 +152,14 @@ let section_fields nm comp_dflt schm =
          ["byte", Byte; "native", Native; "best", Best])
       (fun () -> 
          s_ "Define the compilation type of the section: byte, native or best")
+      (fun pkg -> (sync pkg).bs_compiled_object)
   in
   let c_sources = 
     new_field schm "CSources"
       ~default:[]
       files
       (fun () -> s_ "C source files.")
+      (fun pkg -> (sync pkg).bs_c_sources)
   in
   let ccopt = 
     new_field_conditional schm "CCOpt"
@@ -152,6 +167,7 @@ let section_fields nm comp_dflt schm =
       space_separated
       (fun () ->
          s_ "-ccopt arguments to use when building.")
+      (fun pkg -> (sync pkg).bs_ccopt)
   in
   let cclib = 
     new_field_conditional schm "CCLib"
@@ -159,6 +175,7 @@ let section_fields nm comp_dflt schm =
       space_separated
       (fun () ->
          s_ "-cclib arguments to use when building.")
+      (fun pkg -> (sync pkg).bs_cclib)
   in
   let dlllib = 
     new_field_conditional schm "DllLib"
@@ -166,6 +183,7 @@ let section_fields nm comp_dflt schm =
       space_separated
       (fun () ->
          s_ "-dlllib arguments to use when building.")
+      (fun pkg -> (sync pkg).bs_dlllib)
   in
   let dllpath = 
     new_field_conditional schm "DllPath"
@@ -173,6 +191,7 @@ let section_fields nm comp_dflt schm =
       space_separated
       (fun () ->
          s_ "-dllpath arguments to use when building.")
+      (fun pkg -> (sync pkg).bs_dllpath)
   in
   let byteopt = 
     new_field_conditional schm "ByteOpt"
@@ -180,6 +199,7 @@ let section_fields nm comp_dflt schm =
       space_separated
       (fun () ->
          s_ "ocamlc arguments to use when building.")
+      (fun pkg -> (sync pkg).bs_byteopt)
   in
   let nativeopt = 
     new_field_conditional schm "NativeOpt"
@@ -187,6 +207,7 @@ let section_fields nm comp_dflt schm =
       space_separated
       (fun () ->
          s_ "ocamlopt arguments to use when building.")
+      (fun pkg -> (sync pkg).bs_nativeopt)
   in
     (fun nm data ->
        {

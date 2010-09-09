@@ -34,10 +34,17 @@ let schema, generator =
     schema "Library"
   in
   let cmn_section_gen =
-    OASISSection.section_fields (fun () -> (s_ "library")) schm
+    OASISSection.section_fields 
+      (fun () -> (s_ "library")) 
+      schm
+      (fun (cs, _, _) -> cs)
   in
   let build_section_gen =
-    OASISBuildSection_intern.section_fields (fun () -> (s_ "library")) Best schm
+    OASISBuildSection_intern.section_fields 
+      (fun () -> (s_ "library")) 
+      Best 
+      schm
+      (fun (_, bs, _) -> bs)
   in
   let external_modules =
     new_field schm "Modules" 
@@ -46,6 +53,7 @@ let schema, generator =
       modules
       (fun () ->
          s_ "List of modules to compile.") 
+      (fun (_, _, lib) -> lib.lib_modules)
   in
   let internal_modules = 
     new_field schm "InternalModules"
@@ -54,6 +62,7 @@ let schema, generator =
       modules
       (fun () ->
          s_ "List of modules to compile which are not exported.")
+      (fun (_, _, lib) -> lib.lib_internal_modules)
   in
   let findlib_parent =
     new_field schm "FindlibParent"
@@ -62,6 +71,7 @@ let schema, generator =
       (fun () ->
          s_ "Library which includes the current library. The current library \
              will be built as its parents and installed along it.")
+      (fun (_, _, lib) -> lib.lib_findlib_parent)
   in
   let findlib_name = 
     new_field schm "FindlibName"
@@ -72,6 +82,7 @@ let schema, generator =
       (opt findlib_name)
       (fun () ->
          s_ "Name used by findlib.")
+      (fun (_, _, lib) -> lib.lib_findlib_name)
   in
   let findlib_containers =
     new_field schm "FindlibContainers"
@@ -81,6 +92,7 @@ let schema, generator =
       (dot_separated string_not_empty)
       (fun () ->
          s_ "Virtual containers for sub-package, dot-separated")
+      (fun (_, _, lib) -> lib.lib_findlib_containers)
   in
     schm,
     (fun nm data ->

@@ -23,10 +23,9 @@
     @author Sylvain Le Gall
   *)
 
-open OASISTypes
-
 (* END EXPORT *)
 
+open OASISTypes
 open OASISSchema
 open OASISValues
 open OASISUtils
@@ -38,7 +37,10 @@ let schema, generator =
     schema "Flag" 
   in
   let cmn_section_gen =
-    OASISSection.section_fields (fun () -> (s_ "flag")) schm
+    OASISSection.section_fields 
+      (fun () -> (s_ "flag")) 
+      schm
+      (fun (cs, _) -> cs)
   in
   let descr = 
     new_field schm "Description" 
@@ -46,6 +48,7 @@ let schema, generator =
       (opt string_not_empty)
       (fun () -> 
          s_ "Help for the flag")
+      (fun (_, flag) -> flag.flag_description)
   in
   let default = 
     new_field_conditional schm "Default" 
@@ -53,6 +56,7 @@ let schema, generator =
       boolean
       (fun () ->
          s_ "Default value for the flag")
+      (fun (_, flag) -> flag.flag_default)
   in
     schm,
     (fun nm data ->

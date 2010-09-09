@@ -113,3 +113,37 @@ let build_dir extra_argv =
           dir
   in
     search_args "_build" (fix_args [] extra_argv)
+
+(* END EXPORT *)
+
+open OASISTypes
+
+let fix_build_tools tool pkg = 
+  let fix_build_tools' sct bs = 
+    if not (List.mem tool bs.bs_build_tools) then
+      {bs with bs_build_tools = tool :: bs.bs_build_tools}
+    else
+      bs
+  in
+
+  let sections = 
+    List.fold_left
+      (fun acc sct ->
+         let sct = 
+           match sct with 
+             | Executable (cs, bs, exec) ->
+                 let bs = fix_build_tools' sct bs in
+                   Executable (cs, bs, exec)
+
+             | Library (cs, bs, lib) ->
+                 let bs = fix_build_tools' sct bs in
+                   Library (cs, bs, lib) 
+
+             | Flag _ | SrcRepo _ | Test _ | Doc _ as sct ->
+                 sct
+         in
+           sct :: acc)
+      []
+      pkg.sections
+  in
+    {pkg with sections = List.rev sections}

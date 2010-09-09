@@ -566,4 +566,4 @@ let main ctxt pkg =
       ]
 
 let init () = 
-  register main
+  register_act main

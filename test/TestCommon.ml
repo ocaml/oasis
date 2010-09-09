@@ -35,6 +35,7 @@ type context =
       has_ocamlopt: bool;
       oasis:        string;
       oasis_args:   string list;
+      oasis_ctxt:   OASISContext.t;
     }
 ;;
 

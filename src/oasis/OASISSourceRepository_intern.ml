@@ -35,7 +35,10 @@ let schema, generator =
     schema "SourceRepository"
   in
   let cmn_section_gen =
-    OASISSection.section_fields (fun () -> (s_ "source repository")) schm
+    OASISSection.section_fields 
+      (fun () -> (s_ "source repository")) 
+      schm
+      (fun (cs, _) -> cs)
   in
   let typ = 
     new_field schm "Type"
@@ -50,6 +53,7 @@ let schema, generator =
           "arch",     Arch; 
           "monotone", Monotone])
       (fun () -> s_ "VCS type.")
+      (fun (_, src_repo) -> src_repo.src_repo_type)
   in
   let location =
     new_field schm "Location"
@@ -57,6 +61,7 @@ let schema, generator =
       (fun () ->
          s_ "URL of the repository. The exact form of this field depends on \
              the repository type.")
+      (fun (_, src_repo) -> src_repo.src_repo_location)
   in
   let browser =
     new_field schm "Browser"
@@ -64,6 +69,7 @@ let schema, generator =
       (opt url)
       (fun () ->
          s_ "URL where the repository can be navigated using a web browser.")
+      (fun (_, src_repo) -> src_repo.src_repo_browser)
   in
   let new_field_opt nm hlp =
     new_field schm nm
@@ -76,16 +82,19 @@ let schema, generator =
       (fun () ->
          s_ "CVS requires a named module, as each CVS server can host \
              multiple named repositories. (__mandatory__ for CVS)")
+      (fun (_, src_repo) -> src_repo.src_repo_module)
   in
   let branch =
     new_field_opt "Branch"
       (fun () -> 
          s_ "Define a meaningful branch for this repository.")
+      (fun (_, src_repo) -> src_repo.src_repo_branch)
   in
   let tag =
     new_field_opt "Tag"
       (fun () -> 
          s_ "Identify a state corresponding to this particular package version.")
+      (fun (_, src_repo) -> src_repo.src_repo_tag)
   in
   let subdir = 
     new_field_opt "Subdir"
@@ -93,7 +102,11 @@ let schema, generator =
          s_ "Define the relative path from the root of the repository to the \
              top directory for the package, i.e. the directory containing the \
              package's `_oasis` file.")
+      (fun (_, src_repo) -> src_repo.src_repo_subdir)
   in
+    (* TODO: enforce contraint about module/branch/subdir/tag depending
+     * in src_repo_type
+     *)
     schm,
     (fun nm data ->
        SrcRepo

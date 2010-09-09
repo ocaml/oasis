@@ -73,4 +73,4 @@ val root_of_group :
 
 (** Schema for the section. {b Not exported}.
   *)
-val schema : OASISSchema.t
+val schema : (common_section * build_section * library) OASISSchema.t

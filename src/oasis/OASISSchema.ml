@@ -31,23 +31,81 @@ open OASISValues
 open OASISExpr
 open PropList
 
+module Sync = 
+struct
+
+  type 'a t = ('a -> PropList.Data.t) ref
+
+  let create () = 
+    ref (fun _ -> PropList.Data.create ())
+
+  let add t schm value nm sync = 
+    let fake_context = 
+      {
+        OASISAstTypes.cond = None;
+        append             = false;
+        valid_flags        = [];
+        ctxt               = !OASISContext.default;
+      }
+    in
+
+    let prev_f = 
+      !t
+    in
+
+    let new_f = 
+      fun pkg -> 
+        let data = prev_f pkg in
+        let () = 
+          try 
+            (* TODO: we should just restore the value 
+             * wether or not it is printable should not
+             * be important 
+             *)
+            PropList.Schema.set 
+              schm 
+              data 
+              (* TODO: really need to kill this ~context *)
+              ~context:fake_context 
+              nm 
+              (value.print (sync pkg))
+          with Not_printable ->
+            ()
+        in
+          data
+    in
+      t := new_f
+end
+
+type kind = 
+  | DefinePlugin 
+  | FieldFromPlugin of string
+  | StandardField 
+
 type extra =
   {
-    plugin:      string option;
+    kind:        kind;
     qckstrt_lvl: string quickstart_level;
     qckstrt_q:   string quickstart_question;
   }
 
-type t =
-  (ctxt, extra) PropList.Schema.t
+type 'a t =
+    {
+      schm: (ctxt, extra) PropList.Schema.t;
+      sync: 'a Sync.t;
+    }
 
-let schema nm: t = 
-  Schema.create 
-    ~case_insensitive:true 
-    nm
 
+let schema nm = 
+  {
+    schm = Schema.create ~case_insensitive:true nm;
+    sync = Sync.create ()
+  }
+
+(** Define extra data contained in the schema
+  *)
 let extra 
-      ?plugin 
+      ?(kind=StandardField)
       ?(quickstart_level=Expert) 
       ?(quickstart_question=Field)
       value =
@@ -70,21 +128,24 @@ let extra
   in
 
     {
-      plugin      = plugin;
+      kind        = kind;
       qckstrt_lvl = qckstrt_lvl;
       qckstrt_q   = qckstrt_q;
     }
 
 
+(** Create  a conditional field
+  *)
 let new_field_conditional 
-      schm 
+      t
       name 
       ?plugin 
       ?default 
       ?quickstart_level
       ?quickstart_question
       value 
-      help =
+      help
+      sync =
   let update ?context old_choices new_choices =
     let choices =
       match context with 
@@ -143,18 +204,37 @@ let new_field_conditional
              s
   in
 
-  let print =
+  let trivial_value = 
     function
       | [] -> 
           raise (PropList.Not_set(name, None))
       | [EBool true, v] -> 
-          value.print v
+          v
       | _ ->
           raise OASISValues.Not_printable
   in
 
+  let print lst =
+    value.print (trivial_value lst)
+  in
+
+  let kind =
+    match plugin with
+      | Some plg -> Some (FieldFromPlugin plg)
+      | None -> None
+  in
+
+  let sync pkg = 
+    (* TODO: this prevent to synchronize complex
+     * conditional value 
+     *)
+    trivial_value (sync pkg)
+  in
+
+
+    Sync.add t.sync t.schm value name sync;
     FieldRO.create 
-      ~schema:schm 
+      ~schema:t.schm 
       ~name
       ~parse 
       ~print
@@ -162,20 +242,14 @@ let new_field_conditional
       ?default
       ~help
       (extra
-        ?plugin 
+        ?kind 
         ?quickstart_level
         ?quickstart_question
          value)
 
-let new_field 
-      schm 
-      name 
-      ?plugin 
-      ?default 
-      ?quickstart_level
-      ?quickstart_question
-      value 
-      help =
+(** Default parser and updater for new_field and new_field_plugin
+  *)
+let default_parse_update name value = 
 
   let update ?context old_v v =
     match context with 
@@ -200,8 +274,34 @@ let new_field
             name s
   in
 
+    update, parse
+  
+
+(** Create a simple field
+  *)
+let new_field 
+      t
+      name 
+      ?plugin 
+      ?default 
+      ?quickstart_level
+      ?quickstart_question
+      value 
+      help
+      sync =
+
+  let update, parse = 
+    default_parse_update name value
+  in
+  let kind =
+    match plugin with
+      | Some plg -> Some (FieldFromPlugin plg)
+      | None -> None
+  in
+
+    Sync.add t.sync t.schm value name sync;
     FieldRO.create
-      ~schema:schm 
+      ~schema:t.schm 
       ~name
       ~parse 
       ~print:value.print
@@ -209,10 +309,41 @@ let new_field
       ?default
       ~help
       (extra
-        ?plugin 
+        ?kind 
         ?quickstart_level
         ?quickstart_question
          value)
 
-let new_field_phantom ?plugin ?name () =
-  Field.create ?name (extra ?plugin OASISValues.blackbox)
+(** Create a field that enables a plugin 
+  *)
+let new_field_plugin 
+      t
+      name
+      ?default 
+      ?quickstart_level
+      ?quickstart_question
+      value 
+      help
+      sync =
+
+  let update, parse =
+    default_parse_update name value
+  in
+    Sync.add t.sync t.schm value name sync;
+    FieldRO.create
+      ~schema:t.schm 
+      ~name
+      ~parse 
+      ~print:value.print
+      ~update
+      ?default
+      ~help
+      (extra
+        ~kind:DefinePlugin 
+        ?quickstart_level
+        ?quickstart_question
+         value)
+
+let to_proplist t = 
+  let f = !(t.sync) in
+    fun e -> t.schm, f e

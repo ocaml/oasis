@@ -90,25 +90,32 @@ type package_act =
   *)
 module type PLUGIN_UTILS_TYPE =
 sig
-  type t
+  type act
+  type data
 
   (** Register the [section_act] or [package_act] datastructure. *)
-  val register : t -> unit
+  val register_act: act -> unit
+
+  (** Register a quickstart completion for this plugin *)
+  val register_quickstart_completion: (package -> package) -> unit
 
   (** Create a field for this plugin. *)
   val new_field :
-    OASISSchema.t ->
+    ('b OASISSchema.t) ->
     name ->
     ?default:'a ->
-    'a OASISValues.t -> (unit -> string) -> PropList.Data.t -> 'a
+    'a OASISValues.t -> 
+    (unit -> string) -> 
+    PropList.Data.t -> 'a
 
   (** Create a conditional field for this plugin. *)
   val new_field_conditional :
-    OASISSchema.t ->
+    ('b OASISSchema.t) ->
     name ->
     ?default:'a ->
     'a OASISValues.t ->
-    (unit -> string) -> PropList.Data.t -> 'a OASISExpr.choices
+    (unit -> string) -> 
+    PropList.Data.t -> 'a OASISExpr.choices
 end
 
 (** Plugin identification *)
@@ -135,19 +142,24 @@ end
 (** Module to manage a set of plugins, of the same type. *)
 module type PLUGINS =
 sig
-  type t
+  type act
+  type data
 
   (** Create {PLUGIN_UTILS_TYPE} for a {PLUGIN_ID_TYPE}. *)
-  module Make: functor (PI : PLUGIN_ID_TYPE) -> PLUGIN_UTILS_TYPE with type t = t
+  module Make: functor (PI : PLUGIN_ID_TYPE) -> 
+    PLUGIN_UTILS_TYPE with type act = act and type data = data
 
   (** List available plugins. *)
   val ls : unit -> name list
 
   (** Find a specific plugin. *)
-  val find : name * 'a -> t
+  val find : name * 'a -> act
 
   (** Parse a plugin field *) 
   val value : (name * OASISVersion.t option) OASISValues.t
+
+  (** Get quickstart completion *)
+  val quickstart_completion: name -> package -> package
 end
 
 module MapPlugin: Map.S with type key = name
@@ -155,22 +167,28 @@ module MapPlugin: Map.S with type key = name
 (** {2 Modules for plugin type} *)
 
 (** This module manage plugin that can handle configure step. *)
-module Configure: PLUGINS with type t = package_act
+module Configure: PLUGINS with 
+  type act = package_act and type data = package
 
 (** This module manage plugin that can handle build step. *)
-module Build:     PLUGINS with type t = package_act
+module Build: PLUGINS with 
+  type act = package_act and type data = package
 
 (** This module manage plugin that can handle building documents. *)
-module Doc:       PLUGINS with type t = (doc, unit) section_act
+module Doc: PLUGINS with 
+  type act = (doc, unit) section_act and type data = common_section * doc 
 
 (** This module manage plugin that can handle running tests. *)
-module Test:      PLUGINS with type t = (test, float) section_act
+module Test: PLUGINS with 
+  type act = (test, float) section_act and type data = common_section * test
 
 (** This module manage plugin that can handle install/uninstall steps. *)
-module Install:   PLUGINS with type t = package_act * package_act
+module Install: PLUGINS with 
+  type act = package_act * package_act and type data = package
 
 (** This module manage plugin that can handle configure step. *)
-module Extra:     PLUGINS with type t = context_act -> package -> context_act
+module Extra:     PLUGINS with
+  type act = context_act -> package -> context_act and type data = package
 
 (** {2 General plugin functions} *)
 

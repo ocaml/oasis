@@ -103,6 +103,12 @@ let () =
            else
              "OASIS"];
       oasis_args = [];
+
+      oasis_ctxt = 
+        if !dbug then
+          !OASISContext.default
+        else
+          OASISContext.quiet;
     }
   in
 

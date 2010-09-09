@@ -27,6 +27,7 @@ open OASISTypes
 open OASISGettext
 open OASISUtils
 open BaseEnv
+open OCamlbuildCommon
 open BaseStandardVar
 open BaseMessage
 
@@ -42,7 +43,7 @@ let build pkg argv =
   (* Return the filename in build directory *)
   let in_build_dir fn =
     Filename.concat 
-      (OCamlbuildCommon.build_dir argv) 
+      (build_dir argv) 
       fn
   in
 
@@ -166,7 +167,7 @@ let build pkg argv =
 
   (* Run a list of target + post process *)
   let run_ocamlbuild rtargets = 
-    OCamlbuildCommon.run_ocamlbuild 
+    run_ocamlbuild 
       (List.rev_map snd rtargets)
       argv;
     List.iter
@@ -244,7 +245,7 @@ let build pkg argv =
       run_ocamlbuild last_rtargets
 
 let clean pkg extra_args  = 
-  OCamlbuildCommon.run_clean extra_args;
+  run_clean extra_args;
   List.iter
     (function
        | Library (cs, _, _) ->
@@ -565,6 +566,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
   in
 
   let ctxt = 
+    (* TODO: merge with qstr_cmplt *)
     set_error
       (not (List.mem (ExternalTool "ocamlbuild") bs.bs_build_tools))
       (Printf.sprintf 
@@ -801,6 +803,8 @@ let add_ocamlbuild_files ctxt pkg =
 
     ctxt
 
+let qstrt_completion pkg = 
+  fix_build_tools (ExternalTool "ocamlbuild") pkg
 
 let init () =
   let doit ctxt pkg =
@@ -816,4 +820,5 @@ let init () =
         chng_distclean    = None;
       }
   in
-    PU.register doit
+    PU.register_act doit;
+    PU.register_quickstart_completion qstrt_completion

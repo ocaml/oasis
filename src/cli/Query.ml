@@ -25,12 +25,29 @@ let query pkg str =
 
   let assoc_sections = 
     [
-      "Library",    (KLibrary,    OASISLibrary.schema);
-      "Executable", (KExecutable, OASISExecutable.schema);
-      "Flag",       (KFlag,       OASISFlag.schema);
-      "SrcRepo",    (KSrcRepo,    OASISSourceRepository.schema);
-      "Test",       (KTest,       OASISTest.schema);
-      "Doc",        (KDoc,        OASISDocument.schema);
+      "Library",    
+      (KLibrary, 
+       OASISLibrary.schema.OASISSchema.schm);
+
+      "Executable", 
+      (KExecutable, 
+       OASISExecutable.schema.OASISSchema.schm);
+
+      "Flag",
+      (KFlag, 
+       OASISFlag.schema.OASISSchema.schm);
+
+      "SrcRepo", 
+      (KSrcRepo,
+       OASISSourceRepository.schema.OASISSchema.schm);
+
+      "Test",
+      (KTest, 
+       OASISTest.schema.OASISSchema.schm);
+
+      "Doc",
+      (KDoc, 
+       OASISDocument.schema.OASISSchema.schm);
     ]
   in
 
@@ -92,7 +109,7 @@ let query pkg str =
       | [< >] ->
           begin
             (* We have a single field *)
-            OASISPackage.schema,
+            OASISPackage.schema.OASISSchema.schm,
             pkg.schema_data,
             start_nm
           end
@@ -138,7 +155,7 @@ let query pkg str =
                      fold_schm (prefix^".") schm data acc)
 
                 (* Start with the package fields *)
-                (fold_schm "" OASISPackage.schema pkg.schema_data [])
+                (fold_schm "" OASISPackage.schema.OASISSchema.schm pkg.schema_data [])
 
                 (* Continue with section fields *)
                 pkg.sections

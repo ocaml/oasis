@@ -84,6 +84,14 @@ let schema, generator =
   let schm =
     schema "Package"
   in
+
+  let new_field ?quickstart_level ?default nm value hlp sync = 
+    new_field schm ?quickstart_level ?default nm value hlp sync
+  in
+  let new_field_plugin nm ?default value hlp sync =  
+    new_field_plugin schm nm ?default value hlp sync
+  in
+
   let oasis_version = 
     let current_version =
       OASISVersion.version_of_string "0.1"
@@ -91,7 +99,7 @@ let schema, generator =
     let extra_supported_versions =
       []
     in
-      new_field schm "OASISFormat" 
+      new_field "OASISFormat" 
         ~quickstart_level:(NoChoice current_version)
         {
           parse = 
@@ -112,162 +120,190 @@ let schema, generator =
         }
         (fun () ->
            s_ "OASIS format version used to write file `_oasis`.")
+        (fun pkg -> pkg.oasis_version)
   in
   let name = 
-    new_field schm "Name" string_not_empty 
+    new_field "Name" string_not_empty 
       (fun () ->
          s_ "Name of the package.")
+      (fun pkg -> pkg.name)
   in
   let version = 
-    new_field schm "Version" OASISVersion.value
+    new_field "Version" OASISVersion.value
       (fun () ->
          s_ "Version of the package.")
+      (fun pkg -> pkg.version)
   in
   let synopsis =
-    new_field schm "Synopsis" string_not_empty
+    new_field "Synopsis" string_not_empty
       (fun () ->
          s_ "Short description of the purpose of this package.")
+      (fun pkg -> pkg.synopsis)
   in
   let description =
-    new_field schm "Description"
+    new_field "Description"
       ~default:None
       (opt string_not_empty)
       (fun () -> 
          s_ "Long description of the package purpose.")
+      (fun pkg -> pkg.description)
   in
   let license_file =
-    new_field schm "LicenseFile" 
+    new_field "LicenseFile" 
       ~default:None
       (opt file)
       (fun () -> 
-         s_ "File containing the license.");
+         s_ "File containing the license.")
+      (fun pkg -> pkg.license_file)
   in
   let authors =
-    new_field schm "Authors" 
+    new_field "Authors" 
       (comma_separated string_not_empty)
       (fun () ->
          s_ "Real people that had contributed to the package.")
+      (fun pkg -> pkg.authors)
   in
   let copyrights =
-    new_field schm "Copyrights" 
+    new_field "Copyrights" 
       ~default:[]
       (comma_separated copyright)
       (fun () ->
          s_ "Copyright owners.")
+      (fun pkg -> pkg.copyrights)
   in
   let maintainers =
-    new_field schm "Maintainers"
+    new_field "Maintainers"
       ~default:[]
       (comma_separated string_not_empty)
       (fun () -> 
          s_ "Current maintainers of the package.")
+      (fun pkg -> pkg.maintainers)
   in
   let license =
-    new_field schm "License"
+    new_field "License"
       OASISLicense.value
       (fun () ->
          (s_ "License type of the package.")^
          (OASISLicense.help ()))
+      (fun pkg -> pkg.license)
   in
   let ocaml_version =
-    new_field schm "OCamlVersion"
+    new_field "OCamlVersion"
       ~default:None
       (opt OASISVersion.comparator_value)
       (fun () -> 
          s_ "Version constraint on OCaml.")
+      (fun pkg -> pkg.ocaml_version)
   in
   let findlib_version =
-    new_field schm "FindlibVersion"
+    new_field "FindlibVersion"
       ~default:None
       (opt OASISVersion.comparator_value)
       (fun () ->
          s_ "Version constraint on Finblib.")
+      (fun pkg -> pkg.findlib_version)
   in
   let conf_type =
-    new_field schm "ConfType" 
+    new_field_plugin "ConfType" 
       ~default:(OASISPlugin.builtin "internal")
       OASISPlugin.Configure.value
       (fun () -> 
          s_ "Configuration system.")
+      (fun pkg -> pkg.conf_type)
   in
   let conf_custom = 
     OASISCustom.add_fields schm "Conf"
       (fun () -> s_ "Command to run before configuration.")
       (fun () -> s_ "Command to run after configuration.")
+      (fun pkg -> pkg.conf_custom)
   in
   let build_type =
-    new_field schm "BuildType" 
+    new_field_plugin "BuildType" 
       ~default:(OASISPlugin.builtin "ocamlbuild")
       OASISPlugin.Build.value
       (fun () -> 
          s_ "Build system.")
+      (fun pkg -> pkg.build_type)
   in
   let build_custom = 
     OASISCustom.add_fields schm "Build"
       (fun () -> s_ "Command to run before build.")
       (fun () -> s_ "Command to run after build.")
+      (fun pkg -> pkg.build_custom)
   in
   let install_type =
-    new_field schm "InstallType"
+    new_field_plugin "InstallType"
       ~default:(OASISPlugin.builtin "internal")
       OASISPlugin.Install.value
       (fun () -> 
          s_ "Install/uninstall system.")
+      (fun pkg -> pkg.install_type)
   in
   let install_custom = 
     OASISCustom.add_fields schm "Install"
       (fun () -> s_ "Command to run before install.")
       (fun () -> s_ "Command to run after install.")
+      (fun pkg -> pkg.install_custom)
   in
   let uninstall_custom = 
     OASISCustom.add_fields schm "Uninstall"
       (fun () -> s_ "Command to run before uninstall.")
       (fun () -> s_ "Command to run after uninstall.")
+      (fun pkg -> pkg.uninstall_custom)
   in
   let clean_custom = 
     OASISCustom.add_fields schm "Clean"
       (fun () -> s_ "Command to run before clean.")
       (fun () -> s_ "Command to run after clean.")
+      (fun pkg -> pkg.clean_custom)
   in
   let distclean_custom = 
     OASISCustom.add_fields schm "Distclean"
       (fun () -> s_ "Command to run before distclean.")
       (fun () -> s_ "Command to run after distclean.")
+      (fun pkg -> pkg.distclean_custom)
   in
   let homepage =
-    new_field schm "Homepage" 
+    new_field "Homepage" 
       ~default:None
       (opt url)
       (fun () -> 
          s_ "URL of the package homepage.")
+      (fun pkg -> pkg.homepage)
   in
   let categories =
-    new_field schm "Categories"
+    new_field "Categories"
       ~default:[]
       categories
       (fun () ->
          s_ "URL(s) describing categories of the package.")
+      (fun pkg -> pkg.categories)
   in
   let files_ab =
-    new_field schm "FilesAB"
+    new_field "FilesAB"
       ~default:[]
       (* TODO: check that filenames end with .ab *)
       (comma_separated file)
       (fun () -> 
          s_ "Files to generate using environment variable substitution.")
+      (fun pkg -> pkg.files_ab)
   in
   let plugins =
-    new_field schm "Plugins"
+    (* TODO: this is a special case *)
+    new_field "Plugins"
       ~default:[]
       (comma_separated OASISPlugin.Extra.value)
       (fun () -> 
          s_ "Extra plugins to use.")
+      (fun pkg -> pkg.plugins)
   in
   let build_depends =
     OASISBuildSection_intern.build_depends_field schm
+      (fun pkg -> [])
   in
   let build_tools =
     OASISBuildSection_intern.build_tools_field schm
+      (fun pkg -> [])
   in
     schm,
     (fun data sections ->

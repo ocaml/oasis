@@ -66,13 +66,13 @@ let section_no_generate str ctxt pkg (cs, section) =
 
 let init () = 
   let module PU = Configure.Make(Id) in 
-    PU.register (std_no_generate "configure");
+    PU.register_act (std_no_generate "configure");
   let module PU = Build.Make(Id) in 
-    PU.register (std_no_generate "build"); 
+    PU.register_act (std_no_generate "build"); 
   let module PU = Doc.Make(Id) in 
-    PU.register (section_no_generate "doc"); 
+    PU.register_act (section_no_generate "doc"); 
   let module PU = Test.Make(Id) in 
-    PU.register (section_no_generate "test"); 
+    PU.register_act (section_no_generate "test"); 
   let module PU = Install.Make(Id) in 
-    PU.register (std_no_generate "install", 
-                 std_no_generate "uninstall")
+    PU.register_act (std_no_generate "install", 
+                     std_no_generate "uninstall")

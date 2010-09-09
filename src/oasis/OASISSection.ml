@@ -78,7 +78,10 @@ let string_of_section sct =
 
 (* END EXPORT *)
 
-let section_fields _ _ =
+let section_fields 
+      hlp 
+      (schm: 'a OASISSchema.t)
+      (sync: 'a -> common_section) =
   fun nm data ->
     {
       cs_name = nm;

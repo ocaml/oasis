@@ -62,12 +62,14 @@ type package_act =
 
 module type PLUGIN_UTILS_TYPE =
 sig
-  type t 
+  type act 
+  type data
 
-  val register: t -> unit
+  val register_act: act -> unit
+  val register_quickstart_completion: (package -> package) -> unit
 
   val new_field: 
-    OASISSchema.t -> 
+    ('b OASISSchema.t) -> 
     name -> 
     ?default:'a -> 
     'a OASISValues.t -> 
@@ -76,7 +78,7 @@ sig
     'a
 
   val new_field_conditional: 
-    OASISSchema.t -> 
+    ('b OASISSchema.t) -> 
     name -> 
     ?default:'a -> 
     'a OASISValues.t -> 
@@ -97,11 +99,16 @@ end
 
 module type PLUGINS =
 sig
-  type t
-  module Make: functor (PI : PLUGIN_ID_TYPE) -> PLUGIN_UTILS_TYPE with type t = t
+  type act
+  type data
+
+  module Make: functor (PI : PLUGIN_ID_TYPE) -> 
+    PLUGIN_UTILS_TYPE with type act = act and type data = data
+
   val ls :        unit ->      name list
-  val find :      name * 'a -> t
+  val find :      name * 'a -> act
   val value :     (name * OASISVersion.t option) OASISValues.t
+  val quickstart_completion: name -> package -> package
 end
 
 module MapPlugin = Map.Make (
@@ -122,7 +129,8 @@ let help_all =
 module Make =
   functor (F:(sig
                 (* Family of plugins data *)
-                type t
+                type act
+                type data
                 val family_string: string
                 val not_found_fmt: 
                   unit -> (string -> string -> string, unit, string) format
@@ -131,15 +139,21 @@ module Make =
 
     open OASISValues
 
-    type t = F.t
+    type act = F.act
+    type data = F.data
 
-    let all : ((F.t * string) MapPlugin.t) ref = 
+    let act_all : ((F.act * string) MapPlugin.t) ref = 
       ref MapPlugin.empty
 
-    module Make (PI: PLUGIN_ID_TYPE) : PLUGIN_UTILS_TYPE with type t = t =
+    let qstrt_cmplt_all : ((package -> package) MapPlugin.t) ref =
+      ref MapPlugin.empty
+
+    module Make (PI: PLUGIN_ID_TYPE) : PLUGIN_UTILS_TYPE with 
+      type act = act and type data = data =
     struct
 
-       type t = F.t
+       type act = F.act
+       type data = F.data
 
        let () = 
          help_all :=
@@ -147,8 +161,12 @@ module Make =
            PI.name (PI.version, PI.help_order, PI.help, PI.help_extra_vars) 
            !help_all
 
-       let register e = 
-         all := MapPlugin.add PI.name (e, PI.version) !all
+       let register_act e = 
+         act_all := MapPlugin.add PI.name (e, PI.version) !act_all
+
+
+       let register_quickstart_completion f = 
+         qstrt_cmplt_all := MapPlugin.add PI.name f !qstrt_cmplt_all
 
        (** Create field name derived from a plugin 
          *)
@@ -157,7 +175,7 @@ module Make =
 
        (** See {!OASIS.new_field}
          *)
-       let new_field schema nm ?default parse =
+       let new_field schema nm ?default parse hlp =
          OASISSchema.new_field 
            schema
            (make_field_name nm) 
@@ -165,10 +183,14 @@ module Make =
            (* TODO: use an id here *)
            ~plugin:PI.name
            parse
+           hlp 
+           (* TODO *)
+           (fun _ -> 
+              raise Not_printable)
 
        (** See {!OASIS.new_field_conditional}
          *)
-       let new_field_conditional schema nm ?default parse =
+       let new_field_conditional schema nm ?default parse hlp =
          OASISSchema.new_field_conditional 
            schema
            (make_field_name nm) 
@@ -176,6 +198,10 @@ module Make =
            (* TODO: use an id here *)
            ~plugin:PI.name
            parse 
+           hlp
+           (* TODO *)
+           (fun _ -> 
+              raise Not_printable)
      end
 
     (** List all plugins *)
@@ -183,13 +209,13 @@ module Make =
       List.rev
         (MapPlugin.fold 
            (fun k (_, v) lst -> (k^" ("^v^")") :: lst)
-           !all
+           !act_all
            [])
 
     (** Find a specific plugin and return all informations *)
     let find_full (nm, ver_opt) =
       try
-        MapPlugin.find nm !all
+        MapPlugin.find nm !act_all
       with Not_found ->
         failwithf2
           (F.not_found_fmt ())
@@ -235,6 +261,14 @@ module Make =
           update = OASISValues.update_fail;
           print  = (fun e -> base.print e)
         }
+
+
+    let quickstart_completion nm = 
+      try
+        MapPlugin.find nm !qstrt_cmplt_all
+      with Not_found ->
+        (fun pkg -> pkg)
+
   end
 
 (** Configure plugins
@@ -242,7 +276,8 @@ module Make =
 module Configure = 
   Make
     (struct
-       type t = package_act
+       type act = package_act
+       type data = package
        let family_string = "configure"
        let not_found_fmt =  
          (fun () -> f_ "Unknown configure plugin '%s' (available: %s)")
@@ -253,7 +288,8 @@ module Configure =
 module Build =
   Make
     (struct
-       type t = package_act
+       type act  = package_act
+       type data = package
        let family_string = "build"
        let not_found_fmt =
          (fun () -> f_ "Unknown build plugin '%s' (available: %s)")
@@ -264,7 +300,8 @@ module Build =
 module Doc =
   Make
     (struct 
-       type t = (doc, unit) section_act
+       type act  = (doc, unit) section_act
+       type data = common_section * doc
        let family_string = "doc"
        let not_found_fmt =
          (fun () -> f_ "Unknown doc plugin '%s' (available: %s)")
@@ -275,7 +312,8 @@ module Doc =
 module Test =
   Make
     (struct
-       type t = (test, float) section_act
+       type act  = (test, float) section_act
+       type data = common_section * test
        let family_string = "test"
        let not_found_fmt =
          (fun () -> f_ "Unknown test plugin '%s' (available: %s)")
@@ -286,7 +324,8 @@ module Test =
 module Install =
   Make
     (struct
-       type t = package_act * package_act
+       type act  = package_act * package_act
+       type data = package
        let family_string = "install"
        let not_found_fmt =
          (fun () -> f_ "Unknown install plugin '%s' (available: %s)")
@@ -297,7 +336,8 @@ module Install =
 module Extra =
   Make
     (struct
-       type t = context_act -> package -> context_act
+       type act  = context_act -> package -> context_act
+       type data = package
        let family_string = "extra"
        let not_found_fmt =
          (fun () -> f_ "Unknown extra plugin '%s' (available: %s)")

@@ -175,79 +175,87 @@ let ask_schema ~ctxt schema lvl auto =
     }
   in
 
-  PropList.Schema.fold
-    (fun data key extra help -> 
-       if extra.plugin = None then 
-         begin
-           let has_default, default = 
-             try 
-               let s = 
-                 PropList.Schema.get
-                   schema
-                   data
-                   key
-               in
-                 true, Default_is s 
-             with 
-               | OASISValues.Not_printable ->
-                   (* Value exist but cannot be represented *)
-                   true, Default_exists ()
-               | PropList.Not_set _ ->
-                   false, NoDefault
-           in
+  let schm = 
+    schema.OASISSchema.schm
+  in
 
-           let parse = 
-             PropList.Schema.set 
-               schema
-               data
-               key
-               ~context:fake_context
-           in
-             begin
-               match extra.qckstrt_lvl with 
-                 | NoChoice s -> 
-                     begin
-                       try
-                         parse s
-                       with e ->
-                         failwithf3
-                           (f_ "Trying to set field '%s' using mandatory value '%s': %s")
-                           key s (Printexc.to_string e)
-                     end
-                 | _ when not has_default || lvl >= extra.qckstrt_lvl ->
-                     begin
-                       let help = 
-                         match help with 
-                           | Some f ->
-                               Some (f ())
-                           | None ->
-                               None
-                       in
-                         match extra.qckstrt_q with 
-                           | _ ->
-                               (* TODO: handle other kind of questions *)
-                               ask_field 
-                                 ~ctxt 
-                                 (if auto then
-                                    "???"^(String.lowercase key)
-                                  else
-                                    Printf.sprintf (f_ "Value for field '%s'?") key)
-                                 ?help
-                                 ~default
-                                 auto 
-                                 parse
-                     end
-                 | _ ->
-                     ()
-             end;
-             data
-         end
-       else
-         begin
-           data
-         end)
-    (PropList.Data.create ())
-    schema
+    PropList.Schema.fold
+      (fun data key extra help -> 
+         match extra.kind with 
+           | StandardField
+           | DefinePlugin _ ->
+               begin
+                 let has_default, default = 
+                   try 
+                     let s = 
+                       PropList.Schema.get
+                         schm
+                         data
+                         key
+                     in
+                       true, Default_is s 
+                   with 
+                     | OASISValues.Not_printable ->
+                         (* Value exist but cannot be represented *)
+                         true, Default_exists ()
+                     | PropList.Not_set _ ->
+                         false, NoDefault
+                 in
+
+                 let parse = 
+                   PropList.Schema.set 
+                     schm
+                     data
+                     key
+                     ~context:fake_context
+                 in
+                   begin
+                     match extra.qckstrt_lvl with 
+                       | NoChoice s -> 
+                           begin
+                             try
+                               parse s
+                             with e ->
+                               failwithf3
+                                 (f_ "Trying to set field '%s' using mandatory value '%s': %s")
+                                 key s (Printexc.to_string e)
+                           end
+                       | _ when not has_default || lvl >= extra.qckstrt_lvl ->
+                           begin
+                             let help = 
+                               match help with 
+                                 | Some f ->
+                                     Some (f ())
+                                 | None ->
+                                     None
+                             in
+                               match extra.qckstrt_q with 
+                                 | _ ->
+                                     (* TODO: handle other kind of questions *)
+                                     ask_field 
+                                       ~ctxt 
+                                       (if auto then
+                                          "???"^(String.lowercase key)
+                                        else
+                                          Printf.sprintf (f_ "Value for field '%s'?") key)
+                                       ?help
+                                       ~default
+                                       auto 
+                                       parse
+                           end
+                       | _ ->
+                           ()
+                   end;
+                   data
+               end
+
+           | FieldFromPlugin _ ->
+               begin
+                 data
+               end)
+
+      (PropList.Data.create ())
+      schm
 
 (** Ask questions for a package and its sections *)
 let ask_package ~ctxt lvl auto = 
@@ -347,19 +355,56 @@ let ask_package ~ctxt lvl auto =
            s_ "Create a section?")
   in
 
-  let _pkg = 
-    (* Check that the global packaging is correct and get
-     * order for package/library/test
-     *)
-
-    (* TODO: create a real function that do the check *)
-
+  let pkg = 
+    (* Build the basic data structure *)
     OASISPackage_intern.generator 
       pkg_data 
       section_data 
   in
 
-    pkg_data, section_data
+  (* Apply completion from plugin *)
+  let plugins = 
+    (* Toplevel plugins *)
+    [
+      pkg.conf_type,     OASISPlugin.Configure.quickstart_completion;
+      pkg.build_type,    OASISPlugin.Build.quickstart_completion;
+      pkg.install_type,  OASISPlugin.Install.quickstart_completion;
+    ]
+  in
+  let plugins = 
+    (* Extra plugins *)
+    List.fold_left
+      (fun lst plg -> 
+         (plg, OASISPlugin.Extra.quickstart_completion) :: lst)
+      plugins
+      pkg.plugins
+  in
+  let plugins = 
+    (* Plugins from section *)
+    List.fold_left
+      (fun lst sct ->
+         match sct with
+           | Executable _ | Library _ ->
+               lst
+           | Test (cs, test) -> 
+               (test.test_type, OASISPlugin.Test.quickstart_completion)
+               :: lst
+           | Doc (cs, doc) ->
+               (doc.doc_type, OASISPlugin.Doc.quickstart_completion)
+               :: lst
+           | Flag _ | SrcRepo _ ->
+               lst)
+      plugins
+      pkg.sections
+  in
+  let pkg = 
+    List.fold_left
+      (fun pkg (plg, quickstart_completion) -> 
+         quickstart_completion (fst plg) pkg)
+      pkg
+      plugins
+  in
+    pkg
 
 (** Create an _oasis file *)
 let to_file ~ctxt fn lvl auto oasis_dev =
@@ -400,7 +445,7 @@ let to_file ~ctxt fn lvl auto oasis_dev =
       end
   in
 
-  let (pkg_data, section_data) = 
+  let pkg = 
     ask_package ~ctxt lvl auto
   in
 
@@ -411,9 +456,7 @@ let to_file ~ctxt fn lvl auto oasis_dev =
     let fmt =
       formatter_of_buffer buf
     in
-      OASISFormat.pp_print_package_proplist 
-        fmt 
-        (pkg_data, section_data);
+      OASISFormat.pp_print_package fmt pkg;
       Format.pp_print_flush fmt ();
       buf
   in

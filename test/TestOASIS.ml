@@ -79,7 +79,7 @@ let tests ctxt =
     (fun () ->
        let pkg =
          from_file 
-           ~ctxt:!OASISContext.default
+           ~ctxt:ctxt.oasis_ctxt
            ~ignore_plugins:true
            fn
        in
@@ -118,7 +118,7 @@ let tests ctxt =
             (fun (v, f) -> 
                (v, 
                 OASISVersion.comparator_value.parse 
-                  ~ctxt:OASISContext.quiet, 
+                  ~ctxt:ctxt.oasis_ctxt, 
                 f))
             [
               ">= 3.11.1", false;

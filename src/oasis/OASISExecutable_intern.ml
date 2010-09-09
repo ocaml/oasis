@@ -35,10 +35,14 @@ let schema, generator =
     schema "Executable" 
   in
   let cmn_section_gen =
-    OASISSection.section_fields (fun () -> (s_ "executable")) schm
+    OASISSection.section_fields 
+      (fun () -> (s_ "executable")) schm
+      (fun (cs, _, _) -> cs)
   in
   let build_section_gen =
-    OASISBuildSection_intern.section_fields (fun () -> (s_ "executable")) Byte schm
+    OASISBuildSection_intern.section_fields 
+      (fun () -> (s_ "executable")) Byte schm
+      (fun (_, bs, _) -> bs)
   in
   let main_is =
     new_field schm "MainIs" 
@@ -56,6 +60,7 @@ let schema, generator =
          })
       (fun () -> 
          s_ "OCaml file (.ml) containing main procedure for the executable.")
+      (fun (_, _, exec) -> exec.exec_main_is)
   in
   let custom =
     new_field schm "Custom"
@@ -63,6 +68,7 @@ let schema, generator =
       boolean
       (fun () ->
          s_ "Create custom bytecode executable.")
+      (fun (_, _, exec) -> exec.exec_custom)
   in
     schm,
     (fun nm data -> 

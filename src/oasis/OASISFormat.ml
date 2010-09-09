@@ -44,7 +44,9 @@ let pp_print_fields fmt (schm, data) =
             with 
               | OASISValues.Not_printable ->
                   acc 
-              | PropList.Not_set _ when extra.plugin <> None ->
+              | PropList.Not_set _ ->
+                  (* TODO: is it really necessary *)
+                  (* when extra. <> None ->*)
                   acc)
          []
          schm)
@@ -87,48 +89,56 @@ let pp_print_fields fmt (schm, data) =
     pp_close_box fmt ()
 
 
-let pp_print_package_proplist fmt (pkg_data, section_data) =
+let pp_print_section fmt sct = 
+  let pp_print_section' schm t = 
+    let (schm, _) as sct_data = 
+      (OASISSchema.to_proplist schm) t
+    in
 
-  pp_open_vbox fmt 0;
+    let {cs_name = nm; cs_data = data} = 
+      OASISSection.section_common sct
+    in 
 
-  pp_print_fields fmt (OASISPackage.schema, pkg_data);
-  pp_print_cut fmt ();
+    let pp_id_or_string fmt str =
+      (* A string is an id if varname_of_string doesn't change it *)
+      if OASISUtils.is_varname str then 
+        fprintf fmt "%s" str
+      else 
+        fprintf fmt "%S" str
+    in
+      fprintf fmt "@[<v 2>%s %a@,%a@]@,"
+        (PropList.Schema.name schm)
+        pp_id_or_string nm
+        pp_print_fields sct_data
+  in
 
-  List.iter 
-    (fun sct ->
-       let schm = 
-         (* TODO: the sections list should embed this schema *)
-         match sct with 
-           | Library _ ->
-               OASISLibrary.schema
-           | Executable _ -> 
-               OASISExecutable.schema
-           | SrcRepo _ ->
-               OASISSourceRepository.schema
-           | Test _ ->
-               OASISTest.schema
-           | Flag _ ->
-               OASISFlag.schema
-           | Doc _ ->
-               OASISDocument.schema
-       in
+   match sct with 
+     | Library (cs, bs, lib) ->
+         pp_print_section' OASISLibrary.schema (cs, bs, lib)
+     | Executable (cs, bs, exec) -> 
+         pp_print_section' OASISExecutable.schema (cs, bs, exec)
+     | SrcRepo (cs, src_repo) ->
+         pp_print_section' OASISSourceRepository.schema (cs, src_repo)
+     | Test (cs, test) ->
+         pp_print_section' OASISTest.schema (cs, test)
+     | Flag (cs, flag) ->
+         pp_print_section' OASISFlag.schema (cs, flag)
+     | Doc (cs, doc) ->
+         pp_print_section' OASISDocument.schema (cs, doc)
 
-       let {cs_name = nm; cs_data = data} = 
-         OASISSection.section_common sct
-       in 
 
-       let pp_id_or_string fmt str =
-         (* A string is an id if varname_of_string doesn't change it *)
-         if OASISUtils.is_varname str then 
-           fprintf fmt "%s" str
-         else 
-           fprintf fmt "%S" str
-       in
-         fprintf fmt "@[<v 2>%s %a@,%a@]@,"
-           (PropList.Schema.name schm)
-           pp_id_or_string nm
-           pp_print_fields (schm, data))
-    section_data;
+let pp_print_package fmt pkg = 
 
-  pp_close_box fmt ()
+  let pkg_data = 
+    (OASISSchema.to_proplist OASISPackage.schema) pkg 
+  in
+
+    pp_open_vbox fmt 0;
+
+    pp_print_fields fmt pkg_data;
+    pp_print_cut fmt ();
+
+    List.iter (pp_print_section fmt) pkg.sections;
+
+    pp_close_box fmt ()
 

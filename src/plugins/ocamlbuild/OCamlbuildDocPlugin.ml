@@ -26,6 +26,7 @@
 open OASISTypes
 open OASISGettext
 open OASISMessage
+open OCamlbuildCommon
 open BaseStandardVar
 
 TYPE_CONV_PATH "OCamlbuildDocPlugin"
@@ -42,12 +43,12 @@ let doc_build path pkg (cs, doc) argv =
   let tgt_dir =
     BaseFilePath.make
       [
-        OCamlbuildCommon.build_dir argv;
+        build_dir argv;
         BaseFilePath.of_unix path;
         cs.cs_name^".docdir";
       ]
   in
-    OCamlbuildCommon.run_ocamlbuild [index_html] argv;
+    run_ocamlbuild [index_html] argv;
     List.iter
       (fun glb ->
          BaseBuilt.register
@@ -58,7 +59,7 @@ let doc_build path pkg (cs, doc) argv =
       ["*.html"; "*.css"]
 
 let doc_clean t pkg (cs, doc) argv =
-  OCamlbuildCommon.run_clean argv;
+  run_clean argv;
   BaseBuilt.unregister BaseBuilt.BDoc cs.cs_name
 
 (* END EXPORT *)
@@ -209,6 +210,7 @@ let doit ctxt pkg (cs, doc) =
 
   let ctxt = 
     (* Checks consistency of options *)
+    (* TODO: merge with qstrt_completion *)
     List.fold_left
       (fun ctxt f -> f ctxt)
       ctxt
@@ -253,5 +255,13 @@ let doit ctxt pkg (cs, doc) =
         None;
     }
 
+let qstrt_completion pkg = 
+  List.fold_left
+    (fun pkg tool -> fix_build_tools tool pkg)
+    pkg
+    [ExternalTool "ocamlbuild";
+     ExternalTool "ocamldoc"]
+
 let init () = 
-  register doit
+  register_act doit;
+  register_quickstart_completion qstrt_completion

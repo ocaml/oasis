@@ -31,8 +31,13 @@ let check_schema where schm data =
   let msgfld =
     Schema.fold
       (fun acc fld extra hlp ->
-         match extra.plugin with 
-           | None ->
+         match extra.kind with 
+           | DefinePlugin _ ->
+               begin
+                 acc
+               end
+
+           | StandardField ->
                begin
                  try
                    let _ = 
@@ -47,7 +52,7 @@ let check_schema where schm data =
                    | OASISValues.Not_printable ->
                        acc
                end
-           | Some _ ->
+           | FieldFromPlugin _ ->
                begin
                  (* TODO: handle plugin checks *)
                  acc

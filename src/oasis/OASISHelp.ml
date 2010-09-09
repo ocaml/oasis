@@ -36,14 +36,25 @@ let fields_of_section ?plugin schm =
   List.rev
     (PropList.Schema.fold
        (fun acc key extra help ->
-          if plugin = extra.plugin then
-            (key, help) :: acc
-          else
-            acc)
+          match extra.kind with
+            | StandardField | DefinePlugin _ ->
+                if plugin = None then
+                  (key, help) :: acc
+                else
+                  acc
+            | FieldFromPlugin plg ->
+                if plugin = Some plg then
+                  (key, help) :: acc
+                else
+                  acc)
        []
        schm)
 
 let pp_section_fields ?plugin ?allowed_fields schm = 
+
+  let schm = 
+    schm.schm
+  in
 
   let fields = 
     let all_fields =
@@ -258,7 +269,9 @@ let pp_help_replace vars fmt str =
 let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
   let build_section_fields, library_fields, executable_fields =
     let set_fields_of_section schm = 
-      set_string_of_list (List.rev_map fst (fields_of_section ?plugin schm))
+      set_string_of_list 
+        (List.rev_map fst 
+           (fields_of_section ?plugin schm.schm))
     in
     let lib_flds = 
       set_fields_of_section OASISLibrary.schema

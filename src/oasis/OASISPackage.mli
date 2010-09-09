@@ -4,4 +4,4 @@
 
 (** Schema for the section. {b Not exported}.
   *)
-val schema : OASISSchema.t
+val schema: OASISTypes.package OASISSchema.t

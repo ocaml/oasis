@@ -427,4 +427,4 @@ let init () =
     }
   in
 
-    PU.register (doit_install, doit_uninstall)
+    PU.register_act (doit_install, doit_uninstall)

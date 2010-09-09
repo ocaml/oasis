@@ -36,14 +36,18 @@ let schema, generator =
    schema "Test"
   in
   let cmn_section_gen =
-    OASISSection.section_fields (fun () -> (s_ "test")) schm
+    OASISSection.section_fields 
+      (fun () -> (s_ "test")) 
+      schm
+      (fun (cs, _) -> cs)
   in
   let typ =
-    new_field schm "Type"
+    new_field_plugin schm "Type"
       ~default:(OASISPlugin.builtin "custom") 
       OASISPlugin.Test.value
       (fun () ->
          s_ "Plugin to use to run test.")
+      (fun (_, test) -> test.test_type)
   in
   let tools = 
     new_field schm "TestTools"
@@ -51,12 +55,14 @@ let schema, generator =
       OASISBuildSection_intern.build_tools_value
       (fun () -> 
          s_ "Tools required to run the test, including internal executables.")
+      (fun (_, test) -> test.test_tools)
   in
   let command = 
     new_field_conditional schm "Command"
       command_line
       (fun () ->
          s_ "Command to run for the test.")
+      (fun (_, test) -> test.test_command)
   in
   let working_directory =
     new_field schm "WorkingDirectory" 
@@ -64,11 +70,13 @@ let schema, generator =
       (opt string_not_empty)
       (fun () ->
          s_ "Directory to run the test.")
+      (fun (_, test) -> test.test_working_directory)
   in
   let custom =
     OASISCustom.add_fields schm ""
       (fun () -> s_ "Command to run before the test")
       (fun () -> s_ "Command to run after the test")
+      (fun (_, test) -> test.test_custom)
   in
   let run = 
     new_field_conditional schm "Run"
@@ -76,6 +84,7 @@ let schema, generator =
       boolean
       (fun () ->
          s_ "Enable this test.")
+      (fun (_, test) -> test.test_run)
   in
     schm,
     (fun nm data ->

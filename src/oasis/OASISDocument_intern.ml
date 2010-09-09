@@ -36,28 +36,34 @@ let schema, generator =
    schema "Document"
   in
   let cmn_section_gen =
-    OASISSection.section_fields (fun () -> (s_ "document")) schm
+    OASISSection.section_fields 
+      (fun () -> (s_ "document")) schm
+      (fun (cs, _) -> cs)
   in
   let build_tools = 
     OASISBuildSection_intern.build_tools_field schm
+      (fun (_, doc) -> doc.doc_build_tools)
   in
   let typ =
-    new_field schm "Type"
+    new_field_plugin schm "Type"
       ~default:(OASISPlugin.builtin "none") 
       OASISPlugin.Doc.value
       (fun () ->
          s_ "Plugin to use to build documentation.")
+      (fun (_, doc) -> doc.doc_type)
   in
   let custom =
     OASISCustom.add_fields schm ""
       (fun () -> s_ "Command to run before building the doc.")
       (fun () -> s_ "Command to run after building the doc.")
+      (fun (_, doc) -> doc.doc_custom)
   in
   let title =
     new_field schm "Title"
       string_not_empty
       (fun () ->
          s_ "Title of the document.")
+      (fun (_, doc) -> doc.doc_title)
   in
   let authors =
     new_field schm "Authors"
@@ -65,6 +71,7 @@ let schema, generator =
       (comma_separated string_not_empty)
       (fun () ->
          s_ "Authors of the document.")
+      (fun (_, doc) -> doc.doc_authors)
   in
   let abstract =
     new_field schm "Abstract"
@@ -72,6 +79,7 @@ let schema, generator =
       (opt string_not_empty)
       (fun () ->
          s_ "Short paragraph giving an overview of the document.")
+      (fun (_, doc) -> doc.doc_abstract)
   in
   let doc_format =
     new_field schm "Format"
@@ -87,6 +95,7 @@ let schema, generator =
           "Other",      OtherDoc])
       (fun () ->
          s_ "Format for the document.")
+      (fun (_, doc) -> doc.doc_format)
   in
   let index =
     new_field schm "Index"
@@ -95,6 +104,12 @@ let schema, generator =
       (fun () ->
          s_ "Index or top-level file for the document, only apply to \
              HTML and Info.")
+      (fun (_, doc) -> 
+         match doc.doc_format with 
+           | HTML idx | Info idx ->
+               Some idx
+           | DocText | PDF | PostScript | DVI | OtherDoc ->
+               None)
   in
   let install_dir =
     new_field schm "InstallDir"
@@ -102,14 +117,21 @@ let schema, generator =
       (opt (expandable file))
       (fun () ->
          s_ "Default target directory to install data and documentation.")
+      (fun (_, doc) -> Some doc.doc_install_dir)
   in
   let build, install, data_files = 
    OASISBuildSection_intern.build_install_data_fields schm
+     (fun (_, doc) -> doc.doc_build)
+     (fun (_, doc) -> doc.doc_install)
+     (fun (_, doc) -> doc.doc_data_files)
   in
     schm,
     (fun nm data ->
        Doc
          (cmn_section_gen nm data,
+          (* TODO: find a way to code that in a way compatible with 
+           * quickstart
+           *)
           let doc_format =
             match doc_format data with 
               | HTML _ ->

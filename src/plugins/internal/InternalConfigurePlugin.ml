@@ -249,4 +249,4 @@ let init () =
            "InternalConfigurePlugin.configure");
     }
   in
-    PU.register doit
+    PU.register_act doit

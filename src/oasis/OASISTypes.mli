@@ -95,6 +95,7 @@ type common_section =
       cs_name: name;
       (** Name of the section. *)
 
+      (* TODO: get rid of schema_data and cs_data *)
       cs_data: PropList.Data.t;
       (** Property list attached to the section. *)
     }
@@ -330,6 +331,8 @@ type package =
       (** All sections (libraries, executables, tests...). *)
       plugins:          plugin list;
       (** Extra plugins applied. *)
+
+      (* TODO: get rid of schema_data and cs_data *)
       schema_data:      PropList.Data.t;
       (** Property list attached to this package. *)
     } 

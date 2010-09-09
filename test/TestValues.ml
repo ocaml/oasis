@@ -15,7 +15,7 @@ let tests ctxt =
           (fun () ->
              let _a =
                v.parse 
-                 ~ctxt:OASISContext.quiet 
+                 ~ctxt:ctxt.oasis_ctxt
                  txt
              in
                ())))

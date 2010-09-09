@@ -39,7 +39,7 @@ let tests ctxt =
           (* Parse string to get OASIS package *)
           let pkg = 
             OASISParse.from_string 
-              ~ctxt:!OASISContext.default
+              ~ctxt:ctxt.oasis_ctxt
               oasis_str
           in
 

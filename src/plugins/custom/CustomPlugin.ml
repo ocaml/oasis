@@ -166,7 +166,7 @@ struct
   (** Add standard fields 
     *)
   let add_fields
-        ?(schema=OASISPackage.schema)
+        ~schema
         nm 
         hlp 
         hlp_clean 
@@ -200,7 +200,8 @@ struct
     *)
   let std nm hlp hlp_clean hlp_distclean =
     let cmd_main, cmd_clean, cmd_distclean =
-      add_fields nm hlp hlp_clean hlp_distclean 
+      add_fields ~schema:OASISPackage.schema 
+        nm hlp hlp_clean hlp_distclean 
     in
       fun ctxt pkg -> 
         let t =
@@ -247,7 +248,7 @@ let conf_init () =
       (fun () -> s_ "Run command to clean configure step.")
       (fun () -> s_ "Run command to distclean configure step.")
   in
-    PU.register doit
+    PU.register_act doit
 
 (* Build plugin *)
 let build_init () = 
@@ -257,6 +258,7 @@ let build_init () =
   in
   let cmd_main, cmd_clean, cmd_distclean =
     CU.add_fields
+      ~schema:OASISPackage.schema 
       "Build"
       (fun () -> s_ "Run command to build.")
       (fun () -> s_ "Run command to clean build step.")
@@ -293,7 +295,7 @@ let build_init () =
                t odn_of_t);
       }
   in
-    PU.register doit
+    PU.register_act doit
 
 (* Install plugin *)
 let install_init () =
@@ -315,7 +317,7 @@ let install_init () =
       (fun () -> s_ "Run command to clean uninstall step.")
       (fun () -> s_ "Run command to distclean uninstall step.")
   in
-    PU.register (doit_install, doit_uninstall)
+    PU.register_act (doit_install, doit_uninstall)
 
 (* Document plugin *)
 let doc_init () =
@@ -325,9 +327,6 @@ let doc_init () =
   in
   let cmd_main, cmd_clean, cmd_distclean =
     CU.add_fields
-      (* TODO: we must attach a type to schema, so we can pick sooner errors
-       * on creating a field in a schema and fetching it in another schema.
-       *)
       ~schema:OASISDocument.schema
       ""
       (fun () -> s_ "Run command to build documentation.")
@@ -365,7 +364,7 @@ let doc_init () =
                  t odn_of_t);
         }
   in
-    PU.register doit
+    PU.register_act doit
 
 (* Test plugin *)
 let test_init () =
@@ -422,7 +421,7 @@ let test_init () =
                  t odn_of_t);
         }
   in
-    PU.register doit
+    PU.register_act doit
 
 let init () = 
   conf_init ();
