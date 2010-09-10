@@ -8,6 +8,9 @@
     @see <http://forge.ocamlcore.org/projects/ocaml-gettext> OCaml Gettext project
   *)
 
+(** Do nothing, but register it for translation *)
+val ns_: string -> string
+
 (** Translate a string. *)
 val s_ : string -> string
 

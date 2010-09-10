@@ -26,13 +26,22 @@
 open OUnit
 open TestCommon
 open OASISValues
-open OASISLicense
 open OASISTypes
 open OASISContext
+open OASISLicense
 
 let tests ctxt =
   let ver =
     OASISVersion.version_of_string
+  in
+  let mk ?(v=NoVersion) ?(e=[]) lic = 
+    Some
+      (DEP5License
+         {
+           license    = lic;
+           version    = v;
+           exceptions = e;
+         })
   in
 
     "License" >:::
@@ -58,39 +67,46 @@ let tests ctxt =
 
        [
          "BSD4", 
-         Some BSD4;
+         mk bsd4;
 
          "BSD4-1.0+", 
-         None;
+         mk ~v:(VersionOrLater (ver "1.0")) bsd4;
 
          "BSD3", 
-         Some BSD3;
+         mk bsd3;
 
          "GPL",  
-         Some GPL;
+         mk gpl;
 
          "GPL-2", 
-         Some (LicenseWithVersion(GPL, ver "2"));
+         mk ~v:(Version (ver "2")) gpl;
 
          "GPL-2+", 
-         Some (LicenseWithLaterVersion(GPL, ver "2"));
+         mk ~v:(VersionOrLater (ver "2")) gpl;
 
          "LGPL-2.1 with OCaml linking exception",
-         Some (LicenseWithException
-                 (LicenseWithVersion (LGPL, ver "2.1"),
-                  OCamlLinkingException));
+         mk ~v:(Version (ver "2.1")) ~e:[ocaml_linking_exception] lgpl;
 
          "http://some.stuff.com/license",
          Some (OtherLicense "http://some.stuff.com/license");
 
          "CeCILL",
-         Some (CeCILL);
+         mk cecill;
 
          "CeCILL-B",
-         Some (CeCILLB);
+         mk cecillb;
 
          "CeCILL-C",
-         Some (CeCILLC);
+         mk cecillc;
+
+         "LGPL-2.1 with OCaml drinking exception",
+         None;
+
+         "CeCILLB2000",
+         None;
+
+         "CMU/MIT",
+         None;
        ]
 
     )

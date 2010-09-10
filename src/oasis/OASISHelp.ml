@@ -25,6 +25,7 @@
     @author Sylvain Le Gall
   *)
 
+open OASISLicense
 open OASISTypes
 open OASISSchema
 open OASISGettext
@@ -115,19 +116,43 @@ let pp_short_licenses () =
     pp_set_margin fmt 80;
     pp_open_vbox fmt 0;
     pp_print_list
-      (fun fmt (_, short, descr, vers) ->
-         match vers with
-           | [] ->
+      (fun fmt (license, data) ->
+         let str_license = 
+            string_of_license license
+         in
+         let long_name fmt = 
+            pp_print_string_spaced fmt data.long_name
+         in
+         let vers = 
+           List.map OASISVersion.string_of_version data.versions
+         in
+         match vers, data.note with
+           | [], None ->
                fprintf fmt 
-                 (f_ " * @[`%s`: %a@]") 
-                 short
-                 pp_print_string_spaced descr
-           | lst ->
+                 (f_ " * @[`%s`: %t@]") 
+                 str_license long_name
+           | [], Some txt ->
+               fprintf fmt 
+                 (f_ " * @[`%s`: %t. %a@]") 
+                 str_license long_name
+                 pp_print_string_spaced txt
+           | lst, None ->
                fprintf fmt
-                 (f_ " * @[`%s`: %a (version@ %a)@]")
-                 short
-                 pp_print_string_spaced descr
-                 (pp_print_list pp_print_string ",@, ") lst)
+                 (fn_ 
+                    " * @[`%s`: %t (version@ %a)@]"
+                    " * @[`%s`: %t (versions@ %a)@]"
+                    (List.length vers))
+                 str_license long_name
+                 (pp_print_list pp_print_string ",@, ") lst
+           | lst, Some txt ->
+               fprintf fmt
+                 (fn_ 
+                    " * @[`%s`: %t. %a (version@ %a)@]"
+                    " * @[`%s`: %t. %a (versions@ %a)@]"
+                    (List.length vers))
+                 str_license long_name
+                 pp_print_string_spaced txt
+                 (pp_print_list pp_print_string ",@, ") lst) 
         "@,"
         fmt
         (OASISLicense.license_data ());
@@ -141,21 +166,30 @@ let pp_license_exceptions () =
     pp_set_margin fmt 80;
     pp_open_vbox fmt 0;
     pp_print_list
-      (fun fmt (_, txt, compats) ->
-         match compats with
-           | [] ->
-               fprintf fmt 
-                 (f_ " * `%s`") 
-                 txt
-           | lst ->
-               fprintf fmt
-                 (f_ " * @[`%s` compatible with %a@]")
-                 txt
-                 (pp_print_list 
-                    (fun fmt l -> 
-                       pp_print_string fmt (OASISLicense.to_string l))
-                    ",@, ") 
-                 lst)
+      (fun fmt (excpt, data) ->
+         let excpt_str = 
+          string_of_license_exception excpt
+         in
+         let explanation fmt = 
+           pp_print_string_spaced fmt data.explanation
+         in
+         let licenses = 
+           List.map string_of_license data.licenses
+         in
+           match licenses with
+             | [] ->
+                 fprintf fmt 
+                   (f_ " * @[`%s`: %t@]") 
+                   excpt_str explanation
+             | lst ->
+                 fprintf fmt
+                   (fn_ 
+                      " * @[`%s` compatible with %a: %t@]"
+                      " * @[`%s` compatible with %a: %t@]"
+                      (List.length licenses))
+                   excpt_str
+                   (pp_print_list pp_print_string ",@, ") lst
+                   explanation)
         "@,"
         fmt
         (OASISLicense.license_exception_data ());

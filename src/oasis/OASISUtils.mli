@@ -22,6 +22,12 @@ val set_string_add_list : SetString.t -> SetString.elt list -> SetString.t
 (** Convert a string list to a Set. *)
 val set_string_of_list : SetString.elt list -> SetString.t
 
+(** {2 Hashtable} *)
+
+(** Caseless string hashtable
+  *)
+module HashStringCsl: Hashtbl.S with type key = String.t
+
 (** {2 Variable name} *)
 
 (** [varname_of_string ~hyphen:c s] Transform a string [s] into a variable name, 

@@ -39,6 +39,19 @@ let set_string_of_list =
   set_string_add_list
     SetString.empty
 
+
+module HashStringCsl = 
+  Hashtbl.Make
+    (struct
+       type t = string
+
+       let equal s1 s2 = 
+           (String.lowercase s1) = (String.lowercase s2)
+
+       let hash s =
+         Hashtbl.hash (String.lowercase s)
+     end)
+
 let split sep str =
   let str_len =
     String.length str
