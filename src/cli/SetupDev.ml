@@ -16,6 +16,9 @@ let run_args =
             at least an executable, so this is the default value
           *)
 
+let only_setup =
+  ref false
+
 let main () =
   let oasis_exec = !roasis_exec in
   let setup_fn   = BaseSetup.default_filename in
@@ -51,7 +54,10 @@ let main () =
     match !run_args with 
       | [] ->
           begin
-            (* Default mode: generate setup.ml *)
+            (* Default mode: generate setup.ml 
+             * and all files required for the build system
+             * if they don't exist
+             *)
             let chngs = 
               BaseGenerate.generate 
                 ~msg
@@ -64,7 +70,8 @@ let main () =
                    ~ctxt:!BaseContext.default 
                    !ArgCommon.oasis_fn)
             in
-              clean_changes chngs
+              if !only_setup then 
+                clean_changes chngs
           end
 
       | bootstrap_ocaml :: bootstrap_args ->
@@ -173,6 +180,11 @@ let scmd =
                 Arg.Unit (fun () -> run_args := List.rev !run_args)],
              s_ " Run a command after generating files, this is the mode used \
                   by setup.ml in developper mode. Don't use it directly.";
+
+             "-only-setup",
+             Arg.Set only_setup,
+             s_ " When generating the build system, keep only setup.ml and \
+                  delete other generated files.";
            ] @ ArgCommon.oasis_fn_specs)}
 
 let () = 
