@@ -88,8 +88,8 @@ let schema, generator =
   let new_field ?quickstart_level ?default nm value hlp sync = 
     new_field schm ?quickstart_level ?default nm value hlp sync
   in
-  let new_field_plugin nm ?default value hlp sync =  
-    new_field_plugin schm nm ?default value hlp sync
+  let new_field_plugin nm ?default ?quickstart_question value hlp sync =
+    new_field_plugin schm nm ?default ?quickstart_question value hlp sync
   in
 
   let oasis_version = 
@@ -206,6 +206,7 @@ let schema, generator =
   let conf_type =
     new_field_plugin "ConfType" 
       ~default:(OASISPlugin.builtin "internal")
+      ~quickstart_question:OASISPlugin.Configure.quickstart_question 
       OASISPlugin.Configure.value
       (fun () -> 
          s_ "Configuration system.")
@@ -220,6 +221,7 @@ let schema, generator =
   let build_type =
     new_field_plugin "BuildType" 
       ~default:(OASISPlugin.builtin "ocamlbuild")
+      ~quickstart_question:OASISPlugin.Build.quickstart_question
       OASISPlugin.Build.value
       (fun () -> 
          s_ "Build system.")
@@ -234,6 +236,7 @@ let schema, generator =
   let install_type =
     new_field_plugin "InstallType"
       ~default:(OASISPlugin.builtin "internal")
+      ~quickstart_question:OASISPlugin.Install.quickstart_question
       OASISPlugin.Install.value
       (fun () -> 
          s_ "Install/uninstall system.")

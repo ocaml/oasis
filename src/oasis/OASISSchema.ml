@@ -86,7 +86,7 @@ type extra =
   {
     kind:        kind;
     qckstrt_lvl: string quickstart_level;
-    qckstrt_q:   string quickstart_question;
+    qckstrt_q:   unit -> string quickstart_question;
   }
 
 type 'a t =
@@ -107,7 +107,7 @@ let schema nm =
 let extra 
       ?(kind=StandardField)
       ?(quickstart_level=Expert) 
-      ?(quickstart_question=Field)
+      ?(quickstart_question=(fun () -> Field))
       value =
           
   let qckstrt_lvl =
@@ -117,13 +117,13 @@ let extra
           l
   in
 
-  let qckstrt_q =
-    match quickstart_question with
+  let qckstrt_q () =
+    match quickstart_question () with
       | Choices lst ->
           Choices (List.map value.print lst)
       | ExclusiveChoices lst ->
           ExclusiveChoices (List.map value.print lst)
-      | YesNo | Field | Text as q ->
+      | Field | Text as q ->
           q
   in
 

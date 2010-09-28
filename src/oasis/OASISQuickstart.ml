@@ -32,140 +32,257 @@ open OASISUtils
 open OASISMessage
 
 type 'a default =
-  | Default_exists of 'a
-  | Default_is of string
+  | Default_value of 'a
+  | Default_answer of string
+  | Default_not_printable
   | NoDefault
 
-let ask_until_correct q ~ctxt auto ?help ?(default=NoDefault) parse = 
+type interface = 
+  | Human
+  | Machine
+
+type 'a t =
+    {
+      id:        string;
+      interface: interface;
+      default:   'a default;
+      help:      string;
+      ctxt:      OASISContext.t;
+      question:  string;
+      parse:     string -> 'a;
+    }
+
+(** This expression is raised when an unprintable default
+  * is chosen 
+  *)
+exception ChooseNotPrintableDefault 
+
+(** Convert a default into a text *)
+let help_of_default = 
+  function
+    | Default_answer dflt ->
+        Printf.sprintf (f_ "Default is '%s'") dflt
+
+    | Default_value _ | Default_not_printable ->
+        s_ "A default exists, you can leave this field blank." 
+
+    | NoDefault ->
+        s_ "No default exists, you need to answer this question."
+
+(** Ask a question until a correct answer is given 
+  *)
+let ask_until_correct t = 
   let rec ask_until_correct_aux () =
     let () = 
-      (* Short introduction *)
-      Printf.printf "\n%s " q;
-      if not auto then
-        begin
-          match default with 
-            | Default_is dflt ->
-                Printf.printf (f_ "(default is '%s') ") dflt
-            | Default_exists _ ->
-                Printf.printf (f_ "(default exists) ") 
-            | NoDefault ->
-                ()
-        end;
-      Printf.printf "%!"
+      (* Question *)
+      match t.interface with
+        | Human ->
+            Printf.printf "%s %!" t.question
+        | Machine ->
+            Printf.printf "???%s %!" t.id
     in
-    let rec input_until_decided () = 
       try
-        begin
-          let a = 
-            read_line ()
-          in
-            match a, help, default with 
-              | "?", Some hlp, _ ->
-                  print_endline hlp;
-                  flush stdout;
-                  ask_until_correct_aux ()
-              | "?", None, _ ->
-                  print_endline (s_ "No help for this question.");
-                  flush stdout;
-                  ask_until_correct_aux ()
-              | "", _, Default_exists v ->
-                  v
-              | "", _, Default_is s ->
-                  Printf.printf (f_ "Using default '%s'.\n") s;
-                  parse s
-              | s, _, _ ->
-                  parse s
-        end
-      with e -> 
-        begin
-          error ~ctxt ~exit:false "%s" (string_of_exception e);
-          if help <> None then
-            print_endline (s_ "Answer '?' for help on this question.");
-          ask_until_correct_aux ()
-        end
-    in
-      input_until_decided ()
+        let answer = 
+          read_line ()
+        in
+          match answer, t.default with 
+            | "?", _ ->
+                print_endline t.help;
+                ask_until_correct_aux ()
+
+            | "", Default_value v ->
+                v
+
+            | "", Default_answer s ->
+                t.parse s
+
+            | "", Default_not_printable ->
+                raise ChooseNotPrintableDefault
+
+            | s, _ ->
+                t.parse s
+
+      with 
+        | ChooseNotPrintableDefault as e ->
+            begin
+              raise e
+            end
+
+        | e -> 
+            begin
+              Printf.printf (f_ "Error: %s\n") (string_of_exception e);
+              begin
+                match t.interface with
+                  | Human ->
+                      Printf.printf 
+                        (f_ "Answer '?' for help on this question.\n%!")
+                  | Machine ->
+                      ()
+              end;
+              ask_until_correct_aux ()
+            end
+  in
+  let () = 
+    match t.interface with
+      | Human ->
+          print_newline ();
+          print_endline t.help
+      | Machine ->
+          ()
   in
     ask_until_correct_aux ()
 
-let ask_shortcut_choices ~ctxt auto ?help ?(default=NoDefault) q choices = 
-  let help = 
+
+(** Try to transform a [Default_value _] into a
+    [Default_answer _] if the value is among the choices
+  *)
+let printable_default default choices =
+  match default with 
+    | Default_answer _ 
+    | NoDefault 
+    | Default_not_printable as d ->
+        d
+
+    | Default_value v as d ->
+        begin
+          try
+            let chc, _ = 
+              List.find 
+                (fun (_, v') -> v = v')
+                choices
+            in
+              Default_answer chc
+
+          with Not_found ->
+            d
+        end
+
+(** Extend [t] so that it can be processed using a choices
+    list.
+  *)
+let mk_shortcut_choices t choices = 
+ let help_choices = 
     let fmt =
       str_formatter
     in
       pp_open_vbox fmt 0;
-      begin
-        match help with 
-          | Some s -> 
-              pp_print_string_spaced fmt s;
-              pp_print_cut fmt ()
-          | None ->
-              ()
-      end;
+      pp_print_cut fmt ();
+      pp_print_cut fmt ();
       pp_print_list
-        (fun fmt (chc, hlp, _) ->
-           fprintf 
-             fmt
-             "%s: @[%a@]"
-             chc
-             pp_print_string_spaced hlp)
+        (fun fmt (chc, nm, hlp, _) ->
+           match hlp with 
+             | Some txt ->
+                 fprintf 
+                   fmt
+                   "%s: @[%a, %a@]"
+                   chc
+                   pp_print_string_spaced nm
+                   pp_print_string_spaced txt
+             | None ->
+                 fprintf 
+                   fmt
+                   "%s: @[%a@]"
+                   chc
+                   pp_print_string_spaced nm)
         "@,"
         fmt
         choices;
+      pp_print_cut fmt ();
       pp_close_box fmt ();
+      flush_str_formatter ()
+  in
 
-      Some (flush_str_formatter ())
+  let choices_nohelp = 
+    List.map 
+      (fun (chc, _, _, vl) -> chc, vl)
+      choices
+  in
+
+  let parse_shortcut s =
+    List.assoc s choices_nohelp
+  in
+
+  (* The preprocessing we apply here, is that we also allow to use the name of
+     choice. The difference is that you can give only a prefix of the name
+     as long as it is not ambiguous. It also has lower priority than the 
+     shortcut.
+   *)
+  let name_choices =
+    List.rev_map
+      (fun (_, e, _, vl) -> e, vl)
+      choices
+  in
+
+  let parse_name_choices s = 
+    (* [is_prefix pre str) Is [pre] a prefix of [str] *)
+    let is_prefix pre (str, _) = 
+      if String.length str >= String.length pre then
+        let pre_low = 
+          String.lowercase pre 
+        in
+        let ans_low = 
+          String.lowercase (String.sub str 0 (String.length pre))
+        in
+          pre_low = ans_low
+      else
+        false
+    in
+      let res = 
+        List.filter 
+          (is_prefix s) 
+          name_choices
+      in
+        match res with 
+          | [_, uniq] -> 
+              uniq
+          | _ -> 
+              raise Not_found
+  in
+
+  let parse s =
+    try 
+      parse_shortcut s
+    with Not_found ->
+      begin
+        try 
+          parse_name_choices s
+        with Not_found ->
+          failwithf1 (f_ "'%s' is not valid answer") s
+      end
   in
 
   let default =
-    match default with 
-      | Default_is _ | NoDefault as d ->
-          d
-      | Default_exists v as d ->
-          begin
-            try
-              Default_is
-                (List.assoc
-                   v
-                   (List.map 
-                      (fun (chc, _, vl) -> vl, chc)
-                      choices))
-            with Not_found ->
-              d
-          end
+    printable_default t.default choices_nohelp
   in
-    ask_until_correct 
-      ~ctxt
-      auto
-      ?help
-      ~default
-      q
-      (fun s ->
-         try 
-           List.assoc
-             s 
-             (List.map (fun (c, _, v) -> (c, v)) choices)
-         with Not_found ->
-           failwithf1 (f_ "'%s' is not valid answer") s)
 
-let ask_yes_no ~ctxt auto ?help ?default q =
-  ask_shortcut_choices 
-    ~ctxt
-    auto
-    ?help 
-    ?default
-    q
+    {t with 
+         help    = t.help^help_choices;
+         default = default;
+         parse   = parse} 
+
+      
+let mk_numbered_choices t choices = 
+  let _, num_choices = 
+    List.fold_left 
+      (fun (i, acc) (e, hlp) -> (i + 1, (string_of_int i, e, hlp, e) :: acc))
+      (1, [])
+      choices 
+  in
+    mk_shortcut_choices 
+      {t with help = t.help ^(s_ "\nChoices:")} 
+      (List.rev num_choices)
+
+
+let mk_yes_no t =
+  mk_shortcut_choices 
+    t
     [
-      (s_ "y"), (s_ "yes"), true;
-      (s_ "n"), (s_ "no"),  false;
+      (s_ "y"), (s_ "yes"), None, true;
+      (s_ "n"), (s_ "no"),  None, false;
     ]
 
-(** Ask a single field *)
-let ask_field =
-  ask_until_correct
-
 (** Ask questions for a schema (Package, Library, Executable...) *)
-let ask_schema ~ctxt schema lvl auto =
+let ask_schema ~ctxt schema lvl interface =
   let fake_context = 
     {
       OASISAstTypes.cond = None;
@@ -185,7 +302,7 @@ let ask_schema ~ctxt schema lvl auto =
            | StandardField
            | DefinePlugin _ ->
                begin
-                 let has_default, default = 
+                 let default = 
                    try 
                      let s = 
                        PropList.Schema.get
@@ -193,16 +310,20 @@ let ask_schema ~ctxt schema lvl auto =
                          data
                          key
                      in
-                       true, Default_is s 
+                       Default_answer s 
                    with 
                      | OASISValues.Not_printable ->
-                         (* Value exist but cannot be represented *)
-                         true, Default_exists ()
+                         Default_not_printable
+
                      | PropList.Not_set _ ->
-                         false, NoDefault
+                         NoDefault
                  in
 
-                 let parse = 
+                 let has_default =
+                   default <> NoDefault
+                 in
+
+                 let set = 
                    PropList.Schema.set 
                      schm
                      data
@@ -214,7 +335,7 @@ let ask_schema ~ctxt schema lvl auto =
                        | NoChoice s -> 
                            begin
                              try
-                               parse s
+                               set s
                              with e ->
                                failwithf3
                                  (f_ "Trying to set field '%s' using mandatory value '%s': %s")
@@ -225,23 +346,55 @@ let ask_schema ~ctxt schema lvl auto =
                              let help = 
                                match help with 
                                  | Some f ->
-                                     Some (f ())
+                                     Printf.sprintf
+                                       (f_ "Field: %s\n%s\n%s\n")
+                                       key
+                                       (f ())
+                                       (help_of_default default)
+
                                  | None ->
-                                     None
+                                     Printf.sprintf
+                                       (f_ "Field: %s\n%s\n")
+                                       (help_of_default default)
+                                       key
                              in
-                               match extra.qckstrt_q with 
-                                 | _ ->
-                                     (* TODO: handle other kind of questions *)
-                                     ask_field 
-                                       ~ctxt 
-                                       (if auto then
-                                          "???"^(String.lowercase key)
-                                        else
-                                          Printf.sprintf (f_ "Value for field '%s'?") key)
-                                       ?help
-                                       ~default
-                                       auto 
-                                       parse
+                             let t = 
+                               {
+                                 id        = String.lowercase key;
+                                 interface = interface;
+                                 default   = default;
+                                 help      = help;
+                                 ctxt      = ctxt;
+                                 question  = Printf.sprintf 
+                                               (f_ "Value for field '%s'?") 
+                                               key;
+                                 parse     = fun s -> s;
+                               }
+                             in
+                               try 
+                                 begin
+                                   match extra.qckstrt_q () with 
+                                     | Field 
+                                     | Text ->
+                                         begin
+                                           (* TODO: text *)
+                                           set (ask_until_correct t)
+                                         end
+
+                                     | Choices lst
+                                     | ExclusiveChoices lst ->
+                                         begin
+                                           (* TODO: Choices <> ExclusiveChoices *)
+                                           (* TODO: multiple choices *)
+                                           set 
+                                             (ask_until_correct 
+                                                (mk_numbered_choices 
+                                                   t 
+                                                   (List.map (fun s -> s, None) lst)))
+                                         end
+                                 end
+                               with ChooseNotPrintableDefault ->
+                                 ()
                            end
                        | _ ->
                            ()
@@ -258,101 +411,127 @@ let ask_schema ~ctxt schema lvl auto =
       schm
 
 (** Ask questions for a package and its sections *)
-let ask_package ~ctxt lvl auto = 
+let ask_package ~ctxt lvl intrf = 
   let pkg_data = 
-    ask_schema ~ctxt OASISPackage.schema lvl auto
+    ask_schema ~ctxt OASISPackage.schema lvl intrf
+  in
+
+  let mk_t nm hlp q = 
+    {
+      id        = nm;
+      interface = intrf;
+      default   = NoDefault;
+      help      = hlp;
+      ctxt      = ctxt;
+      question  = q;
+      parse     = fun s -> s;
+    }
+  in
+
+  let format_string s =
+    let fmt = 
+      str_formatter
+    in
+      pp_open_box fmt 0;
+      pp_print_string_spaced fmt s;
+      pp_close_box fmt ();
+      flush_str_formatter () 
   in
 
   let section_data =
     let section gen schema q_name =
       let nm = 
-        ask_field ~ctxt q_name auto (fun s -> s)
+        ask_until_correct (mk_t "name" "" q_name)
       in
-        gen nm (ask_schema ~ctxt schema lvl auto)
-    in
-
-    let auto_name s = 
-      if auto then
-        "???name"
-      else
-        s
+        gen nm (ask_schema ~ctxt schema lvl intrf)
     in
 
     let sections = 
       [
-        s_ "n", s_ "stop", None;
+        s_ "n", s_ "stop", None, None;
 
-        s_ "l", s_ "create a library",
+        s_ "l", s_ "create a library", None,
         (Some 
            (fun () -> 
               section
                 OASISLibrary_intern.generator
                 OASISLibrary.schema
-                (auto_name (s_ "Library name?"))));
+                (s_ "Library name?")));
 
-        s_ "e", s_ "create an executable",
+        s_ "e", s_ "create an executable", None,
         (Some 
            (fun () ->
               section
                 OASISExecutable_intern.generator
                 OASISExecutable.schema
-                (auto_name (s_ "Executable name?"))));
+                (s_ "Executable name?")));
 
-        s_ "f", s_ "create a flag",
+        s_ "f", s_ "create a flag", None,
         (Some 
            (fun () ->
               section
                 OASISFlag_intern.generator
                 OASISFlag.schema
-                (auto_name (s_ "Flag name?"))));
+                (s_ "Flag name?")));
 
-        s_ "s", s_ "create a source repository",
+        s_ "s", s_ "create a source repository", None,
         (Some 
            (fun () ->
               section
                 OASISSourceRepository_intern.generator
                 OASISSourceRepository.schema
-                (auto_name (s_ "Source repository identifier?"))));
+                (s_ "Source repository identifier?")));
 
-        s_ "t", s_ "create a test",
+        s_ "t", s_ "create a test", None,
         (Some 
            (fun () ->
               section
                 OASISTest_intern.generator
                 OASISTest.schema
-                (auto_name (s_ "Test name?"))));
+                (s_ "Test name?")));
 
-        s_ "d", s_ "create a document",
+        s_ "d", s_ "create a document", None,
         (Some
            (fun () ->
               section
                 OASISDocument_intern.generator
                 OASISDocument.schema
-                (auto_name (s_ "Document name?"))));
+                (s_ "Document name?")));
       ]
     in
 
-    let rec new_section acc q = 
-      match ask_shortcut_choices 
-              ~ctxt 
-              ~default:(Default_exists None) 
-              q auto sections with 
-        | None ->
-            List.rev acc
-        | Some f ->
-            new_section
-              ((f ()) :: acc)
-              (if auto then
-                 "???create_section"
-               else
-                 s_ "Create another section?")
+    let rec new_section acc hlp q = 
+      let next_opt = 
+        ask_until_correct
+          (mk_shortcut_choices
+             {(mk_t "create_section" hlp q)
+                with 
+                    parse = 
+                      (fun s -> 
+                         failwithf1 
+                           (f_ "'%s' is not a valid choice")
+                           s);
+                    default = Default_value None}
+             sections)
+      in
+        match next_opt with 
+          | None ->
+              List.rev acc
+          | Some f ->
+              new_section
+                ((f ()) :: acc)
+                (format_string 
+                   (s_ "Section definition is complete. You can now \
+                        now create additional sections:"))
+                (s_ "Create another section?")
 
     in
       new_section [] 
-        (if auto then 
-           "???create_section"
-         else
-           s_ "Create a section?")
+        (format_string
+           (s_ "General package definition is complete. You can now \
+                create sections to describe various objects shipped \
+                by this package:"))
+        (s_ "Create a section?")
   in
 
   let pkg = 
@@ -387,10 +566,12 @@ let ask_package ~ctxt lvl auto =
            | Executable _ | Library _ ->
                lst
            | Test (cs, test) -> 
-               (test.test_type, OASISPlugin.Test.quickstart_completion)
+               (test.test_type, 
+                OASISPlugin.Test.quickstart_completion)
                :: lst
            | Doc (cs, doc) ->
-               (doc.doc_type, OASISPlugin.Doc.quickstart_completion)
+               (doc.doc_type, 
+                OASISPlugin.Doc.quickstart_completion)
                :: lst
            | Flag _ | SrcRepo _ ->
                lst)
@@ -407,36 +588,51 @@ let ask_package ~ctxt lvl auto =
     pkg
 
 (** Create an _oasis file *)
-let to_file ~ctxt fn lvl auto oasis_dev =
+let to_file ~ctxt fn lvl intrf oasis_dev =
 
   let () = 
     (* Print introduction *)
     let fmt =
       std_formatter
     in
-      if not auto then
-        begin
-          pp_open_box fmt 0;
-          pp_print_string_spaced fmt
-            (s_ "The program will ask some questions to create the OASIS file. \
-                 If you answer '?' to a question, an help text will be displayed.");
-          pp_close_box fmt ();
-          pp_print_flush fmt ();
-          print_endline ""
-        end
+      match intrf with
+        | Human ->
+            begin
+              pp_open_vbox fmt 0;
+              pp_open_box fmt 0;
+              pp_print_string_spaced fmt
+                (s_ "The program will ask some questions to create the OASIS \
+                     file. If you answer '?' to a question, an help text will \
+                     be displayed.");
+              pp_close_box fmt ();
+              pp_print_cut fmt ();
+              pp_close_box fmt ();
+              pp_print_flush fmt ();
+            end
+
+        | Machine ->
+            ()
+
   in
 
   let () = 
     if Sys.file_exists fn then
       begin
         let a = 
-          ask_yes_no 
-            ~ctxt
-            ~default:(Default_exists false)
-            (Printf.sprintf
-               (f_ "File '%s' already exists, overwrite it?")
-               fn)
-            auto
+          ask_until_correct
+            (mk_yes_no
+              {
+                id        = "overwrite";
+                interface = intrf;
+                default   = Default_value false;
+                help      = "";
+                ctxt      = ctxt;
+                parse     = bool_of_string;
+                question  = 
+                  Printf.sprintf
+                    (f_ "File '%s' already exists, overwrite it?")
+                    fn;
+              })
         in
           if not a then
             failwithf1
@@ -446,7 +642,7 @@ let to_file ~ctxt fn lvl auto oasis_dev =
   in
 
   let pkg = 
-    ask_package ~ctxt lvl auto
+    ask_package ~ctxt lvl intrf
   in
 
   let content =
@@ -584,40 +780,48 @@ let to_file ~ctxt fn lvl auto oasis_dev =
   in
 
   let ask_end () = 
-    ask_shortcut_choices 
-      ~ctxt
-      (if auto then
-         "???end"
-       else
-         s_ "Package definition is complete, what do you want to do now?")
-      auto
-      [
-        s_ "d", s_ "display the generated file",
-        (fun () -> 
-           (* Send to pager *)
-           pager content;
-           true);
+    ask_until_correct
+      (mk_shortcut_choices 
+         {
+           id        = "end";
+           interface = intrf;
+           default   = NoDefault;
+           help      = "Package definition is complete. Possible actions:";
+           ctxt      = ctxt;
+           question  = "What do you want to do now?";
+           parse = 
+             (fun s -> 
+                failwithf1 
+                  (f_ "'%s' is not a valid choice.")
+                  s);
+         }
+         [
+           s_ "d", s_ "display the generated file", None,
+           (fun () -> 
+              (* Send to pager *)
+              pager content;
+              true);
 
-        s_ "e", s_ "edit the generated file",
-        (fun () -> 
-           (* Send to editor *)
-           editor content;
-           true);
+           s_ "e", s_ "edit the generated file", None,
+           (fun () -> 
+              (* Send to editor *)
+              editor content;
+              true);
 
-        s_ "w", s_ "write and exit",
-        (fun () -> 
-           create_fn content fn;
-           false);
+           s_ "w", s_ "write and exit", None,
+           (fun () -> 
+              create_fn content fn;
+              false);
 
-        s_ "r", s_ "write, run 'OASIS setup-dev' and exit",
-        (fun () ->
-           create_fn content fn;
-           oasis_dev ();
-           false);
-        
-        s_ "q", s_ "exit without saving",
-        (fun () -> false);
-      ]
+           s_ "r", s_ "write, run 'OASIS setup-dev' and exit", None,
+           (fun () ->
+              create_fn content fn;
+              oasis_dev ();
+              false);
+           
+           s_ "q", s_ "exit without saving", None,
+           (fun () -> false);
+         ])
   in
 
     while (ask_end ()) () do 

@@ -223,7 +223,6 @@ type 'a quickstart_level =
   | Expert
 
 type 'a quickstart_question =
-  | YesNo
   | Field
   | Text
   | Choices of 'a list

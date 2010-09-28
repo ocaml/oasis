@@ -11,15 +11,15 @@ open SubCommand
 let qckstrt_lvl =
   ref Beginner
 
-let auto = 
-  ref false
+let interf = 
+  ref Human
 
 let main () =
   OASISQuickstart.to_file 
     ~ctxt:!BaseContext.default
     !ArgCommon.oasis_fn
     !qckstrt_lvl
-    !auto
+    !interf
     SetupDev.main
 
 let scmd =
@@ -47,8 +47,8 @@ let scmd =
              ) 
              ::
              (
-               "-auto",
-               Arg.Set auto,
+               "-machine",
+               Arg.Unit (fun () -> interf := Machine), 
                (s_ " Computer readable questions for automatic completion.")
              )
              :: SetupDev.scmd.scmd_specs}

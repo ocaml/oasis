@@ -155,6 +155,10 @@ sig
   (** Find a specific plugin. *)
   val find : name * 'a -> act
 
+  (** Quickstart question *)
+  val quickstart_question: 
+    unit -> (name * OASISVersion.t option) quickstart_question
+
   (** Parse a plugin field *) 
   val value : (name * OASISVersion.t option) OASISValues.t
 

@@ -350,7 +350,6 @@ type 'a quickstart_level =
 (** Howto ask questions in quickstart. {b Not exported}.
   *)
 type 'a quickstart_question =
-  | YesNo   (** Yes/No question. *)
   | Field   (** Short text. *)
   | Text    (** Long text, may use editor for it. *)
   | Choices of 'a list (** Pick choices in the list. *)

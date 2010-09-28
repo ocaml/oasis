@@ -107,7 +107,12 @@ sig
 
   val ls :        unit ->      name list
   val find :      name * 'a -> act
-  val value :     (name * OASISVersion.t option) OASISValues.t
+  val quickstart_question: 
+    unit -> (name * OASISVersion.t option) quickstart_question
+
+  val value : 
+    (name * OASISVersion.t option) OASISValues.t
+
   val quickstart_completion: name -> package -> package
 end
 
@@ -262,6 +267,13 @@ module Make =
           print  = (fun e -> base.print e)
         }
 
+    let quickstart_question () = 
+      ExclusiveChoices
+        (MapPlugin.fold
+           (fun k (_, v) lst -> 
+              (k, Some (OASISVersion.version_of_string v)) :: lst)
+           !act_all
+           [])
 
     let quickstart_completion nm = 
       try

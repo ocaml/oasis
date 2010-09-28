@@ -12,9 +12,9 @@ open OASISTypes
 module MapString = Map.Make(String)
 
 let tests ctxt = 
-  let run_quickstart qa = 
+  let run_quickstart args qa = 
     let args = 
-      ctxt.oasis_args @ ["-quiet"; "quickstart"; "-auto"]
+      ctxt.oasis_args @ ["-quiet"; "quickstart"; "-machine"] @ args
     in
     let () = 
       if ctxt.dbug then
@@ -47,6 +47,31 @@ let tests ctxt =
                                  let qa' = 
                                    List.rev_append prev tl
                                  in
+                                 let full_lowercase_q = 
+                                   match q with 
+                                     | "create_section" ->
+                                         "create a section?"
+                                     | "end" ->
+                                         "package definition is complete"
+                                     | q ->
+                                         Printf.sprintf 
+                                           "value for field '%s'? "
+                                           q
+                                 in
+                                   (* TODO: expect + prefix *)
+                                   (ExpectFun 
+                                      (fun str ->
+                                         (String.length str >= 
+                                            String.length full_lowercase_q)
+                                         &&
+                                         (String.lowercase 
+                                            (String.sub str 
+                                               0 
+                                               (String.length full_lowercase_q))
+                                            =  
+                                            full_lowercase_q)), 
+                                    Some (a, qa'))
+                                   ::
                                    (ExpectExact ("???"^q^" "), Some (a, qa'))
                                    ::
                                    (expectations' ((q, a) :: prev) tl)
@@ -94,7 +119,8 @@ let tests ctxt =
         (Unix.WEXITED 0)
         exit_code
   in
-    "Quickstart" >::
+  let test_of_vector (nm, args, qa) = 
+    nm >::
     bracket 
       (fun () ->
          let pwd = FileUtil.pwd () in
@@ -102,20 +128,7 @@ let tests ctxt =
            Sys.chdir tmp;
            pwd, tmp)
       (fun _ ->
-         run_quickstart
-           [
-             "name",           "test";
-             "version",        "0.0.1";
-             "synopsis",       "test";
-             "authors",        "me";
-             "license",        "GPL-2+";
-             "create_section", "e";
-             "name",           "test";
-             "path",           "./";
-             "mainis",         "test.ml";
-             "create_section", "n";
-             "end",            "w";
-           ];
+         run_quickstart args qa;
          if ctxt.dbug then 
            begin
              let chn = open_in "_oasis" in
@@ -167,4 +180,65 @@ let tests ctxt =
       (fun (pwd, tmp) ->
          Sys.chdir pwd;
          FileUtil.rm ~recurse:true [tmp])
+  in
+    "Quickstart" >:::
+    (List.map test_of_vector 
+       [
+         "simple",
+         [],
+         [
+           "name",           "test";
+           "version",        "0.0.1";
+           "synopsis",       "test";
+           "authors",        "me";
+           "license",        "GPL-2+";
+           "create_section", "e";
+           "name",           "test";
+           "path",           "./";
+           "mainis",         "test.ml";
+           "create_section", "n";
+           "end",            "w";
+         ];
+
+(*
+         "custom",
+         ["-level"; "expert"],
+         [
+           "name", "test";
+           "version", "0.1";
+           "synopsis", "test";
+           "description", "test";
+           "licensefile", "";
+           "authors", "me";
+           "copyrights", "(C) 2010 Me";
+           "maintainers", "";
+           "license", "GPL-3";
+           "ocamlversion", "";
+           "findlibversion", "";
+           "conftype", "custom";
+           "preconfcommand", "";
+           "postconfcommand", "";
+           "buildtype", "custom";
+           "prebuildcommand", "";
+           "postbuildcommand", "";
+           "installtype", "";
+           "preinstallcommand", "";
+           "postinstallcommand", "";
+           "preuninstallcommand", "";
+           "postuninstallcommand", "";
+           "precleancommand", "";
+           "postcleancommand", "";
+           "predistcleancommand", "";
+           "postdistcleancommand", "";
+           "homepage", "";
+           "categories", "";
+           "filesab", "";
+           "plugins", "";
+           "builddepends", "";
+           "buildtools", "";
+           "create_section", "n";
+           "end", "w";
+         ]
+ *)
+       ])
 
