@@ -352,7 +352,7 @@ type 'a quickstart_level =
 type 'a quickstart_question =
   | Field   (** Short text. *)
   | Text    (** Long text, may use editor for it. *)
-  | Choices of 'a list (** Pick choices in the list. *)
+  | Choices of 'a list (** Multiple choices in a list. *)
   | ExclusiveChoices of 'a list (** Pick a single choice in the list. *)
 
 (** {2 ODN functions} 

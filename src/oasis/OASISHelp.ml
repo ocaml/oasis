@@ -38,7 +38,7 @@ let fields_of_section ?plugin schm =
     (PropList.Schema.fold
        (fun acc key extra help ->
           match extra.kind with
-            | StandardField | DefinePlugin _ ->
+            | StandardField | DefinePlugin _ | DefinePlugins _ ->
                 if plugin = None then
                   (key, help) :: acc
                 else

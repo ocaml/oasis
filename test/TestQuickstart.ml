@@ -6,6 +6,7 @@
 
 open TestCommon
 open Expect
+open ExpectPcre
 open OUnit
 open OASISTypes
 
@@ -47,32 +48,25 @@ let tests ctxt =
                                  let qa' = 
                                    List.rev_append prev tl
                                  in
-                                 let full_lowercase_q = 
+                                 let q_pat = 
                                    match q with 
                                      | "create_section" ->
-                                         "create a section?"
+                                         "create a(nother)? section\\? "
                                      | "end" ->
-                                         "package definition is complete"
+                                         "What do you want to do now\\?"
+                                     | "name" ->
+                                         "'?name'?\\? "
                                      | q ->
                                          Printf.sprintf 
-                                           "value for field '%s'? "
+                                           "value for field '%s'\\? "
                                            q
                                  in
-                                   (* TODO: expect + prefix *)
-                                   (ExpectFun 
-                                      (fun str ->
-                                         (String.length str >= 
-                                            String.length full_lowercase_q)
-                                         &&
-                                         (String.lowercase 
-                                            (String.sub str 
-                                               0 
-                                               (String.length full_lowercase_q))
-                                            =  
-                                            full_lowercase_q)), 
-                                    Some (a, qa'))
+                                 let q_rex = 
+                                   Pcre.regexp ~flags:[`CASELESS] q_pat
+                                 in
+                                   (`Rex q_rex, Some (a, qa'))
                                    ::
-                                   (ExpectExact ("???"^q^" "), Some (a, qa'))
+                                   (`Prefix ("???"^q^" "), Some (a, qa'))
                                    ::
                                    (expectations' ((q, a) :: prev) tl)
                              | [] ->
@@ -102,7 +96,7 @@ let tests ctxt =
               continue qa;
               assert_bool
                 "wait for eof"
-                (expect t [ExpectEof, true] false);
+                (expect t [`Eof, true] false);
           ) ()
 
       with e ->
@@ -233,7 +227,7 @@ let tests ctxt =
            "homepage", "";
            "categories", "";
            "filesab", "";
-           "plugins", "";
+           "plugins", "stdfiles, devfiles, meta";
            "builddepends", "";
            "buildtools", "";
            "create_section", "n";

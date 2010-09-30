@@ -292,13 +292,20 @@ let schema, generator =
       (fun pkg -> pkg.files_ab)
   in
   let plugins =
-    (* TODO: this is a special case *)
-    new_field "Plugins"
-      ~default:[]
-      (comma_separated OASISPlugin.Extra.value)
-      (fun () -> 
-         s_ "Extra plugins to use.")
-      (fun pkg -> pkg.plugins)
+    let quickstart_question () = 
+      match OASISPlugin.Extra.quickstart_question () with 
+        | ExclusiveChoices lst ->
+            Choices lst
+        | Choices _ | Field | Text as q ->
+            q
+    in
+      new_field_plugins schm "Plugins"
+        ~default:[]
+        ~quickstart_question
+        OASISPlugin.Extra.value
+        (fun () -> 
+           s_ "Extra plugins to use.")
+        (fun pkg -> pkg.plugins)
   in
   let build_depends =
     OASISBuildSection_intern.build_depends_field schm

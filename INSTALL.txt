@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: dd8136de94c0821a2b0113f9275a0586) *)
+(* DO NOT EDIT (digest: 3420662815dda32cfdbb704d45081340) *)
 This is the INSTALL file for the oasis distribution.
 
 This package uses OASIS to generate its build system. See section OASIS for
@@ -19,7 +19,7 @@ In order to compile this package, you will need:
 * ocamlgraph for library oasis
 * ocamlify for library base, library oasis
 * oUnit for executable test
-* expect for executable test
+* expect (>= 0.0.2) for executable test
 
 Installing
 ==========

@@ -30,6 +30,7 @@ open Format
 open FormatExt
 open OASISUtils
 open OASISMessage
+open ExtString
 
 type 'a default =
   | Default_value of 'a
@@ -241,7 +242,10 @@ let mk_shortcut_choices t choices =
 
   let parse s =
     try 
-      parse_shortcut s
+      begin
+        parse_shortcut s
+      end
+
     with Not_found ->
       begin
         try 
@@ -272,6 +276,36 @@ let mk_numbered_choices t choices =
       {t with help = t.help ^(s_ "\nChoices:")} 
       (List.rev num_choices)
 
+let mk_numbered_choices_multi t choices =
+  let t = 
+    mk_numbered_choices t choices
+  in
+
+  let parse_one full s = 
+    try 
+      t.parse s
+    with Failure _ ->
+      failwithf2
+        (f_ "'%s' is not valid in answer '%s'")
+        s full
+  in
+
+  let parse s = 
+    let lst =
+      List.map 
+        (parse_one s)
+        (* Split using " " and "," as separators *)
+        (List.filter
+           (fun s -> s <> "") 
+           (List.flatten 
+              (List.map 
+                 (fun s -> String.nsplit s ",")
+                 (String.nsplit s " "))))
+    in
+      String.concat ", " lst
+  in
+
+    {t with parse = parse}
 
 let mk_yes_no t =
   mk_shortcut_choices 
@@ -300,7 +334,8 @@ let ask_schema ~ctxt schema lvl interface =
       (fun data key extra help -> 
          match extra.kind with 
            | StandardField
-           | DefinePlugin _ ->
+           | DefinePlugin _ 
+           | DefinePlugins _ ->
                begin
                  let default = 
                    try 
@@ -381,14 +416,21 @@ let ask_schema ~ctxt schema lvl interface =
                                            set (ask_until_correct t)
                                          end
 
-                                     | Choices lst
-                                     | ExclusiveChoices lst ->
+                                     | Choices lst ->
                                          begin
-                                           (* TODO: Choices <> ExclusiveChoices *)
-                                           (* TODO: multiple choices *)
                                            set 
                                              (ask_until_correct 
-                                                (mk_numbered_choices 
+                                                (mk_numbered_choices_multi 
+                                                   t
+                                                   (List.map (fun s -> s, None) lst)))
+
+                                         end
+
+                                     | ExclusiveChoices lst ->
+                                         begin
+                                           set 
+                                             (ask_until_correct 
+                                                (mk_numbered_choices
                                                    t 
                                                    (List.map (fun s -> s, None) lst)))
                                          end

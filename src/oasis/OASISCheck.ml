@@ -32,8 +32,9 @@ let check_schema where schm data =
     Schema.fold
       (fun acc fld extra hlp ->
          match extra.kind with 
-           | DefinePlugin _ ->
+           | DefinePlugin _ | DefinePlugins _ ->
                begin
+                 (* TODO: check this field as well *)
                  acc
                end
 

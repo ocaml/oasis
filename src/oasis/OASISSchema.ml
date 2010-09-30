@@ -79,6 +79,7 @@ end
 
 type kind = 
   | DefinePlugin 
+  | DefinePlugins
   | FieldFromPlugin of string
   | StandardField 
 
@@ -343,6 +344,39 @@ let new_field_plugin
         ?quickstart_level
         ?quickstart_question
          value)
+
+(** Create a field that enables some plugins
+  *)
+let new_field_plugins
+      t
+      name
+      ?default 
+      ?quickstart_level
+      ?quickstart_question
+      value 
+      help
+      sync =
+
+  let values = 
+    comma_separated value 
+  in
+  let update, parse =
+    default_parse_update name values
+  in
+    Sync.add t.sync t.schm values name sync;
+    FieldRO.create
+      ~schema:t.schm 
+      ~name
+      ~parse 
+      ~print:values.print
+      ~update
+      ?default
+      ~help
+      (extra
+        ~kind:DefinePlugins
+        ?quickstart_level
+        ?quickstart_question
+        value)
 
 let to_proplist t = 
   let f = !(t.sync) in

@@ -20,18 +20,20 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: f983036f1ff006b761a29d247fa834d5)
+# DO NOT EDIT (digest: 9de5b075afbc626ad916c98845405832)
 version = "0.2.0~alpha1"
 description = "_oasis file functions"
 requires = "fileutils unix pcre extlib findlib odn ocamlgraph"
 archive(byte) = "oasis.cma"
 archive(native) = "oasis.cmxa"
+exists_if = "oasis.cma"
 package "base" (
  version = "0.2.0~alpha1"
  description = "'setup.ml' modules for OASIS"
  requires = "oasis"
  archive(byte) = "base.cma"
  archive(native) = "base.cmxa"
+ exists_if = "base.cma"
 )
 
 package "builtin-plugins" (
@@ -40,6 +42,7 @@ package "builtin-plugins" (
  requires = "oasis oasis.base"
  archive(byte) = "builtin-plugins.cma"
  archive(native) = "builtin-plugins.cmxa"
+ exists_if = "builtin-plugins.cma"
 )
 
 package "cli" (
@@ -47,6 +50,7 @@ package "cli" (
  description = "'setup.ml' modules for OASIS"
  requires = "oasis"
  archive(byte) = "cli.cma"
+ exists_if = "cli.cma"
 )
 # OASIS_STOP
 

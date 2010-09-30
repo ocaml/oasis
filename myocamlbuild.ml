@@ -113,10 +113,12 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 3d2bbbaa3e5ae74906c8dd90b3a12054) *)
+(* DO NOT EDIT (digest: a27481b1768a485ca9e617bb6ded55f0) *)
 module OASISGettext = struct
 # 21 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
   
+  let ns_ str = 
+    str
   
   let s_ str = 
     str
