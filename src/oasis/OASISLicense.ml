@@ -280,6 +280,11 @@ let zope =
     ~versions:["1.0"; "2.0"; "2.1"]
     (ns_ "Zope Public License")
 
+let mit = 
+  mk_license 
+    "MIT"
+    (ns_ "MIT License")
+
 let public_domain = 
   mk_license
     "PD"
@@ -350,12 +355,11 @@ let parse_dep5 ~ctxt str =
           (f_ "Undefined license in '%s'")
           str
     in
-      if HashStringCsl.mem all_licenses res then
-        res
-      else
-        failwithf2
+      if not (HashStringCsl.mem all_licenses res) then
+        OASISMessage.warning ~ctxt
           (f_ "Unknown license '%s' in '%s'")
-          res str
+          res str;
+      res
   in
   let version = 
     try 
