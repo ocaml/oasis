@@ -27,10 +27,9 @@ open OUnit
 open TestCommon
 open OASISValues
 open OASISTypes
-open OASISContext
 open OASISLicense
 
-let tests ctxt =
+let tests =
   let ver =
     OASISVersion.version_of_string
   in
@@ -54,10 +53,10 @@ let tests ctxt =
                    assert_equal 
                      ~printer:to_string
                      exp
-                     (value.parse ~ctxt:quiet txt)
+                     (value.parse ~ctxt:!oasis_ctxt txt)
                | None ->
                    try 
-                     ignore (value.parse ~ctxt:quiet txt);
+                     ignore (value.parse ~ctxt:!oasis_ctxt txt);
                      assert_failure 
                        (Printf.sprintf
                           "License '%s' is not valid but parse without problem"

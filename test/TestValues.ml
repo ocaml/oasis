@@ -7,7 +7,7 @@ open TestCommon
 open OASISValues
 open OUnit
 
-let tests ctxt =
+let tests =
   "Values" >:::
   (List.map 
      (fun (v, txt) ->
@@ -15,7 +15,7 @@ let tests ctxt =
           (fun () ->
              let _a =
                v.parse 
-                 ~ctxt:ctxt.oasis_ctxt
+                 ~ctxt:!oasis_ctxt
                  txt
              in
                ())))

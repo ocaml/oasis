@@ -23,129 +23,29 @@
     @author Sylvain Le Gall
   *)
 
-IFDEF HAS_GETTEXT THEN
-module Gettext =
-  Gettext.Program
-    (struct
-       let textdomain   = "oasis"
-       let codeset      = None
-       let dir          = None
-       let dependencies = Gettext.init @ OASISGettext.init
-     end)
-    (GettextStub.Native)
-ELSE
-module Gettext =
-struct 
-  let init = [], ""
-end
-ENDIF
-
 open OUnit;;
 open TestCommon;;
 
-let () =  
-  let gettext_args, _ =
-    Gettext.init 
-  in
-
+let _ =  
   let () = 
     OASISBuiltinPlugins.init ()
   in
-  let dbug =
-    ref false
-  in
-  let long =
-    ref false
-  in
-  let only_tests =
-    ref []
-  in
-
-  let () = 
-    Arg.parse
-      ([
-        "-verbose",
-        Arg.Set dbug,
-        "Run the test in verbose mode.";
-
-        "-only-test",
-        Arg.String (fun s -> only_tests := s :: !only_tests),
-        "Run only the selected test";
-
-        "-long",
-        Arg.Set long,
-        "Run long tests";
-      ] @ gettext_args @ (BaseContext.args ()))
-      invalid_arg
-      ("usage: "^Sys.executable_name^" [options*]")
-  in
-
-  let ctxt =
-    {
-      dbug = !dbug;
-      long = !long;
-      has_ocamlopt = 
-        (
-          try 
-            let _s : FilePath.filename = 
-              FileUtil.which "ocamlopt"
-            in
-              true
-          with Not_found ->
-            false
-        );
-      oasis =
-        FilePath.make_filename
-          [FileUtil.pwd ();FilePath.parent_dir;
-           "_build";"src";"cli";
-           if Sys.os_type = "Win32" then
-             "OASIS.exe"
-           else
-             "OASIS"];
-      oasis_args = [];
-
-      oasis_ctxt = 
-        if !dbug then
-          !OASISContext.default
-        else
-          OASISContext.quiet;
-    }
-  in
-
-  let tests = 
-    (if !only_tests = [] then
-       (fun l -> l)
-     else
-       (fun l ->
-          match test_filter !only_tests l with
-            | Some l -> l
-            | None -> failwith "No tests to execute"))
+    run_test_tt_main
+      ~arg_specs:test_args 
+      ~set_verbose
       ("OASIS">:::
        [
-         TestPropList.tests     ctxt;
-         TestOASIS.tests        ctxt;
-         TestVersion.tests      ctxt;
-         TestFileTemplate.tests ctxt;
-         TestBasic.tests        ctxt;
-         TestFull.tests         ctxt;
-         TestMETA.tests         ctxt;
-         TestLog.tests          ctxt;
-         TestLicense.tests      ctxt;
-         TestValues.tests       ctxt;
-         TestQuery.tests        ctxt;
-         TestQuickstart.tests   ctxt;
+         TestPropList.tests;
+         TestOASIS.tests;
+         TestVersion.tests;
+         TestFileTemplate.tests;
+         TestBasic.tests;
+         TestFull.tests;
+         TestMETA.tests;
+         TestLog.tests;
+         TestLicense.tests;
+         TestValues.tests;
+         TestQuery.tests;
+         TestQuickstart.tests;
        ])
-  in
-
-  let res =
-    run_test_tt ~verbose:!dbug tests
-  in
-
-    List.iter 
-      (function
-         | RFailure _ | RError _ ->
-             exit 1
-         | RSuccess _ | RSkip _ | RTodo _ ->
-             ())
-      res
 ;;

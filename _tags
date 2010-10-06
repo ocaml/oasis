@@ -188,8 +188,8 @@
 "src/cli/MainGettext.ml": syntax_camlp4o, pkg_camlp4.macro
 "src/cli/MainGettext.ml": cond_pkg_gettext-stub, use_oasis
 "src/cli/Main.byte": cond_pkg_gettext-stub, use_oasis
-"test/test.ml": syntax_camlp4o, pkg_camlp4.macro
-"test/test.ml": cond_pkg_gettext-stub
+"test/TestCommon.ml": syntax_camlp4o, pkg_camlp4.macro
+"test/TestCommon.ml": cond_pkg_gettext-stub
 "test/test.byte": cond_pkg_gettext-stub
 
 "src/oasis/OASISTypes.ml": syntax_camlp4o, pkg_odn.with.syntax

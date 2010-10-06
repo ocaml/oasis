@@ -26,9 +26,8 @@
 open OUnit
 open TestCommon
 open OASISFileTemplate
-open OASISContext
 
-let tests ctxt =
+let tests =
 
   let test_of_vector (fn, content_lst, comment_fmt) = 
     fn >::
@@ -58,10 +57,10 @@ let tests ctxt =
          in
 
            rchng := file_generate 
-                      ~ctxt:quiet
+                      ~ctxt:!oasis_ctxt
                       ~backup:true
                       (template_of_string_list
-                         ~ctxt:quiet
+                         ~ctxt:!oasis_ctxt
                          ~template:true
                          real_fn 
                          comment_fmt
@@ -73,7 +72,7 @@ let tests ctxt =
              (file_content expected_fn)
              (file_content real_fn))
 
-      (fun rchng -> file_rollback ~ctxt:quiet !rchng)
+      (fun rchng -> file_rollback ~ctxt:!oasis_ctxt !rchng)
 
   in
 

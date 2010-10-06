@@ -29,7 +29,7 @@ open Fl_metascanner
 open OASISTypes
 open OASISLibrary
 
-let tests ctxt =
+let tests =
   let test_of_vector (nm, oasis_str, pkg_tests) =
     nm >::
     (bracket 
@@ -39,7 +39,7 @@ let tests ctxt =
           (* Parse string to get OASIS package *)
           let pkg = 
             OASISParse.from_string 
-              ~ctxt:ctxt.oasis_ctxt
+              ~ctxt:!oasis_ctxt
               oasis_str
           in
 
@@ -124,7 +124,7 @@ let tests ctxt =
                          begin
                            let chn =
                              write_meta pkg_root;
-                             if ctxt.dbug then
+                             if !dbug then
                                dbug_meta ();
                              open_in fn
                            in

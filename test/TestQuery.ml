@@ -7,7 +7,7 @@
 open TestCommon
 open OUnit
 
-let tests ctxt =
+let tests =
   let test_of_vector (fn, qa) = 
     let q, a = 
       List.split qa
@@ -21,7 +21,6 @@ let tests ctxt =
       (fun () ->
          assert_oasis_cli 
            ~output:((String.concat "\n" a)^"\n")
-           ctxt
            (["query"; "-oasis"; in_data fn] @ q))
   in
 

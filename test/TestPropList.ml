@@ -28,7 +28,7 @@ open TestCommon;;
 open PropList;;
 open PropList.Field;;
 
-let tests ctxt =
+let tests =
   "PropList" >::
   (fun () ->
      let toto =

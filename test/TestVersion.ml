@@ -27,7 +27,7 @@ open OUnit
 open TestCommon
 open OASISVersion
 
-let tests ctxt =
+let tests =
 
   let vstr_compare v1 v2 =
     version_compare 

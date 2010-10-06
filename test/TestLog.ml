@@ -27,7 +27,7 @@ open OUnit
 open TestCommon
 open BaseLog
 
-let tests ctxt =
+let tests =
   let test_of_vector (nm, f) =
     nm >:: 
     bracket

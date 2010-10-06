@@ -12,23 +12,23 @@ open OASISTypes
 
 module MapString = Map.Make(String)
 
-let tests ctxt = 
+let tests = 
   let run_quickstart args qa = 
     let args = 
-      ctxt.oasis_args @ ["-quiet"; "quickstart"; "-machine"] @ args
+      !oasis_args @ ["-quiet"; "quickstart"; "-machine"] @ args
     in
     let () = 
-      if ctxt.dbug then
+      if !dbug then
         Printf.eprintf 
           "Quickstart command line: %s\n%!" 
-          (String.concat " " (ctxt.oasis :: args))
+          (String.concat " " (!oasis :: args))
     in
     let _, exit_code = 
       try 
         with_spawn
-          ~verbose:ctxt.dbug
+          ~verbose:!dbug
           ~timeout:(Some 0.1)
-          ctxt.oasis 
+          !oasis 
           (Array.of_list args)
           (fun t () ->
              let rec continue = 
@@ -123,7 +123,7 @@ let tests ctxt =
            pwd, tmp)
       (fun _ ->
          run_quickstart args qa;
-         if ctxt.dbug then 
+         if !dbug then 
            begin
              let chn = open_in "_oasis" in
              let () = 
@@ -136,15 +136,15 @@ let tests ctxt =
              in
                close_in chn
            end;
-         assert_oasis_cli ctxt ["check"];
+         assert_oasis_cli ["check"];
          begin
            try 
-             assert_oasis_cli ctxt ["setup"];
+             assert_oasis_cli ["setup"];
            with e ->
              failwith "'OASIS setup' failed but 'OASIS check' succeed"
          end;
          let pkg = 
-           OASISParse.from_file ~ctxt:ctxt.oasis_ctxt "_oasis"
+           OASISParse.from_file ~ctxt:!oasis_ctxt "_oasis"
          in
          let () = 
            assert_equal 

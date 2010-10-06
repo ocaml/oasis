@@ -23,9 +23,9 @@
     @author Sylvain Le Gall
   *)
 
-open TestCommon;;
 open FileUtil;;
 open OUnit;;
+open TestCommon;;
 
 type filename = FilePath.filename;;
 
@@ -126,7 +126,7 @@ end
 module OUnitSetFileDigest = OUnitSet(SetFileDigest);;
 module OUnitSetFile = OUnitSet(SetFile);;
 
-let tests ctxt =
+let tests =
 
   (* Create a temporary dir *)
   let temp_dir pref suff =
@@ -148,7 +148,7 @@ let tests ctxt =
 
   (* Assert with setup.ml *)
   let assert_run_setup ?exit_code ?extra_env args =
-    assert_command ?exit_code ?extra_env ctxt "ocaml" ("setup.ml" :: args)
+    assert_command ?exit_code ?extra_env "ocaml" ("setup.ml" :: args)
   in
 
   (* Files always generated *)
@@ -318,7 +318,6 @@ let tests ctxt =
                          (fun (v, lst) ->
                             v, FilePath.string_of_path lst)
                          (("PATH", paths) :: extra_env)))
-          ctxt
           real_cmd
           args
     in
@@ -357,7 +356,6 @@ let tests ctxt =
           let assert_compile cmd args =
             assert_command 
               ~extra_env 
-              ctxt
               "ocamlfind" 
               (cmd :: "-package" :: pkg :: args )
           in
@@ -384,7 +382,7 @@ let tests ctxt =
               ["-o"; FilePath.replace_extension fn "byte"; 
                fn];
 
-            if ctxt.has_ocamlopt then
+            if !has_ocamlopt then
               begin
                 (* Library + native compilation *)
                 assert_compile 
@@ -461,7 +459,7 @@ let tests ctxt =
   in
 
   let long_test () =
-    skip_if (not ctxt.long) "Long test"
+    skip_if (not !long) "Long test"
   in
     
   let bracket_setup 
@@ -537,7 +535,7 @@ let tests ctxt =
 
          (* Create build system using OASIS *)
          let () = 
-           assert_oasis_cli ctxt 
+           assert_oasis_cli 
              (if dev then 
                 ["setup-dev"; "-real-oasis"; "-only-setup"] 
               else 
@@ -688,6 +686,8 @@ let tests ctxt =
            let extra_env =
              ("OCAMLFIND_DESTDIR", loc.ocaml_lib_dir)
              ::
+             ("OCAMLFIND_LDCONF", "ignore")
+             ::
              extra_env
            in
              (* Install *)
@@ -827,7 +827,7 @@ let tests ctxt =
               "Bar.cmi"; "Bar.ml"; 
               "META"];
            conditional 
-             ctxt.has_ocamlopt
+             !has_ocamlopt
              (in_ocaml_library "simplelib" 
                 ["simplelib.cmxa"; 
                  if Sys.os_type = "Win32" then
@@ -841,7 +841,7 @@ let tests ctxt =
               "BarExt.cmi"; "BarExt.ml"; 
               "META"];
            conditional
-             ctxt.has_ocamlopt
+             !has_ocamlopt
              (in_ocaml_library "simplelibext"
                 ["simplelibext.cmxa"; 
                  if Sys.os_type = "Win32" then 
@@ -875,7 +875,7 @@ let tests ctxt =
               "bar.cmi"; "bar.mli"; 
               "META"];
            conditional 
-             ctxt.has_ocamlopt
+             !has_ocamlopt
              (in_ocaml_library "simplelib"
                 ["simplelib.cmxa"; 
                  if Sys.os_type = "Win32" then
@@ -937,7 +937,7 @@ let tests ctxt =
               else
                 ["test-with-c"; "test-with-c-custom"]);
            conditional
-             ctxt.has_ocamlopt
+             !has_ocamlopt
              (in_bin [if Sys.os_type = "Win32" then
                         "test-with-c-native.exe"
                       else
@@ -954,7 +954,7 @@ let tests ctxt =
               else
                 ["libwith-c.a"; "dllwith-c.so"]);
            conditional
-             ctxt.has_ocamlopt
+             !has_ocamlopt
              (in_ocaml_library "with-c" 
                 [if Sys.os_type = "Win32" then
                    "with-c.lib"
@@ -967,7 +967,7 @@ let tests ctxt =
            in_html "with-c"
              ["code_VALA.ident.html"];
          ],
-         (if ctxt.has_ocamlopt then
+         (if !has_ocamlopt then
             (fun lst ->  
                (try_installed_exec "test-with-c-native" [])
                ::
@@ -1031,7 +1031,7 @@ let tests ctxt =
               "A.ml"; "A.cmi"; "B.ml"; "B.cmi";
               "pa_test.ml"; "pa_test.cmi"];
            conditional 
-             ctxt.has_ocamlopt
+             !has_ocamlopt
              (in_ocaml_library "test"
                 ["test.cmxa"; 
                  if Sys.os_type = "Win32" then
@@ -1084,7 +1084,7 @@ let tests ctxt =
            in_ocaml_library "with-a"
              ["META"; "A.ml"; "A.cmi"; "with-a.cma"];
            conditional
-             ctxt.has_ocamlopt
+             !has_ocamlopt
              (in_ocaml_library "with-a"
                 ["with-a.cmxa"; 
                  if Sys.os_type = "Win32" then
