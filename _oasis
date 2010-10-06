@@ -186,11 +186,11 @@ Executable test
   MainIs: test.ml
   Install: false
   CompiledObject: byte
-  BuildDepends: oUnit, oasis, oasis.base, oasis.builtin-plugins, expect.pcre (>= 0.0.2)
+  BuildDepends: oUnit (>= 1.1.0), oasis, oasis.base, oasis.builtin-plugins, expect.pcre (>= 0.0.2)
 
 Test main
   Type: custom (0.1.0)
-  Command: $test
+  Command: $test -oasis-exec $OASIS -has-ocamlopt $is_native
   WorkingDirectory: test 
   TestTools: OASIS, test
 

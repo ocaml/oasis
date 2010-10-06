@@ -21,14 +21,14 @@ let tests =
       if !dbug then
         Printf.eprintf 
           "Quickstart command line: %s\n%!" 
-          (String.concat " " (!oasis :: args))
+          (String.concat " " (oasis () :: args))
     in
     let _, exit_code = 
       try 
         with_spawn
           ~verbose:!dbug
           ~timeout:(Some 0.1)
-          !oasis 
+          (oasis ())
           (Array.of_list args)
           (fun t () ->
              let rec continue = 

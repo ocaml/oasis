@@ -464,14 +464,14 @@ let tests =
     
   let bracket_setup 
         ?(dev=false)
-        (srcdir, 
-         skip_cond, 
-         oasis_extra_files, 
-         installed_files, 
-         post_install_runs) 
+        (srcdir, vars)
         f = 
     bracket
       (fun () ->
+         let (skip_cond, oasis_extra_files, installed_files, post_install_runs) = 
+           vars () 
+         in
+
          let cur_dir = 
            pwd ()
          in
@@ -517,6 +517,10 @@ let tests =
            bak_lst)
 
       (fun (cur_dir, loc, pristine, bak_lst) ->
+         let (skip_cond, oasis_extra_files, installed_files, post_install_runs) = 
+           vars () 
+         in
+
          let () = 
            skip_cond ()
          in
@@ -615,10 +619,16 @@ let tests =
   in
 
   (* Run devel test *)
-  let test_of_vector_dev (a, skip_cond, _, d, e) =
+  let test_of_vector_dev (a, f)  =
     "dev" >::
     bracket_setup ~dev:true 
-      (a, (fun () -> skip_cond (); long_test ()), ["setup.ml"], d, e)
+      (a, 
+       (fun () -> 
+          let (skip_cond, _, d, e) = 
+            f ()
+          in
+             (fun () -> skip_cond (); long_test ()),
+             ["setup.ml"], d, e))
       (fun _ ->
          assert_run_setup ["-all"];
          assert_run_setup ["-distclean"])
@@ -634,11 +644,14 @@ let tests =
   in
 
   (* Run standard test *)
-  let test_of_vector_std ((_, _, _, installed_files, post_install_runs) as e) =
+  let test_of_vector_std ((_, f) as e) =
     "standard" >::
     bracket_setup e
       (* Run test *)
       (fun (cur_dir, loc, pristine, expected_post_oasis_files) ->
+         let (_, _, installed_files, post_install_runs) = 
+           f ()
+         in
 
          let expected_installed_files loc = 
            (* Gather all file into a set *)
@@ -797,7 +810,7 @@ let tests =
 
   in
 
-  let test_of_vector ((srcdir, _, _, _, _) as e) =
+  let test_of_vector ((srcdir, _) as e) =
     srcdir >:::
     [
       test_of_vector_std e;
@@ -811,162 +824,159 @@ let tests =
        [
          (* Use flags *)
          "../examples/flags", 
-         ignore,
-         oasis_ocamlbuild_files
-         @
-         [
-           "src/simplelib/simplelib.mllib";
-           "src/simplelib/simplelib.odocl";
-           "src/simplelibext/simplelibext.mllib";
-           "src/simplelibext/simplelibext.odocl";
-         ],
-         [
-           (in_ocaml_library "simplelib") 
-             ["simplelib.cma"; 
-              "Foo.cmi"; "Foo.ml"; 
-              "Bar.cmi"; "Bar.ml"; 
-              "META"];
-           conditional 
-             !has_ocamlopt
-             (in_ocaml_library "simplelib" 
-                ["simplelib.cmxa"; 
-                 if Sys.os_type = "Win32" then
-                   "simplelib.lib"
-                 else
-                   "simplelib.a"]);
+         (fun () ->
+            ignore,
+            oasis_ocamlbuild_files
+            @
+            [
+              "src/simplelib/simplelib.mllib";
+              "src/simplelib/simplelib.odocl";
+              "src/simplelibext/simplelibext.mllib";
+              "src/simplelibext/simplelibext.odocl";
+            ],
+            [
+              (in_ocaml_library "simplelib") 
+                ["simplelib.cma"; 
+                 "Foo.cmi"; "Foo.ml"; 
+                 "Bar.cmi"; "Bar.ml"; 
+                 "META"];
+              conditional 
+                !has_ocamlopt
+                (in_ocaml_library "simplelib" 
+                   ["simplelib.cmxa"; 
+                    if Sys.os_type = "Win32" then
+                      "simplelib.lib"
+                    else
+                      "simplelib.a"]);
 
-           in_ocaml_library "simplelibext"
-             ["simplelibext.cma"; 
-              "FooExt.cmi"; "FooExt.ml"; 
-              "BarExt.cmi"; "BarExt.ml"; 
-              "META"];
-           conditional
-             !has_ocamlopt
-             (in_ocaml_library "simplelibext"
-                ["simplelibext.cmxa"; 
-                 if Sys.os_type = "Win32" then 
-                   "simplelibext.lib"
-                 else
-                   "simplelibext.a"]);
+              in_ocaml_library "simplelibext"
+                ["simplelibext.cma"; 
+                 "FooExt.cmi"; "FooExt.ml"; 
+                 "BarExt.cmi"; "BarExt.ml"; 
+                 "META"];
+              conditional
+                !has_ocamlopt
+                (in_ocaml_library "simplelibext"
+                   ["simplelibext.cmxa"; 
+                    if Sys.os_type = "Win32" then 
+                      "simplelibext.lib"
+                    else
+                      "simplelibext.a"]);
 
-           api_ref_html "simplelib"
-             ["Foo"; "Bar"];
+              api_ref_html "simplelib"
+                ["Foo"; "Bar"];
 
-           api_ref_html "simplelibext"
-             ["FooExt"; "BarExt"];
-         ],
-         [
-           (* TODO: test *)
-         ];
+              api_ref_html "simplelibext"
+                ["FooExt"; "BarExt"];
+            ],
+            [
+            ]);
 
 
          (* Complete library *)
          "../examples/simplelib", 
-         long_test,
-         oasis_ocamlbuild_files @ 
-         [
-           "src/simplelib.mllib";
-           "src/simplelib.odocl";
-         ],
-         [
-           in_ocaml_library "simplelib" 
-             ["simplelib.cma"; 
-              "foo.cmi"; "foo.mli"; 
-              "bar.cmi"; "bar.mli"; 
-              "META"];
-           conditional 
-             !has_ocamlopt
-             (in_ocaml_library "simplelib"
-                ["simplelib.cmxa"; 
-                 if Sys.os_type = "Win32" then
-                   "simplelib.lib"
-                 else
-                   "simplelib.a"]);
+         (fun () -> 
+            long_test,
+            oasis_ocamlbuild_files @ 
+            [
+              "src/simplelib.mllib";
+              "src/simplelib.odocl";
+            ],
+            [
+              in_ocaml_library "simplelib" 
+                ["simplelib.cma"; 
+                 "foo.cmi"; "foo.mli"; 
+                 "bar.cmi"; "bar.mli"; 
+                 "META"];
+              conditional 
+                !has_ocamlopt
+                (in_ocaml_library "simplelib"
+                   ["simplelib.cmxa"; 
+                    if Sys.os_type = "Win32" then
+                      "simplelib.lib"
+                    else
+                      "simplelib.a"]);
 
-           api_ref_html "simplelib"
-             ["Bar"; "Foo"];
-         ],
-         [
-           (* TODO: test *)
-         ];
+              api_ref_html "simplelib"
+                ["Bar"; "Foo"];
+            ],
+            []);
 
 
          (* Complete library with findlib package to check *)
          "../examples/findlib",
-         long_test,
-         oasis_ocamlbuild_files,
-         [],
-         [
-           (* TODO: test *)
-         ];
+         (fun () -> 
+            long_test,
+            oasis_ocamlbuild_files,
+            [],
+            []);
 
 
          (* Complete library with custom build system *)
          "../examples/custom", 
-         long_test,
-         [],
-         [
-           in_ocaml_library "simplelib"
-             ["simplelib.cma"; 
-              "foo.cmi"; "foo.mli"; 
-              "bar.cmi"; "bar.mli"; 
-              "META"];
-         ],
-         [
-           (* TODO: test *)
-         ];
+         (fun () -> 
+            long_test,
+            [],
+            [
+              in_ocaml_library "simplelib"
+                ["simplelib.cma"; 
+                 "foo.cmi"; "foo.mli"; 
+                 "bar.cmi"; "bar.mli"; 
+                 "META"];
+            ],
+            []);
 
 
          (* Library/executable using C files *)
          "../examples/with-c",
-         long_test,
-         [
-           "src/META"; 
-           "src/libtest-with-c-custom.clib"; 
-           "src/libtest-with-c-native.clib";
-           "src/libtest-with-c.clib";
-           "src/libwith-c.clib";
-           "src/with-c.mllib";
-           "src/with-c.odocl";
-         ] @ oasis_ocamlbuild_files,
-         [
-           
-           in_bin 
-             (if Sys.os_type = "Win32" then
-                ["test-with-c.exe"; "test-with-c-custom.exe"]
-              else
-                ["test-with-c"; "test-with-c-custom"]);
-           conditional
-             !has_ocamlopt
-             (in_bin [if Sys.os_type = "Win32" then
-                        "test-with-c-native.exe"
-                      else
-                        "test-with-c-native"]);
-           in_library [if Sys.os_type = "Win32" then
-                         "with-c/dlltest-with-c.dll"
-                       else
-                         "with-c/dlltest-with-c.so"];
-           in_ocaml_library "with-c"
-             ["A.cmi"; "A.ml"; "META"; "with-c.cma"]; 
-           in_ocaml_library "with-c"
-             (if Sys.os_type = "Win32" then
-                ["libwith-c.lib"; "dllwith-c.dll"]
-              else
-                ["libwith-c.a"; "dllwith-c.so"]);
-           conditional
-             !has_ocamlopt
-             (in_ocaml_library "with-c" 
-                [if Sys.os_type = "Win32" then
-                   "with-c.lib"
+         (fun () -> 
+            long_test,
+            [
+              "src/META"; 
+              "src/libtest-with-c-custom.clib"; 
+              "src/libtest-with-c-native.clib";
+              "src/libtest-with-c.clib";
+              "src/libwith-c.clib";
+              "src/with-c.mllib";
+              "src/with-c.odocl";
+            ] @ oasis_ocamlbuild_files,
+            [
+              in_bin 
+                (if Sys.os_type = "Win32" then
+                   ["test-with-c.exe"; "test-with-c-custom.exe"]
                  else
-                   "with-c.a"; 
-                 "with-c.cmxa"]);
+                   ["test-with-c"; "test-with-c-custom"]);
+              conditional
+                !has_ocamlopt
+                (in_bin [if Sys.os_type = "Win32" then
+                           "test-with-c-native.exe"
+                         else
+                           "test-with-c-native"]);
+              in_library [if Sys.os_type = "Win32" then
+                            "with-c/dlltest-with-c.dll"
+                          else
+                            "with-c/dlltest-with-c.so"];
+              in_ocaml_library "with-c"
+                ["A.cmi"; "A.ml"; "META"; "with-c.cma"]; 
+              in_ocaml_library "with-c"
+                (if Sys.os_type = "Win32" then
+                   ["libwith-c.lib"; "dllwith-c.dll"]
+                 else
+                   ["libwith-c.a"; "dllwith-c.so"]);
+              conditional
+                !has_ocamlopt
+                (in_ocaml_library "with-c" 
+                   [if Sys.os_type = "Win32" then
+                      "with-c.lib"
+                    else
+                      "with-c.a"; 
+                    "with-c.cmxa"]);
 
-           api_ref_html "with-c"
-             ["A"];
-           in_html "with-c"
-             ["code_VALA.ident.html"];
-         ],
+              api_ref_html "with-c"
+                ["A"];
+              in_html "with-c"
+                ["code_VALA.ident.html"];
+            ],
          (if !has_ocamlopt then
             (fun lst ->  
                (try_installed_exec "test-with-c-native" [])
@@ -978,212 +988,227 @@ let tests =
              try_installed_exec "test-with-c-custom" [];
              try_installed_exec "test-with-c" [];
              try_installed_library "with-c" ["A"];
-           ];
+           ]);
 
          (* Library/executable using data files *)
          "../examples/with-data",
-         long_test,
-         [
-           "src/META";
-           "src/test.mllib";
-           "src/test.odocl";
-         ] @ oasis_ocamlbuild_files,
-         [
-           in_bin [if Sys.os_type = "Win32" then
-                     "test.exe"
-                   else
-                     "test"];
-           in_ocaml_library "test"
-             [
-               "test.ml"; "test.cmi"; "META"; "test.cma";
-             ];
-           in_data_dir 
-             ["with-data/test.txt"; 
-              "doc/html/test.html";
-              "with-data-0.1/test.txt"];
+         (fun () -> 
+            long_test,
+            [
+              "src/META";
+              "src/test.mllib";
+              "src/test.odocl";
+            ] @ oasis_ocamlbuild_files,
+            [
+              in_bin [if Sys.os_type = "Win32" then
+                        "test.exe"
+                      else
+                        "test"];
+              in_ocaml_library "test"
+                [
+                  "test.ml"; "test.cmi"; "META"; "test.cma";
+                ];
+              in_data_dir 
+                ["with-data/test.txt"; 
+                 "doc/html/test.html";
+                 "with-data-0.1/test.txt"];
 
-           api_ref_html "test"
-             ["Test"];
-         ],
-         [
-           try_installed_library "test" ["Test"];
-         ];
+              api_ref_html "test"
+                ["Test"];
+            ],
+            [
+              try_installed_library "test" ["Test"];
+            ]);
 
          (* Test executable *)
          "../examples/with-test",
-         long_test,
-         oasis_ocamlbuild_files,
-         [],
-         [];
+         (fun () ->
+            long_test,
+            oasis_ocamlbuild_files,
+            [],
+            []);
 
          (* Use sub-packages *)
          "../examples/with-subpackage",
-         long_test,
-         [
-           "src/META";
-           "src/test.mllib";
-           "src/test.odocl";
-           "src/syntax/pa_test.mllib";
-         ] @ oasis_ocamlbuild_files,
-         [
-           in_ocaml_library "test" 
-             ["META"; "test.cma"; "pa_test.cma";
-              "A.ml"; "A.cmi"; "B.ml"; "B.cmi";
-              "pa_test.ml"; "pa_test.cmi"];
-           conditional 
-             !has_ocamlopt
-             (in_ocaml_library "test"
-                ["test.cmxa"; 
-                 if Sys.os_type = "Win32" then
-                   "test.lib"
-                 else
-                   "test.a"]);
+         (fun () -> 
+           long_test,
+           [
+             "src/META";
+             "src/test.mllib";
+             "src/test.odocl";
+             "src/syntax/pa_test.mllib";
+           ] @ oasis_ocamlbuild_files,
+           [
+             in_ocaml_library "test" 
+               ["META"; "test.cma"; "pa_test.cma";
+                "A.ml"; "A.cmi"; "B.ml"; "B.cmi";
+                "pa_test.ml"; "pa_test.cmi"];
+             conditional 
+               !has_ocamlopt
+               (in_ocaml_library "test"
+                  ["test.cmxa"; 
+                   if Sys.os_type = "Win32" then
+                     "test.lib"
+                   else
+                     "test.a"]);
 
-           api_ref_html "test"
-             ["A"; "B"];
-         ],
-         [
-           try_installed_library "test" ["A"; "B"];
-         ];
+             api_ref_html "test"
+               ["A"; "B"];
+           ],
+           [
+             try_installed_library "test" ["A"; "B"];
+           ]);
 
          (* Interdependencies *)
          "../examples/interdepend-libraries",
-         long_test,
-         [
-           "src/interdepend.odocl";
-           "src/liba/liba.mllib";
-           "src/libb/libb.mllib";
-           "src/libc/libc.mllib";
-           "src/libd/libd.mllib";
-           "src/libe/libe.mllib";
-         ] @ oasis_ocamlbuild_files,
-         [],
-         [];
+         (fun () ->
+            long_test,
+            [
+              "src/interdepend.odocl";
+              "src/liba/liba.mllib";
+              "src/libb/libb.mllib";
+              "src/libc/libc.mllib";
+              "src/libd/libd.mllib";
+              "src/libe/libe.mllib";
+            ] @ oasis_ocamlbuild_files,
+            [],
+            []);
 
          (* Build order *)
          "../examples/order-matter",
-         long_test,
-         [
-           "src/order-matter.odocl";
-           "src/foo/foo.mllib";
-           "src/bar/bar.mllib";
-           "src/baz/baz.mllib";
-         ] @ oasis_ocamlbuild_files,
-         [],
-         [];
+         (fun () -> 
+            long_test,
+            [
+              "src/order-matter.odocl";
+              "src/foo/foo.mllib";
+              "src/bar/bar.mllib";
+              "src/baz/baz.mllib";
+            ] @ oasis_ocamlbuild_files,
+            [],
+            []);
 
          (* Single level package *)
          "data/1level",
-         long_test,
-         [
-           "META";
-           "with-a.mllib";
-           "with-a.odocl";
-         ] @ oasis_ocamlbuild_files,
-         [
-           in_ocaml_library "with-a"
-             ["META"; "A.ml"; "A.cmi"; "with-a.cma"];
-           conditional
-             !has_ocamlopt
-             (in_ocaml_library "with-a"
-                ["with-a.cmxa"; 
-                 if Sys.os_type = "Win32" then
-                   "with-a.lib"
-                 else
-                   "with-a.a"]);
-           in_bin [if Sys.os_type = "Win32" then
-                     "test-with-a.exe"
-                   else
-                     "test-with-a"];
-           api_ref_html "with-a" ["A"];
-         ],
-         [
-           try_installed_library "with-a" ["A"];
-           try_installed_exec "test-with-a" [];
-         ];
+         (fun () ->
+            long_test,
+            [
+              "META";
+              "with-a.mllib";
+              "with-a.odocl";
+            ] @ oasis_ocamlbuild_files,
+            [
+              in_ocaml_library "with-a"
+                ["META"; "A.ml"; "A.cmi"; "with-a.cma"];
+              conditional
+                !has_ocamlopt
+                (in_ocaml_library "with-a"
+                   ["with-a.cmxa"; 
+                    if Sys.os_type = "Win32" then
+                      "with-a.lib"
+                    else
+                      "with-a.a"]);
+              in_bin [if Sys.os_type = "Win32" then
+                        "test-with-a.exe"
+                      else
+                        "test-with-a"];
+              api_ref_html "with-a" ["A"];
+            ],
+            [
+              try_installed_library "with-a" ["A"];
+              try_installed_exec "test-with-a" [];
+            ]);
 
          (* Try custom document build *)
          "data/customdoc",
-         long_test,
-         ["META"; "with-a.mllib"] @ oasis_ocamlbuild_files,
-         [
-           in_ocaml_library "with-a"
-             ["META"; "A.ml"; "A.cmi"; "with-a.cma"];
-         ],
-         [];
+         (fun () -> 
+            long_test,
+            ["META"; "with-a.mllib"] @ oasis_ocamlbuild_files,
+            [
+              in_ocaml_library "with-a"
+                ["META"; "A.ml"; "A.cmi"; "with-a.cma"];
+            ],
+            []);
 
          (* Use cclib option *)
          "data/with-cclib",
          (fun () ->
-            long_test ();
-            skip_if 
-              (not (Sys.file_exists "/usr/include/stringprep.h"))
-              "Cannot find 'stringprep.h'"),
-         ["src/META"; 
-          "Makefile"; 
-          "configure"; 
-          "src/libtest_oasis_c_dependency.clib"; 
-          "src/test_oasis_c_dependency.mllib"] @ oasis_ocamlbuild_files,
-         [],
-         [];
+            (fun () ->
+               long_test ();
+               skip_if 
+                 (not (Sys.file_exists "/usr/include/stringprep.h"))
+                 "Cannot find 'stringprep.h'"),
+            ["src/META"; 
+             "Makefile"; 
+             "configure"; 
+             "src/libtest_oasis_c_dependency.clib"; 
+             "src/test_oasis_c_dependency.mllib"] @ oasis_ocamlbuild_files,
+            [],
+            []);
 
          (* With a documentation that is not built *)
          "data/no-install-doc",
-         long_test,
-         [] @ oasis_ocamlbuild_files,
-         [],
-         [];
+         (fun () ->
+            long_test,
+            [] @ oasis_ocamlbuild_files,
+            [],
+            []);
         
          (* Need to create a a parent directory *)
          "data/create-parent-dir",
-         long_test,
-         [] @ oasis_ocamlbuild_files,
-         [in_data_dir ["toto/toto/toto.txt"]],
-         [];
+         (fun () ->
+            long_test,
+            [] @ oasis_ocamlbuild_files,
+            [in_data_dir ["toto/toto/toto.txt"]],
+            []);
 
          "data/bug588",
          (fun () ->
-            long_test ();
-            let cmd = 
-              Printf.sprintf
-                "ocamlfind query bitstring > %s 2>&1"
-                (if Sys.os_type = "Win32" then
-                   "NUL"
-                 else
-                   "/dev/null")
-            in
-              skip_if 
-                (Sys.command cmd <> 0)
-                "Cannot find package bitstring"),
-         ["libtest.mllib"; "libtest.odocl"] 
-         @ 
-         (List.filter (( <> ) "_tags") oasis_ocamlbuild_files),
-         [],
-         [];
+            (fun () ->
+               long_test ();
+               let cmd = 
+                 Printf.sprintf
+                   "ocamlfind query bitstring > %s 2>&1"
+                   (if Sys.os_type = "Win32" then
+                      "NUL"
+                    else
+                      "/dev/null")
+               in
+                 skip_if 
+                   (Sys.command cmd <> 0)
+                   "Cannot find package bitstring"),
+            ["libtest.mllib"; "libtest.odocl"] 
+            @ 
+            (List.filter (( <> ) "_tags") oasis_ocamlbuild_files),
+            [],
+            []);
 
          "data/bug619",
-         long_test,
-         oasis_ocamlbuild_files,
-         [],
-         [];
+         (fun () ->
+            long_test,
+            oasis_ocamlbuild_files,
+            [],
+            []);
 
          "data/bug571",
-         long_test,
-         oasis_ocamlbuild_files,
-         [],
-         [];
+         (fun () ->
+            long_test,
+            oasis_ocamlbuild_files,
+            [],
+            []);
 
          "data/flag-ccopt",
-         long_test,
-         "cryptokit.mllib" :: oasis_ocamlbuild_files,
-         [],
-         [];
+         (fun () ->
+            long_test,
+            "cryptokit.mllib" :: oasis_ocamlbuild_files,
+            [],
+            []);
 
          "data/bug738",
-         long_test,
-         "src/test.mllib" :: "src/META" :: oasis_ocamlbuild_files,
-         [in_ocaml_library "test" ["META"; "foo.cmi"; "test.cma"]],
-         [];
+         (fun () ->
+            long_test,
+            "src/test.mllib" :: "src/META" :: oasis_ocamlbuild_files,
+            [in_ocaml_library "test" ["META"; "foo.cmi"; "test.cma"]],
+            []);
        ]
     )
 ;;

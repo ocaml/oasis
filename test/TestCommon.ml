@@ -47,35 +47,17 @@ module SetString = Set.Make(String)
 
 let dbug = ref false
 let long = ref false
+let has_ocamlopt = ref false 
+let oasis_exec = ref None
+let oasis_args = ref []
 
-let has_ocamlopt = 
-  let dflt = 
-    try 
-      let _s : FilePath.filename = 
-        FileUtil.which "ocamlopt"
-      in
-        true
-    with Not_found ->
-      false
-  in
-    ref dflt
+let oasis () = 
+  match !oasis_exec with 
+    | None -> 
+        failwith "You must define oasis executable with -oasis-exec"
+    | Some e ->
+        e
 
-let oasis = 
-  let dflt = 
-    (* TODO: get rid of this, use command line *)
-    FilePath.make_filename
-      [FileUtil.pwd ();FilePath.parent_dir;
-       "_build";"src";"cli";
-       if Sys.os_type = "Win32" then
-         "OASIS.exe"
-       else
-         "OASIS"]
-  in
-    ref dflt
-
-let oasis_args = 
-  ref []
-    
 let oasis_ctxt = 
   ref OASISContext.quiet
 
@@ -91,7 +73,19 @@ let test_args =
     [
       "-long",
       Arg.Set long,
-      "Run long tests";
+      " Run long tests";
+
+      "-has-ocamlopt",
+      Arg.String (fun s -> has_ocamlopt := bool_of_string s),
+      "bool Can use ocamlopt for tests";
+
+      "-oasis-exec",
+      Arg.String (fun s -> oasis_exec := Some s),
+      "fn Define oasis executable";
+
+      "-oasis-args",
+      Arg.Rest (fun str -> oasis_args := !oasis_args @ [str]),
+      "args* Define oasis arguments";
     ] @ gettext_args @ (BaseContext.args ())
 
 let in_data fn =
@@ -154,4 +148,4 @@ let assert_command ?exit_code ?output ?extra_env cmd args  =
 
 let assert_oasis_cli ?exit_code ?output ?extra_env args  =
   assert_command ?exit_code ?output ?extra_env 
-    !oasis (!oasis_args @ args)
+    (oasis ()) (!oasis_args @ args)
