@@ -87,9 +87,12 @@ let test lst pkg extra_args =
     else
       failed /. (float_of_int n)
   in
-    (if failure_percent > 0.0 then
-       warning 
-     else
-       info)
+  let msg = 
+    Printf.sprintf
       (f_ "Tests had a %.2f%% failure rate")
       (100. *. failure_percent)
+  in
+    if failure_percent > 0.0 then
+      failwith msg
+    else
+      info "%s" msg
