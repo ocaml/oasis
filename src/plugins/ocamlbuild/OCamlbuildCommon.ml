@@ -147,3 +147,17 @@ let fix_build_tools tool pkg =
       pkg.sections
   in
     {pkg with sections = List.rev sections}
+
+
+module Tag = 
+struct 
+  (** [filename_concat fn1 fn2] Concat filename, using semantic of _tags 
+      [fn1] must be a real filename whereas fn2 can contains wildcards.
+    *)
+  let filename_concat fn1 fn2 = 
+    (* TODO: consider using directly ocamlbuild function *)
+    FilePath.UnixPath.concat 
+      (FilePath.UnixPath.reduce ~no_symlink:true fn1)
+      fn2 
+
+end

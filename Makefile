@@ -28,7 +28,7 @@ default: test
 #TESTFLAGS      += -long 
 #TESTFLAGS      += -verbose
 #TESTFLAGS      += -debug
-#TESTFLAGS      += -only-test OASIS:3:FileTemplate:2:filetemplate3.txt
+#TESTFLAGS      += -only-test OASIS:5:TestFull:10:data/1level:0:standard
 
 # OASIS_START
 # DO NOT EDIT (digest: bc1e05bfc8b39b664f29dae8dbd3ebbb)

@@ -311,21 +311,19 @@ let add_tags tag_t tgts tags =
 
 
 let prepend_bs_path bs fn =
-  FilePath.UnixPath.concat
-    (FilePath.UnixPath.reduce bs.bs_path)
-    fn
-
+  Tag.filename_concat bs.bs_path fn
 
 let bs_paths bs files = 
-  SetString.elements
-   (set_string_of_list
-      (FilePath.UnixPath.reduce bs.bs_path
-       ::
-       List.rev_map
-         FilePath.UnixPath.dirname
-         (List.rev_map
-            (prepend_bs_path bs)
-            files)))
+  let subdirs = 
+    List.rev_map FilePath.UnixPath.dirname
+      (List.rev_map (prepend_bs_path bs) files)
+  in
+    (* Unique elements *)
+    SetString.elements
+      (set_string_of_list
+         (List.rev_map 
+            (FilePath.UnixPath.reduce ~no_symlink:true)
+            (bs.bs_path :: subdirs)))
 
 
 let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocamlbuild_t = 
@@ -341,7 +339,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
     List.rev_append
       (* .ml files *)
       (List.rev_map 
-         (fun dn -> FilePath.UnixPath.concat dn "*.ml{,i}")
+         (fun dn -> Tag.filename_concat dn "*.ml{,i}")
          (src_dirs @ src_internal_dirs))
       (* .c files *)
       (List.map 
