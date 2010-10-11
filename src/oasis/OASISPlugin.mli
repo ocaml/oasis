@@ -125,7 +125,7 @@ sig
   val name : string
 
   (** Version of the plugin. *)
-  val version : string
+  val version : OASISVersion.t
 
   (** Help text. It can contains variable substitution as defined
       in [Buffer.add_substitute].
@@ -144,6 +144,7 @@ module type PLUGINS =
 sig
   type act
   type data
+  type kind
 
   (** Create {PLUGIN_UTILS_TYPE} for a {PLUGIN_ID_TYPE}. *)
   module Make: functor (PI : PLUGIN_ID_TYPE) -> 
@@ -153,54 +154,65 @@ sig
   val ls : unit -> name list
 
   (** Find a specific plugin. *)
-  val find : name * 'a -> act
+  val find : kind plugin -> act
 
   (** Quickstart question *)
   val quickstart_question: 
-    unit -> (name * OASISVersion.t option) quickstart_question
+    unit -> (kind plugin) quickstart_question
 
   (** Parse a plugin field *) 
-  val value : (name * OASISVersion.t option) OASISValues.t
+  val value : (kind plugin) OASISValues.t
 
   (** Get quickstart completion *)
-  val quickstart_completion: name -> package -> package
+  val quickstart_completion: kind plugin -> package -> package
 end
 
-module MapPlugin: Map.S with type key = name
+module MapPlugin: Map.S with type key = plugin_kind plugin
+module SetPlugin: Set.S with type elt = plugin_kind plugin
 
 (** {2 Modules for plugin type} *)
 
 (** This module manage plugin that can handle configure step. *)
 module Configure: PLUGINS with 
-  type act = package_act and type data = package
+  type act = package_act 
+  and type data = package
+  and type kind = [`Configure] 
 
 (** This module manage plugin that can handle build step. *)
 module Build: PLUGINS with 
-  type act = package_act and type data = package
+  type act = package_act 
+  and type data = package
+  and type kind = [`Build]
 
 (** This module manage plugin that can handle building documents. *)
 module Doc: PLUGINS with 
-  type act = (doc, unit) section_act and type data = common_section * doc 
+  type act = (doc, unit) section_act 
+  and type data = common_section * doc 
+  and type kind = [`Doc] 
 
 (** This module manage plugin that can handle running tests. *)
 module Test: PLUGINS with 
-  type act = (test, float) section_act and type data = common_section * test
+  type act = (test, float) section_act 
+  and type data = common_section * test
+  and type kind = [`Test]
 
 (** This module manage plugin that can handle install/uninstall steps. *)
 module Install: PLUGINS with 
-  type act = package_act * package_act and type data = package
+  type act = package_act * package_act 
+  and type data = package
+  and type kind = [`Install] 
 
 (** This module manage plugin that can handle configure step. *)
 module Extra:     PLUGINS with
-  type act = context_act -> package -> context_act and type data = package
+  type act = context_act -> package -> context_act 
+  and type data = package
+  and type kind = [`Extra]
 
 (** {2 General plugin functions} *)
 
 (* General data for plugin. *)
-(* TODO: don't expose the ref *)
-val help_all :
-  (string * int * string list * (string * (unit -> string)) list) MapPlugin.t
-  ref
+val help : unit -> 
+    (OASISVersion.t * int * string list * (string * (unit -> string)) list) MapPlugin.t
 
 (** Check that a field name has the form to match a plugin. Don't check that the 
     plugin exists. This functions help to ignore plugin fields.
@@ -208,7 +220,7 @@ val help_all :
 val test_field_name : string -> bool
 
 (** Use a builtin plugin (i.e. version = OASIS version). *)
-val builtin : name -> name * OASISVersion.t option
+val builtin : 'a -> name -> 'a plugin
 
 (** Add a template to context *)
 val add_file : OASISFileTemplate.template -> context_act -> context_act
@@ -217,3 +229,14 @@ val add_file : OASISFileTemplate.template -> context_act -> context_act
     {context_act.error} value.
   *)
 val set_error : bool -> string -> context_act -> context_act
+
+(** Get a plugin from a string *)
+val plugin_of_string: 'a -> string -> 'a plugin
+
+(** Get a list of plugins from a string *)
+val plugins_of_string: 'a -> string -> ('a plugin) list
+
+(** Compare plugin, caseless for name and don't take into account version
+    if one is not set.
+  *)
+val plugin_compare: 'a plugin -> 'a plugin -> int

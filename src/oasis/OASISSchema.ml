@@ -78,9 +78,9 @@ struct
 end
 
 type kind = 
-  | DefinePlugin 
-  | DefinePlugins
-  | FieldFromPlugin of string
+  | DefinePlugin of plugin_kind 
+  | DefinePlugins  of plugin_kind
+  | FieldFromPlugin of plugin_kind plugin
   | StandardField 
 
 type extra =
@@ -221,7 +221,7 @@ let new_field_conditional
 
   let kind =
     match plugin with
-      | Some plg -> Some (FieldFromPlugin plg)
+      | Some (knd, plg, ver) -> Some (FieldFromPlugin (knd, plg, ver))
       | None -> None
   in
 
@@ -296,7 +296,7 @@ let new_field
   in
   let kind =
     match plugin with
-      | Some plg -> Some (FieldFromPlugin plg)
+      | Some (knd, plg, ver) -> Some (FieldFromPlugin (knd, plg, ver))
       | None -> None
   in
 
@@ -323,6 +323,7 @@ let new_field_plugin
       ?default 
       ?quickstart_level
       ?quickstart_question
+      knd
       value 
       help
       sync =
@@ -340,7 +341,7 @@ let new_field_plugin
       ?default
       ~help
       (extra
-        ~kind:DefinePlugin 
+        ~kind:(DefinePlugin knd)
         ?quickstart_level
         ?quickstart_question
          value)
@@ -350,9 +351,12 @@ let new_field_plugin
 let new_field_plugins
       t
       name
-      ?default 
+      (* TODO: constrain default and quickstart variant *)
+      ?default
       ?quickstart_level
+      (* TODO: merge quickstart_question and values *)
       ?quickstart_question
+      knd
       value 
       help
       sync =
@@ -373,7 +377,7 @@ let new_field_plugins
       ?default
       ~help
       (extra
-        ~kind:DefinePlugins
+        ~kind:(DefinePlugins knd)
         ?quickstart_level
         ?quickstart_question
         value)

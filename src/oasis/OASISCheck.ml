@@ -25,40 +25,134 @@
 open OASISGettext
 open OASISSchema
 open OASISUtils
+open OASISPlugin
+open OASISTypes
 open PropList
 
-let check_schema where schm data =
+let check_schema ~ctxt where schm data =
+
+  let check_is_default schm data fld = 
+    let fake_data = 
+      Data.create ()
+    in
+      try 
+        (Schema.get schm data fld) = (Schema.get schm fake_data fld)
+      with 
+        | Not_set _
+        | No_printer _ 
+        | OASISValues.Not_printable ->
+            (* TODO: Don't know what to answer *)
+            true
+  in
+
+  let check_is_set schm data fld = 
+    try
+      let _ = 
+        Schema.get schm data fld
+      in 
+        true 
+    with 
+      | Not_set _ ->
+          false
+      | No_printer _
+      | OASISValues.Not_printable ->
+          true
+  in
+
+  let check_get schm data fld msgfld =
+    try
+      let _ = 
+        Schema.get schm data fld
+      in 
+        msgfld 
+    with 
+      | Not_set _ ->
+          fld :: msgfld
+      | No_printer _ ->
+          msgfld
+      | OASISValues.Not_printable ->
+          msgfld
+  in
+
+  let plugins, msgfld =
+    Schema.fold
+      (fun ((plugins, msgfld) as acc) fld extra hlp ->
+         match extra.kind with 
+           | DefinePlugin knd ->
+               begin
+                 try 
+                   let id = 
+                     plugin_of_string knd (Schema.get schm data fld)
+                   in
+                     SetPlugin.add id plugins,
+                     msgfld
+                 with _ ->
+                   plugins,
+                   check_get schm data fld msgfld
+               end
+
+               
+           | DefinePlugins knd ->
+               begin
+                 try 
+                   let lst = 
+                     plugins_of_string knd (Schema.get schm data fld)
+                   in
+                     List.fold_left
+                       (fun acc id -> SetPlugin.add id acc)
+                       plugins lst,
+                     msgfld
+
+                 with _ ->
+                   plugins,
+                   check_get schm data fld msgfld
+               end
+
+           | StandardField 
+           | FieldFromPlugin _ ->
+               acc)
+      (SetPlugin.empty, [])
+      schm
+  in
+
   let msgfld =
     Schema.fold
       (fun acc fld extra hlp ->
          match extra.kind with 
            | DefinePlugin _ | DefinePlugins _ ->
                begin
-                 (* TODO: check this field as well *)
+                 (* Already checked before *)
                  acc
                end
 
            | StandardField ->
                begin
-                 try
-                   let _ = 
-                     Schema.get schm data fld
-                   in 
-                     acc
-                 with 
-                   | Not_set _ ->
-                       fld :: acc 
-                   | No_printer _ ->
-                       acc
-                   | OASISValues.Not_printable ->
-                       acc
+                 check_get schm data fld acc
                end
-           | FieldFromPlugin _ ->
+
+           | FieldFromPlugin plg_id ->
                begin
-                 (* TODO: handle plugin checks *)
-                 acc
+                 if SetPlugin.mem plg_id plugins then 
+                   begin
+                     check_get schm data fld acc
+                   end
+
+                 else if check_is_set schm data fld && 
+                         not (check_is_default schm data fld) then
+                   begin
+                     OASISMessage.warning ~ctxt
+                       (f_ "Field %s is set but matching plugin is not enabled.")
+                       fld;
+                     acc
+                   end
+
+                 else
+                   begin
+                     acc
+                   end
+
                end)
-      []
+      msgfld
       schm
   in
     if msgfld <> [] then

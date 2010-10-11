@@ -37,17 +37,19 @@ let fields_of_section ?plugin schm =
   List.rev
     (PropList.Schema.fold
        (fun acc key extra help ->
-          match extra.kind with
-            | StandardField | DefinePlugin _ | DefinePlugins _ ->
-                if plugin = None then
+          match extra.kind, plugin with
+            | StandardField, None 
+            | DefinePlugin _, None
+            | DefinePlugins _, None ->
+                (key, help) :: acc
+            | FieldFromPlugin plg, Some plg'  ->
+                if OASISPlugin.plugin_compare plg' plg = 0 then
                   (key, help) :: acc
                 else
                   acc
-            | FieldFromPlugin plg ->
-                if plugin = Some plg then
-                  (key, help) :: acc
-                else
-                  acc)
+            | FieldFromPlugin _, None 
+            | _, Some _ ->
+                acc)
        []
        schm)
 
@@ -322,31 +324,21 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
   in
 
   let pp_plugin fmt (plg, ver, hlp, hlp_xtr_vr) = 
-    let kinds = 
-      let check_add (fnd, nm) acc = 
-       try
-         let _ = 
-           fnd (plg, Some ver)
-         in
-           nm :: acc
-       with Failure _ ->
-         acc
-      in
-        List.fold_right
-          (fun f acc -> f acc)
-          [
-            check_add (OASISPlugin.Configure.find, "conf");
-            check_add (OASISPlugin.Build.find,     "build");
-            check_add (OASISPlugin.Doc.find,       "doc");
-            check_add (OASISPlugin.Test.find,      "test");
-            check_add (OASISPlugin.Install.find,   "install");
-            check_add (OASISPlugin.Extra.find,     "extra");
-          ]
-          []
+    let knd, nm, _ = 
+      plg 
     in
-      fprintf fmt (f_ "### Plugin %s\n\n") plg;
-      fprintf fmt (f_ "__Version__: %s<br/>\n") ver;
-      fprintf fmt (f_ "__Types__: %s\n\n") (String.concat (s_ ", ") kinds);
+    let kind_str = 
+        match knd with 
+          | `Configure -> "conf"
+          | `Build     -> "build"
+          | `Doc       -> "doc"
+          | `Test      -> "test"
+          | `Install   -> "install"
+          | `Extra     -> "extra"
+    in
+      fprintf fmt (f_ "### Plugin %s (%s)\n\n") nm kind_str;
+      fprintf fmt (f_ "__Version__: %s<br/>\n") 
+        (OASISVersion.string_of_version ver);
       pp_help_replace (hlp_xtr_vr @ (vars ~plugin:plg ())) fmt hlp;
   in
 
@@ -410,7 +402,7 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
                OASISPlugin.MapPlugin.fold
                  (fun k (v, o, a, b) acc ->
                     (o, (k, v, a, b)) :: acc)
-                 !OASISPlugin.help_all
+                 (OASISPlugin.help ())
                  []
              in
                List.map snd (List.sort compare all)

@@ -46,7 +46,8 @@ let schema, generator =
   in
   let typ =
     new_field_plugin schm "Type"
-      ~default:(OASISPlugin.builtin "none") 
+      ~default:(OASISPlugin.builtin `Doc "none") 
+      `Doc
       OASISPlugin.Doc.value
       (fun () ->
          s_ "Plugin to use to build documentation.")

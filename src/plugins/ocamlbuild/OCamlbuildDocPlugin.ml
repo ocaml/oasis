@@ -104,6 +104,7 @@ let libraries =
 let intro =
   new_field 
     OASISDocument.schema
+    ~default:None
     "Intro"
     (opt file)
     (fun () ->
@@ -112,6 +113,7 @@ let intro =
 let flags =
   new_field
     OASISDocument.schema
+    ~default:[]
     "Flags"
     space_separated 
     (fun () ->

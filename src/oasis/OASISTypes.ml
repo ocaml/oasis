@@ -67,7 +67,9 @@ type vcs =
 
 type 'a conditional = 'a OASISExpr.choices with odn
 
-type plugin = name * OASISVersion.t option with odn
+type plugin_kind = [`Configure | `Build | `Doc | `Test | `Install | `Extra]
+
+type 'a plugin = 'a * name * OASISVersion.t option with odn
 
 type custom = 
     {
@@ -136,7 +138,7 @@ type source_repository =
 
 type test = 
     {
-      test_type:               plugin;
+      test_type:               [`Test] plugin;
       test_command:            command_line conditional;
       test_custom:             custom;
       test_working_directory:  unix_filename option;
@@ -156,7 +158,7 @@ type doc_format =
 
 type doc =
     {
-      doc_type:        plugin;
+      doc_type:        [`Doc] plugin;
       doc_custom:      custom;
       doc_build:       bool conditional;
       doc_install:     bool conditional;
@@ -195,13 +197,13 @@ type package =
       description:      string option;
       categories:       url list;
 
-      conf_type:        plugin;
+      conf_type:        [`Configure] plugin;
       conf_custom:      custom;
 
-      build_type:       plugin;
+      build_type:       [`Build] plugin;
       build_custom:     custom;
 
-      install_type:     plugin;
+      install_type:     [`Install] plugin;
       install_custom:   custom;
       uninstall_custom: custom;
 
@@ -210,7 +212,7 @@ type package =
 
       files_ab:         unix_filename list;
       sections:         section list;
-      plugins:          plugin list;
+      plugins:          [`Extra] plugin list;
       schema_data:      PropList.Data.t;
     } with odn
 

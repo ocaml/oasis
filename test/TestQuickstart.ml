@@ -232,6 +232,21 @@ let tests =
            "buildtools", "";
            "create_section", "n";
            "end", "w";
+           "xcustomconf", "./configure";
+           "xcustomconfclean", "";
+           "xcustomconfdistclean", "$rm config.log";
+           "xcustombuild", "make all";
+           "xcustombuildclean", "make clean";
+           "xcustombuilddistclean", "make distclean";
+           "xstdfilesreadme", "";
+           "xstdfilesreadmefilename", "";
+           "xstdfilesinstallfilename", "";
+           "xstdfilesinstall", "";
+           "xstdfilesauthorsfilename", "";
+           "xstdfilesauthors", "";
+           "xdevfilesmakefilenotargets", "";
+           "xdevfilesenablemakefile", "";
+           "xdevfilesenableconfigure", "";
          ]
  *)
        ])

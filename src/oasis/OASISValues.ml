@@ -161,11 +161,8 @@ let comma_separated value =
     parse = 
       (fun ~ctxt s ->
          List.map 
-           (fun s -> 
-              value.parse ~ctxt (String.strip s))
-           (String.nsplit 
-              s 
-              ","));
+           (fun s -> value.parse ~ctxt s)
+           (split_comma s));
     update = 
       List.append;
     print = 
@@ -191,39 +188,26 @@ let space_separated =
   }
 
 let with_optional_parentheses main_value optional_value =
-  let split_parentheses =
-    Pcre.regexp "([^\\(]*)\\(([^\\)]*)\\)"
-  in
-    {
-      parse = 
-        (fun ~ctxt str ->
-           try 
-             let substrs =
-               Pcre.exec ~rex:split_parentheses str
-             in
-             let s1, s2 = 
-               Pcre.get_substring substrs 1,
-               Pcre.get_substring substrs 2
-             in
-             let e1 = 
-               main_value.parse ~ctxt (String.strip s1)
-             in
-             let e2 =
-               optional_value.parse ~ctxt (String.strip s2)
-             in
-               e1, Some e2
-           with Not_found ->
-             main_value.parse ~ctxt str, None);
-      update = update_fail;
-      print =
-        (function
-           | v, None ->
-               main_value.print v
-           | v, Some opt ->
-               Printf.sprintf "%s (%s)"
-                 (main_value.print v)
-                 (optional_value.print opt));
-    }
+  {
+    parse = 
+      (fun ~ctxt str ->
+         match split_optional_parentheses str with 
+           | e1, Some e2 ->
+               main_value.parse ~ctxt e1,
+               Some (optional_value.parse ~ctxt e2)
+           | e1, None ->
+               main_value.parse ~ctxt e1,
+               None);
+    update = update_fail;
+    print =
+      (function
+         | v, None ->
+             main_value.print v
+         | v, Some opt ->
+             Printf.sprintf "%s (%s)"
+               (main_value.print v)
+               (optional_value.print opt));
+  }
 
 let opt value =
   {

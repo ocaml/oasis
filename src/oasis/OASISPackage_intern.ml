@@ -205,8 +205,9 @@ let schema, generator =
   in
   let conf_type =
     new_field_plugin "ConfType" 
-      ~default:(OASISPlugin.builtin "internal")
+      ~default:(OASISPlugin.builtin `Configure "internal")
       ~quickstart_question:OASISPlugin.Configure.quickstart_question 
+      `Configure
       OASISPlugin.Configure.value
       (fun () -> 
          s_ "Configuration system.")
@@ -220,8 +221,9 @@ let schema, generator =
   in
   let build_type =
     new_field_plugin "BuildType" 
-      ~default:(OASISPlugin.builtin "ocamlbuild")
+      ~default:(OASISPlugin.builtin `Build "ocamlbuild")
       ~quickstart_question:OASISPlugin.Build.quickstart_question
+      `Build
       OASISPlugin.Build.value
       (fun () -> 
          s_ "Build system.")
@@ -235,8 +237,9 @@ let schema, generator =
   in
   let install_type =
     new_field_plugin "InstallType"
-      ~default:(OASISPlugin.builtin "internal")
+      ~default:(OASISPlugin.builtin `Install "internal")
       ~quickstart_question:OASISPlugin.Install.quickstart_question
+      `Install
       OASISPlugin.Install.value
       (fun () -> 
          s_ "Install/uninstall system.")
@@ -302,6 +305,7 @@ let schema, generator =
       new_field_plugins schm "Plugins"
         ~default:[]
         ~quickstart_question
+        `Extra
         OASISPlugin.Extra.value
         (fun () -> 
            s_ "Extra plugins to use.")

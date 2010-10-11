@@ -316,7 +316,7 @@ let mk_yes_no t =
     ]
 
 (** Ask questions for a schema (Package, Library, Executable...) *)
-let ask_schema ~ctxt schema lvl interface =
+let ask_schema ~ctxt schema lvl interface plugins =
   let fake_context = 
     {
       OASISAstTypes.cond = None;
@@ -330,132 +330,204 @@ let ask_schema ~ctxt schema lvl interface =
     schema.OASISSchema.schm
   in
 
+  let ask_field data key extra help = 
+    let default = 
+      try 
+        let s = 
+          PropList.Schema.get
+            schm
+            data
+            key
+        in
+          Default_answer s 
+      with 
+        | OASISValues.Not_printable ->
+            Default_not_printable
+
+        | PropList.Not_set _ ->
+            NoDefault
+    in
+
+    let has_default =
+      default <> NoDefault
+    in
+
+    let set = 
+      PropList.Schema.set 
+        schm
+        data
+        key
+        ~context:fake_context
+    in
+      begin
+        match extra.qckstrt_lvl with 
+          | NoChoice s -> 
+              begin
+                try
+                  set s
+                with e ->
+                  failwithf3
+                    (f_ "Trying to set field '%s' using mandatory value '%s': %s")
+                    key s (Printexc.to_string e)
+              end
+          | _ when not has_default || lvl >= extra.qckstrt_lvl ->
+              begin
+                let help = 
+                  match help with 
+                    | Some f ->
+                        Printf.sprintf
+                          (f_ "Field: %s\n%s\n%s\n")
+                          key
+                          (f ())
+                          (help_of_default default)
+
+                    | None ->
+                        Printf.sprintf
+                          (f_ "Field: %s\n%s\n")
+                          (help_of_default default)
+                          key
+                in
+                let t = 
+                  {
+                    id        = String.lowercase key;
+                    interface = interface;
+                    default   = default;
+                    help      = help;
+                    ctxt      = ctxt;
+                    question  = Printf.sprintf 
+                                  (f_ "Value for field '%s'?") 
+                                  key;
+                    parse     = fun s -> s;
+                  }
+                in
+                  try 
+                    begin
+                      match extra.qckstrt_q () with 
+                        | Field 
+                        | Text ->
+                            begin
+                              (* TODO: text *)
+                              set (ask_until_correct t)
+                            end
+
+                        | Choices lst ->
+                            begin
+                              set 
+                                (ask_until_correct 
+                                   (mk_numbered_choices_multi 
+                                      t
+                                      (List.map (fun s -> s, None) lst)))
+
+                            end
+
+                        | ExclusiveChoices lst ->
+                            begin
+                              set 
+                                (ask_until_correct 
+                                   (mk_numbered_choices
+                                      t 
+                                      (List.map (fun s -> s, None) lst)))
+                            end
+                    end
+                  with ChooseNotPrintableDefault ->
+                    ()
+              end
+          | _ ->
+              ()
+      end;
+      data
+  in
+
+  let ask_field_and_get_answer data key extra help = 
+    let data = 
+      ask_field data key extra help
+    in
+    let str =
+      PropList.Schema.get
+        schm
+        data
+        key
+    in
+      data, str
+  in
+
+  let ask_plugin_fields plg data = 
     PropList.Schema.fold
-      (fun data key extra help -> 
-         match extra.kind with 
-           | StandardField
-           | DefinePlugin _ 
-           | DefinePlugins _ ->
+      (fun data key extra help ->
+         match extra.kind with  
+           | FieldFromPlugin plg' ->
                begin
-                 let default = 
-                   try 
-                     let s = 
-                       PropList.Schema.get
-                         schm
-                         data
-                         key
-                     in
-                       Default_answer s 
-                   with 
-                     | OASISValues.Not_printable ->
-                         Default_not_printable
-
-                     | PropList.Not_set _ ->
-                         NoDefault
-                 in
-
-                 let has_default =
-                   default <> NoDefault
-                 in
-
-                 let set = 
-                   PropList.Schema.set 
-                     schm
-                     data
-                     key
-                     ~context:fake_context
-                 in
-                   begin
-                     match extra.qckstrt_lvl with 
-                       | NoChoice s -> 
-                           begin
-                             try
-                               set s
-                             with e ->
-                               failwithf3
-                                 (f_ "Trying to set field '%s' using mandatory value '%s': %s")
-                                 key s (Printexc.to_string e)
-                           end
-                       | _ when not has_default || lvl >= extra.qckstrt_lvl ->
-                           begin
-                             let help = 
-                               match help with 
-                                 | Some f ->
-                                     Printf.sprintf
-                                       (f_ "Field: %s\n%s\n%s\n")
-                                       key
-                                       (f ())
-                                       (help_of_default default)
-
-                                 | None ->
-                                     Printf.sprintf
-                                       (f_ "Field: %s\n%s\n")
-                                       (help_of_default default)
-                                       key
-                             in
-                             let t = 
-                               {
-                                 id        = String.lowercase key;
-                                 interface = interface;
-                                 default   = default;
-                                 help      = help;
-                                 ctxt      = ctxt;
-                                 question  = Printf.sprintf 
-                                               (f_ "Value for field '%s'?") 
-                                               key;
-                                 parse     = fun s -> s;
-                               }
-                             in
-                               try 
-                                 begin
-                                   match extra.qckstrt_q () with 
-                                     | Field 
-                                     | Text ->
-                                         begin
-                                           (* TODO: text *)
-                                           set (ask_until_correct t)
-                                         end
-
-                                     | Choices lst ->
-                                         begin
-                                           set 
-                                             (ask_until_correct 
-                                                (mk_numbered_choices_multi 
-                                                   t
-                                                   (List.map (fun s -> s, None) lst)))
-
-                                         end
-
-                                     | ExclusiveChoices lst ->
-                                         begin
-                                           set 
-                                             (ask_until_correct 
-                                                (mk_numbered_choices
-                                                   t 
-                                                   (List.map (fun s -> s, None) lst)))
-                                         end
-                                 end
-                               with ChooseNotPrintableDefault ->
-                                 ()
-                           end
-                       | _ ->
-                           ()
-                   end;
+                 if OASISPlugin.plugin_compare plg plg' = 0 then
+                   ask_field data key extra help
+                 else
                    data
                end
 
-           | FieldFromPlugin _ ->
+           | StandardField | DefinePlugin _ | DefinePlugins _ ->
                begin
                  data
                end)
+      data
+      schm
+  in
 
-      (PropList.Data.create ())
+    PropList.Schema.fold
+      (fun (data, new_plugins) key extra help -> 
+         match extra.kind with 
+           | StandardField ->
+               begin
+                 ask_field data key extra help, 
+                 new_plugins
+               end
+
+           | DefinePlugin knd -> 
+               begin
+                 let data, plg_str = 
+                   ask_field_and_get_answer data key extra help
+                 in
+                 let plg = 
+                   OASISPlugin.plugin_of_string knd plg_str
+                 in
+                 let data =
+                   ask_plugin_fields plg data
+                 in
+                   data, (OASISPlugin.SetPlugin.add plg new_plugins)
+               end
+
+           | DefinePlugins knd ->
+               begin
+                 let data, plg_str = 
+                   ask_field_and_get_answer data key extra help
+                 in
+                   List.fold_left
+                     (fun (data, new_plugins) plg ->
+                        ask_plugin_fields plg data,
+                        OASISPlugin.SetPlugin.add plg new_plugins)
+                     (data, new_plugins)
+                     (OASISPlugin.plugins_of_string knd plg_str)
+               end
+
+           | FieldFromPlugin plg ->
+               begin
+                 (* We process only fields that have been defined
+                  * out of this loop, since plugins define in the
+                  * loop are processed after the plugin definition
+                  *)
+                 if OASISPlugin.SetPlugin.mem plg plugins then
+                   ask_field data key extra help, new_plugins
+                 else
+                   data, new_plugins
+               end)
+
+      (PropList.Data.create (), plugins)
       schm
 
 (** Ask questions for a package and its sections *)
 let ask_package ~ctxt lvl intrf = 
-  let pkg_data = 
-    ask_schema ~ctxt OASISPackage.schema lvl intrf
+  let pkg_data, plugins = 
+    ask_schema ~ctxt 
+      OASISPackage.schema lvl intrf 
+      OASISPlugin.SetPlugin.empty
   in
 
   let mk_t nm hlp q = 
@@ -481,11 +553,15 @@ let ask_package ~ctxt lvl intrf =
   in
 
   let section_data =
-    let section gen schema q_name =
+    let section gen schema q_name () =
       let nm = 
-        ask_until_correct (mk_t "name" "" q_name)
+        ask_until_correct (mk_t "name" "" q_name) 
       in
-        gen nm (ask_schema ~ctxt schema lvl intrf)
+      (* Plugin define in section don't propagate *)
+      let data, _ = 
+        ask_schema ~ctxt schema lvl intrf plugins
+      in
+        gen nm data
     in
 
     let sections = 
@@ -494,51 +570,45 @@ let ask_package ~ctxt lvl intrf =
 
         s_ "l", s_ "create a library", None,
         (Some 
-           (fun () -> 
-              section
-                OASISLibrary_intern.generator
-                OASISLibrary.schema
-                (s_ "Library name?")));
+           (section
+              OASISLibrary_intern.generator
+              OASISLibrary.schema
+              (s_ "Library name?")));
 
         s_ "e", s_ "create an executable", None,
         (Some 
-           (fun () ->
-              section
-                OASISExecutable_intern.generator
-                OASISExecutable.schema
-                (s_ "Executable name?")));
+           (section
+              OASISExecutable_intern.generator
+              OASISExecutable.schema
+              (s_ "Executable name?")));
 
         s_ "f", s_ "create a flag", None,
         (Some 
-           (fun () ->
-              section
-                OASISFlag_intern.generator
-                OASISFlag.schema
-                (s_ "Flag name?")));
+           (section
+              OASISFlag_intern.generator
+              OASISFlag.schema
+              (s_ "Flag name?")));
 
         s_ "s", s_ "create a source repository", None,
         (Some 
-           (fun () ->
-              section
-                OASISSourceRepository_intern.generator
-                OASISSourceRepository.schema
-                (s_ "Source repository identifier?")));
+           (section
+              OASISSourceRepository_intern.generator
+              OASISSourceRepository.schema
+              (s_ "Source repository identifier?")));
 
         s_ "t", s_ "create a test", None,
         (Some 
-           (fun () ->
-              section
-                OASISTest_intern.generator
-                OASISTest.schema
-                (s_ "Test name?")));
+           (section
+              OASISTest_intern.generator
+              OASISTest.schema
+              (s_ "Test name?")));
 
         s_ "d", s_ "create a document", None,
         (Some
-           (fun () ->
-              section
-                OASISDocument_intern.generator
-                OASISDocument.schema
-                (s_ "Document name?")));
+           (section
+              OASISDocument_intern.generator
+              OASISDocument.schema
+              (s_ "Document name?")));
       ]
     in
 
@@ -587,16 +657,16 @@ let ask_package ~ctxt lvl intrf =
   let plugins = 
     (* Toplevel plugins *)
     [
-      pkg.conf_type,     OASISPlugin.Configure.quickstart_completion;
-      pkg.build_type,    OASISPlugin.Build.quickstart_completion;
-      pkg.install_type,  OASISPlugin.Install.quickstart_completion;
+      OASISPlugin.Configure.quickstart_completion pkg.conf_type;
+      OASISPlugin.Build.quickstart_completion pkg.build_type;
+      OASISPlugin.Install.quickstart_completion pkg.install_type;
     ]
   in
   let plugins = 
     (* Extra plugins *)
     List.fold_left
       (fun lst plg -> 
-         (plg, OASISPlugin.Extra.quickstart_completion) :: lst)
+         (OASISPlugin.Extra.quickstart_completion plg) :: lst)
       plugins
       pkg.plugins
   in
@@ -608,12 +678,10 @@ let ask_package ~ctxt lvl intrf =
            | Executable _ | Library _ ->
                lst
            | Test (cs, test) -> 
-               (test.test_type, 
-                OASISPlugin.Test.quickstart_completion)
+               (OASISPlugin.Test.quickstart_completion test.test_type)
                :: lst
            | Doc (cs, doc) ->
-               (doc.doc_type, 
-                OASISPlugin.Doc.quickstart_completion)
+               (OASISPlugin.Doc.quickstart_completion doc.doc_type)
                :: lst
            | Flag _ | SrcRepo _ ->
                lst)
@@ -622,8 +690,8 @@ let ask_package ~ctxt lvl intrf =
   in
   let pkg = 
     List.fold_left
-      (fun pkg (plg, quickstart_completion) -> 
-         quickstart_completion (fst plg) pkg)
+      (fun pkg quickstart_completion -> 
+         quickstart_completion pkg)
       pkg
       plugins
   in

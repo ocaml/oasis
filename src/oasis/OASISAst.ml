@@ -156,7 +156,7 @@ let to_package conf st =
       schm.OASISSchema.schm 
     in
       stmt schm data ctxt stmt';
-      OASISCheck.check_schema 
+      OASISCheck.check_schema ~ctxt:ctxt.ctxt 
         ((PropList.Schema.name schm)^" "^nm)
         schm
         data;
@@ -243,7 +243,7 @@ let to_package conf st =
       ast
   in
   let pkg = 
-    OASISCheck.check_schema 
+    OASISCheck.check_schema ~ctxt:default_ctxt.ctxt
       "package"
       OASISPackage.schema.OASISSchema.schm
       data;

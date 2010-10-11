@@ -40,6 +40,9 @@ let set_string_of_list =
     SetString.empty
 
 
+let compare_csl s1 s2 = 
+  String.compare (String.lowercase s1) (String.lowercase s2)
+
 module HashStringCsl = 
   Hashtbl.Make
     (struct
@@ -164,3 +167,32 @@ let failwithf5 fmt a b c d e =
   failwith (Printf.sprintf fmt a b c d e)
 
 (* END EXPORT *)
+
+open ExtString
+
+let split_comma str = 
+  List.map String.strip (String.nsplit str ",")
+
+let split_optional_parentheses = 
+  let split_parentheses =
+    ignore "(*(*";
+    Pcre.regexp "([^\\(]*)\\(([^\\)]*)\\)"
+  in
+    fun str -> 
+      try 
+        let substrs =
+          Pcre.exec ~rex:split_parentheses str
+        in
+        let s1, s2 = 
+          Pcre.get_substring substrs 1,
+          Pcre.get_substring substrs 2
+        in
+        let e1 = 
+          String.strip s1
+        in
+        let e2 =
+          String.strip s2
+        in
+          e1, Some e2
+      with Not_found ->
+        String.strip str, None

@@ -72,10 +72,20 @@ type vcs =
   *)
 type 'a conditional = 'a OASISExpr.choices
 
+(** Plugin kind. 
+  *)
+type plugin_kind = 
+    [`Configure 
+    | `Build 
+    | `Doc 
+    | `Test 
+    | `Install 
+    | `Extra]
+
 (** Plugin definition, plugin type depends on which fields this
     types is used for.
   *)
-type plugin = name * OASISVersion.t option 
+type 'a plugin = 'a * name * OASISVersion.t option 
 
 (** Set of command lines to run before and after a step.
   *)
@@ -200,7 +210,7 @@ type source_repository =
   *)
 type test = 
     {
-      test_type:               plugin;
+      test_type:               [`Test] plugin;
       (** Plugin to run the test, default custom. *)
       test_command:            command_line conditional;
       (** Command to run the test, may depend on the plugin meaning. *)
@@ -232,7 +242,7 @@ type doc_format =
   *)
 type doc =
     {
-      doc_type:        plugin;
+      doc_type:        [`Doc] plugin;
       (** Plugin to build this document, default none. *)
       doc_custom:      custom;
       (** Custom command lines ommand to before and after. *)
@@ -303,17 +313,17 @@ type package =
       categories:       url list;
       (** List of categories that the package belong to. *)
 
-      conf_type:        plugin;
+      conf_type:        [`Configure] plugin;
       (** Plugin to configure, default internal. *)
       conf_custom:      custom;
       (** Actions around configure step. *)
 
-      build_type:       plugin;
+      build_type:       [`Build] plugin;
       (** Plugin to build, default ocamlbuild. *)
       build_custom:     custom;
       (** Actions around build step. *)
 
-      install_type:     plugin;
+      install_type:     [`Install] plugin;
       (** Plugin to install/uninstall, default internal. *)
       install_custom:   custom;
       (** Actions around install step. *)
@@ -329,7 +339,7 @@ type package =
       (** Files to generate by replacing token in it after configure step. *)
       sections:         section list;
       (** All sections (libraries, executables, tests...). *)
-      plugins:          plugin list;
+      plugins:          [`Extra] plugin list;
       (** Extra plugins applied. *)
 
       (* TODO: get rid of schema_data and cs_data *)

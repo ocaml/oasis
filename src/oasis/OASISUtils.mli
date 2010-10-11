@@ -69,3 +69,14 @@ val failwithf5 : ('a -> 'b -> 'c -> 'd -> 'e -> string, unit, string) format -> 
   *)
 val split : char -> string -> string list
 
+(** Caseless compare function
+  *)
+val compare_csl : string -> string -> int
+
+(** Split a list using ',' as separator. {b Not exported}
+  *)
+val split_comma : string -> string list
+
+(** Split a string containing '(...)' optionally. {b Not exported} 
+  *)
+val split_optional_parentheses : string -> string * (string option)

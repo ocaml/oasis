@@ -43,7 +43,8 @@ let schema, generator =
   in
   let typ =
     new_field_plugin schm "Type"
-      ~default:(OASISPlugin.builtin "custom") 
+      ~default:(OASISPlugin.builtin `Test "custom") 
+      `Test
       OASISPlugin.Test.value
       (fun () ->
          s_ "Plugin to use to run test.")
