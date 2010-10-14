@@ -17,7 +17,7 @@
     @author Sylvain Le Gall
   *)
 
-open OASISTypes
+open OASISUnixPath
 
 (** {2 Comments} *)
 

@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: f0b834ba3b5617b7e5c450ca5a517f18)
+# DO NOT EDIT (digest: 6016a9ec19cca4994a0c0fe4844829e8)
 FormatExt
 ODNFunc
 PropList
@@ -45,6 +45,7 @@ OASISPackage
 OASISSourceRepository
 OASISTest
 OASISPlugin
+OASISSchema
 OASISVersion_types
 OASISVersion_lexer
 OASISVersion_parser
@@ -67,4 +68,5 @@ OASISLibrary_intern
 OASISPackage_intern
 OASISSourceRepository_intern
 OASISTest_intern
+OASISSchema_intern
 # OASIS_STOP

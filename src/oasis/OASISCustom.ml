@@ -25,7 +25,7 @@
 
 (* END EXPORT *)
 
-open OASISSchema
+open OASISSchema_intern
 open OASISValues
 open OASISTypes
 

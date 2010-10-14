@@ -65,11 +65,42 @@ type vcs =
   | OtherVCS of url
   with odn
 
-type 'a conditional = 'a OASISExpr.choices with odn
+type plugin_kind = 
+    [  `Configure 
+     | `Build 
+     | `Doc 
+     | `Test 
+     | `Install 
+     | `Extra
+    ]
 
-type plugin_kind = [`Configure | `Build | `Doc | `Test | `Install | `Extra]
+type plugin_data_purpose =
+    [  `Configure
+     | `Build
+     | `Install
+     | `Clean
+     | `Distclean
+     | `Install
+     | `Uninstall
+     | `Test
+     | `Doc
+     | `Extra
+     | `Other of string
+    ]
 
 type 'a plugin = 'a * name * OASISVersion.t option with odn
+
+type all_plugin = plugin_kind plugin 
+
+type plugin_data = (all_plugin * plugin_data_purpose * (unit -> unit)) list
+
+(* END EXPORT *)
+(* TODO: really export this *)
+let odn_of_plugin_data _ = 
+  ODN.of_list (fun _ -> ODN.UNT) []
+(* START EXPORT *)
+
+type 'a conditional = 'a OASISExpr.choices with odn
 
 type custom = 
     {
@@ -82,6 +113,7 @@ type common_section =
     {
       cs_name: name;
       cs_data: PropList.Data.t;
+      cs_plugin_data: plugin_data;
     }
     with odn
 
@@ -214,6 +246,7 @@ type package =
       sections:         section list;
       plugins:          [`Extra] plugin list;
       schema_data:      PropList.Data.t;
+      plugin_data:      plugin_data;
     } with odn
 
 (* END EXPORT *)

@@ -459,11 +459,11 @@ let of_package pkg =
   in
 
   let ctxt, configure_changes =
-    (Configure.find pkg.conf_type) ctxt pkg
+    (Configure.act pkg.conf_type) ctxt pkg
   in
 
   let ctxt, build_changes = 
-    (Build.find pkg.build_type) ctxt pkg
+    (Build.act pkg.build_type) ctxt pkg
   in
 
   let ctxt, test_odn, test_changes = 
@@ -474,7 +474,7 @@ let of_package pkg =
              | Test (cs, tst) ->
                  begin
                    let ctxt, chng = 
-                     (Test.find tst.test_type) ctxt pkg (cs, tst)
+                     (Test.act tst.test_type) ctxt pkg (cs, tst)
                    in
                      ctxt, 
                      (ODN.TPL [ODN.STR cs.cs_name; 
@@ -501,7 +501,7 @@ let of_package pkg =
              | Doc (cs, doc) ->
                  begin
                    let ctxt, chng = 
-                     (Doc.find doc.doc_type) ctxt pkg (cs, doc)
+                     (Doc.act doc.doc_type) ctxt pkg (cs, doc)
                    in
                      ctxt,
                      (ODN.TPL [ODN.STR cs.cs_name; 
@@ -522,7 +522,7 @@ let of_package pkg =
 
   let ctxt, install_changes, uninstall_changes =
     let inst, uninst = 
-      Install.find pkg.install_type
+      Install.act pkg.install_type
     in
     let ctxt, install_changes = 
       inst ctxt pkg
@@ -536,7 +536,7 @@ let of_package pkg =
   let ctxt = 
     (* Run extra plugin *)
     List.fold_left
-      (fun ctxt nm -> (Extra.find nm) ctxt pkg)
+      (fun ctxt nm -> (Extra.act nm) ctxt pkg)
       ctxt
       pkg.plugins
   in

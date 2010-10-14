@@ -23,7 +23,7 @@
     @author Sylvain Le Gall
   *)
 
-open OASISSchema
+open OASISSchema_intern
 open OASISValues
 open OASISUtils
 open OASISGettext
@@ -32,7 +32,7 @@ open OASISTypes
 
 let schema, generator =
   let schm =
-    schema "SourceRepository"
+    schema "SourceRepository" (fun (cs, _) -> cs.cs_plugin_data)
   in
   let cmn_section_gen =
     OASISSection.section_fields 

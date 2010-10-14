@@ -113,7 +113,7 @@ let tests =
         (Unix.WEXITED 0)
         exit_code
   in
-  let test_of_vector (nm, args, qa) = 
+  let test_of_vector (nm, args, qa, post) = 
     nm >::
     bracket 
       (fun () ->
@@ -146,31 +146,7 @@ let tests =
          let pkg = 
            OASISParse.from_file ~ctxt:!oasis_ctxt "_oasis"
          in
-         let () = 
-           assert_equal 
-             ~msg:"field name"
-             ~printer:(fun s -> s)
-             "test" pkg.name
-         in
-
-         let sct = 
-           try 
-             OASISSection.section_find 
-               (OASISSection.KExecutable,
-                "test")
-               pkg.sections
-           with Not_found ->
-              failwith "Cannot find executable section 'test'"
-         in
-           match sct with 
-             | Executable (cs, bs, exec) ->
-                 assert_equal 
-                   ~msg:"mainis of test"
-                   ~printer:(fun s -> s)
-                   "test.ml" exec.exec_main_is 
-             | _ ->
-                 assert false
-      )
+           post pkg)
       (fun (pwd, tmp) ->
          Sys.chdir pwd;
          FileUtil.rm ~recurse:true [tmp])
@@ -192,9 +168,33 @@ let tests =
            "mainis",         "test.ml";
            "create_section", "n";
            "end",            "w";
-         ];
+         ],
+         (fun pkg ->
+            let () = 
+              assert_equal 
+                ~msg:"field name"
+                ~printer:(fun s -> s)
+                "test" pkg.name
+            in
 
-(*
+            let sct = 
+              try 
+                OASISSection.section_find 
+                  (OASISSection.KExecutable,
+                   "test")
+                  pkg.sections
+              with Not_found ->
+                 failwith "Cannot find executable section 'test'"
+            in
+              match sct with 
+                | Executable (cs, bs, exec) ->
+                    assert_equal 
+                      ~msg:"mainis of test"
+                      ~printer:(fun s -> s)
+                      "test.ml" exec.exec_main_is 
+                | _ ->
+                    assert false);
+
          "custom",
          ["-level"; "expert"],
          [
@@ -247,7 +247,11 @@ let tests =
            "xdevfilesmakefilenotargets", "";
            "xdevfilesenablemakefile", "";
            "xdevfilesenableconfigure", "";
-         ]
- *)
+         ],
+         (fun pkg ->
+            assert_equal 
+              ~msg:"field name"
+              ~printer:(fun s -> s)
+              "test" pkg.name);
        ])
 

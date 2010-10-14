@@ -34,12 +34,15 @@ open PropList
 module Sync = 
 struct
 
-  type 'a t = ('a -> PropList.Data.t) ref
+  (* TODO: we should use a Queue or a list here or include the sync method
+     directly in extra
+   *)
+  type 'a t = ('a -> (plugin_kind plugin) option -> PropList.Data.t -> PropList.Data.t) ref
 
   let create () = 
-    ref (fun _ -> PropList.Data.create ())
+    ref (fun _ _ data -> data)
 
-  let add t schm value nm sync = 
+  let add t schm value nm sync plugin = 
     let fake_context = 
       {
         OASISAstTypes.cond = None;
@@ -54,23 +57,39 @@ struct
     in
 
     let new_f = 
-      fun pkg -> 
-        let data = prev_f pkg in
+      fun t plugin' data -> 
+        let data = prev_f t plugin' data in
+          
+        let is_field_active = 
+          match plugin, plugin' with 
+            | Some plg, Some plg' ->
+                OASISPlugin.plugin_equal plg plg'
+
+            | None, None ->
+                true
+
+            | Some _, _ 
+            | _, Some _ ->
+                false
+        in
+
         let () = 
-          try 
-            (* TODO: we should just restore the value 
-             * wether or not it is printable should not
-             * be important 
-             *)
-            PropList.Schema.set 
-              schm 
-              data 
-              (* TODO: really need to kill this ~context *)
-              ~context:fake_context 
-              nm 
-              (value.print (sync pkg))
-          with Not_printable ->
-            ()
+                
+          if is_field_active then 
+            try 
+              (* TODO: we should just restore the value 
+               * wether or not it is printable should not
+               * be important 
+               *)
+              PropList.Schema.set 
+                schm 
+                data 
+                (* TODO: really need to kill this ~context *)
+                ~context:fake_context 
+                nm 
+                (value.print (sync t))
+            with Not_printable ->
+              ()
         in
           data
     in
@@ -92,15 +111,17 @@ type extra =
 
 type 'a t =
     {
-      schm: (ctxt, extra) PropList.Schema.t;
-      sync: 'a Sync.t;
+      schm:    (ctxt, extra) PropList.Schema.t;
+      sync:   'a Sync.t;
+      plugin: 'a -> plugin_data;
     }
 
 
-let schema nm = 
+let schema nm plg_data = 
   {
-    schm = Schema.create ~case_insensitive:true nm;
-    sync = Sync.create ()
+    schm   = Schema.create ~case_insensitive:true nm;
+    sync   = Sync.create ();
+    plugin = plg_data;
   }
 
 (** Define extra data contained in the schema
@@ -233,7 +254,7 @@ let new_field_conditional
   in
 
 
-    Sync.add t.sync t.schm value name sync;
+    Sync.add t.sync t.schm value name sync plugin;
     FieldRO.create 
       ~schema:t.schm 
       ~name
@@ -300,7 +321,7 @@ let new_field
       | None -> None
   in
 
-    Sync.add t.sync t.schm value name sync;
+    Sync.add t.sync t.schm value name sync plugin;
     FieldRO.create
       ~schema:t.schm 
       ~name
@@ -331,7 +352,7 @@ let new_field_plugin
   let update, parse =
     default_parse_update name value
   in
-    Sync.add t.sync t.schm value name sync;
+    Sync.add t.sync t.schm value name sync None;
     FieldRO.create
       ~schema:t.schm 
       ~name
@@ -367,7 +388,7 @@ let new_field_plugins
   let update, parse =
     default_parse_update name values
   in
-    Sync.add t.sync t.schm values name sync;
+    Sync.add t.sync t.schm values name sync None;
     FieldRO.create
       ~schema:t.schm 
       ~name
@@ -382,6 +403,39 @@ let new_field_plugins
         ?quickstart_question
         value)
 
-let to_proplist t = 
-  let f = !(t.sync) in
-    fun e -> t.schm, f e
+let to_proplist t e = 
+  let data = 
+    (* First synchronization, no plugin *)
+    !(t.sync) e None (PropList.Data.create ())
+  in
+  let plugins = 
+    PropList.Schema.fold 
+      (fun acc key extra _ ->
+         match extra.kind with 
+           | DefinePlugin knd ->
+               let str = 
+                 PropList.Schema.get t.schm data key
+               in
+                 (OASISPlugin.plugin_of_string knd str)
+                 :: acc
+
+           | DefinePlugins knd ->
+               let str =
+                 PropList.Schema.get t.schm data key
+               in
+                 (OASISPlugin.plugins_of_string knd str)
+                 @ acc
+
+           | FieldFromPlugin _ 
+           | StandardField ->
+               acc)
+      []
+      t.schm
+  in
+    (* Second synchronization only plugins *)
+    t.schm,
+    List.fold_left
+      (fun data plg ->
+         !(t.sync) e (Some plg) data)
+      data
+      plugins

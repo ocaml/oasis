@@ -269,8 +269,17 @@ open OASISTypes
 open OASISValues
 open MyOCamlbuildBase
 open Ocamlbuild_plugin
+open OCamlbuildId 
 
-module PU = OASISPlugin.Build.Make(OCamlbuildId)
+let plugin = 
+  `Build, name, Some version
+
+let self_id, all_id = 
+  Build.create 
+    ~help
+    ~help_extra_vars
+    ~help_order
+    plugin
 
 (* TODO: check everywhere that having .h and .c in CSources
  * doesn't disturb things too much 
@@ -818,5 +827,5 @@ let init () =
         chng_distclean    = None;
       }
   in
-    PU.register_act doit;
-    PU.register_quickstart_completion qstrt_completion
+    Build.register_act self_id doit;
+    register_quickstart_completion all_id qstrt_completion

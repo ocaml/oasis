@@ -9,6 +9,9 @@
   *)
 
 type unix_filename = string
+type unix_dirname = unix_filename
+type host_filename = string
+type host_dirname = host_filename
 
 (** '.' on Unix. *)
 val current_dir_name : unix_filename

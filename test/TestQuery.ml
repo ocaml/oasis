@@ -60,12 +60,12 @@ let tests =
            \nXDevFilesMakefileNoTargets\
            \nXDevFilesEnableMakefile\
            \nXDevFilesEnableConfigure\
-           \nXStdFilesREADMEFilename\
            \nXStdFilesREADME\
-           \nXStdFilesINSTALLFilename\
+           \nXStdFilesREADMEFilename\
            \nXStdFilesINSTALL\
-           \nXStdFilesAUTHORSFilename\
+           \nXStdFilesINSTALLFilename\
            \nXStdFilesAUTHORS\
+           \nXStdFilesAUTHORSFilename\
            \nTest(main).Type\
            \nTest(main).TestTools\
            \nTest(main).Run\

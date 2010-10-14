@@ -401,9 +401,18 @@ let uninstall _ argv =
 (* END EXPORT *)
 
 open OASISPlugin
+open InternalId
+
+let plugin =
+  `Install, name, Some version
 
 let init () = 
-  let module PU = Install.Make(InternalId)
+  let self_id, _ = 
+    Install.create 
+      ~help
+      ~help_extra_vars
+      ~help_order
+      plugin
   in
   (* Installation *)
   let doit_install ctxt pkg =
@@ -427,4 +436,4 @@ let init () =
     }
   in
 
-    PU.register_act (doit_install, doit_uninstall)
+    Install.register_act self_id (doit_install, doit_uninstall)

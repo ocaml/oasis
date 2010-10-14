@@ -80,11 +80,12 @@ let string_of_section sct =
 
 let section_fields 
       hlp 
-      (schm: 'a OASISSchema.t)
+      (schm: 'a OASISSchema_intern.t)
       (sync: 'a -> common_section) =
   fun nm data ->
     {
       cs_name = nm;
+      cs_plugin_data = []; (* TODO *)
       cs_data = data;
     }
 

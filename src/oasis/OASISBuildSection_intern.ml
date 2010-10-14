@@ -23,7 +23,7 @@
     @author Sylvain Le Gall
   *)
 
-open OASISSchema
+open OASISSchema_intern
 open OASISValues
 open OASISUtils
 open OASISGettext

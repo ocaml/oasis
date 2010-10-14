@@ -19,8 +19,94 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-
 open OASISTypes
+
+(*
+ *
+ * Plugin operation 
+ *
+ *)
+
+let plugin_compare (k1, n1, vo1) (k2, n2, vo2) = 
+  match compare k1 k2 with 
+    | 0 ->
+        begin
+          match OASISUtils.compare_csl n1 n2 with 
+            | 0 ->
+                begin
+                  match vo1, vo2 with
+                    | Some v1, Some v2 ->
+                        OASISVersion.version_compare v1 v2
+                    | None, _ | _, None ->
+                        0
+                end 
+            | n -> 
+                n
+        end
+    | n ->
+        n
+
+let plugin_equal plg1 plg2 =
+  plugin_compare plg1 plg2 = 0
+                               
+let plugin_hash (k, n, _) = 
+  Hashtbl.hash (k, String.lowercase n, None)
+
+(* 
+ * 
+ * Plugin properties 
+ *
+ *)
+
+exception Not_set
+
+type 'a setter = plugin_data ref -> 'a -> unit 
+type 'a getter = plugin_data ref -> 'a
+type 'a prop   = 'a setter * 'a getter
+
+let data_create () = 
+  ref []
+
+let data_new_property ?(purpose: plugin_data_purpose option) plg = 
+  let (knd, _, _) = 
+    plg
+  in
+  let prp =
+    match purpose, knd with 
+      | Some p, _ ->
+          p
+      | _, knd ->
+          (knd :> plugin_data_purpose)
+  in
+  let v = 
+    ref None
+  in
+  let set t x =
+    t := (plg, prp, (fun () -> v := Some x)) :: !t
+  in
+
+  let get t =
+    try
+      let _, _, f = 
+        List.find 
+          (fun (plg', prp', _) -> 
+             prp = prp' && plugin_equal plg plg') 
+          !t
+      in
+        f ();
+        match !v with
+          | Some x -> 
+              x
+          | None -> 
+              raise Not_set
+
+    with Not_found -> 
+      raise Not_set
+  in
+    (set, get)
+
+(* END EXPORT *)
+
 open OASISGettext
 open OASISUtils
 open ODNFunc
@@ -61,101 +147,8 @@ type package_act =
        (package -> string array -> unit)
       ) setup_changes
 
-module type PLUGIN_UTILS_TYPE =
-sig
-  type act 
-  type data
-
-  val register_act: act -> unit
-  val register_quickstart_completion: (package -> package) -> unit
-
-  val new_field: 
-    ('b OASISSchema.t) -> 
-    name -> 
-    ?default:'a -> 
-    'a OASISValues.t -> 
-    (unit -> string) -> 
-    PropList.Data.t -> 
-    'a
-
-  val new_field_conditional: 
-    ('b OASISSchema.t) -> 
-    name -> 
-    ?default:'a -> 
-    'a OASISValues.t -> 
-    (unit -> string) -> 
-    PropList.Data.t -> 
-    'a OASISExpr.choices
-
-end
-
-module type PLUGIN_ID_TYPE = 
-sig 
-  val name: string
-  val version: OASISVersion.t
-  val help: string list
-  val help_extra_vars: (string * (unit -> string)) list
-  val help_order: int
-end
-
-module type PLUGINS =
-sig
-  type act
-  type data
-  type kind
-
-  module Make: functor (PI : PLUGIN_ID_TYPE) -> 
-    PLUGIN_UTILS_TYPE with 
-    type act = act 
-    and type data = data
-
-  val ls : unit -> name list
-
-  val find : kind plugin -> act
-
-  val quickstart_question: unit -> (kind plugin) quickstart_question
-
-  val value : (kind plugin) OASISValues.t
-
-  val quickstart_completion: kind plugin -> package -> package
-end
-
-let family_of_kind =
-  function
-    | `Configure -> "configure"
-    | `Build     -> "build"
-    | `Doc       -> "doc"
-    | `Test      -> "test"
-    | `Install   -> "install"
-    | `Extra     -> "extra"
-
-let not_found_of_kind =
-  function
-    | `Configure -> f_ "Unknown configure plugin '%s' (available: %s)"
-    | `Build     -> f_ "Unknown build plugin '%s' (available: %s)"
-    | `Doc       -> f_ "Unknown doc plugin '%s' (available: %s)"
-    | `Test      -> f_ "Unknown test plugin '%s' (available: %s)"
-    | `Install   -> f_ "Unknown install plugin '%s' (available: %s)"
-    | `Extra     -> f_ "Unknown extra plugin '%s' (available: %s)"
-
-let plugin_compare (k1, n1, vo1) (k2, n2, vo2) = 
-  match compare k1 k2 with 
-    | 0 ->
-        begin
-          match OASISUtils.compare_csl n1 n2 with 
-            | 0 ->
-                begin
-                  match vo1, vo2 with
-                    | Some v1, Some v2 ->
-                        OASISVersion.version_compare v1 v2
-                    | None, _ | _, None ->
-                        0
-                end 
-            | n -> 
-                n
-        end
-    | n ->
-        n
+type 'a t = 'a plugin
+type all_t = plugin_kind plugin
 
 module MapPlugin = Map.Make (
 struct 
@@ -168,6 +161,14 @@ struct
   type t = plugin_kind plugin
   let compare = plugin_compare
 end) 
+
+module HashPlugin = 
+  Hashtbl.Make 
+  (struct
+     type t = plugin_kind plugin
+     let equal = plugin_equal
+     let hash  = plugin_hash
+   end)
 
 let string_of_plugin (_, nm, vo) = 
   match vo with 
@@ -193,185 +194,258 @@ let plugins_of_string knd str =
 
 (* General data for plugin *)
 
-let help_all = 
+(* TODO -> list or queue or whatever and don't return a Map *)
+let help_all =
   ref MapPlugin.empty 
 
 let help () =
   !help_all
 
-module Make =
-  functor (F:(sig
-                (* Family of plugins data *)
-                type act
-                type data
-                type kind 
-                val kind_default: kind
-                val to_plugin_kind: kind -> plugin_kind
-              end)) ->
-  struct 
+let version_all =
+  HashPlugin.create 5
 
-    open OASISValues
+let all = 
+  version_all
 
-    type act = F.act
-    type data = F.data
-    type kind = F.kind
+(** Find a plugin with or without version *)
+let find_fuzzy tbl ((knd, nm, vo) as id) =
+  try
+    HashPlugin.find tbl id
+  with Not_found ->
+    HashPlugin.find tbl (knd, nm, None)
 
-    module MapPluginGlobal = MapPlugin
+(* 
+ * Quickstart completion
+ *)
 
-    module MapPlugin = 
-      Map.Make 
-        (struct
-           type t = F.kind plugin
-           let compare = plugin_compare 
-         end)
+let qstrt_cmplt_all =
+  HashPlugin.create 5
 
-    let act_all : ((F.act * OASISVersion.t) MapPlugin.t) ref = 
-      ref MapPlugin.empty
+let register_quickstart_completion t f = 
+  HashPlugin.add qstrt_cmplt_all t f
 
-    let qstrt_cmplt_all : ((package -> package) MapPlugin.t) ref =
-      ref MapPlugin.empty
+let quickstart_completion plg = 
+  try
+    find_fuzzy qstrt_cmplt_all plg
+  with Not_found ->
+    (fun pkg -> pkg)
 
-    module Make (PI: PLUGIN_ID_TYPE) : PLUGIN_UTILS_TYPE with 
-      type act = act and type data = data =
-    struct
+(* 
+ * Generator
+ *)
 
-       type act = F.act
-       type data = F.data
+let gen_all = 
+  HashPlugin.create 5
 
-       let id = F.kind_default, PI.name, Some PI.version
-       let plugin_id = F.to_plugin_kind F.kind_default, PI.name, Some PI.version
+let register_generator_package t (prop_set, _) generator = 
+  HashPlugin.add gen_all t
+    (fun t data -> prop_set t (generator data))
 
-       let () = 
-         help_all :=
-         MapPluginGlobal.add
-           plugin_id
-           (PI.version, PI.help_order, PI.help, PI.help_extra_vars) 
-           !help_all
+let generator_package plg plugin_data data = 
+  try 
+    let lst = 
+      HashPlugin.find_all gen_all plg
+    in
+      List.iter 
+        (fun gen ->
+           gen plugin_data data)
+        lst
+  with Not_found ->
+    ()
 
-       let register_act e = 
-         act_all := MapPlugin.add id (e, PI.version) !act_all
+(** List all plugins *)
+let ls knd = 
+  HashPlugin.fold 
+    (fun ((knd', _, _) as id) _ lst -> 
+       if knd = knd' then 
+         (string_of_plugin id) :: lst
+       else 
+         lst)
+    all
+    []
 
+let to_plugin t =
+  t
 
-       let register_quickstart_completion f = 
-         qstrt_cmplt_all := MapPlugin.add id f !qstrt_cmplt_all
+module type PLUGINS =
+sig
+  type data
+  type act
+  type kind
 
-       (** Create field name derived from a plugin 
-         *)
-       let make_field_name nm = 
-         "X"^PI.name^nm
+  type self_t = kind t
+  type self_plugin = kind plugin
 
-       (** See {!OASIS.new_field}
-         *)
-       let new_field schema nm ?default parse hlp =
-         OASISSchema.new_field 
-           schema
-           (make_field_name nm) 
-           ?default
-           ~plugin:plugin_id
-           parse
-           hlp 
-           (* TODO *)
-           (fun _ -> 
-              raise Not_printable)
+  val create: 
+      help:(string list) ->
+      ?help_extra_vars:(string * string) list ->
+      ?help_order:int ->
+      self_plugin -> 
+      self_t * all_t 
 
-       (** See {!OASIS.new_field_conditional}
-         *)
-       let new_field_conditional schema nm ?default parse hlp =
-         OASISSchema.new_field_conditional 
-           schema
-           (make_field_name nm) 
-           ?default 
-           ~plugin:plugin_id
-           parse 
-           hlp
-           (* TODO *)
-           (fun _ -> 
-              raise Not_printable)
-     end
+  val register_act: self_t -> act -> unit
+  val act : self_plugin -> act
+  val quickstart_question: unit -> self_plugin quickstart_question
+  val value : self_plugin OASISValues.t
+end
 
-    (** List all plugins *)
-    let ls () = 
-      List.rev
-        (MapPlugin.fold 
-           (fun ((knd, _, _) as id) _ lst -> 
-              (string_of_plugin id) :: lst)
-           !act_all
-           [])
+(* Family of plugins data *)
+module type FAMILY = 
+sig 
+  type act
+  type data
+  type kind = private [< plugin_kind]
+  val kind_default: kind
+  val to_plugin_kind: kind -> plugin_kind
+end
 
-    (** Find a specific plugin and return all informations *)
-    let find_full ((knd, nm, vo) as id) =
-      try
-        MapPlugin.find id !act_all
-      with Not_found ->
+module Make (F: FAMILY) : PLUGINS with type data = F.data 
+                                   and type act = F.act 
+                                   and type kind = F.kind =
+struct 
+
+  (* 
+   * Types 
+   *)
+
+  type data = F.data
+  type act = F.act
+  type kind = F.kind
+
+  type self_t = kind plugin
+  type self_plugin = kind plugin
+
+  module HashPluginGlobal = HashPlugin
+
+  let create ~help ?(help_extra_vars=[]) ?(help_order=0) plg = 
+     let ver = 
+       match plg with 
+         | _, _, Some v -> v
+         | _, _, None -> 
+             failwithf1 
+               (f_ "Plugin %s is defined without version.")
+               (string_of_plugin plg)
+     in
+     let all_id :> plugin_kind plugin = plg in
+     let self_id = plg in
+       HashPlugin.add version_all all_id ver;
+       help_all :=
+       MapPlugin.add
+         all_id
+         (ver, help_order, help, help_extra_vars) 
+         !help_all;
+       self_id, all_id
+
+  module HashPlugin = 
+    Hashtbl.Make 
+      (struct
+         type t = self_plugin
+         let equal = plugin_equal
+         let hash  = plugin_hash
+       end)
+
+  (* TODO: use a first-class module to handle this case and avoid
+   * code duplication
+   *)
+  (** Find a plugin with or without version *)
+  let find_fuzzy' tbl ((knd, nm, vo) as id) =
+    try
+      HashPlugin.find tbl id
+    with Not_found ->
+      HashPlugin.find tbl (knd, nm, None)
+
+  (* 
+   * Act 
+   *)
+
+  let act_all = 
+    HashPlugin.create 5
+
+  let register_act t e = 
+    HashPlugin.add act_all t e 
+
+  let act plg = 
+    try 
+      find_fuzzy' act_all plg
+    with Not_found ->
+      failwithf1 
+        (f_ "The plugin %s has no registered action.")
+        (string_of_plugin plg)
+
+  (** Parse value *)
+  let value =
+    let kind_default :> plugin_kind = 
+      F.kind_default
+    in
+
+    let not_found_of_kind =
+      function
+        | `Configure -> f_ "Unknown configure plugin '%s' (available: %s)"
+        | `Build     -> f_ "Unknown build plugin '%s' (available: %s)"
+        | `Doc       -> f_ "Unknown doc plugin '%s' (available: %s)"
+        | `Test      -> f_ "Unknown test plugin '%s' (available: %s)"
+        | `Install   -> f_ "Unknown install plugin '%s' (available: %s)"
+        | `Extra     -> f_ "Unknown extra plugin '%s' (available: %s)"
+    in
+
+    let parse ~ctxt s =
+      let (knd, nm, ver_opt) as plg = 
+        plugin_of_string kind_default s
+      in
+        (* TODO: ignore these checks if ignore plugin is set *)
         begin
           try 
-            MapPlugin.find (knd, nm, None) !act_all
+            let ver_plg = 
+              try 
+                find_fuzzy version_all (plg :> plugin_kind plugin)
+              with Not_found ->
+                failwithf2
+                  (not_found_of_kind kind_default)
+                  (string_of_plugin plg)
+                  (String.concat ", " (ls kind_default))
+            in
+              match ver_opt with 
+                | Some ver ->
+                    if OASISVersion.version_compare ver ver_plg <> 0 then
+                      OASISMessage.warning ~ctxt
+                        (f_ "Plugin %s doesn't match the latest version of \
+                             this plugin. Please check plugin's changelog \
+                             and upgrade to the latest version %s.")
+                        (string_of_plugin plg)
+                        (OASISVersion.string_of_version ver_plg)
+
+                | None ->
+                    OASISMessage.warning ~ctxt
+                      (f_ "Plugin %s is defined without version, use \
+                           current version at least: %s.")
+                      nm
+                      (string_of_plugin  (knd, nm, Some ver_plg))
 
           with Not_found ->
-            failwithf2
-              (not_found_of_kind (F.to_plugin_kind F.kind_default))
-              (string_of_plugin id)
-              (String.concat ", " (ls ()))
-        end
+            failwithf1 "Plugin %s doesn't exist." (string_of_plugin plg)
+        end;
+        (F.kind_default, nm, ver_opt)
+    in
+      {
+        OASISValues.parse  = parse;
+        update             = OASISValues.update_fail;
+        print              = string_of_plugin;
+      }
 
-    (** Find a specific plugin generator *)
-    let find k = 
-      fst (find_full k)
-
-    (** Parse value for plugin *)
-    let value =
-      let parse ~ctxt s =
-        let (knd, nm, ver_opt) as plg = 
-          plugin_of_string F.kind_default s
-        in
-          (* TODO: ignore these checks if ignore plugin is set *)
-          begin
-            try 
-              let (_, ver_plg) = 
-                find_full plg
-              in
-                match ver_opt with 
-                  | Some ver ->
-                      if OASISVersion.version_compare ver ver_plg <> 0 then
-                        OASISMessage.warning ~ctxt
-                          (f_ "Plugin %s doesn't match the latest version of \
-                               this plugin. Please check plugin's changelog \
-                               and upgrade to the latest version %s.")
-                          (string_of_plugin plg)
-                          (OASISVersion.string_of_version ver_plg)
-
-                  | None ->
-                      OASISMessage.warning ~ctxt
-                        (f_ "Plugin %s is defined without version, use \
-                             current version at least: %s.")
-                        nm
-                        (string_of_plugin  (knd, nm, Some ver_plg))
-
-            with Not_found ->
-              failwithf1 "Plugin %s doesn't exist." (string_of_plugin plg)
-          end;
-          plg
-      in
-        {
-          parse  = parse;
-          update = OASISValues.update_fail;
-          print  = string_of_plugin;
-        }
-
-    let quickstart_question () = 
+  let quickstart_question () = 
+    let knd :> plugin_kind = 
+      F.kind_default
+    in
       ExclusiveChoices
-        (MapPlugin.fold
-           (fun e _ lst -> e :: lst)
-           !act_all
+        (HashPluginGlobal.fold
+           (fun (knd', nm, vo) _ lst -> 
+              if knd' = knd then
+                (F.kind_default, nm, vo) :: lst
+              else
+                lst)
+           all
            [])
-
-    let quickstart_completion plg = 
-      try
-        MapPlugin.find plg !qstrt_cmplt_all
-      with Not_found ->
-        (fun pkg -> pkg)
-
-  end
+end
 
 (** Configure plugins
   *)
@@ -477,6 +551,4 @@ let set_error tst s ctxt =
     end
   else
     ctxt
-
-
 

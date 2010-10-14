@@ -29,7 +29,7 @@ open OASISTypes
 
 open OASISValues
 open OASISUtils
-open OASISSchema
+open OASISSchema_intern
 open OASISGettext
 open OASISExpr
 
@@ -82,7 +82,7 @@ let add_build_tool ?(no_test=false) ?(condition=[EBool true, true]) build_tool p
 
 let schema, generator =
   let schm =
-    schema "Package"
+    schema "Package" (fun pkg -> pkg.plugin_data)
   in
 
   let new_field ?quickstart_level ?default nm value hlp sync = 
@@ -290,8 +290,7 @@ let schema, generator =
       ~default:[]
       (* TODO: check that filenames end with .ab *)
       (comma_separated file)
-      (fun () -> 
-         s_ "Files to generate using environment variable substitution.")
+      (fun () -> s_ "Files to generate using environment variable substitution.")
       (fun pkg -> pkg.files_ab)
   in
   let plugins =
@@ -321,38 +320,65 @@ let schema, generator =
   in
     schm,
     (fun data sections ->
-       List.fold_right
-         add_build_depend 
-         (build_depends data)
-         (List.fold_right
-            add_build_tool
-            (build_tools data)
-            {
-              oasis_version    = oasis_version data;
-              ocaml_version    = ocaml_version data;
-              findlib_version  = findlib_version data;
-              name             = name data;
-              version          = version data;
-              license          = license data;
-              license_file     = license_file data;
-              copyrights       = copyrights data;
-              maintainers      = maintainers data;
-              authors          = authors data;
-              homepage         = homepage data;
-              synopsis         = synopsis data;
-              description      = description data;
-              categories       = categories data;
-              conf_type        = conf_type data;
-              conf_custom      = conf_custom data;
-              build_type       = build_type data;
-              build_custom     = build_custom data;
-              install_type     = install_type data;
-              install_custom   = install_custom data;
-              uninstall_custom = uninstall_custom data;
-              clean_custom     = clean_custom data;
-              distclean_custom = distclean_custom data;
-              files_ab         = files_ab data;
-              plugins          = plugins data;
-              sections         = sections;
-              schema_data      = data;
-            }))
+       let plugin_data = 
+         OASISPlugin.data_create ()
+       in
+       let plugins = plugins data in
+       let conf    = conf_type data in
+       let build   = build_type data in
+       let install = install_type data in
+       let () = 
+         (* Generate plugin data *)
+         List.iter  
+           (fun plg ->
+              OASISPlugin.generator_package 
+                (plg :> plugin_kind plugin) 
+                plugin_data 
+                data)
+           plugins;
+         OASISPlugin.generator_package
+           (conf :> plugin_kind plugin)
+           plugin_data data;
+         OASISPlugin.generator_package
+           (build :> plugin_kind plugin)
+           plugin_data data;
+         OASISPlugin.generator_package
+           (install :> plugin_kind plugin)
+           plugin_data data
+       in
+         List.fold_right
+           add_build_depend 
+           (build_depends data)
+           (List.fold_right
+              add_build_tool
+              (build_tools data)
+              {
+                oasis_version    = oasis_version data;
+                ocaml_version    = ocaml_version data;
+                findlib_version  = findlib_version data;
+                name             = name data;
+                version          = version data;
+                license          = license data;
+                license_file     = license_file data;
+                copyrights       = copyrights data;
+                maintainers      = maintainers data;
+                authors          = authors data;
+                homepage         = homepage data;
+                synopsis         = synopsis data;
+                description      = description data;
+                categories       = categories data;
+                conf_type        = conf;
+                conf_custom      = conf_custom data;
+                build_type       = build;
+                build_custom     = build_custom data;
+                install_type     = install;
+                install_custom   = install_custom data;
+                uninstall_custom = uninstall_custom data;
+                clean_custom     = clean_custom data;
+                distclean_custom = distclean_custom data;
+                files_ab         = files_ab data;
+                plugins          = plugins;
+                sections         = sections;
+                schema_data      = data;
+                plugin_data      = !plugin_data; (* TODO: use ref. Compatible with ODN? *)
+              }))

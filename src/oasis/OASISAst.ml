@@ -153,7 +153,7 @@ let to_package conf st =
       ctxt_of_sections scts
     in
     let schm = 
-      schm.OASISSchema.schm 
+      schm.OASISSchema_intern.schm 
     in
       stmt schm data ctxt stmt';
       OASISCheck.check_schema ~ctxt:ctxt.ctxt 
@@ -219,7 +219,7 @@ let to_package conf st =
 
       | TSStmt stmt' -> 
           stmt 
-            OASISPackage.schema.OASISSchema.schm
+            OASISPackage.schema.OASISSchema_intern.schm
             pkg_data 
             (ctxt_of_sections acc) 
             stmt';
@@ -245,7 +245,7 @@ let to_package conf st =
   let pkg = 
     OASISCheck.check_schema ~ctxt:default_ctxt.ctxt
       "package"
-      OASISPackage.schema.OASISSchema.schm
+      OASISPackage.schema.OASISSchema_intern.schm
       data;
     OASISPackage_intern.generator 
       data

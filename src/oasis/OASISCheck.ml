@@ -23,7 +23,7 @@
   *)
 
 open OASISGettext
-open OASISSchema
+open OASISSchema_intern
 open OASISUtils
 open OASISPlugin
 open OASISTypes

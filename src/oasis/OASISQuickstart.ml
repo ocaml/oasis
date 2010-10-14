@@ -24,7 +24,7 @@
   *)
 
 open OASISGettext
-open OASISSchema
+open OASISSchema_intern
 open OASISTypes
 open Format
 open FormatExt
@@ -327,7 +327,7 @@ let ask_schema ~ctxt schema lvl interface plugins =
   in
 
   let schm = 
-    schema.OASISSchema.schm
+    schema.OASISSchema_intern.schm
   in
 
   let ask_field data key extra help = 
@@ -655,43 +655,34 @@ let ask_package ~ctxt lvl intrf =
 
   (* Apply completion from plugin *)
   let plugins = 
-    (* Toplevel plugins *)
+    (* Standard plugins *)
     [
-      OASISPlugin.Configure.quickstart_completion pkg.conf_type;
-      OASISPlugin.Build.quickstart_completion pkg.build_type;
-      OASISPlugin.Install.quickstart_completion pkg.install_type;
+      (pkg.conf_type :> plugin_kind plugin);
+      (pkg.build_type :> plugin_kind plugin);
+      (pkg.install_type :> plugin_kind plugin);
     ]
-  in
-  let plugins = 
+
     (* Extra plugins *)
-    List.fold_left
-      (fun lst plg -> 
-         (OASISPlugin.Extra.quickstart_completion plg) :: lst)
-      plugins
-      pkg.plugins
-  in
-  let plugins = 
+    @ (pkg.plugins :> (plugin_kind plugin) list)
+
     (* Plugins from section *)
-    List.fold_left
-      (fun lst sct ->
-         match sct with
-           | Executable _ | Library _ ->
-               lst
-           | Test (cs, test) -> 
-               (OASISPlugin.Test.quickstart_completion test.test_type)
-               :: lst
-           | Doc (cs, doc) ->
-               (OASISPlugin.Doc.quickstart_completion doc.doc_type)
-               :: lst
-           | Flag _ | SrcRepo _ ->
-               lst)
-      plugins
-      pkg.sections
+    @ (List.fold_left
+         (fun lst sct ->
+            match sct with
+              | Executable _ | Library _ ->
+                  lst
+              | Test (cs, test) -> 
+                  (test.test_type :> plugin_kind plugin) :: lst
+              | Doc (cs, doc) ->
+                  (doc.doc_type :> plugin_kind plugin) :: lst
+              | Flag _ | SrcRepo _ ->
+                  lst)
+         [])
+        pkg.sections
   in
   let pkg = 
     List.fold_left
-      (fun pkg quickstart_completion -> 
-         quickstart_completion pkg)
+      (fun pkg plg -> (OASISPlugin.quickstart_completion plg) pkg)
       pkg
       plugins
   in

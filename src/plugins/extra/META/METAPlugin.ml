@@ -28,20 +28,36 @@ open OASISTypes
 open OASISValues
 open OASISLibrary
 open OASISFileTemplate
+open OASISPlugin
+open OASISSchema
 open Format
 
-module PU = OASISPlugin.Extra.Make
-              (struct
-                 let name = "META"
-                 let version = OASISConf.version
-                 let help = METAData.readme_template_mkd
-                 let help_extra_vars = []
-                 let help_order = 40
-               end)
-open PU
+type meta_type =
+  | METALibrary
+  | METASyntax
+
+type t = 
+    {
+      enable:      bool;
+      description: string option;
+      meta_type:   meta_type;
+      requires:    (string list) option;
+    }
+
+let plugin = 
+  `Extra, "META", Some OASISConf.version
+
+let pivot_data = 
+  data_new_property plugin
+
+let self_id, all_id = 
+  Extra.create 
+    ~help:METAData.readme_template_mkd
+    ~help_order:40
+    plugin
 
 let new_field nm = 
-  new_field OASISLibrary.schema nm
+  new_field OASISLibrary.schema all_id nm
 
 let enable = 
   new_field
@@ -50,6 +66,7 @@ let enable =
     boolean
     (fun () ->
        s_ "Enable META generation")
+    pivot_data (fun _ t -> t.enable)
 
 let description =
   new_field
@@ -58,12 +75,9 @@ let description =
     (opt string_not_empty)
     (fun () ->
        s_ "META package description")
+    pivot_data (fun _ t -> t.description)
 
-type meta_type =
-  | METALibrary
-  | METASyntax
-
-let typ =
+let meta_type =
   new_field
     "Type"
     ~default:METALibrary
@@ -76,6 +90,7 @@ let typ =
        ])
     (fun () ->
        s_ "Type of META package, set default predicates for archive")
+    pivot_data (fun _ t -> t.meta_type)
 
 let requires =
   new_field
@@ -84,6 +99,7 @@ let requires =
     (opt (comma_separated string))
     (fun () ->
        s_ "Requires field for META package")
+    pivot_data (fun _ t -> t.requires)
 
 let pp_print_meta pkg findlib_name_map fmt grp =
 
@@ -145,7 +161,7 @@ let pp_print_meta pkg findlib_name_map fmt grp =
           pp_print_sfield fmt ("requires", String.concat " " requires)
       end; 
       begin
-        match typ lib_cs.cs_data with 
+        match meta_type lib_cs.cs_data with 
           | METALibrary ->
               pp_print_field fmt ("archive", ["byte"], lib_cma);
               begin
@@ -241,4 +257,4 @@ let main ctxt pkg =
 
 
 let init () = 
-  register_act main
+  Extra.register_act self_id main

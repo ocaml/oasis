@@ -68,56 +68,82 @@ open OASISFileTemplate
 open OASISPlugin
 open OASISValues
 open OASISUtils
+open OASISPlugin
+open OASISSchema
+open OCamlbuildId
 
-module PU = OASISPlugin.Doc.Make(OCamlbuildId)
-open PU
+let plugin = 
+  `Doc, name, Some version
+
+type t = 
+    {
+      path:      unix_dirname;
+      modules:   string list;
+      libraries: findlib_full list;
+      intro:     unix_filename option;
+      flags:     string list;
+    }
+
+let pivot_data = 
+  data_new_property plugin
+
+let self_id, all_id =
+  Doc.create 
+    ~help
+    ~help_extra_vars
+    ~help_order 
+    plugin
+
+let new_field nm ?default vl hlp sync =
+  new_field
+    OASISDocument.schema
+    all_id
+    nm
+    ?default
+    vl
+    (fun () -> s_ hlp)
+    pivot_data sync
 
 let path =
   new_field
-    OASISDocument.schema
     "Path"
     directory
-    (fun () ->
-       s_ "Top level directory for building ocamldoc documentation")
-
+    (ns_ "Top level directory for building ocamldoc documentation")
+    (fun _ t -> t.path)
 
 let modules =
   new_field
-    OASISDocument.schema
     "Modules"
     ~default:[]
     modules
-    (fun () ->
-       s_ "List of OCaml modules used to generate ocamldoc documentation")
+    (ns_ "List of OCaml modules used to generate ocamldoc documentation")
+    (fun _ t -> t.modules)
 
 let libraries =
   new_field
-    OASISDocument.schema
     "Libraries"
     ~default:[]
     (comma_separated findlib_full)
-    (fun () ->
-       s_ "Findlib names of internal libraries used to generate the ocamldoc documentation")
+    (ns_ "Findlib names of internal libraries used to generate the ocamldoc documentation")
+    (fun _ t -> t.libraries)
 
 (* TODO: the following 2 options require to edit _tags after OCamlbuildDoc
  *)
 let intro =
   new_field 
-    OASISDocument.schema
     ~default:None
     "Intro"
     (opt file)
-    (fun () ->
-       s_ "OCamldoc formatted file used to generate index.html of the ocamldoc documentation")
+    (ns_ "OCamldoc formatted file used to generate index.html of the ocamldoc documentation")
+    (fun _ t -> t.intro)
 
 let flags =
   new_field
-    OASISDocument.schema
     ~default:[]
     "Flags"
     space_separated 
-    (fun () ->
-       s_ "OCamldoc flags")
+    (ns_ "OCamldoc flags")
+    (fun _ t -> t.flags)
 
 (* TODO: use -t for title *)
 
@@ -265,5 +291,5 @@ let qstrt_completion pkg =
      ExternalTool "ocamldoc"]
 
 let init () = 
-  register_act doit;
-  register_quickstart_completion qstrt_completion
+  Doc.register_act self_id doit;
+  register_quickstart_completion all_id qstrt_completion

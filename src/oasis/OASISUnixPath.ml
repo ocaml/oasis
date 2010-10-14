@@ -20,6 +20,10 @@
 (********************************************************************************)
 
 type unix_filename = string
+type unix_dirname = string
+
+type host_filename = string
+type host_dirname = string
 
 let current_dir_name = "."
 

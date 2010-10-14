@@ -37,15 +37,6 @@ let section_not_implemented str pkg _ _ extra_args =
 open OASISTypes
 open OASISPlugin
 
-module Id = 
-struct
-  let name = "None"
-  let version = OASISConf.version
-  let help = NoneData.readme_template_mkd
-  let help_extra_vars = []
-  let help_order = 10
-end
-
 let std_no_generate str ctxt pkg =
   ctxt,
   {
@@ -65,14 +56,32 @@ let section_no_generate str ctxt pkg (cs, section) =
     pkg
 
 let init () = 
-  let module PU = Configure.Make(Id) in 
-    PU.register_act (std_no_generate "configure");
-  let module PU = Build.Make(Id) in 
-    PU.register_act (std_no_generate "build"); 
-  let module PU = Doc.Make(Id) in 
-    PU.register_act (section_no_generate "doc"); 
-  let module PU = Test.Make(Id) in 
-    PU.register_act (section_no_generate "test"); 
-  let module PU = Install.Make(Id) in 
-    PU.register_act (std_no_generate "install", 
-                     std_no_generate "uninstall")
+  let nm, ver = "None", Some OASISConf.version in
+  let help = NoneData.readme_template_mkd in
+  let help_order = 10 in
+
+  let plugin = `Configure, nm, ver in
+  let self_id, _ = Configure.create ~help ~help_order plugin in
+  let () = Configure.register_act self_id (std_no_generate "configure") in
+
+  let plugin = `Build, nm, ver in
+  let self_id, _ = Build.create ~help ~help_order plugin in
+  let () = Build.register_act self_id (std_no_generate "build") in
+
+  let plugin = `Install, nm, ver in
+  let self_id, _ = Install.create ~help ~help_order plugin in
+  let () = Install.register_act self_id 
+             ((std_no_generate "install"),
+              (std_no_generate "uninstall")) 
+  in
+
+  let plugin = `Test, nm, ver in
+  let self_id, _ = Test.create ~help ~help_order plugin in
+  let () = Test.register_act self_id (section_no_generate "test") in
+
+  let plugin = `Doc, nm, ver in
+  let self_id, _ = Doc.create ~help ~help_order plugin in
+  let () = Doc.register_act self_id (section_no_generate "doc") in
+
+    ()
+

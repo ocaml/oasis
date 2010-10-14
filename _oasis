@@ -78,7 +78,8 @@ Library oasis
            OASISPackage,
            OASISSourceRepository,
            OASISTest,
-           OASISPlugin
+           OASISPlugin,
+           OASISSchema
   InternalModules: OASISVersion_types,
                    OASISVersion_lexer,
                    OASISVersion_parser,
@@ -100,7 +101,8 @@ Library oasis
                    OASISLibrary_intern,
                    OASISPackage_intern,
                    OASISSourceRepository_intern,
-                   OASISTest_intern
+                   OASISTest_intern,
+                   OASISSchema_intern
   CompiledObject: Best
   BuildDepends: fileutils (>= 0.4.2), unix, pcre, extlib, 
                 findlib, odn, ocamlgraph

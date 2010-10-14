@@ -30,18 +30,19 @@ open OASISUtils
 open OASISValues
 open OASISGettext
 open OASISVersion
+open OASISPlugin
+open OASISSchema
 open Format
 open FormatExt
 
-module PU = OASISPlugin.Extra.Make
-              (struct
-                 let name = "StdFiles"
-                 let version = OASISConf.version
-                 let help = StdFilesData.readme_template_mkd
-                 let help_extra_vars = []
-                 let help_order = 50
-               end)
-open PU
+let plugin = 
+  `Extra, "StdFiles", Some OASISConf.version
+
+let self_id, all_id = 
+  Extra.create 
+    ~help:StdFilesData.readme_template_mkd
+    ~help_order:50
+    plugin
 
 type package =
     (* Standalone executable *)
@@ -156,30 +157,70 @@ let package_of_library =
       with Not_found ->
         LFindlibPackage (lib, ver_opt)
 
-let fn_enable fn = 
-  new_field 
-    OASISPackage.schema
-    fn 
-    ~default:true 
-    boolean
-    (fun () ->
-       Printf.sprintf (f_ "Enable %s file generation.") fn),
-  new_field 
-    OASISPackage.schema
-    (fn^"Filename")
-    ~default:(fn^".txt")
-    string_not_empty
-    (fun () -> 
-       Printf.sprintf (f_ "Real filename to use for file %s.") fn)
+type t =
+    {
+      readme:  unix_filename option;
+      install: unix_filename option;
+      authors: unix_filename option;
+    }
 
-let readme =
-  fn_enable "README"
+let pivot_data =
+  data_new_property plugin
 
-let install = 
-  fn_enable "INSTALL"
+let generator = 
+  let fn_enable fn sync = 
+    let enable = 
+      new_field 
+        OASISPackage.schema
+        all_id
+        fn 
+        ~default:true 
+        boolean
+        (fun () ->
+           Printf.sprintf (f_ "Enable %s file generation.") fn)
+        pivot_data 
+        (fun t t' -> (sync t t') <> None)
+    in 
+    let fn = 
+      new_field 
+        OASISPackage.schema
+        all_id
+        (fn^"Filename")
+        ~default:(fn^".txt")
+        string_not_empty
+        (fun () -> 
+           Printf.sprintf (f_ "Real filename to use for file %s.") fn)
+        pivot_data 
+        (fun t t' ->
+           match sync t t' with
+             | Some fn -> fn
+             | None -> raise Not_printable)
+    in
+      fun data ->
+        if enable data then
+          Some (fn data)
+        else
+          None
+  in
 
-let authors =
-  fn_enable "AUTHORS"
+  let readme =
+    fn_enable "README" (fun _ t -> t.readme)
+  in
+
+  let install = 
+    fn_enable "INSTALL" (fun _ t -> t.install)
+  in
+
+  let authors =
+    fn_enable "AUTHORS" (fun _ t -> t.authors)
+  in
+
+    fun data -> 
+      {
+        readme  = readme data;
+        install = install data;
+        authors = authors data; 
+      }
 
 module SetSection = 
   Set.Make
@@ -422,28 +463,30 @@ let main ctxt pkg =
         split_package_section
   in
 
-  let add_file ctxt ((enable, fn), ppf) = 
-    if enable data then
-      begin
-        let content = 
-          ppf str_formatter;
-          flush_str_formatter ()
-        in
-          add_file
-            (template_make
-               (fn data)
-               comment_ml
-               []
-               [content]
-               [])
-            ctxt
-      end
-    else
-      ctxt
+  let add_file ctxt (fn_opt, ppf) =
+    match fn_opt with 
+      | Some unix_fn ->
+          begin
+            let content = 
+              ppf str_formatter;
+              flush_str_formatter ()
+            in
+              add_file
+                (template_make
+                   unix_fn
+                   comment_ml
+                   []
+                   [content]
+                   [])
+                ctxt
+          end
+
+      | None ->
+          ctxt
   in
 
-  let install_enable, install_fn =
-    install
+  let t = 
+    generator data 
   in
 
     List.fold_left
@@ -451,7 +494,7 @@ let main ctxt pkg =
       ctxt
       [
         (* Generate README.txt *)
-        readme,
+        t.readme,
         (fun fmt ->
            pp_open_vbox fmt 0;
            fprintf fmt 
@@ -473,12 +516,15 @@ let main ctxt pkg =
            end;
 
            pp_open_box fmt 0;
-           if install_enable data then
-             begin
-               fprintf fmt
-                 "See@ the@ files@ %s@ for@ building@ and@ installation@ instructions.@ "
-                 (install_fn data)
-             end;
+           begin
+             match t.install with 
+               | Some fn -> 
+                   fprintf fmt
+                     "See@ the@ files@ %s@ for@ building@ and@ installation@ instructions.@ "
+                     fn
+               | None ->
+                   ()
+           end;
            begin
              match pkg.license_file with 
                | Some fn ->
@@ -501,7 +547,7 @@ let main ctxt pkg =
            pp_close_box fmt ());
 
       (* Generate INSTALL.txt *)
-      install,
+      t.install,
       (fun fmt ->
          pp_open_vbox fmt 0;
          fprintf fmt 
@@ -540,7 +586,7 @@ let main ctxt pkg =
          pp_close_box fmt ());
       
       (* Generate AUTHORS.txt *)
-      authors,
+      t.authors,
       (fun fmt ->
          pp_open_vbox fmt 0;
          fprintf fmt "@[Authors of %s@]@," pkg.name;
@@ -549,7 +595,7 @@ let main ctxt pkg =
            pp_print_string
            "@,"
            fmt
-           pkg.authors;
+           pkg.OASISTypes.authors;
 
          if pkg.maintainers <> [] then
            begin
@@ -566,4 +612,6 @@ let main ctxt pkg =
       ]
 
 let init () = 
-  register_act main
+  Extra.register_act self_id main;
+  register_generator_package all_id pivot_data generator 
+

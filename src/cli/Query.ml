@@ -22,32 +22,24 @@ let lexer =
     ["ListSections"; "ListFields"; "("; ")"; "."]
 
 let query pkg str = 
+  let proplist_schema schm = 
+    (* TODO: oops access to unpublished module _intern *)
+    schm.OASISSchema_intern.schm
+  in
 
   let assoc_sections = 
     [
-      "Library",    
-      (KLibrary, 
-       OASISLibrary.schema.OASISSchema.schm);
+      "Library", (KLibrary, proplist_schema OASISLibrary.schema);
 
-      "Executable", 
-      (KExecutable, 
-       OASISExecutable.schema.OASISSchema.schm);
+      "Executable", (KExecutable, proplist_schema OASISExecutable.schema);
 
-      "Flag",
-      (KFlag, 
-       OASISFlag.schema.OASISSchema.schm);
+      "Flag", (KFlag, proplist_schema OASISFlag.schema);
 
-      "SrcRepo", 
-      (KSrcRepo,
-       OASISSourceRepository.schema.OASISSchema.schm);
+      "SrcRepo", (KSrcRepo, proplist_schema OASISSourceRepository.schema);
 
-      "Test",
-      (KTest, 
-       OASISTest.schema.OASISSchema.schm);
+      "Test", (KTest, proplist_schema OASISTest.schema);
 
-      "Doc",
-      (KDoc, 
-       OASISDocument.schema.OASISSchema.schm);
+      "Doc", (KDoc, proplist_schema OASISDocument.schema);
     ]
   in
 
@@ -109,7 +101,7 @@ let query pkg str =
       | [< >] ->
           begin
             (* We have a single field *)
-            OASISPackage.schema.OASISSchema.schm,
+            (proplist_schema OASISPackage.schema),
             pkg.schema_data,
             start_nm
           end
@@ -155,7 +147,7 @@ let query pkg str =
                      fold_schm (prefix^".") schm data acc)
 
                 (* Start with the package fields *)
-                (fold_schm "" OASISPackage.schema.OASISSchema.schm pkg.schema_data [])
+                (fold_schm "" (proplist_schema OASISPackage.schema) pkg.schema_data [])
 
                 (* Continue with section fields *)
                 pkg.sections

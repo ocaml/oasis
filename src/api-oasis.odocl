@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 69c33e985e3f188ce873a1373b73731b)
+# DO NOT EDIT (digest: eaa7ff10969c1c2852e17af729851b09)
 oasis/FormatExt
 oasis/ODNFunc
 oasis/PropList
@@ -24,6 +24,7 @@ oasis/OASISPackage
 oasis/OASISSourceRepository
 oasis/OASISTest
 oasis/OASISPlugin
+oasis/OASISSchema
 base/BaseArgExt
 base/BaseBuilt
 base/BaseCheck

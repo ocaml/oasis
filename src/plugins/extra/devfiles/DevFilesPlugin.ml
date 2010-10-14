@@ -26,17 +26,16 @@
 open OASISFileTemplate
 open OASISGettext
 open OASISTypes
+open OASISPlugin
+open OASISSchema
 
-module PU = OASISPlugin.Extra.Make
-              (struct 
-                 let name = "DevFiles" 
-                 let version = OASISConf.version 
-                 let help = DevFilesData.readme_template_mkd
-                 let help_extra_vars = []
-                 let help_order = 60
-               end)
+let plugin = `Extra, "DevFiles", Some OASISConf.version
 
-open PU
+let self_id, all_id = 
+  Extra.create 
+    ~help:DevFilesData.readme_template_mkd
+    ~help_order:60
+    plugin
 
 let all_targets =
   [
@@ -52,48 +51,78 @@ let all_targets =
     "configure";
   ]
 
-let makefile_notargets =
-  new_field
-    OASISPackage.schema
-    "MakefileNoTargets"
-    ~default:[]
-    (OASISValues.comma_separated
-       (OASISValues.choices
-          (fun _ -> s_ "target")
-          (List.rev_map (fun s -> s, s) all_targets)))
-    (fun () ->
-       s_ "Targets to disable when generating Makefile")
+type t = 
+    {
+      makefile_notargets: string list;
+      enable_makefile:    bool;
+      enable_configure:   bool;
+    }
 
-let enable_makefile =
-  new_field
-    OASISPackage.schema
-    "EnableMakefile"
-    ~default:true
-    OASISValues.boolean
-    (fun () ->
-       s_ "Generate Makefile")
+let pivot_data = 
+  data_new_property plugin
 
-let enable_configure =
-  new_field
-    OASISPackage.schema
-    "EnableConfigure"
-    ~default:true
-    OASISValues.boolean
-    (fun () ->
-       s_ "Generate configure script")
+let generator = 
+  let makefile_notargets =
+    new_field
+      OASISPackage.schema
+      all_id
+      "MakefileNoTargets"
+      ~default:[]
+      (OASISValues.comma_separated
+         (OASISValues.choices
+            (fun _ -> s_ "target")
+            (List.rev_map (fun s -> s, s) all_targets)))
+      (fun () ->
+         s_ "Targets to disable when generating Makefile")
+      pivot_data (fun _ t -> t.makefile_notargets)
+  in
+
+  let enable_makefile =
+    new_field
+      OASISPackage.schema
+      all_id
+      "EnableMakefile"
+      ~default:true
+      OASISValues.boolean
+      (fun () ->
+         s_ "Generate Makefile")
+      pivot_data (fun _ t -> t.enable_makefile)
+  in
+
+  let enable_configure =
+    new_field
+      OASISPackage.schema
+      all_id
+      "EnableConfigure"
+      ~default:true
+      OASISValues.boolean
+      (fun () ->
+         s_ "Generate configure script")
+      pivot_data (fun _ t -> t.enable_configure)
+  in
+
+    (fun data ->
+       {
+         makefile_notargets = makefile_notargets data;
+         enable_makefile    = enable_makefile data;
+         enable_configure   = enable_configure data;
+       })
+
 
 let main ctxt pkg = 
+  let t = 
+    generator pkg.schema_data
+  in
   let ctxt = 
     (* Generate Makefile (for standard dev. env.) *)
-    if enable_makefile pkg.schema_data then
+    if t.enable_makefile then
       begin
         let buff = 
           Buffer.create 13
         in
         let targets =
           let excludes =
-            OASISUtils.set_string_of_list 
-              (makefile_notargets pkg.schema_data)
+            OASISUtils.set_string_of_list t.makefile_notargets
           in
             List.filter
               (fun t -> not (OASISUtils.SetString.mem t excludes))
@@ -143,7 +172,7 @@ let main ctxt pkg =
   
   let ctxt = 
     (* Generate configure (for standard dev. env.) *)
-    if enable_configure pkg.schema_data then
+    if t.enable_configure then
       begin
         let tmpl = 
           template_of_string_list  
@@ -165,4 +194,5 @@ let main ctxt pkg =
 
 
 let init () =
-  register_act main
+  Extra.register_act self_id main;
+  register_generator_package all_id pivot_data generator

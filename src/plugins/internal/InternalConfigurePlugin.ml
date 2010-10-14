@@ -233,9 +233,18 @@ let configure pkg argv =
 (* END EXPORT *)
 
 open OASISPlugin
+open InternalId
+
+let plugin = 
+  `Configure, name, Some version
 
 let init () =
-  let module PU = Configure.Make(InternalId)
+  let self_id, _ =
+    Configure.create
+      ~help 
+      ~help_extra_vars
+      ~help_order
+      plugin
   in
   let doit ctxt pkg =  
     ctxt, 
@@ -249,4 +258,4 @@ let init () =
            "InternalConfigurePlugin.configure");
     }
   in
-    PU.register_act doit
+    Configure.register_act self_id doit

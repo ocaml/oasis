@@ -7,9 +7,16 @@
   *)
 
 
+(** {2 Types} *)
+
 open OASISTypes
 
-(** {2 Types} *)
+module MapPlugin: Map.S with type key = plugin_kind plugin
+module SetPlugin: Set.S with type elt = plugin_kind plugin
+
+type 'a setter = plugin_data ref -> 'a -> unit 
+type 'a getter = plugin_data ref -> 'a
+type 'a prop   = 'a setter * 'a getter
 
 (** OCaml module embedded code.
   *)
@@ -84,91 +91,61 @@ type package_act =
        (package -> string array -> unit)
       ) setup_changes
 
-(** Module to build plugins, provide functions automatically attached
-    to a specific plugin. Example: {!new_field} will attach the field
-    created to the plugin defined by a {PLUGIN_ID_TYPE} module.
+(** Base types to build plugin: register fields, action, generators...
   *)
-module type PLUGIN_UTILS_TYPE =
-sig
-  type act
-  type data
+type 'a t 
 
-  (** Register the [section_act] or [package_act] datastructure. *)
-  val register_act: act -> unit
+(** Base types for all plugins 
+  *)
+type all_t = plugin_kind t
 
-  (** Register a quickstart completion for this plugin *)
-  val register_quickstart_completion: (package -> package) -> unit
+(** Register a quickstart completion for this plugin *)
+val register_quickstart_completion: all_t -> (package -> package) -> unit
 
-  (** Create a field for this plugin. *)
-  val new_field :
-    ('b OASISSchema.t) ->
-    name ->
-    ?default:'a ->
-    'a OASISValues.t -> 
-    (unit -> string) -> 
-    PropList.Data.t -> 'a
+(** Get quickstart completion *)
+val quickstart_completion: plugin_kind plugin -> package -> package
 
-  (** Create a conditional field for this plugin. *)
-  val new_field_conditional :
-    ('b OASISSchema.t) ->
-    name ->
-    ?default:'a ->
-    'a OASISValues.t ->
-    (unit -> string) -> 
-    PropList.Data.t -> 'a OASISExpr.choices
-end
+(** Register a generator for package, to store data of a plugin *)
+val register_generator_package: all_t -> 'a prop -> (PropList.Data.t -> 'a) -> unit
 
-(** Plugin identification *)
-module type PLUGIN_ID_TYPE =
-sig
-  (** Name of the plugin. *)
-  val name : string
+(** Call generator for provided plugin *)
+val generator_package: plugin_kind plugin -> plugin_data ref -> PropList.Data.t -> unit
 
-  (** Version of the plugin. *)
-  val version : OASISVersion.t
+(** List available plugins. *)
+val ls : plugin_kind -> name list
 
-  (** Help text. It can contains variable substitution as defined
-      in [Buffer.add_substitute].
-    *)
-  val help : string list
-
-  (** Extra variables to substitute in {!help}. *)
-  val help_extra_vars : (string * (unit -> string)) list
-
-  (** Define help order with regard of other plugins. *)
-  val help_order : int
-end
+(** Convert back to plugin *)
+val to_plugin: 'a t -> 'a plugin
 
 (** Module to manage a set of plugins, of the same type. *)
 module type PLUGINS =
 sig
-  type act
   type data
+  type act
   type kind
 
-  (** Create {PLUGIN_UTILS_TYPE} for a {PLUGIN_ID_TYPE}. *)
-  module Make: functor (PI : PLUGIN_ID_TYPE) -> 
-    PLUGIN_UTILS_TYPE with type act = act and type data = data
+  type self_t = kind t
+  type self_plugin = kind plugin
 
-  (** List available plugins. *)
-  val ls : unit -> name list
+  val create: 
+      help:(string list) ->
+      ?help_extra_vars:(string * string) list ->
+      ?help_order:int ->
+      self_plugin -> 
+      self_t * all_t 
 
-  (** Find a specific plugin. *)
-  val find : kind plugin -> act
+  (** Register the [section_act] or [package_act] datastructure. *)
+  val register_act: self_t -> act -> unit
+
+  (** Get action. *)
+  val act: self_plugin -> act
 
   (** Quickstart question *)
-  val quickstart_question: 
-    unit -> (kind plugin) quickstart_question
+  val quickstart_question: unit -> self_plugin quickstart_question
 
   (** Parse a plugin field *) 
-  val value : (kind plugin) OASISValues.t
-
-  (** Get quickstart completion *)
-  val quickstart_completion: kind plugin -> package -> package
+  val value : self_plugin OASISValues.t
 end
-
-module MapPlugin: Map.S with type key = plugin_kind plugin
-module SetPlugin: Set.S with type elt = plugin_kind plugin
 
 (** {2 Modules for plugin type} *)
 
@@ -212,7 +189,7 @@ module Extra:     PLUGINS with
 
 (* General data for plugin. *)
 val help : unit -> 
-    (OASISVersion.t * int * string list * (string * (unit -> string)) list) MapPlugin.t
+    (OASISVersion.t * int * string list * (string * string) list) MapPlugin.t
 
 (** Check that a field name has the form to match a plugin. Don't check that the 
     plugin exists. This functions help to ignore plugin fields.
@@ -240,3 +217,20 @@ val plugins_of_string: 'a -> string -> ('a plugin) list
     if one is not set.
   *)
 val plugin_compare: 'a plugin -> 'a plugin -> int
+
+(** Test equality for plugins, a special case of {!plugin_compare}.
+  *)
+val plugin_equal: 'a plugin -> 'a plugin -> bool
+
+(** Create storage for plugin data. 
+  *)
+val data_create: unit -> plugin_data ref 
+
+(** [data_new_property plg] Create a property that can store plugin data. Beware
+    that the the couple [(plg, purpose)] must be unique.
+    
+  @param purpose An identifier to make possible the use of several properties
+                 for the same plugin. If not defined, it is derived from the 
+                 kind of plugin.
+  *)
+val data_new_property : ?purpose:plugin_data_purpose -> plugin_kind plugin -> 'a prop

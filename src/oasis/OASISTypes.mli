@@ -82,10 +82,33 @@ type plugin_kind =
     | `Install 
     | `Extra]
 
+(** Additional data to allow registration of more than
+    one data property per plugin. See {!OASISPlugin.data_new_property}
+  *)
+type plugin_data_purpose =
+    [  `Configure
+     | `Build
+     | `Install
+     | `Clean
+     | `Distclean
+     | `Install
+     | `Uninstall
+     | `Test
+     | `Doc
+     | `Extra
+     | `Other of string
+    ]
+
 (** Plugin definition, plugin type depends on which fields this
     types is used for.
   *)
 type 'a plugin = 'a * name * OASISVersion.t option 
+
+type all_plugin = plugin_kind plugin
+
+(** Property list storage for plugin data
+  *)
+type plugin_data = (all_plugin * plugin_data_purpose * (unit -> unit)) list
 
 (** Set of command lines to run before and after a step.
   *)
@@ -107,6 +130,7 @@ type common_section =
 
       (* TODO: get rid of schema_data and cs_data *)
       cs_data: PropList.Data.t;
+      cs_plugin_data: plugin_data;
       (** Property list attached to the section. *)
     }
     
@@ -344,6 +368,7 @@ type package =
 
       (* TODO: get rid of schema_data and cs_data *)
       schema_data:      PropList.Data.t;
+      plugin_data:      plugin_data;
       (** Property list attached to this package. *)
     } 
 

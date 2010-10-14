@@ -1,5 +1,5 @@
 
-open OASISSchema
+open OASISSchema_intern
 open OASISTypes
 open Format
 open FormatExt
@@ -92,7 +92,7 @@ let pp_print_fields fmt (schm, data) =
 let pp_print_section fmt sct = 
   let pp_print_section' schm t = 
     let (schm, _) as sct_data = 
-      (OASISSchema.to_proplist schm) t
+      OASISSchema_intern.to_proplist schm t
     in
 
     let {cs_name = nm; cs_data = data} = 
@@ -130,7 +130,7 @@ let pp_print_section fmt sct =
 let pp_print_package fmt pkg = 
 
   let pkg_data = 
-    (OASISSchema.to_proplist OASISPackage.schema) pkg 
+    (OASISSchema_intern.to_proplist OASISPackage.schema) pkg 
   in
 
     pp_open_vbox fmt 0;

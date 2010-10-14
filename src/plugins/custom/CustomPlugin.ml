@@ -96,6 +96,9 @@ struct
 
   let clean t pkg extra_args =
     clean t pkg extra_args;
+    (* TODO: this seems to be pretty generic (at least wrt to ocamlbuild
+     * considering moving this to BaseSetup?
+     *)
     List.iter
       (function
          | Library (cs, _, _) ->
@@ -147,130 +150,162 @@ end
 
 (* END EXPORT *)
 
+module BuildRuntime = Build
+module TestRuntime  = Test
+module DocRuntime   = Doc
+
 open OASISGettext
 open ODN
 open OASISTypes
 open OASISValues
+open OASISPlugin
+open OASISSchema
 
-module Id =
-struct
-  let name            = "Custom"
-  let version         = OASISConf.version
-  let help            = CustomData.readme_template_mkd
-  let help_extra_vars = []
-  let help_order      = 0
-end
+let nm, ver = 
+  "Custom", Some OASISConf.version
 
-module Make (PU: OASISPlugin.PLUGIN_UTILS_TYPE) =
-struct
-  (** Add standard fields 
-    *)
-  let add_fields
-        ~schema
-        nm 
-        hlp 
-        hlp_clean 
-        hlp_distclean =
-    let cmd_main =
-      PU.new_field_conditional
-        schema
-        nm
-        command_line
-        hlp
-    in
-    let cmd_clean =
-      PU.new_field_conditional
-        schema
-        (nm^"Clean")
-        ~default:None
-        (opt command_line)
-        hlp_clean
-    in
-    let cmd_distclean =
-      PU.new_field_conditional
-        schema
-        (nm^"Distclean")
-        ~default:None
-        (opt command_line)
-        hlp_distclean
-    in
-      cmd_main, cmd_clean, cmd_distclean
+let conf_plugin = `Configure, nm, ver
+let conf_data   = data_new_property conf_plugin
 
-  (** Standard custom handling
-    *)
-  let std nm hlp hlp_clean hlp_distclean =
-    let cmd_main, cmd_clean, cmd_distclean =
-      add_fields ~schema:OASISPackage.schema 
-        nm hlp hlp_clean hlp_distclean 
-    in
-      fun ctxt pkg -> 
-        let t =
-          {
-            cmd_main      = cmd_main pkg.schema_data;
-            cmd_clean     = cmd_clean pkg.schema_data;
-            cmd_distclean = cmd_distclean pkg.schema_data;
-          }
-        in
-          ctxt,
-          {
-            OASISPlugin.chng_moduls = 
-              [CustomData.customsys_ml];
+let build_plugin = `Build, nm, ver
+let build_data   = data_new_property build_plugin
 
-            chng_main = 
-              ODNFunc.func_with_arg 
-                main ("CustomPlugin.main")
-                t odn_of_t;
+let install_plugin = `Install, nm, ver
+let install_data   = data_new_property install_plugin
+let uninstall_data = data_new_property ~purpose:`Uninstall install_plugin
 
-            chng_clean = 
-              Some 
-                (ODNFunc.func_with_arg
-                   clean ("CustomPlugin.clean")
-                   t odn_of_t);
+let test_plugin = `Test, nm, ver
+let test_data   = data_new_property test_plugin
 
-            chng_distclean = 
-              Some 
-                (ODNFunc.func_with_arg
-                   distclean ("CustomPlugin.distclean")
-                   t odn_of_t);
-          }
-end
+let doc_plugin = `Doc, nm, ver
+let doc_data = data_new_property doc_plugin
+
+(** Add standard fields 
+  *)
+let add_fields
+      ~schema
+      id
+      data
+      nm 
+      hlp 
+      hlp_clean 
+      hlp_distclean =
+  let cmd_main =
+    new_field_conditional
+      schema
+      id
+      nm
+      command_line
+      (* TODO: remove when fun () -> s_ be replaced *)
+      (fun () -> s_ hlp)
+      data (fun _ t -> t.cmd_main)
+  in
+  let cmd_clean =
+    new_field_conditional
+      schema
+      id
+      (nm^"Clean")
+      ~default:None
+      (opt command_line)
+      (* TODO: remove when fun () -> s_ be replaced *)
+      (fun () -> s_ hlp_clean)
+      data (fun _ t -> t.cmd_clean)
+  in
+  let cmd_distclean =
+    new_field_conditional
+      schema
+      id
+      (nm^"Distclean")
+      ~default:None
+      (opt command_line)
+      (* TODO: remove when fun () -> s_ be replaced *)
+      (fun () -> s_ hlp_distclean)
+      data (fun _ t -> t.cmd_distclean)
+  in
+  let generator data = 
+    {
+      cmd_main      = cmd_main data;
+      cmd_clean     = cmd_clean data;
+      cmd_distclean = cmd_distclean data;
+    }
+  in
+    cmd_main, cmd_clean, cmd_distclean, generator
+
+(** Standard custom handling
+  *)
+let std id data nm hlp hlp_clean hlp_distclean =
+  let cmd_main, cmd_clean, cmd_distclean, generator =
+    add_fields ~schema:OASISPackage.schema 
+      id data nm hlp hlp_clean hlp_distclean 
+  in
+    generator,
+    fun ctxt pkg -> 
+      let t = 
+        generator pkg.schema_data
+      in
+        ctxt,
+        {
+          OASISPlugin.chng_moduls = 
+            [CustomData.customsys_ml];
+
+          chng_main = 
+            ODNFunc.func_with_arg 
+              main ("CustomPlugin.main")
+              t odn_of_t;
+
+          chng_clean = 
+            Some 
+              (ODNFunc.func_with_arg
+                 clean ("CustomPlugin.clean")
+                 t odn_of_t);
+
+          chng_distclean = 
+            Some 
+              (ODNFunc.func_with_arg
+                 distclean ("CustomPlugin.distclean")
+                 t odn_of_t);
+        }
 
 (* Configure plugin *)
 let conf_init () = 
-  let module PU = OASISPlugin.Configure.Make(Id)
+  let self_id, id = 
+    Configure.create 
+      ~help:CustomData.readme_template_mkd 
+      conf_plugin
   in
-  let module CU = Make(PU)
-  in
-  let doit =
-    CU.std
+  let generator, doit =
+    std
+      id
+      (* TODO: test if replacing conf_data -> build_data generates an error *)
+      conf_data
       "Conf"
-      (fun () -> s_ "Run command to configure.")
-      (fun () -> s_ "Run command to clean configure step.")
-      (fun () -> s_ "Run command to distclean configure step.")
+      (ns_ "Run command to configure.")
+      (ns_ "Run command to clean configure step.")
+      (ns_ "Run command to distclean configure step.")
   in
-    PU.register_act doit
+    Configure.register_act self_id doit;
+    register_generator_package id conf_data generator
 
 (* Build plugin *)
 let build_init () = 
-  let module PU = OASISPlugin.Build.Make(Id)
+  let self_id, id = 
+    Build.create 
+      ~help:CustomData.readme_template_mkd 
+      build_plugin
   in
-  let module CU = Make(PU)
-  in
-  let cmd_main, cmd_clean, cmd_distclean =
-    CU.add_fields
+  let cmd_main, cmd_clean, cmd_distclean, generator =
+    add_fields
+      id
+      build_data
       ~schema:OASISPackage.schema 
       "Build"
-      (fun () -> s_ "Run command to build.")
-      (fun () -> s_ "Run command to clean build step.")
-      (fun () -> s_ "Run command to distclean build step.")
+      (ns_ "Run command to build.")
+      (ns_ "Run command to clean build step.")
+      (ns_ "Run command to distclean build step.")
   in
   let doit ctxt pkg = 
-    let t =
-      {
-        cmd_main      = cmd_main pkg.schema_data;
-        cmd_clean     = cmd_clean pkg.schema_data;
-        cmd_distclean = cmd_distclean pkg.schema_data;
-      }
+    let t = 
+      generator pkg.schema_data
     in
       ctxt,
       {
@@ -279,67 +314,75 @@ let build_init () =
 
         chng_main = 
           ODNFunc.func_with_arg 
-            Build.main ("CustomPlugin.Build.main")
+            BuildRuntime.main ("CustomPlugin.Build.main")
             t odn_of_t;
 
         chng_clean = 
           Some 
             (ODNFunc.func_with_arg
-               Build.clean ("CustomPlugin.Build.clean")
+               BuildRuntime.clean ("CustomPlugin.Build.clean")
                t odn_of_t);
 
         chng_distclean = 
           Some 
             (ODNFunc.func_with_arg
-               Build.distclean ("CustomPlugin.Build.distclean")
+               BuildRuntime.distclean ("CustomPlugin.Build.distclean")
                t odn_of_t);
       }
   in
-    PU.register_act doit
+    Build.register_act self_id doit;
+    register_generator_package id build_data generator
 
 (* Install plugin *)
 let install_init () =
-  let module PU = OASISPlugin.Install.Make(Id)
+  let self_id, id = 
+    Install.create 
+      ~help:CustomData.readme_template_mkd 
+      install_plugin
   in
-  let module CU = Make(PU)
-  in
-  let doit_install = 
-    CU.std
+  let generate_install, doit_install = 
+    std
+      id
+      install_data
       "Install"
-      (fun () -> s_ "Run command to install.")
-      (fun () -> s_ "Run command to clean install step.")
-      (fun () -> s_ "Run command to distclean install step.")
+      (ns_ "Run command to install.")
+      (ns_ "Run command to clean install step.")
+      (ns_ "Run command to distclean install step.")
   in
-  let doit_uninstall = 
-    CU.std
+  let generate_uninstall, doit_uninstall = 
+    std
+      id
+      uninstall_data
       "Uninstall"
-      (fun () -> s_ "Run command to uninstall.")
-      (fun () -> s_ "Run command to clean uninstall step.")
-      (fun () -> s_ "Run command to distclean uninstall step.")
+      (ns_ "Run command to uninstall.")
+      (ns_ "Run command to clean uninstall step.")
+      (ns_ "Run command to distclean uninstall step.")
   in
-    PU.register_act (doit_install, doit_uninstall)
+    Install.register_act self_id (doit_install, doit_uninstall);
+    register_generator_package id install_data generate_install;
+    register_generator_package id uninstall_data generate_uninstall
+
 
 (* Document plugin *)
 let doc_init () =
-  let module PU = OASISPlugin.Doc.Make(Id)
+  let self_id, id =
+    Doc.create
+      ~help:CustomData.readme_template_mkd 
+       doc_plugin
   in
-  let module CU = Make(PU)
-  in
-  let cmd_main, cmd_clean, cmd_distclean =
-    CU.add_fields
+  let cmd_main, cmd_clean, cmd_distclean, generator =
+    add_fields
       ~schema:OASISDocument.schema
+      id
+      build_data
       ""
-      (fun () -> s_ "Run command to build documentation.")
-      (fun () -> s_ "Run command to clean build documentation step.")
-      (fun () -> s_ "Run command to distclean build documentation step.")
+      (ns_ "Run command to build documentation.")
+      (ns_ "Run command to clean build documentation step.")
+      (ns_ "Run command to distclean build documentation step.")
   in
   let doit ctxt pkg (cs, doc) =
-      let t =
-        {
-          cmd_main      = cmd_main cs.cs_data;
-          cmd_clean     = cmd_clean cs.cs_data;
-          cmd_distclean = cmd_distclean cs.cs_data;
-        }
+      let t = 
+        generator cs.cs_data
       in
         ctxt,
         {
@@ -348,55 +391,64 @@ let doc_init () =
 
           chng_main = 
             ODNFunc.func_with_arg 
-              Doc.main ("CustomPlugin.Doc.main")
+              DocRuntime.main ("CustomPlugin.Doc.main")
               t odn_of_t;
 
           chng_clean = 
             Some 
               (ODNFunc.func_with_arg
-                 Doc.clean ("CustomPlugin.Doc.clean")
+                 DocRuntime.clean ("CustomPlugin.Doc.clean")
                  t odn_of_t);
 
           chng_distclean = 
             Some 
               (ODNFunc.func_with_arg
-                 Doc.distclean ("CustomPlugin.Doc.distclean")
+                 DocRuntime.distclean ("CustomPlugin.Doc.distclean")
                  t odn_of_t);
         }
   in
-    PU.register_act doit
+    Doc.register_act self_id doit;
+    register_generator_package id doc_data generator
 
 (* Test plugin *)
 let test_init () =
-  let module PU = OASISPlugin.Test.Make(Id)
-  in
-  let module CU = Make(PU)
+  let self_id, id = 
+    Test.create 
+      ~help:CustomData.readme_template_mkd 
+      test_plugin
   in
   let test_clean =
-    PU.new_field_conditional
+    new_field_conditional
       OASISTest.schema
+      id
       "Clean"
       ~default:None
       (opt command_line)
       (fun () ->
          s_ "Run command to clean test step.")
+      test_data (fun _ t -> t.cmd_clean)
   in
   let test_distclean =
-    PU.new_field_conditional
+    new_field_conditional
       OASISTest.schema
+      id
       "Distclean"
       ~default:None
       (opt command_line)
       (fun () ->
          s_ "Run command to distclean test step.")
+      test_data (fun _ t -> t.cmd_distclean)
+  in
+  let generator data = 
+    { 
+      cmd_main      = [OASISExpr.EBool true, ("false", [])];
+      cmd_clean     = test_clean data;
+      cmd_distclean = test_distclean data;
+    }
   in
   let doit ctxt pkg (cs, test) =
       let t = 
-        { 
-          cmd_main      = test.test_command;
-          cmd_clean     = test_clean cs.cs_data;
-          cmd_distclean = test_distclean cs.cs_data;
-        }
+        {(generator cs.cs_data) with cmd_main = test.test_command}
       in
         ctxt,
         {
@@ -405,23 +457,24 @@ let test_init () =
 
           chng_main = 
             ODNFunc.func_with_arg 
-              Test.main ("CustomPlugin.Test.main")
+              TestRuntime.main ("CustomPlugin.Test.main")
               t odn_of_t;
 
           chng_clean = 
             Some 
               (ODNFunc.func_with_arg
-                 Test.clean ("CustomPlugin.Test.clean")
+                 TestRuntime.clean ("CustomPlugin.Test.clean")
                  t odn_of_t);
 
           chng_distclean = 
             Some 
               (ODNFunc.func_with_arg
-                 Test.distclean ("CustomPlugin.Test.distclean")
+                 TestRuntime.distclean ("CustomPlugin.Test.distclean")
                  t odn_of_t);
         }
   in
-    PU.register_act doit
+    Test.register_act self_id doit;
+    register_generator_package id test_data generator
 
 let init () = 
   conf_init ();

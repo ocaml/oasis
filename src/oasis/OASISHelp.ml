@@ -27,7 +27,7 @@
 
 open OASISLicense
 open OASISTypes
-open OASISSchema
+open OASISSchema_intern
 open OASISGettext
 open OASISUtils
 open Format
@@ -335,6 +335,14 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
           | `Test      -> "test"
           | `Install   -> "install"
           | `Extra     -> "extra"
+    in
+    let hlp_xtr_vr = 
+      (* TODO: remove this adaptation when will replace fun () -> s_
+       * by ns_
+       *)
+      List.map 
+        (fun (vr, hlp) -> vr, fun () -> s_ hlp)
+        hlp_xtr_vr
     in
       fprintf fmt (f_ "### Plugin %s (%s)\n\n") nm kind_str;
       fprintf fmt (f_ "__Version__: %s<br/>\n") 
