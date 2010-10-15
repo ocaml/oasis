@@ -9,19 +9,19 @@
 
 (** See {!OASISMessage.debug}.
   *)
-val debug : ('a, out_channel, unit, unit) format4 -> 'a
+val debug : ('a, unit, string, unit) format4 -> 'a
 
 (** See {!OASISMessage.info}.
   *)
-val info : ('a, out_channel, unit, unit) format4 -> 'a
+val info : ('a, unit, string, unit) format4 -> 'a
 
 (** See {!OASISMessage.warning}.
   *)
-val warning : ('a, out_channel, unit, unit) format4 -> 'a
+val warning : ('a, unit, string, unit) format4 -> 'a
 
 (** See {!OASISMessage.error}.
   *)
-val error : ?exit:bool -> ('a, out_channel, unit, unit) format4 -> 'a
+val error : ('a, unit, string, unit) format4 -> 'a
 
 (** See {!OASISMessage.string_of_exception}.
   *)

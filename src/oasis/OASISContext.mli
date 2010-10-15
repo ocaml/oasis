@@ -3,10 +3,22 @@
     @author Sylvain Le Gall
   *)
 
+type level =
+  [ `Debug
+  | `Info 
+  | `Warning
+  | `Error]
+
 type t = 
   { 
-    verbose : bool; (** Display info, warnings and errors messages. *)
-    debug : bool;   (** Display also debug messages. *)
+    verbose : bool; 
+    (** Display info, warnings and errors messages. *)
+
+    debug : bool;   
+    (** Display also debug messages. *)
+
+    printf: level -> string -> unit; 
+    (** Redirect output *)
   }
 
 (** Default context *)

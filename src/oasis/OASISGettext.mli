@@ -15,13 +15,13 @@ val ns_: string -> string
 val s_ : string -> string
 
 (** Translate a format string. *)
-val f_ : ('a, 'b, 'c) format -> ('a, 'b, 'c) format
+val f_ : ('a, 'b, 'c, 'd) format4 -> ('a, 'b, 'c, 'd) format4
 
 (** [fn_ fmt_singular fmt_plural n] Translate a plural string using either
     [fmt_singular] or [fmt_plural], depending of the plural status of number
     [n] in the target language.
   *)
-val fn_ : ('a, 'b, 'c) format -> ('a, 'b, 'c) format ->  int -> ('a, 'b, 'c) format 
+val fn_ : ('a, 'b, 'c, 'd) format4 -> ('a, 'b, 'c, 'd) format4 ->  int -> ('a, 'b, 'c, 'd) format4
 
 (** Gettext initialization. *)
 val init: (string * string option * string option) list  

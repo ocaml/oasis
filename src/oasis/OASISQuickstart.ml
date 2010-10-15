@@ -874,7 +874,7 @@ let to_file ~ctxt fn lvl intrf oasis_dev =
               end
           end
       | None ->
-          error ~ctxt ~exit:false "No way to edit the generated file."
+          error ~ctxt "No way to edit the generated file."
   in
 
   let pager content =

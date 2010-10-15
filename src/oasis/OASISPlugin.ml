@@ -546,7 +546,7 @@ let add_file tmpl ctxt =
 let set_error tst s ctxt =
   if tst then
     begin
-      OASISMessage.error ~ctxt:ctxt.ctxt ~exit:false "%s" s;
+      OASISMessage.error ~ctxt:ctxt.ctxt "%s" s;
       {ctxt with error = true}
     end
   else

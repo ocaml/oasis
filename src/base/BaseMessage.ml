@@ -11,7 +11,7 @@ let info fmt    = info ~ctxt:!default fmt
 
 let warning fmt = warning ~ctxt:!default fmt
 
-let error ?exit fmt = error ~ctxt:!default ?exit fmt
+let error fmt = error ~ctxt:!default fmt
 
 let string_of_exception = string_of_exception
 

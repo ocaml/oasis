@@ -70,11 +70,11 @@ let parse_stream conf st =
   in
 
   (* Override OASISMessage functions *)
-  let debug =
-    debug ~ctxt:conf.ctxt
+  let debug fmt =
+    debug ~ctxt:conf.ctxt fmt
   in
-  let warning =
-    warning ~ctxt:conf.ctxt
+  let warning fmt =
+    warning ~ctxt:conf.ctxt fmt
   in
 
   let apply_transformations ops =

@@ -23,41 +23,31 @@
 open OASISGettext
 open OASISContext
 
-let generic_message ?(after=ignore) cond beg fmt =
-  if cond then
-    begin
-      Printf.fprintf stderr (f_ "%s: ") beg;
-      Printf.kfprintf 
-        (fun chn -> 
-           Printf.fprintf chn "\n%!";
-           after ())
-        stderr
-        fmt
-    end
-  else
-    begin
-      Printf.ifprintf 
-        stderr
-        fmt
-    end
+let generic_message ~ctxt lvl fmt =
+  let cond = 
+    match lvl with 
+      | `Debug -> ctxt.debug
+      | _ -> ctxt.verbose
+  in
+    Printf.ksprintf 
+      (fun str -> 
+         if cond then
+           begin
+             ctxt.printf lvl str
+           end)
+      fmt
 
-let debug ?after ~ctxt fmt =
-  generic_message ?after ctxt.debug "D" fmt
+let debug ~ctxt fmt =
+  generic_message ~ctxt `Debug fmt
 
-let info ?after ~ctxt fmt = 
-  generic_message ?after ctxt.verbose "I" fmt
+let info ~ctxt fmt = 
+  generic_message ~ctxt `Info fmt
 
-let warning ?after ~ctxt fmt =
-  generic_message ?after ctxt.verbose "W" fmt
+let warning ~ctxt fmt =
+  generic_message ~ctxt `Warning fmt
 
-let error ?(after=ignore) ?(exit=true) ~ctxt fmt =
-  generic_message 
-    ~after:(fun () -> 
-              if exit then 
-                Pervasives.exit 1;
-              after ()) 
-    ctxt.verbose 
-    "E" fmt
+let error ~ctxt fmt =
+  generic_message ~ctxt `Error fmt
 
 
 let string_of_exception e = 

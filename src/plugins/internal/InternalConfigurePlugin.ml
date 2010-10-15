@@ -220,7 +220,7 @@ let configure pkg argv =
   else
     begin
       List.iter
-        (fun e -> error ~exit:false "%s" e)
+        (fun e -> error "%s" e)
         (SetString.elements !errors);
       failwithf1
         (fn_ 
