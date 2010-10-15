@@ -97,7 +97,9 @@ let schema, generator =
       OASISConf.version_short
     in
     let extra_supported_versions =
-      []
+      List.map 
+        OASISVersion.version_of_string
+        ["0.1"]
     in
       new_field "OASISFormat" 
         ~quickstart_level:(NoChoice current_version)
