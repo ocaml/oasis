@@ -29,7 +29,7 @@ open OASISTypes
 open OASISPlugin
 open OASISSchema
 
-let plugin = `Extra, "DevFiles", Some OASISConf.version
+let plugin = `Extra, "DevFiles", Some OASISConf.version_short
 
 let self_id, all_id = 
   Extra.create 

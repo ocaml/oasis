@@ -45,15 +45,15 @@ let update_and_run t =
           error 
             (f_ "The command '%s %s' exit with code 2. It often means that we \
                  don't use the right command-line arguments, rerun \
-                 'OASIS setup-dev'.")
+                 'oasis setup-dev'.")
             t.oasis_cmd
             (String.concat " " oasis_args)
 
       | 127 -> 
           (* Cannot find OASIS *)
           error 
-            (f_ "Cannot find executable '%s', check where OASIS is located \
-                 and rerun 'OASIS setup-dev'")
+            (f_ "Cannot find executable '%s', check where 'oasis' is located \
+                 and rerun 'oasis setup-dev'")
             t.oasis_cmd
 
       | i -> 
@@ -87,7 +87,7 @@ let make ?oasis_exec ctxt pkg =
       oasis_cmd = 
         (match oasis_exec with 
            | Some fn -> fn
-           | None    -> "OASIS");
+           | None    -> "oasis");
     }
   in
 

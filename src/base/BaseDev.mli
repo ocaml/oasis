@@ -10,7 +10,7 @@ type t =
       oasis_cmd : prog; (** Program to regenerate the build system. *)
     }
 
-(** Run 'OASIS setup' command line tool to regenerate a build system and 
+(** Run 'oasis setup' command line tool to regenerate a build system and 
     and run it.
   *)
 val update_and_run : t -> unit

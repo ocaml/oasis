@@ -171,7 +171,7 @@ let scmd =
            ([
              "-real-oasis",
              Arg.Unit (fun () -> roasis_exec := Some Sys.argv.(0)),
-             s_ " Use the real OASIS filename when generating developper mode \
+             s_ " Use the real 'oasis' executable filename when generating developper mode \
                   setup.ml.";
 
              "-run",

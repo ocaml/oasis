@@ -25,7 +25,7 @@
 
 let name = "Internal"
 
-let version = OASISConf.version
+let version = OASISConf.version_short
 
 let help = InternalData.readme_template_mkd
 

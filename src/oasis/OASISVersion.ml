@@ -142,6 +142,15 @@ let version_of_string str =
 let string_of_version t =
   t
 
+let chop t = 
+  try 
+    let pos = 
+      String.rindex t '.' 
+    in
+      String.sub t 0 pos
+  with Not_found ->
+    t
+
 let rec comparator_apply v op =
   match op with
     | VGreater cv ->

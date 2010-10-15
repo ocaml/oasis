@@ -39,6 +39,10 @@ val value: t OASISValues.t
   *)
 val odn_of_t: t -> ODN.t
 
+(** Remove the last part of a version, after the last '.'. I.e. 0.2.0~alpha1 ->
+    0.2.
+  *)
+val chop: t -> t
 
 (** {2 Version comparator} *)
 

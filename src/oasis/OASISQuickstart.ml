@@ -702,7 +702,7 @@ let to_file ~ctxt fn lvl intrf oasis_dev =
               pp_open_vbox fmt 0;
               pp_open_box fmt 0;
               pp_print_string_spaced fmt
-                (s_ "The program will ask some questions to create the OASIS \
+                (s_ "The program will ask some questions to create the `_oasis` \
                      file. If you answer '?' to a question, an help text will \
                      be displayed.");
               pp_close_box fmt ();
@@ -914,7 +914,7 @@ let to_file ~ctxt fn lvl intrf oasis_dev =
               create_fn content fn;
               false);
 
-           s_ "r", s_ "write, run 'OASIS setup-dev' and exit", None,
+           s_ "r", s_ "write, run 'oasis setup-dev' and exit", None,
            (fun () ->
               create_fn content fn;
               oasis_dev ();

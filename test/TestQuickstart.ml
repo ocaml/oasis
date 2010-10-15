@@ -141,7 +141,7 @@ let tests =
            try 
              assert_oasis_cli ["setup"];
            with e ->
-             failwith "'OASIS setup' failed but 'OASIS check' succeed"
+             failwith "'oasis setup' failed but 'oasis check' succeed"
          end;
          let pkg = 
            OASISParse.from_file ~ctxt:!oasis_ctxt "_oasis"

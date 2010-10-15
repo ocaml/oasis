@@ -27,13 +27,13 @@ configure step try to auto detect various parameters and see if they match with
 should create files which summarize choices made.  Files are created through
 replacement of variable in files (%.ab -> %).
 
-We rely on OASIS file to describe "user choices" (Flag) and "build
+We rely on `_oasis` file to describe "user choices" (Flag) and "build
 dependencies" (BuildDepends and BuildTools). 
 
 OASIS should provide 2 choices for configure:
 - internal (default): an OCaml module is embedded in the project that perform
-  all this checks, use translated OASIS in setup.ml structure. 
-- ocaml-autoconf: use translated OASIS in configure.ac, output setup.data.
+  all this checks, use translated `_oasis` in setup.ml structure. 
+- ocaml-autoconf: use translated `_oasis` in configure.ac, output setup.data.
 
 build
 -----
@@ -42,11 +42,11 @@ The build phase should build all the project objects. It should take care of
 building native and bytecode object depending on the target system. 
 
 OASIS provides 3 choices for build:
-- ocamlbuild (default): use translated OASIS files (.mllib, .itarget...) and
+- ocamlbuild (default): use translated `_oasis` files (.mllib, .itarget...) and
   ocamlbuild shipped with ocaml, add ocamlbuild detection to configure
-- OCamlMakefile: use translated OASIS files (Makefile) and OCamlMakefile
+- OCamlMakefile: use translated `_oasis` files (Makefile) and OCamlMakefile
   shipped externally, add OCamlMakefile user choice and detection
-- OMake: use translated OASIS files (TODO)
+- OMake: use translated `_oasis` files (TODO)
 
 build phase use configure phase result through a generated file that list
 important variable regarding build process. 

@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: faebd70ab65ed22b29926d59462ea068)
+# DO NOT EDIT (digest: 6aafe185defa04a606fef7201e83fcb6)
 # Executable ocamlmod
 "src/tools/ocamlmod.byte": pkg_pcre
 "src/tools/ocamlmod.byte": pkg_fileutils
@@ -153,7 +153,7 @@
 <test/*.ml{,i}>: pkg_fileutils
 <test/*.ml{,i}>: pkg_extlib
 <test/*.ml{,i}>: pkg_expect.pcre
-# Executable OASIS
+# Executable oasis
 "src/cli/Main.byte": use_cli
 "src/cli/Main.byte": use_builtin-plugins
 "src/cli/Main.byte": use_base

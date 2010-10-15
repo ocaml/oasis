@@ -36,7 +36,7 @@ open Format
 open FormatExt
 
 let plugin = 
-  `Extra, "StdFiles", Some OASISConf.version
+  `Extra, "StdFiles", Some OASISConf.version_short
 
 let self_id, all_id = 
   Extra.create 

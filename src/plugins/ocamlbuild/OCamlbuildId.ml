@@ -25,7 +25,7 @@
 
 let name    = "OCamlbuild"
 
-let version = OASISConf.version
+let version = OASISConf.version_short
 
 let help = OCamlbuildData.readme_template_mkd
 

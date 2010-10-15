@@ -23,4 +23,4 @@
 LOCDIR="$(dirname $(readlink -f $0))"
 BUILDDIR="$(readlink -f "$LOCDIR/../../_build")"
 export OASIS_GETTEXT_DIR="$BUILDDIR/po"
-exec "$BUILDDIR/src/cli/OASIS" "$@"
+exec "$BUILDDIR/src/cli/oasis" "$@"

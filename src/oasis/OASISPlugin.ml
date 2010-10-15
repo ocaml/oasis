@@ -531,7 +531,7 @@ let test_field_name nm =
   *)
 let builtin knd nm =
   let builtin_version =
-    Some OASISConf.version
+    Some OASISConf.version_short
   in
     knd, nm, builtin_version
 

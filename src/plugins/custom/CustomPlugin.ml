@@ -162,7 +162,7 @@ open OASISPlugin
 open OASISSchema
 
 let nm, ver = 
-  "Custom", Some OASISConf.version
+  "Custom", Some OASISConf.version_short
 
 let conf_plugin = `Configure, nm, ver
 let conf_data   = data_new_property conf_plugin

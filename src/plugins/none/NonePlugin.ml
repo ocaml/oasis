@@ -56,7 +56,7 @@ let section_no_generate str ctxt pkg (cs, section) =
     pkg
 
 let init () = 
-  let nm, ver = "None", Some OASISConf.version in
+  let nm, ver = "None", Some OASISConf.version_short in
   let help = NoneData.readme_template_mkd in
   let help_order = 10 in
 

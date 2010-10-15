@@ -20,7 +20,7 @@ let specs, usage_msg =
 
   s_ "OASIS (C) 2009-2010 OCamlCore SARL\n\
       \n\
-      OASIS [global-options*] subcommand [subcommand-options*]\n\
+      oasis [global-options*] subcommand [subcommand-options*]\n\
       \n\
       Global options:"
 
@@ -145,7 +145,7 @@ let pp_print_help hext hsty fmt () =
       ~check_last_char:scmd.scmd_help
       fmt ();
 
-    fprintf fmt (f_ "Usage: OASIS [global-options*] %s %s") scmd.scmd_name scmd.scmd_usage;
+    fprintf fmt (f_ "Usage: oasis [global-options*] %s %s") scmd.scmd_name scmd.scmd_usage;
     pp_print_endblock fmt ();
 
     if scmd.scmd_specs <> [] then
@@ -196,7 +196,7 @@ let parse () =
          ""
          (fun () ->
             error "%s" 
-              (s_ "No subcommand defined, call 'OASIS -help' for help")))
+              (s_ "No subcommand defined, call 'oasis -help' for help")))
   in
 
   let scmd_args = 

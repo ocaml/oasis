@@ -179,7 +179,7 @@ Library cli
   Install$:         flag(libraries)
 
 
-Executable OASIS
+Executable oasis
   Path:   src/cli
   MainIs: Main.ml
   BuildDepends: oasis, oasis.base, oasis.cli, oasis.builtin-plugins
@@ -193,17 +193,17 @@ Executable test
 
 Test main
   Type: custom (0.1.0)
-  Command: $test -oasis-exec $OASIS -has-ocamlopt $is_native
+  Command: $test -oasis-exec $oasis -has-ocamlopt $is_native
   WorkingDirectory: test 
-  TestTools: OASIS, test
+  TestTools: oasis, test
 
 Document manual
   Type: custom (0.1.0)
   Title: OASIS User Manual
   if flag(gettext) 
-    XCustom: env LANG=C $OASIS manual > doc/MANUAL.mkd
+    XCustom: env LANG=C $oasis manual > doc/MANUAL.mkd
   else
-    XCustom: $OASIS manual > doc/MANUAL.mkd
+    XCustom: $oasis manual > doc/MANUAL.mkd
   XCustomClean: $rm doc/MANUAL.mkd
   DataFiles: doc/MANUAL.mkd
 

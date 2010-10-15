@@ -45,7 +45,7 @@ type t =
     }
 
 let plugin = 
-  `Extra, "META", Some OASISConf.version
+  `Extra, "META", Some OASISConf.version_short
 
 let pivot_data = 
   data_new_property plugin

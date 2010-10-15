@@ -4,5 +4,5 @@ print it and more precisely the [pandoc][] extension of this syntax.
   [markdown]: http://daringfireball.net/projects/markdown/
   [pandoc]: http://johnmacfarlane.net/pandoc/
 
-This manual describes the command line tool `OASIS`, the `_oasis` file format 
+This manual describes the command line tool `oasis`, the `_oasis` file format 
 and the generated `setup.ml` file.

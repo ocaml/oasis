@@ -19,4 +19,5 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-let version = OASISVersion.version_of_string "$(pkg_version)"
+let version_full = OASISVersion.version_of_string "$(pkg_version)"
+let version_short = OASISVersion.chop version_full
