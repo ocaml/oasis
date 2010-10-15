@@ -94,7 +94,7 @@ let schema, generator =
 
   let oasis_version = 
     let current_version =
-      OASISVersion.version_of_string "0.1"
+      OASISConf.version_short
     in
     let extra_supported_versions =
       []

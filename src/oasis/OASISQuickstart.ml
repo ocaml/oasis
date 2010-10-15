@@ -84,7 +84,34 @@ let ask_until_correct t =
     in
       try
         let answer = 
-          read_line ()
+(*
+          try 
+            let _ = 
+              (* Check we have terminal *)
+              Unix.tcgetattr Unix.stdin 
+            in
+            (* TODO: use history file *)
+            let q = 
+              Buffer.create 13
+            in
+            let rec input () = 
+              let c = Ledit.input_char stdin in
+                if c = "\n" then 
+                  begin
+                    Buffer.contents q
+                  end
+                else
+                  begin
+                    Buffer.add_string q c;
+                    input ()
+                  end
+            in
+              input ()
+
+          with Unix.Unix_error _ ->
+ *)
+            (* Fallback if we don't have a terminal *)
+            read_line ()
         in
           match answer, t.default with 
             | "?", _ ->
