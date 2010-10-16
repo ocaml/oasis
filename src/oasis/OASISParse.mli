@@ -14,7 +14,6 @@ open OASISTypes
   *)
 val from_stream: 
   ctxt:OASISContext.t -> 
-  ?ignore_plugins:bool -> 
   ?fn:host_filename -> 
   (char Stream.t) ->
   package
@@ -23,7 +22,6 @@ val from_stream:
   *)
 val from_file :
   ctxt:OASISContext.t -> 
-  ?ignore_plugins:bool -> 
   host_filename -> 
   package
 
@@ -31,7 +29,6 @@ val from_file :
   *)
 val from_string :
   ctxt:OASISContext.t -> 
-  ?ignore_plugins:bool -> 
   ?fn:host_filename -> 
   string ->
   package

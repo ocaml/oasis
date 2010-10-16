@@ -36,9 +36,8 @@ open Genlex
   *)
 type conf =
   {
-    oasisfn:        host_filename option;
-    ignore_plugins: bool;
-    ctxt:           OASISContext.t;
+    oasisfn: host_filename option;
+    ctxt:    OASISContext.t;
   }
 
 type line_pos = int

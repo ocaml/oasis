@@ -1,0 +1,18 @@
+Name:         oasis
+Version:      0.0.1
+OASISFormat:  0.1
+Synopsis:     Just a test
+License:      GPL
+LicenseFile:  LICENSE
+Authors:      Sylvain Le Gall
+ConfType:     MyConf
+BuildType:    MyNone (0.2)
+InstallType:  MyInstall 
+
+Test main
+  Type: MyTest 
+  Command: false
+
+Document changelog
+  Type: MyDoc
+  Title: changes

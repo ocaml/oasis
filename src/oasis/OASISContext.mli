@@ -17,6 +17,9 @@ type t =
     debug : bool;   
     (** Display also debug messages. *)
 
+    ignore_plugins : bool;
+    (** Don't use plugins *)
+
     printf: level -> string -> unit; 
     (** Redirect output *)
   }

@@ -79,8 +79,8 @@ let tests =
     (fun () ->
        let pkg =
          from_file 
-           ~ctxt:!oasis_ctxt
-           ~ignore_plugins:true
+           ~ctxt:{!oasis_ctxt with 
+                      OASISContext.ignore_plugins = true} 
            fn
        in
          test pkg)
@@ -290,6 +290,9 @@ let tests =
                              | None -> "<none>")
                  (Some "a\nb\n\nc")
                  pkg.description);
+
+            "test11.oasis",
+            ignore;
           ])
       @
        (List.rev_map file_of_vector

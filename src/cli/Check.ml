@@ -9,8 +9,8 @@ open SubCommand
 let main () = 
   let _pkg: OASISTypes.package = 
     OASISParse.from_file
-      ~ctxt:!BaseContext.default
-      ~ignore_plugins:!ArgCommon.ignore_plugins
+      ~ctxt:{!BaseContext.default with 
+                 OASISContext.ignore_plugins = !ArgCommon.ignore_plugins}
       !ArgCommon.oasis_fn
   in
     ()
