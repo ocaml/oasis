@@ -104,20 +104,50 @@ let temp_dir () =
          FileUtil.rm ~recurse:true [res]);
     res
 
+module Output = 
+struct
+ type t = string
+ let compare = String.compare
+ let pp_printer = Format.pp_print_string
+ let pp_print_sep = OUnitDiff.pp_comma_separator
+end
+
+module DiffSetOutput = OUnitDiff.SetMake (Output)
+module DiffListOutput = OUnitDiff.ListSimpleMake (Output)
+
 (* Assert checking that command run well *)
-let assert_command ?exit_code ?output ?extra_env cmd args  =
+let assert_command ?exit_code ?output ?extra_env ?(unorder=false) cmd args  =
   let foutput = 
     match output with 
-      | Some str ->
+      | Some exp_output ->
           let foutput strm = 
-            let buff = Buffer.create 13 in
-              Stream.iter (Buffer.add_char buff) strm;
-              assert_equal 
+            let output = 
+              let buff = 
+                Buffer.create 13 
+              in
+                Stream.iter (Buffer.add_char buff) strm;
+                Buffer.contents buff
+            in
+            let exp_output = ExtString.String.nsplit exp_output "\n" in
+            let rel_output = ExtString.String.nsplit output "\n" in
+
+            let assert_equal_diff ~msg t1 t2 =
+              if unorder then
+                DiffSetOutput.assert_equal 
+                  ~msg
+                  (DiffSetOutput.of_list t1)
+                  (DiffSetOutput.of_list t2)
+              else
+                DiffListOutput.assert_equal
+                  ~msg
+                  (DiffListOutput.of_list t1)
+                  (DiffListOutput.of_list t2)
+            in
+              assert_equal_diff
                 ~msg:(Printf.sprintf "'%s' command output" 
                         (String.concat " " (cmd :: args)))
-                ~printer:(Printf.sprintf "%S")
-                str
-                (Buffer.contents buff)
+                exp_output
+                rel_output
           in
             Some foutput
 
@@ -146,6 +176,6 @@ let assert_command ?exit_code ?output ?extra_env cmd args  =
       ?foutput ?env ?exit_code ~use_stderr:true ~verbose:!dbug 
       cmd args
 
-let assert_oasis_cli ?exit_code ?output ?extra_env args  =
-  assert_command ?exit_code ?output ?extra_env 
+let assert_oasis_cli ?exit_code ?output ?extra_env ?unorder args  =
+  assert_command ?exit_code ?output ?extra_env ?unorder
     (oasis ()) (!oasis_args @ args)

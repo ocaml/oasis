@@ -182,6 +182,7 @@ let tests =
            "synopsis",       "test";
            "authors",        "me";
            "license",        "GPL-2+";
+           "plugins",        "";
            "create_section", "e";
            "name",           "test";
            "path",           "./";

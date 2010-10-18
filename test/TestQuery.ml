@@ -41,6 +41,7 @@ let tests =
       (fun () ->
          assert_oasis_cli 
            ~output:((String.concat "\n" a)^"\n")
+           ~unorder:true
            (["query"; "-oasis"; in_data fn] @ q))
   in
 

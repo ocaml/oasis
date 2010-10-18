@@ -85,8 +85,8 @@ let schema, generator =
     schema "Package" (fun pkg -> pkg.plugin_data)
   in
 
-  let new_field ?quickstart_level ?default nm value hlp sync = 
-    new_field schm ?quickstart_level ?default nm value hlp sync
+  let new_field ?quickstart_level ?quickstart_question ?default nm value hlp sync = 
+    new_field schm ?quickstart_level ?quickstart_question ?default nm value hlp sync
   in
   let new_field_plugin nm ?default ?quickstart_question value hlp sync =
     new_field_plugin schm nm ?default ?quickstart_question value hlp sync
@@ -150,14 +150,6 @@ let schema, generator =
          s_ "Long description of the package purpose.")
       (fun pkg -> pkg.description)
   in
-  let license_file =
-    new_field "LicenseFile" 
-      ~default:None
-      (opt file)
-      (fun () -> 
-         s_ "File containing the license.")
-      (fun pkg -> pkg.license_file)
-  in
   let authors =
     new_field "Authors" 
       (comma_separated string_not_empty)
@@ -181,12 +173,21 @@ let schema, generator =
          s_ "Current maintainers of the package.")
       (fun pkg -> pkg.maintainers)
   in
+  let license_file =
+    new_field "LicenseFile" 
+      ~default:None
+      (opt file)
+      (fun () -> 
+         s_ "File containing the license.")
+      (fun pkg -> pkg.license_file)
+  in
   let license =
     new_field "License"
       OASISLicense.value
+      ~quickstart_question:(fun () -> ExclusiveChoices (OASISLicense.choices ()))
       (fun () ->
-         (s_ "License type of the package.")^
-         (OASISLicense.help ()))
+         (s_ "DEP-5 license of the package \
+              (See [DEP-5](http://dep.debian.net/deps/dep5/#index6h3))."))
       (fun pkg -> pkg.license)
   in
   let ocaml_version =
@@ -305,6 +306,7 @@ let schema, generator =
     in
       new_field_plugins schm "Plugins"
         ~default:[]
+        ~quickstart_level:Beginner 
         ~quickstart_question
         `Extra
         OASISPlugin.Extra.value

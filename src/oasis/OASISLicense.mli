@@ -98,9 +98,9 @@ val string_of_license_exception: license_exception -> string
   *)
 val value : t OASISValues.t
 
-(** Display help. {b Not exported}.
+(** Choices for quickstart question. {b Not exported}.
   *)
-val help : unit -> string
+val choices: unit -> t list
 
 (** All available license, their short name, their long name, and compatible 
     versions. {b Not exported}.

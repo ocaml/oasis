@@ -81,19 +81,22 @@ let mk_license nm ?(versions=[]) ?note long_name =
   nm
 
 let license_data () = 
-  HashStringCsl.fold
-    (fun license data acc -> 
-       (license, 
-        {data with 
-             (* Really translate strings *)
-             long_name = s_ data.long_name;
-             note = 
-               match data.note with 
-                 | Some str -> Some (s_ str)
-                 | None -> None})
-       :: acc)
-    all_licenses
-    []
+  let lst = 
+    HashStringCsl.fold
+      (fun license data acc -> 
+         (license, 
+          {data with 
+               (* Really translate strings *)
+               long_name = s_ data.long_name;
+               note = 
+                 match data.note with 
+                   | Some str -> Some (s_ str)
+                   | None -> None})
+         :: acc)
+      all_licenses
+      []
+  in
+    List.sort (fun (nm1, _) (nm2, _) -> compare_csl nm1 nm2) lst 
 
 let proprietary = 
   mk_license
@@ -445,7 +448,37 @@ let value =
   }
 
 
-let help () =
+let choices () =
+  let compare_license t1 t2 = 
+    match compare_csl t1.license t2.license with
+      | 0 ->
+          begin
+            let v_cmp = 
+              match t1.version, t2.version with 
+                | NoVersion, NoVersion ->
+                    0
+                | NoVersion, _ ->
+                    -1
+                | _, NoVersion ->
+                    1
+                | Version v1, Version v2
+                | VersionOrLater v1, Version v2
+                | Version v1, VersionOrLater v2
+                | VersionOrLater v1, VersionOrLater v2 ->
+                    OASISVersion.version_compare v1 v2
+            in
+              match v_cmp with 
+                | 0 ->
+                    begin
+                      compare t1.exceptions t2.exceptions
+                    end
+                | n ->
+                    n
+          end
+      | n ->
+            n
+  in
+
   let exception_find license mp = 
     try
       MapString.find license mp
@@ -491,26 +524,31 @@ let help () =
       all_licenses
       []
   in
+
   let all = 
-    List.rev_map (fun t -> DEP5License t) all 
+    List.sort compare_license all
   in
-    (s_ "\n\
 
-A correct license string follow the DEP-5 standard:
-
-XXX-VVV(+)?( with OCaml linking exception)?
-
-XXX: shortname of the license
-VVV: optional version of the license, '+' means this 
-version or later. XXX and VVV need to be consistent.
-
-Recommended license: 
-
-  LGPL-2.1 with OCaml linking exception
-
-Available licenses: ")^
-  (String.concat (s_ ", ")
-     (List.rev_map to_string all))
-
-                    
-     
+  let preferred = 
+    [
+      {license = lgpl; 
+       version = Version (OASISVersion.version_of_string "2.1");
+       exceptions = [ocaml_linking_exception]};
+      {license = bsd3; 
+       version = NoVersion;
+       exceptions = []};
+      {license = gpl;
+       version =  Version (OASISVersion.version_of_string "3.0");
+       exceptions = []};
+      {license = qpl;
+       version = Version (OASISVersion.version_of_string "1.0");
+       exceptions = []};
+      {license = mit;
+       version = NoVersion;
+       exceptions = []};
+    ]
+  in
+  let all = 
+    preferred @ (List.filter (fun l -> not (List.mem l preferred)) all)
+  in
+    List.map (fun t -> DEP5License t) all 

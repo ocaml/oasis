@@ -189,7 +189,7 @@ let printable_default default choices =
     list.
   *)
 let mk_shortcut_choices t choices = 
- let help_choices = 
+  let help_choices = 
     let fmt =
       str_formatter
     in
@@ -278,7 +278,8 @@ let mk_shortcut_choices t choices =
         try 
           parse_name_choices s
         with Not_found ->
-          failwithf1 (f_ "'%s' is not valid answer") s
+          (* Fallback to original parsing *)
+          t.parse s
       end
   in
 
@@ -424,7 +425,7 @@ let ask_schema ~ctxt schema lvl interface plugins =
                     question  = Printf.sprintf 
                                   (f_ "Value for field '%s'?") 
                                   key;
-                    parse     = fun s -> s;
+                    parse     = (fun s -> s);
                   }
                 in
                   try 
