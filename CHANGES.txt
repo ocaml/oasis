@@ -1,4 +1,98 @@
-2010-04-08 Sylvain Le Gall <sylvain.le-gall@ocamlcore.com>
+2010-10-16 Sylvain Le Gall <sylvain.le-gall AT ocamlcore.com>
+
+  * Version 0.2.0
+
+  * Split the project into 3 libraries and one executable:
+    * oasis: the core library
+    * oasis.base: the runtime library
+    * oasis.builtin-plugins: various plugins (ocamlbuild, internal, none, custom)
+    * the executable 'oasis' in lowercase which was 'OASIS' before 
+      (Closes: #769)
+
+  * Publish .mli and improve ocamldoc generated documentation (Closes: #667)
+
+  * oasis library:
+    * Ignore plugins even when parsing field
+    * Allow to redirect messages through a function and use a context to avoid
+      global variables. This is an OASIS-DB website requirement, but we fallback 
+      to a global variable in oasis.base
+    * Use the same policy as Debian for version comparison (copied from dpkg) 
+      (Closes: #584)
+    * Add MIT, CeCILL licenses and make unknown license less fatal 
+      (Closes: #710, #557)
+    * Allow https, ftp, mailto, svn, svn+ssh for URL
+    * Replace Str by Pcre
+    * Don't modify package data structure through plugins, we just issue warnings
+      and error when something is missing. This is compensated by a better
+      'quickstart' that can automatically complete required fields (e.g. it adds 
+      'ocamlbuild' as a BuildDependency for 'ocamlbuild' plugin).
+      (Closes: #552, #566)
+    * Set default for test type to 'custom' plugin (Closes: #562)
+    * Use a more simple lexer for _oasis (Closes: #579)
+    * Warn if the use of '\t' to indent lines is inconsistent in an _oasis file
+      (e.g. mix of ' ' and '\t')
+    * Allow to use 'flag' as environment variables in _oasis (e.g. flag test can be used as 
+      Command: echo $test) (Closes: #619)
+    * ADVANCED USERS: Create a new scheme to synchronize data between the
+      property list used to parse and print an _oasis file and the data structure
+      representing it. This is a first step to avoid carrying property lists
+      inside the data structure.  It should also allow to dump plugin data
+      directly inside the data structure rather than having to do it "by hand".
+      This allows to have a more complete quickstart support also (i.e. handling
+      plugins directly). It also allows to manipulate the datastructures in a
+      single place: with the scheme before you have to update the property list
+      and the rest of the datastructure. (Closes: #705, #733)
+
+  * oasis.base library:
+    * Exit with an error code when tests fail
+    * Don't account skipped test (Closes: #624)
+    * Delegate the "setup-dev" actions to the executable 'oasis' rather than
+      embedding it into setup.ml
+    * Add a '-version' to setup.ml to know what version has generated the file 
+      (Closes: #692)
+    * Add a '-all' target that does "-configure", "-build", "-doc" and "-test"
+      in one run (Closes: #551)
+    * Add a '-reinstall' target that 'uninstall' and 'install' (Closes: #568)
+    * Use the right command to delete file on Windows
+
+  * executable 'oasis':
+    * Use a subcommand scheme, like subversion. For example, it replaces the
+      former "OASIS -setup" by "oasis setup". Each subcommand can be a small
+      plugin
+    * Add a "query" subcommand to extract data of _oasis from command line 
+      (Closes: #691)
+    * Add a "setup-clean" subcommand that removes generated files and helps
+      cleaning OASIS_START/STOP section of their content 
+      (Closes: #564, #623, #563)
+    * Add a "check" subcommend that checks _oasis files  
+    * Greatly improve the "quickstart" subcommand:
+      * Take into account plugins in quickstart
+      * Allow to have multiple choices for field Plugins in quickstart mode
+      * Don't display help text at each question (Closes: #586)
+      * Allow to create a doc (Closes: #633)
+      * Allow to run a pager, editor or "oasis setup-dev" at the end 
+        (Closes: #580, #582)
+      * Don't accept '?' as an answer in quickstart (Closes: #587)
+      * Add examples and all available licenses in the help of License field 
+        (Closes: #559)
+    * Keep generated files when 'oasis setup-dev' is called (Closes: #743)
+
+  * Plugin "ocamlbuild":
+    * Handle "Path: ." in generated _tags correctly (Closes: #570, #588)
+    * Quick fix to handle .h files directly in CSources field
+    * Include .mli in _tags (Closes: #572)
+    * Pass -cclib and -dllpath options to ocamlmklib  (Closes: #629)
+    * Don't pass -dlllib and -dllpath options to ocamlopt (Closes: #628)
+
+  * Plugin "internal":
+    * Create parent directories when installing with InternalInstall (Closes: #555)
+    * Don't install data when section is not built (Closes: #554, #556)
+
+  * Plugin "META":
+    * Add an exists_if field to generated META file (Closes: #694)
+
+
+2010-04-08 Sylvain Le Gall <sylvain.le-gall AT ocamlcore.com>
 
  * Initial version 0.1.0
 
