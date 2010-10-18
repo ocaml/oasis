@@ -1,4 +1,8 @@
 
+(** Add fields to _oasis for plugin
+    @author Sylvain Le Gall
+  *)
+
 open OASISTypes
 
 type 'a t = 'a OASISSchema_intern.t
