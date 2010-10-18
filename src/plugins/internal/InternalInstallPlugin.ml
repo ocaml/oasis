@@ -408,11 +408,7 @@ let plugin =
 
 let init () = 
   let self_id, _ = 
-    Install.create 
-      ~help
-      ~help_extra_vars
-      ~help_order
-      plugin
+    Install.create plugin
   in
   (* Installation *)
   let doit_install ctxt pkg =
@@ -435,5 +431,5 @@ let init () =
       chng_distclean = None;
     }
   in
-
+    InternalId.init ();
     Install.register_act self_id (doit_install, doit_uninstall)

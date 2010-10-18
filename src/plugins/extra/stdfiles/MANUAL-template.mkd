@@ -6,4 +6,4 @@ and other system that look for extension to determine file type.
 
 Package fields:
 
-$ListOASISPackageFields
+$ListStdFilesExtraPackageFields

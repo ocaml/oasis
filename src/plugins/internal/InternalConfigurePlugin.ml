@@ -240,11 +240,7 @@ let plugin =
 
 let init () =
   let self_id, _ =
-    Configure.create
-      ~help 
-      ~help_extra_vars
-      ~help_order
-      plugin
+    Configure.create plugin
   in
   let doit ctxt pkg =  
     ctxt, 
@@ -258,4 +254,5 @@ let init () =
            "InternalConfigurePlugin.configure");
     }
   in
+    InternalId.init ();
     Configure.register_act self_id doit

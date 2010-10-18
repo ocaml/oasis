@@ -241,45 +241,65 @@ let pp_standard_variables display schm =
     pp_close_box fmt ();
     flush_str_formatter ()
 
+let kind_str knd = 
+    match knd with 
+      | `Configure -> "conf"
+      | `Build     -> "build"
+      | `Doc       -> "doc"
+      | `Test      -> "test"
+      | `Install   -> "install"
+      | `Extra     -> "extra"
+
 (** Standard variables to replace in help files *)
 let vars ?plugin () =
-  [
-    "ListOASISTests",
-    (fun () ->
-       String.concat 
-         "\n"
-         (List.map
-            (fun et ->
-               Printf.sprintf "* `%s(X)`" 
-                 (OASISExpr.string_of_test et))
-            OASISExpr.tests));
+  let bn = 
+    match plugin with 
+      | None ->
+          "OASIS"
+      | Some (knd, nm, ver) ->
+          (String.capitalize nm)^
+          (String.capitalize (kind_str knd))
+  in
+    List.map 
+      (fun (pre, suf, pp) ->
+         pre^bn^suf, pp)
+      [
+        "List", "Tests",
+        (fun () ->
+           String.concat 
+             "\n"
+             (List.map
+                (fun et ->
+                   Printf.sprintf "* `%s(X)`" 
+                     (OASISExpr.string_of_test et))
+                OASISExpr.tests));
 
-    "ListOASISPackageFields",
-    (fun () -> pp_section_fields ?plugin OASISPackage.schema);
+        "List", "PackageFields",
+        (fun () -> pp_section_fields ?plugin OASISPackage.schema);
 
-    "ListOASISFlagFields",
-    (fun () -> pp_section_fields ?plugin OASISFlag.schema);
+        "List", "FlagFields",
+        (fun () -> pp_section_fields ?plugin OASISFlag.schema);
 
-    "ListOASISBuildFields",
-    (fun () -> pp_section_fields ?plugin OASISLibrary.schema);
+        "List", "BuildFields",
+        (fun () -> pp_section_fields ?plugin OASISLibrary.schema);
 
-    "ListOASISLibraryFields",
-    (fun () -> pp_section_fields ?plugin OASISLibrary.schema);
-    
-    "ListOASISExecutableFields",
-    (fun () -> pp_section_fields ?plugin OASISExecutable.schema);
+        "List", "LibraryFields",
+        (fun () -> pp_section_fields ?plugin OASISLibrary.schema);
+        
+        "List", "ExecutableFields",
+        (fun () -> pp_section_fields ?plugin OASISExecutable.schema);
 
-    "ListOASISDocumentFields",
-    (fun () -> pp_section_fields ?plugin OASISDocument.schema);
+        "List", "DocumentFields",
+        (fun () -> pp_section_fields ?plugin OASISDocument.schema);
 
-    "ListOASISTestFields",
-    (fun () -> pp_section_fields ?plugin OASISTest.schema);
+        "List", "TestFields",
+        (fun () -> pp_section_fields ?plugin OASISTest.schema);
 
-    "ListOASISSourceRepositoryFields",
-    (fun () -> pp_section_fields ?plugin OASISSourceRepository.schema);
-  ]
+        "List", "SourceRepositoryFields",
+        (fun () -> pp_section_fields ?plugin OASISSourceRepository.schema);
+      ]
 
-let pp_help_replace vars fmt str = 
+let pp_help_replace ?loc vars fmt str = 
   let buff = 
     Buffer.create 13
   in
@@ -292,10 +312,17 @@ let pp_help_replace vars fmt str =
               try 
                 (List.assoc nm vars) ()
               with Not_found ->
-                failwithf2
-                  (f_ "Unknown variable %s in documentation (line is '%s')")
-                  nm
-                  str)
+                begin
+                  match loc with 
+                    | None -> 
+                        failwithf2
+                          (f_ "Unknown variable %s in documentation (line is '%s')")
+                          nm str
+                    | Some loc ->
+                        failwithf3
+                          (f_ "Unknown variable %s in documentation (line is '%s' in %s)")
+                          nm str loc
+                end)
            str;
          pp_print_string fmt (Buffer.contents buff);
          pp_print_newline fmt ();
@@ -323,31 +350,76 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
       SetString.diff exec_flds common_flds
   in
 
-  let pp_plugin fmt (plg, ver, hlp, hlp_xtr_vr) = 
-    let knd, nm, _ = 
-      plg 
+  let pp_plugin fmt (nm, knds, vo, hlp) = 
+
+    (* Create additional variables that match the different 
+     * plugin kind.
+     *)
+    let mk_derived_vars knd = 
+      let plugin = 
+        knd, nm, vo
+      in
+        vars ~plugin ()
     in
-    let kind_str = 
-        match knd with 
-          | `Configure -> "conf"
-          | `Build     -> "build"
-          | `Doc       -> "doc"
-          | `Test      -> "test"
-          | `Install   -> "install"
-          | `Extra     -> "extra"
+    let extra_vars = 
+      List.flatten (List.rev_map mk_derived_vars knds)
     in
-    let hlp_xtr_vr = 
-      (* TODO: remove this adaptation when will replace fun () -> s_
-       * by ns_
-       *)
-      List.map 
-        (fun (vr, hlp) -> vr, fun () -> s_ hlp)
-        hlp_xtr_vr
+
+    let all_kinds =
+      String.concat (s_ ", ")
+        (List.map kind_str knds)
     in
-      fprintf fmt (f_ "### Plugin %s (%s)\n\n") nm kind_str;
-      fprintf fmt (f_ "__Version__: %s<br/>\n") 
-        (OASISVersion.string_of_version ver);
-      pp_help_replace (hlp_xtr_vr @ (vars ~plugin:plg ())) fmt hlp;
+
+      fprintf fmt (f_ "### Plugin %s (%s)\n\n") nm all_kinds;
+      begin
+        match vo with 
+          | Some ver -> 
+              fprintf fmt (f_ "__Version__: %s<br/>\n\n") 
+                (OASISVersion.string_of_version ver)
+          | None -> 
+              ()
+      end;
+      pp_help_replace ~loc:("plugin "^nm) extra_vars fmt hlp.OASISPlugin.help_template
+  in
+
+  let plugins = 
+    let module MapGen =
+      Map.Make
+        (struct
+           type t = string * OASISVersion.t option
+           let compare (nm1, vo1) (nm2, vo2) =
+             OASISPlugin.plugin_compare (`All, nm1, vo1) (`All, nm2, vo2)
+         end)
+    in
+    let mp = 
+      List.fold_left
+        (fun mp (knd, nm, ver) ->
+           let frmr =
+             try 
+               MapGen.find (nm, ver) mp
+             with Not_found ->
+               []
+           in
+             MapGen.add (nm, ver) (knd :: frmr) mp)
+        MapGen.empty
+        (OASISPlugin.all_plugins ())
+    in
+    let lst =
+      MapGen.fold 
+        (fun (nm, vo) knds acc ->
+           (nm, knds, vo, OASISPlugin.help (`All, nm, vo)) :: acc)
+        mp
+        []
+    in
+      List.sort 
+        (fun (nm1, _, vo1, {OASISPlugin.help_order = ord1}) 
+               (nm2, _, vo2, {OASISPlugin.help_order = ord2}) ->
+           match ord1 - ord2 with
+             | 0 -> 
+                 OASISPlugin.plugin_compare (`All, nm1, vo1) (`All, nm2, vo2)
+             | n ->
+                 n)
+        lst
   in
 
     pp_help_replace 
@@ -367,6 +439,7 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
         (fun () -> 
            "TODO");
 
+        (* TODO: vars provides this field ? *)
         "ListOASISBuildFields",
         (fun () -> 
            pp_section_fields 
@@ -405,16 +478,6 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
            let fmt = 
              formatter_of_buffer buff
            in
-           let plgs =
-             let all = 
-               OASISPlugin.MapPlugin.fold
-                 (fun k (v, o, a, b) acc ->
-                    (o, (k, v, a, b)) :: acc)
-                 (OASISPlugin.help ())
-                 []
-             in
-               List.map snd (List.sort compare all)
-           in
              pp_open_vbox fmt 0;
              pp_print_list
                (fun fmt e ->
@@ -423,7 +486,7 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
                   pp_close_box fmt ())
                "@,"
                fmt
-               plgs;
+               plugins;
              pp_close_box fmt ();
              Buffer.contents buff)
       ] @ (vars ()))

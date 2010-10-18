@@ -88,11 +88,7 @@ let pivot_data =
   data_new_property plugin
 
 let self_id, all_id =
-  Doc.create 
-    ~help
-    ~help_extra_vars
-    ~help_order 
-    plugin
+  Doc.create plugin
 
 let new_field nm ?default vl hlp sync =
   new_field
@@ -291,5 +287,6 @@ let qstrt_completion pkg =
      ExternalTool "ocamldoc"]
 
 let init () = 
+  OCamlbuildId.init ();
   Doc.register_act self_id doit;
   register_quickstart_completion all_id qstrt_completion

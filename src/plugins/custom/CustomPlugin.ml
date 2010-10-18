@@ -270,7 +270,6 @@ let std id data nm hlp hlp_clean hlp_distclean =
 let conf_init () = 
   let self_id, id = 
     Configure.create 
-      ~help:CustomData.readme_template_mkd 
       conf_plugin
   in
   let generator, doit =
@@ -289,9 +288,7 @@ let conf_init () =
 (* Build plugin *)
 let build_init () = 
   let self_id, id = 
-    Build.create 
-      ~help:CustomData.readme_template_mkd 
-      build_plugin
+    Build.create build_plugin
   in
   let cmd_main, cmd_clean, cmd_distclean, generator =
     add_fields
@@ -336,9 +333,7 @@ let build_init () =
 (* Install plugin *)
 let install_init () =
   let self_id, id = 
-    Install.create 
-      ~help:CustomData.readme_template_mkd 
-      install_plugin
+    Install.create install_plugin
   in
   let generate_install, doit_install = 
     std
@@ -366,9 +361,7 @@ let install_init () =
 (* Document plugin *)
 let doc_init () =
   let self_id, id =
-    Doc.create
-      ~help:CustomData.readme_template_mkd 
-       doc_plugin
+    Doc.create doc_plugin
   in
   let cmd_main, cmd_clean, cmd_distclean, generator =
     add_fields
@@ -413,9 +406,7 @@ let doc_init () =
 (* Test plugin *)
 let test_init () =
   let self_id, id = 
-    Test.create 
-      ~help:CustomData.readme_template_mkd 
-      test_plugin
+    Test.create test_plugin
   in
   let test_clean =
     new_field_conditional
@@ -477,6 +468,9 @@ let test_init () =
     register_generator_package id test_data generator
 
 let init () = 
+  register_help 
+    conf_plugin
+    (help_default CustomData.readme_template_mkd);
   conf_init ();
   build_init ();
   install_init ();

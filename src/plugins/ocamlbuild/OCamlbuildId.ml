@@ -27,8 +27,12 @@ let name    = "OCamlbuild"
 
 let version = OASISConf.version_short
 
-let help = OCamlbuildData.readme_template_mkd
 
-let help_extra_vars = []
+(* END EXPORT *)
 
-let help_order = 20
+open OASISPlugin
+
+let init () = 
+  register_help (`All, name, Some version) 
+    {(help_default OCamlbuildData.readme_template_mkd) with 
+         help_order = 20}

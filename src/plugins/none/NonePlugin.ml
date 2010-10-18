@@ -57,30 +57,33 @@ let section_no_generate str ctxt pkg (cs, section) =
 
 let init () = 
   let nm, ver = "None", Some OASISConf.version_short in
-  let help = NoneData.readme_template_mkd in
-  let help_order = 10 in
+  let () = 
+    register_help (`All, nm, ver)
+      {(help_default NoneData.readme_template_mkd) with 
+           help_order = 10}
+  in
 
   let plugin = `Configure, nm, ver in
-  let self_id, _ = Configure.create ~help ~help_order plugin in
+  let self_id, _ = Configure.create plugin in
   let () = Configure.register_act self_id (std_no_generate "configure") in
 
   let plugin = `Build, nm, ver in
-  let self_id, _ = Build.create ~help ~help_order plugin in
+  let self_id, _ = Build.create plugin in
   let () = Build.register_act self_id (std_no_generate "build") in
 
   let plugin = `Install, nm, ver in
-  let self_id, _ = Install.create ~help ~help_order plugin in
+  let self_id, _ = Install.create plugin in
   let () = Install.register_act self_id 
              ((std_no_generate "install"),
               (std_no_generate "uninstall")) 
   in
 
   let plugin = `Test, nm, ver in
-  let self_id, _ = Test.create ~help ~help_order plugin in
+  let self_id, _ = Test.create plugin in
   let () = Test.register_act self_id (section_no_generate "test") in
 
   let plugin = `Doc, nm, ver in
-  let self_id, _ = Doc.create ~help ~help_order plugin in
+  let self_id, _ = Doc.create plugin in
   let () = Doc.register_act self_id (section_no_generate "doc") in
 
     ()

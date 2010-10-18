@@ -361,12 +361,12 @@ specific behavior for generating files and including their own code in `setup.ml
 
 There are 6 categories of plugin:
  
- * Conf: apply to configure step
- * Build: apply to build step
- * Test: apply to test sections
- * Doc: apply to documentation sections
- * Install: apply to install and uninstall steps
- * Extra: everything else
+ * __Conf__: apply to configure step, used in the field `ConfType`
+ * __Build__: apply to build stepi, used in the field `BuildType`
+ * __Test__: apply to test sections, used in the field `Type` of a test
+ * __Doc__: apply to documentation sections, used in the field `Type` of a document
+ * __Install__: apply to install and uninstall steps, used in the field `DocType`
+ * __Extra__: everything else, used in the field `Plugins`
 
 $ListOASISPlugins
 

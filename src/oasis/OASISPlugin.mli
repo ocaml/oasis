@@ -134,6 +134,26 @@ val generator_package: plugin_kind plugin -> plugin_data ref -> PropList.Data.t 
 (** List available plugins. *)
 val ls : plugin_kind -> name list
 
+(* All registered plugin. *)
+val all_plugins : unit -> plugin_kind plugin list 
+
+type help =
+  {
+    help_template:   string list;
+    help_order:      int;
+  }
+
+val help_default: string list -> help
+
+(** Register general help. We only rely on plugin name and version. The
+    replacement field will be computed using the kind of the plugin.
+  *)
+val register_help: [`All | plugin_kind] plugin -> help -> unit
+
+(** Get general help text 
+  *)
+val help: [`All] plugin -> help
+
 (** Convert back to plugin *)
 val to_plugin: 'a t -> 'a plugin
 
@@ -147,12 +167,7 @@ sig
   type self_t = kind t
   type self_plugin = kind plugin
 
-  val create: 
-      help:(string list) ->
-      ?help_extra_vars:(string * string) list ->
-      ?help_order:int ->
-      self_plugin -> 
-      self_t * all_t 
+  val create: self_plugin -> self_t * all_t 
 
   (** Register the [section_act] or [package_act] datastructure. *)
   val register_act: self_t -> act -> unit
@@ -206,10 +221,6 @@ module Extra:     PLUGINS with
   and type kind = [`Extra]
 
 (** {2 General plugin functions} *)
-
-(* General data for plugin. *)
-val help : unit -> 
-    (OASISVersion.t * int * string list * (string * string) list) MapPlugin.t
 
 (** Check that a field name has the form to match a plugin. Don't check that the 
     plugin exists. This functions help to ignore plugin fields.

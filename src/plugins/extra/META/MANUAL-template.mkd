@@ -4,4 +4,4 @@ to generate matching fields in `META`.
 
 Library fields:
 
-$ListOASISLibraryFields
+$ListMETAExtraLibraryFields

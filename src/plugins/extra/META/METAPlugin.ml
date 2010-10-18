@@ -51,10 +51,7 @@ let pivot_data =
   data_new_property plugin
 
 let self_id, all_id = 
-  Extra.create 
-    ~help:METAData.readme_template_mkd
-    ~help_order:40
-    plugin
+  Extra.create plugin
 
 let new_field nm = 
   new_field OASISLibrary.schema all_id nm
@@ -256,5 +253,9 @@ let main ctxt pkg =
       (group_libs pkg)
 
 
-let init () = 
+let init () =  
+  register_help 
+    plugin
+    {(help_default METAData.readme_template_mkd) with 
+         help_order = 40};
   Extra.register_act self_id main

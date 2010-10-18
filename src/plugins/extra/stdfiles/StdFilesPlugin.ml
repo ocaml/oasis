@@ -39,10 +39,7 @@ let plugin =
   `Extra, "StdFiles", Some OASISConf.version_short
 
 let self_id, all_id = 
-  Extra.create 
-    ~help:StdFilesData.readme_template_mkd
-    ~help_order:50
-    plugin
+  Extra.create plugin
 
 type package =
     (* Standalone executable *)
@@ -612,6 +609,9 @@ let main ctxt pkg =
       ]
 
 let init () = 
+  register_help plugin
+    {(help_default StdFilesData.readme_template_mkd) with 
+         help_order = 50};
   Extra.register_act self_id main;
   register_generator_package all_id pivot_data generator 
 

@@ -170,6 +170,21 @@ module HashPlugin =
      let hash  = plugin_hash
    end)
 
+module HashPluginAll =
+  Hashtbl.Make
+    (struct
+       type t = [`All] plugin
+       let equal = plugin_equal 
+       let hash = plugin_hash
+     end)
+
+(** Find a plugin with or without version *)
+let find_fuzzy tbl ((knd, nm, vo) as id) =
+  try
+    HashPlugin.find tbl id
+  with Not_found ->
+    HashPlugin.find tbl (knd, nm, None)
+
 let string_of_plugin (_, nm, vo) = 
   match vo with 
     | Some v ->
@@ -194,12 +209,26 @@ let plugins_of_string knd str =
 
 (* General data for plugin *)
 
-(* TODO -> list or queue or whatever and don't return a Map *)
-let help_all =
-  ref MapPlugin.empty 
+type help =
+  {
+    help_template:   string list;
+    help_order:      int;
+  }
 
-let help () =
-  !help_all
+let help_all =
+  HashPluginAll.create 5
+
+let help_default lst = 
+  {
+    help_template   = lst;
+    help_order      = 0;
+  }
+
+let register_help (_, nm, vo) hlp = 
+  HashPluginAll.replace help_all (`All, nm, vo) hlp 
+
+let help plg =
+  HashPluginAll.find help_all plg
 
 let version_all =
   HashPlugin.create 5
@@ -207,12 +236,11 @@ let version_all =
 let all = 
   version_all
 
-(** Find a plugin with or without version *)
-let find_fuzzy tbl ((knd, nm, vo) as id) =
-  try
-    HashPlugin.find tbl id
-  with Not_found ->
-    HashPlugin.find tbl (knd, nm, None)
+let all_plugins () = 
+  HashPlugin.fold
+    (fun k _ acc -> k :: acc)
+    all
+    []
 
 (* 
  * Quickstart completion
@@ -276,12 +304,7 @@ sig
   type self_t = kind t
   type self_plugin = kind plugin
 
-  val create: 
-      help:(string list) ->
-      ?help_extra_vars:(string * string) list ->
-      ?help_order:int ->
-      self_plugin -> 
-      self_t * all_t 
+  val create: self_plugin -> self_t * all_t 
 
   val register_act: self_t -> act -> unit
   val act : self_plugin -> act
@@ -317,7 +340,7 @@ struct
 
   module HashPluginGlobal = HashPlugin
 
-  let create ~help ?(help_extra_vars=[]) ?(help_order=0) plg = 
+  let create plg = 
      let ver = 
        match plg with 
          | _, _, Some v -> v
@@ -329,11 +352,6 @@ struct
      let all_id :> plugin_kind plugin = plg in
      let self_id = plg in
        HashPlugin.add version_all all_id ver;
-       help_all :=
-       MapPlugin.add
-         all_id
-         (ver, help_order, help, help_extra_vars) 
-         !help_all;
        self_id, all_id
 
   module HashPlugin = 

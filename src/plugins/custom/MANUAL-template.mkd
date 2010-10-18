@@ -12,12 +12,16 @@ defined in [this section][#substitution].
 
 Package fields:
 
-$ListOASISPackageFields
+$ListCustomConfPackageFields
+$ListCustomBuildPackageFields
+$ListCustomInstallPackageFields
+$ListCustomDocPackageFields
+$ListCustomTestPackageFields
 
 Document fields:
 
-$ListOASISDocumentFields
+$ListCustomDocDocumentFields
 
 Test fields:
 
-$ListOASISTestFields
+$ListCustomTestTestFields

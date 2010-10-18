@@ -27,8 +27,11 @@ let name = "Internal"
 
 let version = OASISConf.version_short
 
-let help = InternalData.readme_template_mkd
+(* END EXPORT *)
 
-let help_extra_vars = []
+open OASISPlugin
 
-let help_order = 30
+let init () = 
+  register_help (`All, name, Some version)
+    {(help_default InternalData.readme_template_mkd) with 
+         help_order = 30}

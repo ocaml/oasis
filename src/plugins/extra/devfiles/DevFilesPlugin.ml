@@ -32,10 +32,7 @@ open OASISSchema
 let plugin = `Extra, "DevFiles", Some OASISConf.version_short
 
 let self_id, all_id = 
-  Extra.create 
-    ~help:DevFilesData.readme_template_mkd
-    ~help_order:60
-    plugin
+  Extra.create plugin
 
 let all_targets =
   [
@@ -195,4 +192,8 @@ let main ctxt pkg =
 
 let init () =
   Extra.register_act self_id main;
+  register_help
+    plugin
+    {(help_default DevFilesData.readme_template_mkd) with 
+         help_order = 60};
   register_generator_package all_id pivot_data generator

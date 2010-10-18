@@ -3,8 +3,8 @@ for `BuildType`.
 
 Library fields:
 
-$ListOASISLibraryFields
+$ListOCamlbuildBuildLibraryFields
 
 Document fields:
 
-$ListOASISDocumentFields
+$ListOCamlbuildDocDocumentFields

@@ -275,11 +275,7 @@ let plugin =
   `Build, name, Some version
 
 let self_id, all_id = 
-  Build.create 
-    ~help
-    ~help_extra_vars
-    ~help_order
-    plugin
+  Build.create plugin
 
 (* TODO: check everywhere that having .h and .c in CSources
  * doesn't disturb things too much 
@@ -827,5 +823,6 @@ let init () =
         chng_distclean    = None;
       }
   in
+    OCamlbuildId.init ();
     Build.register_act self_id doit;
     register_quickstart_completion all_id qstrt_completion
