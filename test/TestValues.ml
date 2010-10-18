@@ -21,6 +21,9 @@ let tests =
                ())))
     [url, "https://oasis.forge.ocamlcore.org";
      url, "svn://scm.ocamlcore.org/svnroot/cryptokit/tags";
-     url, "svn+ssh://scm.ocamlcore.org/svnroot/cryptokit/tags"]
+     url, "svn+ssh://scm.ocamlcore.org/svnroot/cryptokit/tags";
+     url, "http://foo.org/~bar/baz";
+     url, "git+ssh://test.com";
+    ]
 
 

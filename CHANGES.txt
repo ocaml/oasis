@@ -20,7 +20,7 @@
       (Closes: #584)
     * Add MIT, CeCILL licenses and make unknown license less fatal 
       (Closes: #710, #557)
-    * Allow https, ftp, mailto, svn, svn+ssh for URL
+    * Allow https, ftp, mailto, svn, svn+ssh for URL (Closes: #753)
     * Replace Str by Pcre
     * Don't modify package data structure through plugins, we just issue warnings
       and error when something is missing. This is compensated by a better
