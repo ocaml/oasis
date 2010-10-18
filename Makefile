@@ -71,7 +71,7 @@ setup.data:
 
 # Backup targets to be able to build even if OASIS fails
 
-OASIS ?= boot/OASIS
+OASIS ?= boot/oasis
 
 build-backup:
 	$(OASIS)
@@ -90,7 +90,7 @@ build-backup:
 	  src/plugins/extra/stdfiles/plugin-stdfiles.cma \
 	  src/builtin-plugins.cma \
 	  src/OASISMain.byte test/test.byte
-	cp _build/src/OASISMain.byte _build/src/OASIS
+	cp _build/src/OASISMain.byte _build/src/oasis
 	cp _build/test/test.byte _build/test/test
 
 
@@ -102,9 +102,9 @@ test-backup: build-backup
 	  if $(TEST_BACKUP_RECURSE) && \
 	     $(MAKE) test-backup \
 	       TEST_BACKUP_RECURSE=false \
-	       OASIS=_build/src/OASIS; then \
-	    cp boot/OASIS boot/OASIS.old; \
-	    cp _build/src/OASIS boot/OASIS; \
+	       OASIS=_build/src/oasis; then \
+	    cp boot/oasis boot/oasis.old; \
+	    cp _build/src/oasis boot/oasis; \
 	  fi; \
 	fi
 
@@ -117,6 +117,7 @@ wc:
 headache:
 	find ./ -name _darcs -prune -false -o -name _build -prune \
 	  -false -o -name ext -prune -false -o -name bindist -prune -false \
+		-o -name boot -prune -false \
 	  -o -type f \
 	  | xargs headache -h _header -c _headache.config
 
