@@ -113,7 +113,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: a27481b1768a485ca9e617bb6ded55f0) *)
+(* DO NOT EDIT (digest: cb19d0dd0b87f3a98587aae1f5aac441) *)
 module OASISGettext = struct
 # 21 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
   
@@ -123,7 +123,7 @@ module OASISGettext = struct
   let s_ str = 
     str
   
-  let f_ (str : ('a, 'b, 'c) format) =
+  let f_ (str : ('a, 'b, 'c, 'd) format4) =
     str
   
   let fn_ fmt1 fmt2 n =

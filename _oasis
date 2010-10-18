@@ -203,7 +203,7 @@ Document manual
   if flag(gettext) 
     XCustom: env LANG=C $oasis manual > doc/MANUAL.mkd
   else
-    XCustom: $oasis manual > doc/MANUAL.mkd
+    XCustom: $oasis manual -o doc/MANUAL.mkd
   XCustomClean: $rm doc/MANUAL.mkd
   DataFiles: doc/MANUAL.mkd
 

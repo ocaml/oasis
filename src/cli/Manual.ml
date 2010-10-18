@@ -26,29 +26,51 @@
 open MainGettext
 open SubCommand
 
+let output = 
+  ref None
+
 let main () = 
-  OASISHelp.pp_print_help 
-    Format.std_formatter 
+  let fmt, chn = 
+    match !output with 
+      | Some fn ->
+          let chn = 
+            open_out fn
+          in
+            Format.formatter_of_out_channel chn,
+            chn
 
-    (* CLI help *)
-    (ArgExt.pp_print_help ArgExt.AllSubCommand ArgExt.Markdown)
+      | None ->
+          Format.std_formatter,
+          stdout
+  in
+    OASISHelp.pp_print_help 
+      fmt
 
-    (* Fields from schema *)
-    BaseEnv.schema
+      (* CLI help *)
+      (ArgExt.pp_print_help ArgExt.AllSubCommand ArgExt.Markdown)
 
-    (* Environment variable *)
-    (let lst = 
-       BaseEnv.var_all ()
-     in
-       fun nm _ ->
-         List.mem nm lst)
+      (* Fields from schema *)
+      BaseEnv.schema
+
+      (* Environment variable *)
+      (let lst = 
+         BaseEnv.var_all ()
+       in
+         fun nm _ ->
+           List.mem nm lst);
+    (* TODO: don't close if we are called from another function *)
+    close_out chn
 
 let scmd = 
-  SubCommand.make
-    "manual"
-    (s_ "Display user manual")
-    CLIData.manual_mkd
-    main
+  {(SubCommand.make
+      "manual"
+      (s_ "Display user manual")
+      CLIData.manual_mkd
+      main)
+     with 
+         scmd_specs = ["-o", 
+                       Arg.String (fun s -> output := Some s),
+                       "fn Output manual to filename."]}
 
 let () = 
   SubCommand.register scmd
