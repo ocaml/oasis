@@ -215,3 +215,7 @@ Document "api-oasis"
   XOCamlbuildPath:      src/
   XOCamlbuildLibraries: oasis, oasis.base, oasis.cli
 
+SourceRepository head
+  Type: darcs
+  Location: http://darcs.ocamlcore.org/repos/oasis
+  Browser: http://darcs.ocamlcore.org/cgi-bin/darcsweb.cgi?r=oasis;a=summary
