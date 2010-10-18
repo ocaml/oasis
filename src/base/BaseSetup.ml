@@ -429,7 +429,8 @@ let setup t =
         !act_ref t (Array.of_list (List.rev !extra_args_ref))
 
     with e when !catch_exn ->
-      error "%s" (string_of_exception e)
+      error "%s" (string_of_exception e);
+      exit 1
 
 (* END EXPORT *)
 
