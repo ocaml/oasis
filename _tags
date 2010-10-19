@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 8cd73a41845779c17d92985c2d07de86)
+# DO NOT EDIT (digest: 6aafe185defa04a606fef7201e83fcb6)
 # Executable ocamlmod
 "src/tools/ocamlmod.byte": pkg_pcre
 "src/tools/ocamlmod.byte": pkg_fileutils
@@ -32,7 +32,6 @@
 <src/oasis/*.ml{,i}>: pkg_pcre
 <src/oasis/*.ml{,i}>: pkg_odn
 <src/oasis/*.ml{,i}>: pkg_ocamlgraph
-<src/oasis/*.ml{,i}>: pkg_ledit
 <src/oasis/*.ml{,i}>: pkg_findlib
 <src/oasis/*.ml{,i}>: pkg_fileutils
 <src/oasis/*.ml{,i}>: pkg_extlib
@@ -43,7 +42,6 @@
 <src/base/*.ml{,i}>: pkg_pcre
 <src/base/*.ml{,i}>: pkg_odn
 <src/base/*.ml{,i}>: pkg_ocamlgraph
-<src/base/*.ml{,i}>: pkg_ledit
 <src/base/*.ml{,i}>: pkg_findlib
 <src/base/*.ml{,i}>: pkg_fileutils
 <src/base/*.ml{,i}>: pkg_extlib
@@ -54,7 +52,6 @@
 <src/*.ml{,i}>: pkg_pcre
 <src/*.ml{,i}>: pkg_odn
 <src/*.ml{,i}>: pkg_ocamlgraph
-<src/*.ml{,i}>: pkg_ledit
 <src/*.ml{,i}>: pkg_findlib
 <src/*.ml{,i}>: pkg_fileutils
 <src/*.ml{,i}>: pkg_extlib
@@ -64,7 +61,6 @@
 <src/plugins/custom/*.ml{,i}>: pkg_pcre
 <src/plugins/custom/*.ml{,i}>: pkg_odn
 <src/plugins/custom/*.ml{,i}>: pkg_ocamlgraph
-<src/plugins/custom/*.ml{,i}>: pkg_ledit
 <src/plugins/custom/*.ml{,i}>: pkg_findlib
 <src/plugins/custom/*.ml{,i}>: pkg_fileutils
 <src/plugins/custom/*.ml{,i}>: pkg_extlib
@@ -74,7 +70,6 @@
 <src/plugins/extra/META/*.ml{,i}>: pkg_pcre
 <src/plugins/extra/META/*.ml{,i}>: pkg_odn
 <src/plugins/extra/META/*.ml{,i}>: pkg_ocamlgraph
-<src/plugins/extra/META/*.ml{,i}>: pkg_ledit
 <src/plugins/extra/META/*.ml{,i}>: pkg_findlib
 <src/plugins/extra/META/*.ml{,i}>: pkg_fileutils
 <src/plugins/extra/META/*.ml{,i}>: pkg_extlib
@@ -84,7 +79,6 @@
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_pcre
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_odn
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_ocamlgraph
-<src/plugins/extra/devfiles/*.ml{,i}>: pkg_ledit
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_findlib
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_fileutils
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_extlib
@@ -94,7 +88,6 @@
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_pcre
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_odn
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_ocamlgraph
-<src/plugins/extra/stdfiles/*.ml{,i}>: pkg_ledit
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_findlib
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_fileutils
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_extlib
@@ -104,7 +97,6 @@
 <src/plugins/internal/*.ml{,i}>: pkg_pcre
 <src/plugins/internal/*.ml{,i}>: pkg_odn
 <src/plugins/internal/*.ml{,i}>: pkg_ocamlgraph
-<src/plugins/internal/*.ml{,i}>: pkg_ledit
 <src/plugins/internal/*.ml{,i}>: pkg_findlib
 <src/plugins/internal/*.ml{,i}>: pkg_fileutils
 <src/plugins/internal/*.ml{,i}>: pkg_extlib
@@ -114,7 +106,6 @@
 <src/plugins/none/*.ml{,i}>: pkg_pcre
 <src/plugins/none/*.ml{,i}>: pkg_odn
 <src/plugins/none/*.ml{,i}>: pkg_ocamlgraph
-<src/plugins/none/*.ml{,i}>: pkg_ledit
 <src/plugins/none/*.ml{,i}>: pkg_findlib
 <src/plugins/none/*.ml{,i}>: pkg_fileutils
 <src/plugins/none/*.ml{,i}>: pkg_extlib
@@ -124,7 +115,6 @@
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_pcre
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_odn
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_ocamlgraph
-<src/plugins/ocamlbuild/*.ml{,i}>: pkg_ledit
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_findlib
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_fileutils
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_extlib
@@ -147,7 +137,6 @@
 "test/test.byte": pkg_odn
 "test/test.byte": pkg_ocamlgraph
 "test/test.byte": pkg_oUnit
-"test/test.byte": pkg_ledit
 "test/test.byte": pkg_findlib
 "test/test.byte": pkg_fileutils
 "test/test.byte": pkg_extlib
@@ -160,7 +149,6 @@
 <test/*.ml{,i}>: pkg_odn
 <test/*.ml{,i}>: pkg_ocamlgraph
 <test/*.ml{,i}>: pkg_oUnit
-<test/*.ml{,i}>: pkg_ledit
 <test/*.ml{,i}>: pkg_findlib
 <test/*.ml{,i}>: pkg_fileutils
 <test/*.ml{,i}>: pkg_extlib
@@ -174,7 +162,6 @@
 "src/cli/Main.byte": pkg_pcre
 "src/cli/Main.byte": pkg_odn
 "src/cli/Main.byte": pkg_ocamlgraph
-"src/cli/Main.byte": pkg_ledit
 "src/cli/Main.byte": pkg_findlib
 "src/cli/Main.byte": pkg_fileutils
 "src/cli/Main.byte": pkg_extlib
@@ -186,7 +173,6 @@
 <src/cli/*.ml{,i}>: pkg_pcre
 <src/cli/*.ml{,i}>: pkg_odn
 <src/cli/*.ml{,i}>: pkg_ocamlgraph
-<src/cli/*.ml{,i}>: pkg_ledit
 <src/cli/*.ml{,i}>: pkg_findlib
 <src/cli/*.ml{,i}>: pkg_fileutils
 <src/cli/*.ml{,i}>: pkg_extlib
