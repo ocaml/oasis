@@ -1,9 +1,9 @@
 This plugin uses OCamlbuild to generate a build system. It is the default value
 for `BuildType`.
 
-Library fields:
 
-$ListOCamlbuildBuildLibraryFields
+It is also possible to use this plugin for `Document`. In this case, OCamlbuild
+will also be involved in the generation of a particular document.
 
 Document fields:
 

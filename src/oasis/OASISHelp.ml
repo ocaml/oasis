@@ -53,7 +53,80 @@ let fields_of_section ?plugin schm =
        []
        schm)
 
-let pp_section_fields ?plugin ?allowed_fields schm = 
+module Var = 
+struct 
+  type t = 
+      {
+        values:  (unit -> string) MapString.t;
+        used:    (string * bool ref) list;
+        plugin:  ([`All | plugin_kind] plugin) option;
+      }
+
+  let create ?plugin () = 
+    {
+      values = MapString.empty;
+      used   = [];
+      plugin = plugin;
+    }
+
+  let loc = 
+    function 
+      | Some plg -> 
+          Printf.sprintf " in plugin %s" (OASISPlugin.string_of_plugin plg)
+      | None ->
+          ""
+  let add nm f t = 
+    let used = 
+      ref false
+    in
+      if MapString.mem nm t.values then
+        failwithf2
+          (f_ "Help variable '%s' already defined%s")
+          nm (loc t.plugin);
+      {t with 
+           values = MapString.add 
+                      nm 
+                      (fun () -> used := true; f ()) 
+                      t.values;
+           used   = (nm, used) :: t.used;
+      }
+  
+  let find ~line nm t = 
+    try 
+      MapString.find nm t.values
+    with Not_found ->
+      failwithf3
+        (f_ "Unknown help variable %s in line '%s'%s")
+        nm line (loc t.plugin)
+
+  let check t =
+    let lst = 
+      List.map fst
+        (List.filter 
+           (fun (_, r) -> not !r)
+           t.used)
+    in
+      match lst with 
+        | [] ->
+            ()
+        | lst ->
+            failwithf2
+              (f_ "Unused help variable %s%s")
+              (String.concat (s_ ", ") lst)
+              (loc t.plugin)
+
+  let of_list ?plugin lst = 
+    List.fold_left
+      (fun t (nm, f) ->
+         add nm f t)
+      (create ?plugin ())
+      lst
+
+end
+
+exception Empty of string
+
+let pp_section_fields ?plugin ?allowed_fields schm nm = 
 
   let schm = 
     schm.schm
@@ -71,44 +144,48 @@ let pp_section_fields ?plugin ?allowed_fields schm =
         | None ->
             all_fields
   in
+    if fields = [] then 
+      raise (Empty nm);
           
-  let fake_data =
-    PropList.Data.create ()
-  in
+    nm,
+    fun () -> 
+      let fake_data =
+        PropList.Data.create ()
+      in
 
-  let fmt =
-    str_formatter
-  in
-    pp_set_margin fmt 80;
-    pp_open_vbox fmt 0;
-    pp_print_list
-      (fun fmt (key, help) ->
-         let help = 
-           (match help with
-              | Some h -> h ()
-              | None -> "<No help>")^
-           (
-             try 
-               let _s : string = 
-                 PropList.Schema.get schm fake_data key
-               in
-                 ""
-             with 
-               | PropList.Not_set _ ->
-                   s_ " (__mandatory__)"
-               | PropList.No_printer _ | OASISValues.Not_printable ->
-                   ""
-           )
-         in
-           fprintf fmt 
-             (f_ " * @[`%s`: %a@]") 
-             key
-             pp_print_string_spaced help)
-        "@,"
-        fmt
-        fields;
-    pp_close_box fmt ();
-    flush_str_formatter ()
+      let fmt =
+        str_formatter
+      in
+        pp_set_margin fmt 80;
+        pp_open_vbox fmt 0;
+        pp_print_list
+          (fun fmt (key, help) ->
+             let help = 
+               (match help with
+                  | Some h -> h ()
+                  | None -> "<No help>")^
+               (
+                 try 
+                   let _s : string = 
+                     PropList.Schema.get schm fake_data key
+                   in
+                     ""
+                 with 
+                   | PropList.Not_set _ ->
+                       s_ " (__mandatory__)"
+                   | PropList.No_printer _ | OASISValues.Not_printable ->
+                       ""
+               )
+             in
+               fprintf fmt 
+                 (f_ " * @[`%s`: %a@]") 
+                 key
+                 pp_print_string_spaced help)
+            "@,"
+            fmt
+            fields;
+        pp_close_box fmt ();
+        flush_str_formatter ()
 
 
 let pp_short_licenses () = 
@@ -251,7 +328,7 @@ let kind_str knd =
       | `Extra     -> "extra"
 
 (** Standard variables to replace in help files *)
-let vars ?plugin () =
+let mk_std_vars ?plugin ?(filter=(fun _ -> true)) acc =
   let bn = 
     match plugin with 
       | None ->
@@ -260,46 +337,51 @@ let vars ?plugin () =
           (String.capitalize nm)^
           (String.capitalize (kind_str knd))
   in
-    List.map 
-      (fun (pre, suf, pp) ->
-         pre^bn^suf, pp)
+
+  let add_if_valid schm vars (pre, suf) = 
+    let nm = 
+      pre^bn^suf
+    in
+      try 
+        let nm, f = 
+          pp_section_fields ?plugin schm nm
+        in
+          if filter (nm, f) then
+            Var.add nm f vars
+          else
+            vars
+      with Empty nm ->
+        vars
+  in
+
+    List.fold_left
+      (fun acc (pre, suf, add) ->
+         add acc (pre, suf))
+      acc
       [
-        "List", "Tests",
-        (fun () ->
-           String.concat 
-             "\n"
-             (List.map
-                (fun et ->
-                   Printf.sprintf "* `%s(X)`" 
-                     (OASISExpr.string_of_test et))
-                OASISExpr.tests));
+        "List", "PackageFields", 
+        add_if_valid OASISPackage.schema;
 
-        "List", "PackageFields",
-        (fun () -> pp_section_fields ?plugin OASISPackage.schema);
+        "List", "FlagFields", 
+        add_if_valid OASISFlag.schema;
 
-        "List", "FlagFields",
-        (fun () -> pp_section_fields ?plugin OASISFlag.schema);
-
-        "List", "BuildFields",
-        (fun () -> pp_section_fields ?plugin OASISLibrary.schema);
-
-        "List", "LibraryFields",
-        (fun () -> pp_section_fields ?plugin OASISLibrary.schema);
+        "List", "LibraryFields", 
+        add_if_valid OASISLibrary.schema;
         
-        "List", "ExecutableFields",
-        (fun () -> pp_section_fields ?plugin OASISExecutable.schema);
+        "List", "ExecutableFields", 
+        add_if_valid OASISExecutable.schema;
 
-        "List", "DocumentFields",
-        (fun () -> pp_section_fields ?plugin OASISDocument.schema);
+        "List", "DocumentFields", 
+        add_if_valid OASISDocument.schema;
 
-        "List", "TestFields",
-        (fun () -> pp_section_fields ?plugin OASISTest.schema);
+        "List", "TestFields", 
+        add_if_valid OASISTest.schema;
 
         "List", "SourceRepositoryFields",
-        (fun () -> pp_section_fields ?plugin OASISSourceRepository.schema);
+        add_if_valid OASISSourceRepository.schema;
       ]
 
-let pp_help_replace ?loc vars fmt str = 
+let pp_help_replace vars fmt str = 
   let buff = 
     Buffer.create 13
   in
@@ -308,26 +390,14 @@ let pp_help_replace ?loc vars fmt str =
          (* Replace variables *)
          Buffer.add_substitute 
            buff
-           (fun nm -> 
-              try 
-                (List.assoc nm vars) ()
-              with Not_found ->
-                begin
-                  match loc with 
-                    | None -> 
-                        failwithf2
-                          (f_ "Unknown variable %s in documentation (line is '%s')")
-                          nm str
-                    | Some loc ->
-                        failwithf3
-                          (f_ "Unknown variable %s in documentation (line is '%s' in %s)")
-                          nm str loc
-                end)
+           (fun nm -> (Var.find ~line:str nm vars) ())
            str;
          pp_print_string fmt (Buffer.contents buff);
          pp_print_newline fmt ();
          Buffer.clear buff)
-      str
+      str;
+    Var.check vars
+
 
 let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
   let build_section_fields, library_fields, executable_fields =
@@ -355,14 +425,20 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
     (* Create additional variables that match the different 
      * plugin kind.
      *)
-    let mk_derived_vars knd = 
+    let mk_derived_vars acc knd = 
       let plugin = 
         knd, nm, vo
       in
-        vars ~plugin ()
+        mk_std_vars ~plugin acc
     in
-    let extra_vars = 
-      List.flatten (List.rev_map mk_derived_vars knds)
+    let plugin = 
+      `All, nm, vo
+    in
+    let vars = 
+      List.fold_left
+        mk_derived_vars
+        (Var.create ~plugin ())
+        knds
     in
 
     let all_kinds =
@@ -379,7 +455,7 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
           | None -> 
               ()
       end;
-      pp_help_replace ~loc:("plugin "^nm) extra_vars fmt hlp.OASISPlugin.help_template
+      pp_help_replace vars fmt hlp.OASISPlugin.help_template
   in
 
   let plugins = 
@@ -422,8 +498,9 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
         lst
   in
 
-    pp_help_replace 
-      ([
+  let vars = 
+    Var.of_list
+      [
         "ListShortLicenses",
         pp_short_licenses;
 
@@ -434,32 +511,29 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
         (fun () ->
            pp_standard_variables env_display env_schm);
 
-        (* TODO *)
+        (* TODO 
         "ListFunctionVariables",
         (fun () -> 
            "TODO");
+           *)
 
-        (* TODO: vars provides this field ? *)
-        "ListOASISBuildFields",
-        (fun () -> 
-           pp_section_fields 
-             ~allowed_fields:build_section_fields 
-             ?plugin 
-             OASISLibrary.schema);
+        pp_section_fields 
+          ~allowed_fields:build_section_fields 
+          ?plugin 
+          OASISLibrary.schema
+          "ListOASISBuildFields";
 
-        "ListOASISLibraryFields",
-        (fun () ->  
-           pp_section_fields 
-             ~allowed_fields:library_fields
-             ?plugin 
-             OASISLibrary.schema);
+        pp_section_fields 
+          ~allowed_fields:library_fields
+          ?plugin 
+          OASISLibrary.schema
+          "ListOASISLibraryFields";
 
-        "ListOASISExecutableFields",
-        (fun () ->  
-           pp_section_fields 
-             ~allowed_fields:executable_fields
-             ?plugin 
-             OASISExecutable.schema);
+        pp_section_fields 
+          ~allowed_fields:executable_fields
+          ?plugin 
+          OASISExecutable.schema
+          "ListOASISExecutableFields";
 
         "OASISCommandLineHelp",
         (fun () -> 
@@ -488,7 +562,28 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
                fmt
                plugins;
              pp_close_box fmt ();
-             Buffer.contents buff)
-      ] @ (vars ()))
-      fmt
-      OASISData.readme_template_mkd
+             Buffer.contents buff);
+
+        "ListOASISTests",
+        (fun () ->
+           String.concat 
+             "\n"
+             (List.map
+                (fun et ->
+                   Printf.sprintf "* `%s(X)`" 
+                     (OASISExpr.string_of_test et))
+                OASISExpr.tests));
+      ]
+  in
+  let vars = 
+    mk_std_vars 
+      ~filter:(fun (nm, _) -> 
+                 (* These two variables are handled directly, to make 
+                  * a difference with common build fields.
+                  *)
+                 nm <> "ListOASISLibraryFields" && 
+                 nm <> "ListOASISExecutableFields")
+      vars
+  in
+
+    pp_help_replace vars fmt OASISData.readme_template_mkd

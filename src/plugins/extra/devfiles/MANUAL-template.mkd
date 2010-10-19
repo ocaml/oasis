@@ -1,2 +1,6 @@
 It helps to generate a toplevel `Makefile` and `configure` files which only
 invoke `setup.ml`. It aims to provide good old entry points.
+
+Package fields:
+
+$ListDevFilesExtraPackageFields

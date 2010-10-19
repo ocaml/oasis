@@ -244,6 +244,9 @@ val plugin_of_string: 'a -> string -> 'a plugin
 (** Get a list of plugins from a string *)
 val plugins_of_string: 'a -> string -> ('a plugin) list
 
+(** Get a list of plugins from a string *)
+val string_of_plugin: 'a plugin -> string
+
 (** Compare plugin, caseless for name and don't take into account version
     if one is not set.
   *)

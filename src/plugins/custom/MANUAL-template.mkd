@@ -15,8 +15,6 @@ Package fields:
 $ListCustomConfPackageFields
 $ListCustomBuildPackageFields
 $ListCustomInstallPackageFields
-$ListCustomDocPackageFields
-$ListCustomTestPackageFields
 
 Document fields:
 
