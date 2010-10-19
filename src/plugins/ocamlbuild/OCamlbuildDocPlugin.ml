@@ -125,6 +125,7 @@ let libraries =
 
 (* TODO: the following 2 options require to edit _tags after OCamlbuildDoc
  *)
+(*
 let intro =
   new_field 
     ~default:None
@@ -140,6 +141,7 @@ let flags =
     space_separated 
     (ns_ "OCamldoc flags")
     (fun _ t -> t.flags)
+ *)
 
 (* TODO: use -t for title *)
 
