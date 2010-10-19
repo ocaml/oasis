@@ -635,12 +635,12 @@ let tests =
   in
 
   (* Run short test *)
-  let test_of_vector_short e =
+  let test_of_vector_short ?extra_env e =
     "ocaml setup.ml -all" >::
     bracket_setup e
       (fun _ -> 
-         assert_run_setup ["-all"];
-         assert_run_setup ["-distclean"])
+         assert_run_setup ?extra_env ["-all"];
+         assert_run_setup ?extra_env ["-distclean"])
   in
 
   (* Run standard test *)
@@ -1211,4 +1211,31 @@ let tests =
             []);
        ]
     )
+    @
+    ["TEMP=a b">::
+     bracket
+       (fun () ->
+          let dn = readlink "a b" in
+            mkdir dn;
+            dn)
+       (fun dn ->
+          bracket_setup 
+            ("data/bug571", 
+             fun () ->
+               ignore,
+               oasis_ocamlbuild_files,
+               [],
+               [])
+            (fun _ ->
+               assert_run_setup 
+                 ~extra_env:[if Sys.os_type = "Win32" then
+                               "TEMP", dn
+                             else
+                               "TMPDIR", dn]
+                 ["-configure"];
+               rm ["setup.data"])
+            ())
+       (fun dn ->
+          rm ~recurse:true [dn])
+    ]
 ;;

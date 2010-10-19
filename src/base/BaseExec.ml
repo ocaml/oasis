@@ -43,7 +43,7 @@ let run_read_output cmd args =
   in
   let () = 
     try
-      run cmd (args @ [">"; fn])
+      run cmd (args @ [">"; Filename.quote fn])
     with e ->
       Sys.remove fn;
       raise e
