@@ -423,6 +423,11 @@ ocaml setup.ml -uninstall
 
 This step is optional. Remove files and libraries installed. 
 
+ocaml setup.ml -reinstall
+-------------------------
+
+This step is optional. Perform an uninstall and then an install step.
+
 ocaml setup.ml -clean
 ---------------------
 
@@ -432,6 +437,11 @@ ocaml setup.ml -distclean
 -------------------------
 
 This step is optional. Try to go back to pristine source state.
+
+ocaml setup.ml -all
+-------------------
+
+This step is optional. Run configure, build, test and doc step in one run.
 
 OASIS usage
 ===================
