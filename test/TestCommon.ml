@@ -165,7 +165,7 @@ let assert_command ?exit_code ?output ?extra_env ?(unorder=false) cmd args  =
       if Sys.os_type = "Win32" then 
         Array.to_list (Unix.environment ())
       else
-        List.fold_left readd [] ["PATH"]
+        List.fold_left readd [] ["PATH"; "OCAMLPATH"]
     in
     let extra_env = 
       match extra_env with 
@@ -175,7 +175,7 @@ let assert_command ?exit_code ?output ?extra_env ?(unorder=false) cmd args  =
         | None ->
             []
     in
-      Some (Array.of_list (min_env @ extra_env))
+      Some (Array.of_list (extra_env @ min_env))
   in
     
     assert_command 

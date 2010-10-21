@@ -223,6 +223,16 @@ let tests =
                moduls)))
   in
 
+  let add_path nm dir = 
+    nm,
+    try 
+      Sys.getenv nm ^
+      (if Sys.os_type = "Win32" then ";" else ":")^ 
+      dir
+    with Not_found ->
+      dir
+  in
+
   (* Set all files location into buid_dir + data *)
   let in_data_dir files loc acc =
     List.fold_left
@@ -312,7 +322,7 @@ let tests =
       in
         assert_command 
           ?exit_code
-          ~extra_env:(("OCAMLPATH", loc.ocaml_lib_dir)
+          ~extra_env:((add_path "OCAMLPATH" loc.ocaml_lib_dir)
                       ::
                       (List.map
                          (fun (v, lst) ->
@@ -351,7 +361,7 @@ let tests =
             FilePath.concat srcdir ("test_"^pkg_as_module^".ml")
           in
           let extra_env = 
-            ["OCAMLPATH", loc.ocaml_lib_dir]
+            [add_path "OCAMLPATH" loc.ocaml_lib_dir]
           in
           let assert_compile cmd args =
             assert_command 
