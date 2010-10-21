@@ -19,8 +19,11 @@
 #  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               #
 ################################################################################
 
+
+REAL_OCAMLC=$(if $(WIN32),$(shell cygpath '$(OCAMLC)'),$(OCAMLC))
+
 all:
-	cd src && $(OCAMLC) -c foo.mli bar.mli && $(OCAMLC) -a -o simplelib.cma foo.mli foo.ml bar.ml
+	cd src && '$(REAL_OCAMLC)' -c foo.mli bar.mli && '$(REAL_OCAMLC)' -a -o simplelib.cma foo.mli foo.ml bar.ml
 
 clean:
 	$(RM) src/foo.cm[xoi] src/bar.cm[xoi] src/simplelib.cma

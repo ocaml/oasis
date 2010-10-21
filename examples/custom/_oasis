@@ -8,11 +8,12 @@ LicenseFile: LICENSE
 License: LGPL with OCaml linking exception
 ConfType:              custom (0.0.1)
 if os_type(Win32) 
-  XCustomConf: myconfigure.bat
+  XCustomConf:  myconfigure.bat
+  XCustomBuild: make -f TopMakefile all 'OCAMLC=${ocamlc}' WIN32=true
 else 
-  XCustomConf: ./myconfigure
+  XCustomConf:  ./myconfigure
+  XCustomBuild: make -f TopMakefile all 'OCAMLC=${ocamlc}'
 BuildType:             custom (0.0.1)
-XCustomBuild:          make -f TopMakefile all OCAMLC=${ocamlc}
 XCustomBuildClean:     make -f TopMakefile clean
 XCustomBuildDistclean: make -f TopMakefile distclean
 

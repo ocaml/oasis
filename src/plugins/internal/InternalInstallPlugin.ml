@@ -89,7 +89,7 @@ let install pkg argv =
   (* Install data into defined directory *)
   let install_data srcdir lst tgtdir =
     let tgtdir = 
-      var_expand tgtdir
+      BaseFilePath.of_unix (var_expand tgtdir)
     in
       List.iter
         (fun (src, tgt_opt) ->
@@ -107,8 +107,10 @@ let install pkg argv =
                     fn 
                     (fun () -> 
                        match tgt_opt with 
-                         | Some s -> var_expand s
-                         | None -> tgtdir))
+                         | Some s -> 
+                             BaseFilePath.of_unix (var_expand s)
+                         | None -> 
+                             tgtdir))
                real_srcs)
         lst
   in       
@@ -317,7 +319,7 @@ let install pkg argv =
            BaseBuilt.is_built BaseBuilt.BDoc cs.cs_name then
           begin
             let tgt_dir =
-              var_expand doc.doc_install_dir
+              BaseFilePath.of_unix (var_expand doc.doc_install_dir)
             in
               BaseBuilt.fold
                 BaseBuilt.BDoc
@@ -359,6 +361,12 @@ let uninstall _ argv =
                  data;
                Sys.remove data
              end
+           else
+             begin
+               warning
+                 (f_ "File '%s' doesn't exist anymore")
+                 data
+             end
          end 
        else if ev = install_dir_ev then
          begin
@@ -381,6 +389,12 @@ let uninstall _ argv =
                         (Array.to_list 
                            (Sys.readdir data)))
                  end
+             end
+           else 
+             begin
+               warning
+                 (f_ "Directory '%s' doesn't exist anymore")
+                 data
              end
          end
        else if ev = install_findlib_ev then

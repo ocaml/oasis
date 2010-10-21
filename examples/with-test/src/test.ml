@@ -21,8 +21,11 @@
 
 open OUnit;;
 
-let myrun = 
-  run_test_tt_main
+let myrun t = 
+  let lst = 
+    run_test_tt_main t
+  in
+    lst
 ;;
 
 myrun ("main" >:: (fun () -> ()))

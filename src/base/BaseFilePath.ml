@@ -32,14 +32,17 @@ let make =
         List.fold_left Filename.concat hd tl
 
 let of_unix ufn =
-  make
-    (List.map
-       (fun p ->
-          if p = Unix.current_dir_name then
-            current_dir_name
-          else if p = Unix.parent_dir_name then
-            parent_dir_name
-          else
-            p)
-       (OASISUtils.split '/' ufn))
+  if Sys.os_type = "Unix" then
+    ufn
+  else
+    make
+      (List.map
+         (fun p ->
+            if p = Unix.current_dir_name then
+              current_dir_name
+            else if p = Unix.parent_dir_name then
+              parent_dir_name
+            else
+              p)
+         (OASISUtils.split '/' ufn))
 

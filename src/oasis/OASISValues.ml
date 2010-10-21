@@ -137,7 +137,9 @@ let directory =
 
 
 let expandable value =
-  (* TODO: check expandable value *)
+  (* TODO: check expandable value and return a list rather 
+   * than a single value. Use split_expandable defined above.
+   *)
   value
 
 let dot_separated value =

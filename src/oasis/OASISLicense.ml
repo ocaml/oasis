@@ -338,21 +338,21 @@ let ocaml_linking_exception =
 let parse_rgxp =
   ignore "(*";
   Pcre.regexp ~flags:[`CASELESS] 
-    "^(?<license>[A-Z0-9\\-]*?[A-Z0-9]+)\
-     (-(?<version>[0-9\\.]+))?(?<later>\\+)?\
-     ( *with *(?<exception>.*[^ ]+) *exception)?$"
+    "^([A-Z0-9\\-]*?[A-Z0-9]+)\
+     (-([0-9\\.]+))?(\\+)?\
+     ( *with *(.*[^ ]+) *exception)?$"
 
 let parse_dep5 ~ctxt str = 
   let substrs = 
     Pcre.exec ~rex:parse_rgxp str
   in
-  let get_name nm = 
-    Pcre.get_named_substring parse_rgxp nm substrs 
+  let get_subs n = 
+    Pcre.get_substring substrs n
   in
   let license = 
     let res = 
       try 
-        get_name "license"
+        get_subs 1
       with Not_found ->
         failwithf1 
           (f_ "Undefined license in '%s'")
@@ -367,10 +367,10 @@ let parse_dep5 ~ctxt str =
   let version = 
     try 
       let ver = 
-        OASISVersion.version_of_string (get_name "version")
+        OASISVersion.version_of_string (get_subs 3)
       in
         try
-          let _s : string = get_name "later" in
+          let _s : string = get_subs 4 in
             VersionOrLater ver
         with Not_found ->
           Version ver
@@ -380,7 +380,7 @@ let parse_dep5 ~ctxt str =
   let exceptions =
     try
       let res = 
-        get_name "exception"
+        get_subs 6
       in
         if HashStringCsl.mem all_exceptions res then
           [res]

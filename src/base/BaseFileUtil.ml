@@ -89,6 +89,18 @@ let which prg =
     find_file [path_lst; [prg]] exec_ext 
 
 (**/**)
+let rec fix_dir dn = 
+  (* Windows hack because Sys.file_exists "src\\" = false when 
+   * Sys.file_exists "src" = true
+   *)
+  let ln = 
+    String.length dn 
+  in
+    if Sys.os_type = "Win32" && ln > 0 && dn.[ln - 1] = '\\' then
+      fix_dir (String.sub dn 0 (ln - 1))
+    else
+      dn
+
 let q = Filename.quote
 (**/**)
 
@@ -107,23 +119,26 @@ let mkdir tgt =
     [q tgt]
 
 let rec mkdir_parent f tgt =
-  if Sys.file_exists tgt then
-    begin
-      if not (Sys.is_directory tgt) then
-        OASISUtils.failwithf1
-          (f_ "Cannot create directory '%s', a file of the same name already \
-               exists")
-          tgt
-    end
-  else
-    begin
-      mkdir_parent f (Filename.dirname tgt);
-      if not (Sys.file_exists tgt) then 
-        begin
-          f tgt;
-          mkdir tgt
-        end
-    end
+  let tgt = 
+    fix_dir tgt
+  in
+    if Sys.file_exists tgt then
+      begin
+        if not (Sys.is_directory tgt) then
+          OASISUtils.failwithf1
+            (f_ "Cannot create directory '%s', a file of the same name already \
+                 exists")
+            tgt
+      end
+    else
+      begin
+        mkdir_parent f (Filename.dirname tgt);
+        if not (Sys.file_exists tgt) then 
+          begin
+            f tgt;
+            mkdir tgt
+          end
+      end
 
 let rmdir tgt =
   if Sys.readdir tgt = [||] then

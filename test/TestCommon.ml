@@ -155,11 +155,17 @@ let assert_command ?exit_code ?output ?extra_env ?(unorder=false) cmd args  =
           None
   in
   let env = 
-    let min_env = 
+    let readd lst nm = 
       try 
-        ["PATH="^(Sys.getenv "PATH")]
+        (nm^"="^(Sys.getenv nm)) :: lst
       with Not_found ->
-        []
+        lst
+    in
+    let min_env =
+      if Sys.os_type = "Win32" then 
+        Array.to_list (Unix.environment ())
+      else
+        List.fold_left readd [] ["PATH"]
     in
     let extra_env = 
       match extra_env with 

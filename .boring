@@ -81,7 +81,7 @@
 ^setup.data$
 ^setup.log$
 ^boot/
-^bindist(/|)
+^bindist(/|$)
 ^src/oasis/OASISConf.ml$
 \.tar\.gz$
 \.tar\.gz\.asc$
