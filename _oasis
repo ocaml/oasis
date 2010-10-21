@@ -1,14 +1,14 @@
 OASISFormat:  0.1
 OCamlVersion: >= 3.11.0
 Name:         oasis
-Version:      0.2.0~alpha1
+Version:      0.2.0
 LicenseFile:  COPYING.txt
 License:      LGPL-2.1 with OCaml linking exception
-BuildType:    ocamlbuild (0.1.0)
+BuildType:    ocamlbuild (0.2)
 Authors:      Sylvain Le Gall
 Copyrights:   (C) 2008-2010 OCamlCore SARL
 Homepage:     http://oasis.forge.ocamlcore.org/
-Plugins:      DevFiles (0.1.0), StdFiles (0.1.0), META (0.1.0)
+Plugins:      DevFiles (0.2), StdFiles (0.2), META (0.2)
 FilesAB:      src/oasis/OASISConf.ml.ab
 BuildTools:   ocamlbuild, make
 
@@ -192,13 +192,13 @@ Executable test
   BuildDepends: oUnit (>= 1.1.0), oasis, oasis.base, oasis.builtin-plugins, expect.pcre (>= 0.0.2)
 
 Test main
-  Type: custom (0.1.0)
+  Type: custom (0.2)
   Command: $test -oasis-exec $oasis -has-ocamlopt $is_native
   WorkingDirectory: test 
   TestTools: oasis, test
 
 Document manual
-  Type: custom (0.1.0)
+  Type: custom (0.2)
   Title: OASIS User Manual
   if flag(gettext) 
     XCustom: env LANG=C $oasis manual > doc/MANUAL.mkd
@@ -209,7 +209,7 @@ Document manual
 
 Document "api-oasis"
   Title:                API reference for OASIS 
-  Type:                 ocamlbuild (0.1.0)
+  Type:                 ocamlbuild (0.2)
   InstallDir:           $htmldir/oasis
   BuildTools+:          ocamldoc
   XOCamlbuildPath:      src/
