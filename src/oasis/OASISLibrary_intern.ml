@@ -64,6 +64,15 @@ let schema, generator =
          s_ "List of modules to compile which are not exported.")
       (fun (_, _, lib) -> lib.lib_internal_modules)
   in
+  let pack =
+    new_field schm "Pack"
+      ~default:false
+      ~quickstart_level:Expert
+      boolean
+      (fun () ->
+         s_ "Set if we should build a packed library.")
+      (fun (_, _, lib) -> lib.lib_pack)
+  in
   let findlib_parent =
     new_field schm "FindlibParent"
       ~default:None
@@ -101,6 +110,7 @@ let schema, generator =
           (build_section_gen nm data),
           {
             lib_modules            = external_modules data;
+            lib_pack               = pack data;
             lib_internal_modules   = internal_modules data;
             lib_findlib_parent     = findlib_parent data;
             lib_findlib_name       = findlib_name data;

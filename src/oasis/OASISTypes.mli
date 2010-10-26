@@ -194,6 +194,8 @@ type library =
     {
       lib_modules:            string list;
       (** List of modules exported by the library. *)
+      lib_pack:               bool;
+      (** Are we building a packed library? *)
       lib_internal_modules:   string list;
       (** List of modules not-exported by the library, but compiled along. *)
       lib_findlib_parent:     findlib_name option;

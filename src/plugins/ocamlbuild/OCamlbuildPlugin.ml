@@ -601,13 +601,19 @@ let add_ocamlbuild_files ctxt pkg =
                  in
 
                  let ctxt =
-                   (* Generate .mllib files *)
+                   (* Generate .mllib or .mlpack files *)
+                   let extension =
+                     if lib.lib_pack then
+                       "mlpack"
+                     else
+                       "mllib"
+                   in
                    let fn_base =
                      prepend_bs_path bs cs.cs_name
                    in
                      add_file
                        (template_make
-                          (FilePath.add_extension fn_base "mllib")
+                          (FilePath.add_extension fn_base extension)
                           comment_ocamlbuild
                           []
                           (lib.lib_modules @ lib.lib_internal_modules)
