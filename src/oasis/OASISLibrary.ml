@@ -154,9 +154,6 @@ let group_libs pkg =
       | hd :: tl ->
           Container (hd, [tree_of_library tl acc])
       | [] ->
-          (* TODO: allow merging containers with the same 
-           * name 
-           *)
           Package 
             (findlib_name acc, cs, bs, lib,
              (try 
@@ -170,16 +167,47 @@ let group_libs pkg =
                 []))
   in
 
+  (** Merge containers with the same name *)
+  let rec merge_containers groups =
+    (* Collect packages and create the map "container name -> merged children" *)
+    let packages, containers =
+      List.fold_left
+        (fun (packages, containers) group ->
+           match group with
+             | Container(name, children) ->
+                 let children' =
+                   try
+                     MapString.find name containers
+                   with Not_found ->
+                     []
+                 in
+                 (packages,
+                  MapString.add name (children' @ children) containers)
+             | Package(name, cs, bs, lib, children) ->
+                 (Package(name, cs, bs, lib, merge_containers children) :: packages,
+                  containers))
+        ([], MapString.empty)
+        groups
+    in
+    (* Recreate the list of groups *)
+    packages @
+      (MapString.fold
+         (fun name children acc ->
+            Container(name, merge_containers children) :: acc)
+         containers [])
+  in
+
     (* TODO: check that libraries are unique *)
-    List.fold_left
-      (fun acc ->
-         function
-           | Library (cs, bs, lib) when lib.lib_findlib_parent = None -> 
-               (tree_of_library lib.lib_findlib_containers (cs, bs, lib)) :: acc
-           | _ ->
-               acc)
-      []
-      pkg.sections
+    merge_containers
+      (List.fold_left
+         (fun acc ->
+            function
+              | Library (cs, bs, lib) when lib.lib_findlib_parent = None -> 
+                  (tree_of_library lib.lib_findlib_containers (cs, bs, lib)) :: acc
+              | _ ->
+                  acc)
+         []
+         pkg.sections)
 
 (** Compute internal to findlib library matchings, including subpackage
     and return a map of it.
