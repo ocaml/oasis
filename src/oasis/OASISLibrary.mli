@@ -48,8 +48,8 @@ type group_t =
 
 (** Compute groups of libraries, associate root libraries with 
     a tree of its children. A group of libraries is defined by 
-    the fact that these libraries has a parental relationship 
-    and must be isntalled together, with the same META file.
+    the fact that these libraries have a parental relationship 
+    and must be installed together, with the same META file.
   *)
 val group_libs : package -> group_t list
 
