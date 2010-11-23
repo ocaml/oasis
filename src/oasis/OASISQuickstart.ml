@@ -425,7 +425,7 @@ let ask_schema ~ctxt schema lvl interface plugins =
                     question  = Printf.sprintf 
                                   (f_ "Value for field '%s'?") 
                                   key;
-                    parse     = (fun s -> s);
+                    parse     = (fun s -> set s; s);
                   }
                 in
                   try 

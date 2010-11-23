@@ -33,96 +33,8 @@ open OASISTypes
 module MapString = Map.Make(String)
 
 let tests = 
-  let run_quickstart args qa = 
-    let args = 
-      !oasis_args @ ["-quiet"; "quickstart"; "-machine"] @ args
-    in
-    let () = 
-      if !dbug then
-        Printf.eprintf 
-          "Quickstart command line: %s\n%!" 
-          (String.concat " " (oasis () :: args))
-    in
-    let _, exit_code = 
-      try 
-        with_spawn
-          ~verbose:!dbug
-          ~timeout:(Some 0.1)
-          (oasis ())
-          (Array.of_list args)
-          (fun t () ->
-             let rec continue = 
-               function
-                 | [] ->
-                     begin
-                       ()
-                     end
 
-                 | qa -> 
-                     begin
-                       let expectations = 
-                         let rec expectations' prev next = 
-                           match next with 
-                             | (q, a) :: tl ->
-                                 (* next QA if we chose this answer *)
-                                 let qa' = 
-                                   List.rev_append prev tl
-                                 in
-                                 let q_pat = 
-                                   match q with 
-                                     | "create_section" ->
-                                         "create a(nother)? section\\? "
-                                     | "end" ->
-                                         "What do you want to do now\\?"
-                                     | "name" ->
-                                         "'?name'?\\? "
-                                     | q ->
-                                         Printf.sprintf 
-                                           "value for field '%s'\\? "
-                                           q
-                                 in
-                                 let q_rex = 
-                                   Pcre.regexp ~flags:[`CASELESS] q_pat
-                                 in
-                                   (`Rex q_rex, Some (a, qa'))
-                                   ::
-                                   (`Prefix ("???"^q^" "), Some (a, qa'))
-                                   ::
-                                   (expectations' ((q, a) :: prev) tl)
-                             | [] ->
-                                 []
-                         in
-                           expectations' [] qa
-                       in
-                       let exp_q = 
-                         expect t expectations None
-                       in
-
-                         match exp_q with 
-                           | Some (a, qa) -> 
-                               send t (a^"\n");
-                               continue qa
-                           | None -> 
-                               let assert_msg = 
-                                 Printf.sprintf "expecting questions: %s"
-                                   (String.concat ", "
-                                      (List.map 
-                                         (fun (q, _) -> Printf.sprintf "%S" q)
-                                         qa))
-                               in
-                                 assert_failure assert_msg
-                     end
-             in
-              continue qa;
-              assert_bool
-                "wait for eof"
-                (expect t [`Eof, true] false);
-          ) ()
-
-      with e ->
-        Printexc.print_backtrace stderr;
-        raise e
-    in
+  let assert_exit_code_equal exp rel = 
       assert_equal 
         ~msg:"exit code"
         ~printer:(function 
@@ -130,9 +42,124 @@ let tests =
                     | Unix.WSIGNALED i 
                     | Unix.WSTOPPED i -> 
                         string_of_int i)
-        (Unix.WEXITED 0)
+        exp
+        rel
+  in
+
+  let with_quickstart_spawn args f exp_exit_code =
+    let args = 
+      ["quickstart"; "-machine"] @ args
+    in
+    let args = 
+      if not !dbug then 
+        "-quiet" :: args
+      else
+        args
+    in
+
+    let args = 
+      !oasis_args @ args
+    in
+
+    let () = 
+      if !dbug then
+        Printf.eprintf 
+          "Quickstart command line: %s\n%!" 
+          (String.concat " " (oasis () :: args))
+    in
+    let _, exit_code = 
+      try
+        with_spawn
+          ~verbose:!dbug
+          ~timeout:(Some 0.1)
+          (oasis ())
+          (Array.of_list args)
+          (fun t () -> f t) 
+          ()
+
+      with e ->
+        Printexc.print_backtrace stderr;
+        raise e
+    in
+      assert_exit_code_equal 
+        exp_exit_code
         exit_code
   in
+
+  let run_quickstart args qa = 
+    with_quickstart_spawn
+      args
+      (fun t ->
+         let rec continue = 
+           function
+             | [] ->
+                 begin
+                   ()
+                 end
+
+             | qa -> 
+                 begin
+                   let expectations = 
+                     let rec expectations' prev next = 
+                       match next with 
+                         | (q, a) :: tl ->
+                             (* next QA if we chose this answer *)
+                             let qa' = 
+                               List.rev_append prev tl
+                             in
+                             let q_pat = 
+                               match q with 
+                                 | "create_section" ->
+                                     "create a(nother)? section\\? "
+                                 | "end" ->
+                                     "What do you want to do now\\?"
+                                 | "name" ->
+                                     "'?name'?\\? "
+                                 | q ->
+                                     Printf.sprintf 
+                                       "value for field '%s'\\? "
+                                       q
+                             in
+                             let q_rex = 
+                               Pcre.regexp ~flags:[`CASELESS] q_pat
+                             in
+                               (`Rex q_rex, Some (a, qa'))
+                               ::
+                               (`Prefix ("???"^q^" "), Some (a, qa'))
+                               ::
+                               (expectations' ((q, a) :: prev) tl)
+                         | [] ->
+                             []
+                     in
+                       expectations' [] qa
+                   in
+                   let exp_q = 
+                     expect t expectations None
+                   in
+
+                     match exp_q with 
+                       | Some (a, qa) -> 
+                           send t (a^"\n");
+                           continue qa
+                       | None -> 
+                           let assert_msg = 
+                             Printf.sprintf "expecting questions: %s"
+                               (String.concat ", "
+                                  (List.map 
+                                     (fun (q, _) -> Printf.sprintf "%S" q)
+                                     qa))
+                           in
+                             assert_failure assert_msg
+                 end
+         in
+          continue qa;
+          assert_bool
+            "wait for eof"
+            (expect t [`Eof, true] false);
+      ) 
+      (Unix.WEXITED 0)
+  in
+
   let test_of_vector (nm, args, qa, post) = 
     nm >::
     bracket 
@@ -171,25 +198,28 @@ let tests =
          Sys.chdir pwd;
          FileUtil.rm ~recurse:true [tmp])
   in
+  let test_simple_qa = 
+    [
+      "name",           "test";
+      "version",        "0.0.1";
+      "synopsis",       "test";
+      "authors",        "me";
+      "license",        "GPL-2+";
+      "plugins",        "";
+      "create_section", "e";
+      "name",           "test";
+      "path",           "./";
+      "mainis",         "test.ml";
+      "create_section", "n";
+      "end",            "w";
+    ]
+  in
     "Quickstart" >:::
     (List.map test_of_vector 
        [
          "simple",
          [],
-         [
-           "name",           "test";
-           "version",        "0.0.1";
-           "synopsis",       "test";
-           "authors",        "me";
-           "license",        "GPL-2+";
-           "plugins",        "";
-           "create_section", "e";
-           "name",           "test";
-           "path",           "./";
-           "mainis",         "test.ml";
-           "create_section", "n";
-           "end",            "w";
-         ],
+         test_simple_qa,
          (fun pkg ->
             let () = 
               assert_equal 
@@ -275,4 +305,23 @@ let tests =
               ~printer:(fun s -> s)
               "test" pkg.name);
        ])
+    @
+    [
+      "error" >::
+      (fun () ->
+         with_quickstart_spawn
+           []
+           (fun t ->
+              let q = `Prefix ("???name "), true in
+                assert_equal
+                  ~msg:"First question"
+                  true
+                  (expect t [q] false);
+                send t "\n";
+                assert_equal
+                  ~msg:"Second question"
+                  true
+                  (expect t [q] false))
+           (Unix.WSIGNALED ~-8));
+    ]
 
