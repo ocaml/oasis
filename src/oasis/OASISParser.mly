@@ -25,7 +25,7 @@ open Oasis
 
 %}
 
-%token SEMICOLON
+%token COLON
 %token IF ELSE
 %token RBRACE LBRACE
 %token FLAG
@@ -51,7 +51,7 @@ stmt_list:
 ;
 
 stmt:
-  | IDENT SEMICOLON VALUE   {ASTField($1, $3)}
+  | IDENT COLON VALUE   {ASTField($1, $3)}
   | FLAG IDENT stmt         {ASTFlag($2, $3)}
   | LIBRARY IDENT stmt      {ASTLibrary($2, $3)}
   | EXECUTABLE IDENT stmt   {ASTExecutable($2, $3)}

@@ -26,7 +26,7 @@ open OasisParser
 rule token = parse
 [' ' '\t']       {token lexbuf}
 | '\n'           {Lexing.new_line lexbuf; token lexbuf}
-| ":"            {SEMICOLON}
+| ":"            {COLON}
 | "if"           {IF}
 | "else"         {ELSE}
 | "{"            {RBRACE}
