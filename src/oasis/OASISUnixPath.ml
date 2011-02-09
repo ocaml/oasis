@@ -84,3 +84,12 @@ let chop_extension f =
   with Not_found ->
     f
 
+let capitalize_file f =
+  let dir = dirname f in
+  let base = basename f in
+  concat dir (String.capitalize base)
+
+let uncapitalize_file f =
+  let dir = dirname f in
+  let base = basename f in
+  concat dir (String.uncapitalize base)

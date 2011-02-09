@@ -147,10 +147,10 @@ let install pkg argv =
                             (Filename.concat path)
                             [modul^".mli";
                              modul^".ml";
-                             String.uncapitalize modul^".mli";
-                             String.capitalize   modul^".mli";
-                             String.uncapitalize modul^".ml";
-                             String.capitalize   modul^".ml"])
+                             OASISUnixPath.uncapitalize_file modul^".mli";
+                             OASISUnixPath.capitalize_file   modul^".mli";
+                             OASISUnixPath.uncapitalize_file modul^".ml";
+                             OASISUnixPath.capitalize_file   modul^".ml"])
                        :: acc
                      with Not_found ->
                        begin

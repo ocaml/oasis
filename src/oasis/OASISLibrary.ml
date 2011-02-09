@@ -42,8 +42,8 @@ let generated_unix_files ~ctxt (cs, bs, lib)
                (List.map
                   (OASISUnixPath.concat bs.bs_path)
                   [modul;
-                   String.uncapitalize modul;
-                   String.capitalize modul])
+                   OASISUnixPath.uncapitalize_file modul;
+                   OASISUnixPath.capitalize_file modul])
            in
              [base_fn^".cmi"] :: hdrs
          with Not_found ->
@@ -54,8 +54,8 @@ let generated_unix_files ~ctxt (cs, bs, lib)
              modul cs.cs_name;
              (List.map (OASISUnixPath.concat bs.bs_path)
                 [modul^".cmi";
-                 String.uncapitalize modul ^ ".cmi";
-                 String.capitalize modul ^ ".cmi"])
+                 OASISUnixPath.uncapitalize_file modul ^ ".cmi";
+                 OASISUnixPath.capitalize_file modul ^ ".cmi"])
              :: hdrs)
       []
       lib.lib_modules

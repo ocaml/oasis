@@ -58,3 +58,11 @@ val basename : unix_filename -> unix_filename
     return [fn] if there is no extension.
   *)
 val chop_extension : unix_filename -> unix_filename
+
+(** [capitalize_file fn] Return filename capitalized.
+*)
+val capitalize_file : unix_filename -> unix_filename
+
+(** [uncapitalize_file fn] Return filename uncapitalized.
+*)
+val uncapitalize_file : unix_filename -> unix_filename
