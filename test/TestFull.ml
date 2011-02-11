@@ -915,6 +915,30 @@ let tests =
             ],
             []);
 
+         (* Packed library *)
+         "../examples/packedlib", 
+         (fun () -> 
+            long_test,
+            oasis_ocamlbuild_files @ 
+              [ "src/packedlib.mlpack" ],
+            [
+              in_ocaml_library "packedlib" 
+                ["packedlib.cma"; 
+                 "foo.cmi"; "foo.mli"; 
+                 "bar.cmi"; "bar.mli"; 
+                 "META"];
+              conditional
+                !has_ocamlopt
+                (in_ocaml_library "packedlib"
+                   ["packedlib.cmxa"; 
+                    if Sys.os_type = "Win32" then
+                      "packedlib.lib"
+                    else
+                      "packedlib.a"]);
+            ],
+            []);
+
+
 
          (* Complete library with findlib package to check *)
          "../examples/findlib",

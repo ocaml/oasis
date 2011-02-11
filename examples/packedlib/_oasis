@@ -1,0 +1,16 @@
+Name: packedlib
+Version: 0.1
+OASISFormat: 0.1
+Authors: Till Varoquaux <till@janestreet.com>
+Maintainers: Till Varoquaux <till@janestreet.com>
+Copyrights: (C) 2011 Till Varoquaux
+License: LGPL with OCaml linking exception
+BuildTools: ocamlbuild
+
+Synopsis: Testing packed libraries work fine in oasis
+
+
+Library packedlib
+  Pack: true
+  Path: src
+  Modules: Foo, Bar
