@@ -129,7 +129,7 @@ let dispatch t e =
                  (* When ocaml link something that use the C library, then one
                     need that file to be up to date.
                   *)
-                 dep  ["link"; "ocaml"; "use_lib"^lib] 
+                 dep  ["compile"; "ocaml"; "use_lib"^lib] 
                    [dir/"lib"^lib^"."^(!Options.ext_lib)];
 
                  (* TODO: be more specific about what depends on headers *)
