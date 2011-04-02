@@ -151,7 +151,7 @@ let main ctxt pkg =
                       \t$(SETUP) -configure $(CONFIGUREFLAGS)\n\n" 
                | nm ->
                    add_one_target nm)
-            all_targets;
+            targets;
           Buffer.add_string buff (".PHONY: "^(String.concat " " targets)^"\n");
     
           OASISPlugin.add_file 
