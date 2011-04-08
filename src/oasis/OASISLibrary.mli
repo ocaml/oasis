@@ -56,7 +56,8 @@ val group_libs : package -> group_t list
 type library_name = name
 
 (** Compute internal to findlib library matchings, including subpackage
-    and return a map of it.
+    and return a map of it. The map returned can contain findlib name
+    that are not installable.
   *)
 (* TODO: string option for optional parent path seem strange, try to get
  * rid of it
