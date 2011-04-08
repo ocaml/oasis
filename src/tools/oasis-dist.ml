@@ -137,6 +137,7 @@ object
              try 
                Sys.chdir tgt;
                BaseExec.run "ocaml" ["setup.ml"; "-distclean"];
+               BaseExec.run "oasis" ["setup"];
                Sys.chdir dir;
                BaseExec.run "tar" ["czf"; tarball; tarname];
                Sys.chdir cur_pwd;
