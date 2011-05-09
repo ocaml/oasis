@@ -40,7 +40,7 @@ let lib_hook =
 let doc_hook =
   ref (fun (cs, doc) -> cs, doc)
 
-let install_file_ev = 
+let install_file_ev =
   "install-file"
 
 let install_dir_ev =
@@ -52,9 +52,9 @@ let install_findlib_ev =
 let install pkg argv =
 
   let in_destdir =
-    try 
+    try
       let destdir =
-        destdir () 
+        destdir ()
       in
         (* Practically speaking destdir is prepended
          * at the beginning of the target filename
@@ -64,17 +64,17 @@ let install pkg argv =
       fun fn -> fn
   in
 
-  let install_file src_file envdir = 
-    let tgt_dir = 
+  let install_file src_file envdir =
+    let tgt_dir =
       in_destdir (envdir ())
     in
     let tgt_file =
-      Filename.concat 
+      Filename.concat
         tgt_dir
         (Filename.basename src_file)
     in
       (* Create target directory if needed *)
-      BaseFileUtil.mkdir_parent 
+      BaseFileUtil.mkdir_parent
         (fun dn ->
            info (f_ "Creating directory '%s'") dn;
            BaseLog.register install_dir_ev dn)
@@ -88,57 +88,57 @@ let install pkg argv =
 
   (* Install data into defined directory *)
   let install_data srcdir lst tgtdir =
-    let tgtdir = 
+    let tgtdir =
       BaseFilePath.of_unix (var_expand tgtdir)
     in
       List.iter
         (fun (src, tgt_opt) ->
-           let real_srcs = 
-             BaseFileUtil.glob 
+           let real_srcs =
+             BaseFileUtil.glob
                (Filename.concat srcdir src)
            in
              if real_srcs = [] then
                failwithf
                  (f_ "Wildcard '%s' doesn't match any files")
                  src;
-             List.iter 
-               (fun fn -> 
-                  install_file 
-                    fn 
-                    (fun () -> 
-                       match tgt_opt with 
-                         | Some s -> 
+             List.iter
+               (fun fn ->
+                  install_file
+                    fn
+                    (fun () ->
+                       match tgt_opt with
+                         | Some s ->
                              BaseFilePath.of_unix (var_expand s)
-                         | None -> 
+                         | None ->
                              tgtdir))
                real_srcs)
         lst
-  in       
+  in
 
   (** Install all libraries *)
   let install_libs pkg =
 
-    let files_of_library (f_data, acc) data_lib = 
+    let files_of_library (f_data, acc) data_lib =
       let cs, bs, lib, lib_extra =
         !lib_hook data_lib
       in
-        if var_choose bs.bs_install && 
+        if var_choose bs.bs_install &&
            BaseBuilt.is_built BaseBuilt.BLib cs.cs_name then
           begin
-            let acc = 
+            let acc =
               (* Start with acc + lib_extra *)
               List.rev_append lib_extra acc
             in
-            let acc = 
+            let acc =
               (* Add uncompiled header from the source tree *)
-              let path = 
+              let path =
                 BaseFilePath.of_unix bs.bs_path
               in
                 List.fold_left
                   (fun acc modul ->
-                     try 
+                     try
                        List.find
-                         Sys.file_exists 
+                         Sys.file_exists
                          (List.map
                             (Filename.concat path)
                             [modul^".mli";
@@ -150,7 +150,7 @@ let install pkg argv =
                        :: acc
                      with Not_found ->
                        begin
-                         warning 
+                         warning
                            (f_ "Cannot find source header for module %s \
                                 in library %s")
                            modul cs.cs_name;
@@ -160,10 +160,10 @@ let install pkg argv =
                   lib.lib_modules
             in
 
-            let acc = 
+            let acc =
              (* Get generated files *)
-             BaseBuilt.fold 
-               BaseBuilt.BLib 
+             BaseBuilt.fold
+               BaseBuilt.BLib
                cs.cs_name
                (fun acc fn -> fn :: acc)
                acc
@@ -174,7 +174,7 @@ let install pkg argv =
               install_data
                 bs.bs_path
                 bs.bs_data_files
-                (Filename.concat 
+                (Filename.concat
                    (datarootdir ())
                    pkg.name);
               f_data ()
@@ -189,11 +189,11 @@ let install pkg argv =
     in
 
     (* Install one group of library *)
-    let install_group_lib grp = 
+    let install_group_lib grp =
       (* Iterate through all group nodes *)
       let rec install_group_lib_aux data_and_files grp =
-        let data_and_files, children = 
-          match grp with 
+        let data_and_files, children =
+          match grp with
             | Container (_, children) ->
                 data_and_files, children
             | Package (_, cs, bs, lib, children) ->
@@ -221,7 +221,7 @@ let install pkg argv =
       in
 
         (* Really install, if there is something to install *)
-        if files = [] then 
+        if files = [] then
           begin
             warning
               (f_ "Nothing to install for findlib library '%s'")
@@ -229,12 +229,12 @@ let install pkg argv =
           end
         else
           begin
-            let meta = 
+            let meta =
               (* Search META file *)
-              let (_, bs, _) = 
+              let (_, bs, _) =
                 root_lib
               in
-              let res = 
+              let res =
                 Filename.concat bs.bs_path "META"
               in
                 if not (Sys.file_exists res) then
@@ -244,13 +244,13 @@ let install pkg argv =
                     findlib_name;
                 res
             in
-              info 
+              info
                 (f_ "Installing findlib library '%s'")
                 findlib_name;
-              BaseExec.run 
-                (ocamlfind ()) 
+              BaseExec.run
+                (ocamlfind ())
                 ("install" :: findlib_name :: meta :: files);
-              BaseLog.register install_findlib_ev findlib_name 
+              BaseLog.register install_findlib_ev findlib_name
           end;
 
         (* Install data files *)
@@ -259,12 +259,12 @@ let install pkg argv =
     in
 
       (* We install libraries in groups *)
-      List.iter 
+      List.iter
         install_group_lib
         (group_libs pkg)
   in
 
-  let install_execs pkg = 
+  let install_execs pkg =
     let install_exec data_exec =
       let (cs, bs, exec) =
         !exec_hook data_exec
@@ -273,7 +273,7 @@ let install pkg argv =
            BaseBuilt.is_built BaseBuilt.BExec cs.cs_name then
           begin
             let exec_libdir () =
-              Filename.concat 
+              Filename.concat
                 (libdir ())
                 pkg.name
             in
@@ -296,7 +296,7 @@ let install pkg argv =
               install_data
                 bs.bs_path
                 bs.bs_data_files
-                (Filename.concat 
+                (Filename.concat
                    (datarootdir ())
                    pkg.name)
           end
@@ -310,7 +310,7 @@ let install pkg argv =
         pkg.sections
   in
 
-  let install_docs pkg = 
+  let install_docs pkg =
     let install_doc data =
       let (cs, doc) =
         !doc_hook data
@@ -325,8 +325,8 @@ let install pkg argv =
                 BaseBuilt.BDoc
                 cs.cs_name
                 (fun () fn ->
-                   install_file 
-                     fn 
+                   install_file
+                     fn
                      (fun () -> tgt_dir))
               ();
               install_data
@@ -343,14 +343,14 @@ let install pkg argv =
                ())
         pkg.sections
   in
-  
+
     install_libs  pkg;
     install_execs pkg;
     install_docs  pkg
 
 (* Uninstall already installed data *)
 let uninstall _ argv =
-  List.iter 
+  List.iter
     (fun (ev, data) ->
        if ev = install_file_ev then
          begin
@@ -367,7 +367,7 @@ let uninstall _ argv =
                  (f_ "File '%s' doesn't exist anymore")
                  data
              end
-         end 
+         end
        else if ev = install_dir_ev then
          begin
            if Sys.file_exists data && Sys.is_directory data then
@@ -381,16 +381,16 @@ let uninstall _ argv =
                  end
                else
                  begin
-                   warning 
+                   warning
                      (f_ "Directory '%s' is not empty (%s)")
                      data
-                     (String.concat 
-                        ", " 
-                        (Array.to_list 
+                     (String.concat
+                        ", "
+                        (Array.to_list
                            (Sys.readdir data)))
                  end
              end
-           else 
+           else
              begin
                warning
                  (f_ "Directory '%s' doesn't exist anymore")
@@ -406,9 +406,9 @@ let uninstall _ argv =
          failwithf (f_ "Unknown log event '%s'") ev;
        BaseLog.unregister ev data)
     (* We process event in reverse order *)
-    (List.rev 
-       (BaseLog.filter 
-          [install_file_ev; 
+    (List.rev
+       (BaseLog.filter
+          [install_file_ev;
            install_dir_ev;
            install_findlib_ev;]))
 
@@ -420,8 +420,8 @@ open InternalId
 let plugin =
   `Install, name, Some version
 
-let init () = 
-  let self_id, _ = 
+let init () =
+  let self_id, _ =
     Install.create plugin
   in
   (* Installation *)

@@ -30,7 +30,7 @@ let map_string_of_assoc assoc =
 module SetString = Set.Make(String)
 
 let set_string_add_list st lst =
-  List.fold_left 
+  List.fold_left
     (fun acc e -> SetString.add e acc)
     st
     lst
@@ -40,15 +40,15 @@ let set_string_of_list =
     SetString.empty
 
 
-let compare_csl s1 s2 = 
+let compare_csl s1 s2 =
   String.compare (String.lowercase s1) (String.lowercase s2)
 
-module HashStringCsl = 
+module HashStringCsl =
   Hashtbl.Make
     (struct
        type t = string
 
-       let equal s1 s2 = 
+       let equal s1 s2 =
            (String.lowercase s1) = (String.lowercase s2)
 
        let hash s =
@@ -62,16 +62,16 @@ let split sep str =
   let rec split_aux acc pos =
     if pos < str_len then
       (
-        let pos_sep = 
+        let pos_sep =
           try
             String.index_from str pos sep
           with Not_found ->
             str_len
         in
-        let part = 
-          String.sub str pos (pos_sep - pos) 
+        let part =
+          String.sub str pos (pos_sep - pos)
         in
-        let acc = 
+        let acc =
           part :: acc
         in
           if pos_sep >= str_len then
@@ -97,14 +97,14 @@ let split sep str =
     split_aux [] 0
 
 
-let varname_of_string ?(hyphen='_') s = 
+let varname_of_string ?(hyphen='_') s =
   if String.length s = 0 then
     begin
-      invalid_arg "varname_of_string" 
+      invalid_arg "varname_of_string"
     end
   else
     begin
-      let buff = 
+      let buff =
         Buffer.create (String.length s)
       in
         (* Start with a _ if digit *)
@@ -113,10 +113,10 @@ let varname_of_string ?(hyphen='_') s =
 
         String.iter
           (fun c ->
-             if ('a' <= c && c <= 'z') 
-               || 
-                ('A' <= c && c <= 'Z') 
-               || 
+             if ('a' <= c && c <= 'z')
+               ||
+                ('A' <= c && c <= 'Z')
+               ||
                 ('0' <= c && c <= '9') then
                Buffer.add_char buff c
              else
@@ -126,8 +126,8 @@ let varname_of_string ?(hyphen='_') s =
         String.lowercase (Buffer.contents buff)
     end
 
-let varname_concat ?(hyphen='_') p s = 
-  let p = 
+let varname_concat ?(hyphen='_') p s =
+  let p =
     let p_len =
       String.length p
     in
@@ -136,7 +136,7 @@ let varname_concat ?(hyphen='_') p s =
       else
         p
   in
-  let s = 
+  let s =
     let s_len =
       String.length s
     in
@@ -148,7 +148,7 @@ let varname_concat ?(hyphen='_') p s =
     Printf.sprintf "%s%c%s" p hyphen s
 
 
-let is_varname str = 
+let is_varname str =
   str = varname_of_string str
 
 let failwithf fmt = Printf.ksprintf failwith fmt
@@ -157,24 +157,24 @@ let failwithf fmt = Printf.ksprintf failwith fmt
 
 open ExtString
 
-let split_comma str = 
+let split_comma str =
   List.map String.strip (String.nsplit str ",")
 
-let split_optional_parentheses = 
+let split_optional_parentheses =
   let split_parentheses =
     ignore "(*(*";
     Pcre.regexp "([^\\(]*)\\(([^\\)]*)\\)"
   in
-    fun str -> 
-      try 
+    fun str ->
+      try
         let substrs =
           Pcre.exec ~rex:split_parentheses str
         in
-        let s1, s2 = 
+        let s1, s2 =
           Pcre.get_substring substrs 1,
           Pcre.get_substring substrs 2
         in
-        let e1 = 
+        let e1 =
           String.strip s1
         in
         let e2 =

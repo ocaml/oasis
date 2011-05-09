@@ -19,10 +19,10 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-let ns_ str = 
+let ns_ str =
   str
 
-let s_ str = 
+let s_ str =
   str
 
 let f_ (str : ('a, 'b, 'c, 'd) format4) =
@@ -34,7 +34,7 @@ let fn_ fmt1 fmt2 n =
   else
     fmt2^^""
 
-let init = 
+let init =
   []
 
 (* END EXPORT *)

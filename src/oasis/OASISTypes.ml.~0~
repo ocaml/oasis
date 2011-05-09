@@ -34,7 +34,7 @@ type arg           = string with odn
 type args          = string list with odn
 type command_line  = (prog * arg list) with odn
 
-type findlib_name = string with odn
+type findlib_name = string with odn 
 type findlib_full = string with odn
 
 type compiled_object =
@@ -43,34 +43,34 @@ type compiled_object =
   | Best
   with odn
 
-type dependency =
+type dependency = 
   | FindlibPackage of findlib_full * OASISVersion.comparator option
   | InternalLibrary of name
   with odn
 
 type tool =
   | ExternalTool of name
-  | InternalExecutable of name
+  | InternalExecutable of name 
   with odn
 
-type vcs =
-  | Darcs
-  | Git
-  | Svn
-  | Cvs
-  | Hg
-  | Bzr
-  | Arch
+type vcs = 
+  | Darcs 
+  | Git 
+  | Svn 
+  | Cvs 
+  | Hg 
+  | Bzr 
+  | Arch 
   | Monotone
   | OtherVCS of url
   with odn
 
-type plugin_kind =
-    [  `Configure
-     | `Build
-     | `Doc
-     | `Test
-     | `Install
+type plugin_kind = 
+    [  `Configure 
+     | `Build 
+     | `Doc 
+     | `Test 
+     | `Install 
      | `Extra
     ]
 
@@ -90,22 +90,22 @@ type plugin_data_purpose =
 
 type 'a plugin = 'a * name * OASISVersion.t option with odn
 
-type all_plugin = plugin_kind plugin
+type all_plugin = plugin_kind plugin 
 
 type plugin_data = (all_plugin * plugin_data_purpose * (unit -> unit)) list
 
 (* END EXPORT *)
 (* TODO: really export this *)
-let odn_of_plugin_data _ =
+let odn_of_plugin_data _ = 
   ODN.of_list (fun _ -> ODN.UNT) []
 (* START EXPORT *)
 
 type 'a conditional = 'a OASISExpr.choices with odn
 
-type custom =
+type custom = 
     {
       pre_command:  (command_line option) conditional;
-      post_command: (command_line option) conditional;
+      post_command: (command_line option) conditional; 
     }
     with odn
 
@@ -136,7 +136,7 @@ type build_section =
     }
     with odn
 
-type library =
+type library = 
     {
       lib_modules:            string list;
       lib_internal_modules:   string list;
@@ -145,19 +145,19 @@ type library =
       lib_findlib_containers: findlib_name list;
     } with odn
 
-type executable =
+type executable = 
     {
       exec_custom:          bool;
       exec_main_is:         unix_filename;
     } with odn
 
-type flag =
+type flag = 
     {
       flag_description:  string option;
       flag_default:      bool conditional;
     } with odn
 
-type source_repository =
+type source_repository = 
     {
       src_repo_type:        vcs;
       src_repo_location:    url;
@@ -168,7 +168,7 @@ type source_repository =
       src_repo_subdir:      unix_filename option;
     } with odn
 
-type test =
+type test = 
     {
       test_type:               [`Test] plugin;
       test_command:            command_line conditional;
@@ -211,6 +211,9 @@ type section =
   | Test       of common_section * test
   | Doc        of common_section * doc
   with odn
+
+type section_kind =
+    [ `Library | `Executable | `Flag | `SrcRepo | `Test | `Doc ]
 
 type package = 
     {

@@ -26,13 +26,13 @@ open OASISGettext
 
 let prog_best prg prg_lst =
   var_redefine
-    prg 
-    (lazy 
-       (let alternate = 
-          List.fold_left 
+    prg
+    (lazy
+       (let alternate =
+          List.fold_left
             (fun res e ->
-               match res with 
-                 | Some _ -> 
+               match res with
+                 | Some _ ->
                      res
                  | None ->
                      try
@@ -49,33 +49,33 @@ let prog_best prg prg_lst =
 let prog prg =
   prog_best prg [prg]
 
-let prog_opt prg = 
+let prog_opt prg =
   prog_best prg [prg^".opt"; prg]
 
-let ocamlfind = 
+let ocamlfind =
   prog "ocamlfind"
 
-let version 
-      var_prefix 
+let version
+      var_prefix
       cmp
-      fversion 
-      () = 
+      fversion
+      () =
   (* Really compare version provided *)
-  let var = 
+  let var =
     var_prefix^"_version_"^(OASISVersion.varname_of_comparator cmp)
   in
-    var_redefine 
-      ~hide:true 
+    var_redefine
+      ~hide:true
       var
       (lazy
          (let version_str =
-            match fversion () with 
+            match fversion () with
               | "[Distributed with OCaml]" ->
                   begin
-                    try 
+                    try
                       (var_get "ocaml_version")
                     with Not_found ->
-                      warning 
+                      warning
                         (f_ "Variable ocaml_version not defined, fallback \
                              to default");
                       Sys.ocaml_version
@@ -97,18 +97,18 @@ let version
       ()
 
 let package_version pkg =
-  BaseExec.run_read_one_line 
+  BaseExec.run_read_one_line
     (ocamlfind ())
     ["query"; "-format"; "%v"; pkg]
 
 let package ?version_comparator pkg () =
   let var =
-    OASISUtils.varname_concat 
-      "pkg_" 
+    OASISUtils.varname_concat
+      "pkg_"
       (OASISUtils.varname_of_string pkg)
   in
-  let findlib_dir pkg = 
-    let dir = 
+  let findlib_dir pkg =
+    let dir =
       BaseExec.run_read_one_line
         (ocamlfind ())
         ["query"; "-format"; "%d"; pkg]
@@ -128,15 +128,15 @@ let package ?version_comparator pkg () =
       ()
   in
     (
-      match version_comparator with 
+      match version_comparator with
         | Some ver_cmp ->
             ignore
-              (version 
+              (version
                  var
                  ver_cmp
                  (fun _ -> package_version pkg)
                  ())
-        | None -> 
+        | None ->
             ()
     );
     vl

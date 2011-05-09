@@ -26,10 +26,10 @@ open OASISSection
 open OASISGettext
 open OASISUtils
 
-type std_args_fun = 
+type std_args_fun =
     package -> string array -> unit
 
-type ('a, 'b) section_args_fun = 
+type ('a, 'b) section_args_fun =
     name * (package -> (common_section * 'a) -> string array -> 'b)
 
 type t =
@@ -48,14 +48,14 @@ type t =
       distclean_test:  (test, unit) section_args_fun list;
       package:         package;
       version:         string;
-    } 
+    }
 
 (* Associate a plugin function with data from package *)
 let join_plugin_sections filter_map lst =
   List.rev
     (List.fold_left
        (fun acc sct ->
-          match filter_map sct with 
+          match filter_map sct with
             | Some e ->
                 e :: acc
             | None ->
@@ -65,7 +65,7 @@ let join_plugin_sections filter_map lst =
 
 (* Search for plugin data associated with a section name *)
 let lookup_plugin_section plugin action nm lst =
-  try 
+  try
     List.assoc nm lst
   with Not_found ->
     failwithf
@@ -74,9 +74,9 @@ let lookup_plugin_section plugin action nm lst =
       nm
       action
 
-let configure t args = 
+let configure t args =
   (* Run configure *)
-  BaseCustom.hook 
+  BaseCustom.hook
     t.package.conf_custom
     (t.configure t.package)
     args;
@@ -97,43 +97,43 @@ let build t args =
 let doc t args =
   BaseDoc.doc
     (join_plugin_sections
-       (function 
-          | Doc (cs, e) -> 
-              Some 
-                (lookup_plugin_section 
-                   "documentation" 
+       (function
+          | Doc (cs, e) ->
+              Some
+                (lookup_plugin_section
+                   "documentation"
                    (s_ "build")
-                   cs.cs_name 
+                   cs.cs_name
                    t.doc,
                  cs,
                  e)
-          | _ -> 
+          | _ ->
               None)
        t.package.sections)
     t.package
     args
 
-let test t args = 
-  BaseTest.test 
+let test t args =
+  BaseTest.test
     (join_plugin_sections
-       (function 
-          | Test (cs, e) -> 
-              Some 
+       (function
+          | Test (cs, e) ->
+              Some
                 (lookup_plugin_section
                    "test"
                    (s_ "run")
-                   cs.cs_name 
+                   cs.cs_name
                    t.test,
                  cs,
                  e)
-          | _ -> 
+          | _ ->
               None)
        t.package.sections)
     t.package
     args
 
 let all t args =
-  let rno_doc = 
+  let rno_doc =
     ref false
   in
   let rno_test =
@@ -141,8 +141,8 @@ let all t args =
   in
     Arg.parse_argv
       ~current:(ref 0)
-      (Array.of_list 
-         ((Sys.executable_name^" all") :: 
+      (Array.of_list
+         ((Sys.executable_name^" all") ::
           (Array.to_list args)))
       [
         "-no-doc",
@@ -155,16 +155,16 @@ let all t args =
       ]
       (failwithf (f_ "Don't know what to do with '%s'"))
       "";
-    
+
     info "Running configure step";
     configure t [||];
-    
+
     info "Running build step";
     build     t [||];
 
     (* Load setup.log dynamic variables *)
     BaseDynVar.init t.package;
-    
+
     if not !rno_doc then
       begin
         info "Running doc step";
@@ -201,19 +201,19 @@ let reinstall t args =
   uninstall t args;
   install t args
 
-let clean, distclean = 
+let clean, distclean =
   let failsafe f a =
-    try 
+    try
       f a
     with e ->
-      warning 
+      warning
         (f_ "Action fail with error: %s")
-        (match e with 
+        (match e with
            | Failure msg -> msg
            | e -> Printexc.to_string e)
   in
 
-  let generic_clean t cstm mains docs tests args = 
+  let generic_clean t cstm mains docs tests args =
     BaseCustom.hook
       ~failsafe:true
       cstm
@@ -223,7 +223,7 @@ let clean, distclean =
            (function
               | Test (cs, test) ->
                   let f =
-                    try 
+                    try
                       List.assoc cs.cs_name tests
                     with Not_found ->
                       fun _ _ _ -> ()
@@ -234,22 +234,22 @@ let clean, distclean =
               | Doc (cs, doc) ->
                   let f =
                     try
-                      List.assoc cs.cs_name docs 
+                      List.assoc cs.cs_name docs
                     with Not_found ->
                       fun _ _ _ -> ()
                   in
-                    failsafe 
+                    failsafe
                       (f t.package (cs, doc))
                       args
-              | Library _ 
+              | Library _
               | Executable _
-              | Flag _ 
+              | Flag _
               | SrcRepo _ ->
                   ())
            t.package.sections;
          (* Clean whole package *)
          List.iter
-           (fun f -> 
+           (fun f ->
               failsafe
                 (f t.package)
                 args)
@@ -258,12 +258,12 @@ let clean, distclean =
   in
 
   let clean t args =
-    generic_clean 
-      t 
+    generic_clean
+      t
       t.package.clean_custom
-      t.clean 
-      t.clean_doc 
-      t.clean_test 
+      t.clean
+      t.clean_doc
+      t.clean_test
       args
   in
 
@@ -279,34 +279,34 @@ let clean, distclean =
              info (f_ "Remove '%s'") fn;
              Sys.remove fn
            end)
-      (BaseEnv.default_filename 
-       :: 
+      (BaseEnv.default_filename
+       ::
        BaseLog.default_filename
        ::
        (List.rev_map BaseFileAB.to_filename t.package.files_ab));
-    
+
     (* Call distclean code *)
-    generic_clean 
-      t 
+    generic_clean
+      t
       t.package.distclean_custom
-      t.distclean 
-      t.distclean_doc 
-      t.distclean_test 
+      t.distclean
+      t.distclean_doc
+      t.distclean_test
       args
   in
 
     clean, distclean
 
-let version t _ = 
+let version t _ =
   print_endline t.version
 
-let setup t = 
+let setup t =
   let catch_exn =
     ref true
   in
     try
       let act_ref =
-        ref (fun _ -> 
+        ref (fun _ ->
                failwithf
                  (f_ "No action defined, run '%s %s -help'")
                  Sys.executable_name
@@ -316,7 +316,7 @@ let setup t =
       let extra_args_ref =
         ref []
       in
-      let allow_empty_env_ref = 
+      let allow_empty_env_ref =
         ref false
       in
       let arg_handle ?(allow_empty_env=false) act =
@@ -324,14 +324,14 @@ let setup t =
           [
             Arg.Rest (fun str -> extra_args_ref := str :: !extra_args_ref);
 
-            Arg.Unit 
-              (fun () -> 
+            Arg.Unit
+              (fun () ->
                  allow_empty_env_ref := allow_empty_env;
                  act_ref := act);
           ]
       in
 
-        Arg.parse 
+        Arg.parse
           (Arg.align
              [
                "-configure",
@@ -368,7 +368,7 @@ let setup t =
                arg_handle reinstall,
                s_ "[options*] Uninstall and install libraries, data, \
                               executables and documents.";
-                               
+
                "-clean",
                arg_handle ~allow_empty_env:true clean,
                s_ "[options*] Clean files generated by a build.";
@@ -384,7 +384,7 @@ let setup t =
                "-no-catch-exn",
                Arg.Clear catch_exn,
                s_ " Don't catch exception, useful for debugging.";
-             ] 
+             ]
            @ (BaseContext.args ()))
           (failwithf (f_ "Don't know what to do with '%s'"))
           (s_ "Setup and run build process current package\n");
@@ -395,30 +395,30 @@ let setup t =
         (** Initialize flags *)
         List.iter
           (function
-             | Flag (cs, {flag_description = hlp; 
+             | Flag (cs, {flag_description = hlp;
                           flag_default = choices}) ->
                  begin
-                   let apply ?short_desc () = 
+                   let apply ?short_desc () =
                      var_ignore
                        (var_define
                           ~cli:CLIEnable
                           ?short_desc
                           (OASISUtils.varname_of_string cs.cs_name)
-                          (lazy (string_of_bool 
-                                   (var_choose 
-                                      ~name:(Printf.sprintf 
+                          (lazy (string_of_bool
+                                   (var_choose
+                                      ~name:(Printf.sprintf
                                                (f_ "default value of flag %s")
                                                cs.cs_name)
                                       ~printer:string_of_bool
                                       choices))))
                    in
-                     match hlp with 
+                     match hlp with
                        | Some hlp ->
                            apply ~short_desc:(fun () -> hlp) ()
                        | None ->
                            apply ()
                  end
-             | _ -> 
+             | _ ->
                  ())
           t.package.sections;
 
@@ -436,20 +436,20 @@ let setup t =
 
 open OASISPlugin
 
-let default_filename = 
+let default_filename =
   "setup.ml"
 
-let find ctxt = 
-  try 
+let find ctxt =
+  try
     OASISFileTemplate.find default_filename ctxt.files
   with Not_found ->
     failwithf
       (f_ "Cannot find setup template file '%s'")
       default_filename
 
-let of_package pkg = 
+let of_package pkg =
 
-  let ctxt = 
+  let ctxt =
     (* Initial context *)
     {
       error         = false;
@@ -463,24 +463,24 @@ let of_package pkg =
     (Configure.act pkg.conf_type) ctxt pkg
   in
 
-  let ctxt, build_changes = 
+  let ctxt, build_changes =
     (Build.act pkg.build_type) ctxt pkg
   in
 
-  let ctxt, test_odn, test_changes = 
-    let ctxt, test_odns, test_changes = 
+  let ctxt, test_odn, test_changes =
+    let ctxt, test_odns, test_changes =
       List.fold_left
-        (fun ((ctxt, test_odns, test_changes) as acc) -> 
+        (fun ((ctxt, test_odns, test_changes) as acc) ->
            function
              | Test (cs, tst) ->
                  begin
-                   let ctxt, chng = 
+                   let ctxt, chng =
                      (Test.act tst.test_type) ctxt pkg (cs, tst)
                    in
-                     ctxt, 
-                     (ODN.TPL [ODN.STR cs.cs_name; 
-                               ODNFunc.odn_of_func chng.chng_main] 
-                      :: 
+                     ctxt,
+                     (ODN.TPL [ODN.STR cs.cs_name;
+                               ODNFunc.odn_of_func chng.chng_main]
+                      ::
                       test_odns),
                      (cs.cs_name, chng) :: test_changes
                  end
@@ -494,20 +494,20 @@ let of_package pkg =
       List.rev test_changes
   in
 
-  let ctxt, doc_odn, doc_changes = 
+  let ctxt, doc_odn, doc_changes =
     let ctxt, doc_odns, doc_changes =
       List.fold_left
-        (fun ((ctxt, doc_odns, doc_changes) as acc) -> 
+        (fun ((ctxt, doc_odns, doc_changes) as acc) ->
            function
              | Doc (cs, doc) ->
                  begin
-                   let ctxt, chng = 
+                   let ctxt, chng =
                      (Doc.act doc.doc_type) ctxt pkg (cs, doc)
                    in
                      ctxt,
-                     (ODN.TPL [ODN.STR cs.cs_name; 
-                               ODNFunc.odn_of_func chng.chng_main] 
-                      :: 
+                     (ODN.TPL [ODN.STR cs.cs_name;
+                               ODNFunc.odn_of_func chng.chng_main]
+                      ::
                       doc_odns),
                      (cs.cs_name, chng) :: doc_changes
                  end
@@ -522,10 +522,10 @@ let of_package pkg =
   in
 
   let ctxt, install_changes, uninstall_changes =
-    let inst, uninst = 
+    let inst, uninst =
       Install.act pkg.install_type
     in
-    let ctxt, install_changes = 
+    let ctxt, install_changes =
       inst ctxt pkg
     in
     let ctxt, uninstall_changes =
@@ -534,7 +534,7 @@ let of_package pkg =
       ctxt, install_changes, uninstall_changes
   in
 
-  let ctxt = 
+  let ctxt =
     (* Run extra plugin *)
     List.fold_left
       (fun ctxt nm -> (Extra.act nm) ctxt pkg)
@@ -542,7 +542,7 @@ let of_package pkg =
       pkg.plugins
   in
 
-  let std_changes = 
+  let std_changes =
     [
       configure_changes;
       build_changes;
@@ -553,8 +553,8 @@ let of_package pkg =
 
   let clean_funcs,     clean_doc_funcs,     clean_test_funcs,
       distclean_funcs, distclean_doc_funcs, distclean_test_funcs =
-    let acc_non_opt f lst = 
-      let acc_non_opt_aux acc e = 
+    let acc_non_opt f lst =
+      let acc_non_opt_aux acc e =
         match f e with
           | Some v -> v :: acc
           | None -> acc
@@ -568,7 +568,7 @@ let of_package pkg =
           | Some v -> Some (nm, v)
           | None -> None
       in
-        acc_non_opt assoc_f 
+        acc_non_opt assoc_f
     in
 
     let clean_of_changes chng = chng.chng_clean
@@ -586,11 +586,11 @@ let of_package pkg =
 
   let moduls =
     (* Extract and deduplicate modules *)
-    let extract lst = 
+    let extract lst =
       List.map (fun chng -> chng.chng_moduls) lst
     in
-    let moduls = 
-       List.flatten 
+    let moduls =
+       List.flatten
          ([
            OASISData.oasissys_ml;
            BaseData.basesysenvironment_ml;
@@ -615,16 +615,16 @@ let of_package pkg =
       List.rev rmoduls
   in
 
-  let ctxt = 
+  let ctxt =
     (* Create setup file *)
     let setup_t_odn =
       let odn_of_funcs lst =
         ODN.LST (List.map ODNFunc.odn_of_func lst)
       in
       let odn_of_assocs lst =
-        ODN.LST 
-          (List.map 
-             (fun (nm, func) -> 
+        ODN.LST
+          (List.map
+             (fun (nm, func) ->
                 ODN.TPL[ODN.STR nm; ODNFunc.odn_of_func func])
              lst)
       in
@@ -648,16 +648,16 @@ let of_package pkg =
             ])
     in
 
-    let setup_t_str = 
-      Format.fprintf Format.str_formatter 
+    let setup_t_str =
+      Format.fprintf Format.str_formatter
         "@[<hv2>let setup_t =@ %a;;@]"
         (ODN.pp_odn ~opened_modules:["OASISTypes"])
         setup_t_odn;
       Format.flush_str_formatter ()
     in
 
-    let setup_tmpl = 
-      OASISFileTemplate.template_of_mlfile 
+    let setup_tmpl =
+      OASISFileTemplate.template_of_mlfile
         default_filename
 
          (* Header *)
@@ -691,16 +691,16 @@ let of_package pkg =
        ["let () = setup ();;"]
     in
 
-      {ctxt with 
+      {ctxt with
            files = OASISFileTemplate.replace setup_tmpl ctxt.files}
 
   in
 
-  let t = 
+  let t =
     let setup_func_calls lst =
       List.map (fun (nm, chng) -> nm, ODNFunc.func_call chng.chng_main) lst
     in
-    let func_calls lst = 
+    let func_calls lst =
       List.map (fun (nm, func) -> nm, ODNFunc.func_call func) lst
     in
       {
@@ -718,7 +718,7 @@ let of_package pkg =
         distclean_doc   = func_calls distclean_doc_funcs;
         package         = pkg;
         version         = OASISVersion.string_of_version OASISConf.version_full;
-      } 
+      }
   in
 
     ctxt, t

@@ -39,18 +39,18 @@ type t =
 type 'a choices = (t * 'a) list with odn
 
 let eval var_get t =
-  let rec eval' = 
+  let rec eval' =
     function
       | EBool b ->
           b
 
-      | ENot e -> 
+      | ENot e ->
           not (eval' e)
 
       | EAnd (e1, e2) ->
           (eval' e1) && (eval' e2)
 
-      | EOr (e1, e2) -> 
+      | EOr (e1, e2) ->
           (eval' e1) || (eval' e2)
 
       | EFlag nm ->
@@ -69,19 +69,19 @@ let eval var_get t =
     eval' t
 
 let choose ?printer ?name var_get lst =
-  let rec choose_aux = 
+  let rec choose_aux =
     function
       | (cond, vl) :: tl ->
-          if eval var_get cond then 
-            vl 
+          if eval var_get cond then
+            vl
           else
             choose_aux tl
       | [] ->
-          let str_lst = 
+          let str_lst =
             if lst = [] then
               s_ "<empty>"
             else
-              String.concat 
+              String.concat
                 (s_ ", ")
                 (List.map
                    (fun (cond, vl) ->
@@ -90,10 +90,10 @@ let choose ?printer ?name var_get lst =
                         | None -> s_ "<no printer>")
                    lst)
           in
-            match name with 
+            match name with
               | Some nm ->
                   failwith
-                    (Printf.sprintf 
+                    (Printf.sprintf
                        (f_ "No result for the choice list '%s': %s")
                        nm str_lst)
               | None ->
@@ -131,12 +131,12 @@ let check valid_flags =
 
   let rec check_aux valid_flags =
     function
-      | EBool _ -> 
+      | EBool _ ->
           ()
-      | ENot e -> 
-          check_aux valid_flags e 
-      | EAnd (e1, e2) | EOr (e1, e2) -> 
-          check_aux valid_flags e1; 
+      | ENot e ->
+          check_aux valid_flags e
+      | EAnd (e1, e2) | EOr (e1, e2) ->
+          check_aux valid_flags e1;
           check_aux valid_flags e2
       | EFlag nm ->
           if not (List.exists (lowercase_eq nm) valid_flags) then
@@ -144,7 +144,7 @@ let check valid_flags =
       | ETest (_, _) ->
           ()
   in
-    check_aux valid_flags 
+    check_aux valid_flags
 
 let rec reduce e =
   let e =
@@ -158,7 +158,7 @@ let rec reduce e =
       | EOr (e1, e2) ->
           EOr (reduce e1, reduce e2)
   in
-    match e with 
+    match e with
       | EAnd (e, EBool true) | EAnd (EBool true, e)
       | EOr (e, EBool false) | EOr (EBool false, e) ->
           e
@@ -179,14 +179,14 @@ let reduce_choices choices =
   (* Naive reduction, we only look for exactly the same condition in
    * after one condition. It works but is not complete and not efficient
    *)
-  let rec reduce_choices_aux acc lst = 
+  let rec reduce_choices_aux acc lst =
     match lst with
       | (c1, _) as e :: tl ->
           (
-            let acc = 
+            let acc =
               try
-                let _ = 
-                  List.find 
+                let _ =
+                  List.find
                     (fun (c2, _) -> c1 = c2)
                     tl
                 in
@@ -199,7 +199,7 @@ let reduce_choices choices =
       | [] ->
           List.rev acc
   in
-    reduce_choices_aux 
+    reduce_choices_aux
       []
       (List.map (fun (cond, vl) -> reduce cond, vl) choices)
 

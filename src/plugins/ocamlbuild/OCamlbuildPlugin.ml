@@ -19,7 +19,7 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Build using ocamlbuild  
+(** Build using ocamlbuild
     @author Sylvain Le Gall
   *)
 
@@ -42,8 +42,8 @@ let build pkg argv =
 
   (* Return the filename in build directory *)
   let in_build_dir fn =
-    Filename.concat 
-      (build_dir argv) 
+    Filename.concat
+      (build_dir argv)
       fn
   in
 
@@ -55,11 +55,11 @@ let build pkg argv =
   let cond_targets =
     List.fold_left
       (fun acc ->
-         function 
+         function
            | Library (cs, bs, lib) when var_choose bs.bs_build ->
                begin
                  let evs, unix_files =
-                   BaseBuilt.of_library 
+                   BaseBuilt.of_library
                      in_build_dir_of_unix
                      (cs, bs, lib)
                  in
@@ -70,7 +70,7 @@ let build pkg argv =
                    in
                      (String.length fn >= nd_len)
                      &&
-                     (String.sub 
+                     (String.sub
                         fn
                         (String.length fn - nd_len)
                         nd_len) = nd
@@ -89,10 +89,10 @@ let build pkg argv =
                         unix_files)
                  in
 
-                   match tgts with 
+                   match tgts with
                      | hd :: tl ->
                          (evs, Std hd)
-                         :: 
+                         ::
                          (List.map (fun tgts -> [], Std tgts) tl)
                          @
                          acc
@@ -107,20 +107,20 @@ let build pkg argv =
            | Executable (cs, bs, exec) when var_choose bs.bs_build ->
                begin
                  let evs, unix_exec_is, unix_dll_opt =
-                   BaseBuilt.of_executable 
+                   BaseBuilt.of_executable
                      in_build_dir_of_unix
                      (cs, bs, exec)
                  in
 
-                 let host_exec_is = 
+                 let host_exec_is =
                    in_build_dir_of_unix unix_exec_is
                  in
 
                  let target ext =
-                   let unix_tgt = 
+                   let unix_tgt =
                      (BaseFilePath.Unix.concat
                         bs.bs_path
-                        (BaseFilePath.Unix.chop_extension 
+                        (BaseFilePath.Unix.chop_extension
                            exec.exec_main_is))^ext
                    in
 
@@ -145,7 +145,7 @@ let build pkg argv =
                    acc
                end
 
-           | Library _ | Executable _ | Test _ 
+           | Library _ | Executable _ | Test _
            | SrcRepo _ | Flag _ | Doc _ ->
                acc)
       []
@@ -154,7 +154,7 @@ let build pkg argv =
   in
 
   (* Check and register built files *)
-  let check_and_register (bt, bnm, lst) = 
+  let check_and_register (bt, bnm, lst) =
     List.iter
       (fun fns ->
          if not (List.exists Sys.file_exists fns) then
@@ -162,12 +162,12 @@ let build pkg argv =
              (f_ "No one of expected built files %s exists")
              (String.concat (s_ ", ") (List.map (Printf.sprintf "'%s'") fns)))
       lst;
-      (BaseBuilt.register bt bnm lst) 
+      (BaseBuilt.register bt bnm lst)
   in
 
   (* Run a list of target + post process *)
-  let run_ocamlbuild rtargets = 
-    run_ocamlbuild 
+  let run_ocamlbuild rtargets =
+    run_ocamlbuild
       (List.rev_map snd rtargets)
       argv;
     List.iter
@@ -187,14 +187,14 @@ let build pkg argv =
               let len =
                 4096
               in
-              let str1 = 
+              let str1 =
                 String.make len '\000'
               in
               let str2 =
                 String.copy str1
               in
                 try
-                  while (String.compare str1 str2) = 0 do 
+                  while (String.compare str1 str2) = 0 do
                     really_input chn1 str1 0 len;
                     really_input chn2 str2 0 len
                   done;
@@ -215,8 +215,8 @@ let build pkg argv =
   let last_rtargets =
     List.fold_left
       (fun acc (built, tgt) ->
-         match tgt with 
-           | Std nms -> 
+         match tgt with
+           | Std nms ->
                (built, List.hd nms) :: acc
            | StdRename (src, tgt) ->
                begin
@@ -225,13 +225,13 @@ let build pkg argv =
 
                  (* And then copy and register *)
                  begin
-                   let src_fn = 
-                     in_build_dir_of_unix src 
+                   let src_fn =
+                     in_build_dir_of_unix src
                    in
                      if diff src_fn tgt then
                        BaseFileUtil.cp src_fn tgt
                      else
-                       info 
+                       info
                          (f_ "No need to copy file '%s' to '%s', same content")
                          src_fn tgt
                  end;
@@ -244,7 +244,7 @@ let build pkg argv =
     if last_rtargets <> [] then
       run_ocamlbuild last_rtargets
 
-let clean pkg extra_args  = 
+let clean pkg extra_args  =
   run_clean extra_args;
   List.iter
     (function
@@ -269,31 +269,31 @@ open OASISTypes
 open OASISValues
 open MyOCamlbuildBase
 open Ocamlbuild_plugin
-open OCamlbuildId 
+open OCamlbuildId
 
-let plugin = 
+let plugin =
   `Build, name, Some version
 
-let self_id, all_id = 
+let self_id, all_id =
   Build.create plugin
 
 (* TODO: check everywhere that having .h and .c in CSources
- * doesn't disturb things too much 
+ * doesn't disturb things too much
  *)
-let only_h_files lst = 
-  List.filter 
+let only_h_files lst =
+  List.filter
     (fun fn -> FilePath.UnixPath.check_extension fn "h")
     lst
 
 let only_c_files lst =
-  List.filter 
+  List.filter
     (fun fn -> FilePath.UnixPath.check_extension fn "c")
     lst
 
-let add_tags tag_t tgts tags = 
+let add_tags tag_t tgts tags =
   let quote_target fn =
     let test_char =
-      String.contains fn 
+      String.contains fn
     in
       if test_char '*' ||
          test_char '?' ||
@@ -318,37 +318,37 @@ let add_tags tag_t tgts tags =
 let prepend_bs_path bs fn =
   Tag.filename_concat bs.bs_path fn
 
-let bs_paths bs files = 
-  let subdirs = 
+let bs_paths bs files =
+  let subdirs =
     List.rev_map FilePath.UnixPath.dirname
       (List.rev_map (prepend_bs_path bs) files)
   in
     (* Unique elements *)
     SetString.elements
       (set_string_of_list
-         (List.rev_map 
+         (List.rev_map
             (FilePath.UnixPath.reduce ~no_symlink:true)
             (bs.bs_path :: subdirs)))
 
 
-let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocamlbuild_t = 
+let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocamlbuild_t =
 
-  let link_pkg = 
+  let link_pkg =
     (* Only link findlib package with executable *)
-    match sct with 
+    match sct with
       | Executable _ -> true
       | Library _ | Flag _ | Test _ | SrcRepo _ | Doc _ -> false
   in
 
-  let src_tgts = 
+  let src_tgts =
     List.rev_append
       (* .ml files *)
-      (List.rev_map 
+      (List.rev_map
          (fun dn -> Tag.filename_concat dn "*.ml{,i}")
          (src_dirs @ src_internal_dirs))
       (* .c files *)
-      (List.map 
-         (prepend_bs_path bs) 
+      (List.map
+         (prepend_bs_path bs)
          (only_c_files bs.bs_c_sources))
   in
 
@@ -375,8 +375,8 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
   in
   let mkspec pre_arg tr_arg lst =
     S (List.fold_left
-         (fun acc arg -> 
-            match pre_arg with 
+         (fun acc arg ->
+            match pre_arg with
               | Some s -> s :: arg :: acc
               | None -> arg :: acc)
          []
@@ -384,31 +384,31 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
   in
 
   (* Create flag for extra command line option *)
-  let ctxt, tag_t, myocamlbuild_t = 
+  let ctxt, tag_t, myocamlbuild_t =
     List.fold_left
       (fun ((ctxt, tag_t, myocamlbuild_t) as acc)
              (basename, tgts, tags, pre_arg, tr_arg, args_cond) ->
          if args_cond <> [OASISExpr.EBool true, []] then
            begin
-             let tag_name = 
+             let tag_name =
                (* e.g. oasis_library_foo_ccopt *)
-               varname_concat 
+               varname_concat
                  "oasis_"
                  (varname_concat
-                    (varname_of_string 
+                    (varname_of_string
                        (OASISSection.string_of_section sct))
                     basename)
              in
              let all_tags =
-               tag_name :: tags 
+               tag_name :: tags
              in
-             let cond_specs = 
-               List.map 
+             let cond_specs =
+               List.map
                  (fun (cond, lst) ->
                     cond, mkspec pre_arg tr_arg lst)
                  args_cond
              in
-             let flags = 
+             let flags =
                (all_tags, cond_specs) :: myocamlbuild_t.flags
              in
              let tag_t =
@@ -426,10 +426,10 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
       (ctxt, tag_t, myocamlbuild_t)
 
       ([
-        "ccopt", 
+        "ccopt",
         src_tgts, ["compile"],
         Some (A"-ccopt"),
-        atom, 
+        atom,
         bs.bs_ccopt;
 
         "cclib",
@@ -485,8 +485,8 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
             ::
             acc)
          []
-         ["compile"; 
-          "ocamldep"; 
+         ["compile";
+          "ocamldep";
           "link"]))
   in
 
@@ -495,35 +495,35 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
     if bs.bs_c_sources <> [] then
       begin
         (* Generate .clib files *)
-        let fn_clib = 
-          FilePath.add_extension 
+        let fn_clib =
+          FilePath.add_extension
             (prepend_bs_path bs ("lib"^cs.cs_name))
             "clib"
         in
-          add_file 
+          add_file
             (template_make
                fn_clib
                comment_ocamlbuild
                []
-               (List.map 
+               (List.map
                   (fun fn -> FilePath.replace_extension fn "o")
                   (only_c_files bs.bs_c_sources))
                [])
             ctxt,
 
-          add_tags 
-            tag_t 
-            [link_tgt] 
+          add_tags
+            tag_t
+            [link_tgt]
             ["use_lib"^cs.cs_name],
 
-          {myocamlbuild_t with 
-               lib_c = 
-                 ((cs.cs_name, 
-                   bs.bs_path, 
-                   List.map 
+          {myocamlbuild_t with
+               lib_c =
+                 ((cs.cs_name,
+                   bs.bs_path,
+                   List.map
                      (fun fn -> prepend_bs_path bs fn)
                      (only_h_files bs.bs_c_sources))
-                 :: 
+                 ::
                   myocamlbuild_t.lib_c)}
       end
     else
@@ -535,13 +535,13 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
     let mp =
       OASISBuildSection.transitive_build_depends pkg
     in
-      add_tags 
+      add_tags
         tag_t
         (if link_pkg then
            link_tgt :: src_tgts
          else
            src_tgts)
-        (List.fold_left 
+        (List.fold_left
            (fun acc ->
               function
                 | FindlibPackage (findlib_pkg, _) ->
@@ -554,13 +554,13 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
 
   (* Fix for PR#5015, unable to compile depends in subdir *)
   let tag_t =
-    let dirs = 
-      src_dirs @ src_internal_dirs 
+    let dirs =
+      src_dirs @ src_internal_dirs
     in
       (if List.length dirs > 1 then
-         add_tags 
+         add_tags
            tag_t
-           (List.filter 
+           (List.filter
               (fun fn -> not (FilePath.UnixPath.is_current fn))
               dirs)
            ["include"]
@@ -568,11 +568,11 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
          tag_t)
   in
 
-  let ctxt = 
+  let ctxt =
     (* TODO: merge with qstr_cmplt *)
     set_error
       (not (List.mem (ExternalTool "ocamlbuild") bs.bs_build_tools))
-      (Printf.sprintf 
+      (Printf.sprintf
          (f_ "ocamlbuild in field BuildTools of %s is mandatory")
          (OASISSection.string_of_section sct))
       ctxt
@@ -580,40 +580,40 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
 
     ctxt, tag_t, myocamlbuild_t
 
-let add_ocamlbuild_files ctxt pkg = 
+let add_ocamlbuild_files ctxt pkg =
 
-  let ctxt, tag_t, myocamlbuild_t = 
-    List.fold_left 
+  let ctxt, tag_t, myocamlbuild_t =
+    List.fold_left
       (fun (ctxt, tag_t, myocamlbuild_t) ->
-         function 
+         function
            | Library (cs, bs, lib) as sct ->
                begin
                  (* Extract content for libraries *)
 
                  (* All paths accessed from within the library *)
-                 let src_dirs = 
+                 let src_dirs =
                    bs_paths bs lib.lib_modules
                  in
 
                  (* All paths accessed only by the library *)
                  let src_internal_dirs =
-                   let set_dirs = 
-                     set_string_of_list 
+                   let set_dirs =
+                     set_string_of_list
                        src_dirs
                    in
-                   let set_internal_dirs = 
+                   let set_internal_dirs =
                      set_string_of_list
                        (bs_paths bs lib.lib_internal_modules)
                    in
                      SetString.elements
-                       (SetString.diff 
+                       (SetString.diff
                           set_internal_dirs
                           set_dirs)
                  in
 
                  (* Generated library *)
                  let target_lib =
-                   let ext = 
+                   let ext =
                      match bs.bs_compiled_object with
                        | Best ->
                            "{cma,cmxa}"
@@ -629,13 +629,13 @@ let add_ocamlbuild_files ctxt pkg =
                  in
 
                  (* Start comment *)
-                 let tag_t = 
+                 let tag_t =
                    (Printf.sprintf "# Library %s" cs.cs_name) :: tag_t
                  in
 
                  (* Add include tag if the library is internal *)
                  let tag_t =
-                   add_tags 
+                   add_tags
                      tag_t
                      (List.filter
                         (fun fn -> not (FilePath.UnixPath.is_current fn))
@@ -644,8 +644,8 @@ let add_ocamlbuild_files ctxt pkg =
                  in
 
                  let ctxt, tag_t, myocamlbuild_t =
-                   bs_tags 
-                     pkg sct cs bs 
+                   bs_tags
+                     pkg sct cs bs
                      src_dirs
                      src_internal_dirs
                      target_lib
@@ -654,18 +654,18 @@ let add_ocamlbuild_files ctxt pkg =
                      myocamlbuild_t
                  in
 
-                 let myocamlbuild_t = 
-                   {myocamlbuild_t with 
-                        lib_ocaml = 
-                          (prepend_bs_path bs cs.cs_name, 
-                           List.filter 
+                 let myocamlbuild_t =
+                   {myocamlbuild_t with
+                        lib_ocaml =
+                          (prepend_bs_path bs cs.cs_name,
+                           List.filter
                              (fun fn -> not (FilePath.UnixPath.is_current fn))
                              src_dirs) :: myocamlbuild_t.lib_ocaml}
                  in
 
                  let () =
                    if lib.lib_modules = [] then
-                     warning 
+                     warning
                        ~ctxt:ctxt.ctxt
                        (f_ "No exported module defined for library %s")
                        cs.cs_name;
@@ -673,7 +673,7 @@ let add_ocamlbuild_files ctxt pkg =
 
                  let ctxt =
                    (* Generate .mllib files *)
-                   let fn_base = 
+                   let fn_base =
                      prepend_bs_path bs cs.cs_name
                    in
                      add_file
@@ -692,32 +692,32 @@ let add_ocamlbuild_files ctxt pkg =
            | Executable (cs, bs, exec) as sct ->
                begin
                  (* Extract content for executables *)
-                 let src_dirs = 
+                 let src_dirs =
                    bs_paths bs [exec.exec_main_is]
                  in
 
-                 let target_exec = 
+                 let target_exec =
                    let ext =
-                     match bs.bs_compiled_object with 
+                     match bs.bs_compiled_object with
                        | Best ->
                            "{native,byte}"
-                       | Byte -> 
+                       | Byte ->
                            "byte"
                        | Native ->
                            "native"
                    in
                      prepend_bs_path bs
-                       (FilePath.UnixPath.replace_extension 
+                       (FilePath.UnixPath.replace_extension
                           (exec.exec_main_is) ext)
                  in
 
-                 let tag_t = 
+                 let tag_t =
                    (Printf.sprintf "# Executable %s" cs.cs_name) :: tag_t
                  in
 
                  let ctxt, tag_t, myocamlbuild_t =
-                   bs_tags 
-                     pkg sct cs bs 
+                   bs_tags
+                     pkg sct cs bs
                      src_dirs
                      []
                      target_exec
@@ -726,7 +726,7 @@ let add_ocamlbuild_files ctxt pkg =
                      myocamlbuild_t
                  in
 
-                 let tag_t = 
+                 let tag_t =
                    if exec.exec_custom then
                      add_tags tag_t [target_exec] ["custom"]
                    else
@@ -743,7 +743,7 @@ let add_ocamlbuild_files ctxt pkg =
   in
 
   (* Filter duplicate and reverse content in tag_t *)
-  let tag_t = 
+  let tag_t =
     snd
       (List.fold_left
          (fun (prev_tag, acc) tag ->
@@ -768,38 +768,38 @@ let add_ocamlbuild_files ctxt pkg =
     }
   in
 
-  let ctxt = 
+  let ctxt =
     List.fold_left
       (fun ctxt tmpl -> add_file tmpl ctxt)
       ctxt
       [
         (* Generate _tags *)
-        template_make 
-          "_tags" 
-          comment_ocamlbuild 
+        template_make
+          "_tags"
+          comment_ocamlbuild
           []
           tag_t
           [];
 
         (* Generate myocamlbuild.ml *)
-        template_of_mlfile 
+        template_of_mlfile
          "myocamlbuild.ml"
           []
           [
-            OASISData.oasissyslight_ml; 
+            OASISData.oasissyslight_ml;
             BaseData.basesysenvironment_ml;
             OCamlbuildData.myocamlbuild_ml;
             "open Ocamlbuild_plugin;;";
             (
               Format.fprintf Format.str_formatter
                 "@[<hv2>let package_default =@ %a@,@];;"
-                (pp_odn ~opened_modules:["Ocamlbuild_plugin"]) 
+                (pp_odn ~opened_modules:["Ocamlbuild_plugin"])
                 (MyOCamlbuildBase.odn_of_t myocamlbuild_t);
               Format.flush_str_formatter ()
             );
             "";
             "let dispatch_default = \
-                   MyOCamlbuildBase.dispatch_default package_default;;"; 
+                   MyOCamlbuildBase.dispatch_default package_default;;";
             "";
           ]
           ["Ocamlbuild_plugin.dispatch dispatch_default;;"];
@@ -808,12 +808,12 @@ let add_ocamlbuild_files ctxt pkg =
 
     ctxt
 
-let qstrt_completion pkg = 
+let qstrt_completion pkg =
   fix_build_tools (ExternalTool "ocamlbuild") pkg
 
 let init () =
   let doit ctxt pkg =
-    let ctxt = 
+    let ctxt =
       add_ocamlbuild_files ctxt pkg
     in
 

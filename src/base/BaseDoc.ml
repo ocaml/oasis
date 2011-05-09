@@ -26,10 +26,10 @@ open OASISGettext
 
 let doc lst pkg extra_args =
 
-  let one_doc (doc_plugin, cs, doc) = 
-    if var_choose 
-         ~name:(Printf.sprintf 
-                 (f_ "documentation %s build") 
+  let one_doc (doc_plugin, cs, doc) =
+    if var_choose
+         ~name:(Printf.sprintf
+                 (f_ "documentation %s build")
                  cs.cs_name)
          ~printer:string_of_bool
          doc.doc_build then
@@ -41,6 +41,6 @@ let doc lst pkg extra_args =
           extra_args
       end
   in
-    List.iter 
+    List.iter
       one_doc
       lst

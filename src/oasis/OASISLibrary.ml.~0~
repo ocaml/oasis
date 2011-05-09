@@ -25,20 +25,20 @@ open OASISGettext
 
 type library_name = name
 
-let generated_unix_files ~ctxt (cs, bs, lib)
-      source_file_exists is_native ext_lib ext_dll =
+let generated_unix_files ~ctxt (cs, bs, lib) 
+      source_file_exists is_native ext_lib ext_dll =  
   (* The headers that should be compiled along *)
-  let headers =
+  let headers = 
     List.fold_left
       (fun hdrs modul ->
-         try
-           let base_fn =
+         try 
+           let base_fn = 
              List.find
-               (fun fn ->
+               (fun fn -> 
                   source_file_exists (fn^".ml") ||
                   source_file_exists (fn^".mli") ||
                   source_file_exists (fn^".mll") ||
-                  source_file_exists (fn^".mly"))
+                  source_file_exists (fn^".mly")) 
                (List.map
                   (OASISUnixPath.concat bs.bs_path)
                   [modul;
@@ -73,7 +73,7 @@ let generated_unix_files ~ctxt (cs, bs, lib)
     let native acc =
       [cs.cs_name^".cmxa"] :: [cs.cs_name^(ext_lib ())] :: acc
     in
-      match bs.bs_compiled_object with
+      match bs.bs_compiled_object with 
         | Native ->
             byte (native acc_nopath)
         | Best when is_native () ->
@@ -83,7 +83,7 @@ let generated_unix_files ~ctxt (cs, bs, lib)
   in
 
   (* Add C library to be built *)
-  let acc_nopath =
+  let acc_nopath = 
     if bs.bs_c_sources <> [] then
       begin
         ["lib"^cs.cs_name^(ext_lib ())]
@@ -105,12 +105,12 @@ let generated_unix_files ~ctxt (cs, bs, lib)
       headers
 
 
-type group_t =
+type group_t = 
   | Container of findlib_name * (group_t list)
-  | Package of (findlib_name *
+  | Package of (findlib_name * 
                 common_section *
-                build_section *
-                library *
+                build_section * 
+                library * 
                 (group_t list))
 
 let group_libs pkg =
@@ -121,11 +121,11 @@ let group_libs pkg =
          function
            | Library (cs, bs, lib) ->
                begin
-                 match lib.lib_findlib_parent with
+                 match lib.lib_findlib_parent with 
                    | Some p_nm ->
                        begin
                          let children =
-                           try
+                           try 
                              MapString.find p_nm mp
                            with Not_found ->
                              []
@@ -143,7 +143,7 @@ let group_libs pkg =
 
   (* Compute findlib name of a single node *)
   let findlib_name (cs, _, lib) =
-    match lib.lib_findlib_name with
+    match lib.lib_findlib_name with 
       | Some nm -> nm
       | None -> cs.cs_name
   in
@@ -154,15 +154,12 @@ let group_libs pkg =
       | hd :: tl ->
           Container (hd, [tree_of_library tl acc])
       | [] ->
-          (* TODO: allow merging containers with the same 
-           * name 
-           *)
           Package 
             (findlib_name acc, cs, bs, lib,
-             (try
-                List.rev_map
+             (try 
+                List.rev_map 
                   (fun ((_, _, child_lib) as child_acc) ->
-                     tree_of_library
+                     tree_of_library 
                        child_lib.lib_findlib_containers
                        child_acc)
                   (MapString.find cs.cs_name children)
@@ -201,20 +198,21 @@ let group_libs pkg =
   in
 
     (* TODO: check that libraries are unique *)
-    List.fold_left
-      (fun acc ->
-         function
-           | Library (cs, bs, lib) when lib.lib_findlib_parent = None -> 
-               (tree_of_library lib.lib_findlib_containers (cs, bs, lib)) :: acc
-           | _ ->
-               acc)
-      []
-      pkg.sections
+    merge_containers
+      (List.fold_left
+         (fun acc ->
+            function
+              | Library (cs, bs, lib) when lib.lib_findlib_parent = None -> 
+                  (tree_of_library lib.lib_findlib_containers (cs, bs, lib)) :: acc
+              | _ ->
+                  acc)
+         []
+         pkg.sections)
 
 (** Compute internal to findlib library matchings, including subpackage
     and return a map of it.
   *)
-let findlib_name_map pkg =
+let findlib_name_map pkg = 
 
   (* Compute names in a tree *)
   let rec findlib_names_aux path mp grp =
@@ -222,7 +220,7 @@ let findlib_name_map pkg =
       match grp with
         | Container (fndlb_nm, children) ->
             fndlb_nm, children, mp
-
+                                  
         | Package (fndlb_nm, {cs_name = nm}, _, _, children) ->
             fndlb_nm, children, (MapString.add nm (path, fndlb_nm) mp)
     in
@@ -245,11 +243,11 @@ let findlib_name_map pkg =
 
 
 let findlib_of_name ?(recurse=false) map nm =
-  try
-    let (path, fndlb_nm) =
+  try 
+    let (path, fndlb_nm) = 
       MapString.find nm map
     in
-      match path with
+      match path with 
         | Some pth when recurse -> pth^"."^fndlb_nm
         | _ -> fndlb_nm
 
@@ -259,33 +257,33 @@ let findlib_of_name ?(recurse=false) map nm =
       nm
 
 let name_findlib_map pkg =
-  let mp =
+  let mp = 
     findlib_name_map pkg
   in
     MapString.fold
-      (fun nm _ acc ->
+      (fun nm _ acc -> 
          let fndlb_nm_full =
-           findlib_of_name
-             ~recurse:true
-             mp
+           findlib_of_name 
+             ~recurse:true 
+             mp 
              nm
          in
            MapString.add fndlb_nm_full nm acc)
       mp
       MapString.empty
 
-let findlib_of_group =
+let findlib_of_group = 
   function
-    | Container (fndlb_nm, _)
+    | Container (fndlb_nm, _) 
     | Package (fndlb_nm, _, _, _, _) -> fndlb_nm
 
 let root_of_group grp =
   let rec root_lib_aux =
-    function
+    function 
       | Container (_, children) ->
-          root_lib_lst children
+          root_lib_lst children        
       | Package (_, cs, bs, lib, children) ->
-          if lib.lib_findlib_parent = None then
+          if lib.lib_findlib_parent = None then 
             cs, bs, lib
           else
             root_lib_lst children

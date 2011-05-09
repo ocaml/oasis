@@ -54,7 +54,7 @@ let doc_build path pkg (cs, doc) argv =
          BaseBuilt.register
            BaseBuilt.BDoc
            cs.cs_name
-           [BaseFileUtil.glob 
+           [BaseFileUtil.glob
               (Filename.concat tgt_dir glb)])
       ["*.html"; "*.css"]
 
@@ -72,10 +72,10 @@ open OASISPlugin
 open OASISSchema
 open OCamlbuildId
 
-let plugin = 
+let plugin =
   `Doc, name, Some version
 
-type t = 
+type t =
     {
       path:      unix_dirname;
       modules:   string list;
@@ -84,7 +84,7 @@ type t =
       flags:     string list;
     }
 
-let pivot_data = 
+let pivot_data =
   data_new_property plugin
 
 let self_id, all_id =
@@ -127,7 +127,7 @@ let libraries =
  *)
 (*
 let intro =
-  new_field 
+  new_field
     ~default:None
     "Intro"
     (opt file)
@@ -138,22 +138,22 @@ let flags =
   new_field
     ~default:[]
     "Flags"
-    space_separated 
+    space_separated
     (ns_ "OCamldoc flags")
     (fun _ t -> t.flags)
  *)
 
 (* TODO: use -t for title *)
 
-let doit ctxt pkg (cs, doc) = 
+let doit ctxt pkg (cs, doc) =
 
   let path =
     path cs.cs_data
   in
 
   let modules_from_libraries =
-    (* Convert findlib name to internal library and compute 
-     * the module they shipped 
+    (* Convert findlib name to internal library and compute
+     * the module they shipped
      *)
     let lib_of_findlib =
       let name_of_findlib =
@@ -172,7 +172,7 @@ let doit ctxt pkg (cs, doc) =
       in
         fun fndlb_nm ->
           try
-            let nm = 
+            let nm =
               MapString.find fndlb_nm name_of_findlib
             in
               MapString.find nm lib_of_name
@@ -203,7 +203,7 @@ let doit ctxt pkg (cs, doc) =
                      FilePath.UnixPath.make_relative
                        fake_doc_path
                        (fake_root
-                          (FilePath.UnixPath.concat 
+                          (FilePath.UnixPath.concat
                              bs.bs_path
                              modul)))
                   lib.lib_modules)
@@ -211,20 +211,20 @@ let doit ctxt pkg (cs, doc) =
            (libraries cs.cs_data))
   in
 
-  let modules_from_doc = 
+  let modules_from_doc =
     (* Fetch modules defined directly *)
     modules cs.cs_data
   in
 
-  let modules = 
+  let modules =
     modules_from_libraries @ modules_from_doc
   in
 
   let ctxt =
     (* Create .odocl file *)
     add_file
-      (template_make 
-         (FilePath.add_extension 
+      (template_make
+         (FilePath.add_extension
             (FilePath.concat path cs.cs_name)
             "odocl")
          comment_ocamlbuild
@@ -234,7 +234,7 @@ let doit ctxt pkg (cs, doc) =
       ctxt
   in
 
-  let ctxt = 
+  let ctxt =
     (* Checks consistency of options *)
     (* TODO: merge with qstrt_completion *)
     List.fold_left
@@ -247,13 +247,13 @@ let doit ctxt pkg (cs, doc) =
              (f_ "ocamldoc in field BuildTools of document %s is mandatory.")
              cs.cs_name);
 
-        set_error 
+        set_error
           (not (List.mem (ExternalTool "ocamlbuild") doc.doc_build_tools))
           (Printf.sprintf
              (f_ "ocamlbuild in field BuildTools of document %s is mandatory.")
              cs.cs_name);
 
-        set_error 
+        set_error
           (modules = [])
           (Printf.sprintf
              (f_ "No module defined for document %s.")
@@ -263,32 +263,32 @@ let doit ctxt pkg (cs, doc) =
 
     ctxt,
     {
-      chng_moduls = 
+      chng_moduls =
         [OCamlbuildData.ocamlbuildsys_ml];
 
-      chng_main = 
-        ODNFunc.func_with_arg 
+      chng_main =
+        ODNFunc.func_with_arg
           doc_build "OCamlbuildDocPlugin.doc_build"
           path ODN.of_string;
 
-      chng_clean = 
-        Some 
+      chng_clean =
+        Some
           (ODNFunc.func_with_arg
              doc_clean "OCamlbuildDocPlugin.doc_clean"
              path ODN.of_string);
 
-      chng_distclean = 
+      chng_distclean =
         None;
     }
 
-let qstrt_completion pkg = 
+let qstrt_completion pkg =
   List.fold_left
     (fun pkg tool -> fix_build_tools tool pkg)
     pkg
     [ExternalTool "ocamlbuild";
      ExternalTool "ocamldoc"]
 
-let init () = 
+let init () =
   OCamlbuildId.init ();
   Doc.register_act self_id doit;
   register_quickstart_completion all_id qstrt_completion

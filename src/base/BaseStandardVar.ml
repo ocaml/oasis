@@ -33,16 +33,16 @@ let ocamlbuild = prog "ocamlbuild"
 
 
 (**/**)
-let rpkg = 
+let rpkg =
   ref None
 
 let pkg_get () =
-  match !rpkg with 
+  match !rpkg with
     | Some pkg -> pkg
     | None -> failwith (s_ "OASIS Package is not set")
 (**/**)
 
-let pkg_name = 
+let pkg_name =
   var_define
     ~short_desc:(fun () -> s_ "Package name")
     "pkg_name"
@@ -52,10 +52,10 @@ let pkg_version =
   var_define
     ~short_desc:(fun () -> s_ "Package version")
     "pkg_version"
-    (lazy 
+    (lazy
        (OASISVersion.string_of_version (pkg_get ()).version))
 
-let c = BaseOCamlcConfig.var_define 
+let c = BaseOCamlcConfig.var_define
 
 let os_type        = c "os_type"
 let system         = c "system"
@@ -80,28 +80,28 @@ let systhread_supported      = c "systhread_supported"
 
 
 (**/**)
-let p name hlp dflt = 
+let p name hlp dflt =
   var_define
-    ~short_desc:hlp 
-    ~cli:CLIAuto 
-    ~arg_help:"dir" 
-    name 
-    dflt 
+    ~short_desc:hlp
+    ~cli:CLIAuto
+    ~arg_help:"dir"
+    name
+    dflt
 
-let (/) a b = 
+let (/) a b =
   if os_type () = Sys.os_type then
-    Filename.concat a b 
+    Filename.concat a b
   else if os_type () = "Unix" then
-    BaseFilePath.Unix.concat a b 
+    BaseFilePath.Unix.concat a b
   else
     OASISUtils.failwithf (f_ "Cannot handle os_type %s filename concat")
       (os_type ())
 (**/**)
 
-let prefix = 
+let prefix =
   p "prefix"
     (fun () -> s_ "Install architecture-independent files dir")
-    (lazy 
+    (lazy
        (match os_type () with
           | "Win32" ->
               let program_files =
@@ -111,7 +111,7 @@ let prefix =
           | _ ->
               "/usr/local"))
 
-let exec_prefix = 
+let exec_prefix =
   p "exec_prefix"
     (fun () -> s_ "Install architecture-dependent files in dir")
     (lazy "$prefix")
@@ -204,16 +204,16 @@ let psdir =
 let destdir =
   p "destdir"
     (fun () -> s_ "Prepend a path when installing package")
-    (lazy 
-       (raise 
+    (lazy
+       (raise
           (PropList.Not_set
-             ("destdir", 
+             ("destdir",
               Some (s_ "undefined by construct")))))
 
 let findlib_version =
   var_define
     "findlib_version"
-    (lazy 
+    (lazy
        (BaseCheck.package_version "findlib"))
 
 let is_native =
@@ -221,12 +221,12 @@ let is_native =
     "is_native"
     (lazy
        (try
-          let _s : string = 
+          let _s : string =
             ocamlopt ()
           in
             "true"
         with PropList.Not_set _ ->
-          let _s : string = 
+          let _s : string =
             ocamlc ()
           in
             "false"))
@@ -235,8 +235,8 @@ let ext_program =
   var_define
     "suffix_program"
     (lazy
-       (match os_type () with 
-          | "Win32" -> ".exe" 
+       (match os_type () with
+          | "Win32" -> ".exe"
           | _ -> ""
        ))
 
@@ -244,7 +244,7 @@ let rm =
   var_define
     ~short_desc:(fun () -> s_ "Remove a file.")
     "rm"
-    (lazy 
+    (lazy
        (match os_type () with
           | "Win32" -> "del"
           | _ -> "rm -f"))
@@ -253,7 +253,7 @@ let rmdir =
   var_define
     ~short_desc:(fun () -> s_ "Remove a directory.")
     "rmdir"
-    (lazy 
+    (lazy
        (match os_type () with
           | "Win32" -> "rd"
           | _ -> "rm -rf"))
@@ -270,6 +270,6 @@ let profile =
     "profile"
     (lazy "false")
 
-let init pkg = 
+let init pkg =
   rpkg := Some pkg
 

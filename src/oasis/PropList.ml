@@ -23,7 +23,7 @@ open OASISGettext
 
 type name = string
 
-exception Not_set of name * string option 
+exception Not_set of name * string option
 exception No_printer of name
 exception Unknown_field of name * name
 
@@ -43,7 +43,7 @@ let string_of_exception =
 module Data =
 struct
 
-  type t = 
+  type t =
       (name, unit -> unit) Hashtbl.t
 
   let create () =
@@ -65,7 +65,7 @@ struct
 (* START EXPORT *)
 end
 
-module Schema = 
+module Schema =
 struct
 
   type ('ctxt, 'extra) value =
@@ -84,43 +84,43 @@ struct
         name_norm: string -> string;
       }
 
-  let create ?(case_insensitive=false) nm = 
+  let create ?(case_insensitive=false) nm =
     {
       name      = nm;
       fields    = Hashtbl.create 13;
       order     = Queue.create ();
-      name_norm = 
-        (if case_insensitive then 
+      name_norm =
+        (if case_insensitive then
            String.lowercase
          else
            fun s -> s);
     }
 
-  let add t nm set get extra help = 
-    let key = 
+  let add t nm set get extra help =
+    let key =
       t.name_norm nm
     in
 
       if Hashtbl.mem t.fields key then
         failwith
-          (Printf.sprintf 
+          (Printf.sprintf
              (f_ "Field '%s' is already defined in schema '%s'")
              nm t.name);
-      Hashtbl.add 
-        t.fields 
-        key 
+      Hashtbl.add
+        t.fields
+        key
         {
-          set   = set; 
-          get   = get; 
+          set   = set;
+          get   = get;
           help  = help;
           extra = extra;
         };
-      Queue.add nm t.order 
+      Queue.add nm t.order
 
   let mem t nm =
-    Hashtbl.mem t.fields nm 
+    Hashtbl.mem t.fields nm
 
-  let find t nm = 
+  let find t nm =
     try
       Hashtbl.find t.fields (t.name_norm nm)
     with Not_found ->
@@ -130,28 +130,28 @@ struct
     (find t nm).get data
 
   let set t data nm ?context x =
-    (find t nm).set 
-      data 
-      ?context 
+    (find t nm).set
+      data
+      ?context
       x
 
   let fold f acc t =
-    Queue.fold 
+    Queue.fold
       (fun acc k ->
          let v =
            find t k
          in
            f acc k v.extra v.help)
-      acc 
+      acc
       t.order
 
   let iter f t =
-    fold 
+    fold
       (fun () -> f)
       ()
       t
 
-  let name t = 
+  let name t =
     t.name
 end
 
@@ -168,7 +168,7 @@ struct
         extra:  'extra;
       }
 
-  let new_id = 
+  let new_id =
     let last_id =
       ref 0
     in
@@ -176,20 +176,20 @@ struct
 
   let create ?schema ?name ?parse ?print ?default ?update ?help extra =
     (* Default value container *)
-    let v = 
-      ref None 
+    let v =
+      ref None
     in
 
     (* If name is not given, create unique one *)
-    let nm = 
-      match name with 
+    let nm =
+      match name with
         | Some s -> s
         | None -> Printf.sprintf "_anon_%d" (new_id ())
     in
 
     (* Last chance to get a value: the default *)
-    let default () = 
-      match default with 
+    let default () =
+      match default with
         | Some d -> d
         | None -> raise (Not_set (nm, Some (s_ "no default value")))
     in
@@ -197,22 +197,22 @@ struct
     (* Get data *)
     let get data =
       (* Get value *)
-      try 
+      try
         (Hashtbl.find data nm) ();
-        match !v with 
-          | Some x -> x 
+        match !v with
+          | Some x -> x
           | None -> default ()
       with Not_found ->
         default ()
     in
 
     (* Set data *)
-    let set data ?context x = 
-      let x = 
-        match update with 
+    let set data ?context x =
+      let x =
+        match update with
           | Some f ->
               begin
-                try 
+                try
                   f ?context (get data) x
                 with Not_set _ ->
                   x
@@ -220,21 +220,21 @@ struct
           | None ->
               x
       in
-        Hashtbl.replace 
-          data 
-          nm 
-          (fun () -> v := Some x) 
+        Hashtbl.replace
+          data
+          nm
+          (fun () -> v := Some x)
     in
 
     (* Parse string value, if possible *)
     let parse =
-      match parse with 
-        | Some f -> 
+      match parse with
+        | Some f ->
             f
         | None ->
             fun ?context s ->
-              failwith 
-                (Printf.sprintf 
+              failwith
+                (Printf.sprintf
                    (f_ "Cannot parse field '%s' when setting value %S")
                    nm
                    s)
@@ -259,8 +259,8 @@ struct
       print (get data)
     in
 
-      begin 
-        match schema with 
+      begin
+        match schema with
           | Some t ->
               Schema.add t nm sets gets extra help
           | None ->
@@ -276,7 +276,7 @@ struct
         extra = extra;
       }
 
-  let fset data t ?context x = 
+  let fset data t ?context x =
     t.set data ?context x
 
   let fget data t =
@@ -286,7 +286,7 @@ struct
     t.sets data ?context s
 
   let fgets data t =
-    t.gets data 
+    t.gets data
 
 end
 
@@ -294,7 +294,7 @@ module FieldRO =
 struct
 
   let create ?schema ?name ?parse ?print ?default ?update ?help extra =
-    let fld = 
+    let fld =
       Field.create ?schema ?name ?parse ?print ?default ?update ?help extra
     in
       fun data -> Field.fget data fld

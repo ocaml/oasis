@@ -25,17 +25,17 @@
 
 TYPE_CONV_PATH "OASISLicense"
 
-type license = string with odn 
+type license = string with odn
 
 type license_exception = string with odn
 
-type license_version = 
+type license_version =
   | Version of OASISVersion.t
   | VersionOrLater of OASISVersion.t
   | NoVersion
   with odn
 
-type license_dep_5 = 
+type license_dep_5 =
     {
       license:    license;
       exceptions: license_exception list;
@@ -57,22 +57,22 @@ let string_of_license s = s
 
 let string_of_license_exception s = s
 
-type license_data = 
+type license_data =
     {
       long_name: string;
       versions:  OASISVersion.t list;
       note:      string option;
     }
 
-let all_licenses = 
+let all_licenses =
   HashStringCsl.create 13
 
-let mk_license nm ?(versions=[]) ?note long_name = 
+let mk_license nm ?(versions=[]) ?note long_name =
   if HashStringCsl.mem all_licenses nm then
     failwithf
       (f_ "Duplicate license '%s'")
       nm;
-  HashStringCsl.add all_licenses nm 
+  HashStringCsl.add all_licenses nm
     {
       long_name = long_name;
       versions  = List.map OASISVersion.version_of_string versions;
@@ -80,215 +80,215 @@ let mk_license nm ?(versions=[]) ?note long_name =
     };
   nm
 
-let license_data () = 
-  let lst = 
+let license_data () =
+  let lst =
     HashStringCsl.fold
-      (fun license data acc -> 
-         (license, 
-          {data with 
+      (fun license data acc ->
+         (license,
+          {data with
                (* Really translate strings *)
                long_name = s_ data.long_name;
-               note = 
-                 match data.note with 
+               note =
+                 match data.note with
                    | Some str -> Some (s_ str)
                    | None -> None})
          :: acc)
       all_licenses
       []
   in
-    List.sort (fun (nm1, _) (nm2, _) -> compare_csl nm1 nm2) lst 
+    List.sort (fun (nm1, _) (nm2, _) -> compare_csl nm1 nm2) lst
 
-let proprietary = 
+let proprietary =
   mk_license
     "PROP"
     (ns_ "Proprietary license, all rights reserved")
 
-let apache = 
+let apache =
   mk_license
     "Apache"
     ~versions:["1.0"; "1.1"; "2.0"]
     (ns_ "Apache license")
 
-let artistic = 
+let artistic =
   mk_license
     "Artistic"
     ~versions:["1.0"; "2.0"]
     (ns_ "Artistic license")
 
-let bsd3 = 
+let bsd3 =
   mk_license
     "BSD3"
     (ns_ "Berkeley software distribution license (3 clauses)")
 
-let bsd4 = 
+let bsd4 =
   mk_license
     "BSD4"
     (ns_ "Berkeley software distribution license (4 clauses)")
 
-let cecill = 
+let cecill =
   mk_license
     "CeCILL"
     ~versions:["1"; "2"]
     ~note:(ns_ "GPL like.")
     (ns_ "CEA-CNRS-INRIA Logiciel Libre")
 
-let cecillb = 
+let cecillb =
   mk_license
     "CeCILL-B"
     (ns_ "CEA-CNRS-INRIA Logiciel Libre, BSD-like")
 
-let cecillc = 
+let cecillc =
   mk_license
     "CeCILL-C"
     (ns_ "CEA-CNRS-INRIA Logiciel Libre, LGPL-like")
 
-let freebsd = 
+let freebsd =
   mk_license
     "FreeBSD"
     "FreeBSD Project license"
 
-let isc = 
-  mk_license 
+let isc =
+  mk_license
     "ISC"
     ~note:(ns_ "Sometimes also known as the OpenBSD License.")
     (ns_ "Internet Software Consortium's license")
 
-let cc_by = 
-  mk_license 
+let cc_by =
+  mk_license
     "CC-BY"
     (ns_ "Creative Commons Attribution license")
 
-let cc_by_sa = 
-  mk_license 
+let cc_by_sa =
+  mk_license
     "CC-BY-SA"
     (ns_ "Creative Commons Attribution Share Alike license")
 
-let cc_by_nd = 
+let cc_by_nd =
   mk_license
     "CC-BY-ND"
     (ns_ "Creative Commons Attribution No Derivatives")
 
-let cc_by_nc = 
+let cc_by_nc =
   mk_license
     "CC-BY-NC"
     (ns_ "Creative Commons Attribution Non-Commercial")
 
-let cc_by_nc_sa = 
+let cc_by_nc_sa =
   mk_license
     "CC-BY-NC-SA"
     (ns_ "Creative Commons Attribution Non-Commercial Share Alike")
 
-let cc_by_nc_nd = 
+let cc_by_nc_nd =
   mk_license
     "CC-BY-NC-ND"
     (ns_ "Creative Commons Attribution Non-Commercial No Derivatives")
 
-let cc0 = 
+let cc0 =
   mk_license
     "CC0"
     (ns_ "Creative Commons Universal waiver")
 
-let cddl = 
+let cddl =
   mk_license
     "CDDL"
     (ns_ "Common Development and Distribution License")
 
-let cpl = 
+let cpl =
   mk_license
     "CPL"
     ~versions:["1.0"]
     (ns_ "IBM Common Public License")
 
-let eiffel = 
+let eiffel =
   mk_license
     "Eiffel"
     ~versions:["2"]
     (ns_ "The Eiffel Forum License")
 
-let expat = 
+let expat =
   mk_license
     "Expat"
     (ns_ "The Expat license")
 
-let gpl = 
+let gpl =
   mk_license
     "GPL"
     ~versions:["1.0"; "2.0"; "3.0"]
     (ns_ "GNU General Public License")
 
-let lgpl = 
+let lgpl =
   mk_license
     "LGPL"
     ~versions:["2.0"; "2.1"; "3.0"]
     ~note:"GNU Library General Public License for versions lower than 2.1"
     (ns_ "GNU Lesser General Public License")
 
-let gfdl = 
+let gfdl =
   mk_license
     "GFDL"
     ~versions:["1.1"; "1.2"; "1.3"]
     (ns_ "GNU Free Documentation License")
 
-let gfdl_niv = 
+let gfdl_niv =
   mk_license
     "GFDL-NIV"
     ~versions:["1.1"; "1.2"; "1.3"]
     (ns_ "GNU Free Documentation License, with no invariant sections")
 
-let lppl = 
+let lppl =
   mk_license
     "LPPL"
     ~versions:["1.3c"]
     (ns_ "LaTeX Project Public License")
 
-let mpl = 
+let mpl =
   mk_license
     "MPL"
     ~versions:["1.0"; "1.1"]
     (ns_ "Mozilla Public License")
 
-let perl = 
+let perl =
   mk_license
     "Perl"
     ~note:(ns_ "Equates to GPL-1+ or Artistic-1.")
     (ns_ "Perl license")
 
-let psf = 
+let psf =
   mk_license
     "PSF"
     ~versions:["2"]
     (ns_ "Python Software Foundation license")
 
-let qpl = 
+let qpl =
   mk_license
     "QPL"
     ~versions:["1.0"]
     (ns_ "Q Public License")
 
-let w3c_software = 
+let w3c_software =
   mk_license
     "W3C-Software"
     ~versions:["20021231"]
     (ns_ "W3C Software License")
 
-let zlib = 
+let zlib =
   mk_license
     "ZLIB"
     ~versions:["1.2.2"]
     (ns_ "zlib/libpng license")
 
-let zope = 
+let zope =
   mk_license
     "Zope"
     ~versions:["1.0"; "2.0"; "2.1"]
     (ns_ "Zope Public License")
 
-let mit = 
-  mk_license 
+let mit =
+  mk_license
     "MIT"
     (ns_ "MIT License")
 
-let public_domain = 
+let public_domain =
   mk_license
     "PD"
     ~note:(ns_ "This is not a true license.")
@@ -303,30 +303,30 @@ type license_exception_data =
 let all_exceptions =
   HashStringCsl.create 13
 
-let mk_exception nm explanation licenses = 
+let mk_exception nm explanation licenses =
   if HashStringCsl.mem all_exceptions nm then
     failwithf
       (f_ "Duplicate license exception '%s'")
       nm;
-  HashStringCsl.add all_exceptions nm 
+  HashStringCsl.add all_exceptions nm
     {
       explanation = explanation;
       licenses    = licenses;
     };
   nm
 
-let license_exception_data () = 
+let license_exception_data () =
   HashStringCsl.fold
-    (fun license_exception data acc -> 
-       (license_exception, 
-        {data with 
+    (fun license_exception data acc ->
+       (license_exception,
+        {data with
              (* Really translate strings *)
              explanation = s_ data.explanation})
        :: acc)
     all_exceptions
     []
 
-let ocaml_linking_exception = 
+let ocaml_linking_exception =
   mk_exception
     "OCaml linking"
     (ns_ "Add an exception to allow static compilation without license \
@@ -337,21 +337,21 @@ let ocaml_linking_exception =
 
 let parse_rgxp =
   ignore "(*";
-  Pcre.regexp ~flags:[`CASELESS] 
+  Pcre.regexp ~flags:[`CASELESS]
     "^([A-Z0-9\\-]*?[A-Z0-9]+)\
      (-([0-9\\.]+))?(\\+)?\
      ( *with *(.*[^ ]+) *exception)?$"
 
-let parse_dep5 ~ctxt str = 
-  let substrs = 
+let parse_dep5 ~ctxt str =
+  let substrs =
     Pcre.exec ~rex:parse_rgxp str
   in
-  let get_subs n = 
+  let get_subs n =
     Pcre.get_substring substrs n
   in
-  let license = 
-    let res = 
-      try 
+  let license =
+    let res =
+      try
         get_subs 1
       with Not_found ->
         failwithf
@@ -364,9 +364,9 @@ let parse_dep5 ~ctxt str =
           res str;
       res
   in
-  let version = 
-    try 
-      let ver = 
+  let version =
+    try
+      let ver =
         OASISVersion.version_of_string (get_subs 3)
       in
         try
@@ -374,12 +374,12 @@ let parse_dep5 ~ctxt str =
             VersionOrLater ver
         with Not_found ->
           Version ver
-    with Not_found -> 
+    with Not_found ->
       NoVersion
   in
   let exceptions =
     try
-      let res = 
+      let res =
         get_subs 6
       in
         if HashStringCsl.mem all_exceptions res then
@@ -388,23 +388,23 @@ let parse_dep5 ~ctxt str =
           failwithf
             (f_ "Unknown license exception '%s' in '%s'")
             res str
-    with Not_found -> 
+    with Not_found ->
       []
   in
-    { 
+    {
       license    = license;
-      exceptions = exceptions; 
+      exceptions = exceptions;
       version    = version;
     }
 
-let parse ~ctxt str = 
-  try 
+let parse ~ctxt str =
+  try
     begin
       DEP5License (parse_dep5 ~ctxt str)
     end
   with Not_found ->
     begin
-      try 
+      try
         OtherLicense
           (OASISValues.url.parse ~ctxt str)
       with Failure _ ->
@@ -414,22 +414,22 @@ let parse ~ctxt str =
     end
 
 
-let to_string = 
+let to_string =
   function
     | DEP5License t ->
         begin
-          let ver = 
+          let ver =
             match t.version with
-              | Version v -> 
+              | Version v ->
                   "-"^(OASISVersion.string_of_version v)
               | VersionOrLater v ->
                   "-"^(OASISVersion.string_of_version v)^"+"
               | NoVersion ->
                   ""
           in
-          let exceptions = 
+          let exceptions =
             match t.exceptions with
-              | [] -> 
+              | [] ->
                   ""
               | lst ->
                   " with "^(String.concat ", " lst)^" exception"
@@ -449,12 +449,12 @@ let value =
 
 
 let choices () =
-  let compare_license t1 t2 = 
+  let compare_license t1 t2 =
     match compare_csl t1.license t2.license with
       | 0 ->
           begin
-            let v_cmp = 
-              match t1.version, t2.version with 
+            let v_cmp =
+              match t1.version, t2.version with
                 | NoVersion, NoVersion ->
                     0
                 | NoVersion, _ ->
@@ -467,7 +467,7 @@ let choices () =
                 | VersionOrLater v1, VersionOrLater v2 ->
                     OASISVersion.version_compare v1 v2
             in
-              match v_cmp with 
+              match v_cmp with
                 | 0 ->
                     begin
                       compare t1.exceptions t2.exceptions
@@ -479,20 +479,20 @@ let choices () =
             n
   in
 
-  let exception_find license mp = 
+  let exception_find license mp =
     try
       MapString.find license mp
     with Not_found ->
       []
   in
 
-  let exceptions_map = 
+  let exceptions_map =
     HashStringCsl.fold
       (fun excpt data mp ->
          List.fold_left
            (fun mp license ->
-              let vl = 
-                exception_find license mp 
+              let vl =
+                exception_find license mp
               in
                 MapString.add license (excpt :: vl) mp)
            mp
@@ -501,15 +501,15 @@ let choices () =
       MapString.empty
   in
 
-  let all = 
+  let all =
     HashStringCsl.fold
       (fun license extra acc ->
-         let dflt = 
+         let dflt =
            {license = license; version = NoVersion; exceptions = []}
          in
            List.fold_left
-             (fun acc ver -> 
-                let dflt = 
+             (fun acc ver ->
+                let dflt =
                   {dflt with version = Version ver}
                 in
                   List.fold_left
@@ -525,16 +525,16 @@ let choices () =
       []
   in
 
-  let all = 
+  let all =
     List.sort compare_license all
   in
 
-  let preferred = 
+  let preferred =
     [
-      {license = lgpl; 
+      {license = lgpl;
        version = Version (OASISVersion.version_of_string "2.1");
        exceptions = [ocaml_linking_exception]};
-      {license = bsd3; 
+      {license = bsd3;
        version = NoVersion;
        exceptions = []};
       {license = gpl;
@@ -548,7 +548,7 @@ let choices () =
        exceptions = []};
     ]
   in
-  let all = 
+  let all =
     preferred @ (List.filter (fun l -> not (List.mem l preferred)) all)
   in
-    List.map (fun t -> DEP5License t) all 
+    List.map (fun t -> DEP5License t) all

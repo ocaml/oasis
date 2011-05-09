@@ -33,14 +33,14 @@ open BaseMessage
   * and then output corresponding file.
   *)
 let configure pkg argv =
-  let var_ignore_eval var = 
+  let var_ignore_eval var =
     let _s : string =
       var ()
-    in 
+    in
       ()
   in
 
-  let errors = 
+  let errors =
     ref SetString.empty
   in
 
@@ -63,11 +63,11 @@ let configure pkg argv =
 
   (* Check tools *)
   let check_tools lst =
-    List.iter 
+    List.iter
       (function
-         | ExternalTool tool -> 
+         | ExternalTool tool ->
              begin
-               try 
+               try
                  var_ignore_eval (BaseCheck.prog tool)
                with e ->
                  warn_exception e;
@@ -77,8 +77,8 @@ let configure pkg argv =
              (* Check that matching tool is built *)
              List.iter
                (function
-                  | Executable ({cs_name = nm2}, 
-                                {bs_build = build}, 
+                  | Executable ({cs_name = nm2},
+                                {bs_build = build},
                                 _) when nm1 = nm2 ->
                        if not (var_choose build) then
                          add_errors
@@ -96,7 +96,7 @@ let configure pkg argv =
       begin
         if bs.bs_compiled_object = Native then
           begin
-            try 
+            try
               var_ignore_eval BaseStandardVar.ocamlopt
             with e ->
               warn_exception e;
@@ -109,11 +109,11 @@ let configure pkg argv =
         check_tools bs.bs_build_tools;
 
         (* Check depends *)
-        List.iter  
+        List.iter
           (function
              | FindlibPackage (findlib_pkg, version_comparator) ->
                  begin
-                   try 
+                   try
                      var_ignore_eval
                        (BaseCheck.package ?version_comparator findlib_pkg)
                    with e ->
@@ -134,7 +134,7 @@ let configure pkg argv =
                  List.iter
                    (function
                       | Library ({cs_name = nm2},
-                                 {bs_build = build}, 
+                                 {bs_build = build},
                                  _) when nm1 = nm2 ->
                            if not (var_choose build) then
                              add_errors
@@ -153,18 +153,18 @@ let configure pkg argv =
 
   (* OCaml version *)
   begin
-    match pkg.ocaml_version with 
+    match pkg.ocaml_version with
       | Some ver_cmp ->
           begin
-            try 
+            try
               var_ignore_eval
-                (BaseCheck.version 
-                   "ocaml" 
-                   ver_cmp 
+                (BaseCheck.version
+                   "ocaml"
+                   ver_cmp
                    BaseStandardVar.ocaml_version)
             with e ->
               warn_exception e;
-              add_errors 
+              add_errors
                 (f_ "OCaml version %s doesn't match version constraint %s")
                 (BaseStandardVar.ocaml_version ())
                 (OASISVersion.string_of_comparator ver_cmp)
@@ -172,21 +172,21 @@ let configure pkg argv =
       | None ->
           ()
   end;
-   
+
   (* Findlib version *)
   begin
-    match pkg.findlib_version with 
+    match pkg.findlib_version with
       | Some ver_cmp ->
           begin
-            try 
+            try
               var_ignore_eval
-                (BaseCheck.version 
-                   "findlib" 
-                   ver_cmp 
+                (BaseCheck.version
+                   "findlib"
+                   ver_cmp
                    BaseStandardVar.findlib_version)
             with e ->
               warn_exception e;
-              add_errors 
+              add_errors
                 (f_ "Findlib version %s doesn't match version constraint %s")
                 (BaseStandardVar.findlib_version ())
                 (OASISVersion.string_of_comparator ver_cmp)
@@ -235,22 +235,22 @@ let configure pkg argv =
 open OASISPlugin
 open InternalId
 
-let plugin = 
+let plugin =
   `Configure, name, Some version
 
 let init () =
   let self_id, _ =
     Configure.create plugin
   in
-  let doit ctxt pkg =  
-    ctxt, 
+  let doit ctxt pkg =
+    ctxt,
     {
       chng_moduls    = [InternalData.internalsys_ml];
       chng_clean     = None;
       chng_distclean = None;
-      chng_main = 
-        (ODNFunc.func 
-           configure 
+      chng_main =
+        (ODNFunc.func
+           configure
            "InternalConfigurePlugin.configure");
     }
   in

@@ -28,7 +28,7 @@ let to_filename fn =
     BaseFilePath.of_unix fn
   in
     if not (Filename.check_suffix fn ".ab") then
-      warning 
+      warning
         (f_ "File '%s' doesn't have '.ab' extension")
         fn;
     Filename.chop_extension fn

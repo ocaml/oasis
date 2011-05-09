@@ -26,34 +26,34 @@ open OASISGettext
 
 module SMap = Map.Make(String)
 
-let ocamlc = 
+let ocamlc =
   BaseCheck.prog_opt "ocamlc"
 
 let ocamlc_config_map =
-  (* Map name to value for ocamlc -config output 
-     (name ^": "^value) 
+  (* Map name to value for ocamlc -config output
+     (name ^": "^value)
    *)
-  let rec split_field mp lst = 
-    match lst with 
+  let rec split_field mp lst =
+    match lst with
       | line :: tl ->
           let mp =
             try
               let pos_semicolon =
                 String.index line ':'
               in
-                if pos_semicolon > 1 then            
+                if pos_semicolon > 1 then
                   (
                     let name =
-                      String.sub line 0 pos_semicolon 
+                      String.sub line 0 pos_semicolon
                     in
                     let linelen =
                       String.length line
                     in
                     let value =
                       if linelen > pos_semicolon + 2 then
-                        String.sub 
-                          line 
-                          (pos_semicolon + 2) 
+                        String.sub
+                          line
+                          (pos_semicolon + 2)
                           (linelen - pos_semicolon - 2)
                       else
                         ""
@@ -81,32 +81,32 @@ let ocamlc_config_map =
       (lazy
          (var_protect
             (Marshal.to_string
-               (split_field 
+               (split_field
                   SMap.empty
-                  (BaseExec.run_read_output 
+                  (BaseExec.run_read_output
                      (ocamlc ()) ["-config"]))
                [])))
 
 let var_define nm =
   (* Extract data from ocamlc -config *)
-  let avlbl_config_get () = 
-    Marshal.from_string 
+  let avlbl_config_get () =
+    Marshal.from_string
       (ocamlc_config_map ())
       0
   in
   let nm_config =
-    match nm with 
+    match nm with
       | "ocaml_version" -> "version"
       | _ -> nm
   in
     var_redefine
-      nm 
+      nm
       (lazy
         (try
             let map =
               avlbl_config_get ()
             in
-            let value = 
+            let value =
               SMap.find nm_config map
             in
               value

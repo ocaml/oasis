@@ -25,33 +25,33 @@ open OASISTypes
 open OASISGettext
 
 let run cmd args extra_args =
-  BaseExec.run 
+  BaseExec.run
     (var_expand cmd)
-    (List.map 
+    (List.map
        var_expand
        (args @ (Array.to_list extra_args)))
 
 let hook ?(failsafe=false) cstm f e =
-  let optional_command lst = 
+  let optional_command lst =
     let printer =
-      function 
+      function
         | Some (cmd, args) -> String.concat " " (cmd :: args)
         | None -> s_ "No command"
     in
-      match 
-        var_choose 
+      match
+        var_choose
           ~name:(s_ "Pre/Post Command")
-          ~printer 
-          lst with 
+          ~printer
+          lst with
         | Some (cmd, args) ->
             begin
-              try 
+              try
                 run cmd args [||]
               with e when failsafe ->
-                warning 
+                warning
                   (f_ "Command '%s' fail with error: %s")
                   (String.concat " " (cmd :: args))
-                  (match e with 
+                  (match e with
                      | Failure msg -> msg
                      | e -> Printexc.to_string e)
             end

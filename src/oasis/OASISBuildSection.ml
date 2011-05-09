@@ -34,8 +34,8 @@ module Dfs = Traverse.Dfs(G)
 module Topological = Topological.Make(G)
 module Oper = Oper.I(G)
 
-module Display = 
-struct 
+module Display =
+struct
   include G
   let vertex_name v = varname_of_string (string_of_section v)
   let graph_attributes _ = []
@@ -56,23 +56,23 @@ let show g =
   ignore (Sys.command ("dot -Tps " ^ tmp ^ " | gv -"));
   Sys.remove tmp
 
-let build_graph pkg = 
+let build_graph pkg =
   let g =
     G.create ()
   in
-  let vertex_of_section f = 
+  let vertex_of_section f =
     List.fold_left
       (fun acc sct ->
          match f sct with
-           | Some cs -> 
+           | Some cs ->
                MapString.add cs.cs_name (G.V.create sct) acc
-           | None -> 
+           | None ->
                acc)
       MapString.empty
       pkg.sections
   in
-  let vertex_of_lib = 
-    vertex_of_section 
+  let vertex_of_lib =
+    vertex_of_section
       (function Library (cs, _, _) -> Some cs | _  -> None)
   in
   let vertex_of_exec =
@@ -100,7 +100,7 @@ let build_graph pkg =
     List.iter
       (function
          | InternalLibrary nm ->
-             let dvrtx = 
+             let dvrtx =
                find_name nm vertex_of_lib
              in
                G.add_edge g vrtx dvrtx
@@ -116,16 +116,16 @@ let build_graph pkg =
                (find_name cs.cs_name vertex_of_lib)
                bs
          | Executable (cs, bs, _) ->
-             add_build_section 
+             add_build_section
                (find_name cs.cs_name vertex_of_exec)
                bs
-         | Test (cs, {test_tools = build_tools}) 
+         | Test (cs, {test_tools = build_tools})
          | Doc (cs, {doc_build_tools = build_tools}) as sct ->
-             let vrtx = 
+             let vrtx =
                G.V.create sct
              in
                G.add_vertex g vrtx;
-               add_build_tool 
+               add_build_tool
                  vrtx
                  build_tools
          | Flag _ | SrcRepo _ as sct ->
@@ -134,13 +134,13 @@ let build_graph pkg =
 
     g
 
-let build_order pkg = 
-  Topological.fold 
+let build_order pkg =
+  Topological.fold
     (fun v lst -> v :: lst)
     (build_graph pkg)
     []
 
-module SetDepends = 
+module SetDepends =
   Set.Make
     (struct
        type t = dependency
@@ -148,24 +148,24 @@ module SetDepends =
      end)
 
 let transitive_build_depends pkg =
-  let g = 
+  let g =
     build_graph pkg
   in
 
-  let add_build_depends = 
+  let add_build_depends =
     List.fold_left
       (fun acc dep -> SetDepends.add dep acc)
   in
 
-  let map_deps = 
+  let map_deps =
     (* Fill the map with empty depends *)
     List.fold_left
-      (fun mp -> 
-         function 
+      (fun mp ->
+         function
            | Library (_, bs, _) | Executable (_, bs, _) as sct ->
-               MapSection.add 
-                 sct 
-                 (add_build_depends 
+               MapSection.add
+                 sct
+                 (add_build_depends
                     SetDepends.empty
                     bs.bs_build_depends)
                  mp
@@ -174,19 +174,19 @@ let transitive_build_depends pkg =
       MapSection.empty
       pkg.sections
   in
-  let map_deps = 
+  let map_deps =
     (* Populate build depends *)
     G.fold_edges
       (fun v1 v2 mp ->
          let deps =
            MapSection.find v1 mp
          in
-         let deps = 
-           match v2 with 
+         let deps =
+           match v2 with
              | Library (cs, bs, _) ->
                  add_build_depends
                    deps
-                   bs.bs_build_depends 
+                   bs.bs_build_depends
              | Executable _ | Flag _ | SrcRepo _ | Test _ | Doc _ ->
                  deps
          in
@@ -200,19 +200,19 @@ let transitive_build_depends pkg =
       List.fold_left
         (fun (i, mp) sct ->
            i + 1,
-           MapSectionId.add 
-             (section_id sct) 
-             i 
+           MapSectionId.add
+             (section_id sct)
+             i
              mp)
         (0, MapSectionId.empty)
         (build_order pkg)
     in
 
     let compare dep1 dep2 =
-      let id = 
+      let id =
         function
-          | FindlibPackage _ -> 
-              (* We place findlib package at the very 
+          | FindlibPackage _ ->
+              (* We place findlib package at the very
                * beginning of the list, since they are
                * don't depend on any internal libraries
                * and that their inter-dependencies will
@@ -225,7 +225,7 @@ let transitive_build_depends pkg =
         (id dep1) - (id dep2)
     in
       fun k deps ->
-        let lst = 
+        let lst =
           List.sort
             compare
             (SetDepends.elements deps)

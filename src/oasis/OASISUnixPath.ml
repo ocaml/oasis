@@ -29,7 +29,7 @@ let current_dir_name = "."
 
 let parent_dir_name = ".."
 
-let concat f1 f2 = 
+let concat f1 f2 =
   if f1 = current_dir_name then
     f2
   else if f2 = current_dir_name then
@@ -54,7 +54,7 @@ let dirname f =
     current_dir_name
 
 let basename f =
-  try 
+  try
     let pos_start =
       (String.rindex f '/') + 1
     in
@@ -63,14 +63,14 @@ let basename f =
     f
 
 let chop_extension f =
-  try 
+  try
     let last_dot =
       String.rindex f '.'
     in
     let sub =
       String.sub f 0 last_dot
     in
-      try 
+      try
         let last_slash =
           String.rindex f '/'
         in

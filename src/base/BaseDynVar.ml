@@ -26,20 +26,20 @@ open BaseEnv
 open BaseBuilt
 
 let init pkg =
-  List.iter 
+  List.iter
     (function
        | Executable (cs, bs, exec) ->
            var_ignore
-             (var_redefine 
+             (var_redefine
                 (* We don't save this variable *)
                 ~dump:false
-                ~short_desc:(fun () -> 
-                               Printf.sprintf 
+                ~short_desc:(fun () ->
+                               Printf.sprintf
                                  (f_ "Filename of executable '%s'")
                                  cs.cs_name)
                 cs.cs_name
-                (lazy 
-                   (let fn_opt = 
+                (lazy
+                   (let fn_opt =
                       fold
                         BExec cs.cs_name
                         (fun _ fn -> Some fn)
@@ -48,10 +48,10 @@ let init pkg =
                       match fn_opt with
                         | Some fn -> fn
                         | None ->
-                            raise 
+                            raise
                               (PropList.Not_set
-                                 (cs.cs_name, 
-                                  Some (Printf.sprintf 
+                                 (cs.cs_name,
+                                  Some (Printf.sprintf
                                           (f_ "Executable '%s' not yet built.")
                                           cs.cs_name))))))
 

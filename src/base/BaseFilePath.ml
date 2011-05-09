@@ -25,7 +25,7 @@ open Filename
 module Unix = OASISUnixPath
 
 let make =
-  function 
+  function
     | [] ->
         invalid_arg "BaseFilename.make"
     | hd :: tl ->

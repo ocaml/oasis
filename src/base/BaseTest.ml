@@ -28,20 +28,20 @@ open OASISGettext
 let test lst pkg extra_args =
 
   let one_test (failure, n) (test_plugin, cs, test) =
-    if var_choose 
+    if var_choose
          ~name:(Printf.sprintf
                   (f_ "test %s run")
                   cs.cs_name)
          ~printer:string_of_bool
          test.test_run then
       begin
-        let () = 
+        let () =
           info (f_ "Running test '%s'") cs.cs_name
         in
-        let back_cwd = 
-          match test.test_working_directory with 
-            | Some dir -> 
-                let cwd = 
+        let back_cwd =
+          match test.test_working_directory with
+            | Some dir ->
+                let cwd =
                   Sys.getcwd ()
                 in
                 let chdir d =
@@ -51,15 +51,15 @@ let test lst pkg extra_args =
                   chdir dir;
                   fun () -> chdir cwd
 
-            | None -> 
+            | None ->
                 fun () -> ()
         in
-          try 
+          try
             let failure_percent =
-              BaseCustom.hook 
+              BaseCustom.hook
                 test.test_custom
                 (test_plugin pkg (cs, test))
-                extra_args 
+                extra_args
             in
               back_cwd ();
               (failure_percent +. failure, n + 1)
@@ -87,7 +87,7 @@ let test lst pkg extra_args =
     else
       failed /. (float_of_int n)
   in
-  let msg = 
+  let msg =
     Printf.sprintf
       (f_ "Tests had a %.2f%% failure rate")
       (100. *. failure_percent)

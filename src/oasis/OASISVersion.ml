@@ -27,7 +27,7 @@ type s = string
 
 type t = string with odn
 
-type comparator = 
+type comparator =
   | VGreater of t
   | VGreaterEqual of t
   | VEqual of t
@@ -45,17 +45,17 @@ let is_alpha c =
   ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')
 
 let is_special =
-  function 
+  function
     | '.' | '+' | '-' | '~' -> true
     | _ -> false
 
 let rec version_compare v1 v2 =
   if v1 <> "" || v2 <> "" then
     begin
-      (* Compare ascii string, using special meaning for version 
+      (* Compare ascii string, using special meaning for version
        * related char
        *)
-      let val_ascii c = 
+      let val_ascii c =
         if c = '~' then -1
         else if is_digit c then 0
         else if c = '\000' then 0
@@ -69,16 +69,16 @@ let rec version_compare v1 v2 =
       let p = ref 0 in
 
       (** Compare ascii part *)
-      let compare_vascii () = 
+      let compare_vascii () =
         let cmp = ref 0 in
-        while !cmp = 0 && 
-              !p < len1 && !p < len2 && 
-              not (is_digit v1.[!p] && is_digit v2.[!p]) do 
+        while !cmp = 0 &&
+              !p < len1 && !p < len2 &&
+              not (is_digit v1.[!p] && is_digit v2.[!p]) do
           cmp := (val_ascii v1.[!p]) - (val_ascii v2.[!p]);
           incr p
         done;
         if !cmp = 0 && !p < len1 && !p = len2 then
-          val_ascii v1.[!p] 
+          val_ascii v1.[!p]
         else if !cmp = 0 && !p = len1 && !p < len2 then
           - (val_ascii v2.[!p])
         else
@@ -86,16 +86,16 @@ let rec version_compare v1 v2 =
       in
 
       (** Compare digit part *)
-      let compare_digit () = 
+      let compare_digit () =
         let extract_int v p =
           let start_p = !p in
-            while !p < String.length v && is_digit v.[!p] do 
+            while !p < String.length v && is_digit v.[!p] do
               incr p
             done;
-            match String.sub v start_p (!p - start_p) with 
-              | "" -> 0, 
+            match String.sub v start_p (!p - start_p) with
+              | "" -> 0,
                       v
-              | s -> int_of_string s, 
+              | s -> int_of_string s,
                      String.sub v !p ((String.length v) - !p)
         in
         let i1, tl1 = extract_int v1 (ref !p) in
@@ -106,7 +106,7 @@ let rec version_compare v1 v2 =
         match compare_vascii () with
           | 0 ->
               begin
-                match compare_digit () with 
+                match compare_digit () with
                   | 0, tl1, tl2 ->
                       if tl1 <> "" && is_digit tl1.[0] then
                         1
@@ -127,13 +127,13 @@ let rec version_compare v1 v2 =
 
 
 let version_of_string str =
-  String.iter 
+  String.iter
     (fun c ->
        if is_alpha c || is_digit c || is_special c then
          ()
        else
          failwith
-           (Printf.sprintf 
+           (Printf.sprintf
               (f_ "Char %C is not allowed in version '%s'")
               c str))
     str;
@@ -142,10 +142,10 @@ let version_of_string str =
 let string_of_version t =
   t
 
-let chop t = 
-  try 
-    let pos = 
-      String.rindex t '.' 
+let chop t =
+  try
+    let pos =
+      String.rindex t '.'
     in
       String.sub t 0 pos
   with Not_found ->
@@ -169,25 +169,25 @@ let rec comparator_apply v op =
         (comparator_apply v op1) && (comparator_apply v op2)
 
 let rec string_of_comparator =
-  function 
+  function
     | VGreater v  -> "> "^(string_of_version v)
     | VEqual v    -> "= "^(string_of_version v)
     | VLesser v   -> "< "^(string_of_version v)
     | VGreaterEqual v -> ">= "^(string_of_version v)
     | VLesserEqual v  -> "<= "^(string_of_version v)
-    | VOr (c1, c2)  -> 
+    | VOr (c1, c2)  ->
         (string_of_comparator c1)^" || "^(string_of_comparator c2)
-    | VAnd (c1, c2) -> 
+    | VAnd (c1, c2) ->
         (string_of_comparator c1)^" && "^(string_of_comparator c2)
 
 let rec varname_of_comparator =
-  let concat p v = 
+  let concat p v =
     OASISUtils.varname_concat
-      p 
-      (OASISUtils.varname_of_string 
+      p
+      (OASISUtils.varname_of_string
          (string_of_version v))
   in
-    function 
+    function
       | VGreater v -> concat "gt" v
       | VLesser v  -> concat "lt" v
       | VEqual v   -> concat "eq" v
@@ -217,9 +217,9 @@ let comparator_of_string str =
       | VCLt s -> VLesser (version_of_string s)
       | VCLe s -> VLesserEqual (version_of_string s)
   in
-    try 
-      parse_aux 
-        (OASISVersion_parser.main 
+    try
+      parse_aux
+        (OASISVersion_parser.main
            OASISVersion_lexer.token lexbuf)
     with e ->
       failwithf
@@ -231,16 +231,16 @@ let rec comparator_reduce =
   function
     | VAnd (v1, v2) ->
         (* TODO: this can be improved to reduce more *)
-        let v1 = 
+        let v1 =
           comparator_reduce v1
         in
-        let v2 = 
+        let v2 =
           comparator_reduce v2
         in
           if v1 = v2 then
             v1
           else
-            VAnd (v1, v2) 
+            VAnd (v1, v2)
     | cmp ->
         cmp
 
@@ -253,7 +253,7 @@ let value =
     print  = string_of_version;
   }
 
-let comparator_value = 
+let comparator_value =
   {
     parse  = (fun ~ctxt s -> comparator_of_string s);
     update = update_fail;

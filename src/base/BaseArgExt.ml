@@ -35,7 +35,7 @@ let parse argv args =
           (Arg.align args)
           (failwithf (f_ "Don't know what to do with arguments: '%s'"))
           (s_ "configure options:")
-      with 
+      with
         | Arg.Help txt ->
             print_endline txt;
             exit 0

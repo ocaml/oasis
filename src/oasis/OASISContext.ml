@@ -19,11 +19,11 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-open OASISGettext 
+open OASISGettext
 
 type level =
   [ `Debug
-  | `Info 
+  | `Info
   | `Warning
   | `Error]
 
@@ -32,25 +32,25 @@ type t =
     verbose:        bool;
     debug:          bool;
     ignore_plugins: bool;
-    printf:         level -> string -> unit; 
+    printf:         level -> string -> unit;
   }
 
-let printf lvl str = 
-  let beg = 
-    match lvl with 
+let printf lvl str =
+  let beg =
+    match lvl with
       | `Error -> s_ "E: "
       | `Warning -> s_ "W: "
       | `Info  -> s_ "I: "
       | `Debug -> s_ "D: "
   in
-    match lvl with 
+    match lvl with
       | `Error ->
           prerr_endline (beg^str)
       | _ ->
           print_endline (beg^str)
 
 let default =
-  ref 
+  ref
     {
       verbose        = true;
       debug          = false;
@@ -58,8 +58,8 @@ let default =
       printf         = printf;
     }
 
-let quiet = 
-  {!default with 
+let quiet =
+  {!default with
        verbose = false;
        debug   = false;
   }

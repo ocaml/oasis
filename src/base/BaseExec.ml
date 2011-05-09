@@ -28,20 +28,20 @@ let run ?f_exit_code cmd args =
     String.concat " " (cmd :: args)
   in
     info (f_ "Running command '%s'") cmdline;
-    match f_exit_code, Sys.command cmdline with 
+    match f_exit_code, Sys.command cmdline with
       | None, 0 -> ()
       | None, i ->
           failwithf
             (f_ "Command '%s' terminated with error code %d")
             cmdline i
-      | Some f, i -> 
+      | Some f, i ->
           f i
 
 let run_read_output cmd args =
-  let fn = 
+  let fn =
     Filename.temp_file "oasis-" ".txt"
   in
-  let () = 
+  let () =
     try
       run cmd (args @ [">"; Filename.quote fn])
     with e ->
@@ -56,7 +56,7 @@ let run_read_output cmd args =
   in
     (
       try
-        while true do 
+        while true do
           routput := (input_line chn) :: !routput
         done
       with End_of_file ->
@@ -66,11 +66,11 @@ let run_read_output cmd args =
     Sys.remove fn;
     List.rev !routput
 
-let run_read_one_line cmd args = 
-  match run_read_output cmd args with 
-    | [fst] -> 
+let run_read_one_line cmd args =
+  match run_read_output cmd args with
+    | [fst] ->
         fst
-    | lst -> 
+    | lst ->
         failwithf
           (f_ "Command return unexpected output %S")
           (String.concat "\n" lst)

@@ -19,7 +19,7 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Message to user, overrid for Base 
+(** Message to user, overrid for Base
     @author Sylvain Le Gall
   *)
 open OASISMessage

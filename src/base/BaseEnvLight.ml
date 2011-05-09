@@ -24,7 +24,7 @@ module MapString = Map.Make(String)
 type t = string MapString.t
 
 let default_filename =
-  Filename.concat 
+  Filename.concat
     (Sys.getcwd ())
     "setup.data"
 
@@ -40,23 +40,23 @@ let load ?(allow_empty=false) ?(filename=default_filename) () =
       let line =
         ref 1
       in
-      let st_line = 
+      let st_line =
         Stream.from
           (fun _ ->
              try
-               match Stream.next st with 
+               match Stream.next st with
                  | '\n' -> incr line; Some '\n'
                  | c -> Some c
              with Stream.Failure -> None)
       in
-      let lexer = 
+      let lexer =
         Genlex.make_lexer ["="] st_line
       in
       let rec read_file mp =
-        match Stream.npeek 3 lexer with 
+        match Stream.npeek 3 lexer with
           | [Genlex.Ident nm; Genlex.Kwd "="; Genlex.String value] ->
-              Stream.junk lexer; 
-              Stream.junk lexer; 
+              Stream.junk lexer;
+              Stream.junk lexer;
               Stream.junk lexer;
               read_file (MapString.add nm value mp)
           | [] ->
@@ -79,8 +79,8 @@ let load ?(allow_empty=false) ?(filename=default_filename) () =
     end
   else
     begin
-      failwith 
-        (Printf.sprintf 
+      failwith
+        (Printf.sprintf
            "Unable to load environment, the file '%s' doesn't exist."
            filename)
     end
@@ -90,23 +90,23 @@ let var_get name env =
     let buff =
       Buffer.create ((String.length str) * 2)
     in
-      Buffer.add_substitute 
+      Buffer.add_substitute
         buff
-        (fun var -> 
-           try 
+        (fun var ->
+           try
              var_expand (MapString.find var env)
            with Not_found ->
-             failwith 
-               (Printf.sprintf 
+             failwith
+               (Printf.sprintf
                   "No variable %s defined when trying to expand %S."
-                  var 
+                  var
                   str))
         str;
       Buffer.contents buff
   in
     var_expand (MapString.find name env)
 
-let var_choose lst env = 
+let var_choose lst env =
   OASISExpr.choose
     (fun nm -> var_get nm env)
     lst

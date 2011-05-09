@@ -41,18 +41,18 @@ let fix_args args extra_argv =
     [
       if (os_type ()) = "Win32" then
         [
-          "-classic-display"; 
-          "-no-log"; 
+          "-classic-display";
+          "-no-log";
           "-no-links";
-          "-install-lib-dir"; 
+          "-install-lib-dir";
           (Filename.concat (standard_library ()) "ocamlbuild")
-        ] 
+        ]
       else
         [];
-  
+
       if not (bool_of_string (is_native ())) || (os_type ()) = "Win32" then
         [
-          "-byte-plugin" 
+          "-byte-plugin"
         ]
       else
         [];
@@ -83,9 +83,9 @@ let run_clean extra_argv =
       begin
         BaseExec.run (ocamlbuild ()) (fix_args ["-clean"] extra_argv);
         BaseLog.register ocamlbuild_clean_ev extra_cli;
-        at_exit 
+        at_exit
           (fun () ->
-             try 
+             try
                BaseLog.unregister ocamlbuild_clean_ev extra_cli
              with _ ->
                ())
@@ -109,7 +109,7 @@ let build_dir extra_argv =
           search_args dir tl
       | _ :: tl ->
           search_args dir tl
-      | [] -> 
+      | [] ->
           dir
   in
     search_args "_build" (fix_args [] extra_argv)
@@ -118,26 +118,26 @@ let build_dir extra_argv =
 
 open OASISTypes
 
-let fix_build_tools tool pkg = 
-  let fix_build_tools' sct bs = 
+let fix_build_tools tool pkg =
+  let fix_build_tools' sct bs =
     if not (List.mem tool bs.bs_build_tools) then
       {bs with bs_build_tools = tool :: bs.bs_build_tools}
     else
       bs
   in
 
-  let sections = 
+  let sections =
     List.fold_left
       (fun acc sct ->
-         let sct = 
-           match sct with 
+         let sct =
+           match sct with
              | Executable (cs, bs, exec) ->
                  let bs = fix_build_tools' sct bs in
                    Executable (cs, bs, exec)
 
              | Library (cs, bs, lib) ->
                  let bs = fix_build_tools' sct bs in
-                   Library (cs, bs, lib) 
+                   Library (cs, bs, lib)
 
              | Flag _ | SrcRepo _ | Test _ | Doc _ as sct ->
                  sct
@@ -149,15 +149,15 @@ let fix_build_tools tool pkg =
     {pkg with sections = List.rev sections}
 
 
-module Tag = 
-struct 
-  (** [filename_concat fn1 fn2] Concat filename, using semantic of _tags 
+module Tag =
+struct
+  (** [filename_concat fn1 fn2] Concat filename, using semantic of _tags
       [fn1] must be a real filename whereas fn2 can contains wildcards.
     *)
-  let filename_concat fn1 fn2 = 
+  let filename_concat fn1 fn2 =
     (* TODO: consider using directly ocamlbuild function *)
-    FilePath.UnixPath.concat 
+    FilePath.UnixPath.concat
       (FilePath.UnixPath.reduce ~no_symlink:true fn1)
-      fn2 
+      fn2
 
 end

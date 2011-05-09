@@ -22,37 +22,37 @@
 open OASISUtils
 
 let default_filename =
-  Filename.concat 
+  Filename.concat
     (Filename.dirname BaseEnv.default_filename)
     "setup.log"
 
 module SetTupleString =
   Set.Make
-    (struct 
+    (struct
        type t = string * string
-       let compare (s11, s12) (s21, s22) = 
-         match String.compare s11 s21 with 
+       let compare (s11, s12) (s21, s22) =
+         match String.compare s11 s21 with
            | 0 -> String.compare s12 s22
            | n -> n
      end)
 
-let load () = 
+let load () =
   if Sys.file_exists default_filename then
     begin
-      let chn = 
+      let chn =
         open_in default_filename
       in
-      let scbuf = 
+      let scbuf =
         Scanf.Scanning.from_file default_filename
       in
       let rec read_aux (st, lst) =
         if not (Scanf.Scanning.end_of_input scbuf) then
           begin
-            let acc = 
-              try 
-                Scanf.bscanf scbuf "%S %S@\n" 
-                  (fun e d ->  
-                     let t = 
+            let acc =
+              try
+                Scanf.bscanf scbuf "%S %S@\n"
+                  (fun e d ->
+                     let t =
                        e, d
                      in
                        if SetTupleString.mem t st then
@@ -61,9 +61,9 @@ let load () =
                          SetTupleString.add t st,
                          t :: lst)
               with Scanf.Scan_failure _ ->
-                failwith 
+                failwith
                   (Scanf.bscanf scbuf
-                     "%l" 
+                     "%l"
                      (fun line ->
                         Printf.sprintf
                           "Malformed log file '%s' at line %d"
@@ -95,7 +95,7 @@ let register event data =
 let unregister event data =
   if Sys.file_exists default_filename then
     begin
-      let lst = 
+      let lst =
         load ()
       in
       let chn_out =
@@ -104,7 +104,7 @@ let unregister event data =
       let write_something =
         ref false
       in
-        List.iter 
+        List.iter
           (fun (e, d) ->
              if e <> event || d <> data then
                begin
@@ -120,12 +120,12 @@ let unregister event data =
 let filter events =
   let st_events =
     List.fold_left
-      (fun st e -> 
+      (fun st e ->
          SetString.add e st)
       SetString.empty
       events
   in
-    List.filter 
+    List.filter
       (fun (e, _) -> SetString.mem e st_events)
       (load ())
 
