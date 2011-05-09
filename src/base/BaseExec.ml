@@ -37,13 +37,13 @@ let run ?f_exit_code cmd args =
       | Some f, i ->
           f i
 
-let run_read_output cmd args =
+let run_read_output ?f_exit_code cmd args =
   let fn =
     Filename.temp_file "oasis-" ".txt"
   in
   let () =
     try
-      run cmd (args @ [">"; Filename.quote fn])
+      run ?f_exit_code cmd (args @ [">"; Filename.quote fn])
     with e ->
       Sys.remove fn;
       raise e
@@ -66,8 +66,8 @@ let run_read_output cmd args =
     Sys.remove fn;
     List.rev !routput
 
-let run_read_one_line cmd args =
-  match run_read_output cmd args with
+let run_read_one_line ?f_exit_code cmd args =
+  match run_read_output ?f_exit_code cmd args with
     | [fst] ->
         fst
     | lst ->

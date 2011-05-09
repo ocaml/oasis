@@ -19,20 +19,22 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Running commands 
+(** Running commands
     @author Sylvain Le Gall
   *)
 
 open OASISTypes
 
 (** Run a command.
-  *)
+    @param f_exit_code if provided, run this command on the exit code
+    (even when it is [0]).  Otherwise, a non-zero exit code raises
+    [Failure]. *)
 val run : ?f_exit_code:(int -> unit) -> prog -> args -> unit
 
-(** Run a command and returns its output.
-  *)
-val run_read_output : prog -> args -> string list
+(** Run a command and returns its output as a list of lines.
+*)
+val run_read_output : ?f_exit_code:(int -> unit) -> prog -> args -> string list
 
 (** Run a command and returns only first line.
-  *)
-val run_read_one_line : prog -> args -> string
+    @raise Failure if the output contains more than one line. *)
+val run_read_one_line : ?f_exit_code:(int -> unit) -> prog -> args -> string
