@@ -117,7 +117,7 @@ let main () =
                       fn
                   end
                 else
-                  OASISUtils.failwithf1
+                  OASISUtils.failwithf
                     (f_ "File '%s' already exists, cannot generate it for \
                          dev-mode. Please remove it first.")
                     default

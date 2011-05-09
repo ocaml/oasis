@@ -270,7 +270,7 @@ let to_package conf st =
                      MapString.find lnm internal_of_findlib
                    in
                      if ver_opt <> None then
-                       failwithf2 
+                       failwithf
                          (f_ "Cannot use versioned build depends \
                               on internal library %s in %s")
                          lnm (OASISSection.string_of_section sct);

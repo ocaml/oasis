@@ -551,7 +551,7 @@ let file_generate ~ctxt ~backup t =
             end
 
         | [] ->
-            failwithf1
+            failwithf
               (f_ "File %s need a backup, but all filenames for \
                    the backup already exist")
               fn

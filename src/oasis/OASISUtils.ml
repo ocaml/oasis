@@ -151,20 +151,7 @@ let varname_concat ?(hyphen='_') p s =
 let is_varname str = 
   str = varname_of_string str
 
-let failwithf1 fmt a =
-  failwith (Printf.sprintf fmt a)
-
-let failwithf2 fmt a b =
-  failwith (Printf.sprintf fmt a b)
-
-let failwithf3 fmt a b c =
-  failwith (Printf.sprintf fmt a b c)
-
-let failwithf4 fmt a b c d =
-  failwith (Printf.sprintf fmt a b c d)
-
-let failwithf5 fmt a b c d e =
-  failwith (Printf.sprintf fmt a b c d e)
+let failwithf fmt = Printf.ksprintf failwith fmt
 
 (* END EXPORT *)
 

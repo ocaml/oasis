@@ -68,7 +68,7 @@ let lookup_plugin_section plugin action nm lst =
   try 
     List.assoc nm lst
   with Not_found ->
-    failwithf3
+    failwithf
       (f_ "Cannot find plugin %s matching section %s for %s action")
       plugin
       nm
@@ -153,7 +153,7 @@ let all t args =
         Arg.Set rno_test,
         s_ "Don't run test target";
       ]
-      (failwithf1 (f_ "Don't know what to do with '%s'"))
+      (failwithf (f_ "Don't know what to do with '%s'"))
       "";
     
     info "Running configure step";
@@ -307,7 +307,7 @@ let setup t =
     try
       let act_ref =
         ref (fun _ -> 
-               failwithf2
+               failwithf
                  (f_ "No action defined, run '%s %s -help'")
                  Sys.executable_name
                  Sys.argv.(0))
@@ -386,7 +386,7 @@ let setup t =
                s_ " Don't catch exception, useful for debugging.";
              ] 
            @ (BaseContext.args ()))
-          (failwithf1 (f_ "Don't know what to do with '%s'"))
+          (failwithf (f_ "Don't know what to do with '%s'"))
           (s_ "Setup and run build process current package\n");
 
         (* Build initial environment *)
@@ -443,7 +443,7 @@ let find ctxt =
   try 
     OASISFileTemplate.find default_filename ctxt.files
   with Not_found ->
-    failwithf1
+    failwithf
       (f_ "Cannot find setup template file '%s'")
       default_filename
 

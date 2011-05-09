@@ -365,7 +365,7 @@ struct
        match plg with 
          | _, _, Some v -> v
          | _, _, None -> 
-             failwithf1 
+             failwithf
                (f_ "Plugin %s is defined without version.")
                (string_of_plugin plg)
      in
@@ -406,7 +406,7 @@ struct
     try 
       find_fuzzy' act_all plg
     with Not_found ->
-      failwithf1 
+      failwithf
         (f_ "The plugin %s has no registered action.")
         (string_of_plugin plg)
 
@@ -437,7 +437,7 @@ struct
                 try 
                   find_fuzzy version_all (plg :> plugin_kind plugin)
                 with Not_found ->
-                  failwithf2
+                  failwithf
                     (not_found_of_kind kind_default)
                     (string_of_plugin plg)
                     (String.concat ", " (ls kind_default))
@@ -460,7 +460,7 @@ struct
                         (string_of_plugin  (knd, nm, Some ver_plg))
 
             with Not_found ->
-              failwithf1 "Plugin %s doesn't exist." (string_of_plugin plg)
+              failwithf "Plugin %s doesn't exist." (string_of_plugin plg)
           end;
         (F.kind_default, nm, ver_opt)
     in

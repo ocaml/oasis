@@ -125,7 +125,7 @@ let rec mkdir_parent f tgt =
     if Sys.file_exists tgt then
       begin
         if not (Sys.is_directory tgt) then
-          OASISUtils.failwithf1
+          OASISUtils.failwithf
             (f_ "Cannot create directory '%s', a file of the same name already \
                  exists")
             tgt

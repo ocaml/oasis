@@ -40,7 +40,7 @@ let blackbox =
   {
     parse  = 
       (fun ~ctxt s -> 
-         failwithf1
+         failwithf
            (f_ "Blackbox type cannot be set to the value '%s'")
            s);
     update = update_fail;
@@ -73,13 +73,13 @@ let regexp regexp nm =
              if str_matched = str then
                str
              else
-               failwithf3
+               failwithf
                  (f_ "Only substring '%s' of '%s' is a %s")
                  str_matched
                  str
                  (nm ())
          with Not_found ->
-           failwithf2
+           failwithf
              (f_ "String '%s' is not a %s")
              str 
              (nm ()));
@@ -99,7 +99,7 @@ let copyright =
          if Pcre.pmatch ~rex:StdRegexp.copyright str then
            str
          else
-           failwithf1
+           failwithf
              (f_ "Copyright must follow the convention \
                   '(C) 2008-2009 J.R. Hacker', here it is '%s'")
              str);
@@ -241,7 +241,7 @@ let modules =
               OASISUnixPath.basename s
             in
               if String.contains path ' ' then
-                failwithf1
+                failwithf
                   (f_ "Module path '%s' must not contain a ' '")
                   s;
               OASISUnixPath.concat
@@ -269,7 +269,7 @@ let choices nm lst =
                   String.lowercase k, v)
                   lst)
          with Not_found ->
-           failwithf3
+           failwithf
              (f_ "Unknown %s %S (possible: %s)")
              (nm ()) str
              (String.concat ", " (List.map fst lst)));
@@ -283,7 +283,7 @@ let choices nm lst =
                 (fun (s, v) -> v, s)
                 lst)
          with Not_found ->
-           failwithf1
+           failwithf
              (f_ "Unexpected abstract choice value for %s")
              (nm ()));
   }
@@ -382,7 +382,7 @@ let command_line =
                   lookup_closing oc cc acc tl 
                 end
         | [] ->
-            failwithf1
+            failwithf
               (f_ "'%s' contains unbalanced curly braces")
               str
     in
@@ -433,7 +433,7 @@ let command_line =
              | cmd :: args ->
                  cmd, args
              | [] ->
-                 failwithf1 (f_ "Commande line '%s' is invalid") s);
+                 failwithf (f_ "Commande line '%s' is invalid") s);
       update =
         (fun (cmd, args1) (arg2, args3) ->
            (cmd, args1 @ (arg2 :: args3)));

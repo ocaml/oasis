@@ -33,7 +33,7 @@ let parse argv args =
           ~current:current
           (Array.concat [[|"none"|]; argv])
           (Arg.align args)
-          (failwithf1 (f_ "Don't know what to do with arguments: '%s'"))
+          (failwithf (f_ "Don't know what to do with arguments: '%s'"))
           (s_ "configure options:")
       with 
         | Arg.Help txt ->

@@ -31,7 +31,7 @@ let run ?f_exit_code cmd args =
     match f_exit_code, Sys.command cmdline with 
       | None, 0 -> ()
       | None, i ->
-          failwithf2
+          failwithf
             (f_ "Command '%s' terminated with error code %d")
             cmdline i
       | Some f, i -> 
@@ -71,6 +71,6 @@ let run_read_one_line cmd args =
     | [fst] -> 
         fst
     | lst -> 
-        failwithf1
+        failwithf
           (f_ "Command return unexpected output %S")
           (String.concat "\n" lst)

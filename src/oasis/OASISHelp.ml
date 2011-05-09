@@ -80,7 +80,7 @@ struct
       ref false
     in
       if MapString.mem nm t.values then
-        failwithf2
+        failwithf
           (f_ "Help variable '%s' already defined%s")
           nm (loc t.plugin);
       {t with 
@@ -95,7 +95,7 @@ struct
     try 
       MapString.find nm t.values
     with Not_found ->
-      failwithf3
+      failwithf
         (f_ "Unknown help variable %s in line '%s'%s")
         nm line (loc t.plugin)
 
@@ -110,7 +110,7 @@ struct
         | [] ->
             ()
         | lst ->
-            failwithf2
+            failwithf
               (f_ "Unused help variable %s%s")
               (String.concat (s_ ", ") lst)
               (loc t.plugin)

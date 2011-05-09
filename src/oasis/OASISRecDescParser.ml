@@ -598,7 +598,7 @@ let parse_stream conf st =
             try
               parse_expr (lexer (Stream.of_string str))
             with e ->
-              failwithf3
+              failwithf
                 (f_ "Error when parsing expresion '%s' %t: %s")
                 str
                 position
@@ -680,6 +680,6 @@ let parse_stream conf st =
         ast
     with 
       | Stream.Error "" -> 
-          failwithf1 (f_ "Syntax error %t") position
+          failwithf (f_ "Syntax error %t") position
       | Stream.Error str ->
-          failwithf2 (f_ "Syntax error %s %t") str position
+          failwithf (f_ "Syntax error %s %t") str position

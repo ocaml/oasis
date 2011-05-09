@@ -97,7 +97,7 @@ let build pkg argv =
                          @
                          acc
                      | [] ->
-                         failwithf2
+                         failwithf
                            (f_ "No possible ocamlbuild targets \
                                 in generated files %s for library %s")
                            (String.concat (s_ ", " ) (List.map (String.concat (s_ ", ")) tgts))
@@ -158,7 +158,7 @@ let build pkg argv =
     List.iter
       (fun fns ->
          if not (List.exists Sys.file_exists fns) then
-           failwithf1
+           failwithf
              (f_ "No one of expected built files %s exists")
              (String.concat (s_ ", ") (List.map (Printf.sprintf "'%s'") fns)))
       lst;

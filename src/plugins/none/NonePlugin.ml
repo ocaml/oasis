@@ -27,7 +27,7 @@ open OASISGettext
 open OASISUtils
 
 let not_implemented str _ _ =
-  failwithf1 (f_ "No implementation for %s") str
+  failwithf (f_ "No implementation for %s") str
 
 let section_not_implemented str pkg _ _ extra_args =
   not_implemented str pkg extra_args

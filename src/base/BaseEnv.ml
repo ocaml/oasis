@@ -93,18 +93,18 @@ let rec var_expand str =
                | [Genlex.Ident nm] ->
                    var_get nm
                | _ ->
-                   failwithf2
+                   failwithf
                      (f_ "Unknown expression '%s' in variable expansion of %s.")
                      var
                      str
          with 
            | Unknown_field (_, _) ->
-               failwithf2
+               failwithf
                  (f_ "No variable %s defined when trying to expand %S.")
                  var 
                  str
            | Stream.Error e -> 
-               failwithf3
+               failwithf
                  (f_ "Syntax error when parsing '%s' when trying to \
                       expand %S: %s")
                  var

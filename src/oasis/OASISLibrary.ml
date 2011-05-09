@@ -252,7 +252,7 @@ let findlib_of_name ?(recurse=false) map nm =
         | _ -> fndlb_nm
 
   with Not_found ->
-    failwithf1
+    failwithf
       (f_ "Unable to translate internal library '%s' to findlib name")
       nm
 
@@ -300,7 +300,7 @@ let root_of_group grp =
     try
       root_lib_aux grp
     with Not_found ->
-      failwithf1
+      failwithf
         (f_ "Unable to determine root library of findlib library '%s'")
         (findlib_of_group grp)
 

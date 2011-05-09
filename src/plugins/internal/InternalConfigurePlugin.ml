@@ -222,8 +222,8 @@ let configure pkg argv =
       List.iter
         (fun e -> error "%s" e)
         (SetString.elements !errors);
-      failwithf1
-        (fn_ 
+      failwithf
+        (fn_
            "%d configuration error"
            "%d configuration errors"
            (SetString.cardinal !errors))

@@ -222,7 +222,7 @@ let comparator_of_string str =
         (OASISVersion_parser.main 
            OASISVersion_lexer.token lexbuf)
     with e ->
-      failwithf2
+      failwithf
         (f_ "Error while parsing '%s': %s")
         str
         (Printexc.to_string e)

@@ -103,7 +103,7 @@ let query pkg str =
                      (fun (nm, e) -> String.lowercase nm, e) 
                      assoc_sections)
               with Not_found ->
-                failwithf2
+                failwithf
                   (f_ "Don't know section kind '%s' in query '%s'")
                   start_nm str
             in

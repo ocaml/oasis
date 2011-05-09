@@ -313,7 +313,7 @@ let mk_numbered_choices_multi t choices =
     try 
       t.parse s
     with Failure _ ->
-      failwithf2
+      failwithf
         (f_ "'%s' is not valid in answer '%s'")
         s full
   in
@@ -394,7 +394,7 @@ let ask_schema ~ctxt schema lvl interface plugins =
                 try
                   set s
                 with e ->
-                  failwithf3
+                  failwithf
                     (f_ "Trying to set field '%s' using mandatory value '%s': %s")
                     key s (Printexc.to_string e)
               end
@@ -648,7 +648,7 @@ let ask_package ~ctxt lvl intrf =
                 with 
                     parse = 
                       (fun s -> 
-                         failwithf1 
+                         failwithf
                            (f_ "'%s' is not a valid choice")
                            s);
                     default = Default_value None}
@@ -764,7 +764,7 @@ let to_file ~ctxt fn lvl intrf oasis_dev =
               })
         in
           if not a then
-            failwithf1
+            failwithf
               (f_ "File '%s' already exists, remove it first")
               fn
       end
@@ -829,7 +829,7 @@ let to_file ~ctxt fn lvl intrf oasis_dev =
       match Sys.command cmd with
         | 0 -> ()
         | i -> 
-            failwithf2
+            failwithf
               (f_ "Command '%s' exited with status code %d")
               cmd
               i
@@ -920,7 +920,7 @@ let to_file ~ctxt fn lvl intrf oasis_dev =
            question  = "What do you want to do now?";
            parse = 
              (fun s -> 
-                failwithf1 
+                failwithf
                   (f_ "'%s' is not a valid choice.")
                   s);
          }

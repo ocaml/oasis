@@ -69,7 +69,7 @@ let all_licenses =
 
 let mk_license nm ?(versions=[]) ?note long_name = 
   if HashStringCsl.mem all_licenses nm then
-    failwithf1
+    failwithf
       (f_ "Duplicate license '%s'")
       nm;
   HashStringCsl.add all_licenses nm 
@@ -305,7 +305,7 @@ let all_exceptions =
 
 let mk_exception nm explanation licenses = 
   if HashStringCsl.mem all_exceptions nm then
-    failwithf1
+    failwithf
       (f_ "Duplicate license exception '%s'")
       nm;
   HashStringCsl.add all_exceptions nm 
@@ -354,7 +354,7 @@ let parse_dep5 ~ctxt str =
       try 
         get_subs 1
       with Not_found ->
-        failwithf1 
+        failwithf
           (f_ "Undefined license in '%s'")
           str
     in
@@ -385,7 +385,7 @@ let parse_dep5 ~ctxt str =
         if HashStringCsl.mem all_exceptions res then
           [res]
         else
-          failwithf2
+          failwithf
             (f_ "Unknown license exception '%s' in '%s'")
             res str
     with Not_found -> 
@@ -408,7 +408,7 @@ let parse ~ctxt str =
         OtherLicense
           (OASISValues.url.parse ~ctxt str)
       with Failure _ ->
-        failwithf1
+        failwithf
           (f_ "Cannot parse license '%s'")
           str
     end

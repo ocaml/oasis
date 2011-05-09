@@ -111,7 +111,7 @@ let var_define nm =
             in
               value
           with Not_found ->
-            failwithf2
+            failwithf
               (f_ "Cannot find field '%s' in '%s -config' output")
               nm
               (ocamlc ())))

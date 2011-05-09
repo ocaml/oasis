@@ -98,7 +98,7 @@ let install pkg argv =
                (Filename.concat srcdir src)
            in
              if real_srcs = [] then
-               failwithf1
+               failwithf
                  (f_ "Wildcard '%s' doesn't match any files")
                  src;
              List.iter 
@@ -238,7 +238,7 @@ let install pkg argv =
                 Filename.concat bs.bs_path "META"
               in
                 if not (Sys.file_exists res) then
-                  failwithf2
+                  failwithf
                     (f_ "Cannot find file '%s' for findlib library %s")
                     res
                     findlib_name;
@@ -403,7 +403,7 @@ let uninstall _ argv =
            BaseExec.run (ocamlfind ()) ["remove"; data]
          end
        else
-         failwithf1 (f_ "Unknown log event '%s'") ev;
+         failwithf (f_ "Unknown log event '%s'") ev;
        BaseLog.unregister ev data)
     (* We process event in reverse order *)
     (List.rev 

@@ -40,7 +40,7 @@ let make ?(std_usage=false) nm snps hlp main =
     scmd_help      = hlp;
     scmd_specs     = [];
     scmd_usage     = if std_usage then s_ "[options*]" else "";
-    scmd_anon      = (failwithf1 (f_ "Don't know what to do with '%s'"));
+    scmd_anon      = (failwithf (f_ "Don't know what to do with '%s'"));
     scmd_main      = main;
   }
 
@@ -74,6 +74,6 @@ let find nm =
       | Some c -> 
           c
       | None -> 
-          failwithf1
+          failwithf
             (f_ "Subcommand '%s' doesn't exist")
             nm

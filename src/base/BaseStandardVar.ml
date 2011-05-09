@@ -94,8 +94,7 @@ let (/) a b =
   else if os_type () = "Unix" then
     BaseFilePath.Unix.concat a b 
   else
-    OASISUtils.failwithf1 
-      (f_ "Cannot handle os_type %s filename concat")
+    OASISUtils.failwithf (f_ "Cannot handle os_type %s filename concat")
       (os_type ())
 (**/**)
 

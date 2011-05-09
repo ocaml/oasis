@@ -68,19 +68,12 @@ val is_varname: string -> bool
 
 (** {2 Fail with Printf.sprintf} *)
 
-(** These functions are combinations of [failwith] and [Printf.sprintf]. The
-    numbering scheme is unfortunate but required to have a polymorphic functions.
-    Without setting the number of arguments, the return of [failwith] prevents
-    type inference, because this function doesn't return.
+(** This function raise the [Failure] exception just as [failwith]
+    except that one specify the string raised through a format string.
 
-    Example: [failwithf2 "Cannot do %s because of %d" str i]
+    Example: [failwithf "Cannot do %s because of %d" str i]
   *)
-
-val failwithf1 : ('a -> string, unit, string) format -> 'a -> 'b
-val failwithf2 : ('a -> 'b -> string, unit, string) format -> 'a -> 'b -> 'c
-val failwithf3 : ('a -> 'b -> 'c -> string, unit, string) format -> 'a -> 'b -> 'c -> 'd
-val failwithf4 : ('a -> 'b -> 'c -> 'd -> string, unit, string) format -> 'a -> 'b -> 'c -> 'd -> 'e
-val failwithf5 : ('a -> 'b -> 'c -> 'd -> 'e -> string, unit, string) format -> 'a -> 'b -> 'c -> 'd -> 'e -> 'f
+val failwithf : ('a, unit, string, 'b) format4 -> 'a
 
 (** {2 String} *)
 

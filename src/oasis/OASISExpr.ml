@@ -140,7 +140,7 @@ let check valid_flags =
           check_aux valid_flags e2
       | EFlag nm ->
           if not (List.exists (lowercase_eq nm) valid_flags) then
-            failwithf1 (f_ "Unknown flag '%s'") nm
+            failwithf (f_ "Unknown flag '%s'") nm
       | ETest (_, _) ->
           ()
   in

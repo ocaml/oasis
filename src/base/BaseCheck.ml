@@ -89,7 +89,7 @@ let version
             if OASISVersion.comparator_apply version cmp then
               version_str
             else
-              failwithf3
+              failwithf
                 (f_ "Cannot satisfy version constraint on %s: %s (version: %s)")
                 var_prefix
                 (OASISVersion.string_of_comparator cmp)
@@ -116,7 +116,7 @@ let package ?version_comparator pkg () =
       if Sys.file_exists dir && Sys.is_directory dir then
         dir
       else
-        failwithf2
+        failwithf
           (f_ "When looking for findlib package %s, \
                directory %s return doesn't exist")
           pkg dir

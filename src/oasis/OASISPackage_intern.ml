@@ -113,7 +113,7 @@ let schema, generator =
                       (List.mem 
                          v 
                          (current_version :: extra_supported_versions)) then
-                   failwithf1
+                   failwithf
                      (f_ "OASIS format version '%s' is not supported.")
                      str;
                  v);

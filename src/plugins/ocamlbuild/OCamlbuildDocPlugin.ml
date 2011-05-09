@@ -177,7 +177,7 @@ let doit ctxt pkg (cs, doc) =
             in
               MapString.find nm lib_of_name
           with Not_found ->
-            failwithf1
+            failwithf
               (f_ "Findlib library %s is not an internal library")
               fndlb_nm
     in

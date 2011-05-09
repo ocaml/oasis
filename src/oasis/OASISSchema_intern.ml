@@ -220,7 +220,7 @@ let new_field_conditional
            end
        | None ->
            (* TODO: this is ugly, try to find a solution without ?context *)
-           failwithf2
+           failwithf
              (f_ "No context defined for field '%s' when parsing value %S")
              name 
              s
@@ -286,12 +286,12 @@ let default_parse_update name value =
       | Some ctxt ->
           begin
             if ctxt.cond <> None then
-              failwithf1 (f_ "Field '%s' cannot be conditional") name;
+              failwithf (f_ "Field '%s' cannot be conditional") name;
             value.parse ~ctxt:ctxt.ctxt s
           end
       | None ->
           (* TODO: this is ugly, try to find a solution without ?context *)
-          failwithf2 
+          failwithf
             (f_ "No context defined for field '%s' when parsing value %S")
             name s
   in

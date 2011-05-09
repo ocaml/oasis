@@ -156,7 +156,6 @@ let check_schema ~ctxt where schm data =
       schm
   in
     if msgfld <> [] then
-      failwithf2
-        (f_ "Missing field in %s: %s")
+      failwithf (f_ "Missing field in %s: %s")
         where
         (String.concat (s_ ", ") msgfld)
