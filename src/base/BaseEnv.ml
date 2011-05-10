@@ -353,15 +353,12 @@ let print () =
     String.make ((max_length - (String.length str)) + 3) '.'
   in
 
-  print_newline ();
-  print_endline "Configuration: ";
-  print_newline ();
+  Printf.printf "\nConfiguration: \n";
   List.iter
     (fun (name,value) ->
-       Printf.printf "%s: %s %s\n" name (dot_pad name) value)
-    printable_vars;
-  Printf.printf "%!";
-  print_newline ()
+      Printf.printf "%s: %s %s\n" name (dot_pad name) value)
+    (List.rev printable_vars);
+  Printf.printf "\n%!"
 
 let args () =
   let arg_concat =
