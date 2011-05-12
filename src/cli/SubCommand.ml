@@ -20,7 +20,7 @@
 (********************************************************************************)
 
 open OASISUtils
-open MainGettext
+open OASISGettext
 
 type t =
     {

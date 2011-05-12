@@ -23,10 +23,10 @@
     @author Sylvain Le Gall
   *)
 
-open MainGettext
 open SubCommand
 open BaseMessage
 open Genlex
+open OASISGettext
 open OASISTypes
 open OASISSection
 open OASISUtils

@@ -20,6 +20,8 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 994af505224f4fbadebf7486bb4eb5be)
+# DO NOT EDIT (digest: c97b5334077d02b442cc0ea78d2aca2a)
 SubCommand
+ArgExt
+CLIData
 # OASIS_STOP

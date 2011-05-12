@@ -22,7 +22,7 @@
 (** Parsing of command line arguments 
   *)
 
-open MainGettext
+open OASISGettext
 open BaseMessage
 open SubCommand
 open OASISUtils

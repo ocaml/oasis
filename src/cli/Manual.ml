@@ -23,8 +23,8 @@
     @author Sylvain Le Gall
   *)
 
-open MainGettext
 open SubCommand
+open OASISGettext
 
 let output = 
   ref None

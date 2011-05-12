@@ -20,8 +20,9 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 6016a9ec19cca4994a0c0fe4844829e8)
+# DO NOT EDIT (digest: db3ba7d980d36895d1c1521a338edb8a)
 FormatExt
+FormatMarkdown
 ODNFunc
 PropList
 OASISUtils

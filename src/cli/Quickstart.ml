@@ -23,7 +23,7 @@
     @author Sylvain Le Gall
   *)
 
-open MainGettext
+open OASISGettext
 open OASISQuickstart
 open OASISTypes
 open SubCommand

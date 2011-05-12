@@ -24,7 +24,7 @@
 
 open SubCommand 
 open ArgExt
-open MainGettext
+open OASISGettext
 
 let scmd_name = 
   ref None

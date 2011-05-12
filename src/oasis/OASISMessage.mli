@@ -41,7 +41,7 @@ val info : ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
   *)
 val warning : ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
 
-(** Print an error message and exit.
+(** Print an error message.
   *)
 val error : ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
 
