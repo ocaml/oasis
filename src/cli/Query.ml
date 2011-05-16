@@ -49,17 +49,17 @@ let query pkg str =
 
   let assoc_sections = 
     [
-      "Library", (KLibrary, proplist_schema OASISLibrary.schema);
+      "Library", (`Library, proplist_schema OASISLibrary.schema);
 
-      "Executable", (KExecutable, proplist_schema OASISExecutable.schema);
+      "Executable", (`Executable, proplist_schema OASISExecutable.schema);
 
-      "Flag", (KFlag, proplist_schema OASISFlag.schema);
+      "Flag", (`Flag, proplist_schema OASISFlag.schema);
 
-      "SrcRepo", (KSrcRepo, proplist_schema OASISSourceRepository.schema);
+      "SrcRepo", (`SrcRepo, proplist_schema OASISSourceRepository.schema);
 
-      "Test", (KTest, proplist_schema OASISTest.schema);
+      "Test", (`Test, proplist_schema OASISTest.schema);
 
-      "Doc", (KDoc, proplist_schema OASISDocument.schema);
+      "Doc", (`Doc, proplist_schema OASISDocument.schema);
     ]
   in
 

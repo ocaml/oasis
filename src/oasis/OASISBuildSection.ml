@@ -219,7 +219,7 @@ let transitive_build_depends pkg =
                *)
               (-1)
           | InternalLibrary nm ->
-              MapSectionId.find (KLibrary, nm) order
+              MapSectionId.find (`Library, nm) order
       in
         (id dep1) - (id dep2)
     in

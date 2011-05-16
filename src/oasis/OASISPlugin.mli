@@ -131,6 +131,12 @@ val register_generator_package: all_t -> 'a prop -> (PropList.Data.t -> 'a) -> u
 (** Call generator for provided plugin *)
 val generator_package: plugin_kind plugin -> plugin_data ref -> PropList.Data.t -> unit
 
+(** Register a generator for a section, to store data of a plugin *)
+val register_generator_section: section_kind -> all_t -> 'a prop -> (PropList.Data.t -> 'a) -> unit
+
+(** Call generator for provided plugin on a section *)
+val generator_section: section_kind -> plugin_kind plugin -> plugin_data ref -> PropList.Data.t -> unit
+
 (** List available plugins. *)
 val ls : plugin_kind -> name list
 
@@ -256,9 +262,9 @@ val plugin_compare: 'a plugin -> 'a plugin -> int
   *)
 val plugin_equal: 'a plugin -> 'a plugin -> bool
 
-(** Create storage for plugin data. 
+(** Create storage for plugin data.
   *)
-val data_create: unit -> plugin_data ref 
+val data_create: unit -> plugin_data ref
 
 (** [data_new_property plg] Create a property that can store plugin data. Beware
     that the the couple [(plg, purpose)] must be unique.

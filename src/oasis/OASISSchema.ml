@@ -39,8 +39,9 @@ let sync_proxy schema t nm (_, get) sync ds =
       sync ds t'
   with e ->
     Printf.eprintf 
-      "Field %S: %s\n"
+      "Field %S in schema %S: %s\n"
       (make_field_name t nm)
+      (PropList.Schema.name schema.OASISSchema_intern.schm)
       (OASISMessage.string_of_exception e);
     raise OASISValues.Not_printable
 

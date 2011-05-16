@@ -259,7 +259,7 @@ let quickstart_completion plg =
     (fun pkg -> pkg)
 
 (* 
- * Generator
+ * Generators
  *)
 
 let gen_all = 
@@ -269,14 +269,34 @@ let register_generator_package t (prop_set, _) generator =
   HashPlugin.add gen_all t
     (fun t data -> prop_set t (generator data))
 
-let generator_package plg plugin_data data = 
+let generator_package plg rplugin_data data = 
   try 
     let lst = 
       HashPlugin.find_all gen_all plg
     in
       List.iter 
         (fun gen ->
-           gen plugin_data data)
+           gen rplugin_data data)
+        lst
+  with Not_found ->
+    ()
+
+let gen_section =
+  HashPlugin.create 5
+
+let register_generator_section knd t (prop_set, _) generator =
+  HashPlugin.add gen_section t
+    (knd, (fun t data -> prop_set t (generator data)))
+
+let generator_section knd plg rplugin_data data =
+  try
+    let lst =
+      HashPlugin.find_all gen_section plg 
+    in
+      List.iter
+        (fun (knd', gen) ->
+           if knd = knd' then
+             gen rplugin_data data)
         lst
   with Not_found ->
     ()

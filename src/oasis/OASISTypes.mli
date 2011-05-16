@@ -321,6 +321,8 @@ type section =
   | Test       of common_section * test
   | Doc        of common_section * doc
   
+type section_kind =
+    [ `Library | `Executable | `Flag | `SrcRepo | `Test | `Doc ]
 
 (** OASIS package, what an '_oasis' file contains.
   *)

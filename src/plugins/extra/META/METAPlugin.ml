@@ -47,58 +47,72 @@ type t =
 let plugin = 
   `Extra, "META", Some OASISConf.version_short
 
-let pivot_data = 
-  data_new_property plugin
-
 let self_id, all_id = 
   Extra.create plugin
 
-let new_field nm = 
-  new_field OASISLibrary.schema all_id nm
+let pivot_data = 
+  data_new_property plugin
 
-let enable = 
-  new_field
-    "Enable"
-    ~default:true
-    boolean
-    (fun () ->
-       s_ "Enable META generation")
-    pivot_data (fun _ t -> t.enable)
+let generator =
+  let new_field nm = 
+    new_field OASISLibrary.schema all_id nm
+  in
 
-let description =
-  new_field
-    "Description"
-    ~default:None
-    (opt string_not_empty)
-    (fun () ->
-       s_ "META package description")
-    pivot_data (fun _ t -> t.description)
+  let enable = 
+    new_field
+      "Enable"
+      ~default:true
+      boolean
+      (fun () ->
+         s_ "Enable META generation")
+      pivot_data (fun _ t -> t.enable)
+  in
 
-let meta_type =
-  new_field
-    "Type"
-    ~default:METALibrary
-    (choices
-       (fun () ->
-          s_ "META type")
-       [
-         "library", METALibrary;
-         "syntax",  METASyntax;
-       ])
-    (fun () ->
-       s_ "Type of META package, set default predicates for archive")
-    pivot_data (fun _ t -> t.meta_type)
+  let description =
+    new_field
+      "Description"
+      ~default:None
+      (opt string_not_empty)
+      (fun () ->
+         s_ "META package description")
+      pivot_data (fun _ t -> t.description)
+  in
 
-let requires =
-  new_field
-    "Requires"
-    ~default:None
-    (opt (comma_separated string))
-    (fun () ->
-       s_ "Requires field for META package")
-    pivot_data (fun _ t -> t.requires)
+  let meta_type =
+    new_field
+      "Type"
+      ~default:METALibrary
+      (choices
+         (fun () ->
+            s_ "META type")
+         [
+           "library", METALibrary;
+           "syntax",  METASyntax;
+         ])
+      (fun () ->
+         s_ "Type of META package, set default predicates for archive")
+      pivot_data (fun _ t -> t.meta_type)
+  in
 
-let pp_print_meta pkg findlib_name_map fmt grp =
+  let requires =
+    new_field
+      "Requires"
+      ~default:None
+      (opt (comma_separated string))
+      (fun () ->
+         s_ "Requires field for META package")
+      pivot_data (fun _ t -> t.requires)
+  in
+
+    fun data ->
+      {
+        enable      = enable data;
+        description = description data;
+        meta_type   = meta_type data;
+        requires    = requires data;
+      }
+
+let pp_print_meta pkg root_t findlib_name_map fmt grp =
 
   let pp_print_field fmt (var, preds, vl) = 
     fprintf fmt
@@ -111,12 +125,8 @@ let pp_print_meta pkg findlib_name_map fmt grp =
     fprintf fmt "@,@[<hv 1>%s@ =@ %S@]" var vl
   in
 
-  let root_cs, root_bs, root_lib =
-    root_of_group grp
-  in
-
   let default_synopsis = 
-    match description root_cs.cs_data with
+    match root_t.description with
       | Some txt -> txt
       | None -> pkg.synopsis
   in
@@ -128,10 +138,13 @@ let pp_print_meta pkg findlib_name_map fmt grp =
     let lib_cma, lib_cmxa = 
       lib_name^".cma", lib_name^".cmxa"
     in
+    let t = 
+      generator lib_cs.cs_data
+    in
       pp_print_sfield fmt ("version", (OASISVersion.string_of_version pkg.version));
       begin
         let txt =
-          match description lib_cs.cs_data with
+          match t.description with
             | Some txt -> txt
             | None -> default_synopsis 
         in
@@ -139,7 +152,7 @@ let pp_print_meta pkg findlib_name_map fmt grp =
       end;
       begin 
         let requires = 
-          match requires lib_cs.cs_data with 
+          match t.requires with 
             | Some lst ->
                 lst
             | None ->
@@ -158,7 +171,7 @@ let pp_print_meta pkg findlib_name_map fmt grp =
           pp_print_sfield fmt ("requires", String.concat " " requires)
       end; 
       begin
-        match meta_type lib_cs.cs_data with 
+        match t.meta_type with 
           | METALibrary ->
               pp_print_field fmt ("archive", ["byte"], lib_cma);
               begin
@@ -194,13 +207,16 @@ let pp_print_meta pkg findlib_name_map fmt grp =
             (FormatExt.pp_print_list pp_print_group "") children
 
       | Package (fndlb_nm, lib_cs, lib_bs, lib, children) ->
-          if enable lib_cs.cs_data then
-            fprintf fmt "@,@[<hv1>package %S (%a@]@,)"
-              fndlb_nm
-              pp_print_library (lib_cs, lib_bs, lib, children)
+          let t = 
+            generator lib_cs.cs_data
+          in
+            if t.enable then
+              fprintf fmt "@,@[<hv1>package %S (%a@]@,)"
+                fndlb_nm
+                pp_print_library (lib_cs, lib_bs, lib, children)
   in
 
-    assert(enable root_cs.cs_data);
+    assert(root_t.enable);
     pp_open_vbox fmt 0;
     fprintf fmt "# OASIS_START";
     begin
@@ -223,7 +239,10 @@ let main ctxt pkg =
          let root_cs, root_bs, root_lib = 
            root_of_group grp
          in
-           if enable root_cs.cs_data then
+         let root_t =
+           generator root_cs.cs_data
+         in
+           if root_t.enable then
              begin
                let meta_fn =
                  Filename.concat root_bs.bs_path "META"
@@ -233,6 +252,7 @@ let main ctxt pkg =
                in
                  pp_print_meta 
                    pkg 
+                   root_t
                    findlib_name_map 
                    (Format.formatter_of_buffer buff) 
                    grp;
@@ -258,4 +278,5 @@ let init () =
     plugin
     {(help_default METAData.readme_template_mkd) with 
          help_order = 40};
-  Extra.register_act self_id main
+  Extra.register_act self_id main;
+  register_generator_section `Library all_id pivot_data generator 

@@ -27,7 +27,7 @@ open FormatExt
 (** Pretty printing of OASIS files
   *)
 
-let pp_print_fields fmt (schm, data) = 
+let pp_print_fields fmt (schm, _, data) = 
   let fake_data =
     PropList.Data.create ()
   in
@@ -109,10 +109,10 @@ let pp_print_fields fmt (schm, data) =
     pp_close_box fmt ()
 
 
-let pp_print_section fmt sct = 
+let pp_print_section plugins fmt sct = 
   let pp_print_section' schm t = 
-    let (schm, _) as sct_data = 
-      OASISSchema_intern.to_proplist schm t
+    let (schm, _, _) as sct_data = 
+      OASISSchema_intern.to_proplist schm plugins t
     in
 
     let {cs_name = nm; cs_data = data} = 
@@ -149,8 +149,8 @@ let pp_print_section fmt sct =
 
 let pp_print_package fmt pkg = 
 
-  let pkg_data = 
-    (OASISSchema_intern.to_proplist OASISPackage.schema) pkg 
+  let (_, plugins, _) as pkg_data = 
+    OASISSchema_intern.to_proplist OASISPackage.schema [] pkg 
   in
 
     pp_open_vbox fmt 0;
@@ -158,7 +158,7 @@ let pp_print_package fmt pkg =
     pp_print_fields fmt pkg_data;
     pp_print_cut fmt ();
 
-    List.iter (pp_print_section fmt) pkg.sections;
+    List.iter (pp_print_section plugins fmt) pkg.sections;
 
     pp_close_box fmt ()
 

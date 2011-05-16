@@ -25,35 +25,38 @@
 
 open OASISTypes
 
-type section_kind =
-  | KLibrary 
-  | KExecutable
-  | KFlag
-  | KSrcRepo
-  | KTest
-  | KDoc
-
 (** Extract generic information 
   *)
 let section_kind_common = 
   function
     | Library (cs, _, _) -> 
-        KLibrary, cs
+        `Library, cs
     | Executable (cs, _, _) ->
-        KExecutable, cs
+        `Executable, cs
     | Flag (cs, _) ->
-        KFlag, cs
+        `Flag, cs
     | SrcRepo (cs, _) ->
-        KSrcRepo, cs
+        `SrcRepo, cs
     | Test (cs, _) ->
-        KTest, cs
+        `Test, cs
     | Doc (cs, _) ->
-        KDoc, cs
+        `Doc, cs
 
 (** Common section of a section
   *)
 let section_common sct =
   snd (section_kind_common sct)
+
+(** Set the common part of a section 
+  *)
+let section_common_set cs =
+  function
+    | Library (_, bs, lib)     -> Library (cs, bs, lib)
+    | Executable (_, bs, exec) -> Executable (cs, bs, exec)
+    | Flag (_, flg)            -> Flag (cs, flg)
+    | SrcRepo (_, src_repo)    -> SrcRepo (cs, src_repo)
+    | Test (_, tst)            -> Test (cs, tst)
+    | Doc (_, doc)             -> Doc (cs, doc)
 
 (** Key used to identify section
   *)
@@ -68,12 +71,12 @@ let string_of_section sct =
     section_id sct
   in
     (match k with
-       | KLibrary    -> "library" 
-       | KExecutable -> "executable"
-       | KFlag       -> "flag"
-       | KSrcRepo    -> "src repository"
-       | KTest       -> "test"
-       | KDoc        -> "doc")
+       | `Library    -> "library" 
+       | `Executable -> "executable"
+       | `Flag       -> "flag"
+       | `SrcRepo    -> "src repository"
+       | `Test       -> "test"
+       | `Doc        -> "doc")
     ^" "^nm
 
 (* END EXPORT *)

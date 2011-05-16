@@ -128,62 +128,79 @@ let schema, generator =
   in
     schm,
     (fun nm data ->
-       Doc
-         (cmn_section_gen nm data,
-          (* TODO: find a way to code that in a way compatible with 
-           * quickstart
-           *)
-          let doc_format =
-            match doc_format data with 
-              | HTML _ ->
-                  begin
-                    match index data with
-                      | Some fn -> HTML fn
-                      | None ->
-                          failwithf1
-                            (f_ "Index is mandatory for format HTML in \
-                                 document %s")
-                            nm
-                  end
-              | Info fn ->
-                  begin
-                    match index data with
-                      | Some fn -> Info fn
-                      | None ->
-                          failwithf1
-                            (f_ "Index is mandatory for format info in \
-                                 document %s")
-                            nm
-                  end
-              | DocText | PDF | PostScript | DVI | OtherDoc as fmt ->
-                  fmt
-          in
-          let doc_install_dir =
-            match install_dir data with
-              | None ->
-                  begin
-                    match doc_format with
-                      | HTML _     -> "$htmldir"
-                      | DocText    -> "$docdir"
-                      | PDF        -> "$pdfdir"
-                      | PostScript -> "$psdir"
-                      | Info _     -> "$infodir"
-                      | DVI        -> "$dvidir"
-                      | OtherDoc   -> "$docdir"
-                  end
-              | Some dir ->
-                  dir
-          in
-            {
-              doc_type        = typ data;
-              doc_custom      = custom data;
-              doc_build       = build data;
-              doc_install     = install data;
-              doc_install_dir = doc_install_dir;
-              doc_title       = title data;
-              doc_authors     = authors data;
-              doc_abstract    = abstract data;
-              doc_format      = doc_format;
-              doc_data_files  = data_files data;
-              doc_build_tools = build_tools data;
-            }))
+       let cs = 
+         cmn_section_gen nm data
+       in
+       let typ = 
+         typ data
+       in
+       let rplugin_data = 
+         ref cs.cs_plugin_data
+       in
+       let cs =
+         OASISPlugin.generator_section
+           `Doc
+           (typ :> plugin_kind plugin)
+           rplugin_data
+           cs.cs_data;
+         {cs with cs_plugin_data = !rplugin_data}
+       in
+         Doc
+           (cs,
+            (* TODO: find a way to code that in a way compatible with 
+             * quickstart
+             *)
+            let doc_format =
+              match doc_format data with 
+                | HTML _ ->
+                    begin
+                      match index data with
+                        | Some fn -> HTML fn
+                        | None ->
+                            failwithf1
+                              (f_ "Index is mandatory for format HTML in \
+                                   document %s")
+                              nm
+                    end
+                | Info fn ->
+                    begin
+                      match index data with
+                        | Some fn -> Info fn
+                        | None ->
+                            failwithf1
+                              (f_ "Index is mandatory for format info in \
+                                   document %s")
+                              nm
+                    end
+                | DocText | PDF | PostScript | DVI | OtherDoc as fmt ->
+                    fmt
+            in
+            let doc_install_dir =
+              match install_dir data with
+                | None ->
+                    begin
+                      match doc_format with
+                        | HTML _     -> "$htmldir"
+                        | DocText    -> "$docdir"
+                        | PDF        -> "$pdfdir"
+                        | PostScript -> "$psdir"
+                        | Info _     -> "$infodir"
+                        | DVI        -> "$dvidir"
+                        | OtherDoc   -> "$docdir"
+                    end
+                | Some dir ->
+                    dir
+            in
+              {
+                doc_type        = typ;
+                doc_custom      = custom data;
+                doc_build       = build data;
+                doc_install     = install data;
+                doc_install_dir = doc_install_dir;
+                doc_title       = title data;
+                doc_authors     = authors data;
+                doc_abstract    = abstract data;
+                doc_format      = doc_format;
+                doc_data_files  = data_files data;
+                doc_build_tools = build_tools data;
+              }))

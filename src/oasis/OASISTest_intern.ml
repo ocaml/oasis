@@ -89,13 +89,31 @@ let schema, generator =
   in
     schm,
     (fun nm data ->
-       Test
-         (cmn_section_gen nm data,
-          {
-            test_type              = typ data;
-            test_command           = command data;
-            test_working_directory = working_directory data;
-            test_custom            = custom data;
-            test_run               = run data;
-            test_tools             = tools data;
-          }))
+       let cs = 
+         cmn_section_gen nm data
+       in
+       (* Set data specific to plugin used for this test *)
+       let typ =
+         typ data
+       in
+       let rplugin_data =
+         ref cs.cs_plugin_data
+       in
+       let cs = 
+         OASISPlugin.generator_section 
+           `Test
+           (typ :> plugin_kind plugin)
+           rplugin_data
+           cs.cs_data;
+         {cs with cs_plugin_data = !rplugin_data}
+       in
+         Test
+           (cs,
+            {
+              test_type              = typ;
+              test_command           = command data;
+              test_working_directory = working_directory data;
+              test_custom            = custom data;
+              test_run               = run data;
+              test_tools             = tools data;
+            }))

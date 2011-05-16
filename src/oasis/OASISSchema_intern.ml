@@ -403,7 +403,7 @@ let new_field_plugins
         ?quickstart_question
         value)
 
-let to_proplist t e = 
+let to_proplist t plugins e = 
   let data = 
     (* First synchronization, no plugin *)
     !(t.sync) e None (PropList.Data.create ())
@@ -429,11 +429,12 @@ let to_proplist t e =
            | FieldFromPlugin _ 
            | StandardField ->
                acc)
-      []
+      plugins
       t.schm
   in
     (* Second synchronization only plugins *)
     t.schm,
+    plugins,
     List.fold_left
       (fun data plg ->
          !(t.sync) e (Some plg) data)

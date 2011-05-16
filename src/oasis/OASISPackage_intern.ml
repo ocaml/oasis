@@ -324,32 +324,62 @@ let schema, generator =
   in
     schm,
     (fun data sections ->
-       let plugin_data = 
-         OASISPlugin.data_create ()
-       in
        let plugins = plugins data in
        let conf    = conf_type data in
        let build   = build_type data in
        let install = install_type data in
-       let () = 
-         (* Generate plugin data *)
-         List.iter  
-           (fun plg ->
-              OASISPlugin.generator_package 
-                (plg :> plugin_kind plugin) 
-                plugin_data 
-                data)
-           plugins;
-         OASISPlugin.generator_package
-           (conf :> plugin_kind plugin)
-           plugin_data data;
-         OASISPlugin.generator_package
-           (build :> plugin_kind plugin)
-           plugin_data data;
-         OASISPlugin.generator_package
-           (install :> plugin_kind plugin)
-           plugin_data data
+
+       (* Generate plugin data *)
+       let set_plugin_data generator plugin_data data =
+         let rplugin_data = ref plugin_data in
+           List.iter  
+             (fun plg ->
+                generator
+                  (plg :> plugin_kind plugin) 
+                  rplugin_data 
+                  data)
+             plugins;
+           generator
+             (conf :> plugin_kind plugin)
+             rplugin_data data;
+           generator
+             (build :> plugin_kind plugin)
+             rplugin_data data;
+           generator
+             (install :> plugin_kind plugin)
+             rplugin_data data;
+           !rplugin_data
        in
+
+       (* Plugin data for package *)
+       let plugin_data = 
+         set_plugin_data 
+           OASISPlugin.generator_package 
+           []
+           data
+       in
+       
+       (* Fix plugin data for sections, set data from plugin 
+        * defined at package level 
+        *)
+       let sections = 
+         List.map
+           (fun sct ->
+              let knd, cs = 
+                OASISSection.section_kind_common sct
+              in
+              let plugin_data =
+                set_plugin_data 
+                  (OASISPlugin.generator_section knd)
+                  cs.cs_plugin_data
+                  cs.cs_data
+              in
+                OASISSection.section_common_set 
+                  {cs with cs_plugin_data = plugin_data}
+                  sct)
+           sections
+       in
+
          List.fold_right
            add_build_depend 
            (build_depends data)
@@ -384,5 +414,5 @@ let schema, generator =
                 plugins          = plugins;
                 sections         = sections;
                 schema_data      = data;
-                plugin_data      = !plugin_data; (* TODO: use ref. Compatible with ODN? *)
+                plugin_data      = plugin_data; 
               }))

@@ -72,7 +72,13 @@ let tests =
             let fmt =
               Format.formatter_of_out_channel chn
             in
-              METAPlugin.pp_print_meta pkg findlib_name_map fmt grp;
+            let root_t =
+              let root_cs, _, _ = 
+                root_of_group grp
+              in
+                METAPlugin.generator root_cs.cs_data
+            in
+              METAPlugin.pp_print_meta pkg root_t findlib_name_map fmt grp;
               close_out chn
           in
 

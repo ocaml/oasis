@@ -210,14 +210,14 @@ let tests =
             (fun pkg ->
                let flag_test =
                  match OASISSection.section_find 
-                         (OASISSection.KFlag, "test") 
+                         (`Flag, "test") 
                          pkg.sections with
                    | Flag (_, e) -> e
                    | _ -> assert false
                in
                let test_main =
                  match OASISSection.section_find 
-                         (OASISSection.KTest, "main") 
+                         (`Test, "main") 
                          pkg.sections with 
                    | Test (_, e)-> e
                    | _ -> assert false

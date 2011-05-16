@@ -30,6 +30,9 @@ open ExpectPcre
 open OUnit
 open OASISTypes
 
+let () = 
+  METAPlugin.init ()
+
 module MapString = Map.Make(String)
 
 let tests = 
@@ -54,7 +57,7 @@ let tests =
       if not !dbug then 
         "-quiet" :: args
       else
-        args
+        "-debug" :: args
     in
 
     let args = 
@@ -152,11 +155,10 @@ let tests =
                              assert_failure assert_msg
                  end
          in
-          continue qa;
-          assert_bool
-            "wait for eof"
-            (expect t [`Eof, true] false);
-      ) 
+           continue qa;
+           assert_bool
+             "wait for eof"
+             (expect t [`Eof, true] false)) 
       (Unix.WEXITED 0)
   in
 
@@ -231,8 +233,7 @@ let tests =
             let sct = 
               try 
                 OASISSection.section_find 
-                  (OASISSection.KExecutable,
-                   "test")
+                  (`Executable, "test")
                   pkg.sections
               with Not_found ->
                  failwith "Cannot find executable section 'test'"
@@ -304,6 +305,139 @@ let tests =
               ~msg:"field name"
               ~printer:(fun s -> s)
               "test" pkg.name);
+
+         "meta",
+         ["-level"; "expert"],
+         [
+           "name", "test";
+           "version", "0.1";
+           "synopsis", "test";
+           "description", "test";
+           "licensefile", "";
+           "authors", "me";
+           "copyrights", "(C) 2010 Me";
+           "maintainers", "";
+           "license", "GPL-3";
+           "ocamlversion", "";
+           "findlibversion", "";
+           "conftype", "";
+           "preconfcommand", "";
+           "postconfcommand", "";
+           "buildtype", "";
+           "prebuildcommand", "";
+           "postbuildcommand", "";
+           "installtype", "";
+           "preinstallcommand", "";
+           "postinstallcommand", "";
+           "preuninstallcommand", "";
+           "postuninstallcommand", "";
+           "precleancommand", "";
+           "postcleancommand", "";
+           "predistcleancommand", "";
+           "postdistcleancommand", "";
+           "homepage", "";
+           "categories", "";
+           "filesab", "";
+           "plugins", "stdfiles, meta";
+           "builddepends", "";
+           "buildtools", "";
+           "create_section", "l";
+           "name", "libtest";
+           "path", ".";
+           "build", "";
+           "install", "";
+           "datafiles", "";
+           "builddepends", "";
+           "buildtools", "";
+           "compiledobject", "";
+           "csources", "";
+           "ccopt", "";
+           "cclib", "";
+           "dlllib", "";
+           "dllpath", "";
+           "byteopt", "";
+           "nativeopt", "";
+           "modules", "";
+           "internalmodules", "";
+           "findlibparent", "";
+           "findlibname", "";
+           "findlibcontainers", "";
+           "xmetaenable", "";
+           "xmetadescription", "this is a test";
+           "xmetatype", "syntax";
+           "xmetarequires", "test.syntax";
+           "create_section", "l";
+           "name", "libtest2";
+           "path", ".";
+           "build", "";
+           "install", "";
+           "datafiles", "";
+           "builddepends", "";
+           "buildtools", "";
+           "compiledobject", "";
+           "csources", "";
+           "ccopt", "";
+           "cclib", "";
+           "dlllib", "";
+           "dllpath", "";
+           "byteopt", "";
+           "nativeopt", "";
+           "modules", "";
+           "internalmodules", "";
+           "findlibparent", "libtest";
+           "findlibname", "";
+           "findlibcontainers", "";
+           "xmetaenable", "";
+           "xmetadescription", "this is a test v2";
+           "xmetatype", "";
+           "xmetarequires", "test.syntax2";
+           "create_section", "n";
+           "end", "w";
+           "xstdfilesreadme", "";
+           "xstdfilesreadmefilename", "foo";
+           "xstdfilesinstall", "";
+           "xstdfilesinstallfilename", "bar";
+           "xstdfilesauthors", "";
+           "xstdfilesauthorsfilename", "baz";
+         ],
+         (fun pkg ->
+            let libtest = 
+              let res = 
+                OASISSection.section_find 
+                  (`Library, "libtest")
+                  pkg.sections
+              in
+                OASISSection.section_common res
+            in
+            let meta =
+              METAPlugin.generator libtest.cs_data
+            in
+              assert_equal 
+                ~msg:"field name"
+                ~printer:(fun s -> s)
+                "test" pkg.name;
+              assert_equal
+                ~msg:"field XMETAType"
+                ~printer:(function 
+                            | METAPlugin.METASyntax -> "syntax"
+                            | METAPlugin.METALibrary -> "library")
+                METAPlugin.METASyntax
+                meta.METAPlugin.meta_type;
+              assert_equal 
+                ~msg:"field XMETADescription"
+                ~printer:(function
+                            | Some s -> s
+                            | None -> "<none>")
+                (Some "this is a test")
+                meta.METAPlugin.description;
+              assert_equal 
+                ~msg:"field XMETARequires"
+                ~printer:(function
+                            | Some lst -> String.concat ", " lst
+                            | None -> "<none>")
+                (Some ["test.syntax"])
+                meta.METAPlugin.requires;
+         );
        ])
     @
     [
