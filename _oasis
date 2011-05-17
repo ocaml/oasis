@@ -80,11 +80,11 @@ Library oasis
            OASISSourceRepository,
            OASISTest,
            OASISPlugin,
-           OASISSchema
+           OASISSchema,
+           OASISSection
   InternalModules: OASISVersion_types,
                    OASISVersion_lexer,
                    OASISVersion_parser,
-                   OASISSection,
                    OASISSchema,
                    OASISConf,
                    OASISAst,
@@ -95,6 +95,7 @@ Library oasis
                    OASISData,
                    OASISHelp,
                    OASISFormat,
+                   OASISSection_intern,
                    OASISBuildSection_intern,
                    OASISDocument_intern,
                    OASISExecutable_intern,

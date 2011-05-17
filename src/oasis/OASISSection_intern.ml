@@ -19,50 +19,41 @@
 (*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
 (********************************************************************************)
 
-(** Flag schema and generator
-    @author Sylvain Le Gall
-  *)
-
-(* END EXPORT *)
 
 open OASISTypes
-open OASISSchema_intern
-open OASISValues
-open OASISUtils
-open OASISGettext
-open PropList.Field
+open OASISSection
 
-let schema, generator = 
-  let schm =
-    schema "Flag" (fun (cs, _) -> cs.cs_plugin_data)
-  in
-  let cmn_section_gen =
-    OASISSection_intern.section_fields 
-      (fun () -> (s_ "flag")) 
-      schm
-      (fun (cs, _) -> cs)
-  in
-  let descr = 
-    new_field schm "Description" 
-      ~default:None 
-      (opt string_not_empty)
-      (fun () -> 
-         s_ "Help for the flag")
-      (fun (_, flag) -> flag.flag_description)
-  in
-  let default = 
-    new_field_conditional schm "Default" 
-      ~default:true
-      boolean
-      (fun () ->
-         s_ "Default value for the flag")
-      (fun (_, flag) -> flag.flag_default)
-  in
-    schm,
-    (fun nm data ->
-       Flag
-         (cmn_section_gen nm data,
-          {
-            flag_description = descr data;
-            flag_default     = default data;
-          }))
+(** Add section fields *)
+let section_fields 
+      hlp 
+      (schm: 'a OASISSchema_intern.t)
+      (sync: 'a -> common_section) =
+  fun nm data ->
+    {
+      cs_name = nm;
+      cs_plugin_data = []; (* TODO *)
+      cs_data = data;
+    }
+
+(** {2 Containers for sections using id-only} *)
+
+module CIdSection = 
+struct 
+  type t = section_kind * name
+  let compare = compare
+end
+
+module MapSectionId = Map.Make(CIdSection)
+module SetSectionId = Set.Make(CIdSection)
+
+(** Convert a MapSection.t into a MapSectionId.t
+  *)
+let map_section_id mp =
+  MapSection.fold
+    (fun k v mp ->
+       MapSectionId.add
+         (section_id k)
+         v
+         mp)
+    mp
+    MapSectionId.empty

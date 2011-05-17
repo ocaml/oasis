@@ -35,7 +35,7 @@ let schema, generator =
     schema "Executable" (fun (cs, _, _) -> cs.cs_plugin_data) 
   in
   let cmn_section_gen =
-    OASISSection.section_fields 
+    OASISSection_intern.section_fields 
       (fun () -> (s_ "executable")) schm
       (fun (cs, _, _) -> cs)
   in

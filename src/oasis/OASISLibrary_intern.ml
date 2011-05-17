@@ -34,7 +34,7 @@ let schema, generator =
     schema "Library" (fun (cs, _, _) -> cs.cs_plugin_data)
   in
   let cmn_section_gen =
-    OASISSection.section_fields 
+    OASISSection_intern.section_fields 
       (fun () -> (s_ "library")) 
       schm
       (fun (cs, _, _) -> cs)

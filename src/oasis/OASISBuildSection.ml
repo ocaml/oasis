@@ -26,6 +26,7 @@ open OASISUtils
 
 open Graph
 open OASISSection
+open OASISSection_intern
 
 module G = Imperative.Digraph.Concrete(OASISSection.CSection)
 module Bfs = Traverse.Bfs(G)
