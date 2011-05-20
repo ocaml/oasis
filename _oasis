@@ -1,7 +1,7 @@
 OASISFormat:  0.1
 OCamlVersion: >= 3.11.0
 Name:         oasis
-Version:      0.2.0
+Version:      0.2.1
 LicenseFile:  COPYING.txt
 License:      LGPL-2.1 with OCaml linking exception
 BuildType:    ocamlbuild (0.2)
