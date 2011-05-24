@@ -47,12 +47,6 @@ if flag(gettext)
   PostInstallCommand:   $make -C po install PODIR=$prefix/share/locale
   PostUninstallCommand: $make -C po install PODIR=$prefix/share/locale
 
-Executable ocamlmod
-  Path:   src/tools
-  MainIs: ocamlmod.ml
-  BuildDepends: fileutils, pcre
-  Install: false
-  
 Library oasis
   Path: src/oasis
   Modules: FormatExt,

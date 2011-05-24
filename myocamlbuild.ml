@@ -60,12 +60,12 @@ let depends_from_file env build ?(fmod=fun x -> x) fn =
       depends_lst
 ;;
 
-let ocamlmod_str = "src/tools/ocamlmod.byte";;
+let ocamlmod_str = "ocamlmod";;
 let ocamlmod = A ocamlmod_str;;
 
 rule "ocamlmod: %.mod -> %.ml"
   ~prod:"%.ml"
-  ~deps:["%.mod"; ocamlmod_str]
+  ~dep:"%.mod"
   begin
     fun env build ->
       let modfn =

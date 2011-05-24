@@ -20,12 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 6aafe185defa04a606fef7201e83fcb6)
-# Executable ocamlmod
-"src/tools/ocamlmod.byte": pkg_pcre
-"src/tools/ocamlmod.byte": pkg_fileutils
-<src/tools/*.ml{,i}>: pkg_pcre
-<src/tools/*.ml{,i}>: pkg_fileutils
+# DO NOT EDIT (digest: a76e973be5c1b26685a50b141d823fab)
 # Library oasis
 "src/oasis": include
 <src/oasis/*.ml{,i}>: pkg_unix
