@@ -154,9 +154,6 @@ let group_libs pkg =
       | hd :: tl ->
           Container (hd, [tree_of_library tl acc])
       | [] ->
-          (* TODO: allow merging containers with the same 
-           * name 
-           *)
           Package 
             (findlib_name acc, cs, bs, lib,
              (try
@@ -201,15 +198,16 @@ let group_libs pkg =
   in
 
     (* TODO: check that libraries are unique *)
-    List.fold_left
-      (fun acc ->
-         function
-           | Library (cs, bs, lib) when lib.lib_findlib_parent = None -> 
-               (tree_of_library lib.lib_findlib_containers (cs, bs, lib)) :: acc
-           | _ ->
-               acc)
-      []
-      pkg.sections
+    merge_containers
+      (List.fold_left
+         (fun acc ->
+            function
+              | Library (cs, bs, lib) when lib.lib_findlib_parent = None -> 
+                  (tree_of_library lib.lib_findlib_containers (cs, bs, lib)) :: acc
+              | _ ->
+                  acc)
+         []
+         pkg.sections)
 
 (** Compute internal to findlib library matchings, including subpackage
     and return a map of it.

@@ -212,6 +212,9 @@ type section =
   | Doc        of common_section * doc
   with odn
 
+type section_kind =
+    [ `Library | `Executable | `Flag | `SrcRepo | `Test | `Doc ]
+
 type package = 
     {
       oasis_version:    OASISVersion.t;
