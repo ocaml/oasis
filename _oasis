@@ -75,7 +75,8 @@ Library oasis
            OASISTest,
            OASISPlugin,
            OASISSchema,
-           OASISSection
+           OASISSection,
+           OASISData
   InternalModules: OASISVersion_types,
                    OASISVersion_lexer,
                    OASISVersion_parser,
@@ -86,7 +87,6 @@ Library oasis
                    OASISRecDescParser,
                    OASISCustom,
                    OASISQuickstart,
-                   OASISData,
                    OASISHelp,
                    OASISFormat,
                    OASISSection_intern,

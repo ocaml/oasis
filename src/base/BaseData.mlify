@@ -1,2 +1,3 @@
 VarString basesys_ml            "BaseSys.ml"
 VarString basesysenvironment_ml "BaseSysEnvironment.ml"
+VarString basesysbundle_ml      "BaseSysBundle.ml"
