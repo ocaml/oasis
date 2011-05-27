@@ -86,3 +86,4 @@
 \.tar\.gz$
 \.tar\.gz\.asc$
 ^OASISMain.byte$
+^patches-to-apply$

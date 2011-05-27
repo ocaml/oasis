@@ -20,24 +20,23 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 23f10b22330149eda4359220d27a0443)
-version = "0.2.1"
+# DO NOT EDIT (digest: 29a6a0843550fd7e248dc395a63515c0)
+version = "0.2.1~alpha1"
 description = "_oasis file functions"
 requires = "fileutils unix pcre extlib findlib odn ocamlgraph"
 archive(byte) = "oasis.cma"
 archive(native) = "oasis.cmxa"
 exists_if = "oasis.cma"
-package "base" (
- version = "0.2.1"
+package "cli" (
+ version = "0.2.1~alpha1"
  description = "'setup.ml' modules for OASIS"
- requires = "oasis"
- archive(byte) = "base.cma"
- archive(native) = "base.cmxa"
- exists_if = "base.cma"
+ requires = "oasis oasis.base"
+ archive(byte) = "cli.cma"
+ exists_if = "cli.cma"
 )
 
 package "builtin-plugins" (
- version = "0.2.1"
+ version = "0.2.1~alpha1"
  description = "_oasis file functions"
  requires = "oasis oasis.base"
  archive(byte) = "builtin-plugins.cma"
@@ -45,12 +44,13 @@ package "builtin-plugins" (
  exists_if = "builtin-plugins.cma"
 )
 
-package "cli" (
- version = "0.2.1"
+package "base" (
+ version = "0.2.1~alpha1"
  description = "'setup.ml' modules for OASIS"
- requires = "oasis oasis.base"
- archive(byte) = "cli.cma"
- exists_if = "cli.cma"
+ requires = "oasis"
+ archive(byte) = "base.cma"
+ archive(native) = "base.cmxa"
+ exists_if = "base.cma"
 )
 # OASIS_STOP
 

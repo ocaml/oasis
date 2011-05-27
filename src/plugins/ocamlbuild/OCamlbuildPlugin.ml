@@ -768,6 +768,20 @@ let add_ocamlbuild_files ctxt pkg =
     }
   in
 
+  let tag_t = 
+    "# Ignore VCS directories, you can use the same kind of rule outside "
+    ::
+    "# OASIS_START/STOP if you want to exclude directories that contains "
+    ::
+    "# useless stuff for the build process"
+    ::
+    add_tags
+      tag_t
+      ["_darcs"; ".git"; ".hg"; ".bzr"; "**/.svn"]
+      ["not_hygienic"; "-traverse"]
+  in
+
+
   let ctxt =
     List.fold_left
       (fun ctxt tmpl -> add_file tmpl ctxt)

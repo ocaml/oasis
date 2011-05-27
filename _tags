@@ -20,7 +20,20 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: a76e973be5c1b26685a50b141d823fab)
+# DO NOT EDIT (digest: 9952caa710d9eb6516a19c37e7300968)
+# Ignore VCS directories, you can use the same kind of rule outside 
+# OASIS_START/STOP if you want to exclude directories that contains 
+# useless stuff for the build process
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
 # Library oasis
 "src/oasis": include
 <src/oasis/*.ml{,i}>: pkg_unix

@@ -20,7 +20,20 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 4dc39f5b63eddbfbadf771bf09289c63)
+# DO NOT EDIT (digest: 9ba3c733e7ae183115e38696b029aedd)
+# Ignore VCS directories, you can use the same kind of rule outside 
+# OASIS_START/STOP if you want to exclude directories that contains 
+# useless stuff for the build process
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
 # Library libtest
 # Executable test
 "test.byte": use_libtest
