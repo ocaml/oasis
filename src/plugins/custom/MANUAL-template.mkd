@@ -23,3 +23,7 @@ $ListCustomDocDocumentFields
 Test fields:
 
 $ListCustomTestTestFields
+
+The file `setup.data` remains __mandatory__, even when using the custom plugin.
+You must create it. A simple `touch setup.data; ./configure` should be enough,
+though.
