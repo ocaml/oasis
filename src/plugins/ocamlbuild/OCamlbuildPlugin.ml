@@ -31,10 +31,6 @@ open OCamlbuildCommon
 open BaseStandardVar
 open BaseMessage
 
-type target =
-  | Std of string list
-  | StdRename of string * string
-
 let cond_targets_hook =
   ref (fun lst -> lst)
 
@@ -77,30 +73,25 @@ let build pkg argv =
                  in
 
                  let tgts =
-                   List.filter
-                     (fun l -> l <> [])
-                     (List.map
-                        (List.filter
-                           (fun fn ->
-                              ends_with ".cma" fn ||
-                              ends_with ".cmxa" fn ||
-                              ends_with (ext_lib ()) fn ||
-                              ends_with (ext_dll ()) fn))
-                        unix_files)
+                   List.flatten
+                     (List.filter
+                        (fun l -> l <> [])
+                        (List.map
+                           (List.filter
+                              (fun fn ->
+                                 ends_with ".cma" fn ||
+                                 ends_with ".cmxa" fn ||
+                                 ends_with (ext_lib ()) fn ||
+                                 ends_with (ext_dll ()) fn))
+                           unix_files))
                  in
 
                    match tgts with
-                     | hd :: tl ->
-                         (evs, Std hd)
-                         ::
-                         (List.map (fun tgts -> [], Std tgts) tl)
-                         @
-                         acc
+                     | _ :: _ ->
+                         (evs, tgts) :: acc
                      | [] ->
                          failwithf
-                           (f_ "No possible ocamlbuild targets \
-                                in generated files %s for library %s")
-                           (String.concat (s_ ", " ) (List.map (String.concat (s_ ", ")) tgts))
+                           (f_ "No possible ocamlbuild targets for library %s")
                            cs.cs_name
                end
 
@@ -112,10 +103,6 @@ let build pkg argv =
                      (cs, bs, exec)
                  in
 
-                 let host_exec_is =
-                   in_build_dir_of_unix unix_exec_is
-                 in
-
                  let target ext =
                    let unix_tgt =
                      (BaseFilePath.Unix.concat
@@ -123,12 +110,17 @@ let build pkg argv =
                         (BaseFilePath.Unix.chop_extension
                            exec.exec_main_is))^ext
                    in
-
-                     evs,
-                     (if unix_tgt = unix_exec_is then
-                        Std [unix_tgt]
-                      else
-                        StdRename (unix_tgt, host_exec_is))
+                   let evs = 
+                     (* Fix evs, we want to use the unix_tgt, without copying *)
+                     List.map
+                       (function
+                          | BaseBuilt.BExec, nm, lst when nm = cs.cs_name ->
+                              BaseBuilt.BExec, nm, [[in_build_dir_of_unix unix_tgt]]
+                          | ev ->
+                              ev)
+                       evs
+                   in
+                     evs, [unix_tgt]
                  in
 
                  (* Add executable *)
@@ -165,84 +157,21 @@ let build pkg argv =
       (BaseBuilt.register bt bnm lst)
   in
 
-  (* Run a list of target + post process *)
-  let run_ocamlbuild rtargets =
-    run_ocamlbuild
-      (List.rev_map snd rtargets)
+  let cond_targets =
+    (* Run the hook *)
+    !cond_targets_hook cond_targets
+  in
+
+    (* Run a list of target... *)
+    run_ocamlbuild 
+      (List.flatten 
+         (List.map snd cond_targets))
       argv;
+    (* ... and register events *)
     List.iter
       check_and_register
-      (List.flatten (List.rev_map fst rtargets))
-  in
+      (List.flatten (List.map fst cond_targets))
 
-  (* Compare two files, return true if they differ *)
-  let diff fn1 fn2 =
-    if Sys.file_exists fn1 && Sys.file_exists fn2 then
-      begin
-        let chn1 = open_in fn1 in
-        let chn2 = open_in fn2 in
-        let res =
-          if in_channel_length chn1 = in_channel_length chn2 then
-            begin
-              let len =
-                4096
-              in
-              let str1 =
-                String.make len '\000'
-              in
-              let str2 =
-                String.copy str1
-              in
-                try
-                  while (String.compare str1 str2) = 0 do
-                    really_input chn1 str1 0 len;
-                    really_input chn2 str2 0 len
-                  done;
-                  true
-                with End_of_file ->
-                  false
-            end
-          else
-            true
-        in
-          close_in chn1; close_in chn2;
-          res
-      end
-    else
-      true
-  in
-
-  let last_rtargets =
-    List.fold_left
-      (fun acc (built, tgt) ->
-         match tgt with
-           | Std nms ->
-               (built, List.hd nms) :: acc
-           | StdRename (src, tgt) ->
-               begin
-                 (* We run with a fake list for event registering *)
-                 run_ocamlbuild (([], src) :: acc);
-
-                 (* And then copy and register *)
-                 begin
-                   let src_fn =
-                     in_build_dir_of_unix src
-                   in
-                     if diff src_fn tgt then
-                       BaseFileUtil.cp src_fn tgt
-                     else
-                       info
-                         (f_ "No need to copy file '%s' to '%s', same content")
-                         src_fn tgt
-                 end;
-                 List.iter check_and_register built;
-                 []
-               end)
-      []
-      (!cond_targets_hook cond_targets)
-  in
-    if last_rtargets <> [] then
-      run_ocamlbuild last_rtargets
 
 let clean pkg extra_args  =
   run_clean extra_args;

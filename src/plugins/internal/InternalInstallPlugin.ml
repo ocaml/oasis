@@ -64,14 +64,18 @@ let install pkg argv =
       fun fn -> fn
   in
 
-  let install_file src_file envdir =
+  let install_file ?tgt_fn src_file envdir =
     let tgt_dir =
       in_destdir (envdir ())
     in
     let tgt_file =
       Filename.concat
         tgt_dir
-        (Filename.basename src_file)
+        (match tgt_fn with
+           | Some fn ->
+               fn
+           | None ->
+               Filename.basename src_file)
     in
       (* Create target directory if needed *)
       BaseFileUtil.mkdir_parent
@@ -282,6 +286,7 @@ let install pkg argv =
                 cs.cs_name
                 (fun () fn ->
                    install_file
+                     ~tgt_fn:cs.cs_name
                      fn
                      bindir)
                 ();
