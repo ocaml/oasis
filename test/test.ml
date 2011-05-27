@@ -47,5 +47,6 @@ let _ =
          TestValues.tests;
          TestQuery.tests;
          TestQuickstart.tests;
+         TestDevFiles.tests;
        ])
 ;;

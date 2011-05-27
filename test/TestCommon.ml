@@ -88,8 +88,9 @@ let test_args =
       "args* Define oasis arguments";
     ] @ gettext_args @ (BaseContext.args ())
 
-let in_data fn =
-  Filename.concat "data" fn
+let in_data =
+  let pwd = FileUtil.pwd () in
+    fun fn -> FilePath.make_filename [pwd; "data"; fn]
 ;;
 
 (* Create a temporary dir *)
