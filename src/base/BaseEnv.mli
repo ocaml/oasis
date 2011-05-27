@@ -63,6 +63,10 @@ type definition_t =
   *)
 val schema : (origin_t, definition_t) PropList.Schema.t
 
+(** Data for environment.
+  *)
+val env : PropList.Data.t
+
 (** Expand variable that can be found in string. Variable follow definition of
   * variable for [Buffer.add_substitute].
   *)

@@ -40,6 +40,24 @@ let tests =
          ~printer:(fun s -> s)
          "toto"
          (BaseStandardVar.bindir ()));
+
+    "OCaml dev version" >::
+    (fun () ->
+       PropList.Schema.set
+         BaseEnv.schema 
+         BaseEnv.env
+         ~context:BaseEnv.OCommandLine
+         "ocamlc_config_map"
+         (Marshal.to_string 
+            (MapString.add 
+               "version"
+               "3.13.0+dev2 (2010-10-22)" 
+               MapString.empty)
+            []);
+       assert_equal 
+         ~printer:(fun s -> s)
+         "3.13.0"
+         (BaseStandardVar.ocaml_version ()))
   ]
 ;;
    

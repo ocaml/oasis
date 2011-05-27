@@ -94,10 +94,18 @@ let var_define nm =
       (ocamlc_config_map ())
       0
   in
-  let nm_config =
+  let chop_version_suffix s =
+    try 
+      String.sub s 0 (String.index s '+')
+    with _ -> 
+      s
+   in
+
+  let nm_config, value_config =
     match nm with
-      | "ocaml_version" -> "version"
-      | _ -> nm
+      | "ocaml_version" -> 
+          "version", chop_version_suffix
+      | _ -> nm, (fun x -> x)
   in
     var_redefine
       nm
@@ -109,7 +117,7 @@ let var_define nm =
             let value =
               SMap.find nm_config map
             in
-              value
+              value_config value
           with Not_found ->
             failwithf
               (f_ "Cannot find field '%s' in '%s -config' output")
