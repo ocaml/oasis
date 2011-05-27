@@ -43,11 +43,7 @@ let printf lvl str =
       | `Info  -> s_ "I: "
       | `Debug -> s_ "D: "
   in
-    match lvl with
-      | `Error ->
-          prerr_endline (beg^str)
-      | _ ->
-          print_endline (beg^str)
+    prerr_endline (beg^str)
 
 let default =
   ref
