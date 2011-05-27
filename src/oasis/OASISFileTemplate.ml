@@ -541,7 +541,8 @@ let file_generate ~ctxt ~backup t =
               in
                 if not (Sys.file_exists fn_backup) then
                   begin
-                    FileUtil.cp [fn] fn_backup;
+                    FileUtil.mv fn fn_backup;
+                    FileUtil.cp [fn_backup] fn;
                     fn_backup
                   end
                 else

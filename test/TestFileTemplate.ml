@@ -122,4 +122,64 @@ let tests =
         comment_sh;
       ]
   )
+  @
+  [
+    "Keep file rights" >::
+    (fun () ->
+       let fn, chn = 
+         Filename.open_temp_file "oasis-db" ".txt"
+       in
+         output_string 
+           chn
+           "# OASIS_START\n\
+            # OASIS_STOP\n";
+         close_out chn;
+         try 
+           let own, grp_org =
+             let st = Unix.stat fn in
+               st.Unix.st_uid, st.Unix.st_gid
+           in
+
+           let grp = 
+             let lst =
+               Array.to_list (Unix.getgroups ())
+             in
+               (* Try to find a group accessible to the user
+                * and different from the current group 
+                *)
+               try 
+                 List.find (fun gid' -> grp_org <> gid') lst
+               with Not_found ->
+                 skip_if true "No available group to change group of the file";
+                 grp_org
+           in
+
+           let () = 
+             Unix.chown fn own grp
+           in
+
+           let chng = 
+             file_generate 
+               ~ctxt:!oasis_ctxt
+               ~backup:true
+               (template_make
+                  fn
+                  comment_sh
+                  []
+                  ["echo Hello"]
+                  [])
+           in
+             file_rollback chng;
+             assert_equal
+               ~msg:"File chgrp"
+               ~printer:string_of_int
+               grp_org
+               ((Unix.stat fn).Unix.st_gid);
+             Sys.remove fn
+
+         with e ->
+           Sys.remove fn;
+           raise e)
+  ]
+
 ;;
