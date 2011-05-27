@@ -114,15 +114,23 @@ let generator =
 
 let pp_print_meta pkg root_t findlib_name_map fmt grp =
 
+  let replace_chars s = 
+    ExtLib.String.replace_chars
+      (function
+         | '\n' | '\t' | '\r' -> " " 
+         | c -> String.make 1 c)
+      s
+  in
+
   let pp_print_field fmt (var, preds, vl) = 
     fprintf fmt
-      "@,@[<hv1>%s(@[%a@])@ =@ %S@]" 
+      "@,%s(%s) = %S" 
       var 
-      (FormatExt.pp_print_list pp_print_string ",@,") preds
-      vl
+      (String.concat ", " preds)
+      (replace_chars vl)
   in
   let pp_print_sfield fmt (var, vl) = 
-    fprintf fmt "@,@[<hv 1>%s@ =@ %S@]" var vl
+    fprintf fmt "@,%s = %S" var (replace_chars vl)
   in
 
   let default_synopsis = 

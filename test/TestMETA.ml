@@ -253,4 +253,22 @@ Library pa_odn
            "odn.syntax", "archive", ["syntax"; "toploop"], "pa_odn.cma";
            "odn.syntax", "requires", [], "type-conv.syntax camlp4";
          ];
+
+         "long-synopsis",
+         "\
+OASISFormat:  0.1
+Name:         ocaml-data-notation
+Version:      0.0.1
+Synopsis:     store data using OCaml notation with a very very very very very very very long synopsis
+              and with line breaks
+License:      LGPL with OCaml linking exception
+Authors:      me
+
+Library odn
+  Path:    src
+  Modules: ODN",
+         [
+           "odn", "archive", ["byte"], "odn.cma";
+         ];
+
        ])
