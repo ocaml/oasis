@@ -30,8 +30,8 @@ rule token = parse
 | '='            { EQ }
 | '<'            { LT }
 | "<="           { LE }
-| "&&"           { OR }
-| "||"           { AND }
+| "&&"           { AND }
+| "||"           { OR }
 | '('            { LPAREN }
 | ')'            { RPAREN }
 | eof            { EOF }

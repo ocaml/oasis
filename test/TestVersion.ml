@@ -108,5 +108,15 @@ let tests =
          assert_equal 
            ~printer:(String.concat "; ")
            ["0.1.0"; "0.2.0~alpha1"; "0.2.0~alpha2"; "0.2.0~beta1"; "0.2.0~rc2"; "0.2.0"]
-           (List.sort vstr_compare lst))
+           (List.sort vstr_compare lst));
+
+    "back-and-forth" >::
+    (fun () ->
+       let str = ">= 1.0 && <= 2.0 || = 3.0" in
+       let cmp = comparator_of_string str in
+       let cmp' = comparator_of_string (string_of_comparator cmp) in
+         assert_equal 
+           ~printer:string_of_comparator
+           cmp 
+           cmp');
   ]
