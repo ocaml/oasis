@@ -40,6 +40,9 @@ type t =
     ignore_plugins : bool;
     (** Don't use plugins *)
 
+    ignore_unknown_fields: bool;
+    (** Ignore fields unknown *)
+
     printf: level -> string -> unit; 
     (** Redirect output *)
   }

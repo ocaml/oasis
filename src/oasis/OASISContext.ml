@@ -29,10 +29,11 @@ type level =
 
 type t =
   {
-    verbose:        bool;
-    debug:          bool;
-    ignore_plugins: bool;
-    printf:         level -> string -> unit;
+    verbose:               bool;
+    debug:                 bool;
+    ignore_plugins:        bool;
+    ignore_unknown_fields: bool;
+    printf:                level -> string -> unit;
   }
 
 let printf lvl str =
@@ -48,10 +49,11 @@ let printf lvl str =
 let default =
   ref
     {
-      verbose        = true;
-      debug          = false;
-      ignore_plugins = false;
-      printf         = printf;
+      verbose               = true;
+      debug                 = false;
+      ignore_plugins        = false;
+      ignore_unknown_fields = false;
+      printf                = printf;
     }
 
 let quiet =

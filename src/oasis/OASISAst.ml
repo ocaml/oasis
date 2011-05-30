@@ -117,6 +117,8 @@ let to_package conf st =
               if OASISPlugin.test_field_name nm && 
                  ctxt.ctxt.OASISContext.ignore_plugins then
                 ()
+              else if ctxt.ctxt.OASISContext.ignore_unknown_fields then
+                ()
               else
                 raise exc
           end
