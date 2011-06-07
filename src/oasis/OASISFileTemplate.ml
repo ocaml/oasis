@@ -469,7 +469,8 @@ let to_file t =
             output_line  t.comment.stop
     end;
     output_lst t.footer;
-    close_out chn_out
+    close_out chn_out;
+    Unix.chmod t.fn t.perm
 
 type file_generate_change =
   | Create of host_filename
