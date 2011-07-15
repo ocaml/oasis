@@ -52,7 +52,7 @@ let () =
           body^(Printf.sprintf "\n\nHomepage:\n%s" url)
       | None ->
           warning ~ctxt "No homepage";
-          ""
+          body
   in
 
   let body = 
