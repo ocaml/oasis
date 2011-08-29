@@ -1,23 +1,23 @@
-(********************************************************************************)
-(*  OASIS: architecture for building OCaml libraries and applications           *)
-(*                                                                              *)
-(*  Copyright (C) 2008-2010, OCamlCore SARL                                     *)
-(*                                                                              *)
-(*  This library is free software; you can redistribute it and/or modify it     *)
-(*  under the terms of the GNU Lesser General Public License as published by    *)
-(*  the Free Software Foundation; either version 2.1 of the License, or (at     *)
-(*  your option) any later version, with the OCaml static compilation           *)
-(*  exception.                                                                  *)
-(*                                                                              *)
-(*  This library is distributed in the hope that it will be useful, but         *)
-(*  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY  *)
-(*  or FITNESS FOR A PARTICULAR PURPOSE. See the file COPYING for more          *)
-(*  details.                                                                    *)
-(*                                                                              *)
-(*  You should have received a copy of the GNU Lesser General Public License    *)
-(*  along with this library; if not, write to the Free Software Foundation,     *)
-(*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
-(********************************************************************************)
+(******************************************************************************)
+(* OASIS: architecture for building OCaml libraries and applications          *)
+(*                                                                            *)
+(* Copyright (C) 2008-2010, OCamlCore SARL                                    *)
+(*                                                                            *)
+(* This library is free software; you can redistribute it and/or modify it    *)
+(* under the terms of the GNU Lesser General Public License as published by   *)
+(* the Free Software Foundation; either version 2.1 of the License, or (at    *)
+(* your option) any later version, with the OCaml static compilation          *)
+(* exception.                                                                 *)
+(*                                                                            *)
+(* This library is distributed in the hope that it will be useful, but        *)
+(* WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *)
+(* or FITNESS FOR A PARTICULAR PURPOSE. See the file COPYING for more         *)
+(* details.                                                                   *)
+(*                                                                            *)
+(* You should have received a copy of the GNU Lesser General Public License   *)
+(* along with this library; if not, write to the Free Software Foundation,    *)
+(* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
+(******************************************************************************)
 
 
 open OASISMessage
@@ -35,7 +35,7 @@ type comment =
 
 type line = string
 
-type body = 
+type body =
   | NoBody
   | Body of line list
   | BodyWithDigest of Digest.t * line list
@@ -45,7 +45,7 @@ type template =
       fn:      host_filename;
       comment: comment;
       header:  line list;
-      body:    body; 
+      body:    body;
       footer:  line list;
       perm:    int;
     }
@@ -58,23 +58,23 @@ let comment cmt_beg cmt_end =
   let of_string =
       match cmt_end with
         | None ->
-            Printf.sprintf "%s %s" cmt_beg 
+            Printf.sprintf "%s %s" cmt_beg
         | Some cmt_end ->
             (fun str ->
                Printf.sprintf "%s %s %s" cmt_beg str cmt_end)
   in
-  let regexp ~quote str = 
-    let q = 
-      Pcre.quote 
+  let regexp ~quote str =
+    let q =
+      Pcre.quote
     in
-    let rstr = 
-      if quote then 
-        q str 
-      else 
+    let rstr =
+      if quote then
+        q str
+      else
         str
     in
-    let lst = 
-      match cmt_end with 
+    let lst =
+      match cmt_end with
         | Some cmt_end ->
             ["^"; q cmt_beg; rstr; q cmt_end; "$"]
         | None ->
@@ -92,19 +92,19 @@ let comment cmt_beg cmt_end =
 let comment_ml =
   comment "(*" (Some "*)")
 
-let comment_sh = 
+let comment_sh =
   comment "#" None
 
-let comment_makefile = 
+let comment_makefile =
   comment_sh
 
 let comment_ocamlbuild =
   comment_sh
 
-let comment_bat = 
+let comment_bat =
   comment "rem" None
 
-let comment_meta = 
+let comment_meta =
   comment_sh
 
 
@@ -125,7 +125,7 @@ let template_of_string_list ~ctxt ~template fn comment lst =
   let digest_of_hex s =
     let d       = String.make 16 '\000' in
     let hex_str = "0x00" in
-      for i = 0 to (String.length d) - 1 do 
+      for i = 0 to (String.length d) - 1 do
         hex_str.[2] <- s.[2 * i];
         hex_str.[3] <- s.[2 * i + 1];
         d.[i] <- Char.chr (int_of_string hex_str)
@@ -154,12 +154,12 @@ let template_of_string_list ~ctxt ~template fn comment lst =
   (* Separate a list into three part: header, body and footer.
      Each part should be separated by the appropriate start/stop comment.
    *)
-  let header, body, footer = 
+  let header, body, footer =
       (* Extract elem until the first that match condition.
-       * The element that matched is removed 
+       * The element that matched is removed
        *)
       let rec split_cond cond acc lst =
-        match lst with 
+        match lst with
           | hd :: tl ->
               if cond hd then
                 split_cond cond (hd :: acc) tl
@@ -173,8 +173,8 @@ let template_of_string_list ~ctxt ~template fn comment lst =
          *)
         try
           let lst_header, tl =
-            split_cond 
-              (fun str -> 
+            split_cond
+              (fun str ->
                 if not (is_start str) then
                   begin
                     debug ~ctxt "Not start: %s" str;
@@ -188,14 +188,14 @@ let template_of_string_list ~ctxt ~template fn comment lst =
               []
               lst
           in
-          let digest_body, tl = 
-            match tl with 
+          let digest_body, tl =
+            match tl with
               | (hd :: tl) as lst->
                   begin
-                    try 
+                    try
                       let digest =
-                        Pcre.get_substring 
-                          (Pcre.exec ~rex:do_not_edit hd) 
+                        Pcre.get_substring
+                          (Pcre.exec ~rex:do_not_edit hd)
                           1
                       in
                         Some (digest_of_hex digest), tl
@@ -207,14 +207,14 @@ let template_of_string_list ~ctxt ~template fn comment lst =
           in
           let lst_body, lst_footer =
             try
-              split_cond 
+              split_cond
                 (fun str -> not (is_stop str))
                 []
                 tl
             with Not_found ->
               tl, []
           in
-            match digest_body with 
+            match digest_body with
               | Some d ->
                   lst_header, BodyWithDigest (d, lst_body), lst_footer
               | None ->
@@ -225,19 +225,19 @@ let template_of_string_list ~ctxt ~template fn comment lst =
 
   in
 
-  let res = 
-    template_make 
-      fn 
-      comment 
-      header 
-      [] 
+  let res =
+    template_make
+      fn
+      comment
+      header
+      []
       footer
   in
 
     if body = NoBody then
       warning ~ctxt
         (if template then
-           (f_ "No replace section found in template for file %s") 
+           (f_ "No replace section found in template for file %s")
          else
            (f_ "No replace section found in file %s"))
         fn;
@@ -247,7 +247,7 @@ let template_of_string_list ~ctxt ~template fn comment lst =
 let template_of_file ~template fn comment =
  let lst =
    let chn_in =
-     open_in_bin fn 
+     open_in_bin fn
    in
    let lst =
      ref []
@@ -266,13 +266,13 @@ let template_of_file ~template fn comment =
    template_of_string_list ~template fn comment lst
 
 
-let template_of_mlfile fn header body footer  = 
+let template_of_mlfile fn header body footer  =
 
   let rec count_line str line_cur str_start =
-    if str_start < String.length str then 
+    if str_start < String.length str then
       begin
-        try 
-          count_line 
+        try
+          count_line
             str
             (line_cur + 1)
             ((String.index_from str str_start '\n') + 1)
@@ -292,7 +292,7 @@ let template_of_mlfile fn header body footer  =
     let rgxp =
       Pcre.regexp "^#\\s*\\d+\\s+\"([^\"]*)\""
     in
-    let rec check_line_modifier_aux (prev_find, prev_str, prev_idx) = 
+    let rec check_line_modifier_aux (prev_find, prev_str, prev_idx) =
       try
         let substrs =
           Pcre.exec ~rex:rgxp ~pos:prev_idx prev_str
@@ -300,13 +300,13 @@ let template_of_mlfile fn header body footer  =
         let line_modifier =
           Pcre.get_substring substrs 0
         in
-        let line_modifier_fn = 
+        let line_modifier_fn =
           Pcre.get_substring substrs 1
         in
-        let idx, next_idx = 
+        let idx, next_idx =
           Pcre.get_substring_ofs substrs 0
         in
-        let acc = 
+        let acc =
           if Sys.file_exists line_modifier_fn then
             begin
               (* We found a valid match, continue to search
@@ -319,8 +319,8 @@ let template_of_mlfile fn header body footer  =
               (* The line modifier filename is not available, better
                * comment it
                *)
-              let str = 
-                Pcre.qreplace 
+              let str =
+                Pcre.qreplace
                   ~pat:("^"^(Pcre.quote line_modifier))
                   ~templ:("(* "^line_modifier^" *)")
                   prev_str
@@ -336,13 +336,13 @@ let template_of_mlfile fn header body footer  =
         prev_find, prev_str, (String.length prev_str)
     in
 
-    let find, str, _ = 
+    let find, str, _ =
       check_line_modifier_aux (false, str, 0)
     in
       find, str
   in
 
-  let insert_line_modifier lst line_start = 
+  let insert_line_modifier lst line_start =
     let rlst, line_end =
       List.fold_left
         (fun (acc, line_cur) str ->
@@ -354,10 +354,10 @@ let template_of_mlfile fn header body footer  =
              count_line validated_str line_cur 0
            in
              if contains_line_modifier then
-               ((Printf.sprintf "# %d %S" line_cur fn) :: validated_str :: acc), 
+               ((Printf.sprintf "# %d %S" line_cur fn) :: validated_str :: acc),
                (line_cur + 1)
              else
-               (validated_str :: acc), 
+               (validated_str :: acc),
                line_cur)
         ([], line_start)
         lst
@@ -390,9 +390,9 @@ let template_of_mlfile fn header body footer  =
       footer
 
 let digest_update t =
-  {t with 
-       body = 
-         match t.body with 
+  {t with
+       body =
+         match t.body with
            | NoBody -> NoBody
            | BodyWithDigest (_, lst)
            | Body lst ->
@@ -402,23 +402,23 @@ let digest_update t =
 
 let digest_check t =
   let t' = digest_update t in
-    match t'.body, t.body with 
+    match t'.body, t.body with
       | BodyWithDigest (d', _), BodyWithDigest (d, _) ->
           d' = d
       | _, _ ->
           true
 
 let merge t_org t_new =
-  {t_new with 
+  {t_new with
        header = t_org.header;
-       body   = 
+       body   =
          (if t_org.body = NoBody then
             t_org.body
           else
             t_new.body);
        footer = t_org.footer}
 
-let to_file t = 
+let to_file t =
   (* Be sure that digest match body content *)
   let t =
     digest_update t
@@ -430,7 +430,7 @@ let to_file t =
   let chn_out =
     open_out_gen
       [Open_wronly; Open_creat; Open_trunc; Open_binary]
-      t.perm 
+      t.perm
       t.fn
   in
   let output_line str =
@@ -442,16 +442,16 @@ let to_file t =
   in
 
     output_lst t.header;
-    begin 
-      match t.body with 
+    begin
+      match t.body with
         | NoBody ->
             ()
 
         | BodyWithDigest (d, lst) ->
             output_line t.comment.start;
-            output_line 
-              (t.comment.of_string 
-                 (Printf.sprintf 
+            output_line
+              (t.comment.of_string
+                 (Printf.sprintf
                     "DO NOT EDIT (digest: %s)"
                     (Digest.to_hex d)));
             output_lst   lst;
@@ -471,9 +471,9 @@ type file_generate_change =
   | NoChange
 
 let file_rollback ~ctxt =
-  function 
+  function
     | Create fn ->
-        info 
+        info
           ~ctxt
           (f_ "Remove generated file '%s'")
           fn;
@@ -504,14 +504,14 @@ let file_rollback ~ctxt =
     | NoChange ->
         ()
 
-let file_generate ~ctxt ~backup t = 
+let file_generate ~ctxt ~backup t =
 
   (* Check that the files differ
    *)
-  let body_has_changed t_org t_new = 
+  let body_has_changed t_org t_new =
     if t_org.body <> t_new.body then
       begin
-        match t_org.body, t_new.body with 
+        match t_org.body, t_new.body with
           | Body lst1, Body lst2
           | BodyWithDigest (_, lst1), BodyWithDigest (_, lst2)
           | BodyWithDigest (_, lst1), Body lst2
@@ -529,14 +529,14 @@ let file_generate ~ctxt ~backup t =
       false
   in
 
-  (* Create a backup for a file and return its name 
+  (* Create a backup for a file and return its name
    *)
-  let do_backup fn = 
+  let do_backup fn =
     let rec backup_aux =
       function
         | ext :: tl ->
             begin
-              let fn_backup = 
+              let fn_backup =
                 fn ^ "." ^ ext
               in
                 if not (Sys.file_exists fn_backup) then
@@ -558,19 +558,19 @@ let file_generate ~ctxt ~backup t =
               fn
 
     in
-      backup_aux 
-        ("bak" :: 
-         (Array.to_list 
+      backup_aux
+        ("bak" ::
+         (Array.to_list
             (Array.init 10 (Printf.sprintf "ba%d"))))
   in
 
     if Sys.file_exists t.fn then
       begin
-        let t_org = 
+        let t_org =
           template_of_file ~ctxt ~template:false t.fn t.comment
         in
 
-          match t_org.body, body_has_changed t_org t with 
+          match t_org.body, body_has_changed t_org t with
             | NoBody, _ -> (* No body, nothing to do *)
                 begin
                   NoChange
@@ -580,18 +580,18 @@ let file_generate ~ctxt ~backup t =
             | Body _, _ -> (* Missing digest -> regenerate *)
                 begin
                   (* Regenerate *)
-                  let () = 
+                  let () =
                     info ~ctxt (f_ "Regenerating file %s") t.fn
                   in
 
-                  let fn_backup = 
+                  let fn_backup =
                     (* Create a backup if required *)
                     if not (digest_check t_org) then
                       begin
-                        let fn_bak = 
+                        let fn_bak =
                           do_backup t.fn
                         in
-                          warning ~ctxt 
+                          warning ~ctxt
                             (f_ "File %s has changed, doing a backup in %s")
                             t.fn fn_bak;
                           Some fn_bak
@@ -623,12 +623,12 @@ let file_generate ~ctxt ~backup t =
       end
 
 
-module S = 
+module S =
   Map.Make (
 struct
   type t = host_filename
 
-  let compare = 
+  let compare =
     FilePath.compare
 end)
 
@@ -639,17 +639,17 @@ type templates = template S.t
 let empty =
   S.empty
 
-let find = 
+let find =
   S.find
 
-let add e t = 
+let add e t =
   if S.mem e.fn t then
     raise (AlreadyExists e.fn)
   else
     S.add e.fn e t
 
 let remove fn t =
-  S.remove fn t 
+  S.remove fn t
 
 let replace e t =
   S.add e.fn e t
@@ -658,5 +658,5 @@ let fold f t acc =
   S.fold
     (fun k e acc ->
        f e acc)
-    t 
+    t
     acc
