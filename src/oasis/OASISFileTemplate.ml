@@ -50,9 +50,8 @@ type template =
       perm:    int;
     }
 
-let (start_msg, stop_msg) =
-  "OASIS_START",
-  "OASIS_STOP"
+let start_msg = "OASIS_START"
+let stop_msg  = "OASIS_STOP"
 
 let comment cmt_beg cmt_end =
   let of_string =
@@ -362,7 +361,10 @@ let template_of_mlfile fn header body footer  =
         ([], line_start)
         lst
     in
-      List.rev rlst, line_end
+    (* Insert a line modifier at the end for the following lines to
+       refer to the original file lines -- important for footer
+       errors in setup.ml or myocamlbuild.ml. *)
+    List.rev(Printf.sprintf "# %d %S" (line_end + 1) fn :: rlst), line_end
   in
 
   let header, line_end =
