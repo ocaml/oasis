@@ -341,7 +341,7 @@ let template_of_mlfile fn header body footer  =
       find, str
   in
 
-  let insert_line_modifier lst line_start =
+  let insert_line_modifier lst line_start ~restore =
     let rlst, line_end =
       List.fold_left
         (fun (acc, line_cur) str ->
@@ -361,25 +361,29 @@ let template_of_mlfile fn header body footer  =
         ([], line_start)
         lst
     in
-    (* Insert a line modifier at the end for the following lines to
-       refer to the original file lines -- important for footer
-       errors in setup.ml or myocamlbuild.ml. *)
-    List.rev(Printf.sprintf "# %d %S" (line_end + 1) fn :: rlst), line_end
+    if restore then
+      (* Insert a line modifier at the end for the following lines to
+         refer to the original file lines -- important for footer
+         errors in setup.ml or myocamlbuild.ml. *)
+      let line_end = line_end + 1 in
+      List.rev(Printf.sprintf "# %d %S" line_end fn :: rlst), line_end
+    else
+      List.rev rlst, line_end
   in
 
   let header, line_end =
-    insert_line_modifier header 1
+    insert_line_modifier header 1 ~restore:false
   in
 
   let body, line_end =
     (* Will add 2 lines of comments: start + digest *)
-    insert_line_modifier body (line_end + 2)
+    insert_line_modifier body (line_end + 2) ~restore:true
   in
 
   let footer, _ =
     if footer <> [] then
       (* Will add 1 line of comments: stop *)
-      insert_line_modifier footer (line_end + 1)
+      insert_line_modifier footer (line_end + 1) ~restore:false
     else
       [], line_end
   in
