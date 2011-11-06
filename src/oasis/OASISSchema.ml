@@ -42,7 +42,7 @@ let sync_proxy schema t nm (_, get) sync ds =
       "Field %S in schema %S: %s\n"
       (make_field_name t nm)
       (PropList.Schema.name schema.OASISSchema_intern.schm)
-      (OASISMessage.string_of_exception e);
+      (Printexc.to_string e);
     raise OASISValues.Not_printable
 
 let new_field schema t nm ?default parse hlp pivot_data sync =

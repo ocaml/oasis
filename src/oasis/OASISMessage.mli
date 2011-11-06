@@ -45,7 +45,3 @@ val warning : ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
   *)
 val error : ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
 
-(** Convert an exception to a string readable by user. If the appropriate
-    printer for the exception cannot be found, use [Printexc.to_string].
-  *)
-val string_of_exception : exn -> string

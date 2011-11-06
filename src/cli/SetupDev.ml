@@ -174,7 +174,7 @@ let main () =
               with e ->
                 begin
                   safe_exit ();
-                  error "%s" (string_of_exception e)
+                  error "%s" (Printexc.to_string e)
                 end
           end 
 

@@ -40,11 +40,6 @@ exception No_printer of name
   *)
 exception Unknown_field of name * name
 
-(** Convert an exception in string. Re-raise the exception if cannot
-    convert.
-  *)
-val string_of_exception : exn -> string
-
 (** {2 Modules} *) 
 
 (** This module stores heterogeneous data defined in Schema and Field.

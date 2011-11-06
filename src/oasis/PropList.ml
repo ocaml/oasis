@@ -27,18 +27,23 @@ exception Not_set of name * string option
 exception No_printer of name
 exception Unknown_field of name * name
 
-let string_of_exception =
-  function
-    | Not_set (nm, Some rsn) ->
-        Printf.sprintf (f_ "Field '%s' is not set: %s") nm rsn
-    | Not_set (nm, None) ->
-        Printf.sprintf (f_ "Field '%s' is not set") nm
-    | No_printer nm ->
-        Printf.sprintf (f_ "No default printer for value %s") nm
-    | Unknown_field (nm, schm) ->
-        Printf.sprintf (f_ "Field %s is not defined in schema %s") nm schm
-    | e ->
-        raise e
+let () =
+  Printexc.register_printer
+    (function
+       | Not_set (nm, Some rsn) ->
+           Some 
+             (Printf.sprintf (f_ "Field '%s' is not set: %s") nm rsn)
+       | Not_set (nm, None) ->
+           Some 
+             (Printf.sprintf (f_ "Field '%s' is not set") nm)
+       | No_printer nm ->
+           Some
+             (Printf.sprintf (f_ "No default printer for value %s") nm)
+       | Unknown_field (nm, schm) ->
+           Some 
+             (Printf.sprintf (f_ "Field %s is not defined in schema %s") nm schm)
+       | _ ->
+           None)
 
 module Data =
 struct

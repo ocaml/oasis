@@ -42,7 +42,3 @@ val warning : ('a, unit, string, unit) format4 -> 'a
 (** See {!OASISMessage.error}.
   *)
 val error : ('a, unit, string, unit) format4 -> 'a
-
-(** See {!OASISMessage.string_of_exception}.
-  *)
-val string_of_exception : exn -> string

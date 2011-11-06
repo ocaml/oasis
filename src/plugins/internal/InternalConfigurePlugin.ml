@@ -58,7 +58,7 @@ let configure pkg argv =
   in
 
   let warn_exception e =
-    warning "%s" (string_of_exception e)
+    warning "%s" (Printexc.to_string e)
   in
 
   (* Check tools *)

@@ -138,7 +138,7 @@ let ask_until_correct t =
 
         | e -> 
             begin
-              Printf.printf (f_ "Error: %s\n") (string_of_exception e);
+              Printf.printf (f_ "Error: %s\n") (Printexc.to_string e);
               begin
                 match t.interface with
                   | Human ->
@@ -871,7 +871,7 @@ let to_file ~ctxt fn lvl intrf oasis_dev =
 
                 with e ->
                   Sys.remove tmp_fn;
-                  error ~ctxt "%s" (string_of_exception e)
+                  error ~ctxt "%s" (Printexc.to_string e)
               end
           end
       | None ->
@@ -890,7 +890,7 @@ let to_file ~ctxt fn lvl intrf oasis_dev =
                 Sys.remove tmp_fn
               with e ->
                 Sys.remove tmp_fn;
-                error ~ctxt "%s" (string_of_exception e)
+                error ~ctxt "%s" (Printexc.to_string e)
           end
       | None ->
           begin

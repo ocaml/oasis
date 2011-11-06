@@ -49,17 +49,3 @@ let warning ~ctxt fmt =
 let error ~ctxt fmt =
   generic_message ~ctxt `Error fmt
 
-
-let string_of_exception e =
-  try
-    PropList.string_of_exception e
-  with
-    | Failure s ->
-        s
-    | e ->
-        Printexc.to_string e
-
-(* TODO
-let register_exn_printer f =
- *)
-

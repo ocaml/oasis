@@ -33,5 +33,3 @@ let warning fmt = warning ~ctxt:!default fmt
 
 let error fmt = error ~ctxt:!default fmt
 
-let string_of_exception = string_of_exception
-
