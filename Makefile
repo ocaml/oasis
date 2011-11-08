@@ -188,3 +188,15 @@ dist-step2:
 	gpg -s -a -b "$(pkg_name)-$(pkg_version).tar.gz"
 
 .PHONY: dist dist-step2
+
+# Fixing permissions
+
+fixperms:
+	chmod +x ./configure
+	chmod +x ./src/tools/oasis-dist.ml
+	chmod +x ./src/tools/oasis
+	chmod +x ./src/tools/oasis-i18n
+	chmod +x ./src/tools/oasis-announce.ml
+	chmod +x ./examples/custom/myconfigure
+
+.PHONY: fixperms
