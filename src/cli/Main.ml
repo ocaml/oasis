@@ -40,6 +40,7 @@ open Quickstart
 open Manual
 open Check
 open Query
+open Version
 open PluginDB
 open PluginInstall
 open PluginVCS

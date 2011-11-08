@@ -171,6 +171,18 @@ bindist-step2:
 # Source distribution
 
 dist: 
+	# Check consistency of versions
+	OASIS_CMD_VER=$$(oasis version); \
+	OASIS_DIST_VER=$$(oasis query version); \
+	OASIS_SETUP_VER=$$($(SETUP) -version); \
+	if [ "x$$OASIS_CMD_VER" != "x$$OASIS_DIST_VER" ]; then \
+		echo "Must be running the same version of oasis as the one being built" >&2; \
+		exit 1; \
+	fi; \
+	if [ "x$$OASIS_SETUP_VER" != "x$$OASIS_DIST_VER" ]; then \
+		echo "Must be running the have used the same version for setup.ml  as the one being built" >&2; \
+		exit 1; \
+	fi
 	./src/tools/oasis-dist.ml
 
 .PHONY: dist 
