@@ -43,8 +43,8 @@ object
   method check_uncommited_changes = 
     true
 
-  method check_tag (ver: string) =
-    true
+  method list_tags : string list =
+    []
 
   method virtual dist : string -> host_filename -> unit
 
@@ -78,6 +78,7 @@ object
     warning ~ctxt "No tag method"
 end
 
+(* TODO: check file permissions +x for darcs *)
 class darcs ~ctxt = 
 object
   inherit vcs
@@ -103,11 +104,8 @@ object
         "darcs" ["whatsnew"; "-ls"];
       !ok
 
-  method check_tag ver = 
-      let out = 
-        BaseExec.run_read_output "darcs" ["show"; "tags"]
-      in
-        not (List.mem ver out)
+  method list_tags = 
+    BaseExec.run_read_output "darcs" ["show"; "tags"]
 
   method dist topdir tarball = 
     (* Create the tarball *)
@@ -129,11 +127,8 @@ object
       | _ ->
           false
 
-  method check_tag ver = 
-    let out =
-      BaseExec.run_read_output "git" ["tag"]
-    in
-      not (List.mem ver out)
+  method list_tags = 
+    BaseExec.run_read_output "git" ["tag"]
 
   method dist topdir tarball = 
     let tarfn = 
@@ -191,13 +186,9 @@ let () =
       ~ctxt
       "_oasis"
   in
-  let version = 
-    OASISVersion.string_of_version 
-      pkg.version
-  in
 
   let topdir = 
-    pkg.name^"-"^version
+    pkg.name^"-"^(OASISVersion.string_of_version pkg.version)
   in
 
   let tarball = 
@@ -271,14 +262,41 @@ let () =
              Sys.chdir pwd;
              raise e);
 
-    if vcs#check_tag version then
-      begin
-        vcs#tag version
-      end
-    else
-      begin
-        warning ~ctxt "Version %s already tagged" version
-      end;
+    begin
+      let tags = 
+        List.sort 
+          OASISVersion.version_compare 
+          (List.rev_map
+             OASISVersion.version_of_string 
+             vcs#list_tags)
+      in
+      let ver_str =
+        OASISVersion.string_of_version pkg.version
+      in
+        match tags with
+          | hd :: _ ->
+              begin
+                let cmp = 
+                  OASISVersion.version_compare hd pkg.version
+                in
+                  if List.mem pkg.version tags then
+                    begin
+                      warning ~ctxt "Version %s already tagged" ver_str
+                    end
+                  else if cmp > 0 then
+                    begin
+                      warning ~ctxt "Version %s is smaller than already tagged version %s" 
+                        ver_str (OASISVersion.string_of_version hd);
+                      vcs#tag ver_str
+                    end
+                  else
+                    begin
+                      vcs#tag ver_str
+                    end
+              end
+          | _ ->
+              vcs#tag ver_str
+    end;
     
     BaseExec.run 
       ~f_exit_code:
