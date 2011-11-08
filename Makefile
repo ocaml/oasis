@@ -71,46 +71,6 @@ setup.data:
 
 # Backup targets to be able to build even if OASIS fails
 
-OASIS ?= boot/oasis
-
-build-backup:
-	$(OASIS)
-	touch setup.data
-	ocamlbuild $(OCAMLBUILDFLAGS) src/tools/ocamlmod.byte
-	cp _build/src/tools/ocamlmod.byte _build/src/tools/ocamlmod
-	ocamlbuild $(OCAMLBUILDFLAGS) \
-	  src/oasis/oasis.cma \
-	  src/base/base.cma \
-	  src/plugins/custom/plugin-custom.cma \
-	  src/plugins/none/plugin-none.cma \
-	  src/plugins/internal/plugin-internal.cma \
-	  src/plugins/ocamlbuild/plugin-ocamlbuild.cma \
-	  src/plugins/extra/META/plugin-meta.cma \
-	  src/plugins/extra/devfiles/plugin-devfiles.cma \
-	  src/plugins/extra/stdfiles/plugin-stdfiles.cma \
-	  src/builtin-plugins.cma \
-	  src/OASISMain.byte test/test.byte
-	cp _build/src/OASISMain.byte _build/src/oasis
-	cp _build/test/test.byte _build/test/test
-
-
-TEST_BACKUP_RECURSE ?= true
-
-test-backup: build-backup
-	if cd test && ../_build/test/test $(TESTFLAGS); then \
-	  cd ..; \
-	  if $(TEST_BACKUP_RECURSE) && \
-	     $(MAKE) test-backup \
-	       TEST_BACKUP_RECURSE=false \
-	       OASIS=_build/src/oasis; then \
-	    cp boot/oasis boot/oasis.old; \
-	    cp _build/src/oasis boot/oasis; \
-	  fi; \
-	fi
-
-clean-backup:
-	ocamlbuild -clean
-
 wc:
 	find src/ -name "*.ml" | xargs wc -l
 
@@ -121,7 +81,7 @@ headache:
 	  -o -type f \
 	  | xargs headache -h _header -c _headache.config
 
-.PHONY: build-backup test-backup clean-backup wc headache
+.PHONY: wc headache
 
 # Binary distribution 
 
