@@ -170,24 +170,10 @@ bindist-step2:
 
 # Source distribution
 
-dist: setup.data
-	if ! [ "$$(darcs diff | wc -l)" = 0 ]; then \
-	  echo E: Uncommited changes >&2 ; exit 1; \
-	fi
-	$(MAKE) test
-	$(MAKE) dist-step2
+dist: 
+	./src/tools/oasis-dist.ml
 
--include setup.data
-dist-step2:
-	darcs dist --dist-name $(pkg_name)-$(pkg_version)
-	if ! (darcs query tag | grep "$(pkg_version)" > /dev/null); then \
-	  darcs tag "$(pkg_version)"; \
-	else \
-	  echo W: Version $(pkg_version) already tagged >&2; \
-	fi 
-	gpg -s -a -b "$(pkg_name)-$(pkg_version).tar.gz"
-
-.PHONY: dist dist-step2
+.PHONY: dist 
 
 # Fixing permissions
 
