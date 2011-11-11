@@ -297,8 +297,13 @@ let dump ?(filename=default_filename) () =
   let chn =
     open_out_bin filename
   in
-    Schema.iter
-      (fun nm def _ ->
+  let output nm value = 
+    Printf.fprintf chn "%s=%S\n" nm value
+  in
+  let mp_todo = 
+    (* Dump data from schema *)
+    Schema.fold
+      (fun mp_todo nm def _ ->
          if def.dump then
            begin
              try
@@ -308,11 +313,18 @@ let dump ?(filename=default_filename) () =
                    env
                    nm
                in
-                 Printf.fprintf chn "%s=%S\n" nm value
+                 output nm value
              with Not_set _ ->
                ()
-           end)
-      schema;
+           end;
+         MapString.remove nm mp_todo)
+      !env_from_file
+      schema
+  in
+    (* Dump data defined outside of schema *)
+    MapString.iter output mp_todo;
+
+    (* End of the dump *)
     close_out chn
 
 let print () =

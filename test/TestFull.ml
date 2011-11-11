@@ -1226,6 +1226,13 @@ let tests =
             oasis_ocamlbuild_files,
             [],
             []);
+
+         "data/bug823",
+         (fun () ->
+            long_test,
+            oasis_ocamlbuild_files,
+            [],
+            []);
        ]
     )
     @

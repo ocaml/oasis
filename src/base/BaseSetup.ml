@@ -79,7 +79,19 @@ let configure t args =
   BaseCustom.hook
     t.package.conf_custom
     (fun () -> 
+       (* Reload if preconf has changed it *)
+       begin
+         try
+           unload ();
+           load ();
+         with _ ->
+           ()
+       end;
+
+       (* Run plugin's configure *)
        t.configure t.package args;
+
+       (* Dump to allow postconf to change it *)
        dump ())
     ();
 

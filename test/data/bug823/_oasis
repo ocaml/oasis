@@ -1,0 +1,9 @@
+OASISFormat: 0.1
+Name:        test
+Version:     0
+Synopsis:    test
+Authors:     me
+License:     GPL
+BuildTools:  ocamlbuild
+PreConfCommand: ./preconf.sh
+PostConfCommand: ./postconf.sh
