@@ -1,0 +1,24 @@
+OASISFormat: 0.1
+Name:        test
+Version:     0
+Synopsis:    test
+Authors:     me
+License:     GPL
+BuildTools:  ocamlbuild
+PostConfCommand: ./postconf.sh
+
+Flag bar
+ Description: enable support for bar
+ Default$: flag(all)
+
+Flag all
+ Description: enable everything
+ Default: false
+
+Flag foo
+ Description: enable support for foo
+ Default$: flag(all)
+
+Flag over
+ Description: overriden flag
+ Default$: flag(all)

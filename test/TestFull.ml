@@ -1236,7 +1236,22 @@ let tests =
        ]
     )
     @
-    ["TEMP=a b">::
+    ["data/bug938">::
+     bracket_setup 
+       ("data/bug938",
+        fun () ->
+          ignore,
+          oasis_ocamlbuild_files,
+          [],
+          [])
+       (* Run test *)
+       (fun _ ->
+          (* Run configure target *)
+          assert_run_setup 
+            ["-configure"; "--enable-all"; "--disable-over"];
+          rm ["setup.data"]);
+
+     "TEMP=a b">::
      bracket
        (fun () ->
           let dn = readlink "a b" in

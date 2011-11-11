@@ -158,12 +158,8 @@ let var_define
   let default =
     [
       OFileLoad, (fun () -> MapString.find name !env_from_file);
-      ODefault,  (fun () -> Lazy.force dflt);
-      OGetEnv,   
-      (let vl = lazy (Sys.getenv name)
-       in
-         fun () ->
-           Lazy.force vl)
+      ODefault,  dflt;
+      OGetEnv,   (fun () -> Sys.getenv name);
     ]
   in
 
@@ -244,7 +240,8 @@ let var_redefine
       dflt =
   if Schema.mem schema name then
     begin
-      Schema.set schema env ~context:ODefault name (Lazy.force dflt);
+      (* TODO: look suspsicious, we want to memorize dflt not dflt () *)
+      Schema.set schema env ~context:ODefault name (dflt ());
       fun () -> var_get name
     end
   else
@@ -270,7 +267,7 @@ let print_hidden =
     ~cli:CLIAuto
     ~arg_help:"Print even non-printable variable. (debug)"
     "print_hidden"
-    (lazy "false")
+    (fun () -> "false")
 
 let var_all () =
   List.rev

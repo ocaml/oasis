@@ -421,13 +421,14 @@ let setup t =
                           ~cli:CLIEnable
                           ?short_desc
                           (OASISUtils.varname_of_string cs.cs_name)
-                          (lazy (string_of_bool
-                                   (var_choose
-                                      ~name:(Printf.sprintf
-                                               (f_ "default value of flag %s")
-                                               cs.cs_name)
-                                      ~printer:string_of_bool
-                                      choices))))
+                          (fun () ->
+                             string_of_bool
+                               (var_choose
+                                  ~name:(Printf.sprintf
+                                           (f_ "default value of flag %s")
+                                           cs.cs_name)
+                                  ~printer:string_of_bool
+                                           choices)))
                    in
                      match hlp with
                        | Some hlp ->

@@ -74,18 +74,23 @@ let ocamlc_config_map =
           mp
   in
 
+  let cache = 
+    lazy
+      (var_protect
+         (Marshal.to_string
+            (split_field
+               SMap.empty
+               (BaseExec.run_read_output
+                  (ocamlc ()) ["-config"]))
+            []))
+  in
     var_redefine
       "ocamlc_config_map"
       ~hide:true
       ~dump:false
-      (lazy
-         (var_protect
-            (Marshal.to_string
-               (split_field
-                  SMap.empty
-                  (BaseExec.run_read_output
-                     (ocamlc ()) ["-config"]))
-               [])))
+      (fun () ->
+         (* TODO: update if ocamlc change !!! *)
+         Lazy.force cache)
 
 let var_define nm =
   (* Extract data from ocamlc -config *)
@@ -109,18 +114,18 @@ let var_define nm =
   in
     var_redefine
       nm
-      (lazy
-        (try
-            let map =
-              avlbl_config_get ()
-            in
-            let value =
-              SMap.find nm_config map
-            in
-              value_config value
-          with Not_found ->
-            failwithf
-              (f_ "Cannot find field '%s' in '%s -config' output")
-              nm
-              (ocamlc ())))
+      (fun () ->
+        try
+           let map =
+             avlbl_config_get ()
+           in
+           let value =
+             SMap.find nm_config map
+           in
+             value_config value
+         with Not_found ->
+           failwithf
+             (f_ "Cannot find field '%s' in '%s -config' output")
+             nm
+             (ocamlc ()))
 

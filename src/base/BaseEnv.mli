@@ -98,7 +98,7 @@ val var_define :
   ?arg_help:string ->
   ?group:string -> 
   name ->
-  string Lazy.t -> 
+  (unit -> string) -> 
   (unit -> string)
 
 (** Define a variable or redefine it.
@@ -111,7 +111,7 @@ val var_redefine :
   ?arg_help:string ->
   ?group:string ->
   name -> 
-  string Lazy.t -> 
+  (unit -> string) -> 
   (unit -> string)
 
 (** Well-typed ignore for [var_define].

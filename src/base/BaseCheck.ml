@@ -27,24 +27,24 @@ open OASISGettext
 let prog_best prg prg_lst =
   var_redefine
     prg
-    (lazy
-       (let alternate =
-          List.fold_left
-            (fun res e ->
-               match res with
-                 | Some _ ->
-                     res
-                 | None ->
-                     try
-                       Some (BaseFileUtil.which e)
-                     with Not_found ->
-                       None)
-            None
-            prg_lst
-        in
-          match alternate with
-            | Some prg -> prg
-            | None -> raise Not_found))
+    (fun () ->
+       let alternate =
+         List.fold_left
+           (fun res e ->
+              match res with
+                | Some _ ->
+                    res
+                | None ->
+                    try
+                      Some (BaseFileUtil.which e)
+                    with Not_found ->
+                      None)
+           None
+           prg_lst
+       in
+         match alternate with
+           | Some prg -> prg
+           | None -> raise Not_found)
 
 let prog prg =
   prog_best prg [prg]
@@ -67,33 +67,33 @@ let version
     var_redefine
       ~hide:true
       var
-      (lazy
-         (let version_str =
-            match fversion () with
-              | "[Distributed with OCaml]" ->
-                  begin
-                    try
-                      (var_get "ocaml_version")
-                    with Not_found ->
-                      warning
-                        (f_ "Variable ocaml_version not defined, fallback \
-                             to default");
-                      Sys.ocaml_version
-                  end
-              | res ->
-                  res
-          in
-          let version =
-            OASISVersion.version_of_string version_str
-          in
-            if OASISVersion.comparator_apply version cmp then
-              version_str
-            else
-              failwithf
-                (f_ "Cannot satisfy version constraint on %s: %s (version: %s)")
-                var_prefix
-                (OASISVersion.string_of_comparator cmp)
-                version_str))
+      (fun () ->
+         let version_str =
+           match fversion () with
+             | "[Distributed with OCaml]" ->
+                 begin
+                   try
+                     (var_get "ocaml_version")
+                   with Not_found ->
+                     warning
+                       (f_ "Variable ocaml_version not defined, fallback \
+                            to default");
+                     Sys.ocaml_version
+                 end
+             | res ->
+                 res
+         in
+         let version =
+           OASISVersion.version_of_string version_str
+         in
+           if OASISVersion.comparator_apply version cmp then
+             version_str
+           else
+             failwithf
+               (f_ "Cannot satisfy version constraint on %s: %s (version: %s)")
+               var_prefix
+               (OASISVersion.string_of_comparator cmp)
+               version_str)
       ()
 
 let package_version pkg =
@@ -124,7 +124,7 @@ let package ?version_comparator pkg () =
   let vl =
     var_redefine
       var
-      (lazy (findlib_dir pkg))
+      (fun () -> findlib_dir pkg)
       ()
   in
     (

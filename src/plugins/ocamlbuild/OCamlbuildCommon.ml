@@ -33,7 +33,7 @@ let ocamlbuildflags =
   var_define
     ~short_desc:(fun () -> "OCamlbuild additional flags")
     "ocamlbuildflags"
-    (lazy "")
+    (fun () -> "")
 
 (** Fix special arguments depending on environment *)
 let fix_args args extra_argv =

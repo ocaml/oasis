@@ -159,5 +159,6 @@ fixperms:
 	chmod +x ./test/data/bug982/test-setup-data.sh
 	chmod +x ./test/data/bug823/postconf.sh
 	chmod +x ./test/data/bug823/preconf.sh
+	chmod +x ./test/data/bug938/postconf.sh
 
 .PHONY: fixperms

@@ -46,13 +46,13 @@ let pkg_name =
   var_define
     ~short_desc:(fun () -> s_ "Package name")
     "pkg_name"
-    (lazy (pkg_get ()).name)
+    (fun () -> (pkg_get ()).name)
 
 let pkg_version =
   var_define
     ~short_desc:(fun () -> s_ "Package version")
     "pkg_version"
-    (lazy
+    (fun () ->
        (OASISVersion.string_of_version (pkg_get ()).version))
 
 let c = BaseOCamlcConfig.var_define
@@ -101,174 +101,173 @@ let (/) a b =
 let prefix =
   p "prefix"
     (fun () -> s_ "Install architecture-independent files dir")
-    (lazy
-       (match os_type () with
-          | "Win32" ->
-              let program_files =
-                Sys.getenv "PROGRAMFILES"
-              in
-                program_files/(pkg_name ())
-          | _ ->
-              "/usr/local"))
+    (fun () ->
+       match os_type () with
+         | "Win32" ->
+             let program_files =
+               Sys.getenv "PROGRAMFILES"
+             in
+               program_files/(pkg_name ())
+         | _ ->
+             "/usr/local")
 
 let exec_prefix =
   p "exec_prefix"
     (fun () -> s_ "Install architecture-dependent files in dir")
-    (lazy "$prefix")
+    (fun () -> "$prefix")
 
 let bindir =
   p "bindir"
     (fun () -> s_ "User executables")
-    (lazy ("$exec_prefix"/"bin"))
+    (fun () -> "$exec_prefix"/"bin")
 
 let sbindir =
   p "sbindir"
     (fun () -> s_ "System admin executables")
-    (lazy ("$exec_prefix"/"sbin"))
+    (fun () -> "$exec_prefix"/"sbin")
 
 let libexecdir =
   p "libexecdir"
     (fun () -> s_ "Program executables")
-    (lazy ("$exec_prefix"/"libexec"))
+    (fun () -> "$exec_prefix"/"libexec")
 
 let sysconfdir =
   p "sysconfdir"
     (fun () -> s_ "Read-only single-machine data")
-    (lazy ("$prefix"/"etc"))
+    (fun () -> "$prefix"/"etc")
 
 let sharedstatedir =
   p "sharedstatedir"
     (fun () -> s_ "Modifiable architecture-independent data")
-    (lazy ("$prefix"/"com"))
+    (fun () -> "$prefix"/"com")
 
 let localstatedir =
   p "localstatedir"
     (fun () -> s_ "Modifiable single-machine data")
-    (lazy ("$prefix"/"var"))
+    (fun () -> "$prefix"/"var")
 
 let libdir =
   p "libdir"
     (fun () -> s_ "Object code libraries")
-    (lazy ("$exec_prefix"/"lib"))
+    (fun () -> "$exec_prefix"/"lib")
 
 let datarootdir =
   p "datarootdir"
     (fun () -> s_ "Read-only arch-independent data root")
-    (lazy ("$prefix"/"share"))
+    (fun () -> "$prefix"/"share")
 
 let datadir =
   p "datadir"
     (fun () -> s_ "Read-only architecture-independent data")
-    (lazy ("$datarootdir"))
+    (fun () -> "$datarootdir")
 
 let infodir =
   p "infodir"
     (fun () -> s_ "Info documentation")
-    (lazy ("$datarootdir"/"info"))
+    (fun () -> "$datarootdir"/"info")
 
 let localedir =
   p "localedir"
     (fun () -> s_ "Locale-dependent data")
-    (lazy ("$datarootdir"/"locale"))
+    (fun () -> "$datarootdir"/"locale")
 
 let mandir =
   p "mandir"
     (fun () -> s_ "Man documentation")
-    (lazy ("$datarootdir"/"man"))
+    (fun () -> "$datarootdir"/"man")
 
 let docdir =
   p "docdir"
     (fun () -> s_ "Documentation root")
-    (lazy ("$datarootdir"/"doc"/"$pkg_name"))
+    (fun () -> "$datarootdir"/"doc"/"$pkg_name")
 
 let htmldir =
   p "htmldir"
     (fun () -> s_ "HTML documentation")
-    (lazy ("$docdir"))
+    (fun () -> "$docdir")
 
 let dvidir =
   p "dvidir"
     (fun () -> s_ "DVI documentation")
-    (lazy ("$docdir"))
+    (fun () -> "$docdir")
 
 let pdfdir =
   p "pdfdir"
     (fun () -> s_ "PDF documentation")
-    (lazy ("$docdir"))
+    (fun () -> "$docdir")
 
 let psdir =
   p "psdir"
     (fun () -> s_ "PS documentation")
-    (lazy ("$docdir"))
+    (fun () -> "$docdir")
 
 let destdir =
   p "destdir"
     (fun () -> s_ "Prepend a path when installing package")
-    (lazy
-       (raise
-          (PropList.Not_set
-             ("destdir",
-              Some (s_ "undefined by construct")))))
+    (fun () ->
+       raise
+         (PropList.Not_set
+            ("destdir",
+             Some (s_ "undefined by construct"))))
 
 let findlib_version =
   var_define
     "findlib_version"
-    (lazy
-       (BaseCheck.package_version "findlib"))
+    (fun () ->
+       BaseCheck.package_version "findlib")
 
 let is_native =
   var_define
     "is_native"
-    (lazy
-       (try
-          let _s : string =
-            ocamlopt ()
-          in
-            "true"
-        with PropList.Not_set _ ->
-          let _s : string =
-            ocamlc ()
-          in
-            "false"))
+    (fun () ->
+       try
+         let _s : string =
+           ocamlopt ()
+         in
+           "true"
+       with PropList.Not_set _ ->
+         let _s : string =
+           ocamlc ()
+         in
+           "false")
 
 let ext_program =
   var_define
     "suffix_program"
-    (lazy
-       (match os_type () with
-          | "Win32" -> ".exe"
-          | _ -> ""
-       ))
+    (fun () ->
+       match os_type () with
+         | "Win32" -> ".exe"
+         | _ -> "")
 
 let rm =
   var_define
     ~short_desc:(fun () -> s_ "Remove a file.")
     "rm"
-    (lazy
-       (match os_type () with
-          | "Win32" -> "del"
-          | _ -> "rm -f"))
+    (fun () ->
+       match os_type () with
+         | "Win32" -> "del"
+         | _ -> "rm -f")
 
 let rmdir =
   var_define
     ~short_desc:(fun () -> s_ "Remove a directory.")
     "rmdir"
-    (lazy
-       (match os_type () with
-          | "Win32" -> "rd"
-          | _ -> "rm -rf"))
+    (fun () ->
+       match os_type () with
+         | "Win32" -> "rd"
+         | _ -> "rm -rf")
 
 let debug =
   var_define
     ~short_desc:(fun () -> s_ "Compile with ocaml debug flag on.")
     "debug"
-    (lazy "true")
+    (fun () -> "true")
 
 let profile =
   var_define
     ~short_desc:(fun () -> s_ "Compile with ocaml profile flag on.")
     "profile"
-    (lazy "false")
+    (fun () -> "false")
 
 let init pkg =
   rpkg := Some pkg

@@ -38,22 +38,22 @@ let init pkg =
                                  (f_ "Filename of executable '%s'")
                                  cs.cs_name)
                 cs.cs_name
-                (lazy
-                   (let fn_opt =
-                      fold
-                        BExec cs.cs_name
-                        (fun _ fn -> Some fn)
-                        None
-                    in
-                      match fn_opt with
-                        | Some fn -> fn
-                        | None ->
-                            raise
-                              (PropList.Not_set
-                                 (cs.cs_name,
-                                  Some (Printf.sprintf
-                                          (f_ "Executable '%s' not yet built.")
-                                          cs.cs_name))))))
+                (fun () ->
+                   let fn_opt =
+                     fold
+                       BExec cs.cs_name
+                       (fun _ fn -> Some fn)
+                       None
+                   in
+                     match fn_opt with
+                       | Some fn -> fn
+                       | None ->
+                           raise
+                             (PropList.Not_set
+                                (cs.cs_name,
+                                 Some (Printf.sprintf
+                                         (f_ "Executable '%s' not yet built.")
+                                         cs.cs_name)))))
 
        | Library _ | Flag _ | Test _ | SrcRepo _ | Doc _ ->
            ())
