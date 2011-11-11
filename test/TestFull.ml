@@ -1219,6 +1219,13 @@ let tests =
             "src/test.mllib" :: "src/META" :: oasis_ocamlbuild_files,
             [in_ocaml_library "test" ["META"; "foo.cmi"; "test.cma"]],
             []);
+
+         "data/bug982",
+         (fun () ->
+            long_test,
+            oasis_ocamlbuild_files,
+            [],
+            []);
        ]
     )
     @

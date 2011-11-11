@@ -156,5 +156,6 @@ fixperms:
 	chmod +x ./src/tools/oasis-i18n
 	chmod +x ./src/tools/oasis-announce.ml
 	chmod +x ./examples/custom/myconfigure
+	chmod +x ./test/data/bug982/test-setup-data.sh
 
 .PHONY: fixperms

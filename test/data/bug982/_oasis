@@ -1,0 +1,14 @@
+OASISFormat: 0.1
+Name:        test
+Version:     0
+Synopsis:    test
+Authors:     me
+License:     GPL
+BuildTools:  ocamlbuild
+PostConfCommand: ./test-setup-data.sh
+
+Executable test
+  Path:    ./
+  MainIs: A.ml
+  CompiledObject: byte
+  Install: false

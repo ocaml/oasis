@@ -1,0 +1,4 @@
+include setup.data
+
+all:
+	test "x$(ocamlc)" != "x"

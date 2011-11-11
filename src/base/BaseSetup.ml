@@ -78,12 +78,17 @@ let configure t args =
   (* Run configure *)
   BaseCustom.hook
     t.package.conf_custom
-    (t.configure t.package)
-    args;
+    (fun () -> 
+       t.configure t.package args;
+       dump ())
+    ();
 
   (* Reload environment *)
   unload ();
   load ();
+
+  (* Save environment *)
+  print ();
 
   (* Replace data in file *)
   BaseFileAB.replace t.package.files_ab

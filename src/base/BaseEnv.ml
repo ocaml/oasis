@@ -157,9 +157,13 @@ let var_define
 
   let default =
     [
-      OFileLoad, lazy (MapString.find name !env_from_file);
-      ODefault,  dflt;
-      OGetEnv,   lazy (Sys.getenv name);
+      OFileLoad, (fun () -> MapString.find name !env_from_file);
+      ODefault,  (fun () -> Lazy.force dflt);
+      OGetEnv,   
+      (let vl = lazy (Sys.getenv name)
+       in
+         fun () ->
+           Lazy.force vl)
     ]
   in
 
@@ -178,11 +182,11 @@ let var_define
   let var_get_low lst =
     let errors, res =
       List.fold_left
-        (fun (errors, res) (_, v) ->
+        (fun (errors, res) (o, v) ->
            if res = None then
              begin
                try
-                 errors, Some (Lazy.force v)
+                 errors, Some (v ())
                with
                  | Not_found ->
                       errors, res
@@ -196,12 +200,7 @@ let var_define
         ([], None)
         (List.sort
            (fun (o1, _) (o2, _) ->
-              if o1 < o2 then
-               1
-              else if o1 = o2 then
-                0
-              else
-               -1)
+              Pervasives.compare o2 o1)
            lst)
     in
       match res, errors with
@@ -223,7 +222,7 @@ let var_define
     FieldRO.create
       ~schema
       ~name
-      ~parse:(fun ?(context=ODefault) s -> [context, lazy s])
+      ~parse:(fun ?(context=ODefault) s -> [context, fun () -> s])
       ~print:var_get_low
       ~default
       ~update:(fun ?context x old_x -> x @ old_x)
@@ -291,7 +290,6 @@ let load ?allow_empty ?filename () =
   env_from_file := BaseEnvLight.load ?allow_empty ?filename ()
 
 let unload () =
-  (* TODO: reset lazy values *)
   env_from_file := MapString.empty;
   Data.clear env
 
@@ -310,7 +308,7 @@ let dump ?(filename=default_filename) () =
                    env
                    nm
                in
-                 Printf.fprintf chn "%s = %S\n" nm value
+                 Printf.fprintf chn "%s=%S\n" nm value
              with Not_set _ ->
                ()
            end)

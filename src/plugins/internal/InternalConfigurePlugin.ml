@@ -211,13 +211,8 @@ let configure pkg argv =
            ())
     pkg.sections;
 
-  (* Save and print environment *)
-  if SetString.empty = !errors then
-    begin
-      dump ();
-      print ()
-    end
-  else
+  (* Check errors *)
+  if SetString.empty != !errors then
     begin
       List.iter
         (fun e -> error "%s" e)
