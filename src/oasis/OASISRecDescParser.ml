@@ -73,7 +73,7 @@ let parse_stream conf st =
     debug ~ctxt:conf.ctxt fmt
   in
   let warning fmt =
-    warning ~ctxt:conf.ctxt fmt
+  warning ~ctxt:conf.ctxt fmt
   in
 
   let apply_transformations ops =
@@ -87,7 +87,7 @@ let parse_stream conf st =
                let rec pp_lines mode = 
                  function
                    | RealLine (lineno, charstart, str) :: tl -> 
-                       debug "%s%04d:%s%s"
+                       debug "%s%04d:%s->%s<-"
                          mode
                          lineno
                          (String.make charstart ' ')
@@ -364,35 +364,61 @@ let parse_stream conf st =
              | [] ->
                  List.rev acc
 
-         and fetch_multiline acc lvl =
-          function 
-            | BlockBegin :: tl ->
-                fetch_multiline acc (lvl + 1) tl 
+         and fetch_multiline acc lvl lst = 
 
-            | BlockEnd :: tl -> 
-                if lvl > 1 then
-                  fetch_multiline acc (lvl - 1) tl
-                else if lvl = 1 then
-                  find_field (StringEnd :: acc) tl
-                else 
-                  find_field (StringEnd :: acc) (BlockEnd :: tl)
+           let lvl_ref =
+             let rec count_block_begin lvl = 
+               function
+                 | BlockBegin :: tl ->
+                     (* Count the initial indentation (first line) *)
+                     count_block_begin (lvl + 1) tl
+                 | lst ->
+                     lvl
+             in
+               count_block_begin lvl lst
+           in
 
-            | RealLine _ as e :: tl ->
-                if lvl > 0 then
-                  fetch_multiline (e :: acc) lvl tl
-                else
-                  find_field (StringEnd :: acc) (e :: tl)
+           let rec fetch_multiline_nxt acc lvl =
+             function 
+               | BlockBegin :: tl ->
+                   fetch_multiline_nxt acc (lvl + 1) tl 
 
-            | (StringBegin as e) :: tl
-            | (StringEnd as e) :: tl ->
-                if lvl > 0 then
-                  fetch_multiline acc lvl tl
-                else
-                  find_field (StringEnd :: acc) (e :: tl)
+               | BlockEnd :: tl -> 
+                   if lvl > 1 then
+                     fetch_multiline_nxt acc (lvl - 1) tl
+                   else if lvl = 1 then
+                     find_field (StringEnd :: acc) tl
+                   else 
+                     find_field (StringEnd :: acc) (BlockEnd :: tl)
 
-            | [] ->
-                find_field (StringEnd :: acc) []
+               | RealLine (lineno, charstart, str) as e :: tl ->
+                   if lvl > 0 then
+                     let diff = 
+                       lvl - lvl_ref
+                     in
+                       fetch_multiline_nxt 
+                         (RealLine
+                            (lineno, 
+                             charstart - diff,
+                             String.make diff ' ' ^ str) :: acc) 
+                         lvl 
+                         tl
+                   else
+                     find_field (StringEnd :: acc) (e :: tl)
+
+               | (StringBegin as e) :: tl
+               | (StringEnd as e) :: tl ->
+                   if lvl > 0 then
+                     fetch_multiline_nxt acc lvl tl
+                   else
+                     find_field (StringEnd :: acc) (e :: tl)
+
+               | [] ->
+                   find_field (StringEnd :: acc) []
+           in
+             fetch_multiline_nxt acc lvl lst
          in
+
            find_field [] lines);
 
 

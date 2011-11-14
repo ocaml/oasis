@@ -1,0 +1,24 @@
+# Bug 811
+OASISFormat:  0.2
+Name:         foo
+Version:      0.0.1
+Synopsis:     Just a test
+License:      GPL
+LicenseFile:  LICENSE
+Authors:      Sylvain Le Gall
+
+Description:
+  Thin bindings to various low-level system APIs (often non-portable)
+  which are not covered by Unix module.
+  .
+  Example functions:
+   * uname
+   * statvfs
+   * fsync
+
+Document foo
+  Title: my foo thesis
+  Abstract:
+    Foo is a great library for:
+     * pattern matching
+     * GC
