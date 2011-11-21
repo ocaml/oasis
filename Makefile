@@ -150,15 +150,6 @@ dist:
 # Fixing permissions
 
 fixperms:
-	chmod +x ./configure
-	chmod +x ./src/tools/oasis-dist.ml
-	chmod +x ./src/tools/oasis
-	chmod +x ./src/tools/oasis-i18n
-	chmod +x ./src/tools/oasis-announce.ml
-	chmod +x ./examples/custom/myconfigure
-	chmod +x ./test/data/bug982/test-setup-data.sh
-	chmod +x ./test/data/bug823/postconf.sh
-	chmod +x ./test/data/bug823/preconf.sh
-	chmod +x ./test/data/bug938/postconf.sh
+	for i in $$(cat _fixperms); do chmod +x "./$$i"; done
 
 .PHONY: fixperms
