@@ -854,6 +854,7 @@ let tests =
                 !has_ocamlopt
                 (in_ocaml_library "simplelib" 
                    ["simplelib.cmxa"; 
+                    "Foo.cmx"; "Bar.cmx";
                     if Sys.os_type = "Win32" then
                       "simplelib.lib"
                     else
@@ -868,6 +869,7 @@ let tests =
                 !has_ocamlopt
                 (in_ocaml_library "simplelibext"
                    ["simplelibext.cmxa"; 
+                    "FooExt.cmx"; "BarExt.cmx";
                     if Sys.os_type = "Win32" then 
                       "simplelibext.lib"
                     else
@@ -902,6 +904,7 @@ let tests =
                 !has_ocamlopt
                 (in_ocaml_library "simplelib"
                    ["simplelib.cmxa"; 
+                    "foo.cmx"; "bar.cmx";
                     if Sys.os_type = "Win32" then
                       "simplelib.lib"
                     else
@@ -980,6 +983,7 @@ let tests =
                       "with-c.lib"
                     else
                       "with-c.a"; 
+                    "A.cmx";
                     "with-c.cmxa"]);
 
               api_ref_html "with-c"
@@ -1057,6 +1061,7 @@ let tests =
                !has_ocamlopt
                (in_ocaml_library "test"
                   ["test.cmxa"; 
+                   "A.cmx"; "B.cmx";
                    if Sys.os_type = "Win32" then
                      "test.lib"
                    else
@@ -1112,7 +1117,7 @@ let tests =
               conditional
                 !has_ocamlopt
                 (in_ocaml_library "with-a"
-                   ["with-a.cmxa"; 
+                   ["A.cmx"; "with-a.cmxa"; 
                     if Sys.os_type = "Win32" then
                       "with-a.lib"
                     else

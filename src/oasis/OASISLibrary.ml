@@ -27,38 +27,67 @@ type library_name = name
 
 let generated_unix_files ~ctxt (cs, bs, lib)
       source_file_exists is_native ext_lib ext_dll =
-  (* The headers that should be compiled along *)
-  let headers =
-    List.fold_left
-      (fun hdrs modul ->
-         try
-           let base_fn =
-             List.find
-               (fun fn ->
-                  source_file_exists (fn^".ml") ||
-                  source_file_exists (fn^".mli") ||
-                  source_file_exists (fn^".mll") ||
-                  source_file_exists (fn^".mly"))
-               (List.map
-                  (OASISUnixPath.concat bs.bs_path)
-                  [modul;
-                   OASISUnixPath.uncapitalize_file modul;
-                   OASISUnixPath.capitalize_file modul])
-           in
-             [base_fn^".cmi"] :: hdrs
-         with Not_found ->
+
+  (* Look for a module file, considering capitalization or not. *)
+  let find_module modul = 
+    let possible_base_fn = 
+      List.map
+        (OASISUnixPath.concat bs.bs_path)
+        [modul;
+         OASISUnixPath.uncapitalize_file modul;
+         OASISUnixPath.capitalize_file modul]
+    in
+      try
+        begin
+          [List.find
+             (fun fn ->
+                source_file_exists (fn^".ml") ||
+                source_file_exists (fn^".mli") ||
+                source_file_exists (fn^".mll") ||
+                source_file_exists (fn^".mly"))
+             possible_base_fn]
+        end
+      with Not_found ->
+        begin
            OASISMessage.warning
              ~ctxt
              (f_ "Cannot find source file matching \
                   module '%s' in library %s")
              modul cs.cs_name;
-             (List.map (OASISUnixPath.concat bs.bs_path)
-                [modul^".cmi";
-                 OASISUnixPath.uncapitalize_file modul ^ ".cmi";
-                 OASISUnixPath.capitalize_file modul ^ ".cmi"])
-             :: hdrs)
-      []
+           possible_base_fn
+        end
+  in
+
+  let find_modules lst ext = 
+    List.map 
+      (fun nm -> 
+         List.map 
+           (fun base_fn -> base_fn ^"."^ext)
+           (find_module nm))
+      lst
+  in
+
+  (* The headers that should be compiled along *)
+  let headers =
+    find_modules
       lib.lib_modules
+      "cmi"
+  in
+
+  (* The .cmx that be compiled along *)
+  let cmxs =
+    let should_be_built =
+      match bs.bs_compiled_object with
+        | Native -> true
+        | Best -> is_native ()
+        | Byte -> false
+    in
+      if should_be_built then
+        find_modules
+          (lib.lib_modules @ lib.lib_internal_modules)
+          "cmx"
+      else
+        []
   in
 
   let acc_nopath =
@@ -102,7 +131,7 @@ let generated_unix_files ~ctxt (cs, bs, lib)
          (List.rev_map
             (OASISUnixPath.concat bs.bs_path))
          acc_nopath)
-      headers
+      (headers @ cmxs)
 
 
 type group_t =
