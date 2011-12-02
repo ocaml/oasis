@@ -248,6 +248,34 @@ let install pkg argv =
                     findlib_name;
                 res
             in
+            let files = 
+              (* Make filename shorter to avoid hitting command max line length
+               * too early, esp. on Windows.
+               *)
+              let remove_prefix p n =
+                let plen = String.length p in
+                let nlen = String.length n in
+                  if plen <= nlen && String.sub n 0 plen = p then
+                    begin
+                      let fn_sep = 
+                        if Sys.os_type = "Win32" then
+                          '\\'
+                        else
+                          '/'
+                      in
+                      let cutpoint = plen +
+                        (if plen < nlen && n.[plen] = fn_sep then 
+                           1
+                         else 
+                           0)
+                      in
+                        String.sub n cutpoint (nlen - cutpoint)
+                    end
+                  else 
+                    n
+              in
+                List.map (remove_prefix (Sys.getcwd ())) files 
+            in
               info
                 (f_ "Installing findlib library '%s'")
                 findlib_name;
