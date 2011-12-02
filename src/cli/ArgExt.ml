@@ -216,8 +216,9 @@ let parse () =
          ""
          ""
          (fun () ->
-            error "%s"
-              (s_ "No subcommand defined, call 'oasis -help' for help")))
+            pp_print_help NoSubCommand Output err_formatter ();
+            failwith
+              (s_ "No subcommand defined, call 'oasis help' for help")))
   in
 
   let scmd_args =

@@ -60,7 +60,17 @@ let () =
     in
       main ()
   with e ->
-    if Printexc.backtrace_status () then
-      Printexc.print_backtrace stderr;
-    error "%s" (Printexc.to_string e);
-    exit 1
+    begin
+      if Printexc.backtrace_status () then
+        Printexc.print_backtrace stderr;
+
+      begin
+        match e with
+          | Failure str ->
+              error "%s" str
+          | e ->
+              error "%s" (Printexc.to_string e)
+      end;
+
+      exit 1
+    end
