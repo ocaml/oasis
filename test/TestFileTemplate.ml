@@ -169,11 +169,11 @@ let tests =
                   ["echo Hello"]
                   [])
            in
-             file_rollback chng;
+             file_rollback ~ctxt:!oasis_ctxt chng;
              assert_equal
                ~msg:"File chgrp"
                ~printer:string_of_int
-               grp_org
+               grp
                ((Unix.stat fn).Unix.st_gid);
              Sys.remove fn
 
