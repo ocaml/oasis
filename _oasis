@@ -168,7 +168,8 @@ Library "builtin-plugins"
 Library cli
   Path:             src/cli
   Modules:          SubCommand, 
-                    ArgExt
+                    ArgExt,
+                    Pager
   InternalModules:  CLIData
   CompiledObject:   byte
   BuildDepends:     oasis, oasis.base

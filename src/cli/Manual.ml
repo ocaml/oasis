@@ -30,19 +30,23 @@ let output =
   ref None
 
 let main () = 
-  let fmt, chn = 
+  let fmt, fclose = 
     match !output with 
       | Some fn ->
           let chn = 
             open_out fn
           in
             Format.formatter_of_out_channel chn,
-            chn
+            (fun () -> close_out chn)
 
       | None ->
-          Format.std_formatter,
-          stdout
+          let pager, fmt = 
+            Pager.open_out ()
+          in
+            fmt,
+            (fun () -> Pager.close_out pager)
   in
+    
     OASISHelp.pp_print_help 
       fmt
 
@@ -58,8 +62,8 @@ let main () =
        in
          fun nm _ ->
            List.mem nm lst);
-    (* TODO: don't close if we are called from another function *)
-    close_out chn
+
+    fclose ()
 
 let scmd = 
   {(SubCommand.make

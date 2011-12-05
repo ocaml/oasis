@@ -39,7 +39,15 @@ let main () =
       | Some nm ->
           pp_print_help (SubCommand nm)
   in
-    pp_print_help Output Format.std_formatter ()
+  let pager, fmt = 
+    Pager.open_out ()
+  in
+    try
+      pp_print_help Output fmt ();
+      Pager.close_out pager
+    with e ->
+      Pager.close_out pager;
+      raise e
 
 let scmd = 
   {(SubCommand.make

@@ -43,7 +43,11 @@ let specs, usage_msg =
    ^ s_ "\n\
       oasis [global-options*] subcommand [subcommand-options*]\n\
       \n\
-      Global options:")
+      Environment variables: \n\
+      \n\
+      OASIS_PAGER: pager to use to display long textual output.\n\
+      \n\
+      Global command line options:")
 
 type help_extent =
   | NoSubCommand
