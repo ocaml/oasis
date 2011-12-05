@@ -161,7 +161,7 @@ let pp_print_help hext hsty fmt () =
         pp_print_newline fmt ()
   in
 
-  let pp_print_scmd fmt scmd =
+  let pp_print_scmd fmt ~global_options scmd =
     pp_print_title 2 fmt
       (Printf.sprintf (f_ "Subcommand %s") scmd.scmd_name);
 
@@ -173,6 +173,13 @@ let pp_print_help hext hsty fmt () =
     fprintf fmt (f_ "Usage: oasis [global-options*] %s %s") scmd.scmd_name scmd.scmd_usage;
     pp_print_endblock fmt ();
 
+    if global_options then
+      begin
+        pp_print_para fmt (s_ "Global options: ");
+
+        pp_print_specs true fmt specs
+      end;
+
     if scmd.scmd_specs <> [] then
       begin
         pp_print_para fmt (s_ "Options: ");
@@ -181,29 +188,41 @@ let pp_print_help hext hsty fmt () =
       end
   in
 
-    pp_print_string fmt usage_msg;
-    pp_print_endblock fmt ();
+    begin
+      match hext with 
+        | NoSubCommand | AllSubCommand ->
+            begin
+              pp_print_string fmt usage_msg;
+              pp_print_endblock fmt ();
 
-    pp_print_string fmt CLIData.main_mkd;
-    pp_print_endblock
-      ~check_last_char:CLIData.main_mkd
-      fmt ();
+              pp_print_string fmt CLIData.main_mkd;
+              pp_print_endblock
+                ~check_last_char:CLIData.main_mkd
+                fmt ();
 
-    pp_print_specs true fmt specs;
+              pp_print_specs true fmt specs;
 
-    pp_print_scmds fmt ();
+              pp_print_scmds fmt ();
+            end
+
+        | SubCommand _ ->
+            ()
+    end;
 
     begin
       match hext with
         | NoSubCommand ->
             ()
+
         | SubCommand nm ->
             pp_print_scmd fmt
+              ~global_options:true 
               (SubCommand.find nm)
+
         | AllSubCommand ->
             SubCommand.fold
               (fun scmd () ->
-                 pp_print_scmd fmt scmd)
+                 pp_print_scmd fmt ~global_options:false scmd)
               ()
     end
 
