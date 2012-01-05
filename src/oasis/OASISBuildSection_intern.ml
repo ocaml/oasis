@@ -161,53 +161,47 @@ let section_fields nm comp_dflt schm sync =
       (fun () -> s_ "C source files.")
       (fun pkg -> (sync pkg).bs_c_sources)
   in
-  let ccopt = 
+  let ccopt =
     new_field_conditional schm "CCOpt"
-      ~default:[]
-      space_separated
-      (fun () ->
-         s_ "-ccopt arguments to use when building.")
-      (fun pkg -> (sync pkg).bs_ccopt)
+                          ~default:[]
+                          command_line_options
+                          (fun () -> s_ "-ccopt arguments to use when building.")
+                          (fun pkg -> (sync pkg).bs_ccopt)
   in
-  let cclib = 
+  let cclib =
     new_field_conditional schm "CCLib"
-      ~default:[]
-      space_separated
-      (fun () ->
-         s_ "-cclib arguments to use when building.")
-      (fun pkg -> (sync pkg).bs_cclib)
+                          ~default:[]
+                          command_line_options
+                          (fun () -> s_ "-cclib arguments to use when building.")
+                          (fun pkg -> (sync pkg).bs_cclib)
   in
-  let dlllib = 
+  let dlllib =
     new_field_conditional schm "DllLib"
-      ~default:[]
-      space_separated
-      (fun () ->
-         s_ "-dlllib arguments to use when building.")
-      (fun pkg -> (sync pkg).bs_dlllib)
+                          ~default:[]
+                          command_line_options
+                          (fun () -> s_ "-dlllib arguments to use when building.")
+                          (fun pkg -> (sync pkg).bs_dlllib)
   in
-  let dllpath = 
+  let dllpath =
     new_field_conditional schm "DllPath"
-      ~default:[]
-      space_separated
-      (fun () ->
-         s_ "-dllpath arguments to use when building.")
-      (fun pkg -> (sync pkg).bs_dllpath)
+                          ~default:[]
+                          command_line_options
+                          (fun () -> s_ "-dllpath arguments to use when building.")
+                          (fun pkg -> (sync pkg).bs_dllpath)
   in
-  let byteopt = 
+  let byteopt =
     new_field_conditional schm "ByteOpt"
-      ~default:[]
-      space_separated
-      (fun () ->
-         s_ "ocamlc arguments to use when building.")
-      (fun pkg -> (sync pkg).bs_byteopt)
+                          ~default:[]
+                          command_line_options
+                          (fun () -> s_ "ocamlc arguments to use when building.")
+                          (fun pkg -> (sync pkg).bs_byteopt)
   in
-  let nativeopt = 
+  let nativeopt =
     new_field_conditional schm "NativeOpt"
-      ~default:[]
-      space_separated
-      (fun () ->
-         s_ "ocamlopt arguments to use when building.")
-      (fun pkg -> (sync pkg).bs_nativeopt)
+                          ~default:[]
+                          command_line_options
+                          (fun () -> s_ "ocamlopt arguments to use when building.")
+                          (fun pkg -> (sync pkg).bs_nativeopt)
   in
     (fun nm data ->
        {

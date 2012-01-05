@@ -87,15 +87,14 @@ val dot_separated : 'a t -> 'a list t
   *)
 val comma_separated : 'a t -> 'a list t
 
-(** Same as {!dot_separated} using blanks as separator.
-  *)
+(** Same as {!dot_separated} using blanks as separator. *)
 val space_separated : string list t
 
 (** [with_optional_parentheses v_main v_opt] Combine two values. The input
     string ["abcd (defg)"] is split between the part not between parentheses
     and the one between. [v_main] is applied to the first one and [v_opt] to
     the latter. If no parentheses is found, only apply [v_main].
-  *)
+ *)
 val with_optional_parentheses : 'a t -> 'b t -> ('a * 'b option) t
 
 (** Optional value. *)
@@ -151,3 +150,7 @@ val internal_library : string t
 
 (** Command line. *)
 val command_line : (string * string list) t
+
+(** Arguments of command line programs.  See {!OASISUtils.POSIX.split}
+    for more information. *)
+val command_line_options : string list t

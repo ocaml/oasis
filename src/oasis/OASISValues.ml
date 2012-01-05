@@ -442,3 +442,10 @@ let command_line =
            space_separated.print (cmd :: args))
     }
 
+
+let command_line_options =
+  { parse = (fun ~ctxt s -> let c,l = command_line.parse s in c::l);
+    update = List.append;
+    print = (fun lst -> String.concat " " lst);
+  }
+
