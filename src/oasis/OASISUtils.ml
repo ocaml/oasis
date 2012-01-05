@@ -329,7 +329,7 @@ struct
     else if s.[i0] = '{' then parse_dollar_var s (i0 + 1) (i0 + 1) i1 '}'
     else failwithf (f_ "$-expansion is neither $(...) nor ${...} in %S") s
   and parse_dollar_var s i0 i i1 closing =
-    (* FIXME: very naive; does not handle [a"b$(echo c "d")"] *)
+    (* FIXME: very naive; does not handle [a"b$(echo c "d)")"] *)
     if i >= i1 then
       failwithf (f_ "Missing '%c' closing $-expansion in %S") closing s
     else if s.[i] = closing then
