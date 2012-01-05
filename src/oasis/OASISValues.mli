@@ -31,9 +31,8 @@
 
 (** {2 Types and exception} *)
 
-(** Definition of a value.
-  *)
-type 'a t = 
+(** Definition of a value. *)
+type 'a t =
       {
         parse : ctxt:OASISContext.t -> string -> 'a;
         (** Parse a string into value *)

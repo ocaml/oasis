@@ -93,3 +93,18 @@ val split_comma : string -> string list
 (** Split a string containing '(...)' optionally. {b Not exported} 
   *)
 val split_optional_parentheses : string -> string * (string option)
+
+
+module POSIX :
+sig
+
+  val split : string -> string list
+  (** [split s]: the string [s] is interpreted as command line
+      arguments and splitted into its components (un-escaped).  For
+      example [split "a \"b c\" d" = ["a"; "b c"; "d"]].  Note that
+      [split "" = []]. *)
+
+  val unescape : string -> string
+
+  val escape : string -> string
+end
