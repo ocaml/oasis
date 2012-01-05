@@ -444,8 +444,7 @@ let command_line =
 
 
 let command_line_options =
-  { parse = (fun ~ctxt s -> let c,l = command_line.parse s in c::l);
+  { parse = (fun ~ctxt s -> let c,l = command_line.parse ~ctxt s in c::l);
     update = List.append;
     print = (fun lst -> String.concat " " lst);
   }
-
