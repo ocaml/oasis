@@ -20,8 +20,9 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: c97b5334077d02b442cc0ea78d2aca2a)
+# DO NOT EDIT (digest: 50d3a189d7e6256264a84b5ba2a3d58c)
 SubCommand
 ArgExt
+Pager
 CLIData
 # OASIS_STOP
