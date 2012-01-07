@@ -60,6 +60,11 @@ let tests_command_line_options =
    "a \"b\\\"\"", ["a"; "b\""];
    "a\"b\\\"\"c", ["ab\"c"];
    "a \"b \\\"\" c", ["a"; "b \""; "c"];
+   "a\\ b c", ["a b"; "c"];
+   "a\\b \"a\\b\"", ["ab"; "a\\b"]; (* \ in quoted strings *)
+   "a\\ b \"a\\b\\\"\"", ["a b"; "a\\b\""];
+   "a\\ b \"a\\b\\$\"", ["a b"; "a\\b$"];
+   "a\\$ b \"a\\b\\\\\"", ["a$"; "b"; "a\\b\\"];
   ]
 
 

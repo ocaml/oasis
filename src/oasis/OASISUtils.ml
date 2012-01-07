@@ -19,8 +19,6 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-open OASISGettext
-
 module MapString = Map.Make(String)
 
 let map_string_of_assoc assoc =
@@ -189,6 +187,8 @@ let split_optional_parentheses =
 
 module POSIX =
 struct
+  open OASISGettext
+
   (* If a backslash appears at the end of the substring [s.[i0
      .. i1-1]], it will be removed (it can be thought as a backslash
      to continue the line but lines are read one by one). *)
@@ -196,14 +196,35 @@ struct
     assert(i0 < i1);
     if bs <= 0 then String.sub s i0 (i1 - i0)
     else
-      let len = i1 - i0 - bs in
-      let s' = String.create len in
+      let s' = String.create (i1 - i0 - bs) in
       let i = ref i0 in
       let j = ref 0 in
       while !i < i1 do
         if s.[!i] <> '\\' then (s'.[!j] <- s.[!i]; incr j);
         incr i
       done;
+      s'
+
+  (* In quoted strings '\\' only escapes '$' '`' '"' '\\' and <newline>. *)
+  let is_doubly_quoted_escapable c =
+    c = '$' || c = '`' || c = '"' || c = '\\'
+
+  let remove_backslashes_doubly_quoted s i0 i1 ~bs =
+    assert(i0 < i1);
+    if bs <= 0 then String.sub s i0 (i1 - i0)
+    else
+      let len' = i1 - i0 - bs in
+      let s' = String.create len' in
+      let i1m1 = i1 - 1 in
+      let i = ref i0 in
+      let j = ref 0 in
+      while !i < i1m1 do
+        if s.[!i] = '\\' && is_doubly_quoted_escapable s.[!i + 1] then incr i;
+        s'.[!j] <- s.[!i];
+        incr j;
+        incr i
+      done;
+      s'.[len' - 1] <- s.[i1m1]; (* last char always copied *)
       s'
 
   let unescape s =
@@ -308,11 +329,13 @@ struct
   and doubly_quoted hunks s i0 i i1 ~bs =
     if i >= i1 then failwithf(f_ "Unterminated doubly quoted string in %S") s
     else if s.[i] = '\\' then
-      (* Technically we wan only escape '$' '`' '"' '\\' and <newline>.
-         FIXME: Do we want to impose this? *)
-      doubly_quoted hunks s i0 (i + 2) i1 ~bs:(bs + 1)
+      (* In quoted strings '\\' only escapes '$' '`' '"' '\\' and <newline>.
+         FIXME: \<newline> are continuations. Must be dealt with. *)
+      if i+1 < i1 && is_doubly_quoted_escapable s.[i+1]
+      then doubly_quoted hunks s i0 (i + 2) i1 ~bs:(bs + 1)
+      else doubly_quoted hunks s i0 (i + 1) i1 ~bs
     else if s.[i] = '"' then
-      let h = remove_backslashes s i0 i ~bs in
+      let h = remove_backslashes_doubly_quoted s i0 i ~bs in
       get_split_string (h :: hunks) s (i + 1) (i + 1) i1 ~bs:0
     else if s.[i] = '$' then
       let hunks = add_remove_backslashes s i0 i ~bs hunks in
