@@ -156,10 +156,8 @@ let failwithf fmt = Printf.ksprintf failwith fmt
 (* END EXPORT *)
 
 
-open ExtString
-
 let split_comma str =
-  List.map String.strip (String.nsplit str ",")
+  List.map BatString.strip (BatString.nsplit str ",")
 
 let split_optional_parentheses =
   let split_parentheses =
@@ -176,14 +174,14 @@ let split_optional_parentheses =
           Pcre.get_substring substrs 2
         in
         let e1 =
-          String.strip s1
+          BatString.strip s1
         in
         let e2 =
-          String.strip s2
+          BatString.strip s2
         in
           e1, Some e2
       with Not_found ->
-        String.strip str, None
+        BatString.strip str, None
 
 module POSIX =
 struct

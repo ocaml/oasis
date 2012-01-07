@@ -100,7 +100,7 @@ Library oasis
                    OASISTest_intern,
                    OASISSchema_intern
   CompiledObject: Best
-  BuildDepends: fileutils (>= 0.4.2), unix, pcre, extlib,
+  BuildDepends: fileutils (>= 0.4.2), unix, pcre, batteries,
                 findlib, odn (>= 0.0.3), ocamlgraph
   BuildTools+: ocamlmod, ocamlyacc, ocamllex, ocamlify
   XMETADescription: _oasis file functions

@@ -21,7 +21,6 @@
 
 open OASISGettext
 open OASISUtils
-open ExtString
 
 exception Not_printable
 exception Not_combinable
@@ -148,7 +147,7 @@ let dot_separated value =
       (fun ~ctxt s ->
          List.map
            (value.parse ~ctxt)
-           (String.nsplit
+           (BatString.nsplit
               s
               "."));
     update = 
@@ -184,7 +183,7 @@ let space_separated =
       (fun ~ctxt s ->
          List.filter 
            (fun s -> s <> "")
-           (String.nsplit s " "));
+           (BatString.nsplit s " "));
     update = 
       List.append;
     print =
@@ -307,19 +306,14 @@ let findlib_name =
     print = (fun s -> s);
   }
 
-let findlib_full = 
+let findlib_full =
   {
-    parse = 
-      (fun ~ctxt s -> 
-         let cpnts = 
-           String.nsplit s "."
-         in
-           List.iter 
-             (fun cpnt -> 
-                let _s : string = 
-                  findlib_name.parse ~ctxt cpnt
-                in 
-                  ())
+    parse =
+      (fun ~ctxt s ->
+         let cpnts = BatString.nsplit s "." in
+         List.iter (fun cpnt ->
+                    let _s : string = findlib_name.parse ~ctxt cpnt in
+                    ())
              cpnts;
            s);
     update = update_fail;

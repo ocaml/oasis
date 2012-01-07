@@ -1,23 +1,23 @@
-(********************************************************************************)
-(*  OASIS: architecture for building OCaml libraries and applications           *)
-(*                                                                              *)
-(*  Copyright (C) 2008-2010, OCamlCore SARL                                     *)
-(*                                                                              *)
-(*  This library is free software; you can redistribute it and/or modify it     *)
-(*  under the terms of the GNU Lesser General Public License as published by    *)
-(*  the Free Software Foundation; either version 2.1 of the License, or (at     *)
-(*  your option) any later version, with the OCaml static compilation           *)
-(*  exception.                                                                  *)
-(*                                                                              *)
-(*  This library is distributed in the hope that it will be useful, but         *)
-(*  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY  *)
-(*  or FITNESS FOR A PARTICULAR PURPOSE. See the file COPYING for more          *)
-(*  details.                                                                    *)
-(*                                                                              *)
-(*  You should have received a copy of the GNU Lesser General Public License    *)
-(*  along with this library; if not, write to the Free Software Foundation,     *)
-(*  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               *)
-(********************************************************************************)
+(******************************************************************************)
+(* OASIS: architecture for building OCaml libraries and applications          *)
+(*                                                                            *)
+(* Copyright (C) 2008-2010, OCamlCore SARL                                    *)
+(*                                                                            *)
+(* This library is free software; you can redistribute it and/or modify it    *)
+(* under the terms of the GNU Lesser General Public License as published by   *)
+(* the Free Software Foundation; either version 2.1 of the License, or (at    *)
+(* your option) any later version, with the OCaml static compilation          *)
+(* exception.                                                                 *)
+(*                                                                            *)
+(* This library is distributed in the hope that it will be useful, but        *)
+(* WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *)
+(* or FITNESS FOR A PARTICULAR PURPOSE. See the file COPYING for more         *)
+(* details.                                                                   *)
+(*                                                                            *)
+(* You should have received a copy of the GNU Lesser General Public License   *)
+(* along with this library; if not, write to the Free Software Foundation,    *)
+(* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
+(******************************************************************************)
 
 (** META generator
     @author Sylvain Le Gall
@@ -114,10 +114,10 @@ let generator =
 
 let pp_print_meta pkg root_t findlib_name_map fmt grp =
 
-  let replace_chars s = 
-    ExtLib.String.replace_chars
+  let replace_chars s =
+    BatString.replace_chars
       (function
-         | '\n' | '\t' | '\r' -> " " 
+         | '\n' | '\t' | '\r' -> " "
          | c -> String.make 1 c)
       s
   in
@@ -258,21 +258,19 @@ let main ctxt pkg =
                let buff =
                  Buffer.create 13
                in
-                 pp_print_meta 
-                   pkg 
+                 pp_print_meta
+                   pkg
                    root_t
-                   findlib_name_map 
-                   (Format.formatter_of_buffer buff) 
+                   findlib_name_map
+                   (Format.formatter_of_buffer buff)
                    grp;
                  OASISPlugin.add_file
                    (template_of_string_list
                       ~ctxt:ctxt.OASISPlugin.ctxt
                       ~template:true
-                      meta_fn 
-                      comment_meta 
-                      (ExtString.String.nsplit
-                         (Buffer.contents buff)
-                         "\n"))
+                      meta_fn
+                      comment_meta
+                      (BatString.nsplit (Buffer.contents buff) "\n"))
                    ctxt
              end
            else
@@ -281,10 +279,10 @@ let main ctxt pkg =
       (group_libs pkg)
 
 
-let init () =  
-  register_help 
+let init () =
+  register_help
     plugin
-    {(help_default METAData.readme_template_mkd) with 
+    {(help_default METAData.readme_template_mkd) with
          help_order = 40};
   Extra.register_act self_id main;
-  register_generator_section `Library all_id pivot_data generator 
+  register_generator_section `Library all_id pivot_data generator

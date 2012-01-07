@@ -20,10 +20,10 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 29a6a0843550fd7e248dc395a63515c0)
+# DO NOT EDIT (digest: 4fd5327baf1888607c91bf7c556d6f51)
 version = "0.2.1~alpha1"
 description = "_oasis file functions"
-requires = "fileutils unix pcre extlib findlib odn ocamlgraph"
+requires = "fileutils unix pcre batteries findlib odn ocamlgraph"
 archive(byte) = "oasis.cma"
 archive(native) = "oasis.cmxa"
 exists_if = "oasis.cma"
