@@ -76,9 +76,9 @@ wc:
 
 headache:
 	find ./ -name _darcs -prune -false -o -name _build -prune \
-	  -false -o -name ext -prune -false -o -name bindist -prune -false \
-		-o -name boot -prune -false \
-	  -o -type f \
+	  -false -o -name ext -prune -false -o -name bindist -prune \
+	  -false -o -name boot -prune -false \
+	  -o -name '*[^~]' -type f \
 	  | xargs headache -h _header -c _headache.config
 
 .PHONY: wc headache
