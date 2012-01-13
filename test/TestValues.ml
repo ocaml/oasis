@@ -65,6 +65,9 @@ let tests_command_line_options =
    "a\\ b \"a\\b\\\"\"", ["a b"; "a\\b\""];
    "a\\ b \"a\\b\\$\"", ["a b"; "a\\b$"];
    "a\\$ b \"a\\b\\\\\"", ["a$"; "b"; "a\\b\\"];
+   (* Real world problem *)
+   "-DEXTERNAL_EXP10 -L/sw/lib \"-framework vecLib\"",
+   ["-DEXTERNAL_EXP10"; "-L/sw/lib"; "-framework vecLib"];
   ]
 
 
