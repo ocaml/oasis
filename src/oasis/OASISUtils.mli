@@ -102,9 +102,16 @@ sig
   (** [split s]: the string [s] is interpreted as command line
       arguments and splitted into its components (un-escaped).  For
       example [split "a \"b c\" d" = ["a"; "b c"; "d"]].  Note that
-      [split "" = []]. *)
-
-  val unescape : string -> string
+      [split "" = []].  It is possible that substitutions such as "$a"
+      (resp. "$(a b)") may be transformed into "${a}"
+      (resp. "${a b}"). *)
 
   val escape : string -> string
+  (** [escape s] quote [s] if needed to protect spaces and '"'.  The
+      original string [s] is returned if no quoting is necessary. *)
+
+  val unescape : string -> string
+  (** [unescape s] returns a string [s'] removing all backslashes
+      preceding a char. *)
+  ;;
 end

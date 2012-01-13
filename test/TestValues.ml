@@ -52,7 +52,9 @@ let tests_command_line_options =
    "a", ["a"];
    "a b", ["a"; "b"];
    "a b c", ["a"; "b"; "c"];
+   " a  b   c  ", ["a"; "b"; "c"];
    "a'b'", ["ab"];        "a 'b'",   ["a"; "b"];
+   "a'b'c", ["abc"];      "a 'b' c", ["a"; "b"; "c"];
    "a\"b\"", ["ab"];      "a \"b\"", ["a"; "b"];
    "a'b c'", ["ab c"];    "a 'b c'",   ["a"; "b c"];
    "a\"b c\"", ["ab c"];  "a \"b c\"", ["a"; "b c"];
@@ -61,10 +63,17 @@ let tests_command_line_options =
    "a\"b\\\"\"c", ["ab\"c"];
    "a \"b \\\"\" c", ["a"; "b \""; "c"];
    "a\\ b c", ["a b"; "c"];
+   "\\", []; (* corner case, '\\' consisered as continuation char *)
    "a\\b \"a\\b\"", ["ab"; "a\\b"]; (* \ in quoted strings *)
    "a\\ b \"a\\b\\\"\"", ["a b"; "a\\b\""];
    "a\\ b \"a\\b\\$\"", ["a b"; "a\\b$"];
    "a\\$ b \"a\\b\\\\\"", ["a$"; "b"; "a\\b\\"];
+   (* Substitutions *)
+   "$a11", ["${a11}"];
+   "${a1}1", ["${a1}1"];
+   "$(a}b)", ["$(a}b)"];
+   "${a)b}", ["${a)b}"];
+   "$(a '}' b)", ["$(a '}' b)"];
    (* Real world problem *)
    "-DEXTERNAL_EXP10 -L/sw/lib \"-framework vecLib\"",
    ["-DEXTERNAL_EXP10"; "-L/sw/lib"; "-framework vecLib"];

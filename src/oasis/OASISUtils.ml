@@ -189,96 +189,84 @@ module POSIXShell =
 struct
 
   let unescape s =
-    let buf, _ = 
-      BatString.fold_left
-        (fun (buf, escaped_char) ->
-           function
-             | '\\' when not escaped_char -> 
-                 buf, true (* Next char should be added anyway *)
-             | c ->
-                 Buffer.add_char buf c;
-                 buf, false)
-        (Buffer.create (String.length s), false)
-        s
-    in
-      Buffer.contents buf
+    let buf = Buffer.create (String.length s) in
+    ignore(BatString.fold_left
+             (fun escaped_char ->
+              function
+              | '\\' when not escaped_char ->
+                true (* Next char should be added anyway *)
+              | c ->
+                Buffer.add_char buf c;
+                false)
+             false s);
+    Buffer.contents buf
 
   let is_space c = c = ' ' || c = '\t' || c = '\n' || c = '\r'
 
-  (* [escape s] escapes [s] if it contains spaces in such a way
-     that [unescape] recovers the original string. *)
+  (* [escape s] escapes [s] in such a way that [unescape] recovers the
+     original string. *)
   let escape s =
-    let buf, quotes =
+    let buf = Buffer.create (String.length s) in
+    let need_to_quote =
       BatString.fold_left
-        (fun (buf, quotes) -> 
-           function
-             | '"' -> 
-                 Buffer.add_string buf "\\\"";
-                 buf, quotes
-             | c -> 
-                 Buffer.add_char buf c;
-                 buf, (if is_space c then "\"" else quotes))
-        (Buffer.create (String.length s), "")
+        (fun need_to_quote ->
+         function
+         | '"' ->
+           Buffer.add_string buf "\\\"";
+           true
+         | c ->
+           Buffer.add_char buf c;
+           need_to_quote || is_space c)
+        false
         s
     in
-      quotes ^ (Buffer.contents buf) ^ quotes
+    if need_to_quote then "\"" ^ (Buffer.contents buf) ^ "\""
+    else s
 
   (* FIXME: Not handled (does it make sense in this context?)
      • $'string'
    *)
   let rec split str =
-
     (* Buffer holding the current arg being parsed. *)
-    let buf = 
-      Buffer.create (String.length str)
-    in
+    let buf = Buffer.create (String.length str) in
 
     (* Shorthands to access the buffer *)
-    let buf_add c = 
-      Buffer.add_char buf c 
+    let buf_add c =
+      Buffer.add_char buf c
     in
-    let buf_flush () = 
-      let res = 
-        Buffer.contents buf
-      in
-        Buffer.clear buf;
-        res
+    let buf_flush () =
+      let res = Buffer.contents buf in
+      Buffer.clear buf;
+      res
     in
 
     (* Protect Buffer.add_substitute substitution inside a string, the $... will
-     * be transformed into $X0, $X1...
+     * be transformed into $X0, $X1,...
      *)
-    let substr_data = 
+    let substr_data =
       Hashtbl.create 13
     in
 
-    let str = 
-      let idx = 
-        ref 0
-      in
-        Buffer.add_substitute 
+    let str =
+      let idx = ref 0 in
+      try
+        Buffer.add_substitute
           buf
           (fun var ->
              let nvar = Printf.sprintf "X%d" !idx in
                incr idx;
                Hashtbl.add substr_data nvar var;
-               "$"^nvar)
+               "${" ^ nvar ^ "}")
           str;
-        buf_flush () 
+        buf_flush ()
+      with Not_found ->
+        failwithf
+          (f_ "Unterminated substitution $(...) or ${...} in the string %S")
+          str
     in
 
     (* Function to unprotect a string protected above. *)
     let unprotect_subst str =
-      let is_id =
-        BatString.fold_left
-          (fun is_var ->
-             function
-               | 'a'..'z' | 'A'..'Z' | '0'..'9' ->
-                   is_var
-               | _ ->
-                   false)
-          true
-      in
       let add_end_dollar, str =
         let len = String.length str in
           if len > 0 && str.[len - 1] = '$' then
@@ -286,25 +274,24 @@ struct
           else
             false, str
       in
-        Buffer.add_substitute 
+        Buffer.add_substitute
           buf
           (fun nvar ->
-             try         
-               let var = Hashtbl.find substr_data nvar in
-                 if is_id var then
-                   var
-                 else
-                   "${"^var^"}"
-             with Not_found ->
-               "$"^nvar)
+           let var = try Hashtbl.find substr_data nvar
+                     with Not_found -> nvar in
+           (* The protection, using [Buffer.add_substitute], ensures that
+              if [var] contains '}' then it was delimited with '(', ')'. *)
+           if String.contains var '}' then "$("^var^")"
+           else "${"^var^"}"
+          )
           str;
         if add_end_dollar then
           buf_add '$';
         buf_flush ()
     in
 
-    let rec skip_blank strm = 
-      match Stream.peek strm with 
+    let rec skip_blank strm =
+      match Stream.peek strm with
         | Some c ->
             if is_space c then
               begin
@@ -315,6 +302,22 @@ struct
             ()
     in
 
+    let rec get_simply_quoted_string strm =
+      try
+        match Stream.next strm with
+          | '\'' ->
+              (* End of simply quoted string *)
+              ()
+          | c ->
+              buf_add c;
+              get_simply_quoted_string strm
+
+      with Stream.Failure ->
+        failwithf
+          (f_ "Unterminated simply quoted string in %S")
+          (unprotect_subst (buf_flush ()))
+    in
+
     let is_doubly_quoted_escapable =
       function
         | Some c ->
@@ -323,7 +326,7 @@ struct
             false
     in
 
-    let get_escape_char strm = 
+    let get_escape_char strm =
       match Stream.peek strm with
         | Some c ->
             buf_add c;
@@ -333,24 +336,8 @@ struct
             ()
     in
 
-    let rec get_simply_quoted_string strm =
-      try 
-        match Stream.next strm with 
-          | '\'' ->
-              (* End of simply quoted string *)
-              ()
-          | c ->
-              buf_add c;
-              get_simply_quoted_string strm
-
-      with Stream.Failure ->
-        failwithf 
-          (f_ "Unterminated simply quoted string in %S") 
-          (buf_flush ())
-    in
-
-    let rec get_doubly_quoted_string strm = 
-      try 
+    let rec get_doubly_quoted_string strm =
+      try
         match Stream.next strm with
           | '"' ->
               (* End of doubly quoted string *)
@@ -363,27 +350,27 @@ struct
               get_doubly_quoted_string strm
 
       with Stream.Failure ->
-        failwithf 
-          (f_ "Unterminated doubly quoted string in %S") 
-          (buf_flush ())
+        failwithf
+          (f_ "Unterminated doubly quoted string in %S")
+          (unprotect_subst (buf_flush ()))
     in
 
     (* The char stream used for parsing *)
-    let strm = 
+    let strm =
       Stream.of_string str
     in
 
-    let rargs = 
-      ref [] 
+    let rargs =
+      ref []
     in
 
-    let () = 
+    let () =
       (* Skip blanks at the beginning *)
       skip_blank strm;
-      while Stream.peek strm <> None do 
-        match Stream.next strm with 
+      while Stream.peek strm <> None do
+        match Stream.next strm with
           | '\\' ->
-              (* Escape a char, since it is possible that get_escape_char 
+              (* Escape a char, since it is possible that get_escape_char
                * decide to ignore the '\\', we let this function choose to
                * add or not '\\'.
                *)
@@ -407,13 +394,9 @@ struct
                   buf_add c
                 end
       done;
-      rargs := buf_flush () :: !rargs
+      let last = buf_flush () in
+      if last <> "" then rargs := last :: !rargs
     in
+    List.rev_map unprotect_subst !rargs
 
-    let lst = 
-      List.rev_map unprotect_subst !rargs
-    in
-      match lst with 
-        | [ "" ] -> []
-        | lst -> lst
 end
