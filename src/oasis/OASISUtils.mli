@@ -95,7 +95,7 @@ val split_comma : string -> string list
 val split_optional_parentheses : string -> string * (string option)
 
 
-module POSIX :
+module POSIXShell :
 sig
 
   val split : string -> string list

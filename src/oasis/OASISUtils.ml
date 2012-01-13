@@ -185,7 +185,7 @@ let split_optional_parentheses =
       with Not_found ->
         BatString.strip str, None
 
-module POSIX =
+module POSIXShell =
 struct
 
   let unescape s =
