@@ -19,6 +19,8 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+open OASISGettext
+
 module MapString = Map.Make(String)
 
 let map_string_of_assoc assoc =
@@ -185,175 +187,233 @@ let split_optional_parentheses =
 
 module POSIX =
 struct
-  open OASISGettext
-
-  (* If a backslash appears at the end of the substring [s.[i0
-     .. i1-1]], it will be removed (it can be thought as a backslash
-     to continue the line but lines are read one by one). *)
-  let remove_backslashes s i0 i1 ~bs =
-    assert(i0 < i1);
-    if bs <= 0 then String.sub s i0 (i1 - i0)
-    else
-      let s' = String.create (i1 - i0 - bs) in
-      let i = ref i0 in
-      let j = ref 0 in
-      while !i < i1 do
-        if s.[!i] <> '\\' then (s'.[!j] <- s.[!i]; incr j);
-        incr i
-      done;
-      s'
-
-  (* In quoted strings '\\' only escapes '$' '`' '"' '\\' and <newline>. *)
-  let is_doubly_quoted_escapable c =
-    c = '$' || c = '`' || c = '"' || c = '\\'
-
-  let remove_backslashes_doubly_quoted s i0 i1 ~bs =
-    assert(i0 < i1);
-    if bs <= 0 then String.sub s i0 (i1 - i0)
-    else
-      let len' = i1 - i0 - bs in
-      let s' = String.create len' in
-      let i1m1 = i1 - 1 in
-      let i = ref i0 in
-      let j = ref 0 in
-      while !i < i1m1 do
-        if s.[!i] = '\\' && is_doubly_quoted_escapable s.[!i + 1] then incr i;
-        s'.[!j] <- s.[!i];
-        incr j;
-        incr i
-      done;
-      s'.[len' - 1] <- s.[i1m1]; (* last char always copied *)
-      s'
 
   let unescape s =
-    let len = String.length s in
-    let bs = ref 0 in
-    let i = ref 0 in
-    while !i < len do
-      if s.[!i] = '\\' then (
-        incr bs; (* will need to remove '\\' *)
-        incr i; (* skip next char *)
-      );
-      incr i
-    done;
-    remove_backslashes s 0 len ~bs:!bs
+    let buf, _ = 
+      BatString.fold_left
+        (fun (buf, escaped_char) ->
+           function
+             | '\\' when not escaped_char -> 
+                 buf, true (* Next char should be added anyway *)
+             | c ->
+                 Buffer.add_char buf c;
+                 buf, false)
+        (Buffer.create (String.length s), false)
+        s
+    in
+      Buffer.contents buf
 
   let is_space c = c = ' ' || c = '\t' || c = '\n' || c = '\r'
 
-  (* [escape_if_spaces s] escapes [s] if it contains spaces in such a way
+  (* [escape s] escapes [s] if it contains spaces in such a way
      that [unescape] recovers the original string. *)
   let escape s =
-    let has_space = ref false
-    and nquotes = ref 0 in
-    for i = 0 to String.length s - 1 do
-      if is_space s.[i] then has_space := true
-      else if s.[i] = '"' then incr nquotes
-    done;
-    if !has_space then
-      if !nquotes = 0 then "\"" ^ s ^ "\""
-      else
-        let len' = String.length s + !nquotes + 2 in
-        let s' = String.create len' in
-        s'.[0] <- '"';
-        let j = ref 1 in
-        for i = 0 to String.length s - 1 do
-          if s.[i] = '"' then (s'.[!j] <- '\\'; incr j);
-          s'.[!j] <- s.[i];
-          incr j
-        done;
-        s'.[!j] <- '"';
-        s'
-    else s
-
-  (* Return the first index [j >= i] such that [s.[j]] is not a space
-     or [i = i1] if no such [j] exists. *)
-  let rec skip_spaces s i i1 =
-    if i >= i1 then i1
-    else if is_space s.[i] then skip_spaces s (i + 1) i1
-    else i
-
-  let add_remove_backslashes s i0 i1 ~bs hunks =
-    if i0 >= i1 then hunks
-    else remove_backslashes s i0 i1 ~bs :: hunks
-
-  (* Parts of strings may be gathered differently (e.g. a string can
-     be _partly_ quoted).  This will gather the various pieces. *)
-  let concat_hunks h = String.concat "" (List.rev h)
+    let buf, quotes =
+      BatString.fold_left
+        (fun (buf, quotes) -> 
+           function
+             | '"' -> 
+                 Buffer.add_string buf "\\\"";
+                 buf, quotes
+             | c -> 
+                 Buffer.add_char buf c;
+                 buf, (if is_space c then "\"" else quotes))
+        (Buffer.create (String.length s), "")
+        s
+    in
+      quotes ^ (Buffer.contents buf) ^ quotes
 
   (* FIXME: Not handled (does it make sense in this context?)
      • $'string'
-     • special parameters: @, *,...    *)
-  let rec split s =
-    let len = String.length s in
-    let i = skip_spaces s 0 len in
-    get_split_string [] s i i len ~bs:0
-  and get_split_string hunks s i0 i i1 ~bs =
-    (* [i0 <= i < i1].  [~bs] is the number of backslahes to remove in
-       the current substring.  [hunks] is the list of pieces of the
-       current argument that were previously gathered. *)
-    if i >= i1 then
-      if i0 >= i1 then
-        if hunks = [] then [] else [concat_hunks hunks]
-      else [concat_hunks(add_remove_backslashes s i0 i1 ~bs hunks)]
-    else if s.[i] = '\\' then
-      (* Treat the next char as a std one (even if '$',...). *)
-      get_split_string hunks s i0 (i + 2) i1 ~bs:(bs + 1)
-    else if is_space s.[i] then
-      let hunks = add_remove_backslashes s i0 i ~bs hunks in
-      let i = skip_spaces s (i + 1) i1 in
-      concat_hunks hunks :: get_split_string [] s i i i1 ~bs:0
-    else if s.[i] = '\'' then
-      let hunks = add_remove_backslashes s i0 i ~bs hunks in
-      simply_quoted hunks s (i + 1) (i + 1) i1
-    else if s.[i] = '"' then
-      let hunks = add_remove_backslashes s i0 i ~bs hunks in
-      doubly_quoted hunks s (i + 1) (i + 1) i1 ~bs:0
-    else if s.[i] = '$' then
-      if i + 1 >= i1 then (* final '$' *)
-        [concat_hunks(add_remove_backslashes s i0 i1 ~bs hunks)]
-      else
-        let hunks = add_remove_backslashes s i0 i ~bs hunks in
-        let v, inext = get_dollar_var s (i + 1) i1 in
-        get_split_string (v :: hunks) s inext inext i1 ~bs:0
-    else get_split_string hunks s i0 (i + 1) i1 ~bs
+   *)
+  let rec split str =
 
-  and simply_quoted hunks s i0 i i1 =
-    if i >= i1 then failwithf (f_ "Unterminated simply quoted string in %S") s
-    else if s.[i] = '\'' then
-      let v = String.sub s i0 (i - i0) (* no escape *) in
-      get_split_string (v :: hunks) s (i + 1) (i + 1) i1 ~bs:0
-    else simply_quoted hunks s i0 (i + 1) i1
+    (* Buffer holding the current arg being parsed. *)
+    let buf = 
+      Buffer.create (String.length str)
+    in
 
-  and doubly_quoted hunks s i0 i i1 ~bs =
-    if i >= i1 then failwithf(f_ "Unterminated doubly quoted string in %S") s
-    else if s.[i] = '\\' then
-      (* In quoted strings '\\' only escapes '$' '`' '"' '\\' and <newline>.
-         FIXME: \<newline> are continuations. Must be dealt with. *)
-      if i+1 < i1 && is_doubly_quoted_escapable s.[i+1]
-      then doubly_quoted hunks s i0 (i + 2) i1 ~bs:(bs + 1)
-      else doubly_quoted hunks s i0 (i + 1) i1 ~bs
-    else if s.[i] = '"' then
-      let h = remove_backslashes_doubly_quoted s i0 i ~bs in
-      get_split_string (h :: hunks) s (i + 1) (i + 1) i1 ~bs:0
-    else if s.[i] = '$' then
-      let hunks = add_remove_backslashes s i0 i ~bs hunks in
-      let v, inext = get_dollar_var s (i + 1) i1 in
-      doubly_quoted (v :: hunks) s inext inext i1 ~bs:0
-    else doubly_quoted hunks s i0 (i + 1) i1 ~bs
+    (* Shorthands to access the buffer *)
+    let buf_add c = 
+      Buffer.add_char buf c 
+    in
+    let buf_flush () = 
+      let res = 
+        Buffer.contents buf
+      in
+        Buffer.clear buf;
+        res
+    in
 
-  and get_dollar_var s i0 i1 =
-    (* Whether they occur or not in a doubly quoted string, quotes
-       between $(...) are treated like if they are in an unquoted
-       environment (thus with no need of escaping). *)
-    if i0 >= i1 then failwithf (f_ "$-expansion not terminated in %S") s
-    else if s.[i0] = '(' then parse_dollar_var s (i0 + 1) (i0 + 1) i1 ')'
-    else if s.[i0] = '{' then parse_dollar_var s (i0 + 1) (i0 + 1) i1 '}'
-    else failwithf (f_ "$-expansion is neither $(...) nor ${...} in %S") s
-  and parse_dollar_var s i0 i i1 closing =
-    (* FIXME: very naive; does not handle [a"b$(echo c "d)")"] *)
-    if i >= i1 then
-      failwithf (f_ "Missing '%c' closing $-expansion in %S") closing s
-    else if s.[i] = closing then
-      ("$(" ^ String.sub s i0 (i - i0)  ^ ")", i + 1)
-    else parse_dollar_var s i0 (i + 1) i1 closing
+    (* Protect Buffer.add_substitute substitution inside a string, the $... will
+     * be transformed into $X0, $X1...
+     *)
+    let substr_data = 
+      Hashtbl.create 13
+    in
+
+    let str = 
+      let idx = 
+        ref 0
+      in
+        Buffer.add_substitute 
+          buf
+          (fun var ->
+             let nvar = Printf.sprintf "X%d" !idx in
+               incr idx;
+               Hashtbl.add substr_data nvar var;
+               "$"^nvar)
+          str;
+        buf_flush () 
+    in
+
+    (* Function to unprotect a string protected above. *)
+    let unprotect_subst str =
+      let is_id =
+        BatString.fold_left
+          (fun is_var ->
+             function
+               | 'a'..'z' | 'A'..'Z' | '0'..'9' ->
+                   is_var
+               | _ ->
+                   false)
+          true
+      in
+      let add_end_dollar, str =
+        let len = String.length str in
+          if len > 0 && str.[len - 1] = '$' then
+            true, String.sub str 0 (len - 1)
+          else
+            false, str
+      in
+        Buffer.add_substitute 
+          buf
+          (fun nvar ->
+             try         
+               let var = Hashtbl.find substr_data nvar in
+                 if is_id var then
+                   var
+                 else
+                   "${"^var^"}"
+             with Not_found ->
+               "$"^nvar)
+          str;
+        if add_end_dollar then
+          buf_add '$';
+        buf_flush ()
+    in
+
+    let rec skip_blank strm = 
+      match Stream.peek strm with 
+        | Some c ->
+            if is_space c then
+              begin
+                Stream.junk strm;
+                skip_blank strm
+              end
+        | None ->
+            ()
+    in
+
+    let is_doubly_quoted_escapable =
+      function
+        | Some c ->
+            c = '$' || c = '`' || c = '"' || c = '\\'
+        | None ->
+            false
+    in
+
+    let get_escape_char strm = 
+      match Stream.peek strm with
+        | Some c ->
+            buf_add c;
+            Stream.junk strm
+        | None ->
+            (* Final backslash, ignore it *)
+            ()
+    in
+
+    let rec get_simply_quoted_string strm =
+      try 
+        match Stream.next strm with 
+          | '\'' ->
+              (* End of simply quoted string *)
+              ()
+          | c ->
+              buf_add c;
+              get_simply_quoted_string strm
+
+      with Stream.Failure ->
+        failwithf 
+          (f_ "Unterminated simply quoted string in %S") 
+          (buf_flush ())
+    in
+
+    let rec get_doubly_quoted_string strm = 
+      try 
+        match Stream.next strm with
+          | '"' ->
+              (* End of doubly quoted string *)
+              ()
+          | '\\' when is_doubly_quoted_escapable (Stream.peek strm)  ->
+              get_escape_char strm;
+              get_doubly_quoted_string strm
+          | c ->
+              buf_add c;
+              get_doubly_quoted_string strm
+
+      with Stream.Failure ->
+        failwithf 
+          (f_ "Unterminated doubly quoted string in %S") 
+          (buf_flush ())
+    in
+
+    (* The char stream used for parsing *)
+    let strm = 
+      Stream.of_string str
+    in
+
+    let rargs = 
+      ref [] 
+    in
+
+    let () = 
+      (* Skip blanks at the beginning *)
+      skip_blank strm;
+      while Stream.peek strm <> None do 
+        match Stream.next strm with 
+          | '\\' ->
+              (* Escape a char, since it is possible that get_escape_char 
+               * decide to ignore the '\\', we let this function choose to
+               * add or not '\\'.
+               *)
+              get_escape_char strm
+
+          | '\'' ->
+              get_simply_quoted_string strm
+
+          | '"' ->
+              get_doubly_quoted_string strm
+
+          | c ->
+              if is_space c then
+                begin
+                  (* We reach the end of an arg *)
+                  rargs := buf_flush () :: !rargs;
+                  skip_blank strm
+                end
+              else
+                begin
+                  buf_add c
+                end
+      done;
+      rargs := buf_flush () :: !rargs
+    in
+
+    let lst = 
+      List.rev_map unprotect_subst !rargs
+    in
+      match lst with 
+        | [ "" ] -> []
+        | lst -> lst
 end
