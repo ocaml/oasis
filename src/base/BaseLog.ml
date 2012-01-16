@@ -50,7 +50,7 @@ let load () =
           begin
             let acc =
               try
-                Scanf.bscanf scbuf "%S %S@\n"
+                Scanf.bscanf scbuf "%S %S\n"
                   (fun e d ->
                      let t =
                        e, d
