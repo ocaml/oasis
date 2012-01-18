@@ -206,7 +206,8 @@ struct
   (* [escape s] escapes [s] in such a way that [unescape] recovers the
      original string. *)
   let escape s =
-    let buf = Buffer.create (String.length s) in
+    let buf = Buffer.create (String.length s + 8) in
+    Buffer.add_char buf '"';
     let need_to_quote =
       BatString.fold_left
         (fun need_to_quote ->
@@ -216,11 +217,11 @@ struct
            true
          | c ->
            Buffer.add_char buf c;
-           need_to_quote || is_space c)
-        false
+           need_to_quote || is_space c || c = '\'')
+        (s = "") (* empty strings must be quoted *)
         s
     in
-    if need_to_quote then "\"" ^ (Buffer.contents buf) ^ "\""
+    if need_to_quote then (Buffer.add_char buf '"'; Buffer.contents buf)
     else s
 
   (* FIXME: Not handled (does it make sense in this context?)
