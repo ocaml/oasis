@@ -107,7 +107,9 @@ sig
       (resp. "${a b}"). *)
 
   val escape : string -> string
-  (** [escape s] quote [s] if needed to protect spaces and '"'.  The
+  (** [escape s] quote [s] if needed to protect spaces, '"' and '\''
+      so it reads as a single argument in a POSIX shell command.  If
+      quoted, the returned string will start and end with '"'.  The
       original string [s] is returned if no quoting is necessary. *)
 
   val unescape : string -> string

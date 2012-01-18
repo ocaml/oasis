@@ -79,7 +79,21 @@ let tests_command_line_options =
    ["-DEXTERNAL_EXP10"; "-L/sw/lib"; "-framework vecLib"];
   ]
 
+let tests_posix_quoting =
+  List.map
+    (fun s ->
+     let title = sprintf "OASISUtils.POSIXShell: %S" s in
+     title >:: (fun () ->
+                let q = OASISUtils.POSIXShell.escape s in
+                let u =
+                  if q.[0] = '"' then
+                    let q' = String.sub q 1 (String.length q - 2) in
+                    OASISUtils.POSIXShell.unescape q'
+                  else q in
+                assert_equal s u))
+    [""; "a b"; "a'b"; "echo \'abcd"]
+
 
 let tests =
   "Values" >:::
-  (tests_url @ tests_command_line_options)
+  (tests_url @ tests_command_line_options @ tests_posix_quoting)
