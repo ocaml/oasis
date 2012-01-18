@@ -215,6 +215,9 @@ struct
          | '"' ->
            Buffer.add_string buf "\\\"";
            true
+         | '\\' ->
+           Buffer.add_string buf "\\\\";
+           true
          | c ->
            Buffer.add_char buf c;
            need_to_quote || is_space c || c = '\'')

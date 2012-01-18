@@ -91,7 +91,7 @@ let tests_posix_quoting =
                     OASISUtils.POSIXShell.unescape q'
                   else q in
                 assert_equal s u))
-    [""; "a b"; "a'b"; "echo \'abcd"]
+    [""; "a b"; "a'b"; "echo \'abcd"; "a\\b"]
 
 
 let tests =

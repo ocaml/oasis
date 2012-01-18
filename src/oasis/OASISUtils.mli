@@ -108,9 +108,11 @@ sig
 
   val escape : string -> string
   (** [escape s] quote [s] if needed to protect spaces, '"' and '\''
-      so it reads as a single argument in a POSIX shell command.  If
-      quoted, the returned string will start and end with '"'.  The
-      original string [s] is returned if no quoting is necessary. *)
+      so it reads as a single argument in a POSIX shell command, the
+      content of which is identical to [s] (interpreted with OCaml
+      conventions).  If quoted, the returned string will start and end
+      with '"'.  The original string [s] is returned if no quoting is
+      necessary. *)
 
   val unescape : string -> string
   (** [unescape s] returns a string [s'] removing all backslashes
