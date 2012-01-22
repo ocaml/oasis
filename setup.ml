@@ -4967,7 +4967,7 @@ module InternalInstallPlugin = struct
                   cs.cs_name
                   (fun () fn ->
                      install_file
-                       ~tgt_fn:cs.cs_name
+                       ~tgt_fn:(cs.cs_name ^ ext_program ())
                        fn
                        bindir)
                   ();
