@@ -115,6 +115,7 @@ let tests =
               | [] -> 
                   pkg_expr.pkg_defs 
           in
+          let Some (_, _) | None = 
             List.fold_left
               (fun former_meta (pkg_name, var, preds, res) ->
                  let pkg_root, pkg_paths =
@@ -166,7 +167,9 @@ let tests =
                    end;
                    Some (pkg_root, pkg_expr))
               None
-              pkg_tests)
+              pkg_tests
+          in
+            ())
        (fun fn ->
           Sys.remove fn))
   in
