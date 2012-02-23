@@ -1,14 +1,14 @@
 OASISFormat:  0.1
 OCamlVersion: >= 3.11.0
 Name:         oasis
-Version:      0.2.1~alpha1
+Version:      0.3.0~rc1
 LicenseFile:  COPYING.txt
 License:      LGPL-2.1 with OCaml linking exception
-BuildType:    ocamlbuild (0.2)
+BuildType:    ocamlbuild (0.3)
 Authors:      Sylvain Le Gall
 Copyrights:   (C) 2008-2010 OCamlCore SARL
 Homepage:     http://oasis.forge.ocamlcore.org/
-Plugins:      DevFiles (0.2), StdFiles (0.2), META (0.2)
+Plugins:      DevFiles (0.3), StdFiles (0.3), META (0.3)
 FilesAB:      src/oasis/OASISConf.ml.ab
 BuildTools:   ocamlbuild, make
 
@@ -20,18 +20,18 @@ Description:
   .
   It uses external tools like OCamlbuild and it can be considered as the glue
   between various subsystems that do the job. It should support the following
-  tools: 
+  tools:
   .
   - OCamlbuild
   - OMake (todo)
   - OCamlMakefile (todo),
   - ocaml-autoconf (todo)
   .
-  It also features a do-it-yourself command line invocation and an internal 
+  It also features a do-it-yourself command line invocation and an internal
   configure/install scheme. Libraries are managed through findlib. It has been
   tested on GNU Linux and Windows.
   .
-  It also allows to have standard entry points and description. It helps to 
+  It also allows to have standard entry points and description. It helps to
   integrates your libraries and software with third parties tools like GODI.
 
 Flag libraries
@@ -41,7 +41,7 @@ Flag gettext
   Description: Use ocaml-gettext for i18n
   Default: false
 
-if flag(gettext) 
+if flag(gettext)
   PostBuildCommand: $make -C po all
   PostCleanCommand: $make -C po clean
   PostInstallCommand:   $make -C po install PODIR=$prefix/share/locale
@@ -191,15 +191,15 @@ Executable test
   BuildDepends: oUnit (>= 1.1.0), oasis, oasis.base, oasis.builtin-plugins, expect.pcre (>= 0.0.2)
 
 Test main
-  Type: custom (0.2)
+  Type: custom (0.3)
   Command: $test -oasis-exec $oasis -has-ocamlopt $is_native
-  WorkingDirectory: test 
+  WorkingDirectory: test
   TestTools: oasis, test
 
 Document manual
-  Type: custom (0.2)
+  Type: custom (0.3)
   Title: OASIS User Manual
-  if flag(gettext) 
+  if flag(gettext)
     XCustom: env LANG=C $oasis manual > doc/MANUAL.mkd
   else
     XCustom: $oasis manual -o doc/MANUAL.mkd
@@ -207,8 +207,8 @@ Document manual
   DataFiles: doc/MANUAL.mkd
 
 Document "api-oasis"
-  Title:                API reference for OASIS 
-  Type:                 ocamlbuild (0.2)
+  Title:                API reference for OASIS
+  Type:                 ocamlbuild (0.3)
   InstallDir:           $htmldir/oasis
   BuildTools+:          ocamldoc
   XOCamlbuildPath:      src/

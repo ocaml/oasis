@@ -113,9 +113,9 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 3c9143f422672e7bd51ae346993043f6) *)
+(* DO NOT EDIT (digest: 3bc79e0476087a7668dcef6b6fb5ecb0) *)
 module OASISGettext = struct
-# 21 "/home/trch/software/OCaml/oasis/trunk/src/oasis/OASISGettext.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
   
   let ns_ str =
     str
@@ -138,7 +138,7 @@ module OASISGettext = struct
 end
 
 module OASISExpr = struct
-# 21 "/home/trch/software/OCaml/oasis/trunk/src/oasis/OASISExpr.ml"
+# 21 "/home/gildor/programmation/oasis/src/oasis/OASISExpr.ml"
   
   
   
@@ -229,7 +229,7 @@ end
 
 
 module BaseEnvLight = struct
-# 21 "/home/trch/software/OCaml/oasis/trunk/src/base/BaseEnvLight.ml"
+# 21 "/home/gildor/programmation/oasis/src/base/BaseEnvLight.ml"
   
   module MapString = Map.Make(String)
   
@@ -326,7 +326,7 @@ end
 
 
 module MyOCamlbuildFindlib = struct
-# 21 "/home/trch/software/OCaml/oasis/trunk/src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml"
+# 21 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml"
   
   (** OCamlbuild extension, copied from 
     * http://brion.inria.fr/gallium/index.php/Using_ocamlfind_with_ocamlbuild
@@ -435,7 +435,7 @@ module MyOCamlbuildFindlib = struct
 end
 
 module MyOCamlbuildBase = struct
-# 21 "/home/trch/software/OCaml/oasis/trunk/src/plugins/ocamlbuild/MyOCamlbuildBase.ml"
+# 21 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/MyOCamlbuildBase.ml"
   
   (** Base functions for writing myocamlbuild.ml
       @author Sylvain Le Gall
@@ -450,7 +450,7 @@ module MyOCamlbuildBase = struct
   type name = string 
   type tag = string 
   
-# 55 "/home/trch/software/OCaml/oasis/trunk/src/plugins/ocamlbuild/MyOCamlbuildBase.ml"
+# 55 "/home/gildor/programmation/oasis/src/plugins/ocamlbuild/MyOCamlbuildBase.ml"
   
   type t =
       {
@@ -528,7 +528,7 @@ module MyOCamlbuildBase = struct
                    (* When ocaml link something that use the C library, then one
                       need that file to be up to date.
                     *)
-                   dep  ["link"; "ocaml"; "use_lib"^lib] 
+                   dep  ["compile"; "ocaml"; "use_lib"^lib] 
                      [dir/"lib"^lib^"."^(!Options.ext_lib)];
   
                    (* TODO: be more specific about what depends on headers *)
