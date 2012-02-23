@@ -58,13 +58,23 @@ let new_field schema t nm ?default parse hlp pivot_data sync =
       hlp 
       (sync_proxy schema plugin nm pivot_data sync)
 
-let new_field_conditional schema t nm ?default parse hlp pivot_data sync =
+let new_field_conditional
+      schema
+      t
+      nm
+      ?default_cond
+      ?default
+      parse
+      hlp
+      pivot_data
+      sync =
   let plugin =
     OASISPlugin.to_plugin t
   in
     OASISSchema_intern.new_field_conditional 
       schema
       (make_field_name plugin nm) 
+      ?default_cond
       ?default 
       ~plugin
       parse 

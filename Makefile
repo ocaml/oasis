@@ -25,10 +25,12 @@ CONFIGUREFLAGS += --override ocamlbuildflags -classic-display
 CONFIGUREFLAGS += $(if $(shell ocamlfind query gettext),--enable-gettext,--disable-gettext)
 
 default: test
-#TESTFLAGS      += -long 
+	-OCamlDarcsPrecommit
+
+#TESTFLAGS      += -long
 #TESTFLAGS      += -verbose
 #TESTFLAGS      += -debug
-#TESTFLAGS      += -only-test OASIS:5:TestFull:0:../examples/flags:1
+#TESTFLAGS      += -only-test OASIS:5:TestFull:20:data/bug982:0:standard
 
 # OASIS_START
 # DO NOT EDIT (digest: bc1e05bfc8b39b664f29dae8dbd3ebbb)
@@ -44,7 +46,7 @@ doc: setup.data build
 test: setup.data build
 	$(SETUP) -test $(TESTFLAGS)
 
-all: 
+all:
 	$(SETUP) -all $(ALLFLAGS)
 
 install: setup.data
@@ -56,10 +58,10 @@ uninstall: setup.data
 reinstall: setup.data
 	$(SETUP) -reinstall $(REINSTALLFLAGS)
 
-clean: 
+clean:
 	$(SETUP) -clean $(CLEANFLAGS)
 
-distclean: 
+distclean:
 	$(SETUP) -distclean $(DISTCLEANFLAGS)
 
 setup.data:
@@ -83,7 +85,7 @@ headache:
 
 .PHONY: wc headache
 
-# Binary distribution 
+# Binary distribution
 
 BINDIST_DEBUG=false
 
@@ -100,8 +102,8 @@ BINDIR=$(BINDISTDIR)/bin-$(system)-$(architecture)
 ifeq ($(os_type),"Win32")
 tr_path = cygpath -w
 else
-tr_path = echo 
-endif 
+tr_path = echo
+endif
 
 BINDISTGZ=$(pkg_name)-$(pkg_version)-bindist.tar.gz
 
@@ -119,7 +121,7 @@ bindist-step2:
 	  --disable-libraries \
 	  --override ocamlbuildflags "-classic-display -tag custom" \
 	  $(CONFIGUREFLAGS)
-	$(SETUP) -build 
+	$(SETUP) -build
 	if ! $(BINDIST_DEBUG); then $(SETUP) -test; fi
 	if ! [ "$(os_type)" = "Win32" ]; then $(SETUP) -doc; fi
 	$(SETUP) -install
@@ -130,7 +132,7 @@ bindist-step2:
 
 # Source distribution
 
-dist: 
+dist:
 	# Check consistency of versions
 	OASIS_CMD_VER=$$(oasis version); \
 	OASIS_DIST_VER=$$(oasis query version); \
@@ -145,7 +147,7 @@ dist:
 	fi
 	./src/tools/oasis-dist.ml
 
-.PHONY: dist 
+.PHONY: dist
 
 # Fixing permissions
 

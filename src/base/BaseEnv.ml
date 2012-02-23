@@ -453,23 +453,21 @@ let args () =
                      Printf.sprintf (f_ "%s %s%s") arg_hlp hlp default_value
                    ]
                | CLIEnable ->
-                   [
-                     arg_concat "--enable-" arg_name,
-                     Arg.Unit (fun () -> var_set "true"),
-                     Printf.sprintf (f_ " %s%s") hlp
-                       (if default_value = " [true]" then
-                          (s_ " [default]")
-                        else
-                          "");
+                   let dflt =
+                     if default_value = " [true]" then
+                       s_ " [default: enabled]"
+                     else
+                       s_ " [default: disabled]"
+                   in
+                     [
+                       arg_concat "--enable-" arg_name,
+                       Arg.Unit (fun () -> var_set "true"),
+                       Printf.sprintf (f_ " %s%s") hlp dflt;
 
-                     arg_concat "--disable-" arg_name,
-                     Arg.Unit (fun () -> var_set "false"),
-                     Printf.sprintf (f_ " %s%s") hlp
-                       (if default_value = " [false]" then
-                          (s_ " [default]")
-                        else
-                          "");
-                   ]
+                       arg_concat "--disable-" arg_name,
+                       Arg.Unit (fun () -> var_set "false"),
+                       Printf.sprintf (f_ " %s%s") hlp dflt
+                     ]
                | CLIUser lst ->
                    lst
            in

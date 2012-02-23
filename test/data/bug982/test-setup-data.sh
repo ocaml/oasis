@@ -22,7 +22,7 @@
 
 set -e
 
-source "./setup.data"
+. "./setup.data"
 
 set -x
 

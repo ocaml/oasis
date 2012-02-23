@@ -122,6 +122,11 @@ let schema, generator =
   in
   let build, install, data_files = 
    OASISBuildSection_intern.build_install_data_fields schm
+     (* TODO: establish a formal link between "docs" string and
+      * BaseStandardVars.
+      *)
+     ~default_cond:[OASISExpr.EFlag "docs", true]
+     ~default:false
      (fun (_, doc) -> doc.doc_build)
      (fun (_, doc) -> doc.doc_install)
      (fun (_, doc) -> doc.doc_data_files)

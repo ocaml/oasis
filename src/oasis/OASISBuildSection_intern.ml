@@ -94,10 +94,17 @@ let build_tools_field schm sync =
     (fun () -> s_ "Tools required to compile, including internal executables.")
     sync
 
-let build_install_data_fields schm sync_build sync_install sync_datafiles = 
+let build_install_data_fields
+      ?default_cond
+      ?(default=true)
+      schm
+      sync_build
+      sync_install
+      sync_datafiles =
   let build = 
     new_field_conditional schm "Build"
-      ~default:true
+      ?default_cond
+      ~default
       boolean
       (fun () -> s_ "Set if the section should be built.")
       sync_build

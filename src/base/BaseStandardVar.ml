@@ -259,15 +259,32 @@ let rmdir =
 
 let debug =
   var_define
-    ~short_desc:(fun () -> s_ "Compile with ocaml debug flag on.")
+    ~short_desc:(fun () -> s_ "Turn ocaml debug flag on")
+    ~cli:CLIEnable
     "debug"
     (fun () -> "true")
 
 let profile =
   var_define
-    ~short_desc:(fun () -> s_ "Compile with ocaml profile flag on.")
+    ~short_desc:(fun () -> s_ "Turn ocaml profile flag on")
+    ~cli:CLIEnable
     "profile"
     (fun () -> "false")
+
+let tests =
+  var_define
+    ~short_desc:(fun () ->
+                   s_ "Compile tests executable and library and run them")
+    ~cli:CLIEnable
+    "tests"
+    (fun () -> "false")
+
+let docs =
+  var_define
+    ~short_desc:(fun () -> s_ "Create documentations")
+    ~cli:CLIEnable
+    "docs"
+    (fun () -> "true")
 
 let init pkg =
   rpkg := Some pkg

@@ -154,7 +154,7 @@ let query pkg str =
                        PropList.Schema.get schm data nm
                      in
                        (prefix^nm) :: acc
-                   with _ ->
+                   with e ->
                      acc)
                 acc
                 schm

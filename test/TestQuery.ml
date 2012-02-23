@@ -89,6 +89,5 @@ let tests =
            \nXStdFilesAUTHORSFilename\
            \nTest(main).Type\
            \nTest(main).TestTools\
-           \nTest(main).Run\
            \nFlag(test).Description"]
        ])

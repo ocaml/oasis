@@ -51,11 +51,15 @@ val new_field :
   PropList.Data.t -> 'a
 
 (** Create a conditional field for a plugin. Sees {!new_field} for explanation.
+    The extra [default_cond] parameter allows to define a complex default. If
+    [default_cond] and [default] are defined together, they are concatened in
+    this order.
   *)
 val new_field_conditional :
   ('b t) ->
   OASISPlugin.all_t ->
   name ->
+  ?default_cond:('a OASISExpr.choices) ->
   ?default:'a ->
   'a OASISValues.t ->
   (unit -> string) -> 

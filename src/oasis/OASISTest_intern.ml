@@ -81,7 +81,9 @@ let schema, generator =
   in
   let run = 
     new_field_conditional schm "Run"
-      ~default:true
+      (* TODO: establish a formal link between here and BaseStandardVars *)
+      ~default_cond:[OASISExpr.EFlag "tests", true]
+      ~default:false
       boolean
       (fun () ->
          s_ "Enable this test.")

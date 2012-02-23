@@ -162,6 +162,7 @@ let new_field_conditional
       t
       name 
       ?plugin 
+      ?default_cond
       ?default 
       ?quickstart_level
       ?quickstart_question
@@ -200,10 +201,14 @@ let new_field_conditional
   in
 
   let default = 
-    match default with 
-      | Some x ->
+    match default_cond, default with
+      | Some lst, Some x ->
+          Some ((EBool true, x) :: lst)
+      | Some lst, None ->
+          Some lst
+      | None, Some x ->
           Some [EBool true, x]
-      | None ->
+      | None, None ->
           None
   in
 
