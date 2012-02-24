@@ -103,8 +103,7 @@ sig
       arguments and splitted into its components (un-escaped).  For
       example [split "a \"b c\" d" = ["a"; "b c"; "d"]].  Note that
       [split "" = []].  It is possible that substitutions such as "$a"
-      (resp. "$(a b)") may be transformed into "${a}"
-      (resp. "${a b}"). *)
+      (resp. "$(a b)") may be transformed into "$\{a\}" (resp. "$\{a b\}"). *)
 
   val escape : string -> string
   (** [escape s] quote [s] if needed to protect spaces, '"' and '\''
