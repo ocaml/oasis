@@ -325,7 +325,8 @@ let tests =
                     | Doc (_, doc) ->
                         doc.doc_abstract
                     | _ ->
-                        assert false))
+                        assert false));
+
           ])
       @
        (List.rev_map file_of_vector
@@ -338,6 +339,24 @@ let tests =
                 (fun a e -> e :: a) 
                 (* Collect examples/oasis/*.oasis *)
                 (filter (Has_extension "oasis") 
-                   (ls "../examples/oasis"))))));
+                   (ls "../examples/oasis"))))))
+      @
+      [
+        "SinceVersion" >::
+        (fun () ->
+           assert_raises
+             ~msg:"Pack is supported only in 0.3"
+             (Failure "Field 'Pack' in Library test1 is only valid since \
+                       OASIS v0.3, update OASISFormat field from \
+                       '0.2' to '0.3' after checking OASIS changelog.")
+             (fun () ->
+                let _pkg =
+                  from_file
+                    ~ctxt:{!oasis_ctxt with
+                               OASISContext.ignore_plugins = true}
+                    (in_data "test13.oasis")
+                in
+                  ()))
+      ]
     ]
 ;;

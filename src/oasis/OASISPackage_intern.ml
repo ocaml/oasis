@@ -80,49 +80,49 @@ let add_build_tool ?(no_test=false) ?(condition=[EBool true, true]) build_tool p
                       sct)
                pkg.sections}
 
-let schema, generator =
-  let schm =
-    schema "Package" (fun pkg -> pkg.plugin_data)
+let schema =
+  schema "Package" (fun pkg -> pkg.plugin_data)
+
+let oasis_version =
+  let current_version =
+    OASISConf.version_short
   in
+  let extra_supported_versions =
+    List.map
+      OASISVersion.version_of_string
+      ["0.2"; "0.1"]
+  in
+    new_field schema "OASISFormat"
+      ~quickstart_level:(NoChoice current_version)
+      {
+        parse =
+          (fun ~ctxt str ->
+             let v =
+               OASISVersion.value.parse ~ctxt str
+             in
+               if not
+                    (List.mem
+                       v
+                       (current_version :: extra_supported_versions)) then
+                 failwithf
+                   (f_ "OASIS format version '%s' is not supported.")
+                   str;
+               v);
+        update = update_fail;
+        print = OASISVersion.value.print;
+      }
+      (fun () ->
+         s_ "OASIS format version used to write file `_oasis`.")
+      (fun pkg -> pkg.oasis_version)
+
+let generator =
+  let schm = schema in
 
   let new_field ?quickstart_level ?quickstart_question ?default nm value hlp sync = 
     new_field schm ?quickstart_level ?quickstart_question ?default nm value hlp sync
   in
   let new_field_plugin nm ?default ?quickstart_question value hlp sync =
     new_field_plugin schm nm ?default ?quickstart_question value hlp sync
-  in
-
-  let oasis_version = 
-    let current_version =
-      OASISConf.version_short
-    in
-    let extra_supported_versions =
-      List.map 
-        OASISVersion.version_of_string
-        ["0.1"]
-    in
-      new_field "OASISFormat" 
-        ~quickstart_level:(NoChoice current_version)
-        {
-          parse = 
-            (fun ~ctxt str ->
-               let v = 
-                 OASISVersion.value.parse ~ctxt str
-               in
-                 if not 
-                      (List.mem 
-                         v 
-                         (current_version :: extra_supported_versions)) then
-                   failwithf
-                     (f_ "OASIS format version '%s' is not supported.")
-                     str;
-                 v);
-          update = update_fail;
-          print = OASISVersion.value.print;
-        }
-        (fun () ->
-           s_ "OASIS format version used to write file `_oasis`.")
-        (fun pkg -> pkg.oasis_version)
   in
   let name = 
     new_field "Name" string_not_empty 
@@ -322,7 +322,6 @@ let schema, generator =
     OASISBuildSection_intern.build_tools_field schm
       (fun pkg -> [])
   in
-    schm,
     (fun data sections ->
        let plugins = plugins data in
        let conf    = conf_type data in

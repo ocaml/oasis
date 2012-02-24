@@ -104,9 +104,10 @@ type kind =
 
 type extra =
   {
-    kind:        kind;
-    qckstrt_lvl: string quickstart_level;
-    qckstrt_q:   unit -> string quickstart_question;
+    kind:          kind;
+    qckstrt_lvl:   string quickstart_level;
+    qckstrt_q:     unit -> string quickstart_question;
+    since_version: OASISVersion.t option;
   }
 
 type 'a t =
@@ -130,6 +131,7 @@ let extra
       ?(kind=StandardField)
       ?(quickstart_level=Expert) 
       ?(quickstart_question=(fun () -> Field))
+      ?since_version
       value =
           
   let qckstrt_lvl =
@@ -148,11 +150,19 @@ let extra
       | Field | Text as q ->
           q
   in
+  let since_version =
+    match since_version with
+      | Some str ->
+          Some (OASISVersion.version_of_string str)
+      | None ->
+          None
+  in
 
     {
-      kind        = kind;
-      qckstrt_lvl = qckstrt_lvl;
-      qckstrt_q   = qckstrt_q;
+      kind          = kind;
+      qckstrt_lvl   = qckstrt_lvl;
+      qckstrt_q     = qckstrt_q;
+      since_version = since_version;
     }
 
 
@@ -166,6 +176,7 @@ let new_field_conditional
       ?default 
       ?quickstart_level
       ?quickstart_question
+      ?since_version
       value 
       help
       sync =
@@ -272,6 +283,7 @@ let new_field_conditional
         ?kind 
         ?quickstart_level
         ?quickstart_question
+        ?since_version
          value)
 
 (** Default parser and updater for new_field and new_field_plugin
@@ -313,6 +325,7 @@ let new_field
       ?default 
       ?quickstart_level
       ?quickstart_question
+      ?since_version
       value 
       help
       sync =
@@ -339,6 +352,7 @@ let new_field
         ?kind 
         ?quickstart_level
         ?quickstart_question
+        ?since_version
          value)
 
 (** Create a field that enables a plugin 
@@ -349,6 +363,7 @@ let new_field_plugin
       ?default 
       ?quickstart_level
       ?quickstart_question
+      ?since_version
       knd
       value 
       help
@@ -370,6 +385,7 @@ let new_field_plugin
         ~kind:(DefinePlugin knd)
         ?quickstart_level
         ?quickstart_question
+        ?since_version
          value)
 
 (** Create a field that enables some plugins
@@ -382,6 +398,7 @@ let new_field_plugins
       ?quickstart_level
       (* TODO: merge quickstart_question and values *)
       ?quickstart_question
+      ?since_version
       knd
       value 
       help
@@ -406,6 +423,7 @@ let new_field_plugins
         ~kind:(DefinePlugins knd)
         ?quickstart_level
         ?quickstart_question
+        ?since_version
         value)
 
 let to_proplist t plugins e = 

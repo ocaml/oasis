@@ -359,6 +359,7 @@ let tests =
            "nativeopt", "";
            "modules", "";
            "internalmodules", "";
+           "pack", "";
            "findlibparent", "";
            "findlibname", "";
            "findlibcontainers", "";
@@ -384,6 +385,7 @@ let tests =
            "nativeopt", "";
            "modules", "";
            "internalmodules", "";
+           "pack", "";
            "findlibparent", "libtest";
            "findlibname", "";
            "findlibcontainers", "";

@@ -45,6 +45,7 @@ val new_field :
   OASISPlugin.all_t ->
   name ->
   ?default:'a ->
+  ?since_version:string ->
   'a OASISValues.t -> 
   (unit -> string) -> 
   'c OASISPlugin.prop -> ('b -> 'c -> 'a) -> 
@@ -61,6 +62,7 @@ val new_field_conditional :
   name ->
   ?default_cond:('a OASISExpr.choices) ->
   ?default:'a ->
+  ?since_version:string ->
   'a OASISValues.t ->
   (unit -> string) -> 
   'c OASISPlugin.prop -> ('b -> 'c -> 'a OASISExpr.choices) -> 

@@ -1,0 +1,12 @@
+OASISFormat:  0.2
+Name:         foo
+Version:      0.0.1
+Synopsis:     Just a test
+License:      GPL
+LicenseFile:  LICENSE
+Authors:      Sylvain Le Gall
+
+Library test1
+  FindlibName: test
+  Path:        src/
+  Pack:        true

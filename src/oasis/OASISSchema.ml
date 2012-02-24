@@ -45,7 +45,7 @@ let sync_proxy schema t nm (_, get) sync ds =
       (Printexc.to_string e);
     raise OASISValues.Not_printable
 
-let new_field schema t nm ?default parse hlp pivot_data sync =
+let new_field schema t nm ?default ?since_version parse hlp pivot_data sync =
   let plugin =
     OASISPlugin.to_plugin t
   in
@@ -53,6 +53,7 @@ let new_field schema t nm ?default parse hlp pivot_data sync =
       schema
       (make_field_name plugin nm) 
       ?default
+      ?since_version
       ~plugin
       parse
       hlp 
@@ -64,6 +65,7 @@ let new_field_conditional
       nm
       ?default_cond
       ?default
+      ?since_version
       parse
       hlp
       pivot_data
@@ -76,6 +78,7 @@ let new_field_conditional
       (make_field_name plugin nm) 
       ?default_cond
       ?default 
+      ?since_version
       ~plugin
       parse 
       hlp

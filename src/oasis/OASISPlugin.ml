@@ -444,7 +444,7 @@ struct
                 match ver_opt with 
                   | Some ver ->
                       if OASISVersion.version_compare ver ver_plg <> 0 then
-                        OASISMessage.warning ~ctxt
+                        OASISMessage.info ~ctxt
                           (f_ "Plugin %s doesn't match the latest version of \
                                this plugin. Please check plugin's changelog \
                                and upgrade to the latest version %s.")

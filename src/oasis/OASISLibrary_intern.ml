@@ -68,6 +68,7 @@ let schema, generator =
     new_field schm "Pack"
       ~default:false
       ~quickstart_level:Expert
+      ~since_version:"0.3"
       boolean
       (fun () ->
          s_ "Set if we should build a packed library.")

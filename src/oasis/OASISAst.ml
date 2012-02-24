@@ -148,7 +148,7 @@ let to_package conf st =
   (* Explore statement and register data into a newly created
    * Schema.writer.
    *)
-  let schema_stmt gen nm schm scts stmt' = 
+  let schema_stmt gen nm schm oasis_version scts stmt' =
     let data =
       PropList.Data.create ()
     in
@@ -162,8 +162,34 @@ let to_package conf st =
       OASISCheck.check_schema ~ctxt:ctxt.ctxt 
         ((PropList.Schema.name schm)^" "^nm)
         schm
+        oasis_version
         data;
       (gen nm data) :: scts
+  in
+
+  (* Extract and cache oasis_version *)
+  let oasis_version =
+    let rver = ref None in
+      fun data ->
+        try
+          let nver =
+            OASISPackage_intern.oasis_version data
+          in
+          let () =
+            match !rver with
+              | Some ver ->
+                  if nver <> ver then
+                    failwithf
+                      (f_ "Multiple definition of OASISFormat (%s and %s)")
+                      (OASISVersion.string_of_version ver)
+                      (OASISVersion.string_of_version nver);
+              | None ->
+                  rver := Some nver
+          in
+            nver
+        with PropList.Not_set _ ->
+          failwith (s_ "OASISFormat not defined at the beginning of the file, \
+                        consider starting with 'OASISFormat: ...'")
   in
 
   (* Recurse into top-level statement. At this level there is 
@@ -177,6 +203,7 @@ let to_package conf st =
             OASISLibrary_intern.generator
             nm
             OASISLibrary.schema 
+            (oasis_version pkg_data)
             acc
             stmt
 
@@ -185,6 +212,7 @@ let to_package conf st =
             OASISExecutable_intern.generator
             nm
             OASISExecutable.schema
+            (oasis_version pkg_data)
             acc
             stmt
 
@@ -193,6 +221,7 @@ let to_package conf st =
             OASISFlag_intern.generator 
             nm
             OASISFlag.schema 
+            (oasis_version pkg_data)
             acc
             stmt
 
@@ -201,6 +230,7 @@ let to_package conf st =
             OASISSourceRepository_intern.generator
             nm
             OASISSourceRepository.schema
+            (oasis_version pkg_data)
             acc
             stmt
 
@@ -209,6 +239,7 @@ let to_package conf st =
             OASISTest_intern.generator
             nm
             OASISTest.schema
+            (oasis_version pkg_data)
             acc
             stmt
 
@@ -217,6 +248,7 @@ let to_package conf st =
             OASISDocument_intern.generator
             nm
             OASISDocument.schema
+            (oasis_version pkg_data)
             acc
             stmt
 
@@ -249,6 +281,7 @@ let to_package conf st =
     OASISCheck.check_schema ~ctxt:default_ctxt.ctxt
       "package"
       OASISPackage.schema.OASISSchema_intern.schm
+      (oasis_version data)
       data;
     OASISPackage_intern.generator 
       data

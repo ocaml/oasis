@@ -29,7 +29,7 @@ open OASISPlugin
 open OASISTypes
 open PropList
 
-let check_schema ~ctxt where schm data =
+let check_schema ~ctxt where schm oasis_version data =
 
   let check_is_default schm data fld = 
     let fake_data = 
@@ -46,17 +46,8 @@ let check_schema ~ctxt where schm data =
   in
 
   let check_is_set schm data fld = 
-    try
-      let _ = 
-        Schema.get schm data fld
-      in 
-        true 
-    with 
-      | Not_set _ ->
-          false
-      | No_printer _
-      | OASISValues.Not_printable ->
-          true
+    let field_set = Data.elements data in
+      List.mem fld field_set
   in
 
   let check_get schm data fld msgfld =
@@ -73,6 +64,8 @@ let check_schema ~ctxt where schm data =
       | OASISValues.Not_printable ->
           msgfld
   in
+
+  (** Check all mandatory fields are set. *)
 
   let plugins, msgfld =
     Schema.fold
@@ -155,7 +148,74 @@ let check_schema ~ctxt where schm data =
       msgfld
       schm
   in
+
+  let () =
     if msgfld <> [] then
       failwithf (f_ "Missing field in %s: %s")
         where
         (String.concat (s_ ", ") msgfld)
+
+  in
+
+  (** Check that all fields set are ok with OASISFormat. *)
+
+  let () =
+    let sov = OASISVersion.string_of_version in
+    Schema.fold
+      (fun () fld extra _ ->
+         if check_is_set schm data fld then
+           match extra.since_version with
+             | Some ver ->
+                 begin
+                   match extra.kind with
+                     | DefinePlugin _ | DefinePlugins _
+                     | StandardField ->
+                         if not (OASISVersion.comparator_apply
+                                   oasis_version
+                                   (OASISVersion.VGreaterEqual ver)) then
+                           failwithf
+                             (f_ "Field '%s' in %s is only valid since \
+                                OASIS v%s, update OASISFormat field from '%s' \
+                                to '%s' after checking OASIS changelog.")
+                             fld where
+                             (sov ver)
+                             (sov oasis_version)
+                             (sov ver)
+
+                     | FieldFromPlugin plg_id ->
+                         let plugin_name, plugin_version =
+                           match plg_id with
+                             | _, nm, Some ver ->
+                                 nm, ver
+                             | _, plugin_name, None ->
+                                 failwithf
+                                   (f_ "Field '%s' in %s is only valid for
+                                      the OASIS plugin %s since v%s, \
+                                      but no plugin version is defined in \
+                                      the _oasis file, change '%s' to \
+                                      '%s (%s)' in your _oasis file.")
+                                   fld where plugin_name (sov ver)
+                                   plugin_name
+                                   plugin_name (sov ver)
+                         in
+                           if not (OASISVersion.comparator_apply
+                                     plugin_version
+                                     (OASISVersion.VGreaterEqual ver)) then
+                             failwithf
+                               (f_ "Field '%s' in %s is only valid for \
+                                  the OASIS plugin %s since v%s, \
+                                  update your plugin from \
+                                  '%s (%s)' to '%s (%s)' after \
+                                  checking the plugin's changelog.")
+                               fld where plugin_name (sov ver)
+                               plugin_name (sov plugin_version)
+                               plugin_name (sov ver)
+                 end
+
+             | None ->
+                 ())
+      ()
+      schm
+  in
+
+    ()
