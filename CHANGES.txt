@@ -1,7 +1,121 @@
-2012-02-24 Sylvain Le Gall <sylvain.le-gall AT ocamlcore.com>
+2012-02-24 Sylvain Le Gall <sylvain AT le-gall.net>
 
   * Version 0.3.0
-    TODO
+
+  * EXTREMLY IMPORTANT changes (read this):
+
+    * Fix bug with scanf %S@\n for ocaml 3.13. We were unfortunetaly using an
+      undocumented tolerance of Scanf in the previous version. You should
+      consider making new release using this version that fixed this. 
+
+      PACKAGES uploaded to oasis-db will be automatically "derived" before
+      OCaml 3.13 release (i.e.  oUnit v1.1.1 will be regenerated with this new
+      version as oUnit v1.1.1~oasis1).
+
+      PACKAGES not uploaded to oasis-db need to be regeneratedr. In order not to 
+      break 3rd party tools that consider a tarball constant, I recommend to 
+      create a new version.
+
+      INRIA OCaml team is synchronizing with us on this point.
+
+  * Major changes: 
+
+    * Handle the field "Pack: true" to be able to create packed libraries. It
+      also installs .mli files for documentation into the target directory.
+      The pack option is only supported for "OASISFormat: 0.3", you will need
+      to update the version of your _oasis file to match it.
+
+
+    * Introduce --[enable|disable]-[tests|docs] to disable tests and docs at
+      oasis level. It seems a very common pattern to have a "Flag tests" to
+      turn off by default the tests. This is now define as a standard var and
+      you should remove you previous "Flag tests" and but you can continue to
+      use "flag(tests)" where needed.
+
+      You can now have the following example:
+      ...
+
+      Executable test_exec
+        Install: false
+        Build$: flag(tests)
+        MainIs: testExec.ml
+        BuildDepends: oUnit
+
+      Test main
+        Command: $test_exec
+        TestTools: test_exec
+
+      ...
+
+      The "Run$: flag(tests)" is implicit for the section "Test main". The
+      default value is "false" for tests. If all the executable for test are
+      flagged correctly (Build$: flag(tests)), you'll get rid of the dependency
+      on oUnit.
+
+      It works the same for documentation, however the default is "true".
+      (Closes: #866)
+
+      * Allow to define interdependent flags
+      
+       In order to allow interdependent flags, we transform back lazy values into
+       'unit -> string' functions. This allows to change a flag value on the
+       command line and to update all the dependent values. 
+       (Closes: #827, #938)
+
+    * Don't copy executable in ocamlbuild
+    
+      Avoid copying executable to their real name. It helps to call ocamlbuild a
+      single time for the whole build rather than calling it n time (n = number
+      of executable sections) and copying resulting exec.
+      
+      This speeds up the build process because ocamlbuild doesn't have to
+      compute/scan dependencies each time.
+      
+      The drawback is that you have to use $foo when you want to call 
+      "Executable foo", because $foo will be _build/.../main.byte.
+    
+    * Change the way we parse command line like option (CCOpt, CCLib and the like). We have
+      implemented a real POSIX command line parser, except that variables are processed by
+      Buffer.add_substitute (except if correctly escaped, using
+      Buffer.add_substitute escaping). 
+      
+      For example: 
+        CCOpt: -DEXTERNAL_EXP10 -L/sw/lib "-framework vecLib"
+
+      Will be parsed correctly and outputed according to target OS. 
+
+    * Externalize ocamlmod in its own project, which become a dependencies.
+
+  * Other changes:
+
+    * Replace Extlib by Batteries.
+    * Produce only subcommands specific helps when asked (Closes: #783)
+    * Use pager for long textual output (Closes: #782)
+    * Give the help summary directly when running just "oasis" (Closes: #781)
+    * Remove `pwd` filename prefix to avoid too long command line on Windows (Closes: #1007)
+    * Install required .cmx when installing libraries (Closes: #686, #885)
+    * Retain blanks at the beginning of line in freeform (Closes: #811)
+    * Allow PreConfCommand to create setup.data with any variables inside (Closes: #823)
+    * Allow to use setup.data in shell script and Makefile (Closes: #982)
+    * Fix execute permissions (Closes: #980)
+    * Drop extra version in ocaml version (Closes: #964, #888)
+    * Always output info messages on stderr (Closes: #785)
+    * Fix interversion in version comparator lexer (Closes: #808)
+    * Document the fact that setup.data is mandatory (Closes: #946)
+    * configure translates getopt command line to Arg (Closes: #778, #804)
+    * Generate valid META when there are line breaks in synopsis (Closes: #933)
+    * Keep owner of generated files (Closes: #793)
+    * Set -I +threads for ocamlfind ocamldoc in ocamlbuild (Closes: #949)
+    * Exclude VCS directories by default (Closes: #847)
+    * Print the configure summary in the "normal" order.
+    * Merge findlib virtual containers with the same name
+    * Synchronize plugin data for section
+    * Improve documentation
+    * Verify validity of input when parsing in quickstart (Closes: #797)
+
+  * Thanks to Anil Madhavapeddy, Pierre Chambart, Christophe Troestler, 
+    Jeremie Dimino, Ronan Le Hy and Till Varoquaux for their help with this
+    release.
 
 2010-10-16 Sylvain Le Gall <sylvain.le-gall AT ocamlcore.com>
 
