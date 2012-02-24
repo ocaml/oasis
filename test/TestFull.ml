@@ -920,13 +920,11 @@ let tests =
          (fun () -> 
             long_test,
             oasis_ocamlbuild_files @ 
-              [ "src/packedlib.mlpack" ],
+              [ "src/packedlib.mlpack"; "src/META" ],
             [
               in_ocaml_library "packedlib" 
-                ["packedlib.cma"; 
-                 "foo.cmi"; "foo.mli"; 
-                 "bar.cmi"; "bar.mli"; 
-                 "META"];
+                ["packedlib.cma"; "packedlib.cmi";
+                 "foo.mli"; "bar.mli"; "META"];
               conditional
                 !has_ocamlopt
                 (in_ocaml_library "packedlib"
