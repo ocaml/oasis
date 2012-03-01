@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 142207750d768f41530d180179cdeb5c)
+# DO NOT EDIT (digest: 2b75dd8e786a7eb1db3272deaaa4699a)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -40,7 +40,6 @@
 <src/oasis/*.ml{,i}>: pkg_pcre
 <src/oasis/*.ml{,i}>: pkg_odn
 <src/oasis/*.ml{,i}>: pkg_ocamlgraph
-<src/oasis/*.ml{,i}>: pkg_findlib
 <src/oasis/*.ml{,i}>: pkg_fileutils
 <src/oasis/*.ml{,i}>: pkg_batteries
 # Library base
@@ -50,7 +49,6 @@
 <src/base/*.ml{,i}>: pkg_pcre
 <src/base/*.ml{,i}>: pkg_odn
 <src/base/*.ml{,i}>: pkg_ocamlgraph
-<src/base/*.ml{,i}>: pkg_findlib
 <src/base/*.ml{,i}>: pkg_fileutils
 <src/base/*.ml{,i}>: pkg_batteries
 # Library builtin-plugins
@@ -60,7 +58,6 @@
 <src/*.ml{,i}>: pkg_pcre
 <src/*.ml{,i}>: pkg_odn
 <src/*.ml{,i}>: pkg_ocamlgraph
-<src/*.ml{,i}>: pkg_findlib
 <src/*.ml{,i}>: pkg_fileutils
 <src/*.ml{,i}>: pkg_batteries
 <src/plugins/custom/*.ml{,i}>: use_base
@@ -69,7 +66,6 @@
 <src/plugins/custom/*.ml{,i}>: pkg_pcre
 <src/plugins/custom/*.ml{,i}>: pkg_odn
 <src/plugins/custom/*.ml{,i}>: pkg_ocamlgraph
-<src/plugins/custom/*.ml{,i}>: pkg_findlib
 <src/plugins/custom/*.ml{,i}>: pkg_fileutils
 <src/plugins/custom/*.ml{,i}>: pkg_batteries
 <src/plugins/extra/META/*.ml{,i}>: use_base
@@ -78,7 +74,6 @@
 <src/plugins/extra/META/*.ml{,i}>: pkg_pcre
 <src/plugins/extra/META/*.ml{,i}>: pkg_odn
 <src/plugins/extra/META/*.ml{,i}>: pkg_ocamlgraph
-<src/plugins/extra/META/*.ml{,i}>: pkg_findlib
 <src/plugins/extra/META/*.ml{,i}>: pkg_fileutils
 <src/plugins/extra/META/*.ml{,i}>: pkg_batteries
 <src/plugins/extra/devfiles/*.ml{,i}>: use_base
@@ -87,7 +82,6 @@
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_pcre
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_odn
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_ocamlgraph
-<src/plugins/extra/devfiles/*.ml{,i}>: pkg_findlib
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_fileutils
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_batteries
 <src/plugins/extra/stdfiles/*.ml{,i}>: use_base
@@ -96,7 +90,6 @@
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_pcre
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_odn
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_ocamlgraph
-<src/plugins/extra/stdfiles/*.ml{,i}>: pkg_findlib
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_fileutils
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_batteries
 <src/plugins/internal/*.ml{,i}>: use_base
@@ -105,7 +98,6 @@
 <src/plugins/internal/*.ml{,i}>: pkg_pcre
 <src/plugins/internal/*.ml{,i}>: pkg_odn
 <src/plugins/internal/*.ml{,i}>: pkg_ocamlgraph
-<src/plugins/internal/*.ml{,i}>: pkg_findlib
 <src/plugins/internal/*.ml{,i}>: pkg_fileutils
 <src/plugins/internal/*.ml{,i}>: pkg_batteries
 <src/plugins/none/*.ml{,i}>: use_base
@@ -114,7 +106,6 @@
 <src/plugins/none/*.ml{,i}>: pkg_pcre
 <src/plugins/none/*.ml{,i}>: pkg_odn
 <src/plugins/none/*.ml{,i}>: pkg_ocamlgraph
-<src/plugins/none/*.ml{,i}>: pkg_findlib
 <src/plugins/none/*.ml{,i}>: pkg_fileutils
 <src/plugins/none/*.ml{,i}>: pkg_batteries
 <src/plugins/ocamlbuild/*.ml{,i}>: use_base
@@ -123,7 +114,6 @@
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_pcre
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_odn
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_ocamlgraph
-<src/plugins/ocamlbuild/*.ml{,i}>: pkg_findlib
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_fileutils
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_batteries
 "src": include
@@ -170,7 +160,6 @@
 "src/cli/Main.byte": pkg_pcre
 "src/cli/Main.byte": pkg_odn
 "src/cli/Main.byte": pkg_ocamlgraph
-"src/cli/Main.byte": pkg_findlib
 "src/cli/Main.byte": pkg_fileutils
 "src/cli/Main.byte": pkg_batteries
 <src/cli/*.ml{,i}>: use_cli
@@ -181,7 +170,6 @@
 <src/cli/*.ml{,i}>: pkg_pcre
 <src/cli/*.ml{,i}>: pkg_odn
 <src/cli/*.ml{,i}>: pkg_ocamlgraph
-<src/cli/*.ml{,i}>: pkg_findlib
 <src/cli/*.ml{,i}>: pkg_fileutils
 <src/cli/*.ml{,i}>: pkg_batteries
 # OASIS_STOP

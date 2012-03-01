@@ -113,7 +113,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 3bc79e0476087a7668dcef6b6fb5ecb0) *)
+(* DO NOT EDIT (digest: b3b8b026ec8c9b66ccab364b8c080ae2) *)
 module OASISGettext = struct
 # 21 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
   
@@ -528,7 +528,10 @@ module MyOCamlbuildBase = struct
                    (* When ocaml link something that use the C library, then one
                       need that file to be up to date.
                     *)
-                   dep  ["compile"; "ocaml"; "use_lib"^lib] 
+                   dep  ["link"; "ocaml"; "program"; "use_lib"^lib]
+                     [dir/"lib"^lib^"."^(!Options.ext_lib)];
+  
+                   dep  ["compile"; "ocaml"; "program"; "use_lib"^lib]
                      [dir/"lib"^lib^"."^(!Options.ext_lib)];
   
                    (* TODO: be more specific about what depends on headers *)
@@ -580,7 +583,7 @@ let package_default =
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
-# 470 "myocamlbuild.ml"
+# 473 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 open Ocamlbuild_plugin;;

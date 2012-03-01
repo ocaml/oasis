@@ -142,7 +142,7 @@ Library "builtin-plugins"
   Modules: OASISBuiltinPlugins
   InternalModules: plugins/none/NonePlugin,
                    plugins/none/NoneData,
-                   plugins/internal/InternalConfigurePlugin, 
+                   plugins/internal/InternalConfigurePlugin,
                    plugins/internal/InternalInstallPlugin,
                    plugins/internal/InternalData,
                    plugins/internal/InternalId,
@@ -167,7 +167,7 @@ Library "builtin-plugins"
 
 Library cli
   Path:             src/cli
-  Modules:          SubCommand, 
+  Modules:          SubCommand,
                     ArgExt,
                     Pager
   InternalModules:  CLIData
@@ -189,7 +189,7 @@ Executable test
   Install: false
   CompiledObject: byte
   Build$: flag(tests)
-  BuildDepends: oUnit (>= 1.1.0), oasis, oasis.base, oasis.builtin-plugins, expect.pcre (>= 0.0.2)
+  BuildDepends: oUnit (>= 1.1.0), findlib, oasis, oasis.base, oasis.builtin-plugins, expect.pcre (>= 0.0.2)
 
 Test main
   Type: custom (0.3)
