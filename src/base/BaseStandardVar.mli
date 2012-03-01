@@ -119,6 +119,14 @@ val debug: unit -> string
   *)
 val profile: unit -> string
 
+(** Run tests.
+  *)
+val tests: unit -> string
+
+(** Compile docs.
+  *)
+val docs: unit -> string
+
 (** Initialize some variables.
   *)
 val init: OASISTypes.package -> unit

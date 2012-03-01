@@ -112,42 +112,52 @@ let build t args =
     args
 
 let doc t args =
-  BaseDoc.doc
-    (join_plugin_sections
-       (function
-          | Doc (cs, e) ->
-              Some
-                (lookup_plugin_section
-                   "documentation"
-                   (s_ "build")
-                   cs.cs_name
-                   t.doc,
-                 cs,
-                 e)
-          | _ ->
-              None)
-       t.package.sections)
-    t.package
-    args
+  if bool_of_string (BaseStandardVar.docs ()) then
+    BaseDoc.doc
+      (join_plugin_sections
+         (function
+            | Doc (cs, e) ->
+                Some
+                  (lookup_plugin_section
+                     "documentation"
+                     (s_ "build")
+                     cs.cs_name
+                     t.doc,
+                   cs,
+                   e)
+            | _ ->
+                None)
+         t.package.sections)
+      t.package
+      args
+  else
+    BaseMessage.warning
+      "Docs are turned off, consider enabling with \
+       'ocaml setup.ml -configure --enable-docs'"
 
 let test t args =
-  BaseTest.test
-    (join_plugin_sections
-       (function
-          | Test (cs, e) ->
-              Some
-                (lookup_plugin_section
-                   "test"
-                   (s_ "run")
-                   cs.cs_name
-                   t.test,
-                 cs,
-                 e)
-          | _ ->
-              None)
-       t.package.sections)
-    t.package
-    args
+  if bool_of_string (BaseStandardVar.tests ()) then
+    BaseTest.test
+      (join_plugin_sections
+         (function
+            | Test (cs, e) ->
+                Some
+                  (lookup_plugin_section
+                     "test"
+                     (s_ "run")
+                     cs.cs_name
+                     t.test,
+                   cs,
+                   e)
+            | _ ->
+                None)
+         t.package.sections)
+      t.package
+      args
+  else
+    BaseMessage.warning
+      "Tests are turned off, consider enabling with \
+       'ocaml setup.ml -configure --enable-tests'"
 
 let all t args =
   let rno_doc =
