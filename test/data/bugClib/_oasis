@@ -1,0 +1,16 @@
+OASISFormat: 0.3
+Name:        bugClib
+Version:     0.1
+Synopsis:    Test a bug building C libraries
+Authors:     Sylvain Le Gall
+License:     LGPL-2.1 with OCaml linking exception
+Plugins:     META (0.3)
+
+Library mylib
+  Path:       .
+  BuildTools: ocamlbuild
+  Modules:    Foo, src/Bar
+  CSources:   src/fooC.c
+  Pack:       true
+  CCLib:      -lrt
+  CCOpt:      -D_LARGEFILE64_SOURCE

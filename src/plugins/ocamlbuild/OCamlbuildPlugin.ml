@@ -574,29 +574,20 @@ let add_ocamlbuild_files ctxt pkg =
 
                  let tag_t =
                    if lib.lib_pack then
-                     let fnames =
-                       List.fold_left
-                         (fun acc s ->
-                           (FilePath.UnixPath.add_extension s "cmx")
-                           :: (FilePath.UnixPath.add_extension
-                                 (String.uncapitalize s)
-                                 "cmx")
-                           :: acc)
-                         []
-                         lib.lib_modules
+                     let base_sources =
+                       OASISLibrary.source_unix_files
+                         ~ctxt:ctxt.ctxt
+                         (cs, bs, lib)
+                         (fun ufn ->
+                            Sys.file_exists (BaseFilePath.of_unix ufn))
                      in
                      add_tags
                        tag_t
-                       (List.fold_left
-                          (fun acc dn ->
-                            List.fold_left
-                              (fun acc fn ->
-                                Filename.concat dn fn :: acc)
-                              acc
-                              fnames)
-                          []
-                          (src_dirs @ src_internal_dirs))
-                       ["for-pack(" ^ String.capitalize cs.cs_name ^ ")"]
+                       (List.rev_map
+                          (fun (base_fn, _) ->
+                             base_fn^".cmx")
+                          base_sources)
+                       ["for-pack("^String.capitalize cs.cs_name^")"]
                    else
                      tag_t
                  in
@@ -631,23 +622,34 @@ let add_ocamlbuild_files ctxt pkg =
 
                  let ctxt =
                    (* Generate .mllib or .mlpack files *)
-                   let extension =
+                   let extension, not_extension =
                      if lib.lib_pack then
-                       "mlpack"
+                       "mlpack", "mllib"
                      else
-                       "mllib"
+                       "mllib", "mlpack"
                    in
-                   let fn_base =
-                     prepend_bs_path bs cs.cs_name
-                   in
+                   let fn_base = prepend_bs_path bs cs.cs_name in
+                   let fn = FilePath.add_extension fn_base extension in
+                   let not_fn = FilePath.add_extension fn_base not_extension in
+                   let ctxt =
                      add_file
                        (template_make
-                          (FilePath.add_extension fn_base extension)
+                          fn
                           comment_ocamlbuild
                           []
                           (lib.lib_modules @ lib.lib_internal_modules)
                           [])
                        ctxt
+                   in
+                     {ctxt with
+                          other_actions =
+                            (fun ()->
+                               if Sys.file_exists not_fn then
+                                 OASISMessage.error ~ctxt:ctxt.ctxt
+                                   (f_ "Conflicting file '%s' and '%s' \
+                                      exists, remove '%s'.")
+                                   fn not_fn not_fn)
+                          :: ctxt.other_actions}
                  in
 
                    ctxt, tag_t, myocamlbuild_t

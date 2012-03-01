@@ -25,40 +25,77 @@ open OASISGettext
 
 type library_name = name
 
+(* Look for a module file, considering capitalization or not. *)
+let find_module source_file_exists (cs, bs, lib) modul =
+  let possible_base_fn =
+    List.map
+      (OASISUnixPath.concat bs.bs_path)
+      [modul;
+       OASISUnixPath.uncapitalize_file modul;
+       OASISUnixPath.capitalize_file modul]
+  in
+    (* TODO: we should be able to be able to determine the source for every
+     * files. Hence we should introduce a Module(source: fn) for the fields
+     * Modules and InternalModules
+     *)
+    List.fold_left
+      (fun acc base_fn ->
+         match acc with
+           | `No_sources _ ->
+               begin
+                 let file_found =
+                   List.fold_left
+                     (fun acc ext ->
+                        if source_file_exists (base_fn^ext) then
+                          (base_fn^ext) :: acc
+                        else
+                          acc)
+                     []
+                     [".ml"; ".mli"; ".mll"; ".mly"]
+                 in
+                   match file_found with
+                     | [] ->
+                         acc
+                     | lst ->
+                         `Sources (base_fn, lst)
+               end
+           | `Sources _ ->
+               acc)
+      (`No_sources possible_base_fn)
+      possible_base_fn
+
+let source_unix_files ~ctxt (cs, bs, lib) source_file_exists =
+  List.fold_left
+    (fun acc modul ->
+       match find_module source_file_exists (cs, bs, lib) modul with
+         | `Sources (base_fn, lst) ->
+             (base_fn, lst) :: acc
+         | `No_sources _ ->
+             OASISMessage.warning
+               ~ctxt
+               (f_ "Cannot find source file matching \
+                    module '%s' in library %s")
+               modul cs.cs_name;
+             acc)
+    []
+    (lib.lib_modules @ lib.lib_internal_modules)
+
 let generated_unix_files ~ctxt (cs, bs, lib)
       source_file_exists is_native ext_lib ext_dll =
 
-  (* Look for a module file, considering capitalization or not. *)
-  let find_module modul = 
-    let possible_base_fn = 
-      List.map
-        (OASISUnixPath.concat bs.bs_path)
-        [modul;
-         OASISUnixPath.uncapitalize_file modul;
-         OASISUnixPath.capitalize_file modul]
-    in
-      try
-        begin
-          [List.find
-             (fun fn ->
-                source_file_exists (fn^".ml") ||
-                source_file_exists (fn^".mli") ||
-                source_file_exists (fn^".mll") ||
-                source_file_exists (fn^".mly"))
-             possible_base_fn]
-        end
-      with Not_found ->
-        begin
-           OASISMessage.warning
-             ~ctxt
-             (f_ "Cannot find source file matching \
-                  module '%s' in library %s")
-             modul cs.cs_name;
-           possible_base_fn
-        end
-  in
-
   let find_modules lst ext = 
+    let find_module modul =
+      match find_module source_file_exists (cs, bs, lib) modul with
+        | `Sources (base_fn, _) ->
+            [base_fn]
+        | `No_sources lst ->
+            OASISMessage.warning
+              ~ctxt
+              (f_ "Cannot find source file matching \
+                   module '%s' in library %s")
+              modul cs.cs_name;
+            lst
+    in
     List.map 
       (fun nm -> 
          List.map 
@@ -348,3 +385,4 @@ let root_of_group grp =
 (* END EXPORT *)
 
 let schema = OASISLibrary_intern.schema
+

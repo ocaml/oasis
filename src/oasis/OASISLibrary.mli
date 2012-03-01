@@ -19,11 +19,22 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** SourceRepository section
+(** Library section
     @author Sylvain Le Gall
   *)
 
 open OASISTypes
+
+(** [source_unix_files (cs, bs, lib) source_file_exists] Source files for this
+    library. The first part of the tuple is the file without extenstion for
+    modules and the second part is the source files matching (e.g. .ml and
+    .mli).
+  *)
+val source_unix_files :
+  ctxt:OASISContext.t ->
+  common_section * build_section * library ->
+  (unix_filename -> bool) ->
+  (unix_filename * (unix_filename list)) list
 
 (** [generated_unix_files ~ctxt (cs, bs, lib) source_file_exists is_native ext_lib ext_dll] 
     Compute all files expected by a build of the library. For each file a list
@@ -32,7 +43,7 @@ open OASISTypes
 val generated_unix_files :
   ctxt:OASISContext.t ->
   common_section * build_section * library ->
-  (string -> bool) ->
+  (unix_filename -> bool) ->
   (unit -> bool) ->
   (unit -> string) -> (unit -> string) -> unix_filename list list
 
@@ -95,3 +106,5 @@ val root_of_group :
 (** Schema for the section. {b Not exported}.
   *)
 val schema : (common_section * build_section * library) OASISSchema.t
+
+

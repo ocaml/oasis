@@ -563,6 +563,40 @@ let tests =
              (all_files_cwd ())
          in
 
+        (* If a _tags file exists, try to test its content. *)
+        let () =
+          if Sys.file_exists "_tags" then
+            let chn = open_in "_tags" in
+              try
+                while true do
+                  let line = input_line chn in
+                    try
+                      let substr = Pcre.exec ~pat:"^\\s*\"(.*)\"\\s*:" line in
+                      let fn = Pcre.get_substring substr 1 in
+                        if List.mem fn
+                             [".git"; ".bzr"; ".hg"; "_darcs"] ||
+                           List.mem (FilePath.get_extension fn)
+                             ["byte"; "native"; "lib"; "dll"; "a"; "so"] then
+                          ()
+                        else if FilePath.get_extension fn = "cmx" then
+                          begin
+                            let fn_ml = FilePath.replace_extension fn "ml" in
+                              if not  (Sys.file_exists fn_ml) then
+                                assert_failure
+                                  (Printf.sprintf
+                                     "source file '%s' doesn't exist" fn_ml)
+                          end
+                        else if not (Sys.file_exists fn) then
+                          assert_failure
+                            (Printf.sprintf "file '%s' doesn't exist" fn)
+                    with Not_found ->
+                      (* TODO: handle ocamlbuild wildcard *)
+                      ()
+                done
+              with End_of_file ->
+                close_in chn
+        in
+
            (* Run the main function *)
            f (cur_dir, loc, pristine, expected_post_oasis_files);
 
@@ -934,7 +968,9 @@ let tests =
                     else
                       "packedlib.a"]);
             ],
-            []);
+            [
+              try_installed_library "packedlib" ["Packedlib.Foo"]
+            ]);
 
 
 
@@ -1260,6 +1296,30 @@ let tests =
             oasis_ocamlbuild_files,
             [],
             []);
+
+         "data/bugClib",
+         (fun () ->
+            long_test,
+            "META" :: "mylib.mlpack" :: "libmylib.clib" ::
+            oasis_ocamlbuild_files,
+            [in_ocaml_library "mylib"
+               ["META";
+                (if Sys.os_type = "Win32" then
+                   "dllmylib.dll"
+                 else
+                   "dllmylib.so");
+                "foo.ml"; "mylib.cma"; "mylib.cmi"];
+             conditional
+               !has_ocamlopt
+               (in_ocaml_library "mylib"
+                  ("mylib.cmxa" ::
+                   if Sys.os_type = "Win32" then
+                     ["mylib.lib"; "libmylib.lib"]
+                   else
+                     ["mylib.a"; "libmylib.a"]))],
+            [
+              try_installed_library "mylib" ["Mylib.Foo"; "Mylib.Bar"]
+            ])
        ]
     )
     @
