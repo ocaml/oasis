@@ -259,6 +259,12 @@ let () =
 
            try 
              let () = 
+               if Sys.file_exists "setup.data" then
+                 failwith
+                   "Remaining setup.data file."
+             in
+
+             let () = 
                (* Check that build, test, doc run smoothly *)
                BaseExec.run "ocaml" ["setup.ml"; "-all"]
              in
@@ -273,7 +279,7 @@ let () =
                in
                  if bak_files <> [] then
                    failwithf
-                     "Remaining .bak files: %s"
+                     "Remaining .bak files: %s."
                      (String.concat ", " bak_files)
              in
 
