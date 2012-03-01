@@ -29,31 +29,32 @@ let init pkg =
   List.iter
     (function
        | Executable (cs, bs, exec) ->
-           var_ignore
-             (var_redefine
-                (* We don't save this variable *)
-                ~dump:false
-                ~short_desc:(fun () ->
-                               Printf.sprintf
-                                 (f_ "Filename of executable '%s'")
-                                 cs.cs_name)
-                cs.cs_name
-                (fun () ->
-                   let fn_opt =
-                     fold
-                       BExec cs.cs_name
-                       (fun _ fn -> Some fn)
-                       None
-                   in
-                     match fn_opt with
-                       | Some fn -> fn
-                       | None ->
-                           raise
-                             (PropList.Not_set
-                                (cs.cs_name,
-                                 Some (Printf.sprintf
-                                         (f_ "Executable '%s' not yet built.")
-                                         cs.cs_name)))))
+           if var_choose bs.bs_build then
+             var_ignore
+               (var_redefine
+                  (* We don't save this variable *)
+                  ~dump:false
+                  ~short_desc:(fun () ->
+                                 Printf.sprintf
+                                   (f_ "Filename of executable '%s'")
+                                   cs.cs_name)
+                  cs.cs_name
+                  (fun () ->
+                     let fn_opt =
+                       fold
+                         BExec cs.cs_name
+                         (fun _ fn -> Some fn)
+                         None
+                     in
+                       match fn_opt with
+                         | Some fn -> fn
+                         | None ->
+                             raise
+                               (PropList.Not_set
+                                  (cs.cs_name,
+                                   Some (Printf.sprintf
+                                           (f_ "Executable '%s' not yet built.")
+                                           cs.cs_name)))))
 
        | Library _ | Flag _ | Test _ | SrcRepo _ | Doc _ ->
            ())
