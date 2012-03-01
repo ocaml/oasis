@@ -23,3 +23,4 @@ type t = int
 
 let create n = n
 let value n = n
+let dump () = prerr_endline "In Packedlib.Foo"

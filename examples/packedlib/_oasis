@@ -14,4 +14,9 @@ Synopsis: Testing packed libraries work fine in oasis
 Library packedlib
   Pack: true
   Path: src
-  Modules: Foo, Bar
+  Modules: Foo, Bar, Baz
+
+Executable test
+  Path: test
+  MainIs: main.ml
+  BuildDepends: packedlib

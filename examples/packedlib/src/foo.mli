@@ -22,3 +22,4 @@
 type t
 val create : int -> t
 val value : t -> int
+val dump : unit -> unit
