@@ -58,6 +58,10 @@ type t =
       lib_ocaml: (name * dir list) list;
       lib_c:     (name * dir * file list) list; 
       flags:     (tag list * (spec OASISExpr.choices)) list;
+      (* Replace the 'dir: include' from _tags by a precise interdepends in
+       * directory.
+       *)
+      includes:  (dir * dir list) list; 
     } with odn
 
 let env_filename =
@@ -113,6 +117,12 @@ let dispatch t e =
                           ["compile"; "infer_interface"; "doc"])
                      tl)
             t.lib_ocaml;
+
+          (* Declare directories dependencies, replace "include" in _tags. *)
+          List.iter 
+            (fun (dir, include_dirs) ->
+               Pathname.define_context dir include_dirs)
+            t.includes;
 
           (* Declare C libraries *)
           List.iter

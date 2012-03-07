@@ -481,22 +481,6 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
            (OASISSection.MapSection.find sct mp))
   in
 
-  (* Fix for PR#5015, unable to compile depends in subdir *)
-  let tag_t =
-    let dirs =
-      src_dirs @ src_internal_dirs
-    in
-      (if List.length dirs > 1 then
-         add_tags
-           tag_t
-           (List.filter
-              (fun fn -> not (FilePath.UnixPath.is_current fn))
-              dirs)
-           ["include"]
-       else
-         tag_t)
-  in
-
   let ctxt =
     (* TODO: merge with qstr_cmplt *)
     set_error
@@ -509,7 +493,137 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
 
     ctxt, tag_t, myocamlbuild_t
 
+module MapDirs = 
+  Map.Make 
+    (struct 
+       type t = [`Library of string | `Executable of string]
+       let compare t1 t2 = 
+         match t1, t2 with 
+           | `Library _, `Executable _ ->
+               -1
+           | `Executable _, `Library _ ->
+               1
+           | `Library s1, `Library s2 
+           | `Executable s1, `Executable s2 ->
+               String.compare s1 s2
+     end)
+
+let compute_map_dirs pkg = 
+  let add k dirs internal_dirs mp =
+    let src_dirs, src_internal_dirs = 
+      try 
+        MapDirs.find k mp
+      with Not_found ->
+        SetString.empty, SetString.empty
+    in
+    let add_dirs st dirs = SetString.union st (set_string_of_list dirs) in
+      MapDirs.add k 
+        (add_dirs src_dirs dirs, 
+         add_dirs src_internal_dirs internal_dirs) 
+        mp
+  in
+  let map_dirs = 
+    List.fold_left
+      (fun mp ->
+         function
+           | Library (cs, bs, lib) ->
+               add (`Library cs.cs_name)
+                 (* All paths accessed from within the library *)
+                 (bs_paths bs lib.lib_modules)
+                 (* All paths accessed only by the library *)
+                 (bs_paths bs lib.lib_internal_modules)
+                 mp
+
+           | Executable (cs, bs, exec) ->
+               add (`Executable cs.cs_name)
+                 (bs_paths bs [exec.exec_main_is])
+                 [] (* No internal paths *)
+                 mp
+           | Flag _ | SrcRepo _ | Test _ | Doc _ ->
+               mp)
+      MapDirs.empty
+      pkg.sections
+  in
+    (* Now get rid of internal paths that are also non internal. *)
+    MapDirs.map
+      (fun (src_dirs, src_internal_dirs) ->
+         SetString.elements src_dirs,
+         SetString.elements (SetString.diff src_internal_dirs src_dirs))
+      map_dirs
+
+let compute_includes map_dirs pkg =
+  let add_includes dir set_dirs includes = 
+    (* Not self-dependent *)
+    let set_dirs = SetString.diff set_dirs (SetString.singleton dir) in 
+    let pre_dirs = 
+      try 
+        MapString.find dir includes 
+      with Not_found ->
+        SetString.empty
+    in
+      MapString.add dir (SetString.union set_dirs pre_dirs) includes
+  in
+
+  let add_map_dirs k bs includes = 
+    let dep_dirs = 
+      (* Source dirs of dependent libraries *)
+      List.fold_left 
+        (fun set ->
+           function
+             | InternalLibrary nm ->
+                let src_dirs, _ = 
+                   MapDirs.find (`Library nm) map_dirs 
+                 in
+                   SetString.union set (set_string_of_list src_dirs)
+
+             | FindlibPackage _ ->
+                 set)
+        SetString.empty
+        bs.bs_build_depends
+    in
+    let self_dirs =
+      (* Source dirs *)
+      let src_dirs, src_internal_dirs = MapDirs.find k map_dirs in
+        SetString.union 
+          (set_string_of_list src_dirs)
+          (set_string_of_list src_internal_dirs)
+    in
+    let all_dirs = SetString.union dep_dirs self_dirs in
+      (* All self_dirs depends on all_dirs *)
+      SetString.fold
+        (fun dir includes ->
+           add_includes dir all_dirs includes)
+        self_dirs
+        includes
+  in
+
+  let includes = 
+    List.fold_left
+      (fun includes ->
+         function
+           | Library (cs, bs, _) ->
+               add_map_dirs (`Library cs.cs_name) bs includes
+           | Executable (cs, bs, _) ->
+               add_map_dirs (`Executable cs.cs_name) bs includes
+           | Flag _ | SrcRepo _ | Test _ | Doc _ ->
+               includes)
+      MapString.empty
+      pkg.sections
+  in
+    MapString.fold
+      (fun dir include_dirs acc ->
+         if SetString.empty <> include_dirs then
+           (dir, SetString.elements include_dirs) :: acc
+         else
+           acc)
+      includes
+      []
+
 let add_ocamlbuild_files ctxt pkg =
+
+  let map_dirs = 
+    compute_map_dirs pkg
+  in
 
   let ctxt, tag_t, myocamlbuild_t =
     List.fold_left
@@ -519,25 +633,9 @@ let add_ocamlbuild_files ctxt pkg =
                begin
                  (* Extract content for libraries *)
 
-                 (* All paths accessed from within the library *)
-                 let src_dirs =
-                   bs_paths bs lib.lib_modules
-                 in
-
-                 (* All paths accessed only by the library *)
-                 let src_internal_dirs =
-                   let set_dirs =
-                     set_string_of_list
-                       src_dirs
-                   in
-                   let set_internal_dirs =
-                     set_string_of_list
-                       (bs_paths bs lib.lib_internal_modules)
-                   in
-                     SetString.elements
-                       (SetString.diff
-                          set_internal_dirs
-                          set_dirs)
+                 (* All paths of the library *)
+                 let src_dirs, src_internal_dirs = 
+                   MapDirs.find (`Library cs.cs_name) map_dirs
                  in
 
                  (* Generated library *)
@@ -560,16 +658,6 @@ let add_ocamlbuild_files ctxt pkg =
                  (* Start comment *)
                  let tag_t =
                    (Printf.sprintf "# Library %s" cs.cs_name) :: tag_t
-                 in
-
-                 (* Add include tag if the library is internal *)
-                 let tag_t =
-                   add_tags
-                     tag_t
-                     (List.filter
-                        (fun fn -> not (FilePath.UnixPath.is_current fn))
-                        (src_dirs @ src_internal_dirs))
-                     ["include"]
                  in
 
                  let tag_t =
@@ -658,8 +746,8 @@ let add_ocamlbuild_files ctxt pkg =
            | Executable (cs, bs, exec) as sct ->
                begin
                  (* Extract content for executables *)
-                 let src_dirs =
-                   bs_paths bs [exec.exec_main_is]
+                 let src_dirs, src_internal_dirs =
+                   MapDirs.find (`Executable cs.cs_name) map_dirs
                  in
 
                  let target_exec =
@@ -685,7 +773,7 @@ let add_ocamlbuild_files ctxt pkg =
                    bs_tags
                      pkg sct cs bs
                      src_dirs
-                     []
+                     src_internal_dirs 
                      target_exec
                      ctxt
                      tag_t
@@ -704,7 +792,7 @@ let add_ocamlbuild_files ctxt pkg =
 
            | Flag _ | SrcRepo _ | Test _ | Doc _ ->
                ctxt, tag_t, myocamlbuild_t)
-      (ctxt, [], {lib_ocaml = []; lib_c = []; flags = []})
+      (ctxt, [], {lib_ocaml = []; lib_c = []; flags = []; includes = []})
       pkg.sections
   in
 
@@ -731,6 +819,7 @@ let add_ocamlbuild_files ctxt pkg =
       lib_ocaml = List.rev myocamlbuild_t.lib_ocaml;
       lib_c     = List.rev myocamlbuild_t.lib_c;
       flags     = List.rev myocamlbuild_t.flags;
+      includes  = compute_includes map_dirs pkg;
     }
   in
 
