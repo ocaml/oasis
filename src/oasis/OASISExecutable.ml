@@ -41,7 +41,7 @@ let unix_exec_is (cs, bs, exec) is_native ext_dll suffix_program =
     if not is_native_exec && 
        not exec.exec_custom && 
        bs.bs_c_sources <> [] then
-      Some (dir^"/dll"^cs.cs_name^(ext_dll ()))
+      Some (dir^"/dll"^cs.cs_name^"_stubs"^(ext_dll ()))
     else
       None
 

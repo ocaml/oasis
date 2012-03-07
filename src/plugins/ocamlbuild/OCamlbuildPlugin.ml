@@ -287,11 +287,11 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
          (fun fmt -> (prepend_bs_path bs) (Printf.sprintf fmt cs.cs_name))
          [
            (* Unix *)
-           "dll%s.so";
-           "lib%s.a";
+           "dll%s_stubs.so";
+           "lib%s_stubs.a";
            (* Win32 *)
-           "dll%s.dll";
-           "lib%s.lib";
+           "dll%s_stubs.dll";
+           "lib%s_stubs.lib";
          ])
     else
       []
@@ -426,7 +426,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
         (* Generate .clib files *)
         let fn_clib =
           FilePath.add_extension
-            (prepend_bs_path bs ("lib"^cs.cs_name))
+            (prepend_bs_path bs ("lib"^(nm_libstubs cs.cs_name)))
             "clib"
         in
           add_file
@@ -443,7 +443,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
           add_tags
             tag_t
             [link_tgt]
-            ["use_lib"^cs.cs_name],
+            [tag_libstubs cs.cs_name],
 
           {myocamlbuild_t with
                lib_c =

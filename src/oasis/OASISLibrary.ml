@@ -163,9 +163,9 @@ let generated_unix_files ~ctxt (cs, bs, lib)
   let acc_nopath =
     if bs.bs_c_sources <> [] then
       begin
-        ["lib"^cs.cs_name^(ext_lib ())]
+        ["lib"^cs.cs_name^"_stubs"^(ext_lib ())]
         ::
-        ["dll"^cs.cs_name^(ext_dll ())]
+        ["dll"^cs.cs_name^"_stubs"^(ext_dll ())]
         ::
         acc_nopath
       end

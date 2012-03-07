@@ -163,10 +163,13 @@ let install_lib ~directory ~archive ~interfaces =
       (List.rev_map 
          (fun archive ->
             let fn_stubs_a = 
-              mandatory_file (Filename.concat directory ("lib"^archive^".a"))
+              (* FIXME msvc: .lib .dll ? *)
+              mandatory_file
+                (Filename.concat directory ("lib"^archive^"_stubs.a"))
             in
             let fn_stubs_so =
-              mandatory_file (Filename.concat directory ("dll"^archive^".so"))
+              mandatory_file
+                (Filename.concat directory ("dll"^archive^"_stubs.so"))
             in
               [fn_stubs_a; fn_stubs_so]
          )

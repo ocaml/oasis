@@ -74,6 +74,12 @@ let dispatch_combine lst =
       (fun dispatch -> dispatch e)
       lst 
 
+let tag_libstubs nm =
+  "use_lib"^nm^"_stubs"
+
+let nm_libstubs nm =
+  nm^"_stubs"
+
 let dispatch t e = 
   let env = 
     BaseEnvLight.load 
@@ -128,23 +134,24 @@ let dispatch t e =
           List.iter
             (fun (lib, dir, headers) ->
                  (* Handle C part of library *)
-                 flag ["link"; "library"; "ocaml"; "byte"; "use_lib"^lib]
-                   (S[A"-dllib"; A("-l"^lib); A"-cclib"; A("-l"^lib)]);
+                 flag ["link"; "library"; "ocaml"; "byte"; tag_libstubs lib]
+                   (S[A"-dllib"; A("-l"^(nm_libstubs lib)); A"-cclib";
+                      A("-l"^(nm_libstubs lib))]);
 
-                 flag ["link"; "library"; "ocaml"; "native"; "use_lib"^lib]
-                   (S[A"-cclib"; A("-l"^lib)]);
+                 flag ["link"; "library"; "ocaml"; "native"; tag_libstubs lib]
+                   (S[A"-cclib"; A("-l"^(nm_libstubs lib))]);
                       
-                 flag ["link"; "program"; "ocaml"; "byte"; "use_lib"^lib]
-                   (S[A"-dllib"; A("dll"^lib)]);
+                 flag ["link"; "program"; "ocaml"; "byte"; tag_libstubs lib]
+                   (S[A"-dllib"; A("dll"^(nm_libstubs lib))]);
 
                  (* When ocaml link something that use the C library, then one
                     need that file to be up to date.
                   *)
-                 dep  ["link"; "ocaml"; "program"; "use_lib"^lib]
-                   [dir/"lib"^lib^"."^(!Options.ext_lib)];
+                 dep  ["link"; "ocaml"; "program"; tag_libstubs lib]
+                   [dir/"lib"^(nm_libstubs lib)^"."^(!Options.ext_lib)];
 
-                 dep  ["compile"; "ocaml"; "program"; "use_lib"^lib]
-                   [dir/"lib"^lib^"."^(!Options.ext_lib)];
+                 dep  ["compile"; "ocaml"; "program"; tag_libstubs lib]
+                   [dir/"lib"^(nm_libstubs lib)^"."^(!Options.ext_lib)];
 
                  (* TODO: be more specific about what depends on headers *)
                  (* Depends on .h files *)

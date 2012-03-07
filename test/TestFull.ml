@@ -1050,10 +1050,10 @@ let tests =
             long_test,
             [
               "src/META"; 
-              "src/libtest-with-c-custom.clib"; 
-              "src/libtest-with-c-native.clib";
-              "src/libtest-with-c.clib";
-              "src/libwith-c.clib";
+              "src/libtest-with-c-custom_stubs.clib";
+              "src/libtest-with-c-native_stubs.clib";
+              "src/libtest-with-c_stubs.clib";
+              "src/libwith-c_stubs.clib";
               "src/with-c.mllib";
               "src/with-c.odocl";
             ] @ oasis_ocamlbuild_files,
@@ -1070,16 +1070,16 @@ let tests =
                          else
                            "test-with-c-native"]);
               in_library [if Sys.os_type = "Win32" then
-                            "with-c/dlltest-with-c.dll"
+                            "with-c/dlltest-with-c_stubs.dll"
                           else
-                            "with-c/dlltest-with-c.so"];
+                            "with-c/dlltest-with-c_stubs.so"];
               in_ocaml_library "with-c"
                 ["A.cmi"; "A.ml"; "META"; "with-c.cma"]; 
               in_ocaml_library "with-c"
                 (if Sys.os_type = "Win32" then
-                   ["libwith-c.lib"; "dllwith-c.dll"]
+                   ["libwith-c.lib"; "dllwith-c_stubs.dll"]
                  else
-                   ["libwith-c.a"; "dllwith-c.so"]);
+                   ["libwith-c_stubs.a"; "dllwith-c_stubs.so"]);
               conditional
                 !has_ocamlopt
                 (in_ocaml_library "with-c" 
@@ -1259,7 +1259,7 @@ let tests =
             ["src/META"; 
              "Makefile"; 
              "configure"; 
-             "src/libtest_oasis_c_dependency.clib"; 
+             "src/libtest_oasis_c_dependency_stubs.clib";
              "src/test_oasis_c_dependency.mllib"] @ oasis_ocamlbuild_files,
             [],
             []);
@@ -1346,23 +1346,23 @@ let tests =
          "data/bugClib",
          (fun () ->
             long_test,
-            "META" :: "mylib.mlpack" :: "libmylib.clib" ::
+            "META" :: "mylib.mlpack" :: "libmylib_stubs.clib" ::
             oasis_ocamlbuild_files,
             [in_ocaml_library "mylib"
                ["META";
                 (if Sys.os_type = "Win32" then
-                   "dllmylib.dll"
+                   "dllmylib_stubs.dll"
                  else
-                   "dllmylib.so");
+                   "dllmylib_stubs.so");
                 "foo.ml"; "mylib.cma"; "mylib.cmi"];
              conditional
                !has_ocamlopt
                (in_ocaml_library "mylib"
                   ("mylib.cmxa" ::
                    if Sys.os_type = "Win32" then
-                     ["mylib.lib"; "libmylib.lib"]
+                     ["mylib.lib"; "libmylib_stubs.lib"]
                    else
-                     ["mylib.a"; "libmylib.a"]))],
+                     ["mylib.a"; "libmylib_stubs.a"]))],
             [
               try_installed_library "mylib" ["Mylib.Foo"; "Mylib.Bar"]
             ]);
