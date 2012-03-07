@@ -606,7 +606,7 @@ let add_ocamlbuild_files ctxt pkg =
                  let myocamlbuild_t =
                    {myocamlbuild_t with
                         lib_ocaml =
-                          (prepend_bs_path bs cs.cs_name,
+                          (cs.cs_name,
                            List.filter
                              (fun fn -> not (FilePath.UnixPath.is_current fn))
                              src_dirs) :: myocamlbuild_t.lib_ocaml}

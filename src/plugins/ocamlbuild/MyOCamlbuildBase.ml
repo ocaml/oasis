@@ -101,15 +101,16 @@ let dispatch t e =
           (* Declare OCaml libraries *)
           List.iter 
             (function
-               | lib, [] ->
-                   ocaml_lib lib;
-               | lib, dir :: tl ->
-                   ocaml_lib ~dir:dir lib;
+               | nm, [] ->
+                   ocaml_lib nm
+               | nm, dir :: tl ->
+                   ocaml_lib ~dir:dir (dir^"/"^nm);
                    List.iter 
                      (fun dir -> 
-                        flag 
-                          ["ocaml"; "use_"^lib; "compile"] 
-                          (S[A"-I"; P dir]))
+                        List.iter
+                          (fun str ->
+                             flag ["ocaml"; "use_"^nm; str] (S[A"-I"; P dir]))
+                          ["compile"; "infer_interface"; "doc"])
                      tl)
             t.lib_ocaml;
 

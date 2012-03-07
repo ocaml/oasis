@@ -571,6 +571,7 @@ let tests =
                 while true do
                   let line = input_line chn in
                     try
+                      let _ = "(*" in
                       let substr = Pcre.exec ~pat:"^\\s*\"(.*)\"\\s*:" line in
                       let fn = Pcre.get_substring substr 1 in
                         if List.mem fn
@@ -721,6 +722,51 @@ let tests =
            assert_bool
              "File 'setup.data' has been created"
              (Sys.file_exists "setup.data")
+         in
+
+         (* Extract ocamlbuild flags and check that they are correct. *)
+         let () = 
+           if Sys.file_exists "myocamlbuild.ml" then
+             let chn = Unix.open_process_in "ocamlbuild -documentation" in
+             let rst = ref SetString.empty in
+             let () =
+               try
+                 while true do
+                   let line = input_line chn in
+                     try
+                       let _ = "(*" in
+                       let substr = Pcre.exec ~pat:"flag {\\. (.*) \\.}" line in
+                       let lst = 
+                         Pcre.split ~pat:"\\s*,\\s*" 
+                           (Pcre.get_substring substr 1)
+                       in
+                         rst :=
+                         List.fold_left
+                           (fun st e -> SetString.add e st)
+                           !rst
+                           lst
+                     with Not_found ->
+                       ()
+                 done
+               with End_of_file ->
+                 ignore (Unix.close_process_in chn)
+             in
+               if !rst = SetString.empty then
+                 assert_failure ("Set of flags should not be empty.");
+               SetString.iter 
+                 (fun flag ->
+                    String.iter 
+                      (function
+                         | 'A'..'Z' | 'a'..'z' | '0'..'9' 
+                         | '_' | '.' | ':' | '-' | '(' | ')' -> 
+                             ()
+                         | c ->
+                             assert_failure 
+                               (Printf.sprintf 
+                                  "flag %S contains %C which is illegal."
+                                  flag c))
+                      flag)
+                 !rst
          in
 
          (* Run build target *)
@@ -958,7 +1004,7 @@ let tests =
             [
               in_ocaml_library "packedlib" 
                 ["packedlib.cma"; "packedlib.cmi";
-                 "foo.mli"; "bar.mli"; "META"];
+                 "foo.mli"; "bar.mli"; "Baz.ml"; "META"];
               conditional
                 !has_ocamlopt
                 (in_ocaml_library "packedlib"
@@ -1319,7 +1365,14 @@ let tests =
                      ["mylib.a"; "libmylib.a"]))],
             [
               try_installed_library "mylib" ["Mylib.Foo"; "Mylib.Bar"]
-            ])
+            ]);
+
+          "data/bug791",
+          (fun () ->
+             long_test,
+             "src/testA.mllib" :: oasis_ocamlbuild_files,
+             [],
+             [])
        ]
     )
     @

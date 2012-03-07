@@ -20,3 +20,4 @@ Executable test
   Path: test
   MainIs: main.ml
   BuildDepends: packedlib
+  Install: false

@@ -1,0 +1,20 @@
+OASISFormat: 0.2
+Name:        test
+Version:     0
+Synopsis:    None
+Authors:     Sylvain Le Gall
+License:     LGPL-2.1 with OCaml linking exception
+
+Library "testA"
+  Path:       src
+  BuildTools: ocamlbuild
+  Modules:    A, lib/B
+  Install:    false
+
+Executable "C"
+  Path:       test
+  BuildTools: ocamlbuild
+  BuildDepends: testA
+  MainIs:     C.ml
+  Install:    false
+
