@@ -908,6 +908,12 @@ let tests =
       test_of_vector_dev e;
     ]
   in
+  let ocaml_supports_cmxs =
+    (* FIXME: See def in OASIS* modules *)
+    OASISVersion.version_compare
+      (OASISVersion.version_of_string Sys.ocaml_version)
+      (OASISVersion.version_of_string "3.11.2") >= 0
+  in
 
     "TestFull" >:::
     (List.map test_of_vector
@@ -932,13 +938,16 @@ let tests =
                  "META"];
               conditional 
                 !has_ocamlopt
-                (in_ocaml_library "simplelib" 
+                (let libs =
                    ["simplelib.cmxa"; 
                     "Foo.cmx"; "Bar.cmx";
                     if Sys.os_type = "Win32" then
                       "simplelib.lib"
                     else
-                      "simplelib.a"]);
+                      "simplelib.a"] in
+                 let libs = if ocaml_supports_cmxs then "simplelib.cmxs" :: libs
+                            else libs in
+                 in_ocaml_library "simplelib" libs);
 
               in_ocaml_library "simplelibext"
                 ["simplelibext.cma"; 
@@ -947,13 +956,17 @@ let tests =
                  "META"];
               conditional
                 !has_ocamlopt
-                (in_ocaml_library "simplelibext"
+                (let libs =
                    ["simplelibext.cmxa"; 
                     "FooExt.cmx"; "BarExt.cmx";
                     if Sys.os_type = "Win32" then 
                       "simplelibext.lib"
                     else
-                      "simplelibext.a"]);
+                      "simplelibext.a"] in
+                 let libs =
+                   if ocaml_supports_cmxs then "simplelibext.cmxs" :: libs
+                   else libs in
+                 in_ocaml_library "simplelibext" libs);
 
               api_ref_html "simplelib"
                 ["Foo"; "Bar"];

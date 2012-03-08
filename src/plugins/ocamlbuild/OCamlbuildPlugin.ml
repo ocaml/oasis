@@ -79,10 +79,11 @@ let build pkg argv =
                         (List.map
                            (List.filter
                               (fun fn ->
-                                 ends_with ".cma" fn ||
-                                 ends_with ".cmxa" fn ||
-                                 ends_with (ext_lib ()) fn ||
-                                 ends_with (ext_dll ()) fn))
+                               ends_with ".cma" fn
+                               || ends_with ".cmxs" fn
+                               || ends_with ".cmxa" fn
+                               || ends_with (ext_lib ()) fn
+                               || ends_with (ext_dll ()) fn))
                            unix_files))
                  in
 
@@ -658,6 +659,17 @@ let add_ocamlbuild_files ctxt pkg =
                  (* Start comment *)
                  let tag_t =
                    (Printf.sprintf "# Library %s" cs.cs_name) :: tag_t
+                 in
+
+                 (* Add dependency of cmxs to their own library: used
+		    at link time when there is C code *)
+                 let tag_t =
+                   add_tags
+                     tag_t
+                     [prepend_bs_path
+                        bs
+                        (FilePath.UnixPath.add_extension cs.cs_name "cmxs")]
+                     ["use_"^cs.cs_name]
                  in
 
                  let tag_t =
