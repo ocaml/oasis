@@ -471,6 +471,55 @@ let tests =
   let long_test () =
     skip_if (not !long) "Long test"
   in
+
+  let ocaml_supports_cmxs =
+    (* FIXME: See def in OASIS* modules *)
+    OASISVersion.version_compare
+      (OASISVersion.version_of_string Sys.ocaml_version)
+      (OASISVersion.version_of_string "3.11.2") >= 0
+  in
+
+  let filter_platform lst = 
+    let check_suff = Filename.check_suffix in
+    List.fold_left 
+      (fun acc fn -> 
+         if (check_suff fn "cmx" || check_suff fn "cmxa") then
+           if !has_ocamlopt then
+             fn :: acc
+           else
+             acc
+         else if check_suff fn "cmxs" then
+           if !has_ocamlopt && ocaml_supports_cmxs then
+             fn :: acc
+           else
+             acc
+         else if check_suff fn "a" then 
+           let fn =
+             if Sys.os_type = "Win32" then
+               (Filename.chop_extension fn) ^ ".lib"
+             else
+               fn
+           in
+             if BatString.starts_with (Filename.basename fn) "lib" then
+               (* stubs library *)
+               fn :: acc
+             else if !has_ocamlopt then
+               (* library matching the .cmxa *)
+               fn :: acc
+             else
+               acc
+         else if check_suff fn "so" then
+           let fn = 
+             if Sys.os_type = "Win32" then
+               (Filename.chop_extension fn) ^ ".dll"
+             else
+               fn
+           in
+             fn :: acc
+         else 
+           fn :: acc)
+      [] lst
+  in
     
   let bracket_setup 
         ?(dev=false)
@@ -478,7 +527,7 @@ let tests =
         f = 
     bracket
       (fun () ->
-         let (skip_cond, oasis_extra_files, installed_files, post_install_runs) = 
+         let (skip_cond, oasis_extra_files, _, post_install_runs) = 
            vars () 
          in
 
@@ -527,7 +576,7 @@ let tests =
            bak_lst)
 
       (fun (cur_dir, loc, pristine, bak_lst) ->
-         let (skip_cond, oasis_extra_files, installed_files, post_install_runs) = 
+         let (skip_cond, oasis_extra_files, _, post_install_runs) = 
            vars () 
          in
 
@@ -567,9 +616,11 @@ let tests =
         let () =
           if Sys.file_exists "_tags" then
             let chn = open_in "_tags" in
+            let lineno = ref 0 in
               try
                 while true do
                   let line = input_line chn in
+                  let () = incr lineno in
                     try
                       let _ = "(*" in
                       let substr = Pcre.exec ~pat:"^\\s*\"(.*)\"\\s*:" line in
@@ -577,7 +628,7 @@ let tests =
                         if List.mem fn
                              [".git"; ".bzr"; ".hg"; "_darcs"] ||
                            List.mem (FilePath.get_extension fn)
-                             ["byte"; "native"; "lib"; "dll"; "a"; "so"] then
+                             ["byte"; "native"; "lib"; "dll"; "a"; "so"; "cmxs"] then
                           ()
                         else if FilePath.get_extension fn = "cmx" then
                           begin
@@ -589,7 +640,8 @@ let tests =
                           end
                         else if not (Sys.file_exists fn) then
                           assert_failure
-                            (Printf.sprintf "file '%s' doesn't exist" fn)
+                            (Printf.sprintf "file '%s' doesn't exist in _tags file line %d (%S)" 
+                               fn !lineno line)
                     with Not_found ->
                       (* TODO: handle ocamlbuild wildcard *)
                       ()
@@ -704,10 +756,11 @@ let tests =
              (fun st e -> SetFile.add e st)
              SetFile.empty
              (* Compute all file that should have been installed *)
-             (List.fold_left
-                (fun acc f -> f loc acc)
-                []
-                installed_files)
+             (filter_platform
+               (List.fold_left
+                  (fun acc f -> f loc acc)
+                  []
+                  installed_files))
          in
 
          (* Run configure target *)
@@ -727,29 +780,33 @@ let tests =
          (* Extract ocamlbuild flags and check that they are correct. *)
          let () = 
            if Sys.file_exists "myocamlbuild.ml" then
-             let chn = Unix.open_process_in "ocamlbuild -documentation" in
+             let documentation_output = 
+               let buf = Buffer.create 16000 in
+               OUnit.assert_command 
+                 ~foutput:(Stream.iter (Buffer.add_char buf))
+                 "ocamlbuild" ["-documentation"];
+               Buffer.contents buf
+             in
+             let lst = OASISUtils.split '\n' documentation_output in 
              let rst = ref SetString.empty in
              let () =
-               try
-                 while true do
-                   let line = input_line chn in
-                     try
-                       let _ = "(*" in
-                       let substr = Pcre.exec ~pat:"flag {\\. (.*) \\.}" line in
-                       let lst = 
-                         Pcre.split ~pat:"\\s*,\\s*" 
-                           (Pcre.get_substring substr 1)
-                       in
-                         rst :=
-                         List.fold_left
-                           (fun st e -> SetString.add e st)
-                           !rst
-                           lst
-                     with Not_found ->
-                       ()
-                 done
-               with End_of_file ->
-                 ignore (Unix.close_process_in chn)
+               List.iter 
+                 (fun line ->
+                    try
+                      let _ = "(*" in
+                      let substr = Pcre.exec ~pat:"flag {\\. (.*) \\.}" line in
+                      let lst = 
+                        Pcre.split ~pat:"\\s*,\\s*" 
+                          (Pcre.get_substring substr 1)
+                      in
+                        rst :=
+                        List.fold_left
+                          (fun st e -> SetString.add e st)
+                          !rst
+                          lst
+                    with Not_found ->
+                      ())
+                 lst
              in
                if !rst = SetString.empty then
                  assert_failure ("Set of flags should not be empty.");
@@ -908,12 +965,6 @@ let tests =
       test_of_vector_dev e;
     ]
   in
-  let ocaml_supports_cmxs =
-    (* FIXME: See def in OASIS* modules *)
-    OASISVersion.version_compare
-      (OASISVersion.version_of_string Sys.ocaml_version)
-      (OASISVersion.version_of_string "3.11.2") >= 0
-  in
 
     "TestFull" >:::
     (List.map test_of_vector
@@ -931,42 +982,25 @@ let tests =
               "src/simplelibext/simplelibext.odocl";
             ],
             [
-              (in_ocaml_library "simplelib") 
+              in_ocaml_library "simplelib"
                 ["simplelib.cma"; 
                  "Foo.cmi"; "Foo.ml"; 
                  "Bar.cmi"; "Bar.ml"; 
-                 "META"];
-              conditional 
-                !has_ocamlopt
-                (let libs =
-                   ["simplelib.cmxa"; 
-                    "Foo.cmx"; "Bar.cmx";
-                    if Sys.os_type = "Win32" then
-                      "simplelib.lib"
-                    else
-                      "simplelib.a"] in
-                 let libs = if ocaml_supports_cmxs then "simplelib.cmxs" :: libs
-                            else libs in
-                 in_ocaml_library "simplelib" libs);
+                 "META";
+                 "simplelib.cmxa"; 
+                 "simplelib.cmxs";
+                 "Foo.cmx"; "Bar.cmx";
+                 "simplelib.a"];
 
               in_ocaml_library "simplelibext"
                 ["simplelibext.cma"; 
                  "FooExt.cmi"; "FooExt.ml"; 
                  "BarExt.cmi"; "BarExt.ml"; 
-                 "META"];
-              conditional
-                !has_ocamlopt
-                (let libs =
-                   ["simplelibext.cmxa"; 
-                    "FooExt.cmx"; "BarExt.cmx";
-                    if Sys.os_type = "Win32" then 
-                      "simplelibext.lib"
-                    else
-                      "simplelibext.a"] in
-                 let libs =
-                   if ocaml_supports_cmxs then "simplelibext.cmxs" :: libs
-                   else libs in
-                 in_ocaml_library "simplelibext" libs);
+                 "META";
+                 "simplelibext.cmxa"; 
+                 "simplelibext.cmxs";
+                 "FooExt.cmx"; "BarExt.cmx";
+                 "simplelibext.a"];
 
               api_ref_html "simplelib"
                 ["Foo"; "Bar"];
@@ -992,16 +1026,11 @@ let tests =
                 ["simplelib.cma"; 
                  "foo.cmi"; "foo.mli"; 
                  "bar.cmi"; "bar.mli"; 
-                 "META"];
-              conditional 
-                !has_ocamlopt
-                (in_ocaml_library "simplelib"
-                   ["simplelib.cmxa"; 
-                    "foo.cmx"; "bar.cmx";
-                    if Sys.os_type = "Win32" then
-                      "simplelib.lib"
-                    else
-                      "simplelib.a"]);
+                 "META";
+                 "simplelib.cmxa"; 
+                 "simplelib.cmxs";
+                 "foo.cmx"; "bar.cmx";
+                 "simplelib.a"];
 
               api_ref_html "simplelib"
                 ["Bar"; "Foo"];
@@ -1017,21 +1046,13 @@ let tests =
             [
               in_ocaml_library "packedlib" 
                 ["packedlib.cma"; "packedlib.cmi";
-                 "foo.mli"; "bar.mli"; "Baz.ml"; "META"];
-              conditional
-                !has_ocamlopt
-                (in_ocaml_library "packedlib"
-                   ["packedlib.cmxa"; 
-                    if Sys.os_type = "Win32" then
-                      "packedlib.lib"
-                    else
-                      "packedlib.a"]);
+                 "foo.mli"; "bar.mli"; "Baz.ml"; "META";
+                 "packedlib.cmxa"; "packedlib.cmxs";
+                 "packedlib.a"];
             ],
             [
               try_installed_library "packedlib" ["Packedlib.Foo"]
             ]);
-
-
 
          (* Complete library with findlib package to check *)
          "../examples/findlib",
@@ -1040,7 +1061,6 @@ let tests =
             oasis_ocamlbuild_files,
             [],
             []);
-
 
          (* Complete library with custom build system *)
          "../examples/custom", 
@@ -1055,7 +1075,6 @@ let tests =
                  "META"];
             ],
             []);
-
 
          (* Library/executable using C files *)
          "../examples/with-c",
@@ -1082,26 +1101,11 @@ let tests =
                            "test-with-c-native.exe"
                          else
                            "test-with-c-native"]);
-              in_library [if Sys.os_type = "Win32" then
-                            "with-c/dlltest-with-c_stubs.dll"
-                          else
-                            "with-c/dlltest-with-c_stubs.so"];
+              in_library ["with-c/dlltest-with-c_stubs.so"];
               in_ocaml_library "with-c"
-                ["A.cmi"; "A.ml"; "META"; "with-c.cma"]; 
-              in_ocaml_library "with-c"
-                (if Sys.os_type = "Win32" then
-                   ["libwith-c.lib"; "dllwith-c_stubs.dll"]
-                 else
-                   ["libwith-c_stubs.a"; "dllwith-c_stubs.so"]);
-              conditional
-                !has_ocamlopt
-                (in_ocaml_library "with-c" 
-                   [if Sys.os_type = "Win32" then
-                      "with-c.lib"
-                    else
-                      "with-c.a"; 
-                    "A.cmx";
-                    "with-c.cmxa"]);
+                ["A.cmi"; "A.ml"; "META"; "with-c.cma"; 
+                 "libwith-c_stubs.a"; "dllwith-c_stubs.so";
+                 "with-c.a"; "A.cmx"; "with-c.cmxa"; "with-c.cmxs"];
 
               api_ref_html "with-c"
                 ["A"];
@@ -1173,16 +1177,9 @@ let tests =
              in_ocaml_library "test" 
                ["META"; "test.cma"; "pa_test.cma";
                 "A.ml"; "A.cmi"; "B.ml"; "B.cmi";
-                "pa_test.ml"; "pa_test.cmi"];
-             conditional 
-               !has_ocamlopt
-               (in_ocaml_library "test"
-                  ["test.cmxa"; 
-                   "A.cmx"; "B.cmx";
-                   if Sys.os_type = "Win32" then
-                     "test.lib"
-                   else
-                     "test.a"]);
+                "pa_test.ml"; "pa_test.cmi";
+                "test.cmxa"; "test.cmxs"; "A.cmx"; "B.cmx";
+                "test.a"];
 
              api_ref_html "test"
                ["A"; "B"];
@@ -1230,15 +1227,9 @@ let tests =
             ] @ oasis_ocamlbuild_files,
             [
               in_ocaml_library "with-a"
-                ["META"; "A.ml"; "A.cmi"; "with-a.cma"];
-              conditional
-                !has_ocamlopt
-                (in_ocaml_library "with-a"
-                   ["A.cmx"; "with-a.cmxa"; 
-                    if Sys.os_type = "Win32" then
-                      "with-a.lib"
-                    else
-                      "with-a.a"]);
+                ["META"; "A.ml"; "A.cmi"; "with-a.cma";
+                 "A.cmx"; "with-a.cmxa"; "with-a.cmxs"; 
+                 "with-a.a"];
               in_bin [if Sys.os_type = "Win32" then
                         "test-with-a.exe"
                       else
@@ -1362,20 +1353,10 @@ let tests =
             "META" :: "mylib.mlpack" :: "libmylib_stubs.clib" ::
             oasis_ocamlbuild_files,
             [in_ocaml_library "mylib"
-               ["META";
-                (if Sys.os_type = "Win32" then
-                   "dllmylib_stubs.dll"
-                 else
-                   "dllmylib_stubs.so");
-                "foo.ml"; "mylib.cma"; "mylib.cmi"];
-             conditional
-               !has_ocamlopt
-               (in_ocaml_library "mylib"
-                  ("mylib.cmxa" ::
-                   if Sys.os_type = "Win32" then
-                     ["mylib.lib"; "libmylib_stubs.lib"]
-                   else
-                     ["mylib.a"; "libmylib_stubs.a"]))],
+               ["META"; "dllmylib_stubs.so";
+                "foo.ml"; "mylib.cma"; "mylib.cmi";
+                "mylib.cmxa"; "mylib.cmxs"; 
+                "mylib.a"; "libmylib_stubs.a"]],
             [
               try_installed_library "mylib" ["Mylib.Foo"; "Mylib.Bar"]
             ]);
@@ -1385,7 +1366,7 @@ let tests =
              long_test,
              "src/testA.mllib" :: oasis_ocamlbuild_files,
              [],
-             [])
+             []);
        ]
     )
     @
