@@ -150,7 +150,7 @@ let build pkg argv =
   let check_and_register (bt, bnm, lst) =
     List.iter
       (fun fns ->
-         if not (List.exists Sys.file_exists fns) then
+         if not (List.exists OASISUtils.file_exists fns) then
            failwithf
              (f_ "No one of expected built files %s exists")
              (String.concat (s_ ", ") (List.map (Printf.sprintf "'%s'") fns)))
@@ -662,7 +662,7 @@ let add_ocamlbuild_files ctxt pkg =
                  in
 
                  (* Add dependency of cmxs to their own library: used
-		    at link time when there is C code *)
+                    at link time when there is C code *)
                  let tag_t =
                    add_tags
                      tag_t
@@ -679,7 +679,7 @@ let add_ocamlbuild_files ctxt pkg =
                          ~ctxt:ctxt.ctxt
                          (cs, bs, lib)
                          (fun ufn ->
-                            Sys.file_exists (BaseFilePath.of_unix ufn))
+                            OASISUtils.file_exists (BaseFilePath.of_unix ufn))
                      in
                      add_tags
                        tag_t
@@ -744,7 +744,7 @@ let add_ocamlbuild_files ctxt pkg =
                      {ctxt with
                           other_actions =
                             (fun ()->
-                               if Sys.file_exists not_fn then
+                               if OASISUtils.file_exists not_fn then
                                  OASISMessage.error ~ctxt:ctxt.ctxt
                                    (f_ "Conflicting file '%s' and '%s' \
                                       exists, remove '%s'.")

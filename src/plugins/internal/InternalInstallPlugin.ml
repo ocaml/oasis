@@ -142,7 +142,7 @@ let install pkg argv =
                   (fun acc modul ->
                      try
                        List.find
-                         Sys.file_exists
+                         OASISUtils.file_exists
                          (List.map
                             (Filename.concat path)
                             [modul^".mli";
@@ -241,7 +241,7 @@ let install pkg argv =
               let res =
                 Filename.concat bs.bs_path "META"
               in
-                if not (Sys.file_exists res) then
+                if not (OASISUtils.file_exists res) then
                   failwithf
                     (f_ "Cannot find file '%s' for findlib library %s")
                     res
@@ -387,7 +387,7 @@ let uninstall _ argv =
     (fun (ev, data) ->
        if ev = install_file_ev then
          begin
-           if Sys.file_exists data then
+           if OASISUtils.file_exists data then
              begin
                info
                  (f_ "Removing file '%s'")
@@ -403,7 +403,7 @@ let uninstall _ argv =
          end
        else if ev = install_dir_ev then
          begin
-           if Sys.file_exists data && Sys.is_directory data then
+           if OASISUtils.file_exists data && Sys.is_directory data then
              begin
                if Sys.readdir data = [||] then
                  begin

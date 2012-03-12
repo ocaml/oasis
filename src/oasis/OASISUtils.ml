@@ -155,6 +155,19 @@ let is_varname str =
 
 let failwithf fmt = Printf.ksprintf failwith fmt
 
+let file_exists fn = 
+  let dirname = Filename.dirname fn in
+  let basename = Filename.basename fn in
+    if Sys.file_exists dirname then
+      if basename = Filename.current_dir_name then
+        true
+      else
+        List.mem
+          basename
+          (Array.to_list (Sys.readdir dirname))
+    else
+      false
+
 (* END EXPORT *)
 
 

@@ -118,3 +118,9 @@ sig
       preceding a char. *)
   ;;
 end
+
+(** {2 File utils} *)
+
+(** Test file existence, considering case even on case insensitive filesystem.
+  *)
+val file_exists : string -> bool

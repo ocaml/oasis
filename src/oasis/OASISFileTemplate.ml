@@ -306,7 +306,7 @@ let template_of_mlfile fn header body footer  =
           Pcre.get_substring_ofs substrs 0
         in
         let acc =
-          if Sys.file_exists line_modifier_fn then
+          if OASISUtils.file_exists line_modifier_fn then
             begin
               (* We found a valid match, continue to search
                *)

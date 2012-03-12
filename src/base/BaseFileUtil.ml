@@ -59,7 +59,7 @@ let find_file paths exts =
       ((combined_paths paths) * exts)
   in
     List.find
-      Sys.file_exists
+      OASISUtils.file_exists
       alternatives
 
 let which prg =
@@ -122,7 +122,7 @@ let rec mkdir_parent f tgt =
   let tgt =
     fix_dir tgt
   in
-    if Sys.file_exists tgt then
+    if OASISUtils.file_exists tgt then
       begin
         if not (Sys.is_directory tgt) then
           OASISUtils.failwithf
@@ -133,7 +133,7 @@ let rec mkdir_parent f tgt =
     else
       begin
         mkdir_parent f (Filename.dirname tgt);
-        if not (Sys.file_exists tgt) then
+        if not (OASISUtils.file_exists tgt) then
           begin
             f tgt;
             mkdir tgt
@@ -187,7 +187,7 @@ let glob fn =
      end
    else
      begin
-       if Sys.file_exists fn then
+       if OASISUtils.file_exists fn then
          [fn]
        else
          []

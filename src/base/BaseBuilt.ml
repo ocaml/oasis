@@ -51,7 +51,7 @@ let register t nm lst =
        let registered =
          List.fold_left
            (fun registered fn ->
-              if Sys.file_exists fn then
+              if OASISUtils.file_exists fn then
                 begin
                   BaseLog.register
                     (to_log_event_file t nm)
@@ -83,7 +83,7 @@ let unregister t nm =
 let fold t nm f acc =
   List.fold_left
     (fun acc (_, fn) ->
-       if Sys.file_exists fn then
+       if OASISUtils.file_exists fn then
          begin
            f acc fn
          end
@@ -148,7 +148,7 @@ let of_library ffn (cs, bs, lib) =
       ~ctxt:!BaseContext.default
       (cs, bs, lib)
       (fun fn ->
-         Sys.file_exists (BaseFilePath.of_unix fn))
+         OASISUtils.file_exists (BaseFilePath.of_unix fn))
       (fun () ->
          bool_of_string (is_native ()))
       ext_lib
