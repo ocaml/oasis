@@ -146,15 +146,67 @@ let tests =
       SetFile.empty
   in
 
+  let setup_ml = "setup.ml" in
+
   (* Assert with setup.ml *)
   let assert_run_setup ?exit_code ?extra_env args =
-    assert_command ?exit_code ?extra_env "ocaml" ("setup.ml" :: args)
+    let setup_base = Filename.chop_extension setup_ml in
+    let setup_digest = setup_base ^ ".digest" in
+    let setup_exe = 
+      Filename.concat 
+        Filename.current_dir_name
+        (setup_base ^ (if Sys.os_type = "Win32" then ".exe" else ""))
+    in
+    let self_digest = 
+      let chn = open_in setup_ml in
+      let digest = Digest.channel chn (in_channel_length chn) in
+        close_in chn;
+        digest 
+    in
+    let pre_digest = 
+      try 
+        let chn = open_in setup_digest in
+        let digest = Digest.input chn in
+          close_in chn;
+          digest 
+      with _ ->
+        Digest.string ""
+    in
+    let clean ?(all=false) () = 
+      List.iter
+        (fun fn -> try Sys.remove fn with _ -> ())
+        (
+          (if all then
+             [setup_exe; setup_digest]
+           else
+             [])
+          @
+          [setup_base ^ ".cmi"; setup_base ^ ".cmo"]
+        )
+    in
+    if not (Sys.file_exists setup_exe) || self_digest <> pre_digest then
+      begin
+        match Sys.command "ocamlfind ocamlc -o setup setup.ml" with 
+          | 0 -> 
+              (* Compilation succeed, update the digest *)
+              let chn = open_out setup_digest in
+                Digest.output chn self_digest;
+                close_out chn;
+                clean ()
+          | _ ->
+              prerr_endline "E: Compilation of setup.ml doesn't succeed.";
+              clean ~all:true ()
+      end;
+    if Sys.file_exists setup_exe then
+      assert_command ?exit_code ?extra_env setup_exe args
+    else
+      assert_command ?exit_code ?extra_env "ocaml" (setup_ml :: args)
   in
 
   (* Files always generated *)
   let oasis_std_files = 
     [
-      "setup.ml"; 
+      setup_ml; 
     ]
   in
 
@@ -728,7 +780,8 @@ let tests =
              ["setup.ml"], d, e))
       (fun _ ->
          assert_run_setup ["-all"];
-         assert_run_setup ["-distclean"])
+         assert_run_setup ["-distclean"];
+         rm ~force:Force ["setup"; "setup.digest"])
   in
 
   (* Run short test *)
@@ -737,7 +790,8 @@ let tests =
     bracket_setup e
       (fun _ -> 
          assert_run_setup ?extra_env ["-all"];
-         assert_run_setup ?extra_env ["-distclean"])
+         assert_run_setup ?extra_env ["-distclean"];
+         rm ~force:Force ["setup"; "setup.digest"])
   in
 
   (* Run standard test *)
@@ -946,6 +1000,7 @@ let tests =
          (* Run clean target *)
            assert_run_setup ["-clean"];
            assert_run_setup ["-distclean"];
+           rm ~force:Force ["setup"; "setup.digest"];
 
            (* Check that only OASIS generated files remain *)
            OUnitSetFile.assert_equal
@@ -1383,7 +1438,7 @@ let tests =
           (* Run configure target *)
           assert_run_setup 
             ["-configure"; "--enable-all"; "--disable-over"];
-          rm ["setup.data"]);
+          rm ["setup.data"; "setup"; "setup.digest"]);
 
      "TEMP=a b">::
      bracket
@@ -1406,7 +1461,7 @@ let tests =
                              else
                                "TMPDIR", dn]
                  ["-configure"];
-               rm ["setup.data"])
+               rm ["setup.data"; "setup"; "setup.digest"])
             ())
        (fun dn ->
           rm ~recurse:true [dn])

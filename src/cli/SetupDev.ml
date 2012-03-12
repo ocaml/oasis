@@ -156,6 +156,16 @@ let main () =
               ref 0
             in
 
+            let bootstrap_ocaml, bootstrap_args  = 
+              (* TODO: this test is not 100% safe, if the user renamed 'ocaml'
+               *)
+              if (Filename.basename bootstrap_ocaml) = "ocaml"  then
+                bootstrap_ocaml, bootstrap_args 
+              else 
+                (* We don't use 'ocaml setup.ml' but probably './setup' *)
+                "ocaml", (dev_fn :: (List.tl bootstrap_args))
+            in
+
               try 
                 begin
                   (* Run command after regeneration *)
