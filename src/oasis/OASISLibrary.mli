@@ -36,16 +36,20 @@ val source_unix_files :
   (unix_filename -> bool) ->
   (unix_filename * (unix_filename list)) list
 
-(** [generated_unix_files ~ctxt (cs, bs, lib) source_file_exists is_native ext_lib ext_dll] 
+(** [generated_unix_files ~ctxt source_file_exists has_native_dynlink
+    is_native ext_lib ext_dll (cs, bs, lib)]
     Compute all files expected by a build of the library. For each file a list
     of alternatives is provided.
   *)
 val generated_unix_files :
   ctxt:OASISContext.t ->
+  is_native:bool ->
+  has_native_dynlink:bool ->
+  ext_lib:string ->
+  ext_dll:string ->
+  source_file_exists:(unix_filename -> bool) ->
   common_section * build_section * library ->
-  (unix_filename -> bool) ->
-  (unit -> bool) ->
-  (unit -> string) -> (unit -> string) -> unix_filename list list
+  unix_filename list list
 
 (** Library groups are organized in trees.
   *)

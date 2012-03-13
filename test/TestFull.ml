@@ -524,13 +524,6 @@ let tests =
     skip_if (not !long) "Long test"
   in
 
-  let ocaml_supports_cmxs =
-    (* FIXME: See def in OASIS* modules *)
-    OASISVersion.version_compare
-      (OASISVersion.version_of_string Sys.ocaml_version)
-      (OASISVersion.version_of_string "3.11.2") >= 0
-  in
-
   let filter_platform lst = 
     let check_suff = Filename.check_suffix in
     List.fold_left 
@@ -541,7 +534,7 @@ let tests =
            else
              acc
          else if check_suff fn "cmxs" then
-           if !has_ocamlopt && ocaml_supports_cmxs then
+           if !has_native_dynlink then
              fn :: acc
            else
              acc

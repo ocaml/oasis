@@ -80,8 +80,14 @@ let source_unix_files ~ctxt (cs, bs, lib) source_file_exists =
     []
     (lib.lib_modules @ lib.lib_internal_modules)
 
-let generated_unix_files ~ctxt (cs, bs, lib)
-      source_file_exists is_native ext_lib ext_dll =
+let generated_unix_files
+      ~ctxt
+      ~is_native
+      ~has_native_dynlink
+      ~ext_lib
+      ~ext_dll
+      ~source_file_exists
+      (cs, bs, lib) =
 
   let find_modules lst ext = 
     let find_module modul =
@@ -120,7 +126,7 @@ let generated_unix_files ~ctxt (cs, bs, lib)
       (not lib.lib_pack) && (* Do not install .cmx packed submodules *)
       match bs.bs_compiled_object with
         | Native -> true
-        | Best -> is_native ()
+        | Best -> is_native
         | Byte -> false
     in
       if should_be_built then
@@ -147,22 +153,17 @@ let generated_unix_files ~ctxt (cs, bs, lib)
     let byte acc =
       add_pack_header ([cs.cs_name^".cma"] :: acc)
     in
-    let ocaml_supports_cmxs =
-      (* FIXME: this is a first approximation.  Ideally, one should also
-         use "system" but it is only available in BaseStandardVar *)
-      OASISVersion.version_compare
-        (OASISVersion.version_of_string Sys.ocaml_version)
-        (OASISVersion.version_of_string "3.11.2") >= 0
-    in
     let native acc =
-      let acc = [cs.cs_name^".cmxa"] :: [cs.cs_name^(ext_lib ())] :: acc in
-      add_pack_header (if ocaml_supports_cmxs then [cs.cs_name^".cmxs"] :: acc
-                       else acc)
+      let acc = [cs.cs_name^".cmxa"] :: [cs.cs_name^ext_lib] :: acc in
+      add_pack_header
+        (if has_native_dynlink then
+           [cs.cs_name^".cmxs"] :: acc
+         else acc)
     in
       match bs.bs_compiled_object with
         | Native ->
             byte (native acc_nopath)
-        | Best when is_native () ->
+        | Best when is_native ->
             byte (native acc_nopath)
         | Byte | Best ->
             byte acc_nopath
@@ -172,9 +173,9 @@ let generated_unix_files ~ctxt (cs, bs, lib)
   let acc_nopath =
     if bs.bs_c_sources <> [] then
       begin
-        ["lib"^cs.cs_name^"_stubs"^(ext_lib ())]
+        ["lib"^cs.cs_name^"_stubs"^ext_lib]
         ::
-        ["dll"^cs.cs_name^"_stubs"^(ext_dll ())]
+        ["dll"^cs.cs_name^"_stubs"^ext_dll]
         ::
         acc_nopath
       end

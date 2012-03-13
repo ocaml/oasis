@@ -127,6 +127,10 @@ val tests: unit -> string
   *)
 val docs: unit -> string
 
+(** Support for .cmxs.
+  *)
+val native_dynlink: unit -> string
+
 (** Initialize some variables.
   *)
 val init: OASISTypes.package -> unit

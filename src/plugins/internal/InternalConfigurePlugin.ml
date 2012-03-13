@@ -211,6 +211,26 @@ let configure pkg argv =
            ())
     pkg.sections;
 
+  (* Check if we need native dynlink (presence of libraries that compile to
+   * native)
+   *)
+  begin
+    let has_cmxa =
+      List.exists
+        (function
+           | Library (_, bs, _) ->
+               var_choose bs.bs_build &&
+               (bs.bs_compiled_object = Native ||
+                (bs.bs_compiled_object = Best &&
+                 bool_of_string (BaseStandardVar.is_native ())))
+           | _  ->
+               false)
+        pkg.sections
+    in
+      if has_cmxa then
+        var_ignore_eval BaseStandardVar.native_dynlink
+  end;
+
   (* Check errors *)
   if SetString.empty != !errors then
     begin

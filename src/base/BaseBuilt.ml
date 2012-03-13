@@ -146,13 +146,13 @@ let of_library ffn (cs, bs, lib) =
   let unix_lst =
     OASISLibrary.generated_unix_files
       ~ctxt:!BaseContext.default
-      (cs, bs, lib)
-      (fun fn ->
+      ~source_file_exists:(fun fn ->
          OASISUtils.file_exists (BaseFilePath.of_unix fn))
-      (fun () ->
-         bool_of_string (is_native ()))
-      ext_lib
-      ext_dll
+      ~is_native:(bool_of_string (is_native ()))
+      ~has_native_dynlink:(bool_of_string (native_dynlink ()))
+      ~ext_lib:(ext_lib ())
+      ~ext_dll:(ext_dll ())
+      (cs, bs, lib)
   in
   let evs =
     [BLib,

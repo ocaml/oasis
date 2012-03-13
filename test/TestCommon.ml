@@ -47,9 +47,14 @@ module SetString = Set.Make(String)
 
 let dbug = ref false
 let long = ref false
-let has_ocamlopt = ref false 
 let oasis_exec = ref None
 let oasis_args = ref []
+
+let has_ocamlopt =
+  ref (bool_of_string (BaseStandardVar.is_native ()))
+
+let has_native_dynlink =
+  ref (bool_of_string (BaseStandardVar.native_dynlink ()))
 
 let oasis () = 
   match !oasis_exec with 
@@ -75,6 +80,7 @@ let test_args =
       Arg.Set long,
       " Run long tests";
 
+      (* TODO: remove *)
       "-has-ocamlopt",
       Arg.String (fun s -> has_ocamlopt := bool_of_string s),
       "bool Can use ocamlopt for tests";

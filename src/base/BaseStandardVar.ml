@@ -286,6 +286,32 @@ let docs =
     "docs"
     (fun () -> "true")
 
+let native_dynlink =
+  var_define
+    ~short_desc:(fun () -> s_ "Compiler support generation of .cmxs.")
+    ~cli:CLINone
+    "native_dynlink"
+    (fun () ->
+       let res =
+         if bool_of_string (is_native ()) then
+           begin
+             let ocamlfind = ocamlfind () in
+               try
+                 let fn =
+                   BaseExec.run_read_one_line
+                    ocamlfind
+                    ["query"; "-predicates"; "native"; "dynlink";
+                     "-format"; "%d/%a"]
+                 in
+                   Sys.file_exists fn
+               with _ ->
+                 false
+           end
+         else
+           false
+       in
+         string_of_bool res)
+
 let init pkg =
   rpkg := Some pkg
 
