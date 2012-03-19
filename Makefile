@@ -71,10 +71,11 @@ setup.data:
 
 # OASIS_STOP
 
-# Backup targets to be able to build even if OASIS fails
-
 wc:
 	find src/ -name "*.ml" | xargs wc -l
+
+wc-setup:
+	awk -f src/tools/setup-wc.awk setup.ml
 
 headache:
 	find ./ -name _darcs -prune -false -o -name _build -prune \
@@ -83,7 +84,7 @@ headache:
 	  -o -name '*[^~]' -type f \
 	  | xargs headache -h _header -c _headache.config
 
-.PHONY: wc headache
+.PHONY: wc wc-setup headache
 
 # Binary distribution
 
@@ -128,7 +129,7 @@ bindist-step2:
 	tar czf $(BINDISTGZ) bindist
 	-$(RM) -r $(BINDISTDIR)
 
-.PHONY: build-backup test-backup clean-backup wc headache bindist bindist-step2
+.PHONY: bindist bindist-step2
 
 # Source distribution
 
