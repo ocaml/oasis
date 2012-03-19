@@ -716,7 +716,7 @@ let ask_package ~ctxt lvl intrf =
     pkg
 
 (** Create an _oasis file *)
-let to_file ~ctxt fn lvl intrf oasis_dev =
+let to_file ~ctxt fn lvl intrf oasis_setup =
 
   let () = 
     (* Print introduction *)
@@ -941,10 +941,10 @@ let to_file ~ctxt fn lvl intrf oasis_dev =
               create_fn content fn;
               false);
 
-           s_ "r", s_ "write, run 'oasis setup-dev' and exit", None,
+           s_ "r", s_ "write, run 'oasis setup' and exit", None,
            (fun () ->
               create_fn content fn;
-              oasis_dev ();
+              oasis_setup ();
               false);
            
            s_ "q", s_ "exit without saving", None,

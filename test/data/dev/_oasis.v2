@@ -1,0 +1,18 @@
+OASISFormat: 0.1
+Name:        dev
+Version:     0.0.1
+Authors:     Sylvain Le Gall
+LicenseFile: LICENSE
+License:     LGPL with OCaml linking exception
+Synopsis:    Minimal project for dev support.
+Plugins:     META
+BuildTools:  ocamlbuild
+
+Library "mylib"
+  Path: .
+  Modules: A
+
+Executable "myexec"
+  Path: .
+  MainIs: main.ml
+

@@ -40,7 +40,7 @@ let main () =
     !ArgCommon.oasis_fn
     !qckstrt_lvl
     !interf
-    SetupDev.main
+    Setup.main
 
 let scmd =
   let lvls =

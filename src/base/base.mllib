@@ -20,13 +20,12 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: ecbd7f4ae09b2eded9e2e42a88579a51)
+# DO NOT EDIT (digest: 3e4d2ee47f835b35cd38cb628957e15a)
 BaseArgExt
 BaseBuilt
 BaseCheck
 BaseCustom
 BaseData
-BaseDev
 BaseDoc
 BaseEnvLight
 BaseEnv

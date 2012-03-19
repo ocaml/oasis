@@ -94,9 +94,17 @@ let restore ?msg () =
          [ev_create; ev_backup])
 
 
-let generate ?msg ~restore ~backup ~dev ~setup_fn ?oasis_exec pkg = 
+let generate ?msg
+      ~restore
+      ~backup
+      ~dev
+      ~setup_fn
+      ?oasis_exec
+      ?oasis_fn
+      ?oasis_setup_args
+      pkg =
   let ctxt, _ = 
-    BaseSetup.of_package pkg
+    BaseSetup.of_package ?oasis_fn ?oasis_exec ?oasis_setup_args pkg
   in
 
   let msg = 
@@ -134,14 +142,6 @@ let generate ?msg ~restore ~backup ~dev ~setup_fn ?oasis_exec pkg =
         end
       else
         ctxt
-  in
-
-  let ctxt = 
-    (* Use BaseDev if asked to *)
-    if dev then 
-      fst (BaseDev.make ?oasis_exec ctxt pkg)
-    else
-      ctxt
   in
 
   let () = 

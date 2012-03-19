@@ -643,11 +643,7 @@ let tests =
 
          (* Create build system using OASIS *)
          let () = 
-           assert_oasis_cli 
-             (if dev then 
-                ["setup-dev"; "-real-oasis"; "-only-setup"] 
-              else 
-                ["setup"]);
+           assert_oasis_cli ("setup" :: (if dev then ["-real-oasis"] else []));
 
            (* Check generated files *)
            OUnitSetFile.assert_equal 
@@ -758,23 +754,6 @@ let tests =
            (* Destroy build directory *)
            rm ~recurse:true [loc.build_dir]
       )
-  in
-
-  (* Run devel test *)
-  let test_of_vector_dev (a, f)  =
-    "dev" >::
-    bracket_setup ~dev:true 
-      (a, 
-       (fun () -> 
-          let (skip_cond, _, d, e) = 
-            f ()
-          in
-             (fun () -> skip_cond (); long_test ()),
-             ["setup.ml"], d, e))
-      (fun _ ->
-         assert_run_setup ["-all"];
-         assert_run_setup ["-distclean"];
-         rm ~force:Force ["setup"; "setup.digest"])
   in
 
   (* Run short test *)
@@ -1010,7 +989,6 @@ let tests =
     [
       test_of_vector_std e;
       test_of_vector_short e;
-      test_of_vector_dev e;
     ]
   in
 
@@ -1457,6 +1435,37 @@ let tests =
                rm ["setup.data"; "setup"; "setup.digest"])
             ())
        (fun dn ->
-          rm ~recurse:true [dn])
+          rm ~recurse:true [dn]);
+
+     "setup with dev mode">::
+      bracket
+        ignore
+        (fun () ->
+           cp ["data/dev/_oasis.v1"] "data/dev/_oasis";
+           bracket_setup
+             ~dev:true
+             ("data/dev",
+              fun () ->
+                ignore,
+                oasis_ocamlbuild_files,
+                [],
+                [])
+             (* Run test *)
+             (fun _ ->
+                assert_run_setup ["-all"];
+                assert_bool
+                  "Library .cma not created."
+                  (not (Sys.file_exists "_build/mylib.cma"));
+                cp ["_oasis.v2"] "_oasis";
+                assert_run_setup ["-all"];
+                assert_bool
+                  "Library .cma created."
+                  (Sys.file_exists "_build/mylib.cma");
+                assert_run_setup ["-distclean"];
+                rm ["META"; "mylib.mllib"; "setup"; "setup.digest"];
+                cp ["_oasis.v1"] "_oasis")
+             ())
+        (fun () ->
+           rm ["data/dev/_oasis"]);
     ]
 ;;

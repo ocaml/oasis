@@ -113,7 +113,6 @@ Library base
            BaseCheck,
            BaseCustom,
            BaseData,
-           BaseDev,
            BaseDoc,
            BaseEnvLight,
            BaseEnv,

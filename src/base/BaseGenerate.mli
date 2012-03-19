@@ -39,5 +39,8 @@ val generate :
   backup:bool ->
   dev:bool ->
   setup_fn:host_filename ->
-  ?oasis_exec:string ->
-  package -> OASISFileTemplate.file_generate_change list
+  ?oasis_exec:host_filename ->
+  ?oasis_fn:host_filename ->
+  ?oasis_setup_args:string list ->
+  package ->
+  OASISFileTemplate.file_generate_change list

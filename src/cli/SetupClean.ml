@@ -37,6 +37,7 @@ let main () =
     begin
       let ctxt, _ = 
         BaseSetup.of_package 
+          ~oasis_fn:!ArgCommon.oasis_fn
           (OASISParse.from_file 
              ~ctxt:!BaseContext.default
              !ArgCommon.oasis_fn)

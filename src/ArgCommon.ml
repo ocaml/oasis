@@ -24,8 +24,11 @@
 
 open MainGettext
 
+let default_oasis_fn =
+  "_oasis"
+
 let oasis_fn =
-  ref "_oasis"
+  ref default_oasis_fn
 
 let oasis_fn_specs =
   [

@@ -46,7 +46,21 @@ type t =
       distclean_doc:   (doc, unit) section_args_fun list;
       distclean_test:  (test, unit) section_args_fun list;
       package:         package;
-      version:         string; (* OASIS version that generates this structure *)
+
+      oasis_fn:        string option;
+      (** Filename of _oasis that matches the package field. *)
+
+      oasis_version:   string;
+      (** OASIS version that has generated this structure. *)
+
+      oasis_digest:    Digest.t option;
+      (** Digest of _oasis that matches the package field. *)
+
+      oasis_exec:      string option;
+      (** Name of oasis executable to use, only for testing. *)
+
+      oasis_setup_args: string list;
+      (** Args to use when updating the setup.ml. *)
     } 
 
 (** Run the configure step.
@@ -99,14 +113,19 @@ val setup : t -> unit
 
 (** Default filename for 'setup.ml'. {b Not exported}
   *)
-val default_filename: host_filename
+val default_filename : host_filename
 
 (** Get template 'setup.ml' file out of the plugin context. 
     {b Not exported}.
   *)
 val find : OASISPlugin.context_act -> OASISFileTemplate.template
 
-(** Create [t] and plugin context from an OASIS package.
-    {b Not exported}.
+(** Create [t] and plugin context from an OASIS package and the
+    matching _oasis. {b Not exported}.
   *)
-val of_package : package -> OASISPlugin.context_act * t
+val of_package :
+  ?oasis_fn:host_filename ->
+  ?oasis_exec:host_filename ->
+  ?oasis_setup_args:string list ->
+  package ->
+  OASISPlugin.context_act * t
