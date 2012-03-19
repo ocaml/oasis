@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 2b75dd8e786a7eb1db3272deaaa4699a)
+# DO NOT EDIT (digest: 2bdbf49736ec8536888632e6aeed6d71)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -35,7 +35,7 @@
 "_darcs": -traverse
 "_darcs": not_hygienic
 # Library oasis
-"src/oasis": include
+"src/oasis/oasis.cmxs": use_oasis
 <src/oasis/*.ml{,i}>: pkg_unix
 <src/oasis/*.ml{,i}>: pkg_pcre
 <src/oasis/*.ml{,i}>: pkg_odn
@@ -43,7 +43,7 @@
 <src/oasis/*.ml{,i}>: pkg_fileutils
 <src/oasis/*.ml{,i}>: pkg_batteries
 # Library base
-"src/base": include
+"src/base/base.cmxs": use_base
 <src/base/*.ml{,i}>: use_oasis
 <src/base/*.ml{,i}>: pkg_unix
 <src/base/*.ml{,i}>: pkg_pcre
@@ -52,6 +52,7 @@
 <src/base/*.ml{,i}>: pkg_fileutils
 <src/base/*.ml{,i}>: pkg_batteries
 # Library builtin-plugins
+"src/builtin-plugins.cmxs": use_builtin-plugins
 <src/*.ml{,i}>: use_base
 <src/*.ml{,i}>: use_oasis
 <src/*.ml{,i}>: pkg_unix
@@ -116,16 +117,8 @@
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_ocamlgraph
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_fileutils
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_batteries
-"src": include
-"src/plugins/custom": include
-"src/plugins/extra/META": include
-"src/plugins/extra/devfiles": include
-"src/plugins/extra/stdfiles": include
-"src/plugins/internal": include
-"src/plugins/none": include
-"src/plugins/ocamlbuild": include
 # Library cli
-"src/cli": include
+"src/cli/cli.cmxs": use_cli
 # Executable test
 "test/test.byte": use_builtin-plugins
 "test/test.byte": use_base
@@ -217,3 +210,5 @@
 <src/builtin-plugins.cma>: use_ocamlbuild
 
 <**/*.ml>: annot
+# Override to access the module METAPlugin in test/TestMETA.
+"src/plugins/extra/META": include

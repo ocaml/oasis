@@ -1,7 +1,7 @@
 OASISFormat:  0.1
 OCamlVersion: >= 3.11.0
 Name:         oasis
-Version:      0.3.0~rc2
+Version:      0.3.0~rc3
 LicenseFile:  COPYING.txt
 License:      LGPL-2.1 with OCaml linking exception
 BuildType:    ocamlbuild (0.3)
@@ -175,7 +175,6 @@ Library cli
   FindlibParent:    oasis
   XMETADescription: 'setup.ml' modules for OASIS
   Install$:         flag(libraries)
-
 
 Executable oasis
   Path:   src/cli
