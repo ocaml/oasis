@@ -26,6 +26,8 @@ open BaseEnv
 open BaseBuilt
 
 let init pkg =
+  (* TODO: disambiguate exec vs other variable by adding exec_VARNAME. *)
+  (* TODO: provide compile option for library libary_byte_args_VARNAME... *)
   List.iter
     (function
        | Executable (cs, bs, exec) ->
@@ -38,7 +40,7 @@ let init pkg =
                                  Printf.sprintf
                                    (f_ "Filename of executable '%s'")
                                    cs.cs_name)
-                  cs.cs_name
+                  (OASISUtils.varname_of_string cs.cs_name)
                   (fun () ->
                      let fn_opt =
                        fold
