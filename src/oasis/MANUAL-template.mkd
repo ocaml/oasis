@@ -67,15 +67,22 @@ The file contains semi-colon fields and sections.
 
 ### Fields
 
-Fields follow are `field_name: field_value`:
+Fields are defined as `field_name: field_value`:
  
- * Field name is an identifier.
+ * Field name is an identifier, it contains only alphanumeric chars.
  * Field name is case insensitive.
- * Field value follow string convention (without ").
+ * Field value follow OCaml string convention, expect you don't need '"' around it.
  * Leading and trailing blanks of field value are removed.
- * A field value can continue on several lines, indent the next line relative to
-   the field name.
- * A blank line in field\_name is represented by `.`.
+ * A field value can continue on several lines, in this case the content of the value
+   must be indented one level more then the field name. In the body of the value a 
+   blank line is represented by `.`.
+ * If two fields have the same `field_name`, only the latter sets the value.
+
+The separator ':' can be replaced by '+:' which appends the `field_value` to
+the previous value of the value (rather than erasing it). Beware that appending
+is value dependent, some fields can concatenate, some cannot.
+
+The ':' can also be replaced by '$:', see [Conditional value](#conditional-value).
 
 ### Sections
 
@@ -109,12 +116,14 @@ specified this way, only fields that have no good default values and that must
 be evaluated at runtime is defined.
 
 For example: 
+
  * Toplevel fields `Name` and `Version` cannot be conditional.
  * Library fields `Build` and `Install` can be conditional.
 
 A condition is defined using a `if ... else ...` construct.
 
 Example:
+
     Library bar
       if os_type(Win32)
         Build: true
@@ -125,12 +134,11 @@ Available tests are :
 
 $ListOASISTests
 
-All tests check that the value `X` match the value defined in the output of: 
-
-    ocamlc -config
+The values from these tests are extracted from theoutput of `ocamlc -config`.
 
 
-An additional `flag` test is available which check that the flag `X` is defined,
+An additional `flag` test is available which check that the a Flag is defined. See 
+the chapter on the [Flag section](#flag).
 
 Tests and flags can be combined using standard boolean operation:
 
@@ -139,6 +147,23 @@ Tests and flags can be combined using standard boolean operation:
 * `expr1 && expr2`: boolean and.
 * `expr1 || expr2`: boolean or.
 * `true` and `false`.
+
+
+For boolean fields, you can replace the `if ... else ...` construct by `$:`.
+
+For example:
+
+    Library bar
+      if os_type(Win32)
+        Build: true
+      else 
+        Build: false
+
+is equivalent to:
+
+
+        Build$: os_type(Win32)
+
 
 Package
 -------
