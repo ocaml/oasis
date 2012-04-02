@@ -137,13 +137,13 @@ let pp_print_meta pkg root_t findlib_name_map fmt grp =
 
   let pp_print_field fmt (var, preds, vl) = 
     fprintf fmt
-      "@,%s(%s) = %S" 
+      "@,@[%s(%s) =@ %S@]"
       var 
       (String.concat ", " preds)
       (replace_chars vl)
   in
   let pp_print_sfield fmt (var, vl) = 
-    fprintf fmt "@,%s = %S" var (replace_chars vl)
+    fprintf fmt "@,@[%s =@ %S@]" var (replace_chars vl)
   in
 
   let default_synopsis = 
@@ -223,7 +223,7 @@ let pp_print_meta pkg root_t findlib_name_map fmt grp =
     function 
       | Container (fndlb_nm, children) ->
           fprintf fmt 
-            "@,@[<hv1>package %S (%a%a@]@,)"
+            "@,@[<v1>@[package %S (@]%a%a@]@,)"
             fndlb_nm
             
             pp_print_sfield 
@@ -236,7 +236,7 @@ let pp_print_meta pkg root_t findlib_name_map fmt grp =
             generator lib_cs.cs_data
           in
             if t.enable then
-              fprintf fmt "@,@[<hv1>package %S (%a@]@,)"
+              fprintf fmt "@,@[<v1>@[package %S (@]%a@]@,)"
                 fndlb_nm
                 pp_print_library (lib_cs, lib_bs, lib, children)
   in
