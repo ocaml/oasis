@@ -1,10 +1,12 @@
 # OASIS_START
-# DO NOT EDIT (digest: ff1f870b8fbdb9a70d77e09b2120f3af)
+# DO NOT EDIT (digest: 2813714322dd5775895156707d6719ff)
 version = "0.3.0~rc3"
 description = "Architecture for building OCaml libraries and applications"
 requires = "pluginloaderLib"
 archive(byte) = "plugin3.cma"
+archive(byte, plugin) = "plugin3.cma"
 archive(native) = "plugin3.cmxa"
+archive(native, plugin) = "plugin3.cmxs"
 plugin_system = "pluginloader"
 plugin_name = "plugin3"
 plugin_synopsis = "third plugin"

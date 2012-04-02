@@ -20,18 +20,21 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 51be412f8ce96df7fbe716d48ad9d453)
+# DO NOT EDIT (digest: 285f088901ca449501b64975eeb3e09d)
 version = "0.3.0~rc3"
 description = "_oasis file functions"
 requires = "fileutils unix pcre batteries odn ocamlgraph"
 archive(byte) = "oasis.cma"
+archive(byte, plugin) = "oasis.cma"
 archive(native) = "oasis.cmxa"
+archive(native, plugin) = "oasis.cmxs"
 exists_if = "oasis.cma"
 package "cli" (
  version = "0.3.0~rc3"
  description = "'setup.ml' modules for OASIS"
  requires = "oasis oasis.base"
  archive(byte) = "cli.cma"
+ archive(byte, plugin) = "cli.cma"
  exists_if = "cli.cma"
 )
 
@@ -40,7 +43,9 @@ package "builtin-plugins" (
  description = "_oasis file functions"
  requires = "oasis oasis.base"
  archive(byte) = "builtin-plugins.cma"
+ archive(byte, plugin) = "builtin-plugins.cma"
  archive(native) = "builtin-plugins.cmxa"
+ archive(native, plugin) = "builtin-plugins.cmxs"
  exists_if = "builtin-plugins.cma"
 )
 
@@ -49,7 +54,9 @@ package "base" (
  description = "'setup.ml' modules for OASIS"
  requires = "oasis"
  archive(byte) = "base.cma"
+ archive(byte, plugin) = "base.cma"
  archive(native) = "base.cmxa"
+ archive(native, plugin) = "base.cmxs"
  exists_if = "base.cma"
 )
 # OASIS_STOP

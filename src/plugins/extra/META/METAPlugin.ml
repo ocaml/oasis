@@ -156,8 +156,8 @@ let pp_print_meta pkg root_t findlib_name_map fmt grp =
     let lib_name =
       lib_cs.cs_name
     in
-    let lib_cma, lib_cmxa = 
-      lib_name^".cma", lib_name^".cmxa"
+    let lib_cma, lib_cmxa, lib_cmxs =
+      lib_name^".cma", lib_name^".cmxa", lib_name^".cmxs"
     in
     let t = 
       generator lib_cs.cs_data
@@ -195,10 +195,13 @@ let pp_print_meta pkg root_t findlib_name_map fmt grp =
         match t.meta_type with 
           | METALibrary ->
               pp_print_field fmt ("archive", ["byte"], lib_cma);
+              pp_print_field fmt ("archive", ["byte"; "plugin"], lib_cma);
               begin
                 match lib_bs.bs_compiled_object with
                   | Best | Native ->
                       pp_print_field fmt ("archive", ["native"], lib_cmxa);
+                      pp_print_field fmt ("archive", ["native"; "plugin"], 
+                                          lib_cmxs)
                   | Byte ->
                       ()
               end
