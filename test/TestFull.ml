@@ -278,9 +278,8 @@ let tests =
   let add_path nm dir = 
     nm,
     try 
-      Sys.getenv nm ^
-      (if Sys.os_type = "Win32" then ";" else ":")^ 
-      dir
+      FilePath.string_of_path
+        ((FilePath.path_of_string (Sys.getenv nm)) @ [dir])
     with Not_found ->
       dir
   in

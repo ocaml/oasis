@@ -30,13 +30,20 @@ open Format
 open FormatExt
 open FormatMarkdown
 
+let global_options =
+  ref []
+
+let add_global_options lst =
+  global_options := lst @ !global_options
+
 let specs, usage_msg =
   [
     "-C",
     Arg.String (fun str -> Sys.chdir str),
     (s_ "dir Change directory before running.");
   ]
-  @ (BaseContext.args ()),
+  @ (BaseContext.args ())
+  @ !global_options,
 
   ("OASIS v" ^ OASISVersion.string_of_version OASISConf.version_full
    ^ " (C) 2009-2010 OCamlCore SARL\n"

@@ -1,0 +1,12 @@
+# OASIS_START
+# DO NOT EDIT (digest: 3c16127b75c2912850b4824dc52a80d6)
+version = "0.3.0~rc3"
+description = "Architecture for building OCaml libraries and applications"
+requires = "pluginloaderLib"
+archive(byte) = "plugin1.cma"
+archive(native) = "plugin1.cmxa"
+exists_if = "plugin1.cma"
+# OASIS_STOP
+plugin_system = "pluginloader"
+plugin_name = "plugin1"
+plugin_synopsis = "first plugin"

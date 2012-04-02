@@ -27,10 +27,10 @@ CONFIGUREFLAGS += $(if $(shell ocamlfind query gettext),--enable-gettext,--disab
 default: test
 	-OCamlDarcsPrecommit
 
-#TESTFLAGS      += -long
+TESTFLAGS      += -long
 #TESTFLAGS      += -verbose
 #TESTFLAGS      += -debug
-#TESTFLAGS      += -only-test OASIS:5:TestFull:20:data/bug982:0:standard
+#TESTFLAGS      += -only-test PluginLoader
 
 # OASIS_START
 # DO NOT EDIT (digest: bc1e05bfc8b39b664f29dae8dbd3ebbb)

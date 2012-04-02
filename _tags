@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 2bdbf49736ec8536888632e6aeed6d71)
+# DO NOT EDIT (digest: 06bbdf995f6da0061472b09fdc63ece9)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -51,6 +51,8 @@
 <src/base/*.ml{,i}>: pkg_ocamlgraph
 <src/base/*.ml{,i}>: pkg_fileutils
 <src/base/*.ml{,i}>: pkg_batteries
+# Library pluginloaderLib
+"src/ext/plugin-loader/test/data/findlib/pluginloaderLib/pluginloaderLib.cmxs": use_pluginloaderLib
 # Library builtin-plugins
 "src/builtin-plugins.cmxs": use_builtin-plugins
 <src/*.ml{,i}>: use_base
@@ -117,8 +119,15 @@
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_ocamlgraph
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_fileutils
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_batteries
+# Library plugin-loader
+"src/ext/plugin-loader/src/plugin-loader.cmxs": use_plugin-loader
+<src/ext/plugin-loader/src/*.ml{,i}>: pkg_findlib
+<src/ext/plugin-loader/src/*.ml{,i}>: pkg_dynlink
 # Library cli
 "src/cli/cli.cmxs": use_cli
+# Library plugin1
+"src/ext/plugin-loader/test/data/findlib/plugin1/plugin1.cmxs": use_plugin1
+<src/ext/plugin-loader/test/data/findlib/plugin1/*.ml{,i}>: use_pluginloaderLib
 # Executable test
 "test/test.byte": use_builtin-plugins
 "test/test.byte": use_base
@@ -146,6 +155,7 @@
 <test/*.ml{,i}>: pkg_batteries
 # Executable oasis
 "src/cli/Main.byte": use_cli
+"src/cli/Main.byte": use_plugin-loader
 "src/cli/Main.byte": use_builtin-plugins
 "src/cli/Main.byte": use_base
 "src/cli/Main.byte": use_oasis
@@ -153,9 +163,12 @@
 "src/cli/Main.byte": pkg_pcre
 "src/cli/Main.byte": pkg_odn
 "src/cli/Main.byte": pkg_ocamlgraph
+"src/cli/Main.byte": pkg_findlib
 "src/cli/Main.byte": pkg_fileutils
+"src/cli/Main.byte": pkg_dynlink
 "src/cli/Main.byte": pkg_batteries
 <src/cli/*.ml{,i}>: use_cli
+<src/cli/*.ml{,i}>: use_plugin-loader
 <src/cli/*.ml{,i}>: use_builtin-plugins
 <src/cli/*.ml{,i}>: use_base
 <src/cli/*.ml{,i}>: use_oasis
@@ -163,8 +176,44 @@
 <src/cli/*.ml{,i}>: pkg_pcre
 <src/cli/*.ml{,i}>: pkg_odn
 <src/cli/*.ml{,i}>: pkg_ocamlgraph
+<src/cli/*.ml{,i}>: pkg_findlib
 <src/cli/*.ml{,i}>: pkg_fileutils
+<src/cli/*.ml{,i}>: pkg_dynlink
 <src/cli/*.ml{,i}>: pkg_batteries
+# Executable pluginloader
+"src/ext/plugin-loader/test/data/pluginloader.byte": use_plugin-loader
+"src/ext/plugin-loader/test/data/pluginloader.byte": use_pluginloaderLib
+"src/ext/plugin-loader/test/data/pluginloader.byte": pkg_findlib
+"src/ext/plugin-loader/test/data/pluginloader.byte": pkg_dynlink
+<src/ext/plugin-loader/test/data/*.ml{,i}>: use_plugin-loader
+<src/ext/plugin-loader/test/data/*.ml{,i}>: use_pluginloaderLib
+<src/ext/plugin-loader/test/data/*.ml{,i}>: pkg_findlib
+<src/ext/plugin-loader/test/data/*.ml{,i}>: pkg_dynlink
+# Library userconf
+"src/ext/userconf/src/userconf.cmxs": use_userconf
+# Library plugin2
+"src/ext/plugin-loader/test/data/findlib/plugin2/plugin2.cmxs": use_plugin2
+<src/ext/plugin-loader/test/data/findlib/plugin2/*.ml{,i}>: use_plugin1
+<src/ext/plugin-loader/test/data/findlib/plugin2/*.ml{,i}>: use_pluginloaderLib
+# Library plugin3
+"src/ext/plugin-loader/test/data/findlib/plugin3/plugin3.cmxs": use_plugin3
+<src/ext/plugin-loader/test/data/findlib/plugin3/*.ml{,i}>: use_pluginloaderLib
+# Executable test_userconf
+"src/ext/userconf/test/TestUserConf.byte": use_userconf
+"src/ext/userconf/test/TestUserConf.byte": pkg_oUnit
+<src/ext/userconf/test/*.ml{,i}>: use_userconf
+<src/ext/userconf/test/*.ml{,i}>: pkg_oUnit
+# Executable test_loader
+"src/ext/plugin-loader/test/TestLoader.byte": use_plugin-loader
+"src/ext/plugin-loader/test/TestLoader.byte": pkg_oUnit
+"src/ext/plugin-loader/test/TestLoader.byte": pkg_findlib
+"src/ext/plugin-loader/test/TestLoader.byte": pkg_fileutils
+"src/ext/plugin-loader/test/TestLoader.byte": pkg_dynlink
+<src/ext/plugin-loader/test/*.ml{,i}>: use_plugin-loader
+<src/ext/plugin-loader/test/*.ml{,i}>: pkg_oUnit
+<src/ext/plugin-loader/test/*.ml{,i}>: pkg_findlib
+<src/ext/plugin-loader/test/*.ml{,i}>: pkg_fileutils
+<src/ext/plugin-loader/test/*.ml{,i}>: pkg_dynlink
 # OASIS_STOP
 
 # Base system and OASIS library 

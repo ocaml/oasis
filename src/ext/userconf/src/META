@@ -1,0 +1,9 @@
+# OASIS_START
+# DO NOT EDIT (digest: 19167f1ad94bd1c8f8a00925f5ac45e9)
+version = "0.3.0~rc3"
+description = "Architecture for building OCaml libraries and applications"
+archive(byte) = "userconf.cma"
+archive(native) = "userconf.cmxa"
+exists_if = "userconf.cma"
+# OASIS_STOP
+

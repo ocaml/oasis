@@ -87,3 +87,4 @@
 \.tar\.gz\.asc$
 ^OASISMain.byte$
 ^patches-to-apply$
+^src/cli/PluginsLoaded.ml$

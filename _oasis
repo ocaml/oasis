@@ -179,7 +179,7 @@ Library cli
 Executable oasis
   Path:   src/cli
   MainIs: Main.ml
-  BuildDepends: oasis, oasis.base, oasis.cli, oasis.builtin-plugins
+  BuildDepends: oasis, oasis.base, oasis.cli, oasis.builtin-plugins, plugin-loader
 
 Executable test
   Path: test
@@ -217,3 +217,73 @@ SourceRepository head
   Type: darcs
   Location: http://darcs.ocamlcore.org/repos/oasis
   Browser: http://darcs.ocamlcore.org/cgi-bin/darcsweb.cgi?r=oasis;a=summary
+
+# Third party: plugin-loader
+
+Library "plugin-loader"
+  Path:         src/ext/plugin-loader/src
+  Modules:      PluginLoader
+  BuildDepends: dynlink, findlib
+
+Library "pluginloaderLib"
+  Path:    src/ext/plugin-loader/test/data/findlib/pluginloaderLib
+  Modules: PluginloaderLib
+  Build$: flag(tests)
+  Install: false
+
+Library "plugin1"
+  Path:    src/ext/plugin-loader/test/data/findlib/plugin1
+  Modules: Plugin1
+  Install: false
+  Build$: flag(tests)
+  BuildDepends: pluginloaderLib
+
+Library "plugin2"
+  Path:    src/ext/plugin-loader/test/data/findlib/plugin2
+  Modules: Plugin2
+  Install: false
+  Build$: flag(tests)
+  BuildDepends: pluginloaderLib, plugin1
+
+Library "plugin3"
+  Path:    src/ext/plugin-loader/test/data/findlib/plugin3
+  Modules: Plugin3
+  Install: false
+  Build$: flag(tests)
+  BuildDepends: pluginloaderLib
+
+Executable "pluginloader"
+  Path:    src/ext/plugin-loader/test/data
+  MainIs:  pluginloader.ml
+  Install: false
+  Build$: flag(tests)
+  BuildDepends: pluginloaderLib, plugin-loader
+
+Executable "test_loader"
+  Path:         src/ext/plugin-loader/test
+  MainIs:       TestLoader.ml
+  BuildDepends: plugin-loader, fileutils, oUnit
+  Build$: flag(tests)
+  Install:      false
+
+Test main_loader
+  Type:      custom (0.3)
+  Command:   $test_loader --pluginloader $pluginloader
+  TestTools: test-loader, pluginloader
+
+# Third party: user-conf
+
+Library "userconf"
+  Path:     src/ext/userconf/src
+  Modules:  UserConf
+
+Executable "test_userconf"
+  Path:         src/ext/userconf/test
+  MainIs:       TestUserConf.ml
+  BuildDepends: userconf, oUnit
+  Install:      false
+
+Test main_userconf
+  Type:       custom (0.3)
+  Command:    $test_userconf
+  TestTools:  test-userconf
