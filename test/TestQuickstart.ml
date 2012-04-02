@@ -364,6 +364,7 @@ let tests =
            "findlibname", "";
            "findlibcontainers", "";
            "xmetaenable", "";
+           "xmetaextralines", "";
            "xmetadescription", "this is a test";
            "xmetatype", "syntax";
            "xmetarequires", "test.syntax";
@@ -390,6 +391,7 @@ let tests =
            "findlibname", "";
            "findlibcontainers", "";
            "xmetaenable", "";
+           "xmetaextralines", "";
            "xmetadescription", "this is a test v2";
            "xmetatype", "";
            "xmetarequires", "test.syntax2";

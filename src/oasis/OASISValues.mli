@@ -86,6 +86,11 @@ val dot_separated : 'a t -> 'a list t
   *)
 val comma_separated : 'a t -> 'a list t
 
+(** Same {!dot_separated} using '\n' as separator. Strip whitespaces before and
+    after the input string.
+  *)
+val newline_separated : 'a t -> 'a list t
+
 (** Same as {!dot_separated} using blanks as separator. *)
 val space_separated : string list t
 

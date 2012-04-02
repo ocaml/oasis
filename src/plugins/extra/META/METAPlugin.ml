@@ -42,6 +42,7 @@ type t =
       description: string option;
       meta_type:   meta_type;
       requires:    (string list) option;
+      extra_lines: string list;
     }
 
 let plugin = 
@@ -94,6 +95,17 @@ let generator =
       pivot_data (fun _ t -> t.meta_type)
   in
 
+  let extra_lines =
+    new_field
+      "ExtraLines"
+      ~default:[]
+      ~since_version:"0.3"
+      (newline_separated string_not_empty)
+      (fun () ->
+         s_ "Extra lines to add to the META")
+      pivot_data (fun _ t -> t.extra_lines)
+  in
+
   let requires =
     new_field
       "Requires"
@@ -110,6 +122,7 @@ let generator =
         description = description data;
         meta_type   = meta_type data;
         requires    = requires data;
+        extra_lines = extra_lines data;
       }
 
 let pp_print_meta pkg root_t findlib_name_map fmt grp =
@@ -194,6 +207,7 @@ let pp_print_meta pkg root_t findlib_name_map fmt grp =
               pp_print_field fmt ("archive", ["syntax"; "preprocessor"], lib_cma);
               pp_print_field fmt ("archive", ["syntax"; "toploop"], lib_cma)
       end;
+      List.iter (fprintf fmt "@,%s") t.extra_lines;
       pp_print_sfield fmt 
         ("exists_if", 
          if lib_bs.bs_compiled_object = Native then 

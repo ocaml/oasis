@@ -237,6 +237,9 @@ Library "plugin1"
   Install: false
   Build$: flag(tests)
   BuildDepends: pluginloaderLib
+  XMETAExtraLines: plugin_system = "pluginloader"
+                   plugin_name = "plugin1"
+                   plugin_synopsis = "first plugin"
 
 Library "plugin2"
   Path:    src/ext/plugin-loader/test/data/findlib/plugin2
@@ -244,6 +247,9 @@ Library "plugin2"
   Install: false
   Build$: flag(tests)
   BuildDepends: pluginloaderLib, plugin1
+  XMETAExtraLines: plugin_system = "pluginloader"
+                   plugin_name = "plugin2"
+                   plugin_synopsis = "second plugin"
 
 Library "plugin3"
   Path:    src/ext/plugin-loader/test/data/findlib/plugin3
@@ -251,6 +257,9 @@ Library "plugin3"
   Install: false
   Build$: flag(tests)
   BuildDepends: pluginloaderLib
+  XMETAExtraLines: plugin_system = "pluginloader"
+                   plugin_name = "plugin3"
+                   plugin_synopsis = "third plugin"
 
 Executable "pluginloader"
   Path:    src/ext/plugin-loader/test/data

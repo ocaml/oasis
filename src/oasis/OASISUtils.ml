@@ -174,6 +174,9 @@ let file_exists fn =
 let split_comma str =
   List.map BatString.strip (BatString.nsplit str ",")
 
+let split_newline str =
+  List.map BatString.strip (BatString.nsplit str "\n")
+
 let split_optional_parentheses =
   let split_parentheses =
     ignore "(*(*";

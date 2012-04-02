@@ -177,6 +177,23 @@ let comma_separated value =
               lst));
   }
 
+let newline_separated value =
+  {
+    parse =
+      (fun ~ctxt s ->
+         List.map
+           (fun s -> value.parse ~ctxt s)
+           (split_newline s));
+    update =
+      List.append;
+    print =
+      (fun lst ->
+         String.concat "\n"
+           (List.map
+              value.print
+              lst));
+  }
+
 let space_separated = 
   {
     parse = 

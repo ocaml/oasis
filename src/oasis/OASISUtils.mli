@@ -90,6 +90,10 @@ val compare_csl : string -> string -> int
   *)
 val split_comma : string -> string list
 
+(** Split a list using '\n' as separator. {b Not exported}
+  *)
+val split_newline : string -> string list
+
 (** Split a string containing '(...)' optionally. {b Not exported} 
   *)
 val split_optional_parentheses : string -> string * (string option)
