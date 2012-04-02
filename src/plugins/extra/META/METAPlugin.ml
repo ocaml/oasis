@@ -259,6 +259,7 @@ let main ctxt pkg =
   let findlib_name_map = 
     findlib_name_map pkg
   in
+  let meta_created = Hashtbl.create 3 in
     List.fold_left 
       (fun ctxt grp ->
          let root_cs, root_bs, root_lib = 
@@ -275,6 +276,16 @@ let main ctxt pkg =
                let buff =
                  Buffer.create 13
                in
+                 if Hashtbl.mem meta_created meta_fn then
+                   OASISUtils.failwithf
+                     (f_ "The file '%s' generated for the library '%s' is \
+                          already used for the library '%s'. You can make \
+                          one a child of the other to solve this \
+                          (field `FindlibParent:`).")
+                     meta_fn root_cs.cs_name
+                     (Hashtbl.find meta_created meta_fn);
+                 Hashtbl.add meta_created meta_fn root_cs.cs_name;
+
                  pp_print_meta
                    pkg
                    root_t
