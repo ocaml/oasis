@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: e7b17c3949229587e75e7d891aba8e56)
+# DO NOT EDIT (digest: 9e63eb191e234218e7cbb0eaa6fa904e)
 oasis/FormatExt
 oasis/FormatMarkdown
 oasis/ODNFunc
@@ -49,6 +49,7 @@ oasis/OASISPlugin
 oasis/OASISSchema
 oasis/OASISSection
 oasis/OASISData
+oasis/OASISString
 base/BaseArgExt
 base/BaseBuilt
 base/BaseCheck

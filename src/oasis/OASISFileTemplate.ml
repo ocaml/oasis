@@ -24,11 +24,14 @@ open OASISMessage
 open OASISGettext
 open OASISUtils
 open OASISTypes
+open OASISString
 
 type comment =
     {
+      (** Return the string as a comment. *)
       of_string: string -> string;
-      regexp:    quote:bool -> string -> Pcre.regexp;
+      (** Return the string if it was able to strip comments from it. *)
+      to_string: string -> string option;
       start:     string;
       stop:      string;
     }
@@ -62,28 +65,24 @@ let comment cmt_beg cmt_end =
             (fun str ->
                Printf.sprintf "%s %s %s" cmt_beg str cmt_end)
   in
-  let regexp ~quote str =
-    let q =
-      Pcre.quote
-    in
-    let rstr =
-      if quote then
-        q str
-      else
-        str
-    in
-    let lst =
-      match cmt_end with
-        | Some cmt_end ->
-            ["^"; q cmt_beg; rstr; q cmt_end; "$"]
-        | None ->
-            ["^"; q cmt_beg; rstr; "$"]
-    in
-      Pcre.regexp (String.concat "\\s*" lst)
+  let to_string str =
+    try
+      let str = trim str in
+      let str = strip_starts_with ~what:cmt_beg str in
+      let str =
+        match cmt_end with
+          | Some cmt_end ->
+              strip_ends_with ~what:cmt_end str
+          | None ->
+              str
+      in
+        Some (trim str)
+    with Not_found ->
+        None
   in
     {
       of_string = of_string;
-      regexp    = regexp;
+      to_string = to_string;
       start     = of_string start_msg;
       stop      = of_string stop_msg;
     }
@@ -134,20 +133,28 @@ let template_of_string_list ~ctxt ~template fn comment lst =
 
   (* Match start and stop comment *)
   let is_start, is_stop =
-    let match_regexp msg =
-      let rgxp =
-        comment.regexp ~quote:true msg
-      in
-        fun str ->
-          Pcre.pmatch ~rex:rgxp str
+    let test_comment msg str =
+      match comment.to_string str with
+        | Some msg' -> msg = msg'
+        | None -> false
     in
-      (match_regexp start_msg),
-      (match_regexp stop_msg)
+      (test_comment start_msg),
+      (test_comment stop_msg)
   in
 
-  (* Match do not edit comment *)
-  let do_not_edit =
-    comment.regexp ~quote:false "DO NOT EDIT \\(digest: ([^\\)]*)\\)"
+  (* Match do not edit comment and extract digest. *)
+  let extract_digest str =
+    match comment.to_string str with
+      | Some str' ->
+          begin
+            match tokenize ~tokens:["(";")";":"] str' with
+              | ["DO"; "NOT"; "EDIT"; "("; "digest"; ":"; digest; ")"] ->
+                  digest
+              | _ ->
+                  raise Not_found
+          end
+      | None ->
+          raise Not_found
   in
 
   (* Separate a list into three part: header, body and footer.
@@ -192,12 +199,7 @@ let template_of_string_list ~ctxt ~template fn comment lst =
               | (hd :: tl) as lst->
                   begin
                     try
-                      let digest =
-                        Pcre.get_substring
-                          (Pcre.exec ~rex:do_not_edit hd)
-                          1
-                      in
-                        Some (digest_of_hex digest), tl
+                      Some (digest_of_hex (extract_digest hd)), tl
                     with Not_found ->
                       None, lst
                   end
@@ -284,61 +286,47 @@ let template_of_mlfile fn header body footer  =
       end
   in
 
-  (* Make sure that line modifier contains reference to file that
-   * really exists. If not modify the matching string.
+  (* Make sure that line modifier contains reference to files that
+   * really exist. If not modify the matching line.
    *)
   let check_line_modifier str =
-    let rgxp =
-      Pcre.regexp "^#\\s*\\d+\\s+\"([^\"]*)\""
+    let found = ref false in
+    let extract_line_modifier str =
+      if starts_with "#" (trim str) then
+        try 
+          match tokenize_genlex str with
+            | [Genlex.Ident "#"; Genlex.Int _; Genlex.String fn] ->
+                fn
+            | _ ->
+                raise Not_found
+        with _ ->
+          raise Not_found
+      else
+        raise Not_found
     in
-    let rec check_line_modifier_aux (prev_find, prev_str, prev_idx) =
-      try
-        let substrs =
-          Pcre.exec ~rex:rgxp ~pos:prev_idx prev_str
-        in
-        let line_modifier =
-          Pcre.get_substring substrs 0
-        in
-        let line_modifier_fn =
-          Pcre.get_substring substrs 1
-        in
-        let idx, next_idx =
-          Pcre.get_substring_ofs substrs 0
-        in
-        let acc =
-          if OASISUtils.file_exists line_modifier_fn then
-            begin
-              (* We found a valid match, continue to search
-               *)
-              assert(idx + (String.length line_modifier) = next_idx );
-              true, prev_str, next_idx
-            end
-          else
-            begin
-              (* The line modifier filename is not available, better
-               * comment it
-               *)
-              let str =
-                Pcre.qreplace
-                  ~pat:("^"^(Pcre.quote line_modifier))
-                  ~templ:("(* "^line_modifier^" *)")
-                  prev_str
-              in
-                (* Restart search before we replace the string, at this
-                 * point index has not been modified.
-                 *)
-                prev_find, str, prev_idx
-            end
-        in
-          check_line_modifier_aux acc
-      with Not_found ->
-        prev_find, prev_str, (String.length prev_str)
-    in
+    let lst =
+      List.map
+        (fun line ->
+           try
+             let windows_mode = ends_with ~what:"\r" line in
+             let line_modifier_fn =
+               extract_line_modifier line
+             in
+               found := true;
+               if OASISUtils.file_exists line_modifier_fn then
+                 (* We found a valid match, keep it *)
+                 line
+               (* The line modifier filename is not available, comment it. *)
+               else if windows_mode then
+                 (comment_ml.of_string (sub_end line 1))^"\r"
+               else
+                 comment_ml.of_string line
 
-    let find, str, _ =
-      check_line_modifier_aux (false, str, 0)
+           with Not_found ->
+             line)
+        (nsplit '\n' str)
     in
-      find, str
+      !found, (String.concat "\n" lst)
   in
 
   let insert_line_modifier lst line_start ~restore =

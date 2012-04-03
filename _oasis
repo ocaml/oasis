@@ -76,7 +76,8 @@ Library oasis
            OASISPlugin,
            OASISSchema,
            OASISSection,
-           OASISData
+           OASISData,
+           OASISString
   InternalModules: OASISVersion_types,
                    OASISVersion_lexer,
                    OASISVersion_parser,
