@@ -47,9 +47,17 @@ let schema, generator =
   let main_is =
     new_field schm "MainIs" 
       (let base_value =
-         regexp
-           (Pcre.regexp ".*\\.ml$")
-           (fun () -> s_ ".ml file")
+         {
+           parse =
+             (fun ~ctxt str ->
+                if not (Filename.check_suffix str ".ml") then
+                  failwithf
+                    (f_ "'%s' is not  a '.ml' file")
+                    str;
+                str);
+           update = update_fail;
+           print  = (fun s -> s);
+         }
        in
          {
            parse  = (fun ~ctxt str -> 

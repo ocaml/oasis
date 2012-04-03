@@ -130,21 +130,9 @@ let rec version_compare v1 v2 =
     end
 
 
-let version_of_string str =
-  String.iter
-    (fun c ->
-       if is_alpha c || is_digit c || is_special c then
-         ()
-       else
-         failwith
-           (Printf.sprintf
-              (f_ "Char %C is not allowed in version '%s'")
-              c str))
-    str;
-  str
+let version_of_string str = str
 
-let string_of_version t =
-  t
+let string_of_version t = t
 
 let chop t =
   try
