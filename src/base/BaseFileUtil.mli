@@ -29,7 +29,11 @@ open OASISTypes
     various extensiosn [exts]. Return the first combination of [paths]
     and [exts].
   *)
-val find_file : host_filename list list -> string list -> host_filename
+val find_file :
+  ?case_sensitive:bool ->
+  host_filename list list ->
+  string list ->
+  host_filename
 
 (** Find real filename of an executable.
   *)

@@ -21,7 +21,7 @@
 
 open OASISGettext
 
-let find_file paths exts =
+let find_file ?(case_sensitive=true) paths exts =
 
   (* Cardinal product of two list *)
   let ( * ) lst1 lst2 =
@@ -59,7 +59,10 @@ let find_file paths exts =
       ((combined_paths paths) * exts)
   in
     List.find
-      OASISUtils.file_exists
+      (if case_sensitive then
+         OASISUtils.file_exists
+       else
+         Sys.file_exists)
       alternatives
 
 let which prg =
@@ -86,7 +89,7 @@ let which prg =
       | _ ->
           [""]
   in
-    find_file [path_lst; [prg]] exec_ext
+    find_file ~case_sensitive:false [path_lst; [prg]] exec_ext
 
 (**/**)
 let rec fix_dir dn =
