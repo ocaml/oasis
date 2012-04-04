@@ -156,19 +156,27 @@ let tokenize_genlex ?(tokens=[]) str =
     Stream.iter (fun tok -> lst := tok :: !lst) strm;
     List.rev !lst
 
-let nsplit c str =
-  let buf = Buffer.create 13 in
-  let lst = ref [] in
-  let push () = 
-    lst := Buffer.contents buf :: !lst;
-    Buffer.clear buf
-  in
-  let str_len = String.length str in
-    for i = 0 to str_len - 1 do 
-      if str.[i] = c then
-        push ()
-      else
-        Buffer.add_char buf str.[i]
-    done;
-    push ();
-    List.rev !lst
+let nsplit str c =
+  if str = "" then
+    []
+  else
+    let buf = Buffer.create 13 in
+    let lst = ref [] in
+    let push () =
+      lst := Buffer.contents buf :: !lst;
+      Buffer.clear buf
+    in
+    let str_len = String.length str in
+      for i = 0 to str_len - 1 do
+        if str.[i] = c then
+          push ()
+        else
+          Buffer.add_char buf str.[i]
+      done;
+      push ();
+      List.rev !lst
+
+let split str c =
+  let idx = String.index str c in
+    String.sub str 0 idx,
+    String.sub str (idx + 1) (String.length str - idx - 1)

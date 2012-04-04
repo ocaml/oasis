@@ -172,34 +172,19 @@ let file_exists fn =
 
 
 let split_comma str =
-  List.map BatString.strip (BatString.nsplit str ",")
+  List.map OASISString.trim (OASISString.nsplit str ',')
 
 let split_newline str =
-  List.map BatString.strip (BatString.nsplit str "\n")
+  List.map OASISString.trim (OASISString.nsplit str '\n')
 
-let split_optional_parentheses =
-  let split_parentheses =
-    ignore "(*(*";
-    Pcre.regexp "([^\\(]*)\\(([^\\)]*)\\)"
-  in
-    fun str ->
-      try
-        let substrs =
-          Pcre.exec ~rex:split_parentheses str
-        in
-        let s1, s2 =
-          Pcre.get_substring substrs 1,
-          Pcre.get_substring substrs 2
-        in
-        let e1 =
-          BatString.strip s1
-        in
-        let e2 =
-          BatString.strip s2
-        in
-          e1, Some e2
-      with Not_found ->
-        BatString.strip str, None
+let split_optional_parentheses str =
+  try
+    let beg_str, end_str = OASISString.split (OASISString.trim str) '(' in
+    let content_str = OASISString.strip_ends_with ~what:")" end_str in
+      OASISString.trim beg_str,
+      Some (OASISString.trim content_str)
+  with Not_found ->
+    OASISString.trim str, None
 
 module POSIXShell =
 struct
