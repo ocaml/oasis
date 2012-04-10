@@ -112,11 +112,6 @@ val opt : 'a t -> 'a option t
   *)
 val choices : (unit -> string) -> (string * 'a) list -> 'a t
 
-(** [regexp r nm] Check that input string match [r]. If not use [nm] as the 
-    name of the value represented.
-  *)
-val regexp : Pcre.regexp -> (unit -> string) -> string t
-
 (** {2 Standard values} *)
 
 (** URL value. *)

@@ -46,29 +46,20 @@ let blackbox =
     print  = (fun _ -> raise Not_printable);
   }
 
-module StdRegexp = 
-struct 
-  let r = Pcre.regexp
-
-  let url_scheme = "[A-Za-z][A-Za-z0-9+\\-\\.]*"
-  let url_path   = "(\\w+:{0,1}\\w*@)?(\\S+)(:[0-9]+)?(/|/([\\w#!:.?+=&%@!\\-/]))?"
-
-  let url       = r (url_scheme ^ "://" ^ url_path)
-  let copyright = r "\\((c|C)\\) *\\d+(-\\d+)?,? .*" 
-  let modul     = r "[A-Z][A-Za-z0-9_]*"
+module StdLexer =
+struct
+  let url = OASISValues_lexer.url
+  let copyright = OASISValues_lexer.copyright
+  let modul = OASISValues_lexer.modul
 end
 
-let regexp regexp nm = 
+let lexer lxr nm =
   {
-    parse = 
-      (fun ~ctxt str -> 
-         try 
-           let substrs = 
-             Pcre.exec ~rex:regexp str
-           in
-           let str_matched = 
-             Pcre.get_substring substrs 0
-           in
+    parse =
+      (fun ~ctxt str ->
+         try
+           let lexbuf = Lexing.from_string str in
+           let str_matched  = lxr lexbuf in
              if str_matched = str then
                str
              else
@@ -80,31 +71,33 @@ let regexp regexp nm =
          with Not_found ->
            failwithf
              (f_ "String '%s' is not a %s")
-             str 
+             str
              (nm ()));
     update = update_fail;
     print = (fun s -> s);
   }
 
-let url = 
-  regexp
-    StdRegexp.url
+let url =
+  lexer
+    StdLexer.url
     (fun () -> s_ "URL")
 
 let copyright =
-  {
-    parse = 
-      (fun ~ctxt str ->
-         if Pcre.pmatch ~rex:StdRegexp.copyright str then
-           str
-         else
-           failwithf
-             (f_ "Copyright must follow the convention \
-                  '(C) 2008-2009 J.R. Hacker', here it is '%s'")
-             str);
-    update = update_fail;
-    print = (fun s -> s);
-  }
+  let base_value =
+    lexer
+      StdLexer.copyright
+      (fun () -> s_ "copyright")
+  in
+    {base_value with
+         parse =
+           (fun ~ctxt str ->
+              try
+                base_value.parse ~ctxt str
+              with _ ->
+                failwithf
+                  (f_ "Copyright must follow the convention \
+                       '(C) 2008-2009 J.R. Hacker', here it is '%s'")
+                  str)}
 
 let string =
   { 
@@ -242,8 +235,8 @@ let opt value =
 
 let modules =
   let base_value = 
-    regexp 
-      StdRegexp.modul
+    lexer
+      StdLexer.modul
       (fun () -> s_ "module")
   in
     comma_separated
