@@ -11,4 +11,4 @@ rule token = parse
 | "with"        { WITH }
 | "exception"   { EXCEPTION }
 | eof           { EOF }
-| [^' ''\t''\n']+ as lxm { TOKEN lxm }
+| [^' ''\t''\n'',']+ as lxm { TOKEN lxm }

@@ -539,17 +539,27 @@ let rec string_of_dep5 =
           in
             t.license^ver^exceptions
         end
-    (* TODO: both of the following don't take into account precendence of
-     * 'and' over 'or', on the other hand it is not well defined in DEP5
-     * definition
-     *)
+
     | DEP5Or lst ->
         begin
           String.concat " or " (List.map string_of_dep5 lst)
         end
+
+    | DEP5And [DEP5Or _ as t1; DEP5Unit _ as t2] ->
+        (string_of_dep5 t1)^", and "^(string_of_dep5 t2)
+
     | DEP5And lst ->
         begin
-          String.concat " and " (List.map string_of_dep5 lst)
+          String.concat " and "
+            (List.map
+               (fun t ->
+                  let str = string_of_dep5 t in
+                    match t with
+                      | DEP5Or _ ->
+                          "("^str^")"
+                      | _ ->
+                          str)
+               lst)
         end
 
 let to_string =

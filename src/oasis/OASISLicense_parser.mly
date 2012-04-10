@@ -11,6 +11,7 @@ open OASISLicense_types
 %token WITH
 %token EXCEPTION
 %token EOF
+%left COMMA
 %left OR
 %left AND
 

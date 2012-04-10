@@ -33,15 +33,16 @@ let tests =
   let ver =
     OASISVersion.version_of_string
   in
-  let mk ?(v=NoVersion) ?e lic =
-    Some
-      (DEP5License
-         (DEP5Unit
-            {
-              license  = lic;
-              version  = v;
-              excption = e;
-            }))
+  let mk_base ?(v=NoVersion) ?e lic =
+      (DEP5Unit
+         {
+           license  = lic;
+           version  = v;
+           excption = e;
+         })
+  in
+  let mk ?v ?e lic =
+    Some (DEP5License (mk_base ?v ?e lic))
   in
 
     "License" >:::
@@ -107,6 +108,35 @@ let tests =
 
          "CMU/MIT",
          None;
+
+         "GPL-1+ or Artistic",
+         Some
+           (DEP5License
+             (DEP5Or
+                [
+                  mk_base ~v:(VersionOrLater (ver "1")) gpl;
+                  mk_base artistic;
+                ]));
+
+         "GPL-2+ and BSD3",
+         Some
+           (DEP5License
+             (DEP5And
+                [
+                  mk_base ~v:(VersionOrLater (ver "2")) gpl;
+                  mk_base bsd3;
+                ]));
+
+         "GPL-2+ or Artistic-2.0, and BSD3",
+         Some
+           (DEP5License
+             (DEP5And
+                [DEP5Or
+                   [
+                     mk_base ~v:(VersionOrLater (ver "2")) gpl;
+                     mk_base ~v:(Version (ver "2.0")) artistic;
+                   ];
+                 mk_base bsd3]));
        ]
 
     )

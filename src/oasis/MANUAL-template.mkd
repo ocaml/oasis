@@ -268,7 +268,7 @@ License
 
 We have adopted a [DEP-5][] license style description. 
 
- [DEP-5]: http://dep.debian.net/deps/dep5/
+ [DEP-5]: http://dep.debian.net/deps/dep5/#license-specification 
 
 The reason of this format is to have machine-readable license description.
 Using this former work, we hope to be compatible with future standards of
