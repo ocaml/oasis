@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 457e50623116a9a567220aed81d38e73)
+# DO NOT EDIT (digest: ea424b73260a876479df17efb164064a)
 FormatExt
 FormatMarkdown
 ODNFunc
@@ -53,6 +53,9 @@ OASISString
 OASISVersion_types
 OASISVersion_lexer
 OASISVersion_parser
+OASISLicense_types
+OASISLicense_lexer
+OASISLicense_parser
 OASISSchema
 OASISConf
 OASISAst

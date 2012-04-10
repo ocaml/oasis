@@ -42,16 +42,23 @@ type license_version =
   | VersionOrLater of OASISVersion.t
   | NoVersion
 
-(** DEP-5 license.
+(** DEP-5 license, basic.
+  *)
+type license_dep_5_unit =
+  {
+    license:    license;
+    excption:   license_exception option;
+    version:    license_version;
+  }
+
+(** DEP-5 license, complex.
   *)
 type license_dep_5 =
-    { 
-      license:    license;
-      exceptions: license_exception list;
-      version:    license_version;
-    }
+  | DEP5Unit of license_dep_5_unit
+  | DEP5Or of license_dep_5 list
+  | DEP5And of license_dep_5 list
 
-(** Extended DEP-5 license.
+(** OASIS supported type of license.
   *)
 type t =
   | DEP5License of license_dep_5

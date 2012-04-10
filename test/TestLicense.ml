@@ -33,14 +33,15 @@ let tests =
   let ver =
     OASISVersion.version_of_string
   in
-  let mk ?(v=NoVersion) ?(e=[]) lic = 
+  let mk ?(v=NoVersion) ?e lic =
     Some
       (DEP5License
-         {
-           license    = lic;
-           version    = v;
-           exceptions = e;
-         })
+         (DEP5Unit
+            {
+              license  = lic;
+              version  = v;
+              excption = e;
+            }))
   in
 
     "License" >:::
@@ -51,7 +52,7 @@ let tests =
              match res with
                | Some exp ->
                    assert_equal 
-                     ~printer:to_string
+                     ~printer:(fun v -> Printf.sprintf "%S" (to_string v))
                      exp
                      (value.parse ~ctxt:!oasis_ctxt txt)
                | None ->
@@ -84,7 +85,7 @@ let tests =
          mk ~v:(VersionOrLater (ver "2")) gpl;
 
          "LGPL-2.1 with OCaml linking exception",
-         mk ~v:(Version (ver "2.1")) ~e:[ocaml_linking_exception] lgpl;
+         mk ~v:(Version (ver "2.1")) ~e:ocaml_linking_exception lgpl;
 
          "http://some.stuff.com/license",
          Some (OtherLicense "http://some.stuff.com/license");

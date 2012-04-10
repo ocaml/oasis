@@ -35,12 +35,19 @@ type license_version =
   | NoVersion
   with odn
 
+type license_dep_5_unit =
+  {
+    license:   license;
+    excption:  license_exception option;
+    version:   license_version;
+  }
+  with odn
+
 type license_dep_5 =
-    {
-      license:    license;
-      exceptions: license_exception list;
-      version:    license_version;
-    } with odn
+  | DEP5Unit of license_dep_5_unit
+  | DEP5Or of license_dep_5 list
+  | DEP5And of license_dep_5 list
+  with odn
 
 type t =
   | DEP5License of license_dep_5
@@ -68,6 +75,21 @@ let all_licenses =
   HashStringCsl.create 13
 
 let mk_license nm ?(versions=[]) ?note long_name =
+  let rec expand_version =
+    function
+      | hd :: tl ->
+          begin
+            try
+              let hd' =
+                OASISString.strip_ends_with ~what:".0" hd
+              in
+                hd :: (expand_version (hd' :: tl))
+            with Not_found ->
+              hd :: (expand_version tl)
+          end
+      | [] ->
+          []
+  in
   if HashStringCsl.mem all_licenses nm then
     failwithf
       (f_ "Duplicate license '%s'")
@@ -75,7 +97,9 @@ let mk_license nm ?(versions=[]) ?note long_name =
   HashStringCsl.add all_licenses nm
     {
       long_name = long_name;
-      versions  = List.map OASISVersion.version_of_string versions;
+      versions  = List.map
+                    OASISVersion.version_of_string
+                    (expand_version versions);
       note      = note;
     };
   nm
@@ -335,88 +359,167 @@ let ocaml_linking_exception =
           without this exception.")
     [lgpl]
 
-let parse_rgxp =
-  ignore "(*";
-  Pcre.regexp ~flags:[`CASELESS]
-    "^([A-Z0-9\\-]*?[A-Z0-9]+)\
-     (-([0-9\\.]+))?(\\+)?\
-     ( *with *(.*[^ ]+) *exception)?$"
-
 let parse_dep5 ~ctxt str =
-  let substrs =
-    Pcre.exec ~rex:parse_rgxp str
-  in
-  let get_subs n =
-    Pcre.get_substring substrs n
-  in
-  let license =
-    let res =
-      try
-        get_subs 1
-      with Not_found ->
-        failwithf
-          (f_ "Undefined license in '%s'")
-          str
-    in
-      if not (HashStringCsl.mem all_licenses res) then
+  let rec solve_token =
+    function
+      | OASISLicense_types.Or (t1', t2') ->
+          DEP5Or [solve_token t1'; solve_token t2']
+      | OASISLicense_types.And (t1', t2') ->
+          DEP5And [solve_token t1'; solve_token t2']
+      | OASISLicense_types.License (lcs, Some exc) ->
+          DEP5Unit {(decode_license lcs) with excption = decode_exception exc}
+      | OASISLicense_types.License (lcs, None) ->
+          DEP5Unit (decode_license lcs)
+  and decode_license str =
+    if HashStringCsl.mem all_licenses str then
+      begin
+        {
+          license = str;
+          excption = None;
+          version = NoVersion;
+        }
+      end
+    else
+      begin
+        (* Try to find a version *)
+        let str', plus_present =
+          try
+            OASISString.strip_ends_with ~what:"+" str, true
+          with Not_found ->
+            str, false
+        in
+        let license, version =
+          let to_string lst =
+            let buf = Buffer.create (List.length lst) in
+              List.iter (Buffer.add_char buf) lst;
+              Buffer.contents buf
+          in
+          let ver = ref [] in
+          let nm = ref [] in
+          let in_ver = ref true in
+            for i = String.length str' - 1 downto 0 do
+              if !in_ver then
+                begin
+                  match str'.[i] with
+                    | '-' ->
+                        in_ver := false
+                    | '0'..'9' | '.' as c ->
+                        ver := c :: !ver
+                    | c ->
+                        nm := c :: !nm;
+                        in_ver := false
+                end
+              else
+                nm := str'.[i] :: !nm
+            done;
+            (* We don't want an empty name for license *)
+            if !nm = [] then
+              begin
+                nm := !ver;
+                ver := []
+              end;
+            if !ver = [] && plus_present then
+              begin
+                nm := !nm @ ['+']
+              end;
+            to_string !nm,
+            if !ver = [] then
+              NoVersion
+            else if plus_present then
+              VersionOrLater (OASISVersion.version_of_string (to_string !ver))
+            else
+              Version (OASISVersion.version_of_string (to_string !ver))
+        in
+          if not (HashStringCsl.mem all_licenses license) then
+            OASISMessage.warning ~ctxt
+              (f_ "Unknown license '%s' in '%s'")
+              license str
+          else
+            begin
+              match version with
+                | VersionOrLater ver | Version ver ->
+                    let license_data =
+                      HashStringCsl.find all_licenses license
+                    in
+                      if not (List.mem ver license_data.versions) then
+                        OASISMessage.warning ~ctxt
+                          (f_ "Version '%s' is not known for \
+                               license '%s' in '%s'")
+                          (OASISVersion.string_of_version ver)
+                          license str
+                | NoVersion ->
+                    ()
+            end;
+              {
+                license  = license;
+                excption = None;
+                version  = version;
+              }
+      end
+
+  and decode_exception str =
+      if not (HashStringCsl.mem all_exceptions str) then
         OASISMessage.warning ~ctxt
-          (f_ "Unknown license '%s' in '%s'")
-          res str;
-      res
+          (f_ "Unknown license exception '%s'")
+          str;
+      Some str
   in
-  let version =
-    try
-      let ver =
-        OASISVersion.version_of_string (get_subs 3)
-      in
-        try
-          let _s : string = get_subs 4 in
-            VersionOrLater ver
-        with Not_found ->
-          Version ver
-    with Not_found ->
-      NoVersion
+
+  let rec merge =
+    function
+      | DEP5Or lst ->
+          let lst =
+            List.fold_left
+              (fun acc ->
+                 function
+                   | DEP5Or lst ->
+                       List.rev_append lst acc
+                   | DEP5And _ | DEP5Unit _ as t ->
+                       t :: acc)
+              []
+              (List.rev_map merge lst)
+          in
+            DEP5Or lst
+
+      | DEP5And lst ->
+          let lst =
+            List.fold_left
+              (fun acc ->
+                 function
+                   | DEP5And lst ->
+                       List.rev_append lst acc
+                   | DEP5Or _ | DEP5Unit _ as t ->
+                       t :: acc)
+              []
+              (List.rev_map merge lst)
+          in
+            DEP5And lst
+
+      | DEP5Unit _ as t ->
+          t
   in
-  let exceptions =
-    try
-      let res =
-        get_subs 6
-      in
-        if HashStringCsl.mem all_exceptions res then
-          [res]
-        else
-          failwithf
-            (f_ "Unknown license exception '%s' in '%s'")
-            res str
-    with Not_found ->
-      []
-  in
-    {
-      license    = license;
-      exceptions = exceptions;
-      version    = version;
-    }
+
+  let lexbuf = Lexing.from_string str in
+  let t' = OASISLicense_parser.main OASISLicense_lexer.token lexbuf in
+    merge (solve_token t')
 
 let parse ~ctxt str =
-  try
-    begin
-      DEP5License (parse_dep5 ~ctxt str)
-    end
-  with Not_found ->
-    begin
+    try
+      OtherLicense
+        (OASISValues.url.parse ~ctxt str)
+    with Failure _ ->
       try
-        OtherLicense
-          (OASISValues.url.parse ~ctxt str)
-      with Failure _ ->
-        failwithf
-          (f_ "Cannot parse license '%s'")
-          str
-    end
+        DEP5License (parse_dep5 ~ctxt str)
+      with e ->
+        begin
+          failwithf
+            (f_ "Cannot parse license '%s': %s")
+            str (Printexc.to_string e)
+        end
 
-
-let to_string =
+let rec string_of_dep5 =
   function
-    | DEP5License t ->
+    | DEP5Unit t  ->
         begin
           let ver =
             match t.version with
@@ -428,17 +531,31 @@ let to_string =
                   ""
           in
           let exceptions =
-            match t.exceptions with
-              | [] ->
+            match t.excption with
+              | None ->
                   ""
-              | lst ->
-                  " with "^(String.concat ", " lst)^" exception"
+              | Some str ->
+                  " with "^str^" exception"
           in
             t.license^ver^exceptions
         end
+    (* TODO: both of the following don't take into account precendence of
+     * 'and' over 'or', on the other hand it is not well defined in DEP5
+     * definition
+     *)
+    | DEP5Or lst ->
+        begin
+          String.concat " or " (List.map string_of_dep5 lst)
+        end
+    | DEP5And lst ->
+        begin
+          String.concat " and " (List.map string_of_dep5 lst)
+        end
 
-    | OtherLicense url ->
-        url
+let to_string =
+  function
+    | DEP5License dep5 -> string_of_dep5 dep5
+    | OtherLicense url -> url
 
 let value =
   {
@@ -470,7 +587,7 @@ let choices () =
               match v_cmp with
                 | 0 ->
                     begin
-                      compare t1.exceptions t2.exceptions
+                      compare t1.excption t2.excption
                     end
                 | n ->
                     n
@@ -505,7 +622,7 @@ let choices () =
     HashStringCsl.fold
       (fun license extra acc ->
          let dflt =
-           {license = license; version = NoVersion; exceptions = []}
+           {license = license; version = NoVersion; excption = None}
          in
            List.fold_left
              (fun acc ver ->
@@ -514,7 +631,7 @@ let choices () =
                 in
                   List.fold_left
                     (fun acc excpt ->
-                       {dflt with exceptions = [excpt]} :: acc)
+                       {dflt with excption = Some excpt} :: acc)
                     (* only versions *)
                     (dflt :: acc)
                     (exception_find license exceptions_map))
@@ -533,22 +650,22 @@ let choices () =
     [
       {license = lgpl;
        version = Version (OASISVersion.version_of_string "2.1");
-       exceptions = [ocaml_linking_exception]};
+       excption = Some ocaml_linking_exception};
       {license = bsd3;
        version = NoVersion;
-       exceptions = []};
+       excption = None};
       {license = gpl;
        version =  Version (OASISVersion.version_of_string "3.0");
-       exceptions = []};
+       excption = None};
       {license = qpl;
        version = Version (OASISVersion.version_of_string "1.0");
-       exceptions = []};
+       excption = None};
       {license = mit;
        version = NoVersion;
-       exceptions = []};
+       excption = None};
     ]
   in
   let all =
     preferred @ (List.filter (fun l -> not (List.mem l preferred)) all)
   in
-    List.map (fun t -> DEP5License t) all
+    List.map (fun t -> DEP5License (DEP5Unit t)) all
