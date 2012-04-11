@@ -104,8 +104,7 @@ Library oasis
                    OASISTest_intern,
                    OASISSchema_intern
   CompiledObject: Best
-  BuildDepends: fileutils (>= 0.4.2), unix, batteries,
-                odn (>= 0.0.3), ocamlgraph
+  BuildDepends: fileutils (>= 0.4.2), unix, odn (>= 0.0.3), ocamlgraph
   BuildTools+: ocamlmod, ocamlyacc, ocamllex, ocamlify
   XMETADescription: _oasis file functions
   Install$: flag(libraries)

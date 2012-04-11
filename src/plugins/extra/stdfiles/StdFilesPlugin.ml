@@ -417,7 +417,7 @@ let main ctxt pkg =
                           function
                             | FindlibPackage (fndlb_nm, ver_opt) ->
                                 let fndlb_root = 
-                                  match (split '.' fndlb_nm) with 
+                                  match (OASISString.nsplit fndlb_nm '.') with
                                     | hd :: _ -> hd
                                     | _ -> fndlb_nm
                                 in

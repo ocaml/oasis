@@ -52,7 +52,7 @@ module HashStringCsl: Hashtbl.S with type key = String.t
 
 (** [varname_of_string ~hyphen:c s] Transform a string [s] into a variable name, 
     following this convention: no digit at the beginning, lowercase, only a-z
-    and 0-9 chars. Whenever there is a problem, use an hyphen char.
+    and 0-9 chars. Whenever there is a problem, use an hyphen.
   *)
 val varname_of_string : ?hyphen:char -> string -> string
 
@@ -76,11 +76,6 @@ val is_varname: string -> bool
 val failwithf : ('a, unit, string, 'b) format4 -> 'a
 
 (** {2 String} *)
-
-(** [split c s] Split the string [s] at char [c]. It doesn't include the
-    separator.
-  *)
-val split : char -> string -> string list
 
 (** Caseless compare function
   *)

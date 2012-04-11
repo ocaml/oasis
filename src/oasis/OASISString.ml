@@ -8,10 +8,28 @@
     @author Sylvain Le Gall
   *)
 
-let is_whitespace = 
-  function
-    | ' ' | '\r' | '\n' | '\t' -> true
-    |  _  -> false
+(** [nsplit c s] Split the string [s] at char [c]. It doesn't include the
+    separator.
+  *)
+let nsplit str c =
+  if str = "" then
+    []
+  else
+    let buf = Buffer.create 13 in
+    let lst = ref [] in
+    let push () =
+      lst := Buffer.contents buf :: !lst;
+      Buffer.clear buf
+    in
+    let str_len = String.length str in
+      for i = 0 to str_len - 1 do
+        if str.[i] = c then
+          push ()
+        else
+          Buffer.add_char buf str.[i]
+      done;
+      push ();
+      List.rev !lst
 
 let find ~what ?(offset=0) str =
   let what_idx = ref 0 in
@@ -28,19 +46,6 @@ let find ~what ?(offset=0) str =
       raise Not_found
     else 
       !str_idx - !what_idx
-
-let trim str = 
-  let start_non_blank = ref 0 in
-  let stop_non_blank = ref ((String.length str) - 1) in
-    while !start_non_blank < String.length str &&
-          is_whitespace (str.[!start_non_blank]) do
-      incr start_non_blank
-    done;
-    while !start_non_blank <= !stop_non_blank &&
-          is_whitespace (str.[!stop_non_blank]) do
-      decr stop_non_blank
-    done;
-    String.sub str !start_non_blank (!stop_non_blank - !start_non_blank + 1)
 
 let sub_start str len = 
   let str_len = String.length str in
@@ -104,6 +109,20 @@ let strip_ends_with ~what str =
   else
     raise Not_found
 
+let replace_chars f s =
+  let buf = String.make (String.length s) 'X' in
+    for i = 0 to String.length s - 1 do
+      buf.[i] <- f s.[i]
+    done;
+    buf
+
+(* END EXPORT *)
+
+let is_whitespace =
+  function
+    | ' ' | '\r' | '\n' | '\t' -> true
+    |  _  -> false
+
 let tokenize ?(is_whitespace=is_whitespace) ?(tokens=[]) str =
   let lst = ref [] in
   let buf = Buffer.create 13 in
@@ -156,27 +175,27 @@ let tokenize_genlex ?(tokens=[]) str =
     Stream.iter (fun tok -> lst := tok :: !lst) strm;
     List.rev !lst
 
-let nsplit str c =
-  if str = "" then
-    []
-  else
-    let buf = Buffer.create 13 in
-    let lst = ref [] in
-    let push () =
-      lst := Buffer.contents buf :: !lst;
-      Buffer.clear buf
-    in
-    let str_len = String.length str in
-      for i = 0 to str_len - 1 do
-        if str.[i] = c then
-          push ()
-        else
-          Buffer.add_char buf str.[i]
-      done;
-      push ();
-      List.rev !lst
-
 let split str c =
   let idx = String.index str c in
     String.sub str 0 idx,
     String.sub str (idx + 1) (String.length str - idx - 1)
+
+let trim str =
+  let start_non_blank = ref 0 in
+  let stop_non_blank = ref ((String.length str) - 1) in
+    while !start_non_blank < String.length str &&
+          is_whitespace (str.[!start_non_blank]) do
+      incr start_non_blank
+    done;
+    while !start_non_blank <= !stop_non_blank &&
+          is_whitespace (str.[!stop_non_blank]) do
+      decr stop_non_blank
+    done;
+    String.sub str !start_non_blank (!stop_non_blank - !start_non_blank + 1)
+
+let fold_left f acc str =
+  let racc = ref acc in
+    for i = 0 to String.length str - 1 do
+      racc := f !racc str.[i]
+    done;
+    !racc

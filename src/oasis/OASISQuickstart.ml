@@ -326,8 +326,8 @@ let mk_numbered_choices_multi t choices =
            (fun s -> s <> "") 
            (List.flatten 
               (List.map 
-                 (fun s -> BatString.nsplit s ",")
-                 (BatString.nsplit s " "))))
+                 (fun s -> split_comma s)
+                 (OASISString.nsplit s ' '))))
     in
       String.concat ", " lst
   in

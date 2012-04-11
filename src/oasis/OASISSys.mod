@@ -1,5 +1,6 @@
 OASISGettext.ml
 OASISContext.ml
+OASISString.ml
 OASISUtils.ml
 PropList.ml
 OASISMessage.ml

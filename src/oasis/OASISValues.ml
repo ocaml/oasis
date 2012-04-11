@@ -140,9 +140,7 @@ let dot_separated value =
       (fun ~ctxt s ->
          List.map
            (value.parse ~ctxt)
-           (BatString.nsplit
-              s
-              "."));
+           (OASISString.nsplit s '.'));
     update = 
       List.append;
     print =
@@ -193,7 +191,7 @@ let space_separated =
       (fun ~ctxt s ->
          List.filter 
            (fun s -> s <> "")
-           (BatString.nsplit s " "));
+           (OASISString.nsplit s ' '));
     update = 
       List.append;
     print =
@@ -320,7 +318,7 @@ let findlib_full =
   {
     parse =
       (fun ~ctxt s ->
-         let cpnts = BatString.nsplit s "." in
+         let cpnts = OASISString.nsplit s '.' in
          List.iter (fun cpnt ->
                     let _s : string = findlib_name.parse ~ctxt cpnt in
                     ())

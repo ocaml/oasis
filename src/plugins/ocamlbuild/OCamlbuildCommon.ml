@@ -68,7 +68,7 @@ let fix_args args extra_argv =
       else
         [];
 
-      OASISUtils.split ' ' (ocamlbuildflags ());
+      OASISString.nsplit (ocamlbuildflags ()) ' ';
 
       Array.to_list extra_argv;
     ]

@@ -94,7 +94,7 @@ let pp_print_help hext hsty fmt () =
         (List.rev_map
            (fun (cli, t, hlp) ->
               let arg, hlp =
-                match split ' ' hlp with
+                match OASISString.nsplit hlp ' ' with
                   | hd :: tl ->
                       hd, (String.concat " " tl)
                   | [] ->
@@ -268,7 +268,7 @@ let parse () =
 
   let handle_error exc hext =
     let get_bad str =
-      match split '\n' str with
+      match split_newline str with
         | fst :: _ ->
             fst
         | [] ->

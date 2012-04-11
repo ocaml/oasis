@@ -73,19 +73,11 @@ let which prg =
       | _ ->
           ':'
   in
-  let path_lst =
-    OASISUtils.split
-      path_sep
-      (Sys.getenv "PATH")
-  in
+  let path_lst = OASISString.nsplit (Sys.getenv "PATH") path_sep in
   let exec_ext =
     match Sys.os_type with
       | "Win32" ->
-          ""
-          ::
-          (OASISUtils.split
-             path_sep
-             (Sys.getenv "PATHEXT"))
+          "" :: (OASISString.nsplit (Sys.getenv "PATHEXT") path_sep)
       | _ ->
           [""]
   in

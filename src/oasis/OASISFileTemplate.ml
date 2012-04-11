@@ -324,7 +324,7 @@ let template_of_mlfile fn header body footer  =
 
            with Not_found ->
              line)
-        (nsplit str '\n')
+        (split_newline str)
     in
       !found, (String.concat "\n" lst)
   in

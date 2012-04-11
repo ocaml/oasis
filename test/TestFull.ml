@@ -398,15 +398,11 @@ let tests =
 
         try 
           let pkg_as_module =
-            let res =
-              Buffer.create (String.length pkg)
-            in
-              String.iter
-                (function 
-                   | '-' -> Buffer.add_char res '_'
-                   | c -> Buffer.add_char res c)
-                pkg;
-              Buffer.contents res
+            OASISString.replace_chars
+              (function
+                 | '-' -> '_'
+                 | c -> c)
+              pkg
           in
           let fn = 
             FilePath.concat srcdir ("test_"^pkg_as_module^".ml")
@@ -544,7 +540,7 @@ let tests =
              else
                fn
            in
-             if BatString.starts_with (Filename.basename fn) "lib" then
+             if OASISString.starts_with (Filename.basename fn) "lib" then
                (* stubs library *)
                fn :: acc
              else if !has_ocamlopt then
@@ -812,7 +808,7 @@ let tests =
                  "ocamlbuild" ["-documentation"];
                Buffer.contents buf
              in
-             let lst = OASISUtils.split '\n' documentation_output in 
+             let lst = OASISUtils.split_newline documentation_output in
              let rst = ref SetString.empty in
              let () =
                List.iter 

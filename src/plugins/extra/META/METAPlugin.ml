@@ -128,10 +128,10 @@ let generator =
 let pp_print_meta pkg root_t findlib_name_map fmt grp =
 
   let replace_chars s =
-    BatString.replace_chars
+    OASISString.replace_chars
       (function
-         | '\n' | '\t' | '\r' -> " "
-         | c -> String.make 1 c)
+         | '\n' | '\t' | '\r' -> ' '
+         | c -> c)
       s
   in
 
@@ -298,7 +298,7 @@ let main ctxt pkg =
                       ~template:true
                       meta_fn
                       comment_meta
-                      (BatString.nsplit (Buffer.contents buff) "\n"))
+                      (OASISUtils.split_newline (Buffer.contents buff)))
                    ctxt
              end
            else

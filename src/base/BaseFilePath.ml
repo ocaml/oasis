@@ -44,5 +44,5 @@ let of_unix ufn =
               parent_dir_name
             else
               p)
-         (OASISUtils.split '/' ufn))
+         (OASISString.nsplit ufn '/'))
 

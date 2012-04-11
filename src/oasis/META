@@ -20,10 +20,10 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: db82b381a3c44ce3e986f1877a3e144b)
+# DO NOT EDIT (digest: a4e6698f888dc203646b80fc3976cdbd)
 version = "0.3.0~rc3"
 description = "_oasis file functions"
-requires = "fileutils unix batteries odn ocamlgraph"
+requires = "fileutils unix odn ocamlgraph"
 archive(byte) = "oasis.cma"
 archive(byte, plugin) = "oasis.cma"
 archive(native) = "oasis.cmxa"

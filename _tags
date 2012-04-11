@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: d3fce38eee7cb12af02372733f020d3e)
+# DO NOT EDIT (digest: fd154790c393963fd95ef29c100499d4)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -40,7 +40,6 @@
 <src/oasis/*.ml{,i}>: pkg_odn
 <src/oasis/*.ml{,i}>: pkg_ocamlgraph
 <src/oasis/*.ml{,i}>: pkg_fileutils
-<src/oasis/*.ml{,i}>: pkg_batteries
 # Library base
 "src/base/base.cmxs": use_base
 <src/base/*.ml{,i}>: use_oasis
@@ -48,7 +47,6 @@
 <src/base/*.ml{,i}>: pkg_odn
 <src/base/*.ml{,i}>: pkg_ocamlgraph
 <src/base/*.ml{,i}>: pkg_fileutils
-<src/base/*.ml{,i}>: pkg_batteries
 # Library pluginloaderLib
 "src/ext/plugin-loader/test/data/findlib/pluginloaderLib/pluginloaderLib.cmxs": use_pluginloaderLib
 # Library builtin-plugins
@@ -59,56 +57,48 @@
 <src/*.ml{,i}>: pkg_odn
 <src/*.ml{,i}>: pkg_ocamlgraph
 <src/*.ml{,i}>: pkg_fileutils
-<src/*.ml{,i}>: pkg_batteries
 <src/plugins/custom/*.ml{,i}>: use_base
 <src/plugins/custom/*.ml{,i}>: use_oasis
 <src/plugins/custom/*.ml{,i}>: pkg_unix
 <src/plugins/custom/*.ml{,i}>: pkg_odn
 <src/plugins/custom/*.ml{,i}>: pkg_ocamlgraph
 <src/plugins/custom/*.ml{,i}>: pkg_fileutils
-<src/plugins/custom/*.ml{,i}>: pkg_batteries
 <src/plugins/extra/META/*.ml{,i}>: use_base
 <src/plugins/extra/META/*.ml{,i}>: use_oasis
 <src/plugins/extra/META/*.ml{,i}>: pkg_unix
 <src/plugins/extra/META/*.ml{,i}>: pkg_odn
 <src/plugins/extra/META/*.ml{,i}>: pkg_ocamlgraph
 <src/plugins/extra/META/*.ml{,i}>: pkg_fileutils
-<src/plugins/extra/META/*.ml{,i}>: pkg_batteries
 <src/plugins/extra/devfiles/*.ml{,i}>: use_base
 <src/plugins/extra/devfiles/*.ml{,i}>: use_oasis
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_unix
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_odn
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_ocamlgraph
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_fileutils
-<src/plugins/extra/devfiles/*.ml{,i}>: pkg_batteries
 <src/plugins/extra/stdfiles/*.ml{,i}>: use_base
 <src/plugins/extra/stdfiles/*.ml{,i}>: use_oasis
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_unix
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_odn
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_ocamlgraph
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_fileutils
-<src/plugins/extra/stdfiles/*.ml{,i}>: pkg_batteries
 <src/plugins/internal/*.ml{,i}>: use_base
 <src/plugins/internal/*.ml{,i}>: use_oasis
 <src/plugins/internal/*.ml{,i}>: pkg_unix
 <src/plugins/internal/*.ml{,i}>: pkg_odn
 <src/plugins/internal/*.ml{,i}>: pkg_ocamlgraph
 <src/plugins/internal/*.ml{,i}>: pkg_fileutils
-<src/plugins/internal/*.ml{,i}>: pkg_batteries
 <src/plugins/none/*.ml{,i}>: use_base
 <src/plugins/none/*.ml{,i}>: use_oasis
 <src/plugins/none/*.ml{,i}>: pkg_unix
 <src/plugins/none/*.ml{,i}>: pkg_odn
 <src/plugins/none/*.ml{,i}>: pkg_ocamlgraph
 <src/plugins/none/*.ml{,i}>: pkg_fileutils
-<src/plugins/none/*.ml{,i}>: pkg_batteries
 <src/plugins/ocamlbuild/*.ml{,i}>: use_base
 <src/plugins/ocamlbuild/*.ml{,i}>: use_oasis
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_unix
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_odn
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_ocamlgraph
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_fileutils
-<src/plugins/ocamlbuild/*.ml{,i}>: pkg_batteries
 # Library plugin-loader
 "src/ext/plugin-loader/src/plugin-loader.cmxs": use_plugin-loader
 <src/ext/plugin-loader/src/*.ml{,i}>: pkg_findlib
@@ -129,7 +119,6 @@
 "test/test.byte": pkg_findlib
 "test/test.byte": pkg_fileutils
 "test/test.byte": pkg_expect.pcre
-"test/test.byte": pkg_batteries
 <test/*.ml{,i}>: use_builtin-plugins
 <test/*.ml{,i}>: use_base
 <test/*.ml{,i}>: use_oasis
@@ -140,7 +129,6 @@
 <test/*.ml{,i}>: pkg_findlib
 <test/*.ml{,i}>: pkg_fileutils
 <test/*.ml{,i}>: pkg_expect.pcre
-<test/*.ml{,i}>: pkg_batteries
 # Executable oasis
 "src/cli/Main.byte": use_cli
 "src/cli/Main.byte": use_plugin-loader
@@ -153,7 +141,6 @@
 "src/cli/Main.byte": pkg_findlib
 "src/cli/Main.byte": pkg_fileutils
 "src/cli/Main.byte": pkg_dynlink
-"src/cli/Main.byte": pkg_batteries
 <src/cli/*.ml{,i}>: use_cli
 <src/cli/*.ml{,i}>: use_plugin-loader
 <src/cli/*.ml{,i}>: use_builtin-plugins
@@ -165,7 +152,6 @@
 <src/cli/*.ml{,i}>: pkg_findlib
 <src/cli/*.ml{,i}>: pkg_fileutils
 <src/cli/*.ml{,i}>: pkg_dynlink
-<src/cli/*.ml{,i}>: pkg_batteries
 # Executable pluginloader
 "src/ext/plugin-loader/test/data/pluginloader.byte": use_plugin-loader
 "src/ext/plugin-loader/test/data/pluginloader.byte": use_pluginloaderLib
