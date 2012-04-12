@@ -21,6 +21,19 @@
 
 open OASISGettext
 
+let file_exists_case fn =
+  let dirname = Filename.dirname fn in
+  let basename = Filename.basename fn in
+    if Sys.file_exists dirname then
+      if basename = Filename.current_dir_name then
+        true
+      else
+        List.mem
+          basename
+          (Array.to_list (Sys.readdir dirname))
+    else
+      false
+
 let find_file ?(case_sensitive=true) paths exts =
 
   (* Cardinal product of two list *)
@@ -60,12 +73,12 @@ let find_file ?(case_sensitive=true) paths exts =
   in
     List.find
       (if case_sensitive then
-         OASISUtils.file_exists
+         file_exists_case
        else
          Sys.file_exists)
       alternatives
 
-let which prg =
+let which ~ctxt prg =
   let path_sep =
     match Sys.os_type with
       | "Win32" ->
@@ -99,25 +112,34 @@ let rec fix_dir dn =
 let q = Filename.quote
 (**/**)
 
-let cp src tgt =
-  BaseExec.run
-    (match Sys.os_type with
-     | "Win32" -> "copy"
-     | _ -> "cp")
-    [q src; q tgt]
+let cp ~ctxt ?(recurse=false) src tgt =
+  if recurse then
+    match Sys.os_type with
+      | "Win32" ->
+          OASISExec.run ~ctxt
+            "xcopy" [q src; q tgt; "/E"]
+      | _ ->
+          OASISExec.run ~ctxt
+            "cp" ["-r"; q src; q tgt]
+  else
+    OASISExec.run ~ctxt
+      (match Sys.os_type with
+       | "Win32" -> "copy"
+       | _ -> "cp")
+      [q src; q tgt]
 
-let mkdir tgt =
-  BaseExec.run
+let mkdir ~ctxt tgt =
+  OASISExec.run ~ctxt
     (match Sys.os_type with
        | "Win32" -> "md"
        | _ -> "mkdir")
     [q tgt]
 
-let rec mkdir_parent f tgt =
+let rec mkdir_parent ~ctxt f tgt =
   let tgt =
     fix_dir tgt
   in
-    if OASISUtils.file_exists tgt then
+    if Sys.file_exists tgt then
       begin
         if not (Sys.is_directory tgt) then
           OASISUtils.failwithf
@@ -127,25 +149,25 @@ let rec mkdir_parent f tgt =
       end
     else
       begin
-        mkdir_parent f (Filename.dirname tgt);
-        if not (OASISUtils.file_exists tgt) then
+        mkdir_parent ~ctxt f (Filename.dirname tgt);
+        if not (Sys.file_exists tgt) then
           begin
             f tgt;
-            mkdir tgt
+            mkdir ~ctxt tgt
           end
       end
 
-let rmdir tgt =
+let rmdir ~ctxt tgt =
   if Sys.readdir tgt = [||] then
     begin
       match Sys.os_type with
         | "Win32" ->
-            BaseExec.run "rd" [q tgt]
+            OASISExec.run ~ctxt "rd" [q tgt]
         | _ ->
-            BaseExec.run "rm" ["-r"; q tgt]
+            OASISExec.run ~ctxt "rm" ["-r"; q tgt]
     end
 
-let glob fn =
+let glob ~ctxt fn =
  let basename =
    Filename.basename fn
  in
@@ -182,7 +204,7 @@ let glob fn =
      end
    else
      begin
-       if OASISUtils.file_exists fn then
+       if file_exists_case fn then
          [fn]
        else
          []

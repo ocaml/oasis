@@ -30,21 +30,19 @@
 open OASISMessage
 open OASISTypes
 open OASISUtils
-open FileUtil
+
+let run ?f_exit_code prg args =
+  OASISExec.run ~ctxt:!BaseContext.default ?f_exit_code prg args
 
 let with_tmpdir f = 
   let res =
     Filename.temp_file "oasis-dist-" ".dir"
   in
   let clean () = 
-(*     rm ~recurse:true [res] *)
-    let _i : int = 
-      Sys.command (Printf.sprintf "rm -rf %s" (Filename.quote res))
-    in
-      ()
+    OASISFileUtil.rmdir ~ctxt:!BaseContext.default res
   in
     Sys.remove res; 
-    FileUtil.mkdir res; 
+    OASISFileUtil.mkdir ~ctxt:!BaseContext.default res;
     try 
       f res;
       clean ()
@@ -55,9 +53,9 @@ let with_tmpdir f =
 let update_oasis_in_tarball fn topdir = 
   with_tmpdir
     (fun dn ->
-       BaseExec.run "tar" ["-C"; dn; "-xzf"; fn];
-       BaseExec.run "oasis" ["-C"; Filename.concat dn topdir; "setup"];
-       BaseExec.run "tar" ["-C"; dn; "-czf"; fn; topdir])
+       run "tar" ["-C"; dn; "-xzf"; fn];
+       run "oasis" ["-C"; Filename.concat dn topdir; "setup"];
+       run "tar" ["-C"; dn; "-czf"; fn; topdir])
 
 class virtual vcs = 
 object
@@ -77,7 +75,8 @@ object
   inherit vcs
 
   method check_uncommited_changes =
-    match BaseExec.run_read_output "svn" ["status"] with
+    match OASISExec.run_read_output ~ctxt:!BaseContext.default
+            "svn" ["status"] with
       | [] ->
           true
       | lst ->
@@ -92,8 +91,8 @@ object
          let cur_pwd = 
            pwd ()
          in
-           BaseExec.run "svn" ["export"; cur_pwd; tgt];
-           BaseExec.run "tar" ["-C"; dir; "-czf"; tarball; topdir])
+           run "svn" ["export"; cur_pwd; tgt];
+           run "tar" ["-C"; dir; "-czf"; tarball; topdir])
 
   method tag ver =
     warning ~ctxt "No tag method"
@@ -111,7 +110,7 @@ object
       ref false
     in
       (* Check that everything is commited *)
-      BaseExec.run 
+      run
         ~f_exit_code:
         (function 
            | 1 -> 
@@ -126,15 +125,16 @@ object
       !ok
 
   method list_tags = 
-    BaseExec.run_read_output "darcs" ["show"; "tags"]
+    OASISExec.run_read_output ~ctxt:!BaseContext.default
+      "darcs" ["show"; "tags"]
 
   method dist topdir tarball = 
     (* Create the tarball *)
-    BaseExec.run "darcs" ["dist"; "--dist-name"; topdir];
-    mv (topdir^".tar.gz") tarball
+    run "darcs" ["dist"; "--dist-name"; topdir];
+    Sys.rename (topdir^".tar.gz") tarball
 
   method tag ver = 
-    BaseExec.run "darcs" ["tag"; ver]
+    run "darcs" ["tag"; ver]
 end
 
 class git ~ctxt =
@@ -142,27 +142,28 @@ object
   inherit vcs
 
   method check_uncommited_changes = 
-    match BaseExec.run_read_output "git" ["status"; "--porcelain"] with 
+    match OASISExec.run_read_output ~ctxt:!BaseContext.default
+            "git" ["status"; "--porcelain"] with
       | [] -> 
           true
       | _ ->
           false
 
   method list_tags = 
-    BaseExec.run_read_output "git" ["tag"]
+    OASISExec.run_read_output ~ctxt:!BaseContext.default "git" ["tag"]
 
   method dist topdir tarball = 
     let tarfn = 
       Filename.chop_extension tarball
     in
-      BaseExec.run 
+      run
         "git" 
         ["archive"; "--prefix";  (Filename.concat topdir "");
          "--format"; "tar"; "HEAD"; "-o"; tarfn];
-      BaseExec.run "gzip" [tarfn]
+      run "gzip" [tarfn]
 
   method tag ver =
-    BaseExec.run "git" ["tag"; ver]
+    run "git" ["tag"; ver]
 end
 
 class no_vcs ~ctxt =
@@ -180,13 +181,13 @@ object
          let cur_pwd = 
            pwd ()
          in
-           BaseExec.run "cp" ["-r"; cur_pwd; tgt];
+           OASISFileUtil.cp ~recurse:true cur_pwd tgt
            begin
              try 
                Sys.chdir tgt;
-               BaseExec.run "ocaml" ["setup.ml"; "-distclean"];
+               run "ocaml" ["setup.ml"; "-distclean"];
                Sys.chdir dir;
-               BaseExec.run "tar" ["czf"; tarball; topdir];
+               run "tar" ["czf"; tarball; topdir];
                Sys.chdir cur_pwd;
              with e ->
                Sys.chdir cur_pwd;
@@ -249,10 +250,10 @@ let () =
     with_tmpdir 
       (fun dir -> 
          let pwd =
-           FileUtil.pwd ()
+           Sys.getcwd ()
          in
            (* Uncompress tarball in tmpdir *)
-           BaseExec.run "tar" ["xz"; "-C"; dir; "-f"; tarball];
+           run "tar" ["xz"; "-C"; dir; "-f"; tarball];
 
            Sys.chdir dir;
            Sys.chdir topdir;
@@ -266,14 +267,14 @@ let () =
 
              let () = 
                (* Check that build, test, doc run smoothly *)
-               BaseExec.run "ocaml" ["setup.ml"; "-all"]
+               run "ocaml" ["setup.ml"; "-all"]
              in
 
              let () = 
                let bak_files = 
                  (* Check for remaining .bak files *)
                  find (Has_extension "bak") 
-                   FilePath.current_dir
+                   Filename.current_dir_name
                    (fun acc fn -> fn :: acc)
                    []
                in
@@ -325,7 +326,7 @@ let () =
               vcs#tag ver_str
     end;
     
-    BaseExec.run 
+    run
       ~f_exit_code:
       (fun i -> 
          if i <> 0 then

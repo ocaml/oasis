@@ -801,7 +801,7 @@ let to_file ~ctxt fn lvl intrf oasis_setup =
         try 
           begin
             let prg = 
-              FileUtil.which prg
+              OASISFileUtil.which ~ctxt prg
             in
               info 
                 ~ctxt 

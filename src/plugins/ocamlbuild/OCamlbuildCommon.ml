@@ -81,7 +81,8 @@ let run_clean extra_argv =
     (* Run if never called with these args *)
     if not (BaseLog.exists ocamlbuild_clean_ev extra_cli) then
       begin
-        BaseExec.run (ocamlbuild ()) (fix_args ["-clean"] extra_argv);
+        OASISExec.run ~ctxt:!BaseContext.default
+          (ocamlbuild ()) (fix_args ["-clean"] extra_argv);
         BaseLog.register ocamlbuild_clean_ev extra_cli;
         at_exit
           (fun () ->
@@ -95,7 +96,8 @@ let run_clean extra_argv =
 let run_ocamlbuild args extra_argv =
   (* TODO: enforce that target in args must be UNIX encoded i.e. toto/index.html
    *)
-  BaseExec.run (ocamlbuild ()) (fix_args args extra_argv);
+  OASISExec.run ~ctxt:!BaseContext.default
+    (ocamlbuild ()) (fix_args args extra_argv);
   (* Remove any clean event, we must run it again *)
   List.iter
     (fun (e, d) -> BaseLog.unregister e d)
@@ -155,9 +157,6 @@ struct
       [fn1] must be a real filename whereas fn2 can contains wildcards.
     *)
   let filename_concat fn1 fn2 =
-    (* TODO: consider using directly ocamlbuild function *)
-    FilePath.UnixPath.concat
-      (FilePath.UnixPath.reduce ~no_symlink:true fn1)
-      fn2
+    OASISUnixPath.concat (OASISUnixPath.reduce fn1) fn2
 
 end

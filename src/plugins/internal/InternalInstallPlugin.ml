@@ -78,7 +78,8 @@ let install pkg argv =
                Filename.basename src_file)
     in
       (* Create target directory if needed *)
-      BaseFileUtil.mkdir_parent
+      OASISFileUtil.mkdir_parent
+        ~ctxt:!BaseContext.default
         (fun dn ->
            info (f_ "Creating directory '%s'") dn;
            BaseLog.register install_dir_ev dn)
@@ -86,19 +87,20 @@ let install pkg argv =
 
       (* Really install files *)
       info (f_ "Copying file '%s' to '%s'") src_file tgt_file;
-      BaseFileUtil.cp src_file tgt_file;
+      OASISFileUtil.cp ~ctxt:!BaseContext.default src_file tgt_file;
       BaseLog.register install_file_ev tgt_file
   in
 
   (* Install data into defined directory *)
   let install_data srcdir lst tgtdir =
     let tgtdir =
-      BaseFilePath.of_unix (var_expand tgtdir)
+      OASISHostPath.of_unix (var_expand tgtdir)
     in
       List.iter
         (fun (src, tgt_opt) ->
            let real_srcs =
-             BaseFileUtil.glob
+             OASISFileUtil.glob
+               ~ctxt:!BaseContext.default
                (Filename.concat srcdir src)
            in
              if real_srcs = [] then
@@ -112,7 +114,7 @@ let install pkg argv =
                     (fun () ->
                        match tgt_opt with
                          | Some s ->
-                             BaseFilePath.of_unix (var_expand s)
+                             OASISHostPath.of_unix (var_expand s)
                          | None ->
                              tgtdir))
                real_srcs)
@@ -136,13 +138,13 @@ let install pkg argv =
             let acc =
               (* Add uncompiled header from the source tree *)
               let path =
-                BaseFilePath.of_unix bs.bs_path
+                OASISHostPath.of_unix bs.bs_path
               in
                 List.fold_left
                   (fun acc modul ->
                      try
                        List.find
-                         OASISUtils.file_exists
+                         OASISFileUtil.file_exists_case
                          (List.map
                             (Filename.concat path)
                             [modul^".mli";
@@ -241,7 +243,7 @@ let install pkg argv =
               let res =
                 Filename.concat bs.bs_path "META"
               in
-                if not (OASISUtils.file_exists res) then
+                if not (OASISFileUtil.file_exists_case res) then
                   failwithf
                     (f_ "Cannot find file '%s' for findlib library %s")
                     res
@@ -279,9 +281,8 @@ let install pkg argv =
               info
                 (f_ "Installing findlib library '%s'")
                 findlib_name;
-              BaseExec.run
-                (ocamlfind ())
-                ("install" :: findlib_name :: meta :: files);
+              OASISExec.run ~ctxt:!BaseContext.default
+                (ocamlfind ()) ("install" :: findlib_name :: meta :: files);
               BaseLog.register install_findlib_ev findlib_name
           end;
 
@@ -352,7 +353,7 @@ let install pkg argv =
            BaseBuilt.is_built BaseBuilt.BDoc cs.cs_name then
           begin
             let tgt_dir =
-              BaseFilePath.of_unix (var_expand doc.doc_install_dir)
+              OASISHostPath.of_unix (var_expand doc.doc_install_dir)
             in
               BaseBuilt.fold
                 BaseBuilt.BDoc
@@ -387,7 +388,7 @@ let uninstall _ argv =
     (fun (ev, data) ->
        if ev = install_file_ev then
          begin
-           if OASISUtils.file_exists data then
+           if OASISFileUtil.file_exists_case data then
              begin
                info
                  (f_ "Removing file '%s'")
@@ -403,14 +404,14 @@ let uninstall _ argv =
          end
        else if ev = install_dir_ev then
          begin
-           if OASISUtils.file_exists data && Sys.is_directory data then
+           if Sys.file_exists data && Sys.is_directory data then
              begin
                if Sys.readdir data = [||] then
                  begin
                    info
                      (f_ "Removing directory '%s'")
                      data;
-                   BaseFileUtil.rmdir data
+                   OASISFileUtil.rmdir ~ctxt:!BaseContext.default data
                  end
                else
                  begin
@@ -433,7 +434,8 @@ let uninstall _ argv =
        else if ev = install_findlib_ev then
          begin
            info (f_ "Removing findlib library '%s'") data;
-           BaseExec.run (ocamlfind ()) ["remove"; data]
+           OASISExec.run ~ctxt:!BaseContext.default
+             (ocamlfind ()) ["remove"; data]
          end
        else
          failwithf (f_ "Unknown log event '%s'") ev;

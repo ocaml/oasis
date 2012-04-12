@@ -19,26 +19,60 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** Manipulate host filenames
-    @author Sylvain Le Gall
-  *)
+open OASISGettext
+open OASISUtils
+open OASISMessage
 
-open OASISTypes
+let run ~ctxt ?f_exit_code cmd args =
+  let cmdline =
+    String.concat " " (cmd :: args)
+  in
+    info ~ctxt (f_ "Running command '%s'") cmdline;
+    match f_exit_code, Sys.command cmdline with
+      | None, 0 -> ()
+      | None, i ->
+          failwithf
+            (f_ "Command '%s' terminated with error code %d")
+            cmdline i
+      | Some f, i ->
+          f i
 
-(** See {!OASISUnixPath}. *)
-module Unix:  
-sig
-  val concat : unix_filename -> unix_filename -> unix_filename
-  val make : unix_filename list -> unix_filename
-  val dirname : unix_filename -> unix_filename
-  val basename : unix_filename -> unix_filename
-  val chop_extension : unix_filename -> unix_filename
-end
+let run_read_output ~ctxt ?f_exit_code cmd args =
+  let fn =
+    Filename.temp_file "oasis-" ".txt"
+  in
+    try
+      begin
+        let () =
+          run ~ctxt ?f_exit_code cmd (args @ [">"; Filename.quote fn])
+        in
+        let chn =
+          open_in fn
+        in
+        let routput =
+          ref []
+        in
+          begin
+            try
+              while true do
+                routput := (input_line chn) :: !routput
+              done
+            with End_of_file ->
+              ()
+          end;
+          close_in chn;
+          Sys.remove fn;
+          List.rev !routput
+      end
+    with e ->
+      (try Sys.remove fn with _ -> ());
+      raise e
 
-(** Create a filename out of its components.
-  *)
-val make : host_filename list -> host_filename
-
-(** Convert a unix filename into host filename.
-  *)
-val of_unix : unix_filename -> host_filename
+let run_read_one_line ~ctxt ?f_exit_code cmd args =
+  match run_read_output ~ctxt ?f_exit_code cmd args with
+    | [fst] ->
+        fst
+    | lst ->
+        failwithf
+          (f_ "Command return unexpected output %S")
+          (String.concat "\n" lst)

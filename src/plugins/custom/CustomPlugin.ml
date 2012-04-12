@@ -72,7 +72,7 @@ struct
                  begin
                    let evs, _ = 
                      BaseBuilt.of_library 
-                       BaseFilePath.of_unix
+                       OASISHostPath.of_unix
                        (cs, bs, lib) 
                    in
                      evs
@@ -81,7 +81,7 @@ struct
                  begin
                    let evs, _, _ =
                      BaseBuilt.of_executable
-                       BaseFilePath.of_unix
+                       OASISHostPath.of_unix
                        (cs, bs, exec)
                    in
                      evs

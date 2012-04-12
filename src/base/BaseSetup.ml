@@ -372,7 +372,8 @@ let update_setup_ml t =
   let no_update_setup_ml_cli, _, _ = no_update_setup_ml_cli in
   let do_update () =
     let oasis_exec_version =
-      BaseExec.run_read_one_line
+      OASISExec.run_read_one_line
+        ~ctxt:!BaseContext.default
         ~f_exit_code:
         (function
            | 0 ->
@@ -411,7 +412,8 @@ let update_setup_ml t =
               (String.concat " " (oasis_exec :: "setup" :: t.oasis_setup_args))
           else
             begin
-              BaseExec.run
+              OASISExec.run
+                ~ctxt:!BaseContext.default
                 ~f_exit_code:
                 (function
                    | 0 ->
@@ -422,7 +424,7 @@ let update_setup_ml t =
                               please fix the problem and retry.")
                          oasis_exec)
                 oasis_exec ("setup" :: t.oasis_setup_args);
-              BaseExec.run ocaml (setup_ml :: args)
+              OASISExec.run ~ctxt:!BaseContext.default ocaml (setup_ml :: args)
             end
         end
       else

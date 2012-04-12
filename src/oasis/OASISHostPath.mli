@@ -19,58 +19,26 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-open OASISGettext
-open OASISUtils
-open BaseMessage
+(** Manipulate host filenames
+    @author Sylvain Le Gall
+  *)
 
-let run ?f_exit_code cmd args =
-  let cmdline =
-    String.concat " " (cmd :: args)
-  in
-    info (f_ "Running command '%s'") cmdline;
-    match f_exit_code, Sys.command cmdline with
-      | None, 0 -> ()
-      | None, i ->
-          failwithf
-            (f_ "Command '%s' terminated with error code %d")
-            cmdline i
-      | Some f, i ->
-          f i
+open OASISTypes
 
-let run_read_output ?f_exit_code cmd args =
-  let fn =
-    Filename.temp_file "oasis-" ".txt"
-  in
-  let () =
-    try
-      run ?f_exit_code cmd (args @ [">"; Filename.quote fn])
-    with e ->
-      Sys.remove fn;
-      raise e
-  in
-  let chn =
-    open_in fn
-  in
-  let routput =
-    ref []
-  in
-    (
-      try
-        while true do
-          routput := (input_line chn) :: !routput
-        done
-      with End_of_file ->
-        ()
-    );
-    close_in chn;
-    Sys.remove fn;
-    List.rev !routput
+(** Create a filename out of its components.
+  *)
+val make : host_filename list -> host_filename
 
-let run_read_one_line ?f_exit_code cmd args =
-  match run_read_output ?f_exit_code cmd args with
-    | [fst] ->
-        fst
-    | lst ->
-        failwithf
-          (f_ "Command return unexpected output %S")
-          (String.concat "\n" lst)
+(** Convert a unix filename into host filename.
+  *)
+val of_unix : unix_filename -> host_filename
+
+(** Compare host filename.
+    {b Not exported}
+  *)
+val compare : host_filename -> host_filename -> int
+
+(** See {!OASISUnixPath.add_extension}.
+    {b Not exported}
+  *)
+val add_extension : host_filename -> string -> host_filename

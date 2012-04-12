@@ -313,7 +313,7 @@ let template_of_mlfile fn header body footer  =
                extract_line_modifier line
              in
                found := true;
-               if OASISUtils.file_exists line_modifier_fn then
+               if OASISFileUtil.file_exists_case line_modifier_fn then
                  (* We found a valid match, keep it *)
                  line
                (* The line modifier filename is not available, comment it. *)
@@ -472,7 +472,7 @@ let file_rollback ~ctxt =
           ~ctxt
           (f_ "Remove generated file '%s'")
           fn;
-        FileUtil.rm [fn]
+        Sys.remove fn
 
     | Change (fn, Some bak) ->
         begin
@@ -480,7 +480,7 @@ let file_rollback ~ctxt =
             begin
               info ~ctxt (f_ "Restore file '%s' with backup file '%s'.")
                 fn bak;
-              FileUtil.mv bak fn
+              Sys.rename bak fn
             end
           else
             begin
@@ -536,8 +536,8 @@ let file_generate ~ctxt ~backup t =
               in
                 if not (Sys.file_exists fn_backup) then
                   begin
-                    FileUtil.mv fn fn_backup;
-                    FileUtil.cp [fn_backup] fn;
+                    Sys.rename fn fn_backup;
+                    OASISFileUtil.cp ~ctxt fn_backup fn;
                     fn_backup
                   end
                 else
@@ -624,7 +624,7 @@ struct
   type t = host_filename
 
   let compare =
-    FilePath.compare
+    OASISHostPath.compare
 end)
 
 exception AlreadyExists of host_filename

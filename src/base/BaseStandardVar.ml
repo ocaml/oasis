@@ -92,7 +92,7 @@ let (/) a b =
   if os_type () = Sys.os_type then
     Filename.concat a b
   else if os_type () = "Unix" then
-    BaseFilePath.Unix.concat a b
+    OASISUnixPath.concat a b
   else
     OASISUtils.failwithf (f_ "Cannot handle os_type %s filename concat")
       (os_type ())
@@ -298,10 +298,11 @@ let native_dynlink =
              let ocamlfind = ocamlfind () in
                try
                  let fn =
-                   BaseExec.run_read_one_line
-                    ocamlfind
-                    ["query"; "-predicates"; "native"; "dynlink";
-                     "-format"; "%d/%a"]
+                   OASISExec.run_read_one_line
+                     ~ctxt:!BaseContext.default
+                     ocamlfind
+                     ["query"; "-predicates"; "native"; "dynlink";
+                      "-format"; "%d/%a"]
                  in
                    Sys.file_exists fn
                with _ ->

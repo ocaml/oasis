@@ -80,7 +80,8 @@ let ocamlc_config_map =
          (Marshal.to_string
             (split_field
                SMap.empty
-               (BaseExec.run_read_output
+               (OASISExec.run_read_output
+                  ~ctxt:!BaseContext.default
                   (ocamlc ()) ["-config"]))
             []))
   in

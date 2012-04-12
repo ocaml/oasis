@@ -51,7 +51,7 @@ let register t nm lst =
        let registered =
          List.fold_left
            (fun registered fn ->
-              if OASISUtils.file_exists fn then
+              if OASISFileUtil.file_exists_case fn then
                 begin
                   BaseLog.register
                     (to_log_event_file t nm)
@@ -83,7 +83,7 @@ let unregister t nm =
 let fold t nm f acc =
   List.fold_left
     (fun acc (_, fn) ->
-       if OASISUtils.file_exists fn then
+       if OASISFileUtil.file_exists_case fn then
          begin
            f acc fn
          end
@@ -147,7 +147,7 @@ let of_library ffn (cs, bs, lib) =
     OASISLibrary.generated_unix_files
       ~ctxt:!BaseContext.default
       ~source_file_exists:(fun fn ->
-         OASISUtils.file_exists (BaseFilePath.of_unix fn))
+         OASISFileUtil.file_exists_case (OASISHostPath.of_unix fn))
       ~is_native:(bool_of_string (is_native ()))
       ~has_native_dynlink:(bool_of_string (native_dynlink ()))
       ~ext_lib:(ext_lib ())

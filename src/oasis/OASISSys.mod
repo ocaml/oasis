@@ -9,6 +9,7 @@ OASISLicense.ml
 OASISExpr.ml
 OASISTypes.ml
 OASISUnixPath.ml
+OASISHostPath.ml
 OASISSection.ml
 OASISBuildSection.ml
 OASISExecutable.ml
@@ -18,3 +19,5 @@ OASISPackage.ml
 OASISSourceRepository.ml
 OASISTest.ml
 OASISDocument.ml
+OASISExec.ml
+OASISFileUtil.ml

@@ -59,6 +59,21 @@ val basename : unix_filename -> unix_filename
   *)
 val chop_extension : unix_filename -> unix_filename
 
+(** [check_extension fn ext] Check that the filen [fn] has the extension [ext].
+    {b Not exported}
+  *)
+val check_extension : unix_filename -> string -> bool
+
+(** [add_extension fn ext] Add the extension [ext] to the filename [fn].
+    {b Not exported}
+  *)
+val add_extension : unix_filename -> string -> unix_filename
+
+(** [replace_extension fn ext] Add the extension [ext] to the filename [fn].
+    {b Not exported}
+  *)
+val replace_extension : unix_filename -> string -> unix_filename
+
 (** [capitalize_file fn] Return filename capitalized.
 *)
 val capitalize_file : unix_filename -> unix_filename
@@ -66,3 +81,18 @@ val capitalize_file : unix_filename -> unix_filename
 (** [uncapitalize_file fn] Return filename uncapitalized.
 *)
 val uncapitalize_file : unix_filename -> unix_filename
+
+(** Try to compress the filename by removing '.' and collapsing '..'.
+    {b Not exported}
+  *)
+val reduce : unix_filename -> unix_filename
+
+(** [make_relative fn_root fn] Make [fn] relative to [fn_root].
+    {b Not exported}
+  *)
+val make_relative : unix_filename -> unix_filename -> unix_filename
+
+(** Test if the filename is the current directory.
+    {b Not exported}
+  *)
+val is_current : unix_filename -> bool

@@ -82,9 +82,9 @@ let rec var_expand str =
            in
              match Stream.npeek 3 st with
                | [Genlex.Ident "utoh"; Genlex.Ident nm] ->
-                   BaseFilePath.of_unix (var_get nm)
+                   OASISHostPath.of_unix (var_get nm)
                | [Genlex.Ident "utoh"; Genlex.String s] ->
-                   BaseFilePath.of_unix s
+                   OASISHostPath.of_unix s
                | [Genlex.Ident "ocaml_escaped"; Genlex.Ident nm] ->
                    String.escaped (var_get nm)
                | [Genlex.Ident "ocaml_escaped"; Genlex.String s] ->

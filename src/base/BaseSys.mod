@@ -1,9 +1,6 @@
 BaseContext.ml
 BaseMessage.ml
-BaseFilePath.ml
 BaseEnv.ml
-BaseExec.ml
-BaseFileUtil.ml
 BaseArgExt.ml
 BaseCheck.ml
 BaseOCamlcConfig.ml

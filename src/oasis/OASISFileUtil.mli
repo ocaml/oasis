@@ -19,22 +19,54 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** Running commands
+(** File operations
     @author Sylvain Le Gall
   *)
 
 open OASISTypes
 
-(** Run a command.
-    @param f_exit_code if provided, run this command on the exit code
-    (even when it is [0]).  Otherwise, a non-zero exit code raises
-    [Failure]. *)
-val run : ?f_exit_code:(int -> unit) -> prog -> args -> unit
+(** [find_file paths exts] Find a file among all provided [paths], trying
+    various extensiosn [exts]. Return the first combination of [paths]
+    and [exts].
+  *)
+val find_file :
+  ?case_sensitive:bool ->
+  host_filename list list ->
+  string list ->
+  host_filename
 
-(** Run a command and returns its output as a list of lines.
-*)
-val run_read_output : ?f_exit_code:(int -> unit) -> prog -> args -> string list
+(** Find real filename of an executable.
+  *)
+val which : ctxt:OASISContext.t -> host_filename -> host_filename
 
-(** Run a command and returns only first line.
-    @raise Failure if the output contains more than one line. *)
-val run_read_one_line : ?f_exit_code:(int -> unit) -> prog -> args -> string
+(** Copy a file.
+  *)
+val cp :
+  ctxt:OASISContext.t ->
+  ?recurse:bool ->
+  host_filename ->
+  host_filename ->
+  unit
+
+(** Create a directory.
+  *)
+val mkdir : ctxt:OASISContext.t -> host_filename -> unit
+
+(** [mkdir_parent f tgt] Create a directory and its parent, call f with
+    directory name created, in order.
+  *)
+val mkdir_parent :
+  ctxt:OASISContext.t -> (host_filename -> 'a) -> host_filename -> unit
+
+(** Remove a directory.
+  *)
+val rmdir : ctxt:OASISContext.t -> host_filename -> unit
+
+(** Expand a filename containing '*.ext' into corresponding
+    real files.
+  *)
+val glob : ctxt:OASISContext.t -> string -> host_filename list
+
+(** Test file existence, considering case even on case insensitive filesystem.
+  *)
+val file_exists_case : string -> bool

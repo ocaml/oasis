@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 3e4d2ee47f835b35cd38cb628957e15a)
+# DO NOT EDIT (digest: 38bcdd84664fbd35fc8a144c159dbedf)
 BaseArgExt
 BaseBuilt
 BaseCheck
@@ -29,10 +29,7 @@ BaseData
 BaseDoc
 BaseEnvLight
 BaseEnv
-BaseExec
 BaseFileAB
-BaseFilePath
-BaseFileUtil
 BaseGenerate
 BaseLog
 BaseOCamlcConfig

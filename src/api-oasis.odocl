@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 9e63eb191e234218e7cbb0eaa6fa904e)
+# DO NOT EDIT (digest: b04be3315d57be95ab3927e5edf9ded1)
 oasis/FormatExt
 oasis/FormatMarkdown
 oasis/ODNFunc
@@ -50,6 +50,9 @@ oasis/OASISSchema
 oasis/OASISSection
 oasis/OASISData
 oasis/OASISString
+oasis/OASISExec
+oasis/OASISFileUtil
+oasis/OASISHostPath
 base/BaseArgExt
 base/BaseBuilt
 base/BaseCheck
@@ -58,10 +61,7 @@ base/BaseData
 base/BaseDoc
 base/BaseEnvLight
 base/BaseEnv
-base/BaseExec
 base/BaseFileAB
-base/BaseFilePath
-base/BaseFileUtil
 base/BaseGenerate
 base/BaseLog
 base/BaseOCamlcConfig

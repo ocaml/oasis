@@ -77,7 +77,10 @@ Library oasis
            OASISSchema,
            OASISSection,
            OASISData,
-           OASISString
+           OASISString,
+           OASISExec,
+           OASISFileUtil,
+           OASISHostPath
   InternalModules: OASISVersion_types,
                    OASISVersion_lexer,
                    OASISVersion_parser,
@@ -102,9 +105,10 @@ Library oasis
                    OASISPackage_intern,
                    OASISSourceRepository_intern,
                    OASISTest_intern,
-                   OASISSchema_intern
+                   OASISSchema_intern,
+                   OASISPath_intern
   CompiledObject: Best
-  BuildDepends: fileutils (>= 0.4.2), unix, odn (>= 0.0.3), ocamlgraph
+  BuildDepends: unix, odn (>= 0.0.3), ocamlgraph
   BuildTools+: ocamlmod, ocamlyacc, ocamllex, ocamlify
   XMETADescription: _oasis file functions
   Install$: flag(libraries)
@@ -119,10 +123,7 @@ Library base
            BaseDoc,
            BaseEnvLight,
            BaseEnv,
-           BaseExec,
            BaseFileAB,
-           BaseFilePath,
-           BaseFileUtil,
            BaseGenerate,
            BaseLog,
            BaseOCamlcConfig,
@@ -190,7 +191,8 @@ Executable test
   Install: false
   CompiledObject: byte
   Build$: flag(tests)
-  BuildDepends: oUnit (>= 1.1.0), findlib, oasis, oasis.base, oasis.builtin-plugins, expect.pcre (>= 0.0.2)
+  BuildDepends: oUnit (>= 1.1.0), findlib, fileutils (>= 0.4.2), expect.pcre (>= 0.0.2),
+                oasis, oasis.base, oasis.builtin-plugins
 
 Test main
   Type: custom (0.3)

@@ -45,7 +45,7 @@ let build pkg argv =
 
   (* Return the unix filename in host build directory *)
   let in_build_dir_of_unix fn =
-    in_build_dir (BaseFilePath.of_unix fn)
+    in_build_dir (OASISHostPath.of_unix fn)
   in
 
   let cond_targets =
@@ -106,9 +106,9 @@ let build pkg argv =
 
                  let target ext =
                    let unix_tgt =
-                     (BaseFilePath.Unix.concat
+                     (OASISUnixPath.concat
                         bs.bs_path
-                        (BaseFilePath.Unix.chop_extension
+                        (OASISUnixPath.chop_extension
                            exec.exec_main_is))^ext
                    in
                    let evs = 
@@ -150,7 +150,7 @@ let build pkg argv =
   let check_and_register (bt, bnm, lst) =
     List.iter
       (fun fns ->
-         if not (List.exists OASISUtils.file_exists fns) then
+         if not (List.exists OASISFileUtil.file_exists_case fns) then
            failwithf
              (f_ "No one of expected built files %s exists")
              (String.concat (s_ ", ") (List.map (Printf.sprintf "'%s'") fns)))
@@ -207,17 +207,14 @@ let plugin =
 let self_id, all_id =
   Build.create plugin
 
-(* TODO: check everywhere that having .h and .c in CSources
- * doesn't disturb things too much
- *)
 let only_h_files lst =
   List.filter
-    (fun fn -> FilePath.UnixPath.check_extension fn "h")
+    (fun fn -> OASISUnixPath.check_extension fn "h")
     lst
 
 let only_c_files lst =
   List.filter
-    (fun fn -> FilePath.UnixPath.check_extension fn "c")
+    (fun fn -> OASISUnixPath.check_extension fn "c")
     lst
 
 let add_tags tag_t tgts tags =
@@ -250,16 +247,13 @@ let prepend_bs_path bs fn =
 
 let bs_paths bs files =
   let subdirs =
-    List.rev_map FilePath.UnixPath.dirname
+    List.rev_map OASISUnixPath.dirname
       (List.rev_map (prepend_bs_path bs) files)
   in
     (* Unique elements *)
     SetString.elements
       (set_string_of_list
-         (List.rev_map
-            (FilePath.UnixPath.reduce ~no_symlink:true)
-            (bs.bs_path :: subdirs)))
-
+         (List.rev_map OASISUnixPath.reduce (bs.bs_path :: subdirs)))
 
 let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocamlbuild_t =
 
@@ -426,7 +420,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
       begin
         (* Generate .clib files *)
         let fn_clib =
-          FilePath.add_extension
+          OASISHostPath.add_extension
             (prepend_bs_path bs ("lib"^(nm_libstubs cs.cs_name)))
             "clib"
         in
@@ -436,7 +430,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
                comment_ocamlbuild
                []
                (List.map
-                  (fun fn -> FilePath.replace_extension fn "o")
+                  (fun fn -> (Filename.chop_extension fn)^".o")
                   (only_c_files bs.bs_c_sources))
                [])
             ctxt,
@@ -651,9 +645,7 @@ let add_ocamlbuild_files ctxt pkg =
                            "cmxa"
                    in
                      prepend_bs_path bs
-                       (FilePath.UnixPath.add_extension
-                          cs.cs_name
-                          ext)
+                       (OASISUnixPath.add_extension cs.cs_name ext)
                  in
 
                  (* Start comment *)
@@ -668,7 +660,7 @@ let add_ocamlbuild_files ctxt pkg =
                      tag_t
                      [prepend_bs_path
                         bs
-                        (FilePath.UnixPath.add_extension cs.cs_name "cmxs")]
+                        (OASISUnixPath.add_extension cs.cs_name "cmxs")]
                      ["use_"^cs.cs_name]
                  in
 
@@ -679,13 +671,14 @@ let add_ocamlbuild_files ctxt pkg =
                          ~ctxt:ctxt.ctxt
                          (cs, bs, lib)
                          (fun ufn ->
-                            OASISUtils.file_exists (BaseFilePath.of_unix ufn))
+                            OASISFileUtil.file_exists_case
+                              (OASISHostPath.of_unix ufn))
                      in
                      add_tags
                        tag_t
                        (List.rev_map
                           (fun (base_fn, _) ->
-                             base_fn^".cmx")
+                             OASISUnixPath.add_extension base_fn "cmx")
                           base_sources)
                        ["for-pack("^String.capitalize cs.cs_name^")"]
                    else
@@ -708,7 +701,7 @@ let add_ocamlbuild_files ctxt pkg =
                         lib_ocaml =
                           (cs.cs_name,
                            List.filter
-                             (fun fn -> not (FilePath.UnixPath.is_current fn))
+                             (fun fn -> not (OASISUnixPath.is_current fn))
                              src_dirs) :: myocamlbuild_t.lib_ocaml}
                  in
 
@@ -729,8 +722,12 @@ let add_ocamlbuild_files ctxt pkg =
                        "mllib", "mlpack"
                    in
                    let fn_base = prepend_bs_path bs cs.cs_name in
-                   let fn = FilePath.add_extension fn_base extension in
-                   let not_fn = FilePath.add_extension fn_base not_extension in
+                   let fn =
+                     OASISHostPath.add_extension fn_base extension
+                   in
+                   let not_fn =
+                     OASISHostPath.add_extension fn_base not_extension
+                   in
                    let ctxt =
                      add_file
                        (template_make
@@ -744,7 +741,7 @@ let add_ocamlbuild_files ctxt pkg =
                      {ctxt with
                           other_actions =
                             (fun ()->
-                               if OASISUtils.file_exists not_fn then
+                               if OASISFileUtil.file_exists_case not_fn then
                                  OASISMessage.error ~ctxt:ctxt.ctxt
                                    (f_ "Conflicting file '%s' and '%s' \
                                       exists, remove '%s'.")
@@ -773,7 +770,7 @@ let add_ocamlbuild_files ctxt pkg =
                            "native"
                    in
                      prepend_bs_path bs
-                       (FilePath.UnixPath.replace_extension
+                       (OASISUnixPath.replace_extension
                           (exec.exec_main_is) ext)
                  in
 

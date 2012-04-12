@@ -36,7 +36,7 @@ let pager_cmd =
            try
              Sys.getenv "PAGER"
            with Not_found ->
-             FileUtil.which "pager"
+             OASISFileUtil.which ~ctxt:!BaseContext.default "pager"
          end)
   with Not_found ->
     None

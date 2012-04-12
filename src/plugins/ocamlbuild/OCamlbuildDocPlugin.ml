@@ -33,7 +33,7 @@ TYPE_CONV_PATH "OCamlbuildDocPlugin"
 
 let doc_build path pkg (cs, doc) argv =
   let index_html =
-    BaseFilePath.Unix.make
+    OASISUnixPath.make
       [
         path;
         cs.cs_name^".docdir";
@@ -41,10 +41,10 @@ let doc_build path pkg (cs, doc) argv =
       ]
   in
   let tgt_dir =
-    BaseFilePath.make
+    OASISHostPath.make
       [
         build_dir argv;
-        BaseFilePath.of_unix path;
+        OASISHostPath.of_unix path;
         cs.cs_name^".docdir";
       ]
   in
@@ -54,7 +54,7 @@ let doc_build path pkg (cs, doc) argv =
          BaseBuilt.register
            BaseBuilt.BDoc
            cs.cs_name
-           [BaseFileUtil.glob
+           [OASISFileUtil.glob ~ctxt:!BaseContext.default
               (Filename.concat tgt_dir glb)])
       ["*.html"; "*.css"]
 
@@ -182,14 +182,6 @@ let doit ctxt pkg (cs, doc) =
               fndlb_nm
     in
 
-    let fake_root =
-      FilePath.UnixPath.make_absolute "/fake_root/"
-    in
-
-    let fake_doc_path =
-      fake_root path
-    in
-
       (* Fetch modules from internal libraries *)
       List.flatten
         (List.map
@@ -200,12 +192,9 @@ let doit ctxt pkg (cs, doc) =
                 (* Rebase modules in the doc path *)
                 List.map
                   (fun modul ->
-                     FilePath.UnixPath.make_relative
-                       fake_doc_path
-                       (fake_root
-                          (FilePath.UnixPath.concat
-                             bs.bs_path
-                             modul)))
+                     OASISUnixPath.make_relative
+                       path
+                       (OASISUnixPath.concat bs.bs_path modul))
                   lib.lib_modules)
 
            (libraries cs.cs_data))
@@ -224,8 +213,8 @@ let doit ctxt pkg (cs, doc) =
     (* Create .odocl file *)
     add_file
       (template_make
-         (FilePath.add_extension
-            (FilePath.concat path cs.cs_name)
+         (OASISHostPath.add_extension
+            (Filename.concat path cs.cs_name)
             "odocl")
          comment_ocamlbuild
          []

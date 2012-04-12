@@ -8,10 +8,7 @@
     @author Sylvain Le Gall
   *)
 
-(** [nsplit c s] Split the string [s] at char [c]. It doesn't include the
-    separator.
-  *)
-let nsplit str c =
+let nsplitf str f =
   if str = "" then
     []
   else
@@ -23,13 +20,19 @@ let nsplit str c =
     in
     let str_len = String.length str in
       for i = 0 to str_len - 1 do
-        if str.[i] = c then
+        if f str.[i] then
           push ()
         else
           Buffer.add_char buf str.[i]
       done;
       push ();
       List.rev !lst
+
+(** [nsplit c s] Split the string [s] at char [c]. It doesn't include the
+    separator.
+  *)
+let nsplit str c =
+  nsplitf str ((=) c)
 
 let find ~what ?(offset=0) str =
   let what_idx = ref 0 in

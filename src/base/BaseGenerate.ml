@@ -131,7 +131,7 @@ let generate ?msg
             BaseSetup.find ctxt
           in
             if Sys.file_exists default_fn then
-              FileUtil.cp [default_fn] setup_fn;
+              OASISFileUtil.cp ~ctxt:msg default_fn setup_fn;
             {ctxt with 
                  files = 
                    OASISFileTemplate.add
@@ -186,7 +186,7 @@ let generate ?msg
                    unregister chng;
                    begin 
                      match bak with
-                       | Some fn -> FileUtil.rm [fn]
+                       | Some fn -> Sys.remove fn
                        | None    -> ()
                    end
                  in

@@ -271,7 +271,7 @@ let main ctxt pkg =
            if root_t.enable then
              begin
                let meta_fn =
-                 Filename.concat root_bs.bs_path "META"
+                 OASISUnixPath.concat root_bs.bs_path "META"
                in
                let buff =
                  Buffer.create 13

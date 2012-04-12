@@ -36,7 +36,7 @@ let prog_best prg prg_lst =
                     res
                 | None ->
                     try
-                      Some (BaseFileUtil.which e)
+                      Some (OASISFileUtil.which ~ctxt:!BaseContext.default e)
                     with Not_found ->
                       None)
            None
@@ -97,7 +97,7 @@ let version
       ()
 
 let package_version pkg =
-  BaseExec.run_read_one_line
+  OASISExec.run_read_one_line ~ctxt:!BaseContext.default
     (ocamlfind ())
     ["query"; "-format"; "%v"; pkg]
 
@@ -109,7 +109,7 @@ let package ?version_comparator pkg () =
   in
   let findlib_dir pkg =
     let dir =
-      BaseExec.run_read_one_line
+      OASISExec.run_read_one_line ~ctxt:!BaseContext.default
         (ocamlfind ())
         ["query"; "-format"; "%d"; pkg]
     in
