@@ -268,7 +268,7 @@ let parse () =
 
   let handle_error exc hext =
     let get_bad str =
-      match split_newline str with
+      match split_newline ~trim:false str with
         | fst :: _ ->
             fst
         | [] ->

@@ -114,8 +114,12 @@ let failwithf fmt = Printf.ksprintf failwith fmt
 let split_comma str =
   List.map OASISString.trim (OASISString.nsplit str ',')
 
-let split_newline str =
-  List.map OASISString.trim (OASISString.nsplit str '\n')
+let split_newline ?(trim=true) str =
+  let lst = OASISString.nsplit str '\n' in
+    if trim then 
+      List.map OASISString.trim lst
+    else 
+      lst
 
 let split_optional_parentheses str =
   try

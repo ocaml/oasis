@@ -87,7 +87,7 @@ val split_comma : string -> string list
 
 (** Split a list using '\n' as separator. {b Not exported}
   *)
-val split_newline : string -> string list
+val split_newline : ?trim:bool -> string -> string list
 
 (** Split a string containing '(...)' optionally. {b Not exported} 
   *)

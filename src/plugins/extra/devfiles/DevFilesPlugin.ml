@@ -159,7 +159,8 @@ let main ctxt pkg =
                "Makefile"
                comment_sh
                []
-               (OASISUtils.split_newline (Buffer.contents buff))
+               (OASISUtils.split_newline ~trim:false 
+                  (Buffer.contents buff))
                [])
             ctxt
       end
