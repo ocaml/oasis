@@ -1,4 +1,5 @@
 
+(* TODO: only at post-conf
 module MapString = Map.Make(String)
 module SetString = Set.Make(String)
 
@@ -63,7 +64,7 @@ let () =
     SetString.fold
       (fun fndlb_nm mp ->
          let lst =
-           BaseExec.run_read_output
+           OASISExec.run_read_output ~ctxt:!BaseContext.default
              "ocamlfind" 
              ["query"; fndlb_nm; "-recursive"; "-p-format"]
          in
@@ -109,3 +110,4 @@ let () =
              ())
       pkg.sections;
     close_out chn
+ *)

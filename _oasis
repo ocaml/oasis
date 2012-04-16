@@ -80,7 +80,8 @@ Library oasis
            OASISString,
            OASISExec,
            OASISFileUtil,
-           OASISHostPath
+           OASISHostPath,
+           OASISGraph
   InternalModules: OASISVersion_types,
                    OASISVersion_lexer,
                    OASISVersion_parser,
@@ -108,7 +109,7 @@ Library oasis
                    OASISSchema_intern,
                    OASISPath_intern
   CompiledObject: Best
-  BuildDepends: unix, odn (>= 0.0.3), ocamlgraph
+  BuildDepends: unix, odn (>= 0.0.3)
   BuildTools+: ocamlmod, ocamlyacc, ocamllex, ocamlify
   XMETADescription: _oasis file functions
   Install$: flag(libraries)
@@ -283,7 +284,7 @@ Executable "test_loader"
 Test main_loader
   Type:      custom (0.3)
   Command:   $test_loader --pluginloader $pluginloader
-  TestTools: test-loader, pluginloader
+  TestTools: test_loader, pluginloader
 
 # Third party: user-conf
 
@@ -300,4 +301,4 @@ Executable "test_userconf"
 Test main_userconf
   Type:       custom (0.3)
   Command:    $test_userconf
-  TestTools:  test-userconf
+  TestTools:  test_userconf

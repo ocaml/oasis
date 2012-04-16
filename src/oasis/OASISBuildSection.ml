@@ -24,214 +24,153 @@
 open OASISTypes
 open OASISUtils
 
-open Graph
 open OASISSection
 open OASISSection_intern
 
-module G = Imperative.Digraph.Concrete(OASISSection.CSection)
-module Bfs = Traverse.Bfs(G)
-module Dfs = Traverse.Dfs(G)
-module Topological = Topological.Make(G)
-module Oper = Oper.I(G)
+module G = OASISGraph
 
-module Display =
-struct
-  include G
-  let vertex_name v = varname_of_string (string_of_section v)
-  let graph_attributes _ = []
-  let default_vertex_attributes _ = []
-  let vertex_attributes _ = []
-  let default_edge_attributes _ = []
-  let edge_attributes _ = []
-  let get_subgraph _ = None
-end
-
-module Dot = Graphviz.Dot(Display)
-
-let show g =
-  let tmp = Filename.temp_file "graph" ".dot" in
-  let oc = open_out tmp in
-  Dot.output_graph oc g;
-  close_out oc;
-  ignore (Sys.command ("dot -Tps " ^ tmp ^ " | gv -"));
-  Sys.remove tmp
+type extended_kind = [section_kind | `ExternalTool | `FindlibPackage]
+type vertex = extended_kind * string
 
 let build_graph pkg =
-  let g =
-    G.create ()
-  in
-  let vertex_of_section f =
+  let g : vertex G.t = G.create (2 * List.length pkg.sections) in
+  let sct_of_vrtx = Hashtbl.create (List.length pkg.sections) in
+  let ext_of_vrtx = Hashtbl.create 13 in
+
+  let sections =
+    (* Start by creating all vertexes, because we will need it
+     * to create edges.
+     *)
     List.fold_left
       (fun acc sct ->
-         match f sct with
-           | Some cs ->
-               MapString.add cs.cs_name (G.V.create sct) acc
-           | None ->
-               acc)
-      MapString.empty
+         let vrtx =
+           G.add_vertex g ((OASISSection.section_id sct) :> vertex)
+         in
+           Hashtbl.add sct_of_vrtx vrtx sct;
+           (vrtx, sct) :: acc)
+      []
       pkg.sections
   in
-  let vertex_of_lib =
-    vertex_of_section
-      (function Library (cs, _, _) -> Some cs | _  -> None)
-  in
-  let vertex_of_exec =
-    vertex_of_section
-      (function Executable (cs, _, _) -> Some cs | _ -> None)
-  in
-  let find_name nm mp =
-    MapString.find nm mp
-  in
+
   let add_build_tool vrtx lst =
     List.iter
       (function
          | InternalExecutable nm ->
-             let dvrtx =
-               find_name nm vertex_of_exec
-             in
+             let dvrtx = G.vertex_of_value g (`Executable, nm) in
                G.add_edge g vrtx dvrtx
-         | ExternalTool _ ->
-             ())
+         | ExternalTool prog ->
+             let dvrtx = G.add_vertex g (`ExternalTool, prog) in
+               Hashtbl.add ext_of_vrtx dvrtx (`ExternalTool prog);
+               G.add_edge g vrtx dvrtx)
       lst
   in
+
   let add_build_section vrtx bs =
-    G.add_vertex g vrtx;
     add_build_tool vrtx bs.bs_build_tools;
     List.iter
       (function
          | InternalLibrary nm ->
-             let dvrtx =
-               find_name nm vertex_of_lib
-             in
+             let dvrtx = G.vertex_of_value g (`Library, nm) in
                G.add_edge g vrtx dvrtx
-         | FindlibPackage _ ->
-             ())
+         | FindlibPackage (fndlb_nm, ver_opt) ->
+             let dvrtx = G.add_vertex g (`FindlibPackage, fndlb_nm) in
+               Hashtbl.add ext_of_vrtx dvrtx
+                 (`FindlibPackage (fndlb_nm, ver_opt));
+               G.add_edge g vrtx dvrtx)
       bs.bs_build_depends
   in
 
+    (* Add all edges. *)
     List.iter
-      (function
-         | Library (cs, bs, _) ->
-             add_build_section
-               (find_name cs.cs_name vertex_of_lib)
-               bs
-         | Executable (cs, bs, _) ->
-             add_build_section
-               (find_name cs.cs_name vertex_of_exec)
-               bs
-         | Test (cs, {test_tools = build_tools})
-         | Doc (cs, {doc_build_tools = build_tools}) as sct ->
-             let vrtx =
-               G.V.create sct
-             in
-               G.add_vertex g vrtx;
-               add_build_tool
-                 vrtx
-                 build_tools
-         | Flag _ | SrcRepo _ as sct ->
-             G.add_vertex g (G.V.create sct))
-      pkg.sections;
+      (fun (vrtx, sct) ->
+         match sct with
+           | Library (cs, bs, _)
+           | Executable (cs, bs, _) ->
+               add_build_section vrtx bs
+           | Test (cs, {test_tools = build_tools})
+           | Doc (cs, {doc_build_tools = build_tools}) ->
+               add_build_tool vrtx build_tools
+           | Flag _ | SrcRepo _ ->
+               ())
+      sections;
 
-    g
+    sct_of_vrtx, ext_of_vrtx, g
 
 let build_order pkg =
-  Topological.fold
-    (fun v lst -> v :: lst)
-    (build_graph pkg)
-    []
-
-module SetDepends =
-  Set.Make
-    (struct
-       type t = dependency
-       let compare = compare
-     end)
+  let sct_of_vrtx, _, g = build_graph pkg in
+    List.rev
+      (List.fold_left
+         (fun acc vrtx ->
+            try
+              Hashtbl.find sct_of_vrtx vrtx :: acc
+            with Not_found ->
+              acc)
+         []
+         (G.topological_sort g))
 
 let transitive_build_depends pkg =
-  let g =
-    build_graph pkg
-  in
+  let sct_of_vrtx, ext_of_vrtx, g = build_graph pkg in
 
-  let add_build_depends =
-    List.fold_left
-      (fun acc dep -> SetDepends.add dep acc)
+  let order =
+    (* Map depends with their build order. *)
+    let hshtbl = Hashtbl.create 13 in
+    let idx = ref 0 in
+      List.iter
+        (fun dep ->
+           Hashtbl.add hshtbl dep !idx;
+           incr idx)
+        (G.topological_sort g);
+      hshtbl
   in
 
   let map_deps =
     (* Fill the map with empty depends *)
     List.fold_left
-      (fun mp ->
-         function
-           | Library (_, bs, _) | Executable (_, bs, _) as sct ->
-               MapSection.add
-                 sct
-                 (add_build_depends
-                    SetDepends.empty
-                    bs.bs_build_depends)
-                 mp
-           | Flag _ | SrcRepo _ | Test _ | Doc _ as sct ->
-               MapSection.add sct SetDepends.empty mp)
+      (fun mp sct -> MapSection.add sct [] mp)
       MapSection.empty
       pkg.sections
   in
+
   let map_deps =
-    (* Populate build depends *)
-    G.fold_edges
-      (fun v1 v2 mp ->
-         let deps =
-           MapSection.find v1 mp
-         in
-         let deps =
-           match v2 with
-             | Library (cs, bs, _) ->
-                 add_build_depends
-                   deps
-                   bs.bs_build_depends
-             | Executable _ | Flag _ | SrcRepo _ | Test _ | Doc _ ->
-                 deps
-         in
-           MapSection.add v1 deps mp)
-      (Oper.transitive_closure g)
-      map_deps
-  in
-
-  let extract_depends =
-    let _, order =
-      List.fold_left
-        (fun (i, mp) sct ->
-           i + 1,
-           MapSectionId.add
-             (section_id sct)
-             i
+    let add_dep sct dep mp =
+      let lst = try MapSection.find sct mp with Not_found -> [] in
+        MapSection.add sct (dep :: lst) mp
+    in
+    let g' = G.copy g in
+      G.transitive_closure g';
+      G.fold_edges
+        (fun vrtx1 vrtx2 mp ->
+           if Hashtbl.mem sct_of_vrtx vrtx1 then
+             begin
+               let sct = Hashtbl.find sct_of_vrtx vrtx1 in
+               let ord = Hashtbl.find order vrtx2 in
+               match G.value_of_vertex g' vrtx2 with
+                 | `Library, nm ->
+                     add_dep sct (ord, InternalLibrary nm) mp
+                 | `FindlibPackage, _ ->
+                     begin
+                       match Hashtbl.find ext_of_vrtx vrtx2 with
+                         | `FindlibPackage (fndlb_nm, ver_opt) ->
+                             add_dep
+                               sct
+                               (ord, FindlibPackage (fndlb_nm, ver_opt))
+                               mp
+                         | _ ->
+                             mp
+                     end
+                 | _ ->
+                     mp
+             end
+           else
              mp)
-        (0, MapSectionId.empty)
-        (build_order pkg)
-    in
-
-    let compare dep1 dep2 =
-      let id =
-        function
-          | FindlibPackage _ ->
-              (* We place findlib package at the very
-               * beginning of the list, since they are
-               * don't depend on any internal libraries
-               * and that their inter-dependencies will
-               * be solved by findlib
-               *)
-              (-1)
-          | InternalLibrary nm ->
-              MapSectionId.find (`Library, nm) order
-      in
-        (id dep1) - (id dep2)
-    in
-      fun k deps ->
-        let lst =
-          List.sort
-            compare
-            (SetDepends.elements deps)
-        in
-          lst
+        g'
+        map_deps
   in
 
-    MapSection.mapi extract_depends map_deps
-
+    MapSection.mapi
+      (fun k lst ->
+         List.rev_map
+           (fun (_, dep) -> dep)
+           (* Reverse order to match List.rev_map *)
+           (List.sort (fun (o1, _) (o2, _) -> o2 - o1) lst))
+      map_deps
