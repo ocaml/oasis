@@ -472,7 +472,7 @@ let file_rollback ~ctxt =
           ~ctxt
           (f_ "Remove generated file '%s'")
           fn;
-        Sys.remove fn
+        (try Sys.remove fn with _ -> ())
 
     | Change (fn, Some bak) ->
         begin

@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 78e5191899b623743d6daa1a319e4768)
+# DO NOT EDIT (digest: 2c3d9ec2e42ca28272d52c84996a4be0)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -79,6 +79,13 @@
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_odn
 # Library cli
 "src/cli/cli.cmxs": use_cli
+# Library dynrun
+"src/dynrun/dynrun.cmxs": use_dynrun
+<src/dynrun/*.ml{,i}>: use_builtin-plugins
+<src/dynrun/*.ml{,i}>: use_base
+<src/dynrun/*.ml{,i}>: use_oasis
+<src/dynrun/*.ml{,i}>: pkg_unix
+<src/dynrun/*.ml{,i}>: pkg_odn
 # Executable test
 "test/test.byte": use_builtin-plugins
 "test/test.byte": use_base

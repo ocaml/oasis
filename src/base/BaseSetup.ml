@@ -52,6 +52,7 @@ type t =
       oasis_digest:     Digest.t option;
       oasis_exec:       string option;
       oasis_setup_args: string list;
+      setup_update:     bool;
     }
 
 (* Associate a plugin function with data from package *)
@@ -302,6 +303,15 @@ let clean, distclean =
     (* Call clean *)
     clean t args;
 
+    (* Call distclean code *)
+    generic_clean
+      t
+      t.package.distclean_custom
+      t.distclean
+      t.distclean_doc
+      t.distclean_test
+      args;
+
     (* Remove generated file *)
     List.iter
       (fun fn ->
@@ -314,16 +324,7 @@ let clean, distclean =
        ::
        BaseLog.default_filename
        ::
-       (List.rev_map BaseFileAB.to_filename t.package.files_ab));
-
-    (* Call distclean code *)
-    generic_clean
-      t
-      t.package.distclean_custom
-      t.distclean
-      t.distclean_doc
-      t.distclean_test
-      args
+       (List.rev_map BaseFileAB.to_filename t.package.files_ab))
   in
 
     clean, distclean
@@ -493,7 +494,7 @@ let setup t =
 
         Arg.parse
           (Arg.align
-             [
+             ([
                "-configure",
                arg_handle ~allow_empty_env:true configure,
                s_ "[options*] Configure the whole build process.";
@@ -544,10 +545,13 @@ let setup t =
                "-no-catch-exn",
                Arg.Clear catch_exn,
                s_ " Don't catch exception, useful for debugging.";
-
-               no_update_setup_ml_cli;
              ]
-           @ (BaseContext.args ()))
+             @
+              (if t.setup_update then
+                 [no_update_setup_ml_cli]
+               else
+                 [])
+             @ (BaseContext.args ())))
           (failwithf (f_ "Don't know what to do with '%s'"))
           (s_ "Setup and run build process current package\n");
 
@@ -589,7 +593,9 @@ let setup t =
 
         BaseDynVar.init t.package;
 
-        if not (update_setup_ml t) then
+        if t.setup_update && update_setup_ml t then
+          ()
+        else
           !act_ref t (Array.of_list (List.rev !extra_args_ref))
 
     with e when !catch_exn ->
@@ -612,7 +618,7 @@ let find ctxt =
       default_filename
 
 
-let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) pkg =
+let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update pkg =
 
   let ctxt =
     (* Initial context *)
@@ -824,6 +830,7 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) pkg =
            "oasis_digest",   ODN.of_option ODN.of_string oasis_digest;
            "oasis_exec",     ODN.of_option ODN.of_string oasis_exec;
            "oasis_setup_args", ODN.of_list ODN.of_string oasis_setup_args;
+           "setup_update",   ODN.of_bool setup_update;
           ]),
       {
         configure        = ODNFunc.func_call configure_changes.chng_main;
@@ -845,6 +852,7 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) pkg =
         oasis_digest     = oasis_digest;
         oasis_exec       = oasis_exec;
         oasis_setup_args = oasis_setup_args;
+        setup_update     = setup_update;
       }
   in
 

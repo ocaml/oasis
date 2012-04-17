@@ -28,6 +28,8 @@ open OASISPlugin
 open BaseMessage
 open OASISGettext
 
+type update = NoUpdate | Weak | Dynamic
+
 let required_modules =
   [
     OASISData.oasissys_ml;
@@ -97,14 +99,16 @@ let restore ?msg () =
 let generate ?msg
       ~restore
       ~backup
-      ~dev
       ~setup_fn
       ?oasis_exec
       ?oasis_fn
       ?oasis_setup_args
+      update
       pkg =
   let ctxt, _ = 
-    BaseSetup.of_package ?oasis_fn ?oasis_exec ?oasis_setup_args pkg
+    BaseSetup.of_package
+      ?oasis_fn ?oasis_exec ?oasis_setup_args
+      ~setup_update:(update = Weak) pkg
   in
 
   let msg = 
@@ -127,9 +131,8 @@ let generate ?msg
           (* Copy the setup.ml file to its right filename 
            * and update context accordingly
            *)
-          let setup_tmpl = 
-            BaseSetup.find ctxt
-          in
+          let setup_tmpl = BaseSetup.find ctxt in
+
             if Sys.file_exists default_fn then
               OASISFileUtil.cp ~ctxt:msg default_fn setup_fn;
             {ctxt with 
@@ -144,9 +147,40 @@ let generate ?msg
         ctxt
   in
 
+  let ctxt =
+    (* Fix setup for dynamic update. *)
+    if update = Dynamic then
+      begin
+        (* We just keep setup.ml, Makefile and configure. *)
+        let files =
+          OASISFileTemplate.fold
+            (fun tmpl acc ->
+               if tmpl.fn = setup_fn then
+                 OASISFileTemplate.add
+                   {tmpl with body =
+                      Body
+                        [
+                          "#use \"topfind\";;";
+                          "#require \"oasis.dynrun\";;";
+                          "open OASISDynRun;;";
+                        ]}
+                   acc
+               else if tmpl.fn = "Makefile" || tmpl.fn = "configure" then
+                 OASISFileTemplate.add tmpl acc
+               else
+                 acc)
+            ctxt.files
+            OASISFileTemplate.empty
+        in
+          {ctxt with files = files}
+      end
+    else
+      ctxt
+  in
+
   let () = 
     if ctxt.error then
-      exit 1
+      failwith (s_ "There are errors during the file generation.")
   in
 
   let chngs =

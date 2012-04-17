@@ -113,7 +113,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 9a98bd7413f733353a0d977c51f2c80e) *)
+(* DO NOT EDIT (digest: dc7ad51630d27cdcddc0b8693f82decb) *)
 module OASISGettext = struct
 # 21 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
 
@@ -669,6 +669,7 @@ let package_default =
           ("base", ["src/base"]);
           ("builtin-plugins", ["src"]);
           ("cli", ["src/cli"]);
+          ("dynrun", ["src/dynrun"]);
           ("plugin-loader", ["src/ext/plugin-loader/src"]);
           ("pluginloaderLib",
             ["src/ext/plugin-loader/test/data/findlib/pluginloaderLib"]);
@@ -782,6 +783,7 @@ let package_default =
                "src/ext/plugin-loader/test/data/findlib/pluginloaderLib"
             ]);
           ("src/ext/plugin-loader/test", ["src/ext/plugin-loader/src"]);
+          ("src/dynrun", ["src"; "src/base"]);
           ("src/cli",
             ["src"; "src/base"; "src/ext/plugin-loader/src"; "src/oasis"]);
           ("src/base", ["src/oasis"]);
@@ -803,7 +805,7 @@ let package_default =
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
-# 693 "myocamlbuild.ml"
+# 695 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 open Ocamlbuild_plugin;;

@@ -29,7 +29,6 @@ open OASISGettext
 let main () =
   failwith (s_ "The SetupDev subcommand is deprecated, use Setup")
 
-
 let scmd = 
   {(SubCommand.make
       ~std_usage:true

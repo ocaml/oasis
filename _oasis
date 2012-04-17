@@ -88,6 +88,7 @@ Library oasis
                    OASISLicense_types,
                    OASISLicense_lexer,
                    OASISLicense_parser,
+                   OASISValues_lexer,
                    OASISSchema,
                    OASISConf,
                    OASISAst,
@@ -180,6 +181,13 @@ Library cli
   FindlibParent:    oasis
   XMETADescription: 'setup.ml' modules for OASIS
   Install$:         flag(libraries)
+
+Library dynrun
+  Path:           src/dynrun
+  Modules:        OASISDynRun
+  CompiledObject: best
+  BuildDepends:   oasis.base, oasis.builtin-plugins
+  FindlibParent:  oasis
 
 Executable oasis
   Path:   src/cli

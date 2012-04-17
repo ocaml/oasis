@@ -150,6 +150,21 @@ let tests =
 
   (* Assert with setup.ml *)
   let assert_run_setup ?exit_code ?extra_env args =
+    (* Speed up for testing, compile setup.ml *)
+    let can_compile =
+      let chn = open_in setup_ml in
+      let hash_load = ref false in
+      let () =
+        try
+          while not !hash_load do
+            if OASISString.starts_with ~what:"#load" (input_line chn) then
+              hash_load := true
+          done
+        with End_of_file ->
+          close_in chn
+      in
+        not !hash_load
+    in
     let setup_base = Filename.chop_extension setup_ml in
     let setup_digest = setup_base ^ ".digest" in
     let setup_exe = 
@@ -157,50 +172,53 @@ let tests =
         Filename.current_dir_name
         (setup_base ^ (if Sys.os_type = "Win32" then ".exe" else ""))
     in
-    let self_digest = 
-      let chn = open_in setup_ml in
-      let digest = Digest.channel chn (in_channel_length chn) in
-        close_in chn;
-        digest 
-    in
-    let pre_digest = 
-      try 
-        let chn = open_in setup_digest in
-        let digest = Digest.input chn in
-          close_in chn;
-          digest 
-      with _ ->
-        Digest.string ""
-    in
-    let clean ?(all=false) () = 
-      List.iter
-        (fun fn -> try Sys.remove fn with _ -> ())
-        (
-          (if all then
-             [setup_exe; setup_digest]
-           else
-             [])
-          @
-          [setup_base ^ ".cmi"; setup_base ^ ".cmo"]
-        )
-    in
-    if not (Sys.file_exists setup_exe) || self_digest <> pre_digest then
-      begin
-        match Sys.command "ocamlfind ocamlc -o setup setup.ml" with 
-          | 0 -> 
-              (* Compilation succeed, update the digest *)
-              let chn = open_out setup_digest in
-                Digest.output chn self_digest;
-                close_out chn;
-                clean ()
-          | _ ->
-              prerr_endline "E: Compilation of setup.ml doesn't succeed.";
-              clean ~all:true ()
-      end;
-    if Sys.file_exists setup_exe then
-      assert_command ?exit_code ?extra_env setup_exe args
-    else
-      assert_command ?exit_code ?extra_env "ocaml" (setup_ml :: args)
+      if can_compile then
+        begin
+          let self_digest =
+            let chn = open_in setup_ml in
+            let digest = Digest.channel chn (in_channel_length chn) in
+              close_in chn;
+              digest
+          in
+          let pre_digest =
+            try
+              let chn = open_in setup_digest in
+              let digest = Digest.input chn in
+                close_in chn;
+                digest
+            with _ ->
+              Digest.string ""
+          in
+          let clean ?(all=false) () =
+            List.iter
+              (fun fn -> try Sys.remove fn with _ -> ())
+              (
+                (if all then
+                   [setup_exe; setup_digest]
+                 else
+                   [])
+                @
+                [setup_base ^ ".cmi"; setup_base ^ ".cmo"]
+              )
+          in
+          if not (Sys.file_exists setup_exe) || self_digest <> pre_digest then
+            begin
+              match Sys.command "ocamlfind ocamlc -o setup setup.ml" with
+                | 0 ->
+                    (* Compilation succeed, update the digest *)
+                    let chn = open_out setup_digest in
+                      Digest.output chn self_digest;
+                      close_out chn;
+                      clean ()
+                | _ ->
+                    prerr_endline "E: Compilation of setup.ml doesn't succeed.";
+                    clean ~all:true ()
+            end
+        end;
+      if Sys.file_exists setup_exe then
+        assert_command ?exit_code ?extra_env setup_exe args
+      else
+        assert_command ?exit_code ?extra_env "ocaml" (setup_ml :: args)
   in
 
   (* Files always generated *)
@@ -563,6 +581,7 @@ let tests =
     
   let bracket_setup 
         ?(dev=false)
+        ?(dynamic=false)
         (srcdir, vars)
         f = 
     bracket
@@ -638,7 +657,63 @@ let tests =
 
          (* Create build system using OASIS *)
          let () = 
-           assert_oasis_cli ("setup" :: (if dev then ["-real-oasis"] else []));
+           assert_oasis_cli
+             ("setup" ::
+              (if dev then
+                 ["-real-oasis"; "-setup-update";
+                  if dynamic then "dynamic" else "weak"]
+               else
+                 []));
+
+           (* Fix #require in dynamic *)
+           if dynamic then
+             begin
+               let chn = open_in "setup.ml" in
+               let lst = ref [] in
+               let mkload lst =
+                 let cma =
+                   Filename.concat
+                     cur_dir
+                     (FilePath.make_filename (".." :: "_build" :: "src" :: lst))
+                 in
+                 Printf.sprintf
+                   "#load %S;;\n#directory %S;;" cma (Filename.dirname cma)
+               in
+               let () =
+                 try
+                   while true do
+                     let line = input_line chn in
+                       if OASISString.starts_with
+                            ~what:"#require \"oasis.dynrun\";;" line then
+                         begin
+                           lst :=
+                           List.rev_append
+                             ("#require \"unix\";;" ::
+                              "#require \"odn\";;" ::
+                              (List.map mkload
+                                 [["oasis"; "oasis.cma"];
+                                  ["base"; "base.cma"];
+                                  ["builtin-plugins.cma"];
+                                  ["dynrun"; "dynrun.cma"]]))
+                             !lst
+                         end
+                       else
+                         lst := line :: !lst
+                   done
+                 with End_of_file ->
+                   close_in chn
+               in
+               let chn = open_out "setup.ml" in
+                 if !dbug then
+                   print_endline "file setup.ml:";
+                 List.iter
+                   (fun line ->
+                      if !dbug then
+                        print_endline line;
+                      output_string chn (line^"\n"))
+                   (List.rev !lst);
+                 close_out chn
+             end;
 
            (* Check generated files *)
            OUnitSetFile.assert_equal 
@@ -1432,7 +1507,7 @@ let tests =
        (fun dn ->
           rm ~recurse:true [dn]);
 
-     "setup with dev mode">::
+     "setup with dev mode (weak)">::
       bracket
         ignore
         (fun () ->
@@ -1456,6 +1531,67 @@ let tests =
                 assert_bool
                   "Library .cma created."
                   (Sys.file_exists "_build/mylib.cma");
+                assert_run_setup ["-distclean"];
+                rm ["META"; "mylib.mllib"; "setup"; "setup.digest"];
+                cp ["_oasis.v1"] "_oasis")
+             ())
+        (fun () ->
+           rm ["data/dev/_oasis"]);
+
+    "setup with dev mode (light)">::
+    bracket
+      ignore
+      (fun () ->
+           cp ["data/dev/_oasis.v2"] "data/dev/_oasis";
+           bracket_setup
+             ~dev:true ~dynamic:true
+             ("data/dev",
+              fun () ->
+                ignore,
+                ["setup.ml"],
+                [],
+                [])
+             (* Run test *)
+             (fun _ ->
+                assert_bool
+                  "setup.ml is smaller than 2kB"
+                  (let chn = open_in "setup.ml" in
+                   let size = in_channel_length chn in
+                     close_in chn;
+                     size < 2048 (* 2kB *));
+                assert_run_setup ["-all"];
+                assert_bool
+                  "Library .cma created."
+                  (Sys.file_exists "_build/mylib.cma");
+                assert_run_setup ["-distclean"];
+                rm ["META"; "mylib.mllib"; "setup"; "setup.digest"])
+             ())
+      (fun () ->
+         rm ["data/dev/_oasis"]);
+
+     "setup with no dev mode">::
+      bracket
+        ignore
+        (fun () ->
+           cp ["data/dev/_oasis.v1"] "data/dev/_oasis";
+           bracket_setup
+             ("data/dev",
+              fun () ->
+                ignore,
+                oasis_ocamlbuild_files,
+                [],
+                [])
+             (* Run test *)
+             (fun _ ->
+                assert_run_setup ["-all"];
+                assert_bool
+                  "Library .cma not created."
+                  (not (Sys.file_exists "_build/mylib.cma"));
+                cp ["_oasis.v2"] "_oasis";
+                assert_run_setup ["-all"];
+                assert_bool
+                  "Library .cma still not created."
+                  (not (Sys.file_exists "_build/mylib.cma"));
                 assert_run_setup ["-distclean"];
                 rm ["META"; "mylib.mllib"; "setup"; "setup.digest"];
                 cp ["_oasis.v1"] "_oasis")
