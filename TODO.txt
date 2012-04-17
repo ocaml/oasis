@@ -1,2 +1,4 @@
 * Finish guess-cmx to install all files for libraries, integrate it in buildsys
 * "..." in freeform doesn't work
+
+* recompilation of .cmxs, must have a pb in detecting update
