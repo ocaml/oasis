@@ -144,7 +144,8 @@ Library base
 
 Library "builtin-plugins"
   Path: src
-  Modules: OASISBuiltinPlugins
+  Modules: OASISBuiltinPlugins,
+           plugins/extra/META/METAPlugin
   InternalModules: plugins/none/NonePlugin,
                    plugins/none/NoneData,
                    plugins/internal/InternalConfigurePlugin,
@@ -160,7 +161,6 @@ Library "builtin-plugins"
                    plugins/ocamlbuild/MyOCamlbuildFindlib,
                    plugins/custom/CustomPlugin,
                    plugins/custom/CustomData,
-                   plugins/extra/META/METAPlugin,
                    plugins/extra/META/METAData,
                    plugins/extra/devfiles/DevFilesPlugin,
                    plugins/extra/devfiles/DevFilesData,

@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 2c3d9ec2e42ca28272d52c84996a4be0)
+# DO NOT EDIT (digest: 82b15b437392bb52a638f05e9eeaeda4)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -49,14 +49,14 @@
 <src/*.ml{,i}>: use_oasis
 <src/*.ml{,i}>: pkg_unix
 <src/*.ml{,i}>: pkg_odn
-<src/plugins/custom/*.ml{,i}>: use_base
-<src/plugins/custom/*.ml{,i}>: use_oasis
-<src/plugins/custom/*.ml{,i}>: pkg_unix
-<src/plugins/custom/*.ml{,i}>: pkg_odn
 <src/plugins/extra/META/*.ml{,i}>: use_base
 <src/plugins/extra/META/*.ml{,i}>: use_oasis
 <src/plugins/extra/META/*.ml{,i}>: pkg_unix
 <src/plugins/extra/META/*.ml{,i}>: pkg_odn
+<src/plugins/custom/*.ml{,i}>: use_base
+<src/plugins/custom/*.ml{,i}>: use_oasis
+<src/plugins/custom/*.ml{,i}>: pkg_unix
+<src/plugins/custom/*.ml{,i}>: pkg_odn
 <src/plugins/extra/devfiles/*.ml{,i}>: use_base
 <src/plugins/extra/devfiles/*.ml{,i}>: use_oasis
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_unix
@@ -212,5 +212,3 @@
 <src/builtin-plugins.cma>: use_ocamlbuild
 
 <**/*.ml>: annot
-# Override to access the module METAPlugin in test/TestMETA.
-"src/plugins/extra/META": include
