@@ -99,6 +99,10 @@ val comparator_reduce: comparator -> comparator
   *)
 val comparator_value: comparator OASISValues.t
 
+(** Check that >= 0.3, useful for oasis version comparison.
+  *)
+val version_0_3_or_after : t -> bool
+
 (** Dump [ODN.t]. {b Not exported}. 
   *)
 val odn_of_comparator:  comparator -> ODN.t

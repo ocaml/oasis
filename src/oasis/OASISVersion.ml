@@ -190,6 +190,9 @@ let rec varname_of_comparator =
       | VAnd (c1, c2) ->
           (varname_of_comparator c1)^"_and_"^(varname_of_comparator c2)
 
+let version_0_3_or_after t =
+  comparator_apply t (VGreaterEqual (string_of_version "0.3"))
+
 (* END EXPORT *)
 
 open OASISUtils

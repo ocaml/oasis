@@ -29,7 +29,8 @@ type level =
 
 type t =
   {
-    verbose:               bool;
+    quiet:                 bool;
+    info:                  bool;
     debug:                 bool;
     ignore_plugins:        bool;
     ignore_unknown_fields: bool;
@@ -49,7 +50,8 @@ let printf lvl str =
 let default =
   ref
     {
-      verbose               = true;
+      quiet                 = false;
+      info                  = false;
       debug                 = false;
       ignore_plugins        = false;
       ignore_unknown_fields = false;
@@ -57,16 +59,18 @@ let default =
     }
 
 let quiet =
-  {!default with
-       verbose = false;
-       debug   = false;
-  }
+  {!default with quiet = true}
 
 
 let args () =
   ["-quiet",
-   Arg.Unit (fun () -> default := {!default with verbose = false}),
+   Arg.Unit (fun () -> default := {!default with quiet = true}),
    (s_ " Run quietly");
+
+   "-info",
+   Arg.Unit (fun () -> default := {!default with info = true}),
+   (s_ " Display information message");
+
 
    "-debug",
    Arg.Unit (fun () -> default := {!default with debug = true}),

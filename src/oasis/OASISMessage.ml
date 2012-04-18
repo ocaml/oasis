@@ -25,9 +25,13 @@ open OASISContext
 
 let generic_message ~ctxt lvl fmt =
   let cond =
-    match lvl with
-      | `Debug -> ctxt.debug
-      | _ -> ctxt.verbose
+    if ctxt.quiet then
+      false
+    else
+      match lvl with
+        | `Debug -> ctxt.debug
+        | `Info  -> ctxt.info
+        | _ -> true
   in
     Printf.ksprintf
       (fun str ->

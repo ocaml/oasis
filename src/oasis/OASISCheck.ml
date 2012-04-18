@@ -217,5 +217,47 @@ let check_schema ~ctxt where schm oasis_version data =
       ()
       schm
   in
+    ()
+
+let check_package ~ctxt pkg =
+
+  let standard_vars =
+    if OASISVersion.version_0_3_or_after pkg.oasis_version then
+      set_string_of_list
+        ["tests";
+         "docs"]
+    else
+      SetString.empty
+  in
+
+  (** Check that there is no overlap in variable name. *)
+
+  let _mp : string MapString.t =
+    List.fold_left
+      (fun mp ->
+         function
+           | Flag (cs, _)
+           | Executable (cs, _, _) as sct ->
+               let sct_str = OASISSection.string_of_section sct in
+               let varname = cs.cs_name in
+                 if SetString.mem varname standard_vars then
+                   OASISMessage.warning ~ctxt
+                     (f_ "%s define variable '%s' which is also a standard \
+                          variable, possible conflict.")
+                      sct_str varname;
+                 if MapString.mem varname mp then
+                   OASISMessage.warning ~ctxt
+                     (f_ "%s define variable '%s' which is also defined by \
+                          %s, possible conflict.")
+                     sct_str varname (MapString.find varname mp);
+                 MapString.add varname sct_str mp
+           | Library _ | Doc _ | SrcRepo _ | Test _ ->
+               mp)
+      MapString.empty
+      pkg.sections
+  in
 
     ()
+
+
+

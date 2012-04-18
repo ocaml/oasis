@@ -1570,33 +1570,68 @@ let tests =
          rm ["data/dev/_oasis"]);
 
      "setup with no dev mode">::
-      bracket
-        ignore
-        (fun () ->
-           cp ["data/dev/_oasis.v1"] "data/dev/_oasis";
-           bracket_setup
-             ("data/dev",
-              fun () ->
-                ignore,
-                oasis_ocamlbuild_files,
-                [],
-                [])
-             (* Run test *)
-             (fun _ ->
-                assert_run_setup ["-all"];
-                assert_bool
-                  "Library .cma not created."
-                  (not (Sys.file_exists "_build/mylib.cma"));
-                cp ["_oasis.v2"] "_oasis";
-                assert_run_setup ["-all"];
-                assert_bool
-                  "Library .cma still not created."
-                  (not (Sys.file_exists "_build/mylib.cma"));
-                assert_run_setup ["-distclean"];
-                rm ["META"; "mylib.mllib"; "setup"; "setup.digest"];
-                cp ["_oasis.v1"] "_oasis")
-             ())
-        (fun () ->
-           rm ["data/dev/_oasis"]);
+     bracket
+       ignore
+       (fun () ->
+          cp ["data/dev/_oasis.v1"] "data/dev/_oasis";
+          bracket_setup
+            ("data/dev",
+             fun () ->
+               ignore,
+               oasis_ocamlbuild_files,
+               [],
+               [])
+            (* Run test *)
+            (fun _ ->
+               assert_run_setup ["-all"];
+               assert_bool
+                 "Library .cma not created."
+                 (not (Sys.file_exists "_build/mylib.cma"));
+               cp ["_oasis.v2"] "_oasis";
+               assert_run_setup ["-all"];
+               assert_bool
+                 "Library .cma still not created."
+                 (not (Sys.file_exists "_build/mylib.cma"));
+               assert_run_setup ["-distclean"];
+               rm ["META"; "mylib.mllib"; "setup"; "setup.digest"];
+               cp ["_oasis.v1"] "_oasis")
+            ())
+       (fun () ->
+          rm ["data/dev/_oasis"]);
+
+    "ver0.3">::
+    bracket_setup
+      ("data/ver0.3",
+       fun () ->
+         ignore,
+         oasis_ocamlbuild_files,
+         [],
+         [])
+      (* Run test *)
+      (fun _ ->
+         assert_run_setup ["-configure"];
+         assert_run_setup ["-test"];
+         assert_bool
+           "test not run."
+           (not (Sys.file_exists "test-done"));
+         assert_run_setup ["-doc"];
+         assert_bool
+           "doc done."
+           (Sys.file_exists "doc-done");
+         assert_run_setup ["-distclean"];
+         rm ["test-done"; "doc-done"];
+
+
+         assert_run_setup ["-configure"; "--enable-tests"; "--disable-docs"];
+         assert_run_setup ["-test"];
+         assert_bool
+           "test run."
+           (Sys.file_exists "test-done");
+         assert_run_setup ["-doc"];
+         assert_bool
+           "doc not done."
+           (not (Sys.file_exists "doc-done"));
+         assert_run_setup ["-distclean"];
+         rm ["test-done"; "doc-done"; "setup"; "setup.digest"])
     ]
 ;;

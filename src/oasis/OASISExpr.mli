@@ -90,6 +90,11 @@ val reduce: t -> t
   *)
 val reduce_choices: (t * 'a) list -> (t * 'a) list
 
+(** [if_then_else cond choices_if choices_else] Combine choices, if_then_else
+    style.
+  *)
+val if_then_else: t -> (t * 'a) list -> (t * 'a) list -> (t * 'a) list
+
 (** Dump ODN.t. {b Not exported}. *)
 val odn_of_t: t -> ODN.t
 val odn_of_choices: ('a -> ODN.t) -> 'a choices -> ODN.t

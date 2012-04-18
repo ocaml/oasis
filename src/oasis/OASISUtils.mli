@@ -93,7 +93,6 @@ val split_newline : ?trim:bool -> string -> string list
   *)
 val split_optional_parentheses : string -> string * (string option)
 
-
 module POSIXShell :
 sig
 
@@ -117,3 +116,4 @@ sig
       preceding a char. *)
   ;;
 end
+

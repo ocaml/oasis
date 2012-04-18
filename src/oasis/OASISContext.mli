@@ -31,8 +31,11 @@ type level =
 
 type t = 
   { 
-    verbose : bool; 
-    (** Display info, warnings and errors messages. *)
+    quiet: bool;
+    (** Display nothing. *)
+
+    info : bool;
+    (** Display info messages. *)
 
     debug : bool;   
     (** Display also debug messages. *)

@@ -40,6 +40,20 @@ let pkg_get () =
   match !rpkg with
     | Some pkg -> pkg
     | None -> failwith (s_ "OASIS Package is not set")
+
+let var_cond = ref []
+
+let var_define_cond ~since_version f dflt =
+  let holder = ref (fun () -> dflt) in
+  let since_version =
+    OASISVersion.VGreaterEqual (OASISVersion.version_of_string since_version)
+  in
+    var_cond :=
+    (fun ver ->
+       if OASISVersion.comparator_apply ver since_version then
+         holder := f ()) :: !var_cond;
+    fun () -> !holder ()
+
 (**/**)
 
 let pkg_name =
@@ -272,19 +286,25 @@ let profile =
     (fun () -> "false")
 
 let tests =
-  var_define
-    ~short_desc:(fun () ->
-                   s_ "Compile tests executable and library and run them")
-    ~cli:CLIEnable
-    "tests"
-    (fun () -> "false")
+  var_define_cond ~since_version:"0.3"
+    (fun () ->
+       var_define
+         ~short_desc:(fun () ->
+                        s_ "Compile tests executable and library and run them")
+         ~cli:CLIEnable
+         "tests"
+         (fun () -> "false"))
+    "true"
 
 let docs =
-  var_define
-    ~short_desc:(fun () -> s_ "Create documentations")
-    ~cli:CLIEnable
-    "docs"
-    (fun () -> "true")
+  var_define_cond ~since_version:"0.3"
+    (fun () ->
+       var_define
+         ~short_desc:(fun () -> s_ "Create documentations")
+         ~cli:CLIEnable
+         "docs"
+         (fun () -> "true"))
+    "true"
 
 let native_dynlink =
   var_define
@@ -314,5 +334,6 @@ let native_dynlink =
          string_of_bool res)
 
 let init pkg =
-  rpkg := Some pkg
+  rpkg := Some pkg;
+  List.iter (fun f -> f pkg.oasis_version) !var_cond
 

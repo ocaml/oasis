@@ -203,3 +203,11 @@ let reduce_choices choices =
       []
       (List.map (fun (cond, vl) -> reduce cond, vl) choices)
 
+let if_then_else t choices_if choices_else =
+  let choices_if' =
+    List.rev_map (fun (t', v) -> EAnd (t, t'), v) choices_if
+  in
+  let choices_else' =
+    List.rev_map (fun (t', v) -> EAnd (ENot t, t'), v) choices_else
+  in
+    reduce_choices (List.rev_append choices_else' (List.rev choices_if'))

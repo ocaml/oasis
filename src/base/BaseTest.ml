@@ -95,4 +95,12 @@ let test lst pkg extra_args =
     if failure_percent > 0.0 then
       failwith msg
     else
-      info "%s" msg
+      info "%s" msg;
+
+    (* Possible explanation why the tests where not run. *)
+    if OASISVersion.version_0_3_or_after pkg.oasis_version &&
+       not (bool_of_string (BaseStandardVar.tests ())) &&
+       lst <> [] then
+      BaseMessage.warning
+        "Tests are turned off, consider enabling with \
+         'ocaml setup.ml -configure --enable-tests'"

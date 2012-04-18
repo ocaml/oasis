@@ -122,19 +122,14 @@ let schema, generator =
   in
   let build, install, data_files = 
    OASISBuildSection_intern.build_install_data_fields schm
-     (* TODO: establish a formal link between "docs" string and
-      * BaseStandardVars.
-      *)
-     ~default_cond:[OASISExpr.EFlag "docs", true]
-     ~default:false
      (fun (_, doc) -> doc.doc_build)
      (fun (_, doc) -> doc.doc_install)
      (fun (_, doc) -> doc.doc_data_files)
   in
     schm,
-    (fun nm data ->
+    (fun oasis_version nm data ->
        let cs = 
-         cmn_section_gen nm data
+         cmn_section_gen oasis_version nm data
        in
        let typ = 
          typ data
@@ -149,6 +144,14 @@ let schema, generator =
            rplugin_data
            cs.cs_data;
          {cs with cs_plugin_data = !rplugin_data}
+       in
+       let build =
+         if OASISVersion.version_0_3_or_after oasis_version then
+           (* TODO: establish a formal link between here and BaseStandardVars *)
+           OASISExpr.if_then_else
+             (OASISExpr.EFlag "docs") (build data) [OASISExpr.EBool true, false]
+         else
+             build data
        in
          Doc
            (cs,
@@ -199,7 +202,7 @@ let schema, generator =
               {
                 doc_type        = typ;
                 doc_custom      = custom data;
-                doc_build       = build data;
+                doc_build       = build;
                 doc_install     = install data;
                 doc_install_dir = doc_install_dir;
                 doc_title       = title data;

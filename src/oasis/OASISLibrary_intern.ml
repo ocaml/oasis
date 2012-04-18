@@ -105,9 +105,9 @@ let schema, generator =
       (fun (_, _, lib) -> lib.lib_findlib_containers)
   in
     schm,
-    (fun nm data ->
+    (fun oasis_version nm data ->
        Library
-         (cmn_section_gen nm data,
+         (cmn_section_gen oasis_version nm data,
           (build_section_gen nm data),
           {
             lib_modules            = external_modules data;

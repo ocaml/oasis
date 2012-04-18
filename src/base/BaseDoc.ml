@@ -41,6 +41,11 @@ let doc lst pkg extra_args =
           extra_args
       end
   in
-    List.iter
-      one_doc
-      lst
+    List.iter one_doc lst;
+
+    if OASISVersion.version_0_3_or_after pkg.oasis_version &&
+       not (bool_of_string (BaseStandardVar.docs ())) &&
+       lst <> [] then
+      BaseMessage.warning
+        "Docs are turned off, consider enabling with \
+         'ocaml setup.ml -configure --enable-docs'"

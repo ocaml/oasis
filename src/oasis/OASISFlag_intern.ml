@@ -59,9 +59,9 @@ let schema, generator =
       (fun (_, flag) -> flag.flag_default)
   in
     schm,
-    (fun nm data ->
+    (fun oasis_version nm data ->
        Flag
-         (cmn_section_gen nm data,
+         (cmn_section_gen oasis_version nm data,
           {
             flag_description = descr data;
             flag_default     = default data;

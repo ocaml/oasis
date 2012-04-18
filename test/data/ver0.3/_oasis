@@ -1,0 +1,14 @@
+OASISFormat: 0.3
+Name:        dev
+Version:     0.0.1
+Authors:     Sylvain Le Gall
+License:     LGPL with OCaml linking exception
+Synopsis:    Minimal project to test v0.3  support.
+
+Test main
+  Command: ocaml touch.ml test-done
+
+Document api
+  Type: custom (0.3)
+  Title: Manual
+  XCustom: ocaml touch.ml doc-done

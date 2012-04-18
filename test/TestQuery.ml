@@ -87,6 +87,7 @@ let tests =
            \nXStdFilesINSTALLFilename\
            \nXStdFilesAUTHORS\
            \nXStdFilesAUTHORSFilename\
+           \nTest(main).Run\
            \nTest(main).Type\
            \nTest(main).TestTools\
            \nFlag(test).Description"]

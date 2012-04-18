@@ -81,18 +81,16 @@ let schema, generator =
   in
   let run = 
     new_field_conditional schm "Run"
-      (* TODO: establish a formal link between here and BaseStandardVars *)
-      ~default_cond:[OASISExpr.EFlag "tests", true]
-      ~default:false
+      ~default:true
       boolean
       (fun () ->
          s_ "Enable this test.")
       (fun (_, test) -> test.test_run)
   in
     schm,
-    (fun nm data ->
+    (fun oasis_version nm data ->
        let cs = 
-         cmn_section_gen nm data
+         cmn_section_gen oasis_version nm data
        in
        (* Set data specific to plugin used for this test *)
        let typ =
@@ -109,6 +107,14 @@ let schema, generator =
            cs.cs_data;
          {cs with cs_plugin_data = !rplugin_data}
        in
+       let run =
+         if OASISVersion.version_0_3_or_after oasis_version then
+           (* TODO: establish a formal link between here and BaseStandardVars *)
+           OASISExpr.if_then_else
+             (OASISExpr.EFlag "tests") (run data) [OASISExpr.EBool true, false]
+         else
+             run data
+       in
          Test
            (cs,
             {
@@ -116,6 +122,6 @@ let schema, generator =
               test_command           = command data;
               test_working_directory = working_directory data;
               test_custom            = custom data;
-              test_run               = run data;
+              test_run               = run;
               test_tools             = tools data;
             }))

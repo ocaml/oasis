@@ -164,7 +164,7 @@ let to_package conf st =
         schm
         oasis_version
         data;
-      (gen nm data) :: scts
+      (gen oasis_version nm data) :: scts
   in
 
   (* Extract and cache oasis_version *)
@@ -398,6 +398,6 @@ let to_package conf st =
   let pkg = 
     {pkg with sections = OASISBuildSection.build_order pkg}
   in
-
+    OASISCheck.check_package ~ctxt:default_ctxt.ctxt pkg;
     pkg
 
