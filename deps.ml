@@ -1,16 +1,13 @@
 
-(* TODO: only at post-conf
 module MapString = Map.Make(String)
 module SetString = Set.Make(String)
 
 open OASISTypes
 
-let () = 
+let post_configure pkg = 
   (* Compute build depends *)
-  let pkg = setup_t.BaseSetup.package in 
-  let findlib_of_name =
-    let mp = OASISLibrary.findlib_name_map pkg in
-      OASISLibrary.findlib_of_name ~recurse:true mp
+  let _, findlib_of_name, _ =
+    OASISLibrary.findlib_mapping pkg 
   in
   let mp_int, set_ext =
     (* Collect dependencies and external dependencies from the package. *)
@@ -110,4 +107,12 @@ let () =
              ())
       pkg.sections;
     close_out chn
- *)
+
+let setup_t = 
+  {setup_t with 
+       BaseSetup.configure = 
+         (fun pkg args ->
+            setup_t.BaseSetup.configure pkg args;
+            post_configure pkg)}
+
+let setup () =  BaseSetup.setup setup_t;;
