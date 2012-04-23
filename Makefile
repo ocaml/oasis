@@ -27,6 +27,7 @@ CONFIGUREFLAGS += $(if $(shell ocamlfind query gettext),--enable-gettext,--disab
 default: test
 	-OCamlDarcsPrecommit
 
+export OCAMLRUNPARAM=b
 TESTFLAGS      += -long
 #TESTFLAGS      += -verbose
 #TESTFLAGS      += -debug
