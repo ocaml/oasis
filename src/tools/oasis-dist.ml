@@ -24,7 +24,6 @@
 #use "topfind";;
 #require "oasis";;
 #require "oasis.base";;
-#require "pcre";;
 #require "fileutils";;
 
 open OASISMessage
@@ -88,9 +87,7 @@ object
          let tgt = 
            Filename.concat dir topdir
          in
-         let cur_pwd = 
-           pwd ()
-         in
+         let cur_pwd = Sys.getcwd () in
            run "svn" ["export"; cur_pwd; tgt];
            run "tar" ["-C"; dir; "-czf"; tarball; topdir])
 
@@ -178,10 +175,8 @@ object
          let tgt = 
            Filename.concat dir topdir
          in
-         let cur_pwd = 
-           pwd ()
-         in
-           OASISFileUtil.cp ~recurse:true cur_pwd tgt
+         let cur_pwd = Sys.getcwd () in
+           OASISFileUtil.cp ~ctxt ~recurse:true cur_pwd tgt;
            begin
              try 
                Sys.chdir tgt;
@@ -214,12 +209,12 @@ let () =
   in
 
   let tarball = 
-    Filename.concat (pwd ()) (topdir^".tar.gz")
+    Filename.concat (Sys.getcwd ()) (topdir^".tar.gz")
   in
 
   let vcs = 
     let test_dir dn () = 
-      test Is_dir dn
+      Sys.file_exists dn && Sys.is_directory dn
     in
       try 
         snd
@@ -249,9 +244,7 @@ let () =
     (* Check that the tarball can build *)
     with_tmpdir 
       (fun dir -> 
-         let pwd =
-           Sys.getcwd ()
-         in
+         let pwd = Sys.getcwd () in
            (* Uncompress tarball in tmpdir *)
            run "tar" ["xz"; "-C"; dir; "-f"; tarball];
 
@@ -273,7 +266,7 @@ let () =
              let () = 
                let bak_files = 
                  (* Check for remaining .bak files *)
-                 find (Has_extension "bak") 
+                 FileUtil.find (FileUtil.Has_extension "bak")
                    Filename.current_dir_name
                    (fun acc fn -> fn :: acc)
                    []
