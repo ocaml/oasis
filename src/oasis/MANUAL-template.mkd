@@ -82,7 +82,7 @@ The separator ':' can be replaced by '+:' which appends the `field_value` to
 the previous value of the value (rather than erasing it). Beware that appending
 is value dependent, some fields can concatenate, some cannot.
 
-The ':' can also be replaced by '$:', see [Conditional value](#conditional-value).
+The ':' can also be replaced by '\$:', see [Conditional value](#conditional-value).
 
 ### Sections
 
@@ -149,7 +149,7 @@ Tests and flags can be combined using standard boolean operation:
 * `true` and `false`.
 
 
-For boolean fields, you can replace the `if ... else ...` construct by `$:`.
+For boolean fields, you can replace the `if ... else ...` construct by `\$:`.
 
 For example:
 
@@ -162,7 +162,7 @@ For example:
 is equivalent to:
 
 
-        Build$: os_type(Win32)
+        Build\$: os_type(Win32)
 
 
 Package
