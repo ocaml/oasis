@@ -69,8 +69,6 @@ let string_of_section sct =
        | `Doc        -> "doc")
     ^" "^nm
 
-(* END EXPORT *)
-
 let section_find id scts =
   List.find
     (fun sct -> id = section_id sct)
@@ -95,3 +93,4 @@ end
 module MapSection = Map.Make(CSection)
 module SetSection = Set.Make(CSection)
 
+(* END EXPORT *)

@@ -291,19 +291,22 @@ let to_package conf st =
   (* Fix build depends to reflect internal dependencies *)
   let pkg = 
     (* Map of findlib name to internal libraries *)
-    let internal_of_findlib =
-      OASISLibrary.name_findlib_map pkg
+    let _, _, internal_of_findlib =
+      OASISLibrary.findlib_mapping pkg
     in
 
     let map_internal_libraries sct =
       List.map
         (function
            | (FindlibPackage (lnm, ver_opt)) as bd ->
-               begin
-                 try 
-                   let lnm =
-                     MapString.find lnm internal_of_findlib
-                   in
+               let is_internal, lnm =
+                 try
+                   true, internal_of_findlib lnm
+                 with (OASISLibrary.FindlibPackageNotFound _) ->
+                   false, lnm
+               in
+                 if is_internal then
+                   begin
                      if ver_opt <> None then
                        failwithf
                          (f_ "Cannot use versioned build depends \
@@ -311,10 +314,10 @@ let to_package conf st =
                          lnm (OASISSection.string_of_section sct);
 
                      InternalLibrary lnm
-
-                 with Not_found ->
+                   end
+                 else
                    bd
-               end
+
            | (InternalLibrary _) as bd ->
                bd)
     in

@@ -1,0 +1,37 @@
+OASISFormat:  0.2
+Name:         foo
+Version:      0.0.1
+Synopsis:     Just a test
+License:      GPL
+LicenseFile:  LICENSE
+Authors:      Sylvain Le Gall
+Plugins:      META (0.2)
+BuildTools:   ocamlbuild
+
+
+Library test1
+  FindlibName: test
+  Modules: A
+  Path: .
+
+Library test2
+  FindlibParent: test1
+  Modules: B
+  Path: .
+
+Library test3
+  FindlibParent: test2
+  Modules: C
+  Path: .
+
+Library test5
+  FindlibParent: test3
+  FindlibContainers: test4
+  FindlibName: test5p
+  Modules: D
+  Path: .
+
+Library test6
+  FindlibParent: test5
+  Modules: E
+  Path: .

@@ -1,0 +1,95 @@
+OASISFormat: 0.1
+Name: extunix
+Version: 0.0.3
+#LicenseFile: ?
+License: LGPL-2.1 with OCaml linking exception
+Authors: ygrek, Sylvain Le Gall, StÃ©phane Glondu, Kaustuv Chaudhuri, Joshua Smith, Niki Yoshiuchi, Gerd Stolpmann, Goswin von Brederlow
+Copyrights:
+  (C) 2010 ygrek,
+  (C) 2009 Sylvain Le Gall,
+  (C) 2008-2009 Talend Inc.,
+  (C) 2010 StÃ©phane Glondu,
+  (C) 2005 Joshua Smith,
+  (C) 2010 Niki Yoshiuchi,
+  (C) 2001 Gerd Stolpmann,
+  (C) 2012 Goswin von Brederlow
+Homepage: http://extunix.forge.ocamlcore.org/
+BuildTools: ocamlbuild, camlp4
+Plugins: DevFiles (0.2), META (0.2)
+
+Synopsis: Extended functions for OCaml Unix module
+Description:
+  Thin bindings to various low-level system APIs (often non-portable)
+  which are not covered by Unix module.
+  .
+  Some of the implemented functions : uname, statvfs, fsync, fadvise,
+  fallocate, openat, dirfd, eventfd, signalfd, setrlimit, mlockall, etc
+
+PostConfCommand: ocaml src/discover.ml -ocamlc $ocamlc -ext_obj $ext_obj
+PreDistCleanCommand: $rm $(utoh "src/config.h")
+PostDistCleanCommand: $rm $(utoh "src/config.ml") # [FORGE#742]
+
+Flag strict
+  Description: Strict compile-time checks
+  Default: true
+
+Library extunix
+  Path: src/
+  Modules: ExtUnix
+  InternalModules: ExtUnixAll, ExtUnixSpecific
+  if flag(strict) && ccomp_type(cc)
+    CCOpt: -std=c89 -pedantic -Wno-long-long
+  CSources: config.h,
+    eventfd.c, dirfd.c, fsync.c, statvfs.c, atfile.c,
+    ioctl_siocgifconf.c, uname.c, fadvise.c, fallocate.c,
+    tty_ioctl.c, unistd.c, stdlib.c, signalfd.c, ptrace.c,
+    resource.c, mman.c, time.c, pts.c, execinfo.c, malloc.c,
+    endian.c
+  BuildDepends: unix
+
+Library extunix
+  Path: src
+  Modules: ExtUnixBA
+  InternalModules: ExtUnixBAAll, ExtUnixBASpecific
+  if flag(strict) && ccomp_type(cc)
+    CCOpt: -std=c89 -pedantic -Wno-long-long
+  CSources: config.h,
+    memalign.c
+  BuildDepends: unix, bigarray
+  FindlibParent: extunix
+  FindlibName: bigarray
+
+Executable test
+  Path: test/
+  Install: false
+  Custom: true
+  CompiledObject: best
+  MainIs: test.ml
+  BuildDepends: extunix, oUnit (>= 1.0.3)
+
+Executable testba
+  Path: test/
+  Install: false
+  Custom: true
+  CompiledObject: best
+  MainIs: testba.ml
+  BuildDepends: extunix, extunix.bigarray, oUnit (>= 1.0.3)
+
+Test main
+  Command: $test && $testba
+  TestTools: test, testba
+
+Document api
+  Title: API reference for extunix
+  Type: ocamlbuild (0.2)
+  Authors: ygrek, Sylvain Le Gall, StÃ©phane Glondu, Kaustuv Chaudhuri, Joshua Smith, Niki Yoshiuchi, Gerd Stolpmann, Goswin von Brederlow
+  BuildTools: ocamldoc
+  Format: HTML
+  Index: index.html
+  XOCamlbuildPath: src/
+  XOCamlbuildLibraries: extunix, extunix.bigarray
+  XOCamlbuildModules: ExtUnixAll, ExtUnixSpecific, ExtUnixBAAll, ExtUnixBASpecific
+
+#Document changelog
+# Title: Changelog
+# Path: CHANGES.txt

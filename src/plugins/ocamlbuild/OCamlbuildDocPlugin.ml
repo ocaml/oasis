@@ -153,11 +153,11 @@ let doit ctxt pkg (cs, doc) =
 
   let modules_from_libraries =
     (* Convert findlib name to internal library and compute
-     * the module they shipped
+     * the module they shipped.
      *)
     let lib_of_findlib =
-      let name_of_findlib =
-        OASISLibrary.name_findlib_map pkg
+      let _, _, library_name_of_findlib_name =
+        OASISLibrary.findlib_mapping pkg
       in
       let lib_of_name =
         List.fold_left
@@ -171,15 +171,10 @@ let doit ctxt pkg (cs, doc) =
           pkg.sections
       in
         fun fndlb_nm ->
-          try
-            let nm =
-              MapString.find fndlb_nm name_of_findlib
-            in
-              MapString.find nm lib_of_name
-          with Not_found ->
-            failwithf
-              (f_ "Findlib library %s is not an internal library")
-              fndlb_nm
+          let nm =
+            library_name_of_findlib_name fndlb_nm
+          in
+            MapString.find nm lib_of_name
     in
 
       (* Fetch modules from internal libraries *)

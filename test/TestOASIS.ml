@@ -327,6 +327,25 @@ let tests =
                     | _ ->
                         assert false));
 
+            "test14.oasis",
+            (fun pkg ->
+               let _, _, lib_name_of_findlib_name =
+                 OASISLibrary.findlib_mapping pkg
+               in
+                 List.iter
+                   (fun (fndlb_nm, lib_nm) ->
+                      assert_equal
+                        ~msg:(Printf.sprintf
+                                "library name of findlib package %s"
+                                fndlb_nm)
+                        ~printer:(fun s -> s)
+                        lib_nm
+                        (lib_name_of_findlib_name fndlb_nm))
+                   ["test", "test1";
+                    "test.test2", "test2";
+                    "test.test2.test3", "test3";
+                    "test.test2.test3.test4.test5p", "test5";
+                    "test.test2.test3.test4.test5p.test6", "test6"]);
           ])
       @
        (List.rev_map file_of_vector
@@ -356,7 +375,19 @@ let tests =
                                OASISContext.ignore_plugins = true}
                     (in_data "test13.oasis")
                 in
-                  ()))
+                  ()));
+        "test15.oasis" >::
+        (fun () ->
+           try
+             let _pkg : OASISTypes.package =
+                from_file
+                  ~ctxt:{!oasis_ctxt with
+                             OASISContext.ignore_plugins = true}
+                  (in_data "test13.oasis")
+              in
+               assert_string "test15.oasis should fail to parse"
+          with Failure _ ->
+            ());
       ]
     ]
 ;;

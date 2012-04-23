@@ -125,7 +125,7 @@ let generator =
         extra_lines = extra_lines data;
       }
 
-let pp_print_meta pkg root_t findlib_name_map fmt grp =
+let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
 
   let replace_chars s =
     OASISString.replace_chars
@@ -180,12 +180,9 @@ let pp_print_meta pkg root_t findlib_name_map fmt grp =
                 List.map 
                   (function
                      | InternalLibrary nm ->
-                         OASISLibrary.findlib_of_name 
-                           ~recurse:true
-                           findlib_name_map 
-                           nm
-                     | FindlibPackage (nm, _) ->
-                         nm)
+                         findlib_name_of_library_name nm
+                     | FindlibPackage (fndlb_nm, _) ->
+                         fndlb_nm)
                   lib_bs.bs_build_depends
         in
          if requires <> [] then
@@ -256,8 +253,8 @@ let pp_print_meta pkg root_t findlib_name_map fmt grp =
     pp_print_flush fmt ()
 
 let main ctxt pkg =
-  let findlib_name_map = 
-    findlib_name_map pkg
+  let group_libs, findlib_name_of_library_name, _ =
+    findlib_mapping pkg
   in
   let meta_created = Hashtbl.create 3 in
     List.fold_left 
@@ -289,7 +286,7 @@ let main ctxt pkg =
                  pp_print_meta
                    pkg
                    root_t
-                   findlib_name_map
+                   findlib_name_of_library_name
                    (Format.formatter_of_buffer buff)
                    grp;
                  OASISPlugin.add_file
@@ -305,7 +302,7 @@ let main ctxt pkg =
            else
              ctxt)
       ctxt
-      (group_libs pkg)
+      group_libs
 
 
 let init () =

@@ -44,11 +44,8 @@ let tests =
           in
 
           (* Generate META file *)
-          let findlib_name_map =
-            OASISLibrary.findlib_name_map pkg
-          in
-          let groups =
-            OASISLibrary.group_libs pkg
+          let groups, findlib_name_of_library_name, _ =
+            OASISLibrary.findlib_mapping pkg
           in
           let write_meta fndlb_nm =
             let grp = 
@@ -78,7 +75,8 @@ let tests =
               in
                 METAPlugin.generator root_cs.cs_data
             in
-              METAPlugin.pp_print_meta pkg root_t findlib_name_map fmt grp;
+              METAPlugin.pp_print_meta
+                pkg root_t findlib_name_of_library_name fmt grp;
               close_out chn
           in
 

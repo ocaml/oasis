@@ -291,10 +291,12 @@ let install pkg argv =
 
     in
 
+    let group_libs, _, _ =
+      findlib_mapping pkg
+    in
+
       (* We install libraries in groups *)
-      List.iter
-        install_group_lib
-        (group_libs pkg)
+      List.iter install_group_lib group_libs
   in
 
   let install_execs pkg =

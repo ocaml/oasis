@@ -25,6 +25,13 @@
 
 open OASISTypes
 
+type library_name = name
+type findlib_part_name = name
+type 'a map_of_findlib_part_name = 'a OASISUtils.MapString.t
+
+exception InternalLibraryNotFound of library_name
+exception FindlibPackageNotFound of findlib_name
+
 (** [source_unix_files (cs, bs, lib) source_file_exists] Source files for this
     library. The first part of the tuple is the file without extenstion for
     modules and the second part is the source files matching (e.g. .ml and
@@ -66,33 +73,10 @@ type group_t =
     the fact that these libraries have a parental relationship 
     and must be installed together, with the same META file.
   *)
-val group_libs : package -> group_t list
-
-type library_name = name
-
-(** Compute internal to findlib library matchings, including subpackage
-    and return a map of it. The map returned can contain findlib name
-    that are not installable.
-  *)
-(* TODO: string option for optional parent path seem strange, try to get
- * rid of it
- *)
-val findlib_name_map :
-  package ->
-  (string option * findlib_name) OASISUtils.MapString.t
-
-(** Return the findlib name of the library without parents *)
-(* TODO: is ~recurse really mandatory, try to get rid of it
- *)
-val findlib_of_name :
-  ?recurse:bool ->
-  (string option * findlib_name) OASISUtils.MapString.t ->
-  library_name -> string
-
-(** Compute findlib to internal library matching. 
-  *)
-val name_findlib_map :
-  package -> library_name OASISUtils.MapString.t
+val findlib_mapping: package ->
+  group_t list *
+  (library_name -> findlib_name) *
+  (findlib_name -> library_name)
 
 (** Return the findlib root name of a group, it takes into account
     containers. So the return group name is the toplevel name
@@ -103,12 +87,8 @@ val findlib_of_group : group_t -> findlib_name
 (** Return the root library, i.e. the first found into the group tree
     that has no parent.
   *)
-val root_of_group :
-  group_t ->
-  common_section * build_section * library
+val root_of_group : group_t -> common_section * build_section * library
 
 (** Schema for the section. {b Not exported}.
   *)
 val schema : (common_section * build_section * library) OASISSchema.t
-
-
