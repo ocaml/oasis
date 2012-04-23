@@ -255,8 +255,13 @@ let () =
              let () = 
                if Sys.file_exists "setup.data" then
                  failwith
-                   "Remaining setup.data file."
+                   "Remaining 'setup.data' file.";
+               if Sys.file_exists "configure" &&
+                  not (FileUtil.test FileUtil.Is_exec "configure") then
+                 failwith
+                   "'configure' is not executable."
              in
+
 
              let () = 
                (* Check that build, test, doc run smoothly *)
