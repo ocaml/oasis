@@ -55,12 +55,31 @@
       It works the same for documentation, however the default is "true".
       (Closes: #866)
 
-      * Allow to define interdependent flags
+    * Allow to define interdependent flags
       
        In order to allow interdependent flags, we transform back lazy values into
        'unit -> string' functions. This allows to change a flag value on the
        command line and to update all the dependent values. 
        (Closes: #827, #938)
+
+    * Deprecate the subcommand 'oasis setup-dev' in favor of 
+      'oasis setup -setup-update {none|weak|dynamic}'
+      
+      It defines different ways to manage the auto-update of setup.ml:
+      * 'none': this is the default mode, and the one you should use when
+         distributing tarballs. No update is performed at al.
+      * 'weak': the update is only triggered when something change in `_oasis`,
+         we keep all files generated
+      * 'dynamic': the content of 'setup.ml' is ultra small (<2kB) and we only
+         keep a small 'setup.ml', 'Makefile' and 'configure'.
+      
+      The choice between 'weak' and 'dynamic' depends on the your need with
+      regard to VCS and to the presence of `oasis'. The 'weak' allow to checkout
+      the project from VCS and be able to work on it, without the need of
+      installing 'oasis' as long as you don't change the file '_oasis'. But it 
+      clutter your VCS history with changes to the build system each time you 
+      change something in '_oasis'. The 'dynamic' mode gives you no VCS history 
+      pollution but makes mandatory to have installed oasis libraries.
 
     * Don't copy executable in ocamlbuild
     
@@ -112,6 +131,15 @@
     * Synchronize plugin data for section
     * Improve documentation
     * Verify validity of input when parsing in quickstart (Closes: #797)
+    * Fix stack overflow when there are twice the same library (Closes: #1130)
+    * Create a dynamic mode to create on-the-fly setup.ml.
+    * Make fileutils an optional dependencies (only for test)
+    * Get rid of batteries, pcre, ocamlgraph
+    * Parse license examples for DEP5 specification (Closes: #1102)
+    * Be ultra-liberal regarding version syntax (allow '_' and ' ' in the version).
+    * Implement proposal for handling plugin in META, using "plugin" extra directives
+    * Allow to add extra content to META files (XMETAExtraLines)
+    * Allow to use executable name that contains "-" as a variable (replacing "-" by "_").
 
   * Thanks to Anil Madhavapeddy, Pierre Chambart, Christophe Troestler, 
     Jeremie Dimino, Ronan Le Hy and Till Varoquaux for their help with this
