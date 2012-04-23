@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: 249e36860d7e8d7a358e6c37a9ec95f7)
-version = "0.3.0~rc3"
+# DO NOT EDIT (digest: e3a1b728408b928b63cfd278cdb0f67a)
+version = "0.3.0~rc4"
 description = "Architecture for building OCaml libraries and applications"
 requires = "pluginloaderLib plugin1"
 archive(byte) = "plugin2.cma"
