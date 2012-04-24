@@ -31,7 +31,7 @@ export OCAMLRUNPARAM=b
 TESTFLAGS      += -long
 #TESTFLAGS      += -verbose
 #TESTFLAGS      += -debug
-#TESTFLAGS      += -only-test PluginLoader
+#TESTFLAGS      += -only-test OASIS:5:TestFull:28
 
 # OASIS_START
 # DO NOT EDIT (digest: bc1e05bfc8b39b664f29dae8dbd3ebbb)
