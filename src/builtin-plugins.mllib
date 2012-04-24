@@ -20,27 +20,27 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 9358a935a151c72ef4b68219ade4fb01)
+# DO NOT EDIT (digest: b76a68b267a842b59e42cef93099bca4)
 OASISBuiltinPlugins
 plugins/extra/META/METAPlugin
-plugins/none/NonePlugin
-plugins/none/NoneData
 plugins/internal/InternalConfigurePlugin
 plugins/internal/InternalInstallPlugin
-plugins/internal/InternalData
-plugins/internal/InternalId
+plugins/none/NonePlugin
 plugins/ocamlbuild/OCamlbuildPlugin
 plugins/ocamlbuild/OCamlbuildDocPlugin
-plugins/ocamlbuild/OCamlbuildData
 plugins/ocamlbuild/OCamlbuildCommon
+plugins/custom/CustomPlugin
+plugins/extra/devfiles/DevFilesPlugin
+plugins/extra/stdfiles/StdFilesPlugin
+plugins/none/NoneData
+plugins/internal/InternalData
+plugins/internal/InternalId
+plugins/ocamlbuild/OCamlbuildData
 plugins/ocamlbuild/OCamlbuildId
 plugins/ocamlbuild/MyOCamlbuildBase
 plugins/ocamlbuild/MyOCamlbuildFindlib
-plugins/custom/CustomPlugin
 plugins/custom/CustomData
 plugins/extra/META/METAData
-plugins/extra/devfiles/DevFilesPlugin
 plugins/extra/devfiles/DevFilesData
-plugins/extra/stdfiles/StdFilesPlugin
 plugins/extra/stdfiles/StdFilesData
 # OASIS_STOP

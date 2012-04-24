@@ -1,7 +1,7 @@
 OASISFormat:  0.3
 OCamlVersion: >= 3.11.0
 Name:         oasis
-Version:      0.3.0~rc4
+Version:      0.3.0~rc5
 LicenseFile:  COPYING.txt
 License:      LGPL-2.1 with OCaml linking exception
 BuildType:    ocamlbuild (0.3)
@@ -145,26 +145,26 @@ Library base
 Library "builtin-plugins"
   Path: src
   Modules: OASISBuiltinPlugins,
-           plugins/extra/META/METAPlugin
-  InternalModules: plugins/none/NonePlugin,
-                   plugins/none/NoneData,
-                   plugins/internal/InternalConfigurePlugin,
-                   plugins/internal/InternalInstallPlugin,
+           plugins/extra/META/METAPlugin,
+           plugins/internal/InternalConfigurePlugin,
+           plugins/internal/InternalInstallPlugin,
+           plugins/none/NonePlugin,
+           plugins/ocamlbuild/OCamlbuildPlugin,
+           plugins/ocamlbuild/OCamlbuildDocPlugin,
+           plugins/ocamlbuild/OCamlbuildCommon,
+           plugins/custom/CustomPlugin,
+           plugins/extra/devfiles/DevFilesPlugin,
+           plugins/extra/stdfiles/StdFilesPlugin
+  InternalModules: plugins/none/NoneData,
                    plugins/internal/InternalData,
                    plugins/internal/InternalId,
-                   plugins/ocamlbuild/OCamlbuildPlugin,
-                   plugins/ocamlbuild/OCamlbuildDocPlugin,
                    plugins/ocamlbuild/OCamlbuildData,
-                   plugins/ocamlbuild/OCamlbuildCommon,
                    plugins/ocamlbuild/OCamlbuildId,
                    plugins/ocamlbuild/MyOCamlbuildBase,
                    plugins/ocamlbuild/MyOCamlbuildFindlib,
-                   plugins/custom/CustomPlugin,
                    plugins/custom/CustomData,
                    plugins/extra/META/METAData,
-                   plugins/extra/devfiles/DevFilesPlugin,
                    plugins/extra/devfiles/DevFilesData,
-                   plugins/extra/stdfiles/StdFilesPlugin,
                    plugins/extra/stdfiles/StdFilesData
   CompiledObject: Best
   BuildDepends: oasis, oasis.base

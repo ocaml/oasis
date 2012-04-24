@@ -142,8 +142,8 @@
     * Allow to use executable name that contains "-" as a variable (replacing "-" by "_").
 
   * Thanks to Anil Madhavapeddy, Pierre Chambart, Christophe Troestler, 
-    Jeremie Dimino, Ronan Le Hy and Till Varoquaux for their help with this
-    release.
+    Jeremie Dimino, Ronan Le Hy, Yaron Minsky and Till Varoquaux for their help
+    with this release.
 
 2010-10-16 Sylvain Le Gall <sylvain.le-gall AT ocamlcore.com>
 

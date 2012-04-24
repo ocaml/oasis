@@ -28,7 +28,7 @@ let setup () =
     try
       let _lst: 'a list =
         BaseGenerate.generate
-          ~backup:false
+          ~backup:true
           ~setup_fn:tmp_setup_fn
           ~restore:true
           BaseGenerate.NoUpdate

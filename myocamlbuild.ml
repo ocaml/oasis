@@ -113,7 +113,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: fc217177efa152a36b8a0d43b1a533d6) *)
+(* DO NOT EDIT (digest: e0bc314a07ffbb76032cc450dae38bee) *)
 module OASISGettext = struct
 # 21 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
 
@@ -667,7 +667,17 @@ let package_default =
        [
           ("oasis", ["src/oasis"]);
           ("base", ["src/base"]);
-          ("builtin-plugins", ["src"; "src/plugins/extra/META"]);
+          ("builtin-plugins",
+            [
+               "src";
+               "src/plugins/custom";
+               "src/plugins/extra/META";
+               "src/plugins/extra/devfiles";
+               "src/plugins/extra/stdfiles";
+               "src/plugins/internal";
+               "src/plugins/none";
+               "src/plugins/ocamlbuild"
+            ]);
           ("cli", ["src/cli"]);
           ("dynrun", ["src/dynrun"]);
           ("plugin-loader", ["src/ext/plugin-loader/src"]);
@@ -682,7 +692,19 @@ let package_default =
      flags = [];
      includes =
        [
-          ("test", ["src"; "src/base"; "src/oasis"; "src/plugins/extra/META"]);
+          ("test",
+            [
+               "src";
+               "src/base";
+               "src/oasis";
+               "src/plugins/custom";
+               "src/plugins/extra/META";
+               "src/plugins/extra/devfiles";
+               "src/plugins/extra/stdfiles";
+               "src/plugins/internal";
+               "src/plugins/none";
+               "src/plugins/ocamlbuild"
+            ]);
           ("src/plugins/ocamlbuild",
             [
                "src";
@@ -783,14 +805,31 @@ let package_default =
                "src/ext/plugin-loader/test/data/findlib/pluginloaderLib"
             ]);
           ("src/ext/plugin-loader/test", ["src/ext/plugin-loader/src"]);
-          ("src/dynrun", ["src"; "src/base"; "src/plugins/extra/META"]);
+          ("src/dynrun",
+            [
+               "src";
+               "src/base";
+               "src/plugins/custom";
+               "src/plugins/extra/META";
+               "src/plugins/extra/devfiles";
+               "src/plugins/extra/stdfiles";
+               "src/plugins/internal";
+               "src/plugins/none";
+               "src/plugins/ocamlbuild"
+            ]);
           ("src/cli",
             [
                "src";
                "src/base";
                "src/ext/plugin-loader/src";
                "src/oasis";
-               "src/plugins/extra/META"
+               "src/plugins/custom";
+               "src/plugins/extra/META";
+               "src/plugins/extra/devfiles";
+               "src/plugins/extra/stdfiles";
+               "src/plugins/internal";
+               "src/plugins/none";
+               "src/plugins/ocamlbuild"
             ]);
           ("src/base", ["src/oasis"]);
           ("src",
@@ -811,7 +850,7 @@ let package_default =
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
-# 701 "myocamlbuild.ml"
+# 740 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 open Ocamlbuild_plugin;;
