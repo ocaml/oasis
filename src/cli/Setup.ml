@@ -50,6 +50,12 @@ let main () =
           ["-oasis"; !ArgCommon.oasis_fn]
         else
           [];
+        if !rupdate = Weak then
+          ["-setup-update"; "weak"]
+        else if !rupdate = Dynamic then
+          ["-setup-update"; "dynamic"]
+        else
+          [];
       ]
   in
   let _chngs : OASISFileTemplate.file_generate_change list = 
