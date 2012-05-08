@@ -211,3 +211,30 @@ let if_then_else t choices_if choices_else =
     List.rev_map (fun (t', v) -> EAnd (ENot t, t'), v) choices_else
   in
     reduce_choices (List.rev_append choices_else' (List.rev choices_if'))
+
+let rec to_string =
+  function
+    | EBool b -> string_of_bool b
+    | EFlag nm -> "flag("^nm^")"
+    | ETest (nm, vl) -> nm^"("^vl^")"
+
+    | EOr (e1, e2) -> 
+        (to_string e1)^" || "^(to_string e2)
+
+    | ENot (EBool _ | EFlag _ | ETest _ | ENot _ as e) -> 
+        "!"^(to_string e)
+    | ENot (EAnd _ | EOr _ as e) ->
+        "!("^(to_string e)^")"
+
+    | EAnd ((EOr _ as e1), (EOr _ as e2)) ->
+        "("^(to_string e1)^") && ("^(to_string e2)^")"
+    | EAnd ((EOr _ as e1), e2) ->
+        "("^(to_string e1)^") && "^(to_string e2)
+    | EAnd (e1, (EOr _ as e2)) ->
+        (to_string e1)^" && ("^(to_string e2)^")"
+    | EAnd (e1, e2) ->
+        (to_string e1)^" && "^(to_string e2)
+
+let string_of_choices f lst = 
+  "["^(String.concat "; " 
+         (List.rev_map (fun (e, vl) -> (to_string e)^" -> "^(f vl)) lst))^"]"

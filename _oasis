@@ -304,6 +304,7 @@ Executable "test_userconf"
   Path:         src/ext/userconf/test
   MainIs:       TestUserConf.ml
   BuildDepends: userconf, oUnit
+  Build$:       flag(tests)
   Install:      false
 
 Test main_userconf

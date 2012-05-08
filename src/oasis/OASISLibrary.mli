@@ -61,8 +61,8 @@ val generated_unix_files :
 (** Library groups are organized in trees.
   *)
 type group_t =
-  | Container of findlib_name * group_t list
-  | Package of (findlib_name * 
+  | Container of findlib_part_name * group_t list
+  | Package of (findlib_part_name *
                 common_section * 
                 build_section * 
                 library * 

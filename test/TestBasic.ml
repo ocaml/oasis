@@ -57,7 +57,18 @@ let tests =
        assert_equal 
          ~printer:(fun s -> s)
          "3.13.0"
-         (BaseStandardVar.ocaml_version ()))
+         (BaseStandardVar.ocaml_version ()));
+
+    "Compileable BaseSysBundle.ml" >::
+    TestDevFiles.bracket_tmpdir
+      (fun dn ->
+         let chn = open_out (Filename.concat dn "bundle.ml") in
+           output_string chn OASISData.oasissysbundle_ml;
+           output_string chn BaseData.basesysbundle_ml;
+           close_out chn;
+           assert_command
+             "ocamlc" ["-o"; (Filename.concat dn "bundle");
+                       (Filename.concat dn "bundle.ml")])
   ]
 ;;
    

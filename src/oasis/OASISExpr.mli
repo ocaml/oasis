@@ -98,3 +98,10 @@ val if_then_else: t -> (t * 'a) list -> (t * 'a) list -> (t * 'a) list
 (** Dump ODN.t. {b Not exported}. *)
 val odn_of_t: t -> ODN.t
 val odn_of_choices: ('a -> ODN.t) -> 'a choices -> ODN.t
+
+(** Transform an expression into a string. {b Not exported} *)
+val to_string: t -> string
+
+(** Transform a list of choice into a string. {b Not exported} *)
+val string_of_choices: ('a -> string) -> 'a choices -> string
+
