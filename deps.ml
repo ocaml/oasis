@@ -3,6 +3,9 @@ module MapString = Map.Make(String)
 module SetString = Set.Make(String)
 
 open OASISTypes
+open BaseEnv
+
+let generated_fn = OASISHostPath.of_unix "src/cli/PluginsLoaded.ml"
 
 let post_configure pkg = 
   (* Compute build depends *)
@@ -14,31 +17,33 @@ let post_configure pkg =
     List.fold_left
       (fun (mp_int, set_ext) ->
          function
-           | Library (cs, bs, lib) ->
-               let deps, set_ext =
-                 List.fold_left
-                   (fun (deps, set_ext) sct ->
-                      let deps = 
-                        match sct with 
-                          | InternalLibrary nm ->
-                              SetString.add (findlib_of_name nm) deps
-                          | FindlibPackage (fndlb_pkg, _) ->
-                              SetString.add fndlb_pkg deps
-                      in
-                      let set_ext =
-                        match sct with 
-                          | InternalLibrary _ ->
-                              set_ext
-                          | FindlibPackage (fndlb_pkg, _) ->
-                              SetString.add fndlb_pkg set_ext
-                      in
-                        deps, set_ext)
-                     (SetString.empty, set_ext)
-                     bs.bs_build_depends
-               in
-                 MapString.add (findlib_of_name cs.cs_name) deps mp_int, 
-                 set_ext
-           | Executable (cs, bs, exec) ->
+           | Library (cs, bs, lib) when var_choose bs.bs_build ->
+               begin
+                 let deps, set_ext =
+                   List.fold_left
+                     (fun (deps, set_ext) sct ->
+                        let deps = 
+                          match sct with 
+                            | InternalLibrary nm ->
+                                SetString.add (findlib_of_name nm) deps
+                            | FindlibPackage (fndlb_pkg, _) ->
+                                SetString.add fndlb_pkg deps
+                        in
+                        let set_ext =
+                          match sct with 
+                            | InternalLibrary _ ->
+                                set_ext
+                            | FindlibPackage (fndlb_pkg, _) ->
+                                SetString.add fndlb_pkg set_ext
+                        in
+                          deps, set_ext)
+                       (SetString.empty, set_ext)
+                       bs.bs_build_depends
+                 in
+                   MapString.add (findlib_of_name cs.cs_name) deps mp_int, 
+                   set_ext
+               end
+           | Executable (cs, bs, exec) when var_choose bs.bs_build ->
                let set_ext =
                  List.fold_left
                    (fun set_ext ->
@@ -84,7 +89,7 @@ let post_configure pkg =
     else 
       visited
   in
-  let chn = open_out "src/cli/PluginsLoaded.ml" in
+  let chn = open_out generated_fn in
     List.iter
       (function 
          | Executable (cs, bs, _) ->
@@ -113,6 +118,9 @@ let setup_t =
        BaseSetup.configure = 
          (fun pkg args ->
             setup_t.BaseSetup.configure pkg args;
-            post_configure pkg)}
+            post_configure pkg);
+       BaseSetup.distclean = 
+         (fun pkg args -> Sys.remove generated_fn)
+         :: setup_t.BaseSetup.distclean}
 
 let setup () =  BaseSetup.setup setup_t;;
