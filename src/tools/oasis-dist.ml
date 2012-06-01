@@ -194,6 +194,17 @@ object
 end
 
 let () = 
+  let build = ref true in
+  let () = 
+    Arg.parse 
+      [
+        "-no-build",
+        Arg.Clear build,
+        " Don't try to build the resulting tarball."
+      ]
+      (fun s -> failwith (Printf.sprintf "Don't know what to do with %S" s))
+      "oasis-dist: build tarball out of oasis enabled sources."
+  in
   let ctxt = 
     {!OASISContext.default with 
          OASISContext.ignore_plugins = true}
@@ -264,8 +275,9 @@ let () =
 
 
              let () = 
-               (* Check that build, test, doc run smoothly *)
-               run "ocaml" ["setup.ml"; "-all"]
+               if !build then
+                 (* Check that build, test, doc run smoothly *)
+                 run "ocaml" ["setup.ml"; "-all"]
              in
 
              let () = 
