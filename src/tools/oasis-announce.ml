@@ -52,7 +52,7 @@ let () =
     "caml-list@inria.fr"
   in
   let email_bcc = 
-    "hump@caml.inria.fr"
+    ""
   in
 
   let subject = 
@@ -94,9 +94,11 @@ let () =
               let get = 
                 match src.src_repo_type with 
                   | Darcs -> 
-                     Printf.sprintf "$ darcs get %s" src.src_repo_location;
+                     Printf.sprintf "$ darcs get %s" src.src_repo_location
+                  | Svn ->
+                     Printf.sprintf "$ svn co %s" src.src_repo_location
                   | _ ->
-                      failwith "Unsupported VCS"
+                     failwith "Unsupported VCS"
               in
                 body^"\n\nGet source code:\n"^get^
                 (match src.src_repo_browser with
