@@ -195,12 +195,17 @@ end
 
 let () = 
   let build = ref true in
+  let tag = ref true in
   let () = 
     Arg.parse 
       [
         "-no-build",
         Arg.Clear build,
-        " Don't try to build the resulting tarball."
+        " Don't try to build the resulting tarball.";
+
+        "-no-tag",
+        Arg.Clear tag,
+        " Don't tag the result.";
       ]
       (fun s -> failwith (Printf.sprintf "Don't know what to do with %S" s))
       "oasis-dist: build tarball out of oasis enabled sources."
@@ -300,41 +305,42 @@ let () =
              Sys.chdir pwd;
              raise e);
 
-    begin
-      let tags = 
-        List.sort 
-          OASISVersion.version_compare 
-          (List.rev_map
-             OASISVersion.version_of_string 
-             vcs#list_tags)
-      in
-      let ver_str =
-        OASISVersion.string_of_version pkg.version
-      in
-        match tags with
-          | hd :: _ ->
-              begin
-                let cmp = 
-                  OASISVersion.version_compare hd pkg.version
-                in
-                  if List.mem pkg.version tags then
-                    begin
-                      warning ~ctxt "Version %s already tagged" ver_str
-                    end
-                  else if cmp > 0 then
-                    begin
-                      warning ~ctxt "Version %s is smaller than already tagged version %s" 
-                        ver_str (OASISVersion.string_of_version hd);
-                      vcs#tag ver_str
-                    end
-                  else
-                    begin
-                      vcs#tag ver_str
-                    end
-              end
-          | _ ->
-              vcs#tag ver_str
-    end;
+    if !tag then 
+      begin
+        let tags = 
+          List.sort 
+            OASISVersion.version_compare 
+            (List.rev_map
+               OASISVersion.version_of_string 
+               vcs#list_tags)
+        in
+        let ver_str =
+          OASISVersion.string_of_version pkg.version
+        in
+          match tags with
+            | hd :: _ ->
+                begin
+                  let cmp = 
+                    OASISVersion.version_compare hd pkg.version
+                  in
+                    if List.mem pkg.version tags then
+                      begin
+                        warning ~ctxt "Version %s already tagged" ver_str
+                      end
+                    else if cmp > 0 then
+                      begin
+                        warning ~ctxt "Version %s is smaller than already tagged version %s" 
+                          ver_str (OASISVersion.string_of_version hd);
+                        vcs#tag ver_str
+                      end
+                    else
+                      begin
+                        vcs#tag ver_str
+                      end
+                end
+            | _ ->
+                vcs#tag ver_str
+      end;
     
     run
       ~f_exit_code:
