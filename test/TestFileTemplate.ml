@@ -126,6 +126,9 @@ let tests =
   [
     "Keep file rights" >::
     (fun () ->
+       let () = 
+         skip_if (Sys.os_type = "Win32") "UNIX only test"
+       in
        let fn, chn = 
          Filename.open_temp_file "oasis-db" ".txt"
        in

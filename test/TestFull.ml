@@ -1431,7 +1431,9 @@ let tests =
 
          "data/bug982",
          (fun () ->
-            long_test,
+            (fun () ->
+              long_test ();
+              skip_if (Sys.os_type = "Win32") "UNIX only test"),
             oasis_ocamlbuild_files,
             [],
             []);
@@ -1470,7 +1472,7 @@ let tests =
      bracket_setup 
        ("data/bug938",
         fun () ->
-          ignore,
+          (fun () -> skip_if (Sys.os_type = "Win32") "UNIX test"),
           oasis_ocamlbuild_files,
           [],
           [])
