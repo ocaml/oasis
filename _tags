@@ -212,3 +212,6 @@
 <src/builtin-plugins.cma>: use_ocamlbuild
 
 <**/*.ml>: annot
+
+"build": -traverse
+"build": not_hygienic
