@@ -46,7 +46,7 @@ module MapString = Map.Make(String)
 module SetString = Set.Make(String)
 
 let dbug = ref false
-let long = ref false
+let long = ref true
 let oasis_exec = ref None
 let oasis_args = ref []
 
@@ -76,9 +76,9 @@ let test_args =
     Gettext.init 
   in
     [
-      "-long",
-      Arg.Set long,
-      " Run long tests";
+      "-not-long",
+      Arg.Clear long,
+      " Don't run long tests";
 
       (* TODO: remove *)
       "-has-ocamlopt",

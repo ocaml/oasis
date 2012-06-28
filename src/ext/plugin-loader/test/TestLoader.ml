@@ -93,7 +93,7 @@ let _lst : test_result list  =
     ~arg_specs:["--pluginloader",
                 Arg.Set_string pluginloader,
                 "exec Set pluginloader executable.";
-                "-long",
+                "-not-long",
                 Arg.Unit ignore,
                 " Run long tests."]
     ~set_verbose:(fun b -> verbose := b)
