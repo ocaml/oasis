@@ -28,10 +28,13 @@ open OASISTypes
 (** Run a command.
     @param f_exit_code if provided, run this command on the exit code
     (even when it is [0]).  Otherwise, a non-zero exit code raises
-    [Failure]. *)
+    [Failure].
+    @param quote quote the prog.
+  *)
 val run :
   ctxt:OASISContext.t ->
   ?f_exit_code:(int -> unit) ->
+  ?quote:bool ->
   prog -> args ->
   unit
 

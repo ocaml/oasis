@@ -23,15 +23,22 @@ open OASISGettext
 open OASISUtils
 open OASISMessage
 
-let run ~ctxt ?f_exit_code cmd args =
+(* TODO: I don't like this quote, it is there because $(rm) foo expands to
+ * 'rm -f' foo...
+ *)
+let run ~ctxt ?f_exit_code ?(quote=true) cmd args =
   let cmd =
-    if Sys.os_type = "Win32" then
-      if String.contains cmd ' ' then
-        "\""^(Filename.quote cmd) (* Double the 1st double quote... win32... sigh. *)
-      else 
-        cmd
+    if quote then
+      if Sys.os_type = "Win32" then
+        if String.contains cmd ' ' then
+          (* Double the 1st double quote... win32... sigh *)
+          "\""^(Filename.quote cmd)
+        else
+          cmd
+      else
+        Filename.quote cmd
     else
-      Filename.quote cmd 
+      cmd
   in
   let cmdline =
     String.concat " " (cmd :: args)

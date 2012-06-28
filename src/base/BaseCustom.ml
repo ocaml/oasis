@@ -25,7 +25,7 @@ open OASISTypes
 open OASISGettext
 
 let run cmd args extra_args =
-  OASISExec.run ~ctxt:!BaseContext.default
+  OASISExec.run ~ctxt:!BaseContext.default ~quote:false
     (var_expand cmd)
     (List.map
        var_expand
