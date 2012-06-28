@@ -60,16 +60,17 @@ let _ =
             close_in chn;
             !rst
         in
-        let fn_build =
-          FilePath.concat topdir "_build"
-        in
+        let fn_build  = FilePath.concat topdir "_build" in
+        let fn_build' = FilePath.concat topdir "build" in
+
         let (found_missing, unfound) =
           (* Check files that need to be executable *)
           FileUtil.find
             (FileUtil.And
                (FileUtil.Custom
                   (fun fn ->
-                     not (FilePath.is_subdir fn fn_build)),
+                     not (FilePath.is_subdir fn fn_build) &&
+                     not (FilePath.is_subdir fn fn_build')),
                 FileUtil.And
                   (FileUtil.Is_exec,
                    FileUtil.And
