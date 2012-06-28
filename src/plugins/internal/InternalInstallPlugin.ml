@@ -49,6 +49,71 @@ let install_dir_ev =
 let install_findlib_ev =
   "install-findlib"
 
+let win32_max_command_line_length = 8000
+
+let split_install_command ocamlfind findlib_name meta files =
+  if Sys.os_type = "Win32" then
+    (* Arguments for the first command: *)
+    let first_args = ["install"; findlib_name; meta] in
+    (* Arguments for remaining commands: *)
+    let other_args = ["install"; findlib_name; "-add"] in
+    (* Extract as much files as possible from [files], [len] is
+       the current command line length: *)
+    let rec get_files len acc files =
+      match files with
+        | [] ->
+            (List.rev acc, [])
+        | file :: rest ->
+            let len = len + 1 + String.length file in
+            if len > win32_max_command_line_length then
+              (List.rev acc, files)
+            else
+              get_files len (file :: acc) rest
+    in
+    (* Split the command into several commands. *)
+    let rec split args files =
+      match files with
+        | [] ->
+            []
+        | _ ->
+            (* Length of "ocamlfind install <lib> [META|-add]" *)
+            let len =
+              List.fold_left
+                (fun len arg ->
+                   len + 1 (* for the space *) + String.length arg)
+                (String.length ocamlfind)
+                args
+            in
+            match get_files len [] files with
+              | ([], _) ->
+                  failwith (s_ "Command line too long.")
+              | (firsts, others) ->
+                  let cmd = args @ firsts in
+                  (* Use -add for remaining commands: *)
+                  let () = 
+                    let findlib_ge_132 =
+                      OASISVersion.comparator_apply
+                        (OASISVersion.version_of_string 
+                           (BaseStandardVar.findlib_version ()))
+                        (OASISVersion.VGreaterEqual 
+                           (OASISVersion.version_of_string "1.3.2"))
+                    in
+                      if not findlib_ge_132 then
+                        failwithf
+                          (f_ "Installing the library %s require to use the flag \
+                               '-add' of ocamlfind because the command line is too \
+                                long. This flag is only available for findlib 1.3.2. \
+                                Please upgrade findlib from %s to 1.3.2")
+                          findlib_name (BaseStandardVar.findlib_version ())
+                  in
+                  let cmds = split other_args others in
+                  cmd :: cmds
+    in
+    (* The first command does not use -add: *)
+    split first_args files
+  else
+    ["install" :: findlib_name :: meta :: files]
+
 let install pkg argv =
 
   let in_destdir =
@@ -281,8 +346,17 @@ let install pkg argv =
               info
                 (f_ "Installing findlib library '%s'")
                 findlib_name;
-              OASISExec.run ~ctxt:!BaseContext.default
-                (ocamlfind ()) ("install" :: findlib_name :: meta :: files);
+              let ocamlfind = ocamlfind () in
+              let commands =
+                split_install_command
+                  ocamlfind
+                  findlib_name
+                  meta
+                  files
+              in
+              List.iter
+                (OASISExec.run ~ctxt:!BaseContext.default ocamlfind)
+                commands;
               BaseLog.register install_findlib_ev findlib_name
           end;
 
