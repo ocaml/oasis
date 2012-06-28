@@ -1,22 +1,22 @@
-2012-02-24 Sylvain Le Gall <sylvain AT le-gall.net>
+2012-06-28 Sylvain Le Gall <sylvain AT le-gall.net>
 
   * Version 0.3.0
 
   * EXTREMLY IMPORTANT changes (read this):
 
-    * Fix bug with scanf %S@\n for ocaml 3.13. We were unfortunetaly using an
+    * Fix bug with scanf %S@\n for ocaml 4.00. We were unfortunetaly using an
       undocumented tolerance of Scanf in the previous version. You should
       consider making new release using this version that fixed this. 
 
       PACKAGES uploaded to oasis-db will be automatically "derived" before
-      OCaml 3.13 release (i.e.  oUnit v1.1.1 will be regenerated with this new
+      OCaml 4.00 release (i.e.  oUnit v1.1.1 will be regenerated with this new
       version as oUnit v1.1.1~oasis1).
 
-      PACKAGES not uploaded to oasis-db need to be regeneratedr. In order not to 
+      PACKAGES not uploaded to oasis-db need to be regenerated. In order not to 
       break 3rd party tools that consider a tarball constant, I recommend to 
       create a new version.
 
-      INRIA OCaml team is synchronizing with us on this point.
+      Thanks to INRIA OCaml team for synchronizing with us on this point.
 
   * Major changes: 
 
@@ -29,7 +29,7 @@
     * Introduce --[enable|disable]-[tests|docs] to disable tests and docs at
       oasis level. It seems a very common pattern to have a "Flag tests" to
       turn off by default the tests. This is now define as a standard var and
-      you should remove you previous "Flag tests" and but you can continue to
+      you should remove you previous "Flag tests" but you can continue to
       use "flag(tests)" where needed.
 
       You can now have the following example:
@@ -67,13 +67,13 @@
       
       It defines different ways to manage the auto-update of setup.ml:
       * 'none': this is the default mode, and the one you should use when
-         distributing tarballs. No update is performed at al.
+         distributing tarballs. No update are performed at al.
       * 'weak': the update is only triggered when something change in `_oasis`,
          we keep all files generated
       * 'dynamic': the content of 'setup.ml' is ultra small (<2kB) and we only
          keep a small 'setup.ml', 'Makefile' and 'configure'.
       
-      The choice between 'weak' and 'dynamic' depends on the your need with
+      The choice between 'weak' and 'dynamic' depends on your need with
       regard to VCS and to the presence of `oasis'. The 'weak' allow to checkout
       the project from VCS and be able to work on it, without the need of
       installing 'oasis' as long as you don't change the file '_oasis'. But it 
@@ -105,9 +105,32 @@
 
     * Externalize ocamlmod in its own project, which become a dependencies.
 
+    * Minimize the dependencies of the project. 
+      
+      In order to ease building oasis, we have minimize the number of dependencies.
+      You only need to install ocamlmod, ocamlify and ocaml-data-notation for a 
+      standard build without tests. Dependencies on pcre, extlib and ocamlgraph has 
+      been dropped. The remaining dependencies are hidden behind a flag "tests".
+
+    * Implement proposal for handling plugin in META, using "plugin" extra directives
+
+      oasis now produces .cmxs file by default and add them to META.
+
+      Now a META looks like:
+
+      ...
+      archive(byte) = "oasis.cma"
+      archive(byte, plugin) = "oasis.cma"
+      archive(native) = "oasis.cmxa"
+      archive(native, plugin) = "oasis.cmxs"
+      ...
+
+      This will ultimately help to generate automatically .cmxs for all oasis enabled
+      projects. We hope that this new feature will improve dynamic linking use
+      in OCaml (esp. for project like Ocsigen).
+
   * Other changes:
 
-    * Replace Extlib by Batteries.
     * Produce only subcommands specific helps when asked (Closes: #783)
     * Use pager for long textual output (Closes: #782)
     * Give the help summary directly when running just "oasis" (Closes: #781)
@@ -132,18 +155,19 @@
     * Improve documentation
     * Verify validity of input when parsing in quickstart (Closes: #797)
     * Fix stack overflow when there are twice the same library (Closes: #1130)
-    * Create a dynamic mode to create on-the-fly setup.ml.
-    * Make fileutils an optional dependencies (only for test)
-    * Get rid of batteries, pcre, ocamlgraph
     * Parse license examples for DEP5 specification (Closes: #1102)
     * Be ultra-liberal regarding version syntax (allow '_' and ' ' in the version).
-    * Implement proposal for handling plugin in META, using "plugin" extra directives
     * Allow to add extra content to META files (XMETAExtraLines)
     * Allow to use executable name that contains "-" as a variable (replacing "-" by "_").
 
-  * Thanks to Anil Madhavapeddy, Pierre Chambart, Christophe Troestler, 
+   
+    Thanks to Anil Madhavapeddy, Pierre Chambart, Christophe Troestler, 
     Jeremie Dimino, Ronan Le Hy, Yaron Minsky and Till Varoquaux for their help
-    with this release.
+    with this release. 
+    
+    Also thanks to all the testers of the numerous release candidates. This
+    was a long work and each time a tester has downloaded oasis has helped me
+    to know that I was working for someone.
 
 2010-10-16 Sylvain Le Gall <sylvain.le-gall AT ocamlcore.com>
 
