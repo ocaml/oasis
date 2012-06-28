@@ -195,6 +195,17 @@ let configure pkg argv =
           ()
   end;
 
+  (* FlexDLL *)
+  if BaseStandardVar.os_type () = "Win32" ||
+     BaseStandardVar.os_type () = "Cygwin" then
+    begin
+      try
+        var_ignore_eval BaseStandardVar.flexlink
+      with e ->
+        warn_exception e;
+        add_errors (f_ "Cannot find 'flexlink'")
+    end;
+
   (* Check build depends *)
   List.iter
     (function

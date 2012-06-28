@@ -24,6 +24,15 @@ open OASISUtils
 open OASISMessage
 
 let run ~ctxt ?f_exit_code cmd args =
+  let cmd =
+    if Sys.os_type = "Win32" then
+      if String.contains cmd ' ' then
+        "\""^(Filename.quote cmd) (* Double the 1st double quote... win32... sigh. *)
+      else 
+        cmd
+    else
+      Filename.quote cmd 
+  in
   let cmdline =
     String.concat " " (cmd :: args)
   in

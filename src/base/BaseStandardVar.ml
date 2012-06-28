@@ -92,6 +92,23 @@ let ext_dll                  = c "ext_dll"
 let default_executable_name  = c "default_executable_name"
 let systhread_supported      = c "systhread_supported"
 
+let flexlink = 
+  BaseCheck.prog "flexlink"
+
+let flexdll_version =
+  var_define
+    ~short_desc:(fun () -> "FlexDLL version (Win32)")
+    "flexdll_version"
+    (fun () ->
+       let lst = 
+         OASISExec.run_read_output ~ctxt:!BaseContext.default
+           (flexlink ()) ["-help"]
+       in
+         match lst with 
+           | line :: _ ->
+               Scanf.sscanf line "FlexDLL version %s" (fun ver -> ver)
+           | [] ->
+               raise Not_found)
 
 (**/**)
 let p name hlp dflt =
@@ -313,23 +330,47 @@ let native_dynlink =
     "native_dynlink"
     (fun () ->
        let res =
-         if bool_of_string (is_native ()) then
-           begin
-             let ocamlfind = ocamlfind () in
-               try
-                 let fn =
-                   OASISExec.run_read_one_line
-                     ~ctxt:!BaseContext.default
-                     ocamlfind
-                     ["query"; "-predicates"; "native"; "dynlink";
-                      "-format"; "%d/%a"]
-                 in
-                   Sys.file_exists fn
-               with _ ->
-                 false
-           end
-         else
-           false
+         let ocaml_lt_312 () = 
+           OASISVersion.comparator_apply
+             (OASISVersion.version_of_string (ocaml_version ()))
+             (OASISVersion.VLesser
+                (OASISVersion.version_of_string "3.12.0"))
+         in
+         let flexdll_lt_030 () =
+           OASISVersion.comparator_apply
+             (OASISVersion.version_of_string (flexdll_version ()))
+             (OASISVersion.VLesser
+                (OASISVersion.version_of_string "0.30"))
+         in
+         let has_native_dynlink = 
+           let ocamlfind = ocamlfind () in
+             try
+               let fn =
+                 OASISExec.run_read_one_line
+                   ~ctxt:!BaseContext.default
+                   ocamlfind
+                   ["query"; "-predicates"; "native"; "dynlink";
+                    "-format"; "%d/%a"]
+               in
+                 Sys.file_exists fn
+             with _ ->
+               false
+         in
+           if not has_native_dynlink then
+             false
+           else if ocaml_lt_312 () then
+             false
+           else if (os_type () = "Win32" || os_type () = "Cygwin") 
+                   && flexdll_lt_030 () then
+             begin
+               BaseMessage.warning 
+                 (f_ ".cmxs generation disabled because FlexDLL needs to be \
+                      at least 0.30. Please upgrade FlexDLL from %s to 0.30.")
+                 (flexdll_version ());
+               false
+             end
+           else
+             true
        in
          string_of_bool res)
 

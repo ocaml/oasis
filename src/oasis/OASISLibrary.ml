@@ -168,11 +168,13 @@ let generated_unix_files
       add_pack_header ([cs.cs_name^".cma"] :: acc)
     in
     let native acc =
-      let acc = [cs.cs_name^".cmxa"] :: [cs.cs_name^ext_lib] :: acc in
-      add_pack_header
-        (if has_native_dynlink then
-           [cs.cs_name^".cmxs"] :: acc
-         else acc)
+      let acc = 
+        add_pack_header
+          (if has_native_dynlink then
+             [cs.cs_name^".cmxs"] :: acc
+           else acc)
+      in
+        [cs.cs_name^".cmxa"] :: [cs.cs_name^ext_lib] :: acc
     in
       match bs.bs_compiled_object with
         | Native ->

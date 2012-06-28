@@ -31,6 +31,8 @@ val ocamlfind:  unit -> host_filename
 val ocamlc:     unit -> host_filename
 val ocamlopt:   unit -> host_filename
 val ocamlbuild: unit -> host_filename
+val flexlink:   unit -> host_filename
+val flexdll_version: unit -> string
 
 (** {2 Variables from OASIS package} 
  
