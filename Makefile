@@ -30,8 +30,7 @@ default: test
 export OCAMLRUNPARAM=b
 TESTFLAGS      += -long
 #TESTFLAGS      += -verbose
-#TESTFLAGS      += -debug
-#TESTFLAGS      += -only-test OASIS:5:TestFull:28
+#TESTFLAGS      += -only-test OASIS:5:TestFull:2:../examples/packedlib:0:standard
 
 # OASIS_START
 # DO NOT EDIT (digest: bc1e05bfc8b39b664f29dae8dbd3ebbb)
