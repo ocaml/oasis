@@ -20,8 +20,8 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: ef83588ab72811c90c38e1c6f99becc1)
-version = "0.3.0~rc6"
+# DO NOT EDIT (digest: 724a07cf2dbf32aab7b40e5cb88e7fec)
+version = "0.3.0"
 description = "_oasis file functions"
 requires = "unix odn"
 archive(byte) = "oasis.cma"
@@ -30,7 +30,7 @@ archive(native) = "oasis.cmxa"
 archive(native, plugin) = "oasis.cmxs"
 exists_if = "oasis.cma"
 package "dynrun" (
- version = "0.3.0~rc6"
+ version = "0.3.0"
  description = "_oasis file functions"
  requires = "oasis.base oasis.builtin-plugins"
  archive(byte) = "dynrun.cma"
@@ -41,7 +41,7 @@ package "dynrun" (
 )
 
 package "cli" (
- version = "0.3.0~rc6"
+ version = "0.3.0"
  description = "'setup.ml' modules for OASIS"
  requires = "oasis oasis.base"
  archive(byte) = "cli.cma"
@@ -50,7 +50,7 @@ package "cli" (
 )
 
 package "builtin-plugins" (
- version = "0.3.0~rc6"
+ version = "0.3.0"
  description = "_oasis file functions"
  requires = "oasis oasis.base"
  archive(byte) = "builtin-plugins.cma"
@@ -61,7 +61,7 @@ package "builtin-plugins" (
 )
 
 package "base" (
- version = "0.3.0~rc6"
+ version = "0.3.0"
  description = "'setup.ml' modules for OASIS"
  requires = "oasis"
  archive(byte) = "base.cma"
