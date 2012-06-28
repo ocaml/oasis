@@ -24,5 +24,6 @@ godi.build_many(
    "apps-ocamlmod",
    "apps-ocamlify"})
 
+ci.exec("make", "fixperms")
 oasis.std_process("--enable-tests")
 darcs.create_tag(oasis.package_version())
