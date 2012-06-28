@@ -29,8 +29,11 @@ let current_dir_name = "."
 
 let parent_dir_name = ".."
 
+let is_current_dir fn =
+  fn = current_dir_name || fn = ""
+
 let concat f1 f2 =
-  if f1 = current_dir_name || f1 = "" then
+  if is_current_dir f1 then
     f2
   else
     let f1' =

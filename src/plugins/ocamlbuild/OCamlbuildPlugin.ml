@@ -584,6 +584,13 @@ let compute_includes map_dirs pkg =
           (set_string_of_list src_internal_dirs)
     in
     let all_dirs = SetString.union dep_dirs self_dirs in
+    let all_dirs = 
+      (* No need to include the current dir. *)
+      SetString.filter
+        (fun dn -> not (OASISUnixPath.is_current_dir dn))
+        all_dirs
+    in
+        
       (* All self_dirs depends on all_dirs *)
       SetString.fold
         (fun dir includes ->

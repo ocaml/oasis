@@ -36,6 +36,9 @@ type host_dirname = host_filename
 (** '.' on Unix. *)
 val current_dir_name : unix_filename
 
+(** Test if the filename is current dir (either '.' or '') on Unix. *)
+val is_current_dir : unix_filename -> bool
+
 (** '..' on Unix. *)
 val parent_dir_name : unix_filename
 
