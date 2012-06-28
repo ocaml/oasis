@@ -19,7 +19,7 @@ godi.build_many(
   {"godi-findlib",
    "godi-ocaml-fileutils",
    "godi-ocaml-data-notation",
-   "godi-expect",
+   "godi-ocaml-expect",
    "godi-ounit",
    "apps-ocamlmod",
    "apps-ocamlify"})
