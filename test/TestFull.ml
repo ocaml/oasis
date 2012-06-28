@@ -29,6 +29,12 @@ open TestCommon;;
 
 type filename = FilePath.filename;;
 
+let exec fn = 
+  if Sys.os_type = "Win32" then
+    fn^".exe"
+  else
+    fn
+
 let compare_filename =
   if Sys.os_type = "Win32" then
     (* Win32 FS is case insensitive *)
@@ -161,16 +167,15 @@ let tests =
               hash_load := true
           done
         with End_of_file ->
-          close_in chn
+          ()
       in
+        close_in chn;
         not !hash_load
     in
     let setup_base = Filename.chop_extension setup_ml in
     let setup_digest = setup_base ^ ".digest" in
     let setup_exe = 
-      Filename.concat 
-        Filename.current_dir_name
-        (setup_base ^ (if Sys.os_type = "Win32" then ".exe" else ""))
+      Filename.concat Filename.current_dir_name (exec setup_base)
     in
       if can_compile then
         begin
@@ -183,7 +188,12 @@ let tests =
           let pre_digest =
             try
               let chn = open_in setup_digest in
-              let digest = Digest.input chn in
+              let digest =
+                try
+                  Digest.input chn 
+                with _ ->
+                  Digest.string ""
+              in
                 close_in chn;
                 digest
             with _ ->
@@ -203,7 +213,7 @@ let tests =
           in
           if not (Sys.file_exists setup_exe) || self_digest <> pre_digest then
             begin
-              match Sys.command "ocamlfind ocamlc -o setup setup.ml" with
+              match Sys.command ("ocamlfind ocamlc -o "^(exec "setup")^" setup.ml") with
                 | 0 ->
                     (* Compilation succeed, update the digest *)
                     let chn = open_out setup_digest in
@@ -216,9 +226,9 @@ let tests =
             end
         end;
       if Sys.file_exists setup_exe then
-        assert_command ?exit_code ?extra_env setup_exe args
+        assert_command ?exit_code ?extra_env setup_exe ("-info" :: "-debug" :: args)
       else
-        assert_command ?exit_code ?extra_env "ocaml" (setup_ml :: args)
+        assert_command ?exit_code ?extra_env "ocaml" (setup_ml :: "-info" :: "-debug" :: args)
   in
 
   (* Files always generated *)
@@ -538,7 +548,7 @@ let tests =
   in
 
   let filter_platform lst = 
-    let check_suff = Filename.check_suffix in
+    let check_suff fn suff = Filename.check_suffix fn ("."^suff) in
     List.fold_left 
       (fun acc fn -> 
          if (check_suff fn "cmx" || check_suff fn "cmxa") then
@@ -665,6 +675,18 @@ let tests =
                else
                  []));
 
+           if Sys.file_exists "_tags" && !dbug then
+             begin
+               let chn = open_in "_tags" in
+                 print_endline "file _tags";
+                 try 
+                   while true do 
+                     print_endline (input_line chn)
+                   done
+                 with End_of_file ->
+                   close_in chn
+             end;
+
            (* Fix #require in dynamic *)
            if dynamic then
              begin
@@ -704,6 +726,7 @@ let tests =
                    close_in chn
                in
                let chn = open_out "setup.ml" in
+               let () = 
                  if !dbug then
                    print_endline "file setup.ml:";
                  List.iter
@@ -713,6 +736,8 @@ let tests =
                       output_string chn (line^"\n"))
                    (List.rev !lst);
                  close_out chn
+               in
+                 ()
              end;
 
            (* Check generated files *)
@@ -833,7 +858,7 @@ let tests =
       (fun _ -> 
          assert_run_setup ?extra_env ["-all"];
          assert_run_setup ?extra_env ["-distclean"];
-         rm ~force:Force ["setup"; "setup.digest"])
+         rm ~force:Force [exec "setup"; "setup.digest"])
   in
 
   (* Run standard test *)
@@ -1042,7 +1067,7 @@ let tests =
          (* Run clean target *)
            assert_run_setup ["-clean"];
            assert_run_setup ["-distclean"];
-           rm ~force:Force ["setup"; "setup.digest"];
+           rm ~force:Force [exec "setup"; "setup.digest"];
 
            (* Check that only OASIS generated files remain *)
            OUnitSetFile.assert_equal
@@ -1186,17 +1211,10 @@ let tests =
               "src/with-c.odocl";
             ] @ oasis_ocamlbuild_files,
             [
-              in_bin 
-                (if Sys.os_type = "Win32" then
-                   ["test-with-c.exe"; "test-with-c-custom.exe"]
-                 else
-                   ["test-with-c"; "test-with-c-custom"]);
+              in_bin [exec "test-with-c"; exec "test-with-c-custom"];
               conditional
                 !has_ocamlopt
-                (in_bin [if Sys.os_type = "Win32" then
-                           "test-with-c-native.exe"
-                         else
-                           "test-with-c-native"]);
+                (in_bin [exec "test-with-c-native"]);
               in_library ["with-c/dlltest-with-c_stubs.so"];
               in_ocaml_library "with-c"
                 ["A.cmi"; "A.ml"; "META"; "with-c.cma"; 
@@ -1231,10 +1249,7 @@ let tests =
               "src/test.odocl";
             ] @ oasis_ocamlbuild_files,
             [
-              in_bin [if Sys.os_type = "Win32" then
-                        "test.exe"
-                      else
-                        "test"];
+              in_bin [exec "test"];
               in_ocaml_library "test"
                 [
                   "test.ml"; "test.cmi"; "META"; "test.cma";
@@ -1326,10 +1341,7 @@ let tests =
                 ["META"; "A.ml"; "A.cmi"; "with-a.cma";
                  "A.cmx"; "with-a.cmxa"; "with-a.cmxs"; 
                  "with-a.a"];
-              in_bin [if Sys.os_type = "Win32" then
-                        "test-with-a.exe"
-                      else
-                        "test-with-a"];
+              in_bin [exec "test-with-a"];
               api_ref_html "with-a" ["A"];
             ],
             [
@@ -1440,7 +1452,9 @@ let tests =
 
          "data/bug823",
          (fun () ->
-            long_test,
+            (fun () -> 
+               long_test ();
+               skip_if (Sys.os_type = "Win32") "UNIX test"),
             oasis_ocamlbuild_files,
             [],
             []);
@@ -1481,7 +1495,7 @@ let tests =
           (* Run configure target *)
           assert_run_setup 
             ["-configure"; "--enable-all"; "--disable-over"];
-          rm ["setup.data"; "setup"; "setup.digest"]);
+          rm ["setup.data"; exec "setup"; "setup.digest"]);
 
      "TEMP=a b">::
      bracket
@@ -1504,7 +1518,7 @@ let tests =
                              else
                                "TMPDIR", dn]
                  ["-configure"];
-               rm ["setup.data"; "setup"; "setup.digest"])
+               rm ["setup.data"; exec "setup"; "setup.digest"])
             ())
        (fun dn ->
           rm ~recurse:true [dn]);
@@ -1513,6 +1527,7 @@ let tests =
       bracket
         ignore
         (fun () ->
+           skip_if (Sys.os_type = "Win32") "UNIX test";
            cp ["data/dev/_oasis.v1"] "data/dev/_oasis";
            bracket_setup
              ~dev:true
@@ -1534,7 +1549,7 @@ let tests =
                   "Library .cma created."
                   (Sys.file_exists "_build/mylib.cma");
                 assert_run_setup ["-distclean"];
-                rm ["META"; "mylib.mllib"; "setup"; "setup.digest"];
+                rm ["META"; "mylib.mllib"; exec "setup"; "setup.digest"];
                 cp ["_oasis.v1"] "_oasis")
              ())
         (fun () ->
@@ -1558,15 +1573,19 @@ let tests =
                 assert_bool
                   "setup.ml is smaller than 2kB"
                   (let chn = open_in "setup.ml" in
-                   let size = in_channel_length chn in
-                     close_in chn;
-                     size < 2048 (* 2kB *));
+                     try 
+                       let size = in_channel_length chn in
+                         close_in chn;
+                         size < 2048 (* 2kB *)
+                     with e ->
+                       close_in chn;
+                       raise e);
                 assert_run_setup ["-all"];
                 assert_bool
                   "Library .cma created."
                   (Sys.file_exists "_build/mylib.cma");
                 assert_run_setup ["-distclean"];
-                rm ["META"; "mylib.mllib"; "setup"; "setup.digest"])
+                rm ["META"; "mylib.mllib"; exec "setup"; "setup.digest"])
              ())
       (fun () ->
          rm ["data/dev/_oasis"]);
@@ -1595,7 +1614,7 @@ let tests =
                  "Library .cma still not created."
                  (not (Sys.file_exists "_build/mylib.cma"));
                assert_run_setup ["-distclean"];
-               rm ["META"; "mylib.mllib"; "setup"; "setup.digest"];
+               rm ["META"; "mylib.mllib"; exec "setup"; "setup.digest"];
                cp ["_oasis.v1"] "_oasis")
             ())
        (fun () ->
@@ -1634,6 +1653,6 @@ let tests =
            "doc not done."
            (not (Sys.file_exists "doc-done"));
          assert_run_setup ["-distclean"];
-         rm ["test-done"; "doc-done"; "setup"; "setup.digest"])
+         rm ["test-done"; "doc-done"; exec "setup"; "setup.digest"])
     ]
 ;;

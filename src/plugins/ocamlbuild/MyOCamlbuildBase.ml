@@ -148,7 +148,7 @@ let dispatch t e =
                  (* When ocaml link something that use the C library, then one
                     need that file to be up to date.
                   *)
-                 dep  ["link"; "ocaml"; "program"; tag_libstubs lib]
+                 dep ["link"; "ocaml"; "program"; tag_libstubs lib]
                    [dir/"lib"^(nm_libstubs lib)^"."^(!Options.ext_lib)];
 
                  dep  ["compile"; "ocaml"; "program"; tag_libstubs lib]

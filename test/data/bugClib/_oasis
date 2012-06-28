@@ -12,5 +12,10 @@ Library mylib
   Modules:    Foo, src/Bar
   CSources:   src/fooC.c
   Pack:       true
-  CCLib:      -lrt
+  if os_type(Win32) && ccomp_type(msvc)
+    CCLib: ws2_32.lib
+  else if os_type(Win32)
+    CCLib: -lws2_32
+  else
+    CCLib: -lrt
   CCOpt:      -D_LARGEFILE64_SOURCE

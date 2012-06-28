@@ -460,6 +460,9 @@ let tests =
                   ~msg:"Second question"
                   true
                   (expect t [q] false))
-           (Unix.WSIGNALED ~-8));
+           (if Sys.os_type = "Win32" then
+              (Unix.WEXITED 2)
+            else
+              (Unix.WSIGNALED ~-8)));
     ]
 

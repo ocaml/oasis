@@ -56,10 +56,11 @@ let tests =
                "_oasis";
              assert_command 
                (oasis ()) (!oasis_args @ ["setup"]);
-             assert_command
-               "./configure" ["--prefix=/usr"; "--mandir=/usr/share/man"; 
-                              "--infodir=/usr/share/info"; "--datadir=/usr/share";
-                              "--sysconfdir=/etc"; "--localstatedir=/var/lib"];)
+             if Sys.os_type <> "Win32" then
+               assert_command
+                 "./configure" ["--prefix=/usr"; "--mandir=/usr/share/man"; 
+                                "--infodir=/usr/share/info"; "--datadir=/usr/share";
+                                "--sysconfdir=/etc"; "--localstatedir=/var/lib"];)
           (fun pwd ->
              Sys.chdir pwd)
           ()))
