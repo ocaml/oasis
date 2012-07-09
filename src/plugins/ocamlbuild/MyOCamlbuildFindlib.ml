@@ -37,19 +37,21 @@ let blank_sep_strings =
   Ocamlbuild_pack.Lexers.blank_sep_strings
 
 let split s ch =
-  let x = 
-    ref [] 
+  let buf = Buffer.create 13 in
+  let x = ref [] in
+  let flush () = 
+    x := (Buffer.contents buf) :: !x;
+    Buffer.clear buf
   in
-  let rec go s =
-    let pos = 
-      String.index s ch 
-    in
-      x := (String.before s pos)::!x;
-      go (String.after s (pos + 1))
-  in
-    try
-      go s
-    with Not_found -> !x
+    String.iter 
+      (fun c ->
+         if c = ch then 
+           flush ()
+         else
+           Buffer.add_char buf c)
+      s;
+    flush ();
+    List.rev !x
 
 let split_nl s = split s '\n'
 
