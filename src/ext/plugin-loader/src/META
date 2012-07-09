@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: de4648854e0f82fd0a6bd8a04449ef5b)
-version = "0.3.0"
+# DO NOT EDIT (digest: 131d06b948ea0aac1c338fac7d9821c6)
+version = "0.3.1"
 description = "Architecture for building OCaml libraries and applications"
 requires = "dynlink findlib"
 archive(byte) = "plugin-loader.cma"
