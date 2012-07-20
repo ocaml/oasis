@@ -194,6 +194,20 @@ let configure pkg argv =
       | None ->
           ()
   end;
+  (* Make sure the findlib version is fine for the OCaml compiler. *)
+  begin
+    let ocaml_ge4 =
+      OASISVersion.version_compare
+        (OASISVersion.version_of_string (BaseStandardVar.ocaml_version()))
+        (OASISVersion.version_of_string "4.0.0") >= 0 in
+    if ocaml_ge4 then
+      let findlib_lt132 =
+        OASISVersion.version_compare
+          (OASISVersion.version_of_string (BaseStandardVar.findlib_version()))
+          (OASISVersion.version_of_string "1.3.2") < 0 in
+      if findlib_lt132 then
+        add_errors "OCaml >= 4.0.0 requires Findlib version >= 1.3.2"
+  end;
 
   (* FlexDLL *)
   if BaseStandardVar.os_type () = "Win32" ||
