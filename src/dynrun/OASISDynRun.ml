@@ -17,18 +17,23 @@ let setup_t =
   let _, setup_t = BaseSetup.of_package ~setup_update:false pkg in
     setup_t
 
+(* Re-export BaseSetup.setup so one can modify setup_t before passing it
+   to setup(). *)
+module BaseSetup = struct
+  include BaseSetup
 
-let setup () =
-  let tmp_setup_fn = Filename.temp_file (setup_t.package.name^"-setup") ".ml" in
-  let restored = ref false in
-  let cleanup () =
-    if not !restored then begin
-      restored := true;
-      BaseGenerate.restore ();
-      if Sys.file_exists tmp_setup_fn then
-        Sys.remove tmp_setup_fn
-    end
-  in
+  let setup setup_t =
+    let tmp_setup_fn =
+      Filename.temp_file (setup_t.package.name^"-setup") ".ml" in
+    let restored = ref false in
+    let cleanup () =
+      if not !restored then begin
+        restored := true;
+        BaseGenerate.restore ();
+        if Sys.file_exists tmp_setup_fn then
+          Sys.remove tmp_setup_fn
+      end
+    in
     try
       let _lst: 'a list =
         BaseGenerate.generate
@@ -51,3 +56,6 @@ let setup () =
     with e ->
       cleanup ();
       raise e
+end
+
+let setup () = BaseSetup.setup setup_t
