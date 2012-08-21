@@ -3,6 +3,8 @@
 
 * recompilation of .cmxs, must have a pb in detecting update
 
+* Feature protect big changes like the section Object.
+
 IDEAS:
 
 * oasis-autogenerate: automatically file Modules and ModulesInternal using a field
