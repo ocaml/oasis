@@ -58,6 +58,6 @@ let init pkg =
                                            (f_ "Executable '%s' not yet built.")
                                            cs.cs_name)))))
 
-       | Library _ | Flag _ | Test _ | SrcRepo _ | Doc _ ->
+       | Library _ | Object _ | Flag _ | Test _ | SrcRepo _ | Doc _ ->
            ())
     pkg.sections

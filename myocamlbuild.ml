@@ -793,6 +793,7 @@ dispatch
           function
             | After_rules ->
                 begin
+                  flag ["ocaml"; "compile"] & S[A"-warn-error"; A"+8"];
                   try 
                     let gettext = 
                       BaseEnvLight.var_get 

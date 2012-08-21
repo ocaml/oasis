@@ -556,7 +556,7 @@ let parse_stream conf st =
         (* Statement *)
         "+:"; "$:"; ":"; "if"; "{"; "}"; "else"; 
         (* Section *)
-        "Flag"; "Library"; "Executable"; 
+        "Flag"; "Library"; "Object"; "Executable";
         "SourceRepository"; "Test";
         "Document";
         (* Expression *)
@@ -668,6 +668,9 @@ let parse_stream conf st =
 
       | [<'Kwd "Library"; nm = id_or_string; library_blk = parse_stmt>] ->
           TSLibrary (nm, library_blk)
+
+      | [<'Kwd "Object"; nm = id_or_string; object_blk = parse_stmt>] ->
+          TSObject (nm, object_blk)
 
       | [< 'Kwd "Executable"; nm = id_or_string; exec_blk = parse_stmt>] ->
           TSExecutable (nm, exec_blk)

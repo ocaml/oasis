@@ -157,7 +157,7 @@ let doit ctxt pkg (cs, doc) =
      *)
     let lib_of_findlib =
       let _, _, library_name_of_findlib_name =
-        OASISLibrary.findlib_mapping pkg
+        OASISFindlib.findlib_mapping pkg
       in
       let lib_of_name =
         List.fold_left

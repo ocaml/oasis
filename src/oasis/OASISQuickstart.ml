@@ -698,7 +698,7 @@ let ask_package ~ctxt lvl intrf =
     @ (List.fold_left
          (fun lst sct ->
             match sct with
-              | Executable _ | Library _ ->
+              | Executable _ | Library _ | Object _ ->
                   lst
               | Test (cs, test) -> 
                   (test.test_type :> plugin_kind plugin) :: lst

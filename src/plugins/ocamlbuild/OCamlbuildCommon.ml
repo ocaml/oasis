@@ -141,6 +141,10 @@ let fix_build_tools tool pkg =
                  let bs = fix_build_tools' sct bs in
                    Library (cs, bs, lib)
 
+             | Object (cs, bs, obj) ->
+                 let bs = fix_build_tools' sct bs in
+                   Object (cs, bs, obj)
+
              | Flag _ | SrcRepo _ | Test _ | Doc _ as sct ->
                  sct
          in

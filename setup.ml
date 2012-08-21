@@ -6117,10 +6117,12 @@ let setup_t =
                            "OASISExecutable";
                            "OASISFlag";
                            "OASISLibrary";
+                           "OASISObject";
                            "OASISPackage";
                            "OASISSourceRepository";
                            "OASISTest";
                            "OASISPlugin";
+                           "OASISFindlib";
                            "OASISSchema";
                            "OASISSection";
                            "OASISData";

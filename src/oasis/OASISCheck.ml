@@ -251,7 +251,7 @@ let check_package ~ctxt pkg =
                           %s, possible conflict.")
                      sct_str varname (MapString.find varname mp);
                  MapString.add varname sct_str mp
-           | Library _ | Doc _ | SrcRepo _ | Test _ ->
+           | Library _ | Object _ | Doc _ | SrcRepo _ | Test _ ->
                mp)
       MapString.empty
       pkg.sections

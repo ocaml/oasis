@@ -207,6 +207,15 @@ let to_package conf st =
             acc
             stmt
 
+      | TSObject (nm, stmt) ->
+          schema_stmt
+            OASISObject.generator
+            nm
+            OASISObject.schema
+            (oasis_version pkg_data)
+            acc
+            stmt
+
       | TSExecutable (nm, stmt) -> 
           schema_stmt
             OASISExecutable_intern.generator
@@ -292,7 +301,7 @@ let to_package conf st =
   let pkg = 
     (* Map of findlib name to internal libraries *)
     let _, _, internal_of_findlib =
-      OASISLibrary.findlib_mapping pkg
+      OASISFindlib.findlib_mapping pkg
     in
 
     let map_internal_libraries sct =
@@ -302,7 +311,7 @@ let to_package conf st =
                let is_internal, lnm =
                  try
                    true, internal_of_findlib lnm
-                 with (OASISLibrary.FindlibPackageNotFound _) ->
+                 with (OASISFindlib.FindlibPackageNotFound _) ->
                    false, lnm
                in
                  if is_internal then
@@ -367,6 +376,13 @@ let to_package conf st =
                            sct
                            bs,
                          lib)
+                  | Object (cs, bs, obj) as sct ->
+                      Object
+                        (cs,
+                         map_internal
+                           sct
+                           bs,
+                         obj)
                   | Executable (cs, bs, exec) as sct ->
                       Executable
                         (cs,

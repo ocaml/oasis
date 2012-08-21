@@ -330,7 +330,7 @@ let tests =
             "test14.oasis",
             (fun pkg ->
                let _, _, lib_name_of_findlib_name =
-                 OASISLibrary.findlib_mapping pkg
+                 OASISFindlib.findlib_mapping pkg
                in
                  List.iter
                    (fun (fndlb_nm, lib_nm) ->

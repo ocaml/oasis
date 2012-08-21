@@ -48,6 +48,19 @@ let build pkg argv =
     in_build_dir (OASISHostPath.of_unix fn)
   in
 
+  (* Checks if the string [fn] ends with [nd] *)
+  let ends_with nd fn =
+    let nd_len =
+      String.length nd
+    in
+      (String.length fn >= nd_len)
+      &&
+      (String.sub
+         fn
+         (String.length fn - nd_len)
+         nd_len) = nd
+  in
+
   let cond_targets =
     List.fold_left
       (fun acc ->
@@ -58,18 +71,6 @@ let build pkg argv =
                    BaseBuilt.of_library
                      in_build_dir_of_unix
                      (cs, bs, lib)
-                 in
-
-                 let ends_with nd fn =
-                   let nd_len =
-                     String.length nd
-                   in
-                     (String.length fn >= nd_len)
-                     &&
-                     (String.sub
-                        fn
-                        (String.length fn - nd_len)
-                        nd_len) = nd
                  in
 
                  let tgts =
@@ -93,6 +94,35 @@ let build pkg argv =
                      | [] ->
                          failwithf
                            (f_ "No possible ocamlbuild targets for library %s")
+                           cs.cs_name
+               end
+
+           | Object (cs, bs, obj) when var_choose bs.bs_build ->
+               begin
+                 let evs, unix_files =
+                   BaseBuilt.of_object
+                     in_build_dir_of_unix
+                     (cs, bs, obj)
+                 in
+
+                 let tgts =
+                   List.flatten
+                     (List.filter
+                        (fun l -> l <> [])
+                        (List.map
+                           (List.filter
+                              (fun fn ->
+                               ends_with ".cmo" fn
+                               || ends_with ".cmx" fn))
+                           unix_files))
+                 in
+
+                   match tgts with
+                     | _ :: _ ->
+                         (evs, tgts) :: acc
+                     | [] ->
+                         failwithf
+                           (f_ "No possible ocamlbuild targets for object %s")
                            cs.cs_name
                end
 
@@ -138,7 +168,7 @@ let build pkg argv =
                    acc
                end
 
-           | Library _ | Executable _ | Test _
+           | Library _ | Object _ | Executable _ | Test _
            | SrcRepo _ | Flag _ | Doc _ ->
                acc)
       []
@@ -261,7 +291,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
     (* Only link findlib package with executable *)
     match sct with
       | Executable _ -> true
-      | Library _ | Flag _ | Test _ | SrcRepo _ | Doc _ -> false
+      | Library _ | Object _ | Flag _ | Test _ | SrcRepo _ | Doc _ -> false
   in
 
   let src_tgts =
@@ -491,14 +521,19 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
 module MapDirs = 
   Map.Make 
     (struct 
-       type t = [`Library of string | `Executable of string]
+       type t = [`Library of string | `Object of string | `Executable of string]
        let compare t1 t2 = 
          match t1, t2 with 
-           | `Library _, `Executable _ ->
+           | `Library _, `Executable _
+           | `Library _, `Object _
+           | `Object _, `Executable _ ->
                -1
-           | `Executable _, `Library _ ->
+           | `Object _, `Library _
+           | `Executable _, `Library _
+           | `Executable _, `Object _ ->
                1
            | `Library s1, `Library s2 
+           | `Object s1, `Object s2
            | `Executable s1, `Executable s2 ->
                String.compare s1 s2
      end)
@@ -527,6 +562,14 @@ let compute_map_dirs pkg =
                  (bs_paths bs lib.lib_modules)
                  (* All paths accessed only by the library *)
                  (bs_paths bs lib.lib_internal_modules)
+                 mp
+
+           | Object (cs, bs, obj) ->
+               add (`Object cs.cs_name)
+                 (* All paths accessed from within the (potentially packed)
+                    object *)
+                 (bs_paths bs obj.obj_modules)
+                 [] (* No internal paths *)
                  mp
 
            | Executable (cs, bs, exec) ->
@@ -567,7 +610,8 @@ let compute_includes map_dirs pkg =
            function
              | InternalLibrary nm ->
                 let src_dirs, _ = 
-                   MapDirs.find (`Library nm) map_dirs 
+                   try MapDirs.find (`Library nm) map_dirs
+                   with Not_found -> MapDirs.find (`Object nm) map_dirs
                  in
                    SetString.union set (set_string_of_list src_dirs)
 
@@ -605,6 +649,8 @@ let compute_includes map_dirs pkg =
          function
            | Library (cs, bs, _) ->
                add_map_dirs (`Library cs.cs_name) bs includes
+           | Object (cs, bs, _) ->
+               add_map_dirs (`Object cs.cs_name) bs includes
            | Executable (cs, bs, _) ->
                add_map_dirs (`Executable cs.cs_name) bs includes
            | Flag _ | SrcRepo _ | Test _ | Doc _ ->
@@ -756,6 +802,118 @@ let add_ocamlbuild_files ctxt pkg =
                           :: ctxt.other_actions}
                  in
 
+                   ctxt, tag_t, myocamlbuild_t
+               end
+
+           | Object (cs, bs, obj) as sct ->
+               begin
+                 (* Extract content for objects *)
+
+                 (* All paths of the library *)
+                 let src_dirs, src_internal_dirs =
+                   MapDirs.find (`Object cs.cs_name) map_dirs
+                 in
+
+                 (* Generated library *)
+                 let target_lib =
+                   let ext =
+                     match bs.bs_compiled_object with
+                       | Best ->
+                           "{cmo,cmx}"
+                       | Byte ->
+                           "cmo"
+                       | Native ->
+                           "cmx"
+                   in
+                     prepend_bs_path bs
+                       (OASISUnixPath.add_extension cs.cs_name ext)
+                 in
+
+                 (* Start comment *)
+                 let tag_t =
+                   (Printf.sprintf "# Object %s" cs.cs_name) :: tag_t
+                 in
+
+                 let tag_t =
+                   if List.length obj.obj_modules <> 1 then
+                     let base_sources =
+                       OASISObject.source_unix_files
+                         ~ctxt:ctxt.ctxt
+                         (cs, bs, obj)
+                         (fun ufn ->
+                            OASISFileUtil.file_exists_case
+                              (OASISHostPath.of_unix ufn))
+                     in
+                     add_tags
+                       tag_t
+                       (List.rev_map
+                          (fun (base_fn, _) ->
+                             OASISUnixPath.add_extension base_fn "cmx")
+                          base_sources)
+                       ["for-pack("^String.capitalize cs.cs_name^")"]
+                   else
+                     tag_t
+                 in
+
+                 let ctxt, tag_t, myocamlbuild_t =
+                   bs_tags
+                     pkg sct cs bs
+                     src_dirs
+                     src_internal_dirs
+                     target_lib
+                     ctxt
+                     tag_t
+                     myocamlbuild_t
+                 in
+
+                 let myocamlbuild_t =
+                   {myocamlbuild_t with
+                        lib_ocaml =
+                          (cs.cs_name,
+                           List.filter
+                             (fun fn -> not (OASISUnixPath.is_current fn))
+                             src_dirs) :: myocamlbuild_t.lib_ocaml}
+                 in
+
+                 let () =
+                   if obj.obj_modules = [] then
+                     warning
+                       ~ctxt:ctxt.ctxt
+                       (f_ "No exported module defined for object %s")
+                       cs.cs_name;
+                 in
+
+                 let ctxt =
+                   match obj.obj_modules with
+                     | [ m ] -> ctxt
+                     | _ -> (* generate mlpack file *)
+                         let fn_base = prepend_bs_path bs cs.cs_name in
+                         let fn =
+                           OASISHostPath.add_extension fn_base "mlpack"
+                         and not_fn =
+                           OASISHostPath.add_extension fn_base "ml"
+                         in
+                         let ctxt =
+                           add_file
+                             (template_make
+                                fn
+                                comment_ocamlbuild
+                                []
+                                obj.obj_modules
+                                [])
+                             ctxt
+                         in
+                           {ctxt with
+                                other_actions =
+                                  (fun () ->
+                                     if OASISFileUtil.file_exists_case not_fn
+                                     then
+                                       OASISMessage.error ~ctxt:ctxt.ctxt
+                                         (f_ "Conflicting file '%s' and '%s' \
+                                            exists, remove '%s'.")
+                                         fn not_fn not_fn)
+                                :: ctxt.other_actions}
+                 in
                    ctxt, tag_t, myocamlbuild_t
                end
 

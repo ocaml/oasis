@@ -28,6 +28,7 @@ type t =
   | BExec    (* Executable *)
   | BExecLib (* Library coming with executable *)
   | BLib     (* Library *)
+  | BObj     (* Library *)
   | BDoc     (* Document *)
 
 let to_log_event_file t nm =
@@ -36,6 +37,7 @@ let to_log_event_file t nm =
      | BExec -> "exec"
      | BExecLib -> "exec_lib"
      | BLib -> "lib"
+     | BObj -> "obj"
      | BDoc -> "doc")^
   "_"^nm
 
@@ -99,6 +101,8 @@ let fold t nm f acc =
                        (f_ "executable %s")
                    | BLib ->
                        (f_ "library %s")
+                   | BObj ->
+                       (f_ "object %s")
                    | BDoc ->
                        (f_ "documentation %s"))
                 nm);
@@ -156,6 +160,23 @@ let of_library ffn (cs, bs, lib) =
   in
   let evs =
     [BLib,
+     cs.cs_name,
+     List.map (List.map ffn) unix_lst]
+  in
+    evs, unix_lst
+
+
+let of_object ffn (cs, bs, obj) =
+  let unix_lst =
+    OASISObject.generated_unix_files
+      ~ctxt:!BaseContext.default
+      ~source_file_exists:(fun fn ->
+         OASISFileUtil.file_exists_case (OASISHostPath.of_unix fn))
+      ~is_native:(bool_of_string (is_native ()))
+      (cs, bs, obj)
+  in
+  let evs =
+    [BObj,
      cs.cs_name,
      List.map (List.map ffn) unix_lst]
   in

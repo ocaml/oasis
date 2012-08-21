@@ -1479,6 +1479,20 @@ let tests =
              "src/testA.mllib" :: oasis_ocamlbuild_files,
              [],
              []);
+
+          "../examples/object",
+          (fun () ->
+             long_test,
+             "src1/META" :: "src2/META" :: "src2/packed_modules.mlpack" ::
+             oasis_ocamlbuild_files,
+             [ in_ocaml_library "single_module"
+                 ["META"; "single.o" ; "single.mli"; "single.cmx"; "single.cmo";
+                  "single.cmi" ] ;
+               in_ocaml_library "packed_modules"
+                 ["packed_modules.o"; "packed_modules.cmx";
+                  "packed_modules.cmo"; "packed_modules.cmi";
+                  "m1.ml"; "m2.mli"; "META"] ],
+             []);
        ]
     )
     @

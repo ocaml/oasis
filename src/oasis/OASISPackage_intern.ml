@@ -40,6 +40,8 @@ let mod_build_depends f pkg =
            (function
               | Library (cs, bs, lib) ->
                   Library (cs, f bs, lib)
+              | Object (cs, bs, obj) ->
+                  Object (cs, f bs, obj)
               | Executable (cs, bs, exec) ->
                   Executable (cs, f bs, exec)
               | Test _ | Flag _ | SrcRepo _ | Doc _ as sct ->
@@ -76,7 +78,8 @@ let add_build_tool ?(no_test=false) ?(condition=[EBool true, true]) build_tool p
                            {doc with 
                                 doc_build_tools = 
                                   build_tool :: doc.doc_build_tools})
-                  | Library _ | Executable _ | Flag _ | SrcRepo _ as sct ->
+                  | Library _ | Object _
+                  | Executable _ | Flag _ | SrcRepo _ as sct ->
                       sct)
                pkg.sections}
 

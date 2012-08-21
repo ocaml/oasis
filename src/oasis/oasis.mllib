@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: f2a4952ef6e0f0186ba679a1819bd98f)
+# DO NOT EDIT (digest: 18724322be944e54406842b45d2d44b2)
 FormatExt
 FormatMarkdown
 ODNFunc
@@ -42,10 +42,12 @@ OASISDocument
 OASISExecutable
 OASISFlag
 OASISLibrary
+OASISObject
 OASISPackage
 OASISSourceRepository
 OASISTest
 OASISPlugin
+OASISFindlib
 OASISSchema
 OASISSection
 OASISData

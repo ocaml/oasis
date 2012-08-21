@@ -146,6 +146,13 @@ type library =
       lib_findlib_containers: findlib_name list;
     } with odn
 
+
+type object_ =
+    {
+      obj_modules:            string list;
+      obj_findlib_fullname:   findlib_name list option;
+    } with odn
+
 type executable =
     {
       exec_custom:          bool;
@@ -206,6 +213,7 @@ type doc =
 
 type section =
   | Library    of common_section * build_section * library
+  | Object     of common_section * build_section * object_
   | Executable of common_section * build_section * executable
   | Flag       of common_section * flag
   | SrcRepo    of common_section * source_repository
@@ -214,7 +222,7 @@ type section =
   with odn
 
 type section_kind =
-    [ `Library | `Executable | `Flag | `SrcRepo | `Test | `Doc ]
+    [ `Library | `Object | `Executable | `Flag | `SrcRepo | `Test | `Doc ]
 
 type package = 
     {

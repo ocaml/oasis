@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 0e62ab6c871c5ff24dbe4ca8f3684337)
+# DO NOT EDIT (digest: 30b50993f19311a293781368d85c0608)
 oasis/FormatExt
 oasis/FormatMarkdown
 oasis/ODNFunc
@@ -42,10 +42,12 @@ oasis/OASISDocument
 oasis/OASISExecutable
 oasis/OASISFlag
 oasis/OASISLibrary
+oasis/OASISObject
 oasis/OASISPackage
 oasis/OASISSourceRepository
 oasis/OASISTest
 oasis/OASISPlugin
+oasis/OASISFindlib
 oasis/OASISSchema
 oasis/OASISSection
 oasis/OASISData

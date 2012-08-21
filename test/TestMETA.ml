@@ -27,7 +27,7 @@ open OUnit
 open TestCommon
 open Fl_metascanner
 open OASISTypes
-open OASISLibrary
+open OASISFindlib
 
 let tests =
   let test_of_vector (nm, oasis_str, pkg_tests) =
@@ -45,7 +45,7 @@ let tests =
 
           (* Generate META file *)
           let groups, findlib_name_of_library_name, _ =
-            OASISLibrary.findlib_mapping pkg
+            OASISFindlib.findlib_mapping pkg
           in
           let write_meta fndlb_nm =
             let grp = 

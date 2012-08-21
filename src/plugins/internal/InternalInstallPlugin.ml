@@ -27,7 +27,7 @@ open BaseEnv
 open BaseStandardVar
 open BaseMessage
 open OASISTypes
-open OASISLibrary
+open OASISFindlib
 open OASISGettext
 open OASISUtils
 
@@ -36,6 +36,9 @@ let exec_hook =
 
 let lib_hook =
   ref (fun (cs, bs, lib) -> cs, bs, lib, [])
+
+let obj_hook =
+  ref (fun (cs, bs, obj) -> cs, bs, obj, [])
 
 let doc_hook =
   ref (fun (cs, doc) -> cs, doc)
@@ -257,6 +260,75 @@ let install pkg argv =
           begin
             (f_data, acc)
           end
+    and files_of_object (f_data, acc) data_obj =
+      let cs, bs, obj, obj_extra =
+        !obj_hook data_obj
+      in
+        if var_choose bs.bs_install &&
+           BaseBuilt.is_built BaseBuilt.BObj cs.cs_name then
+          begin
+            let acc =
+              (* Start with acc + obj_extra *)
+              List.rev_append obj_extra acc
+            in
+            let acc =
+              (* Add uncompiled header from the source tree *)
+              let path =
+                OASISHostPath.of_unix bs.bs_path
+              in
+                List.fold_left
+                  (fun acc modul ->
+                     try
+                       List.find
+                         OASISFileUtil.file_exists_case
+                         (List.map
+                            (Filename.concat path)
+                            [modul^".mli";
+                             modul^".ml";
+                             String.uncapitalize modul^".mli";
+                             String.capitalize   modul^".mli";
+                             String.uncapitalize modul^".ml";
+                             String.capitalize   modul^".ml"])
+                       :: acc
+                     with Not_found ->
+                       begin
+                         warning
+                           (f_ "Cannot find source header for module %s \
+                                in object %s")
+                           modul cs.cs_name;
+                         acc
+                       end)
+                  acc
+                  obj.obj_modules
+            in
+
+            let acc =
+             (* Get generated files *)
+             BaseBuilt.fold
+               BaseBuilt.BObj
+               cs.cs_name
+               (fun acc fn -> fn :: acc)
+               acc
+            in
+
+            let f_data () =
+              (* Install data associated with the object *)
+              install_data
+                bs.bs_path
+                bs.bs_data_files
+                (Filename.concat
+                   (datarootdir ())
+                   pkg.name);
+              f_data ()
+            in
+
+              (f_data, acc)
+          end
+         else
+          begin
+            (f_data, acc)
+          end
+
     in
 
     (* Install one group of library *)
@@ -267,8 +339,10 @@ let install pkg argv =
           match grp with
             | Container (_, children) ->
                 data_and_files, children
-            | Package (_, cs, bs, lib, children) ->
+            | Package (_, cs, bs, `Library lib, children) ->
                 files_of_library data_and_files (cs, bs, lib), children
+            | Package (_, cs, bs, `Object obj, children) ->
+                files_of_object data_and_files (cs, bs, obj), children
         in
           List.fold_left
             install_group_lib_aux

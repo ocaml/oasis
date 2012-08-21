@@ -135,6 +135,8 @@ let pp_print_section plugins fmt sct =
    match sct with 
      | Library (cs, bs, lib) ->
          pp_print_section' OASISLibrary.schema (cs, bs, lib)
+     | Object (cs, bs, obj) ->
+         pp_print_section' OASISObject.schema (cs, bs, obj)
      | Executable (cs, bs, exec) -> 
          pp_print_section' OASISExecutable.schema (cs, bs, exec)
      | SrcRepo (cs, src_repo) ->

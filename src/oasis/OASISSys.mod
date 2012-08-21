@@ -14,6 +14,8 @@ OASISSection.ml
 OASISBuildSection.ml
 OASISExecutable.ml
 OASISLibrary.ml
+OASISObject.ml
+OASISFindlib.ml
 OASISFlag.ml
 OASISPackage.ml
 OASISSourceRepository.ml

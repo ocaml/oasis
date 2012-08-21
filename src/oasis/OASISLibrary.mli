@@ -25,12 +25,13 @@
 
 open OASISTypes
 
-type library_name = name
-type findlib_part_name = name
-type 'a map_of_findlib_part_name = 'a OASISUtils.MapString.t
-
-exception InternalLibraryNotFound of library_name
-exception FindlibPackageNotFound of findlib_name
+(** Looks for a module file, considering capitalization or not. *)
+val find_module :
+  (string -> bool) ->
+  build_section ->
+  OASISUnixPath.unix_filename ->
+  [ `No_sources of OASISUnixPath.unix_filename list
+  | `Sources of OASISUnixPath.unix_filename * string list ]
 
 (** [source_unix_files (cs, bs, lib) source_file_exists] Source files for this
     library. The first part of the tuple is the file without extenstion for
@@ -57,37 +58,6 @@ val generated_unix_files :
   source_file_exists:(unix_filename -> bool) ->
   common_section * build_section * library ->
   unix_filename list list
-
-(** Library groups are organized in trees.
-  *)
-type group_t =
-  | Container of findlib_part_name * group_t list
-  | Package of (findlib_part_name *
-                common_section * 
-                build_section * 
-                library * 
-                group_t list)
-
-(** Compute groups of libraries, associate root libraries with 
-    a tree of its children. A group of libraries is defined by 
-    the fact that these libraries have a parental relationship 
-    and must be installed together, with the same META file.
-  *)
-val findlib_mapping: package ->
-  group_t list *
-  (library_name -> findlib_name) *
-  (findlib_name -> library_name)
-
-(** Return the findlib root name of a group, it takes into account
-    containers. So the return group name is the toplevel name
-    for both libraries and theirs containers.
-  *)
-val findlib_of_group : group_t -> findlib_name
-
-(** Return the root library, i.e. the first found into the group tree
-    that has no parent.
-  *)
-val root_of_group : group_t -> common_section * build_section * library
 
 (** Schema for the section. {b Not exported}.
   *)

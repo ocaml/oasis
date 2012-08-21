@@ -286,6 +286,7 @@ let main ctxt pkg =
            (fun acc ->
               function
                 | Library (_, bs, _) 
+                | Object (_,bs,_)
                 | Executable (_, bs, _) as sct ->
                     (sct, bs) :: acc
                 | SrcRepo _ | Flag _ | Test _ | Doc _ ->
@@ -405,7 +406,9 @@ let main ctxt pkg =
       List.fold_left 
         (fun lst ->
            function 
-             | Library (_, bs, _) | Executable (_, bs, _) as section ->
+             | Library (_, bs, _)
+             | Object (_,bs,_)
+             | Executable (_, bs, _) as section ->
                  begin
                    let ssection = 
                      SetSection.singleton section

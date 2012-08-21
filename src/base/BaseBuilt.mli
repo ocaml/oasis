@@ -29,6 +29,7 @@ type t =
   | BExec    (* Executable. *)
   | BExecLib (* Library coming with executable. *)
   | BLib     (* Library. *)
+  | BObj     (* Object. *)
   | BDoc     (* Document. *)
 
 (** Register files built. Each files built is provided as a list 
@@ -45,7 +46,7 @@ val unregister : t -> name -> unit
  *)
 val fold : t -> name -> ('a -> host_filename -> 'a) -> 'a -> 'a
 
-(** Check if a library/doc/exec has been built. 
+(** Check if a library/object/doc/exec has been built.
   *)
 val is_built : t -> name -> bool
 
@@ -67,4 +68,12 @@ val of_executable :
 val of_library :
   (unix_filename -> host_filename) ->
   common_section * build_section * library ->
+  (t * name * host_filename list list) list * unix_filename list list
+
+(** [of_object loc_fn (cs, bs, lib)]  Same as {!of_executable}, but
+    using {!OASISObject.generated_unix_files}.
+  *)
+val of_object :
+  (unix_filename -> host_filename) ->
+  common_section * build_section * object_ ->
   (t * name * host_filename list list) list * unix_filename list list

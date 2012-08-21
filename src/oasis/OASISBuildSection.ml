@@ -70,8 +70,10 @@ let build_graph pkg =
     List.iter
       (function
          | InternalLibrary nm ->
-             let dvrtx = G.vertex_of_value g (`Library, nm) in
-               G.add_edge g vrtx dvrtx
+             let dvrtx =
+               try G.vertex_of_value g (`Library, nm)
+               with Not_found -> G.vertex_of_value g (`Object, nm) in
+             G.add_edge g vrtx dvrtx
          | FindlibPackage (fndlb_nm, ver_opt) ->
              let dvrtx = G.add_vertex g (`FindlibPackage, fndlb_nm) in
                Hashtbl.add ext_of_vrtx dvrtx
@@ -85,6 +87,7 @@ let build_graph pkg =
       (fun (vrtx, sct) ->
          match sct with
            | Library (cs, bs, _)
+           | Object (cs, bs, _)
            | Executable (cs, bs, _) ->
                add_build_section vrtx bs
            | Test (cs, {test_tools = build_tools})

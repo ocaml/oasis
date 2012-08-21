@@ -264,6 +264,7 @@ let clean, distclean =
                       (f t.package (cs, doc))
                       args
               | Library _
+              | Object _
               | Executable _
               | Flag _
               | SrcRepo _ ->

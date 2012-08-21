@@ -25,6 +25,8 @@ let section_kind_common =
   function
     | Library (cs, _, _) -> 
         `Library, cs
+    | Object (cs, _, _) ->
+        `Object, cs
     | Executable (cs, _, _) ->
         `Executable, cs
     | Flag (cs, _) ->
@@ -42,6 +44,7 @@ let section_common sct =
 let section_common_set cs =
   function
     | Library (_, bs, lib)     -> Library (cs, bs, lib)
+    | Object (_, bs, obj)      -> Object (cs, bs, obj)
     | Executable (_, bs, exec) -> Executable (cs, bs, exec)
     | Flag (_, flg)            -> Flag (cs, flg)
     | SrcRepo (_, src_repo)    -> SrcRepo (cs, src_repo)
@@ -62,6 +65,7 @@ let string_of_section sct =
   in
     (match k with
        | `Library    -> "library" 
+       | `Object     -> "object"
        | `Executable -> "executable"
        | `Flag       -> "flag"
        | `SrcRepo    -> "src repository"

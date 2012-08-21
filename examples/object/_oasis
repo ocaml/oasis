@@ -1,0 +1,20 @@
+Name: object
+Version: 0.0.1
+OASISFormat: 0.3
+Authors: Philippe Veber
+Homepage: http://example.com
+License: LGPL with OCaml linking exception
+Synopsis: Example for object sections
+BuildTools: ocamlbuild
+BuildDepends: oUnit (>= 0.1.1)
+Plugins: META (0.3)
+
+Object single_module
+  Path: src1
+  Modules: Single
+  Install: true
+
+Object packed_modules
+  Path: src2
+  Modules: M1, M2
+  Install: true

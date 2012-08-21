@@ -26,7 +26,7 @@
 open OASISGettext
 open OASISTypes
 open OASISValues
-open OASISLibrary
+open OASISFindlib
 open OASISFileTemplate
 open OASISPlugin
 open OASISSchema
@@ -126,6 +126,11 @@ let generator =
       }
 
 let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
+  let may f =
+    function
+      | Some x -> f x
+      | None -> ()
+  in
 
   let replace_chars s =
     OASISString.replace_chars
@@ -152,15 +157,34 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
       | None -> pkg.synopsis
   in
 
-  let rec pp_print_library fmt (lib_cs, lib_bs, lib, children) =
-    let lib_name =
-      lib_cs.cs_name
-    in
-    let lib_cma, lib_cmxa, lib_cmxs =
-      lib_name^".cma", lib_name^".cmxa", lib_name^".cmxs"
+  let rec pp_print_library fmt (cs, bs, contents, children) =
+    let name = cs.cs_name in
+    let archive_byte, archive_byte_plugin,
+        archive_native, archive_native_plugin =
+      match contents with
+      | `Library _ ->
+          name^".cma", Some (name^".cma"),
+          name^".cmxa", Some (name^".cmxs")
+      | `Object { obj_modules = [ m ] } ->
+          let dir = OASISHostPath.of_unix bs.bs_path in
+          let exists fn ext =
+            let path = Filename.concat dir (fn ^ ext) in
+            OASISFileUtil.file_exists_case path
+          in
+          let m =
+            List.find
+              (fun m -> exists m ".mli" || exists m ".ml")
+              [ String.uncapitalize m ; String.capitalize m ]
+          in
+          m^".cmo", None,
+          m^".cmx", None
+      | `Object _ ->
+          name^".cmo", None,
+          name^".cmx", None
+
     in
     let t = 
-      generator lib_cs.cs_data
+      generator cs.cs_data
     in
       pp_print_sfield fmt ("version", (OASISVersion.string_of_version pkg.version));
       begin
@@ -183,7 +207,7 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
                          findlib_name_of_library_name nm
                      | FindlibPackage (fndlb_nm, _) ->
                          fndlb_nm)
-                  lib_bs.bs_build_depends
+                  bs.bs_build_depends
         in
          if requires <> [] then
           pp_print_sfield fmt ("requires", String.concat " " requires)
@@ -191,29 +215,37 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
       begin
         match t.meta_type with 
           | METALibrary ->
-              pp_print_field fmt ("archive", ["byte"], lib_cma);
-              pp_print_field fmt ("archive", ["byte"; "plugin"], lib_cma);
+              pp_print_field fmt ("archive", ["byte"], archive_byte);
+              may
+                (fun x ->
+                   pp_print_field fmt ("archive", ["byte"; "plugin"], x))
+                archive_byte_plugin;
               begin
-                match lib_bs.bs_compiled_object with
-                  | Best | Native ->
-                      pp_print_field fmt ("archive", ["native"], lib_cmxa);
-                      pp_print_field fmt ("archive", ["native"; "plugin"], 
-                                          lib_cmxs)
+                match bs.bs_compiled_object with
+                | Best | Native ->
+                    pp_print_field fmt ("archive", ["native"], archive_native);
+                    may
+                      (fun x ->
+                         pp_print_field fmt
+                           ("archive", ["native"; "plugin"], x))
+                      archive_native_plugin;
                   | Byte ->
                       ()
               end
 
           | METASyntax ->
-              pp_print_field fmt ("archive", ["syntax"; "preprocessor"], lib_cma);
-              pp_print_field fmt ("archive", ["syntax"; "toploop"], lib_cma)
+              pp_print_field fmt
+                ("archive", ["syntax"; "preprocessor"], archive_byte);
+              pp_print_field fmt
+                ("archive", ["syntax"; "toploop"], archive_byte)
       end;
       List.iter (fprintf fmt "@,%s") t.extra_lines;
       pp_print_sfield fmt 
         ("exists_if", 
-         if lib_bs.bs_compiled_object = Native then 
-           lib_cmxa
+         if bs.bs_compiled_object = Native then
+           archive_native
          else
-           lib_cma);
+           archive_byte);
       FormatExt.pp_print_list pp_print_group "@," fmt children
 
   and pp_print_group fmt = 

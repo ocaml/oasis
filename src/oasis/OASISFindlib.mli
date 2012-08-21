@@ -19,49 +19,43 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** AST types
-    @author Sylvain Le Gall
-  *)
-
 open OASISTypes
 
-(** Context for parsing and checking AST *)
-type ctxt =
-    {
-      (** Current condition for conditional fields. *)
-      cond: OASISExpr.t option; 
+type library_name = name
+type findlib_part_name = name
+type 'a map_of_findlib_part_name = 'a OASISUtils.MapString.t
 
-      (** Valid flags *)
-      valid_flags: name list;
+exception InternalLibraryNotFound of library_name
+exception FindlibPackageNotFound of findlib_name
 
-      (** Combine values rather than setting it, when
-          setting field values
-       *)
-      append: bool; 
+(** Library groups are organized in trees.
+  *)
+type group_t =
+  | Container of findlib_part_name * group_t list
+  | Package of (findlib_part_name *
+                common_section *
+                build_section *
+                [`Library of library | `Object of object_] *
+                group_t list)
 
-      (** Global context *) 
-      ctxt: OASISContext.t;
-    }
+(** Compute groups of libraries, associate root libraries with
+    a tree of its children. A group of libraries is defined by
+    the fact that these libraries have a parental relationship
+    and must be installed together, with the same META file.
+  *)
+val findlib_mapping: package ->
+  group_t list *
+  (library_name -> findlib_name) *
+  (findlib_name -> library_name)
 
-(** Abstract Syntax Tree *)
-type field_op =
-  | FSet of string
-  | FAdd of string
-  | FEval of OASISExpr.t
+(** Return the findlib root name of a group, it takes into account
+    containers. So the return group name is the toplevel name
+    for both libraries and theirs containers.
+  *)
+val findlib_of_group : group_t -> findlib_name
 
-type stmt =
-  | SField of name * field_op
-  | SIfThenElse of OASISExpr.t * stmt * stmt
-  | SBlock of stmt list
-
-type top_stmt = 
-  | TSLibrary of name * stmt
-  | TSObject of name * stmt
-  | TSExecutable of name * stmt
-  | TSFlag of name * stmt
-  | TSSourceRepository of name * stmt
-  | TSTest of name * stmt
-  | TSDocument of name * stmt
-  | TSStmt of stmt
-  | TSBlock of top_stmt list
-
+(** Return the root library, i.e. the first found into the group tree
+    that has no parent.
+  *)
+val root_of_group : group_t ->
+  common_section * build_section * [`Library of library | `Object of object_]

@@ -19,49 +19,36 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** AST types
-    @author Sylvain Le Gall
-  *)
-
 open OASISTypes
 
-(** Context for parsing and checking AST *)
-type ctxt =
-    {
-      (** Current condition for conditional fields. *)
-      cond: OASISExpr.t option; 
+(** [source_unix_files (cs, bs, obj) source_file_exists] Source files for this
+    object. The first part of the tuple is the file without extenstion for
+    modules and the second part is the source files matching (e.g. .ml and
+    .mli).
+  *)
+val source_unix_files :
+  ctxt:OASISContext.t ->
+  common_section * build_section * object_ ->
+  (unix_filename -> bool) ->
+  (unix_filename * (unix_filename list)) list
 
-      (** Valid flags *)
-      valid_flags: name list;
+(** [generated_unix_files ~ctxt source_file_exists has_native_dynlink
+    is_native ext_lib ext_dll (cs, bs, lib)]
+    Compute all files expected by a build of the library. For each file a list
+    of alternatives is provided.
+  *)
+val generated_unix_files :
+  ctxt:OASISContext.t ->
+  is_native:bool ->
+  source_file_exists:(unix_filename -> bool) ->
+  common_section * build_section * object_ ->
+  unix_filename list list
 
-      (** Combine values rather than setting it, when
-          setting field values
-       *)
-      append: bool; 
+(** Generator for the section. {b Not exported}.
+  *)
+val generator : OASISVersion.t -> OASISTypes.name ->
+  PropList.Data.t -> OASISTypes.section
 
-      (** Global context *) 
-      ctxt: OASISContext.t;
-    }
-
-(** Abstract Syntax Tree *)
-type field_op =
-  | FSet of string
-  | FAdd of string
-  | FEval of OASISExpr.t
-
-type stmt =
-  | SField of name * field_op
-  | SIfThenElse of OASISExpr.t * stmt * stmt
-  | SBlock of stmt list
-
-type top_stmt = 
-  | TSLibrary of name * stmt
-  | TSObject of name * stmt
-  | TSExecutable of name * stmt
-  | TSFlag of name * stmt
-  | TSSourceRepository of name * stmt
-  | TSTest of name * stmt
-  | TSDocument of name * stmt
-  | TSStmt of stmt
-  | TSBlock of top_stmt list
-
+(** Schema for the section. {b Not exported}.
+  *)
+val schema : (common_section * build_section * object_) OASISSchema.t

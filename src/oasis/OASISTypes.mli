@@ -205,10 +205,21 @@ type library =
           library in build dependencies. 
         *)
       lib_findlib_containers: findlib_name list;
-      (** Name of virtual containes (empty findlib package) between findlib
+      (** Name of virtual containers (empty findlib package) between findlib
           parent and findlib name 
         *)
     } 
+
+(** Object definition.
+  *)
+type object_ =
+    {
+      obj_modules:            string list;
+      obj_findlib_fullname:   findlib_name list option;
+      (** Findlib name of this library, this name is used to refer to this
+          library in build dependencies.
+        *)
+    }
 
 (** Executable definition.
   *)
@@ -317,6 +328,7 @@ type doc =
 (** All sections and their attributes. *)
 type section =
   | Library    of common_section * build_section * library
+  | Object     of common_section * build_section * object_
   | Executable of common_section * build_section * executable
   | Flag       of common_section * flag
   | SrcRepo    of common_section * source_repository
@@ -324,7 +336,7 @@ type section =
   | Doc        of common_section * doc
   
 type section_kind =
-    [ `Library | `Executable | `Flag | `SrcRepo | `Test | `Doc ]
+    [ `Library | `Object | `Executable | `Flag | `SrcRepo | `Test | `Doc ]
 
 (** OASIS package, what an '_oasis' file contains.
   *)
