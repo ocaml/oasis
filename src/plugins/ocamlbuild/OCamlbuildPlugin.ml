@@ -158,9 +158,9 @@ let build pkg argv =
                  let acc =
                    match bs.bs_compiled_object with
                      | Native ->
-                         (target ".native") :: acc
+                         (target ".native") :: (target ".nobj.o") ::  acc
                      | Best when bool_of_string (is_native ()) ->
-                         (target ".native") :: acc
+                         (target ".native") :: (target ".nobj.o") :: acc
                      | Byte
                      | Best ->
                          (target ".byte") :: acc
@@ -928,11 +928,11 @@ let add_ocamlbuild_files ctxt pkg =
                    let ext =
                      match bs.bs_compiled_object with
                        | Best ->
-                           "{native,byte}"
+                           "{native,byte,nobj.o}"
                        | Byte ->
                            "byte"
                        | Native ->
-                           "native"
+                           "native,nobj.o"
                    in
                      prepend_bs_path bs
                        (OASISUnixPath.replace_extension

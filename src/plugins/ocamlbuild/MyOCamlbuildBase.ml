@@ -165,6 +165,15 @@ let dispatch t e =
             )
             t.lib_c;
 
+          (* Add output_obj rules mapped to .nobj.o *)
+          let native_output_obj x =
+            OC.link_gen "cmx" "cmxa" !Options.ext_lib [!Options.ext_obj; "cmi"] 
+              OC.ocamlopt_link_prog
+              (fun tags -> tags++"ocaml"++"link"++"byte"++"output_obj") x
+          in
+          rule "ocaml: cmx* and o* -> .nobj.o" ~prod:"%.nobj.o" ~deps:["%.cmx"; "%.o"]
+            (native_output_obj "%.cmx" "%.nobj.o");
+
             (* Add flags *)
             List.iter
             (fun (tags, cond_specs) ->
