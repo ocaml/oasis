@@ -932,7 +932,7 @@ let add_ocamlbuild_files ctxt pkg =
                        | Byte ->
                            "byte"
                        | Native ->
-                           "native,nobj.o"
+                           "{native,nobj.o}"
                    in
                      prepend_bs_path bs
                        (OASISUnixPath.replace_extension
