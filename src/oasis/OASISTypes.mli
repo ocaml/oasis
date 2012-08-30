@@ -54,6 +54,7 @@ type findlib_full = string
 type compiled_object =
   | Byte   (** Always use byte code. *) 
   | Native (** Always use native code. *)
+  | Native_object (** Compile to a native code object library instead of an executable. *)
   | Best   (** Use either byte or native, depending ocamlopt availability. *)
   
 (** Package dependency.

@@ -40,6 +40,7 @@ type findlib_full = string with odn
 type compiled_object =
   | Byte
   | Native
+  | Native_object
   | Best
   with odn
 

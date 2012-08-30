@@ -72,7 +72,7 @@ let generated_unix_files
   in
     List.map (List.map f) (
       match bs.bs_compiled_object with
-        | Native ->
+        | Native | Native_object ->
             native :: c_object :: byte :: header :: []
         | Best when is_native ->
             native :: c_object :: byte :: header :: []

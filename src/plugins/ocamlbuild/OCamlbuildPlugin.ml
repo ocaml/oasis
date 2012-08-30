@@ -157,10 +157,12 @@ let build pkg argv =
                  (* Add executable *)
                  let acc =
                    match bs.bs_compiled_object with
+                     | Native_object ->
+                         (target ".nobj.o") :: acc
                      | Native ->
-                         (target ".native") :: (target ".nobj.o") ::  acc
+                         (target ".native") ::  acc
                      | Best when bool_of_string (is_native ()) ->
-                         (target ".native") :: (target ".nobj.o") :: acc
+                         (target ".native") :: acc
                      | Byte
                      | Best ->
                          (target ".byte") :: acc
@@ -696,6 +698,8 @@ let add_ocamlbuild_files ctxt pkg =
                            "cma"
                        | Native ->
                            "cmxa"
+                       | Native_object ->
+                           ".nobj.o"
                    in
                      prepend_bs_path bs
                        (OASISUnixPath.add_extension cs.cs_name ext)
@@ -824,6 +828,8 @@ let add_ocamlbuild_files ctxt pkg =
                            "cmo"
                        | Native ->
                            "cmx"
+                       | Native_object ->
+                           ".nobj.o"
                    in
                      prepend_bs_path bs
                        (OASISUnixPath.add_extension cs.cs_name ext)
@@ -928,11 +934,13 @@ let add_ocamlbuild_files ctxt pkg =
                    let ext =
                      match bs.bs_compiled_object with
                        | Best ->
-                           "{native,byte,nobj.o}"
+                           "{native,byte}"
                        | Byte ->
                            "byte"
                        | Native ->
-                           "{native,nobj.o}"
+                           "native"
+                       | Native_object ->
+                           "nobj.o"
                    in
                      prepend_bs_path bs
                        (OASISUnixPath.replace_extension

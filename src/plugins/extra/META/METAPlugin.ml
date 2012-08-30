@@ -229,7 +229,7 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
                          pp_print_field fmt
                            ("archive", ["native"; "plugin"], x))
                       archive_native_plugin;
-                  | Byte ->
+                | Native_object | Byte ->
                       ()
               end
 
