@@ -8,3 +8,4 @@ test/data/bug982/test-setup-data.sh
 test/data/bug823/postconf.sh
 test/data/bug823/preconf.sh
 test/data/bug938/postconf.sh
+src/plugins/extra/devfiles/configure

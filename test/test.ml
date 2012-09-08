@@ -62,6 +62,7 @@ let _ =
         in
         let fn_build  = FilePath.concat topdir "_build" in
         let fn_build' = FilePath.concat topdir "build" in
+        let fn_git = FilePath.concat topdir ".git" in
 
         let (found_missing, unfound) =
           (* Check files that need to be executable *)
@@ -70,7 +71,8 @@ let _ =
                (FileUtil.Custom
                   (fun fn ->
                      not (FilePath.is_subdir fn fn_build) &&
-                     not (FilePath.is_subdir fn fn_build')),
+                     not (FilePath.is_subdir fn fn_build') &&
+                     not (FilePath.is_subdir fn fn_git)),
                 FileUtil.And
                   (FileUtil.Is_exec,
                    FileUtil.And

@@ -1,0 +1,8 @@
+_build
+api-oasis.docdir
+doc/MANUAL.mkd
+setup.data
+setup.log
+src/cli/PluginsLoaded.ml
+src/oasis/OASISConf.ml
+bindist
