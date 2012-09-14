@@ -230,9 +230,9 @@ Document "api-oasis"
   XOCamlbuildLibraries: oasis, oasis.base, oasis.cli
 
 SourceRepository head
-  Type: darcs
-  Location: http://darcs.ocamlcore.org/repos/oasis
-  Browser: http://darcs.ocamlcore.org/cgi-bin/darcsweb.cgi?r=oasis;a=summary
+  Type: git
+  Location: git://github.com/gildor478/oasis.git
+  Browser: https://github.com/gildor478/oasis
 
 # Third party: plugin-loader
 
