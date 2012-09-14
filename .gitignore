@@ -1,4 +1,6 @@
 _build
+*.byte
+*.native
 api-oasis.docdir
 doc/MANUAL.mkd
 setup.data
