@@ -149,10 +149,3 @@ dist:
 	./src/tools/oasis-dist.ml
 
 .PHONY: dist
-
-# Fixing permissions
-
-fixperms:
-	for i in $$(cat _fixperms); do chmod +x "./$$i"; done
-
-.PHONY: fixperms
