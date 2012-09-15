@@ -8,3 +8,5 @@ setup.log
 src/cli/PluginsLoaded.ml
 src/oasis/OASISConf.ml
 bindist
+patches-to-apply
+tarballs
