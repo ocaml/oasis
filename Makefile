@@ -25,7 +25,6 @@ CONFIGUREFLAGS += --override ocamlbuildflags -classic-display
 CONFIGUREFLAGS += $(if $(shell ocamlfind query gettext),--enable-gettext,--disable-gettext)
 
 default: test
-	-OCamlDarcsPrecommit
 
 export OCAMLRUNPARAM=b
 TESTFLAGS      += -not-long
