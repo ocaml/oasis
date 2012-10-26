@@ -52,9 +52,15 @@ let install_dir_ev =
 let install_findlib_ev =
   "install-findlib"
 
-let win32_max_command_line_length = 8000
+(* real limit 32767 instead of 30000 *)
+let win32_max_command_line_length = if OASISHostPath.use_cygwin = false then 8000 else 30000
 
 let split_install_command ocamlfind findlib_name meta files =
+  let f s =
+    OASISHostPath.quote ( OASISHostPath.of_unix s )
+  in
+  let files = List.map f files
+  and meta = f meta in
   if Sys.os_type = "Win32" then
     (* Arguments for the first command: *)
     let first_args = ["install"; findlib_name; meta] in

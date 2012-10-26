@@ -23,10 +23,48 @@ open OASISGettext
 open OASISUtils
 open OASISMessage
 
+let run_cygwin ~ctxt ?f_exit_code ?(quote=true) cmd args =
+  let fn = Filename.temp_file "oasis-" ".sh" in
+  let fn_deleted = ref false in
+  try
+    let ch = open_out_bin fn in
+    let ch_closed = ref false in
+    (try
+      let cmd = match quote with
+      | false -> cmd
+      | true  -> OASISHostPath.quote (OASISHostPath.of_unix cmd)
+      in
+      output_string ch cmd;
+      output_char ch ' ';
+      List.iter ( fun s -> output_string ch s; output_char ch ' ' ) args ;
+      ch_closed:=true ;
+      close_out ch;
+      let cmdline_orig = String.concat " " (cmd :: args)
+      and cmdline = "bash.exe " ^ (Filename.quote fn) in
+      info ~ctxt (f_ "Running command '%s'") cmdline_orig;
+      let ret = Sys.command cmdline in
+      fn_deleted := true;
+      Sys.remove fn;
+      match f_exit_code, ret with
+      | None, 0 -> ()
+      | None, i ->
+        failwithf
+          (f_ "Command '%s' terminated with error code %d")
+          cmdline_orig i
+      | Some f, i ->
+          f i
+     with
+     | x when !ch_closed = false ->
+       close_out_noerr ch; raise x )
+  with
+  | x when !fn_deleted = false -> (try Sys.remove fn with _ -> () ) ; raise x
+
+
 (* TODO: I don't like this quote, it is there because $(rm) foo expands to
  * 'rm -f' foo...
  *)
-let run ~ctxt ?f_exit_code ?(quote=true) cmd args =
+
+let run_default ~ctxt ?f_exit_code ?(quote=true) cmd args =
   let cmd =
     if quote then
       if Sys.os_type = "Win32" then
@@ -52,6 +90,11 @@ let run ~ctxt ?f_exit_code ?(quote=true) cmd args =
             cmdline i
       | Some f, i ->
           f i
+
+let run ~ctxt ?f_exit_code ?quote cmd args =
+  match OASISHostPath.use_cygwin with
+  | false -> run_default ~ctxt ?f_exit_code ?quote cmd args
+  | true  -> run_cygwin ~ctxt ?f_exit_code ?quote cmd args
 
 let run_read_output ~ctxt ?f_exit_code cmd args =
   let fn =

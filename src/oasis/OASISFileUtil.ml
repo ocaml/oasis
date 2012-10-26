@@ -21,80 +21,12 @@
 
 open OASISGettext
 
-let file_exists_case fn =
-  let dirname = Filename.dirname fn in
-  let basename = Filename.basename fn in
-    if Sys.file_exists dirname then
-      if basename = Filename.current_dir_name then
-        true
-      else
-        List.mem
-          basename
-          (Array.to_list (Sys.readdir dirname))
-    else
-      false
+let file_exists_case = OASISHostPath.file_exists_case
+let find_file = OASISHostPath.find_file
+let which ~(ctxt:OASISContext.t) b = OASISHostPath.which b
 
-let find_file ?(case_sensitive=true) paths exts =
+let use_wintools = OASISHostPath.os_type_windows && not OASISHostPath.use_cygwin
 
-  (* Cardinal product of two list *)
-  let ( * ) lst1 lst2 =
-    List.flatten
-      (List.map
-         (fun a ->
-            List.map
-              (fun b -> a,b)
-              lst2)
-         lst1)
-  in
-
-  let rec combined_paths lst =
-    match lst with
-      | p1 :: p2 :: tl ->
-          let acc =
-            (List.map
-               (fun (a,b) -> Filename.concat a b)
-               (p1 * p2))
-          in
-            combined_paths (acc :: tl)
-      | [e] ->
-          e
-      | [] ->
-          []
-  in
-
-  let alternatives =
-    List.map
-      (fun (p,e) ->
-         if String.length e > 0 && e.[0] <> '.' then
-           p ^ "." ^ e
-         else
-           p ^ e)
-      ((combined_paths paths) * exts)
-  in
-    List.find
-      (if case_sensitive then
-         file_exists_case
-       else
-         Sys.file_exists)
-      alternatives
-
-let which ~ctxt prg =
-  let path_sep =
-    match Sys.os_type with
-      | "Win32" ->
-          ';'
-      | _ ->
-          ':'
-  in
-  let path_lst = OASISString.nsplit (Sys.getenv "PATH") path_sep in
-  let exec_ext =
-    match Sys.os_type with
-      | "Win32" ->
-          "" :: (OASISString.nsplit (Sys.getenv "PATHEXT") path_sep)
-      | _ ->
-          [""]
-  in
-    find_file ~case_sensitive:false [path_lst; [prg]] exec_ext
 
 (**/**)
 let rec fix_dir dn =
@@ -104,35 +36,35 @@ let rec fix_dir dn =
   let ln =
     String.length dn
   in
-    if Sys.os_type = "Win32" && ln > 0 && dn.[ln - 1] = '\\' then
+    if use_wintools && ln > 0 && dn.[ln - 1] = '\\' then
       fix_dir (String.sub dn 0 (ln - 1))
     else
       dn
 
-let q = Filename.quote
+let q s = OASISHostPath.quote (OASISHostPath.of_unix s)
+
 (**/**)
 
 let cp ~ctxt ?(recurse=false) src tgt =
   if recurse then
-    match Sys.os_type with
-      | "Win32" ->
-          OASISExec.run ~ctxt
+    match use_wintools with
+      | true -> OASISExec.run ~ctxt
             "xcopy" [q src; q tgt; "/E"]
-      | _ ->
+      | false ->
           OASISExec.run ~ctxt
             "cp" ["-r"; q src; q tgt]
   else
     OASISExec.run ~ctxt
-      (match Sys.os_type with
-       | "Win32" -> "copy"
-       | _ -> "cp")
+      (match use_wintools with
+       | true -> "copy"
+       | false -> "cp")
       [q src; q tgt]
 
 let mkdir ~ctxt tgt =
   OASISExec.run ~ctxt
-    (match Sys.os_type with
-       | "Win32" -> "md"
-       | _ -> "mkdir")
+    (match use_wintools with
+       | true -> "md"
+       | false -> "mkdir")
     [q tgt]
 
 let rec mkdir_parent ~ctxt f tgt =
@@ -160,10 +92,10 @@ let rec mkdir_parent ~ctxt f tgt =
 let rmdir ~ctxt tgt =
   if Sys.readdir tgt = [||] then
     begin
-      match Sys.os_type with
-        | "Win32" ->
+      match use_wintools with
+        | true ->
             OASISExec.run ~ctxt "rd" [q tgt]
-        | _ ->
+        | false ->
             OASISExec.run ~ctxt "rm" ["-r"; q tgt]
     end
 

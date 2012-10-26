@@ -276,7 +276,7 @@ let rm =
     "rm"
     (fun () ->
        match os_type () with
-         | "Win32" -> "del"
+         | "Win32" when not OASISHostPath.use_cygwin -> "del"
          | _ -> "rm -f")
 
 let rmdir =
@@ -285,7 +285,7 @@ let rmdir =
     "rmdir"
     (fun () ->
        match os_type () with
-         | "Win32" -> "rd"
+         | "Win32" when not OASISHostPath.use_cygwin -> "rd"
          | _ -> "rm -rf")
 
 let debug =
