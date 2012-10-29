@@ -129,6 +129,15 @@ let (/) a b =
       (os_type ())
 (**/**)
 
+let bash_cmd =
+  let short_desc = (fun () -> s_ "Enforced bash shell:")
+  and arg_help = "program"
+  and cli = CLIAuto in
+  var_define ~short_desc ~cli ~arg_help "use_bash" (fun () -> "")
+
+let () =
+  OASISHostPath.bash_cmd := bash_cmd
+
 let prefix =
   p "prefix"
     (fun () -> s_ "Install architecture-independent files dir")
@@ -210,7 +219,16 @@ let mandir =
 let docdir =
   p "docdir"
     (fun () -> s_ "Documentation root")
-    (fun () -> "$datarootdir"/"doc"/"$pkg_name")
+    (fun () ->
+      (* TODO (Windows only?):
+       * during installation $pkg_name is not always substituted,
+       * (at least if datarootdir contains spaces or other garbage)
+       * I haven't looked up why.
+       *)
+      match os_type () with
+      | "Win32" -> "$datarootdir"/"doc"/ ( pkg_name () )
+      | _ -> "$datarootdir"/"doc"/"$pkg_name"
+    )
 
 let htmldir =
   p "htmldir"
@@ -276,7 +294,7 @@ let rm =
     "rm"
     (fun () ->
        match os_type () with
-         | "Win32" when not OASISHostPath.use_cygwin -> "del"
+      | "Win32" when not (OASISHostPath.use_bash ()) -> "del"
          | _ -> "rm -f")
 
 let rmdir =
@@ -285,7 +303,7 @@ let rmdir =
     "rmdir"
     (fun () ->
        match os_type () with
-         | "Win32" when not OASISHostPath.use_cygwin -> "rd"
+         | "Win32" when not (OASISHostPath.use_bash ()) -> "rd"
          | _ -> "rm -rf")
 
 let debug =

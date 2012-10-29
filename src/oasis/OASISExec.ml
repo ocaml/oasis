@@ -23,7 +23,21 @@ open OASISGettext
 open OASISUtils
 open OASISMessage
 
-let run_cygwin ~ctxt ?f_exit_code ?(quote=true) cmd args =
+let win_quote_needed str =
+  let len = String.length str in
+  if len = 0 then
+    true
+  else
+    let rec iter str i =
+      if i < 0 then false
+      else match str.[i] with
+      | '/'| '"'| ' '| '\t' | '\n' | '\x0B' -> true
+      | _ -> iter str (pred i)
+    in
+    iter str (pred len)
+
+
+let run_bash ~ctxt ?f_exit_code ?(quote=true) cmd args =
   let fn = Filename.temp_file "oasis-" ".sh" in
   let fn_deleted = ref false in
   try
@@ -35,12 +49,25 @@ let run_cygwin ~ctxt ?f_exit_code ?(quote=true) cmd args =
       | true  -> OASISHostPath.quote (OASISHostPath.of_unix cmd)
       in
       output_string ch cmd;
-      output_char ch ' ';
-      List.iter ( fun s -> output_string ch s; output_char ch ' ' ) args ;
+      List.iter ( fun s -> output_char ch ' '; output_string ch s ) args ;
+      output_char ch '\n';
       ch_closed:=true ;
       close_out ch;
+      let bash = !OASISHostPath.bash_cmd () in
+      let add_quotes = ref false in
+      let shell_cmd = match Sys.os_type = "Win32" with
+      | false -> Filename.quote bash
+      | true -> match win_quote_needed bash with
+        | true -> add_quotes := true; Filename.quote bash
+        | false -> bash
+      in
       let cmdline_orig = String.concat " " (cmd :: args)
-      and cmdline = "bash.exe " ^ (Filename.quote fn) in
+      and cmdline =
+        let s = shell_cmd ^ " " ^ (Filename.quote fn) in
+        match !add_quotes with
+        | true -> "\"" ^ s ^ "\""
+        | false -> s
+      in
       info ~ctxt (f_ "Running command '%s'") cmdline_orig;
       let ret = Sys.command cmdline in
       fn_deleted := true;
@@ -57,7 +84,9 @@ let run_cygwin ~ctxt ?f_exit_code ?(quote=true) cmd args =
      | x when !ch_closed = false ->
        close_out_noerr ch; raise x )
   with
-  | x when !fn_deleted = false -> (try Sys.remove fn with _ -> () ) ; raise x
+  | x when !fn_deleted = false ->
+    (try Sys.remove fn with _ -> () ) ;
+    raise x
 
 
 (* TODO: I don't like this quote, it is there because $(rm) foo expands to
@@ -65,21 +94,27 @@ let run_cygwin ~ctxt ?f_exit_code ?(quote=true) cmd args =
  *)
 
 let run_default ~ctxt ?f_exit_code ?(quote=true) cmd args =
+  let add_quotes = ref false in
   let cmd =
     if quote then
       if Sys.os_type = "Win32" then
-        if String.contains cmd ' ' then
+        if win_quote_needed cmd = false then cmd
+        else (
           (* Double the 1st double quote... win32... sigh *)
-          "\""^(Filename.quote cmd)
-        else
-          cmd
+          (* above comment seems false. The whole string must be quoted *)
+          add_quotes := true;
+          Filename.quote cmd
+        )
       else
         Filename.quote cmd
     else
       cmd
   in
   let cmdline =
-    String.concat " " (cmd :: args)
+    let s = String.concat " " (cmd :: args) in
+    match !add_quotes with
+    | true -> "\"" ^ s ^ "\""
+    | false -> s
   in
     info ~ctxt (f_ "Running command '%s'") cmdline;
     match f_exit_code, Sys.command cmdline with
@@ -92,9 +127,9 @@ let run_default ~ctxt ?f_exit_code ?(quote=true) cmd args =
           f i
 
 let run ~ctxt ?f_exit_code ?quote cmd args =
-  match OASISHostPath.use_cygwin with
+  match OASISHostPath.use_bash () with
   | false -> run_default ~ctxt ?f_exit_code ?quote cmd args
-  | true  -> run_cygwin ~ctxt ?f_exit_code ?quote cmd args
+  | true  -> run_bash ~ctxt ?f_exit_code ?quote cmd args
 
 let run_read_output ~ctxt ?f_exit_code cmd args =
   let fn =

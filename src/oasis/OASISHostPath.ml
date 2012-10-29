@@ -24,100 +24,10 @@ open Filename
 
 module Unix = OASISUnixPath
 
+let bash_cmd = ref ( fun () -> "" )
 
-let os_type_windows = Sys.os_type = "Win32"
+let use_bash () = ( !bash_cmd () ) <> ""
 
-let file_exists_case fn =
-  let dirname = Filename.dirname fn in
-  let basename = Filename.basename fn in
-    if Sys.file_exists dirname then
-      if basename = Filename.current_dir_name then
-        true
-      else
-        List.mem
-          basename
-          (Array.to_list (Sys.readdir dirname))
-    else
-      false
-
-let find_file ?(case_sensitive=true) paths exts =
-
-  (* Cardinal product of two list *)
-  let ( * ) lst1 lst2 =
-    List.flatten
-      (List.map
-         (fun a ->
-            List.map
-              (fun b -> a,b)
-              lst2)
-         lst1)
-  in
-
-  let rec combined_paths lst =
-    match lst with
-      | p1 :: p2 :: tl ->
-          let acc =
-            (List.map
-               (fun (a,b) -> Filename.concat a b)
-               (p1 * p2))
-          in
-            combined_paths (acc :: tl)
-      | [e] ->
-          e
-      | [] ->
-          []
-  in
-
-  let alternatives =
-    List.map
-      (fun (p,e) ->
-         if String.length e > 0 && e.[0] <> '.' then
-           p ^ "." ^ e
-         else
-           p ^ e)
-      ((combined_paths paths) * exts)
-  in
-    List.find
-      (if case_sensitive then
-         file_exists_case
-       else
-         Sys.file_exists)
-      alternatives
-
-let which prg =
-  let path_sep =
-    match os_type_windows with
-      | true -> ';'
-      | false  -> ':'
-  in
-  let path_lst = OASISString.nsplit (Sys.getenv "PATH") path_sep in
-  let exec_ext =
-    match os_type_windows with
-      | true ->  "" :: (OASISString.nsplit (Sys.getenv "PATHEXT") path_sep)
-      | false -> [""]
-  in
-  find_file ~case_sensitive:false [path_lst; [prg]] exec_ext
-
-
-let use_cygwin =
-  match os_type_windows with
-  | false -> false
-  | true  ->
-    try
-      begin match Sys.getenv "OASIS_USE_CYGWIN" with
-      | "" | "No" | "no" | "NO" | "false" | "FALSE" | "False" -> false
-      | _ -> true
-      end
-    with
-    | Not_found ->
-      try
-        let _cp = which "cp"
-        and _rm = which "rm"
-        and _bash = which "bash"
-        and _mkdir = which "mkdir" in
-        true
-      with
-      | Not_found -> false
 
 (* generic quote and unixquote are taken from ocaml source *)
 let generic_quote quotequote s =
@@ -134,13 +44,24 @@ let generic_quote quotequote s =
 
 let unixquote = generic_quote "'\\''"
 
-let quote = if use_cygwin then unixquote else Filename.quote
+let win = Sys.os_type = "Win32"
 
+let quote str =
+  if win && use_bash () then
+    unixquote str
+  else
+    quote str
+
+(* uniform_path (only called, if Sys.os_type = "Win32")
+ * - enforces uniform path seperators
+ * - strips trailing slashes (exceptions in case of C:\ and / )
+ * - removes (some) unnecessary file components like ./././
+ *)
 
 let get_naccu accu str first pos =
   (* I assume c//d is identic to c/d
    * the only exception (Network devices \\xyz\asdf)
-   * is covered below
+   * is covered in uniform_path
    *)
   if first = pos then
     accu
@@ -163,12 +84,9 @@ let is_path_sep = function
 | '\\' | '/' -> true
 | _ -> false
 
-(* - strips trailing slashes (exceptions in case of C:\ and / )
- * - enforce uniform path seperators
- *)
 
 let uniform_path path_sep = function
-| "" -> "" (* ??? *)
+| "" -> "" (* or raise an exception? *)
 | str ->
   let rec iter accu str len first pos =
     if pos >= len then
@@ -187,6 +105,7 @@ let uniform_path path_sep = function
   let l = iter [] str len 0 0 in
   (* trailing slashes are normally stripped.
    * this is not possible in case of root folders
+   * ( Sys.file_exists "C:" is false, Sys.file_exists "C:\\" true )
    *)
   let l_min = match l with
   | [] -> [ "" ]
@@ -203,7 +122,7 @@ let uniform_path path_sep = function
       match l with
       | s :: [] ->
         (* root folders like C:\ *)
-        if String.length s = 2 && s.[1] = ':' then
+        if String.length s = 2 && s.[1] = ':' && len > 2 && is_path_sep str.[2] then
           s :: [ "" ]
         else
           l
@@ -219,10 +138,10 @@ let make =
         List.fold_left concat hd tl
 
 let of_unix str =
-  match os_type_windows with
+  match win with
   | false -> str
   | true  ->
-    let path_sep = match use_cygwin with
+    let path_sep = match use_bash () with
     | true ->  "/"
     | false -> "\\"
     in

@@ -109,9 +109,21 @@ let package ?version_comparator pkg () =
   in
   let findlib_dir pkg =
     let dir =
-      OASISExec.run_read_one_line ~ctxt:!BaseContext.default
+      let d = OASISExec.run_read_one_line ~ctxt:!BaseContext.default
         (ocamlfind ())
         ["query"; "-format"; "%d"; pkg]
+    in
+      (* windows/cygwin only:
+       * the output of this command is possibly quoted, but not with Filename.quote
+       * see findlib's src/findlib/frontend.ml for details
+       *)
+      let l = String.length d in
+      if l > 2 && d.[0] = '"' && d.[l - 1] = '"' &&
+        ( Sys.os_type = "Win32" || Sys.os_type = "Cygwin" ) &&
+          String.contains d ' ' then
+        String.sub d 1 (l - 2)
+      else
+        d
     in
       if Sys.file_exists dir && Sys.is_directory dir then
         dir

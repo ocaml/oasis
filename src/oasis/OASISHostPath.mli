@@ -25,33 +25,26 @@
 
 open OASISTypes
 
-(** Sys.os_type = "Win32"
-*)
-val os_type_windows : bool
-
 (**
-    use cygwin/msys utils on "Win32"
+    the function should return a unix like shell,
+    that will be used to execute external commands.
+
+    The default function returns an empty string.
+    (system default will be used)
 *)
-val use_cygwin: bool
+val bash_cmd : (unit -> host_filename) ref
+
+(** true, if bash_cmd_program will return a non-empty
+    host_filename *)
+val use_bash: unit -> bool
+
 
 (**
    on windows, the Unix quote function
-   will be used, if use_cygwin is true.
+   will be used, if use_base () is true.
    Otherwise identic to Filename.quote
 *)
 val quote: string -> string
-
-(*
-   make sure, that always the right path seperators
-   are used.
-   Does nothing, Sys.os_type is not "Win32".
-   On windows, it enforces uniform path seperators:
-   '/' if use_cygwin is true
-   '\\' otherwise
-
-   val use_native_path_sep: string -> string
-*)
-
 
 (** Create a filename out of its components.
   *)
@@ -70,14 +63,3 @@ val compare : host_filename -> host_filename -> int
     {b Not exported}
   *)
 val add_extension : host_filename -> string -> host_filename
-
-
-
-(* moved here to avoid code duplication. See OASISFileUtil *)
-val which : host_filename -> host_filename
-val file_exists_case : string -> bool
-val find_file :
-  ?case_sensitive:bool ->
-  host_filename list list ->
-  string list ->
-  host_filename
