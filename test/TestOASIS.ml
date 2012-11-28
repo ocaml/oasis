@@ -346,6 +346,9 @@ let tests =
                     "test.test2.test3", "test3";
                     "test.test2.test3.test4.test5p", "test5";
                     "test.test2.test3.test4.test5p.test6", "test6"]);
+
+            "test16.oasis",
+            ignore;
           ])
       @
        (List.rev_map file_of_vector
