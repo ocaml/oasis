@@ -169,11 +169,10 @@ let dispatch t e =
           let native_output_obj x =
             OC.link_gen "cmx" "cmxa" !Options.ext_lib [!Options.ext_obj; "cmi"] 
               OC.ocamlopt_link_prog
-              (fun tags -> tags++"ocaml"++"link"++"byte"++"output_obj") x
+              (fun tags -> tags++"ocaml"++"link"++"native"++"output_obj") x
           in
           rule "ocaml: cmx* and o* -> .nobj.o" ~prod:"%.nobj.o" ~deps:["%.cmx"; "%.o"]
             (native_output_obj "%.cmx" "%.nobj.o");
-
 
           (* Add output_obj rules mapped to .bobj.o *)
           let bytecode_output_obj x =
