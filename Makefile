@@ -24,8 +24,10 @@ CONFIGUREFLAGS += --override ocamlbuildflags -classic-display
 
 CONFIGUREFLAGS += $(if $(shell ocamlfind query gettext),--enable-gettext,--disable-gettext)
 
+PRECOMMIT=$(shell which OCamlDarcsPrecommit || echo true)
+
 default: test
-	-OCamlDarcsPrecommit
+	-$(PRECOMMIT)
 
 export OCAMLRUNPARAM=b
 TESTFLAGS      += -not-long
@@ -149,10 +151,3 @@ dist:
 	./src/tools/oasis-dist.ml
 
 .PHONY: dist
-
-# Fixing permissions
-
-fixperms:
-	for i in $$(cat _fixperms); do chmod +x "./$$i"; done
-
-.PHONY: fixperms

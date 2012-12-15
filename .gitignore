@@ -1,0 +1,12 @@
+_build
+*.byte
+*.native
+api-oasis.docdir
+doc/MANUAL.mkd
+setup.data
+setup.log
+src/cli/PluginsLoaded.ml
+src/oasis/OASISConf.ml
+bindist
+patches-to-apply
+tarballs

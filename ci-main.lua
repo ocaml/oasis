@@ -5,11 +5,11 @@ bootstrap.init()
 ci = require("ci")
 godi = require("godi")
 oasis = require("oasis")
-darcs = require("darcs")
+git = require("git")
 
 ci.init()
 godi.init()
-darcs.init()
+git.init()
 oasis.init()
 
 godi.bootstrap("3.12")
@@ -24,6 +24,5 @@ godi.build_many(
    "apps-ocamlmod",
    "apps-ocamlify"})
 
-ci.exec("make", "fixperms")
 oasis.std_process("--enable-tests")
-darcs.create_tag(oasis.package_version())
+git.create_tag(oasis.package_version())

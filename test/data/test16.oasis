@@ -1,0 +1,184 @@
+#								-*-conf-*-
+OASISFormat: 0.3
+Name:        archimedes
+Version:     0.4.12
+Synopsis:    Extensible 2D plotting library.
+Description: Archimedes is a high quality, platform-independent,
+  extensible 2D plotting library.  It provides dynamically loaded
+  backends such as Graphics and Cairo.
+Authors:     Christophe Troestler <Christophe.Troestler@umons.ac.be>,
+  Pierre Hauweele <pierre@hauweele.net>,
+  Fabian Pijcke <fabian.pijcke@gmail.com>,
+  Noémie Meunier <noemie_6462@hotmail.com>,
+  Bertrand Desmons <bibi-6@hotmail.fr>,
+  Xavier Deschuyteneer <xavier.deschuyteneer@gmail.com>
+License:     LGPL-3.0 with OCaml linking exception
+Homepage:    http://forge.ocamlcore.org/projects/archimedes/
+Plugins:     META (0.3), StdFiles (0.3)
+FilesAB:     src/conf.ml.ab,
+  src/archimedes_cairo.dep.ab,
+  src/archimedes_graphics.dep.ab,
+  src/archimedes_header.mli.ab,
+  tests/tests.ml.ab
+PreBuildCommand: ocaml src/public_interface.ml > src/archimedes.mli
+
+Flag graphics
+  Description:  Use the graphics plugin?
+  Default:      true
+
+Flag cairo
+  Description:  Use the cairo (PNG, PS, PDF) plugin?
+  Default:      true
+
+Flag tikz
+  Description:  Use the tikz (TeX) plugin?
+  Default:      false
+
+Library "archimedes"
+  Path:         src
+  BuildTools:   ocamlbuild
+  Modules:      Archimedes
+  InternalModules: Archimedes_internals
+  BuildDepends: dynlink, bigarray
+
+# "internal" functions, potentially useful to backends
+Object archimedes_internals
+  Path:		src
+  Modules:      Conf, Utils, String_utils, PriorityQueue, Matrix,
+                Color, Path, Backend, Coordinate, Viewport,
+                Marker, Sampler, Arrows, Tics, Axes,
+                Plot, Piechart
+  BuildDepends: dynlink, bigarray
+  Install:	false
+
+Library "archimedes_graphics"
+  Build$:       flag(graphics)
+  Path:         src
+  BuildTools:   ocamlbuild
+  Modules:      Archimedes_graphics
+  BuildDepends: graphics, archimedes
+  DataFiles:    archimedes_graphics.dep
+  FindlibParent: archimedes
+  FindlibName:   graphics
+
+Library "archimedes_cairo"
+  Build$:       flag(cairo)
+  Path:         src
+  BuildTools:   ocamlbuild
+  Modules:      Archimedes_cairo
+  BuildDepends: cairo2, archimedes
+  DataFiles:    archimedes_cairo.dep
+  FindlibParent: archimedes
+  FindlibName:   cairo
+
+Library "archimedes_tikz"
+  Build$:       flag(tikz)
+  Path:         src
+  BuildTools:   ocamlbuild
+  Modules:      Archimedes_tikz
+  BuildDepends: archimedes
+  FindlibParent: archimedes
+  FindlibName:   tikz
+
+Library "archimedes_toploop"
+  Path:         src
+  BuildTools:   ocamlbuild
+  Modules:      Archimedes_toploop
+  ByteOpt:	-I +compiler-libs
+  NativeOpt:	-I +compiler-libs
+  BuildDepends: archimedes
+  FindlibParent: archimedes
+  FindlibName:   top
+
+Document API
+  Title:           API reference for Archimedes
+  Type:            OCamlbuild (0.3)
+  InstallDir:      $docdir/api
+  BuildTools:      ocamldoc, ocamlbuild
+  XOCamlbuildPath: src
+  XOCamlbuildLibraries: archimedes
+
+  
+Executable "test_main"
+  Path:         tests
+  Build$:	flag(tests)
+  MainIs:       tests.ml
+  BuildDepends: archimedes
+  BuildTools:   ocamlbuild
+  Install:      false
+
+Test main
+  Type: Custom (0.2)
+  Command: $test_main
+
+
+# Examples
+######################################################################
+
+Executable "pythagoras_tree"
+  Path:	        examples/
+  BuildTools:   ocamlbuild
+  MainIs:       pythagoras_tree.ml
+  BuildDepends: archimedes
+  Install:      false
+
+Executable "coordinate_pairs"
+  Path:	        examples/
+  BuildTools:   ocamlbuild
+  MainIs:       coordinate_pairs.ml
+  BuildDepends: archimedes
+  Install:      false
+
+Executable "pkg_chart"
+  Path:	        examples/
+  BuildTools:   ocamlbuild
+  MainIs:       pkg_chart.ml
+  BuildDepends: archimedes
+  Install:      false
+
+Executable "anscombe"
+  Path:	        examples/
+  BuildTools:   ocamlbuild
+  MainIs:       anscombe.ml
+  BuildDepends: archimedes
+  Install:      false
+
+Executable "scatter_hist"
+  Path:	        examples/
+  BuildTools:   ocamlbuild
+  MainIs:       scatter_hist.ml
+  BuildDepends: archimedes
+  Install:      false
+
+Executable "coords_report.ml"
+  Path:	        examples/
+  BuildTools:   ocamlbuild
+  MainIs:       coords_report.ml
+  BuildDepends: archimedes
+  Install:      false
+
+Executable "taylor.ml"
+  Path:	        examples/
+  BuildTools:   ocamlbuild
+  MainIs:       taylor.ml
+  BuildDepends: archimedes
+  Install:      false
+
+Executable "spiral.ml"
+  Path:	        examples/
+  BuildTools:   ocamlbuild
+  MainIs:       spiral.ml
+  BuildDepends: archimedes
+  Install:      false
+
+Executable "multi_hue.ml"
+  Path:	        examples/
+  BuildTools:   ocamlbuild
+  MainIs:       multi_hue.ml
+  BuildDepends: archimedes
+  Install:      false
+
+SourceRepository trunk
+  Type:       git
+  Location:   http://forge.ocamlcore.org/anonscm/git/archimedes/archimedes.git
+  Browser:    https://forge.ocamlcore.org/scm/browser.php?group_id=105
