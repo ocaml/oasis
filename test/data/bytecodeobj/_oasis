@@ -1,0 +1,14 @@
+OASISFormat: 0.3
+Name: nativetest
+Version: 0.1
+License: ISC
+Synopsis: Hello World
+Authors: Anil Madhavapeddy
+BuildTools: ocamlbuild
+Plugins: META (0.3)
+
+Executable test
+  Path: .
+  Install: false
+  CompiledObject: bytecode_object
+  MainIs: B.ml

@@ -31,6 +31,7 @@ let unix_exec_is (cs, bs, exec) is_native ext_dll suffix_program =
     match bs.bs_compiled_object with
       | Native -> true
       | Native_object -> false
+      | Bytecode_object -> false
       | Best -> is_native ()
       | Byte -> false
   in

@@ -156,9 +156,9 @@ let section_fields nm comp_dflt schm sync =
       ~default:comp_dflt
       (choices
          (fun () -> s_ "compiled object")
-         ["byte", Byte; "native", Native; "native_object", Native_object; "best", Best])
+         ["byte", Byte; "native", Native; "native_object", Native_object; "bytecode_object", Bytecode_object; "best", Best])
       (fun () -> 
-         s_ "Define the compilation type of the section: byte, native, native_object or best")
+         s_ "Define the compilation type of the section: byte, native, native_object, bytecode_object or best")
       (fun pkg -> (sync pkg).bs_compiled_object)
   in
   let c_sources = 

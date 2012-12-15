@@ -76,7 +76,7 @@ let generated_unix_files
             native :: c_object :: byte :: header :: []
         | Best when is_native ->
             native :: c_object :: byte :: header :: []
-        | Byte | Best ->
+        | Byte | Bytecode_object | Best ->
             byte :: header :: [])
 
 (* END EXPORT *)

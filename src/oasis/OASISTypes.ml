@@ -41,6 +41,7 @@ type compiled_object =
   | Byte
   | Native
   | Native_object
+  | Bytecode_object
   | Best
   with odn
 
