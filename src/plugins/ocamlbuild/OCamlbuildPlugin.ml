@@ -769,21 +769,16 @@ let add_ocamlbuild_files ctxt pkg =
                  let ctxt =
                    (* Generate .mllib *)
                    let fn_base = prepend_bs_path bs cs.cs_name in
-                   let mllib =
-                     OASISHostPath.add_extension fn_base "mllib"
-		   and mlpack =
-                     OASISHostPath.add_extension fn_base "mlpack"
-		   in
-		   let module_list =
-		     lib.lib_modules @ lib.lib_internal_modules
-		   in
-		   let mllib_template_lines =
-		     (* mllib contains either the name of the pack or the list of modules*)
-		     if lib.lib_pack then
-		       [ String.capitalize cs.cs_name ]
-		     else
-		       module_list
-		   in
+                   let mllib = OASISHostPath.add_extension fn_base "mllib" in
+                   let mlpack = OASISHostPath.add_extension fn_base "mlpack" in
+                   let module_list = lib.lib_modules @ lib.lib_internal_modules in
+                   let mllib_template_lines =
+                     (* mllib contains either the name of the pack or the list of modules*)
+                     if lib.lib_pack then
+                       [ String.capitalize cs.cs_name ]
+                     else
+                       module_list
+                   in
                    let ctxt =
                      add_file
                        (template_make
@@ -794,19 +789,19 @@ let add_ocamlbuild_files ctxt pkg =
                           [])
                        ctxt
                    in
-		   if lib.lib_pack then
-		     (* generate .mlpack for packed libraries *)
-		     add_file
-		       (template_make
-			  mlpack
-			  comment_ocamlbuild
-			  []
-			  module_list
-			  [])
-		       ctxt
-		   else {
-		     (* make sure there is no conflicting mlpack file *)
-		     ctxt with
+                   if lib.lib_pack then
+                     (* generate .mlpack for packed libraries *)
+                     add_file
+                       (template_make
+                          mlpack
+                          comment_ocamlbuild
+                          []
+                          module_list
+                          [])
+                       ctxt
+                   else {
+                     (* make sure there is no conflicting mlpack file *)
+                     ctxt with
                           other_actions =
                             (fun ()->
                               if OASISFileUtil.file_exists_case mlpack then
@@ -815,8 +810,8 @@ let add_ocamlbuild_files ctxt pkg =
                                       exists, remove '%s'.")
                                   mllib mlpack mlpack)
                           :: ctxt.other_actions
-		   }
-		 in
+                   }
+                 in
                  ctxt, tag_t, myocamlbuild_t
                end
 
