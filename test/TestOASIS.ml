@@ -373,8 +373,14 @@ let tests =
 	      let ctxt = OCamlbuildPlugin.add_ocamlbuild_files initial_ctxt pkg in
 	      let templates = OASISFileTemplate.fold (fun t accu -> t :: accu) ctxt.OASISPlugin.files [] in
 	      let mllib = 
-		match template_by_fn templates "src/bar.mllib" with
-		| None -> assert_failure "Missing mllib file for packed library bar"
+		match template_by_fn templates "src/bar/bar.mllib" with
+		| None -> 
+		  let msg = 
+		    Printf.sprintf 
+		      "Missing mllib file for packed library bar, here is the list of generated files:\n%s\n"
+		      (String.concat "\n" (List.map (fun t -> t.OASISFileTemplate.fn) templates))
+		  in
+		  assert_failure msg
 		| Some x -> x
 	      in
 	      assert_equal
