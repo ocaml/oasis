@@ -70,12 +70,6 @@ let find_syntaxes () = ["camlp4o"; "camlp4r"]
 (* ocamlfind command *)
 let ocamlfind x = S[A"ocamlfind"; x]
 
-(* heuristic to identify syntax extensions: whether they end in ".syntax" *)
-let is_syntax_extension pkg =
-  let len = String.length pkg in
-  if (String.length pkg < 7) then false
-  else String.sub pkg (len-7) 7 = ".syntax"
-
 let dispatch =
   function
     | Before_options ->
@@ -101,7 +95,9 @@ let dispatch =
             let base_args = [A"-package"; A pkg] in
             let syn_args = [A"-syntax"; A "camlp4o"] in
             let args =
-              if is_syntax_extension pkg
+			  (* heuristic to identify syntax extensions: 
+				 whether they end in ".syntax"; some might not *)
+              if Filename.check_suffix pkg "syntax"
               then syn_args @ base_args
               else base_args
             in
