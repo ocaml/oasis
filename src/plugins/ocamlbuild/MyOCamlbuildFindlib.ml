@@ -70,6 +70,12 @@ let find_syntaxes () = ["camlp4o"; "camlp4r"]
 (* ocamlfind command *)
 let ocamlfind x = S[A"ocamlfind"; x]
 
+(* heuristic to identify syntax extensions: whether they end in ".syntax" *)
+let is_syntax_extension pkg =
+  let len = String.length pkg in
+  if (String.length pkg < 7) then false
+  else String.sub pkg (len-7) 7 = ".syntax"
+
 let dispatch =
   function
     | Before_options ->
@@ -92,11 +98,18 @@ let dispatch =
          * linking. *)
         List.iter 
           begin fun pkg ->
-            flag ["ocaml"; "compile";  "pkg_"^pkg] & S[A"-package"; A pkg];
-            flag ["ocaml"; "ocamldep"; "pkg_"^pkg] & S[A"-package"; A pkg];
-            flag ["ocaml"; "doc";      "pkg_"^pkg] & S[A"-package"; A pkg];
-            flag ["ocaml"; "link";     "pkg_"^pkg] & S[A"-package"; A pkg];
-            flag ["ocaml"; "infer_interface"; "pkg_"^pkg] & S[A"-package"; A pkg];
+            let base_args = [A"-package"; A pkg] in
+            let syn_args = [A"-syntax"; A "camlp4o"] in
+            let args =
+              if is_syntax_extension pkg
+              then syn_args @ base_args
+              else base_args
+            in
+            flag ["ocaml"; "compile";  "pkg_"^pkg] & S args;
+            flag ["ocaml"; "ocamldep"; "pkg_"^pkg] & S args;
+            flag ["ocaml"; "doc";      "pkg_"^pkg] & S args;
+            flag ["ocaml"; "link";     "pkg_"^pkg] & S base_args;
+            flag ["ocaml"; "infer_interface"; "pkg_"^pkg] & S args;
           end 
           (find_packages ());
 
