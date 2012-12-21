@@ -92,11 +92,20 @@ let dispatch =
          * linking. *)
         List.iter 
           begin fun pkg ->
-            flag ["ocaml"; "compile";  "pkg_"^pkg] & S[A"-package"; A pkg];
-            flag ["ocaml"; "ocamldep"; "pkg_"^pkg] & S[A"-package"; A pkg];
-            flag ["ocaml"; "doc";      "pkg_"^pkg] & S[A"-package"; A pkg];
-            flag ["ocaml"; "link";     "pkg_"^pkg] & S[A"-package"; A pkg];
-            flag ["ocaml"; "infer_interface"; "pkg_"^pkg] & S[A"-package"; A pkg];
+            let base_args = [A"-package"; A pkg] in
+            let syn_args = [A"-syntax"; A "camlp4o"] in
+            let args =
+			  (* heuristic to identify syntax extensions: 
+				 whether they end in ".syntax"; some might not *)
+              if Filename.check_suffix pkg "syntax"
+              then syn_args @ base_args
+              else base_args
+            in
+            flag ["ocaml"; "compile";  "pkg_"^pkg] & S args;
+            flag ["ocaml"; "ocamldep"; "pkg_"^pkg] & S args;
+            flag ["ocaml"; "doc";      "pkg_"^pkg] & S args;
+            flag ["ocaml"; "link";     "pkg_"^pkg] & S base_args;
+            flag ["ocaml"; "infer_interface"; "pkg_"^pkg] & S args;
           end 
           (find_packages ());
 
