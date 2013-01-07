@@ -5,6 +5,9 @@ git = require("git")
 
 ci.init()
 -- godi.init()
+ci.prependenv("PATH", "/usr/opt/godi/bin")
+ci.prependenv("PATH", "/usr/opt/godi/sbin")
+
 git.init()
 oasis.init()
 
