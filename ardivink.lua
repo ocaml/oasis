@@ -1,7 +1,3 @@
-bootstrap = require("bootstrap")
-
-bootstrap.init()
-
 ci = require("ci")
 --godi = require("godi")
 oasis = require("oasis")
