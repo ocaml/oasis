@@ -1,0 +1,28 @@
+OASISFormat:  0.3
+OCamlVersion: >= 3.12
+Name:         foo
+Version:      1.0
+Synopsis:     Foo
+Authors:      Philippe Veber
+License:      GPL
+LicenseFile:  LICENCE
+Plugins:      META (0.3), DevFiles (0.3)
+BuildTools:   ocamlbuild
+
+
+Library foo
+  Path:    src
+  Modules: M
+
+Library bar
+  Path:			src/bar
+  Pack:			true
+  Modules:		A
+  BuildDepends:		foo
+
+Executable baz
+  Path:         src/baz
+  MainIs:       baz.ml
+  BuildDepends: bar
+  BuildTools:   ocamlbuild
+  Install: false
