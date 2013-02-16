@@ -160,6 +160,10 @@ let generate ?msg
                    {tmpl with body =
                       Body
                         [
+                          "let () =\n  \
+                           try Topdirs.dir_directory \
+                             (Sys.getenv \"OCAML_TOPLEVEL_PATH\")\n  \
+                           with Not_found -> ();;";
                           "#use \"topfind\";;";
                           "#require \"oasis.dynrun\";;";
                           "open OASISDynRun;;";
