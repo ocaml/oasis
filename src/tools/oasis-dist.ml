@@ -196,6 +196,7 @@ end
 let () = 
   let build = ref true in
   let tag = ref true in
+  let sign = ref true in
   let () = 
     Arg.parse 
       [
@@ -206,6 +207,10 @@ let () =
         "-no-tag",
         Arg.Clear tag,
         " Don't tag the result.";
+
+        "-no-sign",
+        Arg.Clear sign,
+        " Don't sign the result.";
       ]
       (fun s -> failwith (Printf.sprintf "Don't know what to do with %S" s))
       "oasis-dist: build tarball out of oasis enabled sources."
@@ -342,11 +347,12 @@ let () =
                 vcs#tag ver_str
       end;
     
-    run
-      ~f_exit_code:
-      (fun i -> 
-         if i <> 0 then
-           warning ~ctxt "Cannot sign '%s' with gpg" tarball
-         else
-           ())
-      "gpg" ["-s"; "-a"; "-b"; tarball]
+    if !sign then
+      run
+        ~f_exit_code:
+        (fun i -> 
+           if i <> 0 then
+             warning ~ctxt "Cannot sign '%s' with gpg" tarball
+           else
+             ())
+        "gpg" ["-s"; "-a"; "-b"; tarball]
