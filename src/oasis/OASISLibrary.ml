@@ -91,21 +91,26 @@ let generated_unix_files
   let find_modules lst ext = 
     let find_module modul =
       match find_module source_file_exists bs modul with
+        | `Sources (base_fn, [fn]) when ext <> "cmi"
+                                     && Filename.check_suffix fn ".mli" ->
+            None (* No implementation files for pure interface. *)
         | `Sources (base_fn, _) ->
-            [base_fn]
+            Some [base_fn]
         | `No_sources lst ->
             OASISMessage.warning
               ~ctxt
               (f_ "Cannot find source file matching \
                    module '%s' in library %s")
               modul cs.cs_name;
-            lst
+            Some lst
     in
-    List.map 
-      (fun nm -> 
-         List.map 
-           (fun base_fn -> base_fn ^"."^ext)
-           (find_module nm))
+    List.fold_left
+      (fun acc nm ->
+        match find_module nm with
+          | None -> acc
+          | Some base_fns ->
+              List.map (fun base_fn -> base_fn ^"."^ext) base_fns :: acc)
+      []
       lst
   in
 

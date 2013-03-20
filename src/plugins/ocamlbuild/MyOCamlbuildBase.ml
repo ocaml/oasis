@@ -56,7 +56,7 @@ let rec odn_of_spec =
 
 type t =
     {
-      lib_ocaml: (name * dir list) list;
+      lib_ocaml: (name * dir list * string list) list;
       lib_c:     (name * dir * file list) list; 
       flags:     (tag list * (spec OASISExpr.choices)) list;
       (* Replace the 'dir: include' from _tags by a precise interdepends in
@@ -112,9 +112,13 @@ let dispatch t e =
           (* Declare OCaml libraries *)
           List.iter 
             (function
-               | nm, [] ->
-                   ocaml_lib nm
-               | nm, dir :: tl ->
+               | nm, [], intf_modules ->
+                   ocaml_lib nm;
+                   let cmis =
+                     List.map (fun m -> (String.uncapitalize m) ^ ".cmi")
+                              intf_modules in
+                   dep ["ocaml"; "link"; "library"; "file:"^nm^".cma"] cmis
+               | nm, dir :: tl, intf_modules ->
                    ocaml_lib ~dir:dir (dir^"/"^nm);
                    List.iter 
                      (fun dir -> 
@@ -122,7 +126,12 @@ let dispatch t e =
                           (fun str ->
                              flag ["ocaml"; "use_"^nm; str] (S[A"-I"; P dir]))
                           ["compile"; "infer_interface"; "doc"])
-                     tl)
+                     tl;
+                   let cmis =
+                     List.map (fun m -> dir^"/"^(String.uncapitalize m)^".cmi")
+                              intf_modules in
+                   dep ["ocaml"; "link"; "library"; "file:"^dir^"/"^nm^".cma"]
+                       cmis)
             t.lib_ocaml;
 
           (* Declare directories dependencies, replace "include" in _tags. *)
