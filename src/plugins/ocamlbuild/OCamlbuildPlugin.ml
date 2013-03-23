@@ -667,6 +667,16 @@ let compute_includes map_dirs pkg =
       includes
       []
 
+let is_pure_interface bs mn =
+  let fn_lc = prepend_bs_path bs (String.uncapitalize mn) in
+  let fn_uc = prepend_bs_path bs mn in
+  let have ext =
+    OASISFileUtil.file_exists_case
+      (OASISHostPath.add_extension fn_lc ext) ||
+    OASISFileUtil.file_exists_case
+      (OASISHostPath.add_extension fn_uc ext) in
+  not (have "ml") && have "mli"
+
 let add_ocamlbuild_files ctxt pkg =
 
   let map_dirs = 
@@ -749,13 +759,19 @@ let add_ocamlbuild_files ctxt pkg =
                      myocamlbuild_t
                  in
 
+                 let intf_module_list, impl_module_list =
+                   List.partition (is_pure_interface bs)
+                       (lib.lib_modules @ lib.lib_internal_modules) in
+
                  let myocamlbuild_t =
                    {myocamlbuild_t with
                         lib_ocaml =
                           (cs.cs_name,
                            List.filter
                              (fun fn -> not (OASISUnixPath.is_current fn))
-                             src_dirs) :: myocamlbuild_t.lib_ocaml}
+                             src_dirs,
+                           intf_module_list)
+                          :: myocamlbuild_t.lib_ocaml}
                  in
 
                  let () =
@@ -771,13 +787,12 @@ let add_ocamlbuild_files ctxt pkg =
                    let fn_base = prepend_bs_path bs cs.cs_name in
                    let mllib = OASISHostPath.add_extension fn_base "mllib" in
                    let mlpack = OASISHostPath.add_extension fn_base "mlpack" in
-                   let module_list = lib.lib_modules @ lib.lib_internal_modules in
                    let mllib_template_lines =
                      (* mllib contains either the name of the pack or the list of modules*)
                      if lib.lib_pack then
                        [ String.capitalize cs.cs_name ]
                      else
-                       module_list
+                       impl_module_list
                    in
                    let ctxt =
                      add_file
@@ -796,7 +811,7 @@ let add_ocamlbuild_files ctxt pkg =
                           mlpack
                           comment_ocamlbuild
                           []
-                          module_list
+                          impl_module_list
                           [])
                        ctxt
                    else {
@@ -882,7 +897,8 @@ let add_ocamlbuild_files ctxt pkg =
                           (cs.cs_name,
                            List.filter
                              (fun fn -> not (OASISUnixPath.is_current fn))
-                             src_dirs) :: myocamlbuild_t.lib_ocaml}
+                             src_dirs,
+                           []) :: myocamlbuild_t.lib_ocaml}
                  in
 
                  let () =

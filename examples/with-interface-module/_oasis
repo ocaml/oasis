@@ -1,0 +1,12 @@
+OASISFormat: 0.3
+Name:        pimlib
+Version:     0.1
+Synopsis:    Library with pure interface modules in subdirectory
+Authors:     Petter A. Urkedal
+License:     GPL
+Plugins:     META (0.3)
+
+Library pimlib
+  Path:       src
+  BuildTools: ocamlbuild
+  Modules:    Pim_intf, Pim_impl, Pim_types
