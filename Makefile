@@ -80,7 +80,8 @@ wc-setup:
 	awk -f src/tools/setup-wc.awk setup.ml
 
 headache:
-	find ./ -name _darcs -prune -false -o -name _build -prune \
+	find ./ -name .git -prune -false -o -name _build -prune \
+	  -false -o -name test/data -prune \
 	  -false -o -name ext -prune -false -o -name bindist -prune \
 	  -false -o -name boot -prune -false \
 	  -o -name '*[^~]' -type f \
@@ -136,7 +137,7 @@ bindist-step2:
 # Source distribution
 
 dist:
-	# Check consistency of versions
+#	Check consistency of versions
 	OASIS_CMD_VER=$$(oasis version); \
 	OASIS_DIST_VER=$$(oasis query version); \
 	OASIS_SETUP_VER=$$($(SETUP) -version); \
