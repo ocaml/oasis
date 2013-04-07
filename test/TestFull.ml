@@ -1266,6 +1266,46 @@ let tests =
               try_installed_library "test" ["Test"];
             ]);
 
+         (* Library with a pure interface module in subdirectory. *)
+         "../examples/with-interface-module",
+         (fun () ->
+            long_test,
+            [
+              "src/META";
+              "src/pimlib.mllib";
+            ] @ oasis_ocamlbuild_files,
+            [
+              in_ocaml_library "pimlib"
+                ["META";
+                 "pimlib.cma"; "pimlib.cmxa"; "pimlib.a"; "pimlib.cmxs";
+                 "pim_impl.mli"; "pim_impl.cmi"; "pim_impl.cmx";
+                 "pim_intf.mli"; "pim_intf.cmi";
+                 "pim_types.mli"; "pim_types.cmi"];
+            ],
+            [
+              try_installed_library "pimlib" ["Pim_intf"; "Pim_impl"];
+            ]);
+
+         (* Library with a pure interface module in top source directory. *)
+         "../examples/with-interface-module/src",
+         (fun () ->
+            long_test,
+            [
+              "META";
+              "pimlib.mllib";
+            ] @ oasis_ocamlbuild_files,
+            [
+              in_ocaml_library "pimlib"
+                ["META";
+                 "pimlib.cma"; "pimlib.cmxa"; "pimlib.a"; "pimlib.cmxs";
+                 "pim_impl.mli"; "pim_impl.cmi"; "pim_impl.cmx";
+                 "pim_intf.mli"; "pim_intf.cmi";
+                 "pim_types.mli"; "pim_types.cmi"];
+            ],
+            [
+              try_installed_library "pimlib" ["Pim_intf"; "Pim_impl"];
+            ]);
+
          (* Test executable *)
          "../examples/with-test",
          (fun () ->
