@@ -6,6 +6,7 @@ LicenseFile:  COPYING.txt
 License:      LGPL-2.1 with OCaml linking exception
 BuildType:    ocamlbuild (0.3)
 Authors:      Sylvain Le Gall
+Maintainers:  Sylvain Le Gall <gildor@ocamlcore.org>
 Copyrights:   (C) 2008-2010 OCamlCore SARL
 Homepage:     http://oasis.forge.ocamlcore.org/
 Plugins:      DevFiles (0.3), StdFiles (0.3), META (0.3)
