@@ -163,5 +163,6 @@ val zlib: license
 val zope: license
 val mit: license
 val public_domain: license
+val wtfpl: licence
 
 val ocaml_linking_exception: license_exception

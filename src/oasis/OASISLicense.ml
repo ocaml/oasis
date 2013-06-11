@@ -318,6 +318,11 @@ let public_domain =
     ~note:(ns_ "This is not a true license.")
     (ns_ "Public domain")
 
+let wtfpl =
+  mk_license
+    "WTFPL"
+    (ns_ "Do What The Fuck You Want To Public License")
+
 type license_exception_data =
     {
       explanation: string;
