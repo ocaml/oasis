@@ -22,7 +22,7 @@
 (** Version comparisons
 
     This module handles versions and version comparators. A version is a string
-    of the form "1.0.0". We compare integer and non-integer parts between to 
+    of the form "1.0.0". We compare integer and non-integer parts between to
     version to order them. Version comparators defined relations to a set
     of version. E.g. ">= 1.0.0" is a version comparator and defines all version
     above "1.0.0", including "1.0.0".
@@ -66,7 +66,7 @@ val chop: t -> t
 
 (** {2 Version comparator} *)
 
-type comparator = 
+type comparator =
   | VGreater of t
   | VGreaterEqual of t
   | VEqual of t
@@ -79,7 +79,7 @@ type comparator =
   *)
 val comparator_apply: t -> comparator -> bool
 
-(** Convert a comparator to string.
+(** Convert a comparator to string.  Example of output [">= 3.12.1"].
   *)
 val string_of_comparator: comparator -> string
 
@@ -95,7 +95,7 @@ val comparator_of_string: string -> comparator
   *)
 val comparator_reduce: comparator -> comparator
 
-(** Check that we have a version constraint. {b Not exported}. 
+(** Check that we have a version constraint. {b Not exported}.
   *)
 val comparator_value: comparator OASISValues.t
 
@@ -103,6 +103,6 @@ val comparator_value: comparator OASISValues.t
   *)
 val version_0_3_or_after : t -> bool
 
-(** Dump [ODN.t]. {b Not exported}. 
+(** Dump [ODN.t]. {b Not exported}.
   *)
 val odn_of_comparator:  comparator -> ODN.t
