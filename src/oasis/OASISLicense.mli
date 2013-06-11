@@ -162,7 +162,7 @@ val w3c_software: license
 val zlib: license
 val zope: license
 val mit: license
-val public_domain: license
 val wtfpl: licence
+val public_domain: license
 
 val ocaml_linking_exception: license_exception
