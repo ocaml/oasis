@@ -17,4 +17,3 @@ Executable test
 Test "main"
  Type: Custom (0.0.1)
  Command: $test
- WorkingDirectory: src
