@@ -1429,7 +1429,11 @@ let tests =
 
          "data/flag-ccopt",
          (fun () ->
-            long_test,
+            (fun () ->
+               long_test ();
+               skip_if
+                 (not (Sys.file_exists "/usr/lib/libz.so.1"))
+                 "zlib not installed"),
             "cryptokit.mllib" :: oasis_ocamlbuild_files,
             [],
             []);
