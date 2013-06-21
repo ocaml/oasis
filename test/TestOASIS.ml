@@ -350,45 +350,56 @@ let tests =
             "test16.oasis",
             ignore;
 
-	    "bug1239/_oasis",
-	    (fun pkg ->
-	      let template_by_fn l fn =
-		try Some (List.find (fun t -> t.OASISFileTemplate.fn = fn) l)
-		with Not_found -> None
-	      in
-	      let template_body x = OASISFileTemplate.(
-		match x.body with
-		| NoBody -> []
-		| Body l -> l
-		| BodyWithDigest (_,l) -> l
-	      )
-	      in
-	      let initial_ctxt = { 
-		OASISPlugin.ctxt = OASISContext.quiet ;
-		error = false ;
-		files = OASISFileTemplate.empty ;
-		other_actions = []
-	      }
-	      in
-	      let ctxt = OCamlbuildPlugin.add_ocamlbuild_files initial_ctxt pkg in
-	      let templates = OASISFileTemplate.fold (fun t accu -> t :: accu) ctxt.OASISPlugin.files [] in
-	      let mllib = 
-		match template_by_fn templates "src/bar/bar.mllib" with
-		| None -> 
-		  let msg = 
-		    Printf.sprintf 
-		      "Missing mllib file for packed library bar, here is the list of generated files:\n%s\n"
-		      (String.concat "\n" (List.map (fun t -> t.OASISFileTemplate.fn) templates))
-		  in
-		  assert_failure msg
-		| Some x -> x
-	      in
-	      assert_equal
-		~msg:"The mllib of a packed library should contain the name of the pack"
-		~printer:(fun x -> Printf.sprintf "[ %s ]" (String.concat " ; " (List.map (Printf.sprintf "%S") x)))
-		[ "Bar" ]
-		(template_body mllib)
-	    )
+            "bug1239/_oasis",
+            (fun pkg ->
+               let template_by_fn l fn =
+                 try 
+                   Some (List.find (fun t -> t.OASISFileTemplate.fn = fn) l)
+                 with Not_found -> 
+                   None
+               in
+               let template_body x =
+                 match x.OASISFileTemplate.body with
+                   | OASISFileTemplate.NoBody -> []
+                   | OASISFileTemplate.Body l -> l
+                   | OASISFileTemplate.BodyWithDigest (_,l) -> l
+               in
+               let initial_ctxt = { 
+                 OASISPlugin.ctxt = OASISContext.quiet ;
+                 error = false ;
+                 files = OASISFileTemplate.empty ;
+                 other_actions = []
+               }
+               in
+               let ctxt = OCamlbuildPlugin.add_ocamlbuild_files initial_ctxt pkg in
+               let templates =
+                 OASISFileTemplate.fold 
+                   (fun t accu -> t :: accu) 
+                   ctxt.OASISPlugin.files [] 
+               in
+               let mllib = 
+                 match template_by_fn templates "src/bar/bar.mllib" with
+                   | None -> 
+                       let msg = 
+                         Printf.sprintf 
+                           "Missing mllib file for packed library bar, \
+                            here is the list of generated files:\n%s\n"
+                           (String.concat "\n" 
+                              (List.map 
+                                 (fun t -> t.OASISFileTemplate.fn)
+                                 templates))
+                       in
+                         assert_failure msg
+                   | Some x -> x
+               in
+                 assert_equal
+                   ~msg:"The mllib of a packed library should contain the name of the pack"
+                   ~printer:(fun x -> 
+                               Printf.sprintf "[ %s ]"
+                                 (String.concat " ; " (List.map (Printf.sprintf "%S") x)))
+                   [ "Bar" ]
+                   (template_body mllib)
+            )
           ])
       @
        (List.rev_map file_of_vector
