@@ -151,6 +151,7 @@ val eiffel: license
 val expat: license
 val gpl: license
 val lgpl: license
+val agpl: license
 val gfdl: license
 val gfdl_niv: license
 val lppl: license
