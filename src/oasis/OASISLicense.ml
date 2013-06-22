@@ -247,6 +247,12 @@ let lgpl =
     ~note:"GNU Library General Public License for versions lower than 2.1"
     (ns_ "GNU Lesser General Public License")
 
+let agpl =
+  mk_license
+    "AGPL"
+    ~versions:["3.0"]
+    (ns_ "GNU Affero General Public License")
+
 let gfdl =
   mk_license
     "GFDL"
@@ -665,6 +671,9 @@ let choices () =
        version = NoVersion;
        excption = None};
       {license = gpl;
+       version =  Version (OASISVersion.version_of_string "3.0");
+       excption = None};
+      {license = agpl;
        version =  Version (OASISVersion.version_of_string "3.0");
        excption = None};
       {license = qpl;
