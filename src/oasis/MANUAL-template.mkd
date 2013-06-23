@@ -252,7 +252,7 @@ $ListOASISTestFields
 
 ### SourceRepository 
 
-Define VCS informations. There is two special identified repository: 
+Define VCS information. There are two special identified repositories: 
  
  * head: identify the main development repository.
  * this: identify the repository at the state of the current version.
