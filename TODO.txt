@@ -5,6 +5,8 @@
 
 * Feature protect big changes like the section Object.
 
+* fix +x for configure in oasis-dist
+
 IDEAS:
 
 * oasis-autogenerate: automatically file Modules and ModulesInternal using a field
@@ -15,3 +17,4 @@ IDEAS:
   in the project.
   Bonus point: use a link/file to include project checkout elsewhere on the FS
   Bonus point: also include rev-dependencies
+

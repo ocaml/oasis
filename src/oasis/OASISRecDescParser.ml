@@ -625,7 +625,7 @@ let parse_stream conf st =
               parse_expr (lexer (Stream.of_string str))
             with e ->
               failwithf
-                (f_ "Error when parsing expresion '%s' %t: %s")
+                (f_ "Error when parsing expression '%s' %t: %s")
                 str
                 position
                 (Printexc.to_string e)
