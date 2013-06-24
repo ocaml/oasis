@@ -52,7 +52,7 @@ let generated_unix_files
         OASISMessage.warning
           ~ctxt
           (f_ "Cannot find source file matching \
-                   module '%s' in object %s")
+               module '%s' in object %s")
           modul cs.cs_name ;
         lst
   in

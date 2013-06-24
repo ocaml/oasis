@@ -1,7 +1,7 @@
 
 type action = List | Load of string list
 
-let verbose = ref false
+let verbose = ref true
 
 let () =
   let action = ref List in
@@ -54,6 +54,7 @@ let () =
                  (String.concat ", "!PluginloaderLib.registered_plugins))
     with e ->
       prerr_endline (Printexc.to_string e);
+      Printexc.print_backtrace stderr;
       exit 1
 
 

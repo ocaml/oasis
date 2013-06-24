@@ -172,6 +172,7 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
             OASISFileUtil.file_exists_case path
           in
           let m =
+            prerr_endline (Printf.sprintf "module: %s" m);
             List.find
               (fun m -> exists m ".mli" || exists m ".ml")
               [ String.uncapitalize m ; String.capitalize m ]

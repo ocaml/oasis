@@ -1163,7 +1163,7 @@ let tests =
          (fun () -> 
             long_test,
             oasis_ocamlbuild_files @ 
-              [ "src/packedlib.mlpack"; "src/META" ],
+              [ "src/packedlib.mlpack"; "src/packedlib.mllib"; "src/META" ],
             [
               in_ocaml_library "packedlib" 
                 ["packedlib.cma"; "packedlib.cmi";
@@ -1506,8 +1506,8 @@ let tests =
          "data/bugClib",
          (fun () ->
             long_test,
-            "META" :: "mylib.mlpack" :: "libmylib_stubs.clib" ::
-            oasis_ocamlbuild_files,
+            oasis_ocamlbuild_files @
+              [ "META"; "mylib.mlpack"; "mylib.mllib"; "libmylib_stubs.clib" ],
             [in_ocaml_library "mylib"
                ["META"; "dllmylib_stubs.so";
                 "foo.ml"; "mylib.cma"; "mylib.cmi";
@@ -1527,8 +1527,8 @@ let tests =
           "../examples/object",
           (fun () ->
              long_test,
-             "src1/META" :: "src2/META" :: "src2/packed_modules.mlpack" ::
-             oasis_ocamlbuild_files,
+             oasis_ocamlbuild_files @
+               [ "src1/META"; "src2/META"; "src2/packed_modules.mlpack" ],
              [ in_ocaml_library "single_module"
                  ["META"; "single.o" ; "single.mli"; "single.cmx"; "single.cmo";
                   "single.cmi" ] ;

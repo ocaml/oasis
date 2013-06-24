@@ -20,7 +20,7 @@ let bracket_tmpdir f =
          fn)
     f
     (fun fn ->
-       FileUtil.rm ~recurse:true [fn])
+       FileUtil.rm ~recurse:true [fn]) 
 
 let bracket_findlib f =
   bracket_tmpdir
@@ -65,28 +65,35 @@ let bracket_findlib f =
 let assert_pluginloader dn args =
   let buf = Buffer.create 13 in
   let lst = ref [] in
+  let ocamlpath = 
+    try
+      FilePath.string_of_path
+        ((FilePath.path_of_string (Sys.getenv "OCAMLPATH")) @ [dn])
+    with Not_found ->
+      dn
+  in
   let env =
     Array.append
-      [|"OCAMLPATH="^
-        (try
-           FilePath.string_of_path
-            ((FilePath.path_of_string (Sys.getenv "OCAMLPATH")) @ [dn])
-        with Not_found ->
-          dn)|]
+      [|"OCAMLPATH="^ocamlpath|]
       (Unix.environment ())
   in
-  assert_command
-    ~env
-    ~foutput:(Stream.iter
-                (function
-                   | '\n' ->
-                       lst := Buffer.contents buf :: !lst;
-                       Buffer.clear buf
-                   | c ->
-                       Buffer.add_char buf c))
-    !pluginloader args;
+    assert_command
+      ~env
+      ~use_stderr:true
+      ~foutput:(Stream.iter
+                  (function
+                     | '\n' ->
+                         if !verbose then
+                           prerr_endline (Buffer.contents buf);
+                         lst := Buffer.contents buf :: !lst;
+                         Buffer.clear buf
+                     | c ->
+                         Buffer.add_char buf c))
+      !pluginloader args;
 
-  List.rev (Buffer.contents buf :: !lst)
+    if !verbose then 
+      prerr_endline (Buffer.contents buf);
+    List.rev (Buffer.contents buf :: !lst)
 
 let _lst : test_result list  =
   run_test_tt_main

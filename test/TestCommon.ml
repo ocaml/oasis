@@ -135,8 +135,8 @@ let assert_command ?exit_code ?output ?extra_env ?(unorder=false) cmd args  =
                 Stream.iter (Buffer.add_char buff) strm;
                 Buffer.contents buff
             in
-            let exp_output = ExtString.String.nsplit exp_output "\n" in
-            let rel_output = ExtString.String.nsplit output "\n" in
+            let exp_output = OASISString.nsplit exp_output '\n' in
+            let rel_output = OASISString.nsplit output '\n' in
 
             let assert_equal_diff ~msg t1 t2 =
               if unorder then

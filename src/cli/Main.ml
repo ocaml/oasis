@@ -69,7 +69,13 @@ let () =
           | Failure str ->
               error "%s" str
           | e ->
-              error "%s" (Printexc.to_string e)
+              begin
+                error "%s" (Printexc.to_string e);
+                if Printexc.backtrace_status () then
+                  List.iter 
+                    (debug "%s")
+                    (OASISString.nsplit (Printexc.get_backtrace ()) '\n')
+              end
       end;
 
       exit 1
