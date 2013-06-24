@@ -712,6 +712,7 @@ let tests =
                            List.rev_append
                              ("#require \"unix\";;" ::
                               "#require \"odn\";;" ::
+                               "#require \"ocamlbuild\";;" :: 
                               (List.map mkload
                                  [["oasis"; "oasis.cma"];
                                   ["base"; "base.cma"];

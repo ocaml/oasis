@@ -127,16 +127,17 @@ let generated_unix_files
   (* The .cmx that be compiled along *)
   let cmxs =
     let should_be_built =
-      (not lib.lib_pack) && (* Do not install .cmx packed submodules *)
       match bs.bs_compiled_object with
         | Native -> true
         | Best -> is_native
         | Byte -> false
     in
       if should_be_built then
-        find_modules
-          (lib.lib_modules @ lib.lib_internal_modules)
-          "cmx"
+        if lib.lib_pack then [ [ cs.cs_name ^ ".cmx" ] ]
+        else
+          find_modules
+            (lib.lib_modules @ lib.lib_internal_modules)
+            "cmx"
       else
         []
   in
