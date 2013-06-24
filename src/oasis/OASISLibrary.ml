@@ -133,7 +133,10 @@ let generated_unix_files
         | Byte -> false
     in
       if should_be_built then
-        if lib.lib_pack then [ [ cs.cs_name ^ ".cmx" ] ]
+        if lib.lib_pack then
+          find_modules 
+            [cs.cs_name]
+            "cmx"
         else
           find_modules
             (lib.lib_modules @ lib.lib_internal_modules)

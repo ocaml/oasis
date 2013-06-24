@@ -30,7 +30,7 @@ default: test
 	-$(PRECOMMIT)
 
 export OCAMLRUNPARAM=b
-TESTFLAGS      += -not-long
+#TESTFLAGS      += -not-long
 #TESTFLAGS      += -verbose
 #TESTFLAGS      += -only-test OASIS:5:TestFull:2:../examples/packedlib:0:standard
 

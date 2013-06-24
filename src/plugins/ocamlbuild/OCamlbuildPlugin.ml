@@ -182,8 +182,11 @@ let build pkg argv =
       (fun fns ->
          if not (List.exists OASISFileUtil.file_exists_case fns) then
            failwithf
-             (f_ "No one of expected built files %s exists")
-             (String.concat (s_ ", ") (List.map (Printf.sprintf "'%s'") fns)))
+             (fn_ 
+                "Expected built file %s doesn't exist."
+                "None of expected built files %s exists."
+                (List.length fns))
+             (String.concat (s_ " or ") (List.map (Printf.sprintf "'%s'") fns)))
       lst;
       (BaseBuilt.register bt bnm lst)
   in

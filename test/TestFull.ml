@@ -1167,7 +1167,7 @@ let tests =
               [ "src/packedlib.mlpack"; "src/packedlib.mllib"; "src/META" ],
             [
               in_ocaml_library "packedlib" 
-                ["packedlib.cma"; "packedlib.cmi";
+                ["packedlib.cma"; "packedlib.cmi"; "packedlib.cmx";
                  "foo.mli"; "bar.mli"; "Baz.ml"; "META";
                  "packedlib.cmxa"; "packedlib.cmxs";
                  "packedlib.a"];
@@ -1512,7 +1512,7 @@ let tests =
             [in_ocaml_library "mylib"
                ["META"; "dllmylib_stubs.so";
                 "foo.ml"; "mylib.cma"; "mylib.cmi";
-                "mylib.cmxa"; "mylib.cmxs"; 
+                "mylib.cmxa"; "mylib.cmxs"; "mylib.cmx"; 
                 "mylib.a"; "libmylib_stubs.a"]],
             [
               try_installed_library "mylib" ["Mylib.Foo"; "Mylib.Bar"]
