@@ -1,7 +1,7 @@
 
 type action = List | Load of string list
 
-let verbose = ref true
+let verbose = ref false
 
 let () =
   let action = ref List in
