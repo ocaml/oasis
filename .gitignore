@@ -10,3 +10,4 @@ src/oasis/OASISConf.ml
 bindist
 patches-to-apply
 tarballs
+test/oUnit.log
