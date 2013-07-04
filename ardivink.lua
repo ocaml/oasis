@@ -25,3 +25,6 @@ oasis.init()
 
 oasis.std_process("--enable-tests")
 git.create_tag(oasis.package_version())
+
+-- Create documenation package.
+ci.exec("make", "doc-dist")

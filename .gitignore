@@ -11,3 +11,4 @@ bindist
 patches-to-apply
 tarballs
 test/oUnit.log
+dist/

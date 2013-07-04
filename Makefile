@@ -152,3 +152,9 @@ dist:
 	./src/tools/oasis-dist.ml
 
 .PHONY: dist
+
+doc-dist: doc
+	./doc-dist.sh
+
+.PHONY: doc-dist
+
