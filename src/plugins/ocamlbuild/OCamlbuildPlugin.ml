@@ -157,8 +157,12 @@ let build pkg argv =
                  (* Add executable *)
                  let acc =
                    match bs.bs_compiled_object with
+                     | Native_object ->
+                         (target ".nobj.o") :: acc
+                     | Bytecode_object ->
+                         (target ".bobj.o") :: acc
                      | Native ->
-                         (target ".native") :: acc
+                         (target ".native") ::  acc
                      | Best when bool_of_string (is_native ()) ->
                          (target ".native") :: acc
                      | Byte
@@ -709,6 +713,10 @@ let add_ocamlbuild_files ctxt pkg =
                            "cma"
                        | Native ->
                            "cmxa"
+                       | Native_object ->
+                           ".nobj.o"
+                       | Bytecode_object ->
+                           ".bobj.o"
                    in
                      prepend_bs_path bs
                        (OASISUnixPath.add_extension cs.cs_name ext)
@@ -852,6 +860,10 @@ let add_ocamlbuild_files ctxt pkg =
                            "cmo"
                        | Native ->
                            "cmx"
+                       | Native_object ->
+                           ".nobj.o"
+                       | Bytecode_object ->
+                           ".bobj.o"
                    in
                      prepend_bs_path bs
                        (OASISUnixPath.add_extension cs.cs_name ext)
@@ -962,6 +974,10 @@ let add_ocamlbuild_files ctxt pkg =
                            "byte"
                        | Native ->
                            "native"
+                       | Native_object ->
+                           "nobj.o"
+                       | Bytecode_object ->
+                           "bobj.o"
                    in
                      prepend_bs_path bs
                        (OASISUnixPath.replace_extension

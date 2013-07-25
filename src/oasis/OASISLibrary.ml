@@ -129,6 +129,8 @@ let generated_unix_files
     let should_be_built =
       match bs.bs_compiled_object with
         | Native -> true
+        | Native_object -> false
+        | Bytecode_object -> false
         | Best -> is_native
         | Byte -> false
     in
@@ -171,11 +173,11 @@ let generated_unix_files
         [cs.cs_name^".cmxa"] :: [cs.cs_name^ext_lib] :: acc
     in
       match bs.bs_compiled_object with
-        | Native ->
+        | Native | Native_object ->
             byte (native acc_nopath)
         | Best when is_native ->
             byte (native acc_nopath)
-        | Byte | Best ->
+        | Byte | Bytecode_object | Best ->
             byte acc_nopath
   in
 
