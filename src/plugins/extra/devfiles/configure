@@ -4,7 +4,7 @@
 set -e
 
 FST=true
-for i in "$@"; do 
+for i in "$@"; do
   if $FST; then
     set --
     FST=false
