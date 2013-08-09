@@ -1026,10 +1026,10 @@ let add_ocamlbuild_files ctxt pkg =
     }
   in
 
-  let tag_t = 
-    "# Ignore VCS directories, you can use the same kind of rule outside "
+  let tag_t =
+    "# Ignore VCS directories, you can use the same kind of rule outside"
     ::
-    "# OASIS_START/STOP if you want to exclude directories that contains "
+    "# OASIS_START/STOP if you want to exclude directories that contains"
     ::
     "# useless stuff for the build process"
     ::
