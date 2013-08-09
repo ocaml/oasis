@@ -21,11 +21,11 @@
 
 (** Boolean expressions
 
-    This module provides a boolean expression evaluator. See OASIS manual 
+    This module provides a boolean expression evaluator. See OASIS manual
     for the precise syntax of the boolean expression
 
     @author Sylvain Le Gall
-    @see <http://oasis.forge.ocamlcore.org/MANUAL.html#conditional-value> OASIS Manual 
+    @see <http://oasis.forge.ocamlcore.org/MANUAL.html#conditional-value> OASIS Manual
   *)
 
 (** {2 Test} *)
@@ -33,7 +33,7 @@
 (** Test definition.
   *)
 type test
-  
+
 (** Mandatory tests. *)
 val tests: test list
 
@@ -54,14 +54,14 @@ type t =
   | ENot of t      (** ! e *)
   | EAnd of t * t  (** e1 && e2 *)
   | EOr of t * t   (** e1 || e2 *)
-  | EFlag of flag  (** flag(foo), a boolean value *) 
+  | EFlag of flag  (** flag(foo), a boolean value *)
   | ETest of test * string (** os_type(Win32), a value compared against provided string *)
 
-(** Choose among different values 
+(** Choose among different values
   *)
-type 'a choices = (t * 'a) list 
+type 'a choices = (t * 'a) list
 
-(** [eval eval_tst t] Evaluates the expression. Use [eval_tst] 
+(** [eval eval_tst t] Evaluates the expression. Use [eval_tst]
     to get values of flags and tests.
   *)
 val eval: (string -> string) -> t -> bool
@@ -70,7 +70,7 @@ val eval: (string -> string) -> t -> bool
     of [choices] and choose the last condition that evaluates to [true].
     If something goes wrong, use [printer] to display values and [~name] as the
     choice list name.
-  
+
     See also {!eval}.
   *)
 val choose:

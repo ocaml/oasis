@@ -19,7 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** Various utilities 
+(** Various utilities
     @author Sylvain Le Gall
   *)
 
@@ -32,7 +32,7 @@ val map_string_of_assoc : (string * 'a) list -> 'a MapString.t
 
 (** {2 Set} *)
 
-(** Set for String. 
+(** Set for String.
   *)
 module SetString: Set.S with type elt = String.t
 
@@ -50,7 +50,7 @@ module HashStringCsl: Hashtbl.S with type key = String.t
 
 (** {2 Variable name} *)
 
-(** [varname_of_string ~hyphen:c s] Transform a string [s] into a variable name, 
+(** [varname_of_string ~hyphen:c s] Transform a string [s] into a variable name,
     following this convention: no digit at the beginning, lowercase, only a-z
     and 0-9 chars. Whenever there is a problem, use an hyphen.
   *)
@@ -89,7 +89,7 @@ val split_comma : string -> string list
   *)
 val split_newline : ?trim:bool -> string -> string list
 
-(** Split a string containing '(...)' optionally. {b Not exported} 
+(** Split a string containing '(...)' optionally. {b Not exported}
   *)
 val split_optional_parentheses : string -> string * (string option)
 

@@ -29,49 +29,49 @@ open OASISUtils
 open OASISGettext
 open OASISTypes
 
-let build_depends_field schm sync = 
-  new_field schm "BuildDepends" 
+let build_depends_field schm sync =
+  new_field schm "BuildDepends"
     ~default:[]
-    (let base_value = 
-       comma_separated 
+    (let base_value =
+       comma_separated
          (with_optional_parentheses
             findlib_full
             OASISVersion.comparator_value)
      in
        {
-         parse = 
+         parse =
            (fun ~ctxt str ->
-              List.map 
-                (fun (pkg, ver_constr_opt) -> 
+              List.map
+                (fun (pkg, ver_constr_opt) ->
                    FindlibPackage (pkg, ver_constr_opt))
                 (base_value.parse ~ctxt str));
 
-         update = 
+         update =
            List.append;
 
          print =
            (fun lst ->
               base_value.print
-                (List.map 
-                   (function 
+                (List.map
+                   (function
                       | FindlibPackage (nm, ver) -> (nm, ver)
                       | InternalLibrary nm -> (nm, None))
                    lst));
        })
-    (fun () -> 
+    (fun () ->
        s_ "Dependencies on findlib packages, including internal \
            findlib packages.")
     sync
 
 let build_tools_value =
-   let base = 
+   let base =
      comma_separated file
    in
      {
-       parse = 
+       parse =
          (fun ~ctxt str ->
-            List.map 
-              (fun s -> ExternalTool s) 
+            List.map
+              (fun s -> ExternalTool s)
               (base.parse ~ctxt str));
 
        update =
@@ -101,7 +101,7 @@ let build_install_data_fields
       sync_build
       sync_install
       sync_datafiles =
-  let build = 
+  let build =
     new_field_conditional schm "Build"
       ?default_cond
       ~default
@@ -123,21 +123,21 @@ let build_install_data_fields
          (with_optional_parentheses
             file_glob
             (expandable directory)))
-      (fun () -> 
+      (fun () ->
          s_ "Comma separated list of files to be installed for run-time. \
              ([see here](#data-files))")
       sync_datafiles
   in
     build, install, data_files
 
-let section_fields nm comp_dflt schm sync = 
+let section_fields nm comp_dflt schm sync =
   let path =
-    new_field schm "Path" 
+    new_field schm "Path"
       directory
       (fun () -> s_ "Directory containing the section")
       (fun pkg -> (sync pkg).bs_path)
   in
-  let build, install, data_files = 
+  let build, install, data_files =
     build_install_data_fields schm
       (fun pkg -> (sync pkg).bs_build)
       (fun pkg -> (sync pkg).bs_install)
@@ -157,11 +157,11 @@ let section_fields nm comp_dflt schm sync =
       (choices
          (fun () -> s_ "compiled object")
          ["byte", Byte; "native", Native; "best", Best])
-      (fun () -> 
+      (fun () ->
          s_ "Define the compilation type of the section: byte, native or best")
       (fun pkg -> (sync pkg).bs_compiled_object)
   in
-  let c_sources = 
+  let c_sources =
     new_field schm "CSources"
       ~default:[]
       files

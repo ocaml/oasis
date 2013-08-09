@@ -34,20 +34,20 @@ open OASISUtils
 let queries =
   ref []
 
-let separator = 
+let separator =
   ref "\n"
 
-let lexer = 
-  make_lexer 
+let lexer =
+  make_lexer
     ["ListSections"; "ListFields"; "("; ")"; "."]
 
-let query pkg str = 
-  let proplist_schema schm = 
+let query pkg str =
+  let proplist_schema schm =
     (* TODO: oops access to unpublished module _intern *)
     schm.OASISSchema_intern.schm
   in
 
-  let assoc_sections = 
+  let assoc_sections =
     [
       "Library", (`Library, proplist_schema OASISLibrary.schema);
 
@@ -63,19 +63,19 @@ let query pkg str =
     ]
   in
 
-  let mk_section sct = 
+  let mk_section sct =
     let (knd, nm) =
       OASISSection.section_id sct
     in
-    let start, (_, schm) = 
-      List.find 
+    let start, (_, schm) =
+      List.find
         (fun (str, (knd', _)) -> knd = knd')
         assoc_sections
     in
-    let fmt = 
-      if OASISUtils.is_varname nm then  
-        Printf.sprintf "%s(%s)" 
-      else 
+    let fmt =
+      if OASISUtils.is_varname nm then
+        Printf.sprintf "%s(%s)"
+      else
         Printf.sprintf "%s(%S)"
     in
       fmt start nm, schm
@@ -89,18 +89,18 @@ let query pkg str =
           str
   in
 
-  let parse_fld_or_section start_nm = 
-    parser 
-      | [< 'Kwd "("; nm = parse_id_or_string; 'Kwd ")"; 
-           'Kwd "."; 
-           fld = parse_id_or_string >] ->          
+  let parse_fld_or_section start_nm =
+    parser
+      | [< 'Kwd "("; nm = parse_id_or_string; 'Kwd ")";
+           'Kwd ".";
+           fld = parse_id_or_string >] ->
           begin
-            let kind, schm = 
-              try 
-                List.assoc 
+            let kind, schm =
+              try
+                List.assoc
                   (String.lowercase start_nm)
-                  (List.map 
-                     (fun (nm, e) -> String.lowercase nm, e) 
+                  (List.map
+                     (fun (nm, e) -> String.lowercase nm, e)
                      assoc_sections)
               with Not_found ->
                 failwithf
@@ -109,10 +109,10 @@ let query pkg str =
             in
             let sct  =
               OASISSection.section_find
-                (kind, nm) 
+                (kind, nm)
                 pkg.sections
             in
-            let data = 
+            let data =
               (OASISSection.section_common sct).cs_data
             in
               schm, data, fld
@@ -127,9 +127,9 @@ let query pkg str =
           end
   in
 
-  let parse = 
-    parser 
-      | [< start_nm = parse_id_or_string; 
+  let parse =
+    parser
+      | [< start_nm = parse_id_or_string;
            (schm, data, fld) = parse_fld_or_section start_nm >] ->
           begin
             PropList.Schema.get schm data fld
@@ -137,9 +137,9 @@ let query pkg str =
 
       | [< 'Kwd "ListSections" >] ->
           begin
-            String.concat 
+            String.concat
               !separator
-              (List.map 
+              (List.map
                  (fun sct -> fst (mk_section sct))
                  pkg.sections)
           end
@@ -149,8 +149,8 @@ let query pkg str =
             let fold_schm prefix schm data acc =
               PropList.Schema.fold
                 (fun acc nm _ _ ->
-                   try 
-                     let _v : string = 
+                   try
+                     let _v : string =
                        PropList.Schema.get schm data nm
                      in
                        (prefix^nm) :: acc
@@ -159,7 +159,7 @@ let query pkg str =
                 acc
                 schm
             in
-            let lst = 
+            let lst =
               List.fold_left
                 (fun acc sct ->
                    let prefix, schm = mk_section sct in
@@ -173,8 +173,8 @@ let query pkg str =
                 pkg.sections
             in
 
-              String.concat 
-                !separator 
+              String.concat
+                !separator
                 (List.rev lst)
           end
 
@@ -182,30 +182,30 @@ let query pkg str =
     parse (lexer (Stream.of_string str))
 
 
-let main () = 
-  let pkg = 
+let main () =
+  let pkg =
     OASISParse.from_file
-      ~ctxt:{!BaseContext.default with 
+      ~ctxt:{!BaseContext.default with
                  OASISContext.ignore_plugins = !ArgCommon.ignore_plugins}
       !ArgCommon.oasis_fn
   in
-  let answers = 
+  let answers =
     List.rev_map (query pkg) !queries
   in
     print_endline (String.concat !separator answers)
 
 
 let scmd =
-  {(SubCommand.make 
+  {(SubCommand.make
       ~std_usage:false
       "query"
       (s_ "Query an _oasis file")
       CLIData.query_mkd
-      main) 
+      main)
      with
-         scmd_usage = 
+         scmd_usage =
            s_ "[options*] query*";
-         scmd_anon = 
+         scmd_anon =
            (fun e -> queries := e :: !queries);
          scmd_specs =
            ([
@@ -215,5 +215,5 @@ let scmd =
            ]
            @ ArgCommon.oasis_fn_specs @ ArgCommon.ignore_plugins_specs)}
 
-let () = 
+let () =
   SubCommand.register scmd

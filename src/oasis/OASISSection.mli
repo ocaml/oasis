@@ -23,11 +23,11 @@
     @author Sylvain Le Gall
   *)
 
-open OASISTypes 
+open OASISTypes
 
 (** {2 Manipulate a section} *)
 
-(** Extract generic information 
+(** Extract generic information
   *)
 val section_kind_common :  section -> section_kind * common_section
 
@@ -35,7 +35,7 @@ val section_kind_common :  section -> section_kind * common_section
   *)
 val section_common : section -> common_section
 
-(** Set the common part of a section 
+(** Set the common part of a section
   *)
 val section_common_set : common_section -> section -> section
 
@@ -48,7 +48,7 @@ val section_id : section -> section_kind * name
   *)
 val string_of_section : section -> string
 
-(** Find a section 
+(** Find a section
   *)
 val section_find : section_kind * name -> section list -> section
 
@@ -57,8 +57,8 @@ val section_find : section_kind * name -> section list -> section
 (** Comparable section, we only rely on section_id
    for comparison. {b Not exported}
   *)
-module CSection: 
-sig 
+module CSection:
+sig
   type t = section
   val compare: section -> section -> int
   val equal: section -> section -> bool
@@ -66,7 +66,7 @@ sig
 end
 
 (** Map using CSection. {b Not exported} *)
-module MapSection: Map.S with type key = CSection.t 
+module MapSection: Map.S with type key = CSection.t
 
 (** Set using CSection. {b Not exported} *)
 module SetSection: Set.S with type elt = CSection.t

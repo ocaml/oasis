@@ -19,14 +19,14 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** Markdown formatter 
+(** Markdown formatter
     @author Sylvain Le Gall
   *)
 
 open Format
 open FormatExt
 
-let pp_print_endblock ?check_last_char fmt () = 
+let pp_print_endblock ?check_last_char fmt () =
   match check_last_char with
     | Some s ->
         begin
@@ -57,7 +57,7 @@ let pp_print_title lvl fmt str =
       pp_print_underlined '=' fmt str
     else if lvl = 2 then
       pp_print_underlined '-' fmt str
-    else 
+    else
       begin
         (* ATX style *)
         pp_print_string fmt (String.make lvl '#');
@@ -65,10 +65,10 @@ let pp_print_title lvl fmt str =
       end;
     pp_print_endblock fmt ()
 
-let pp_print_def fmt term defs = 
+let pp_print_def fmt term defs =
   pp_print_string fmt term;
   pp_print_newline fmt ();
-  List.iter 
+  List.iter
     (fun (pp_print_e, e) ->
        pp_print_string fmt ":   ";
        pp_open_box fmt 0;

@@ -43,23 +43,23 @@ let std_no_generate str ctxt pkg =
     chng_moduls    = [NoneData.nonesys_ml];
     chng_clean     = None;
     chng_distclean = None;
-    chng_main = 
-      (ODNFunc.func_with_arg 
+    chng_main =
+      (ODNFunc.func_with_arg
          not_implemented "NonePlugin.not_implemented"
          str ODN.of_string);
   }
 
 let section_no_generate str ctxt pkg (cs, section) =
-  std_no_generate 
+  std_no_generate
     (str^" of section "^cs.cs_name)
-    ctxt 
+    ctxt
     pkg
 
-let init () = 
+let init () =
   let nm, ver = "None", Some OASISConf.version_short in
-  let () = 
+  let () =
     register_help (`All, nm, ver)
-      {(help_default NoneData.readme_template_mkd) with 
+      {(help_default NoneData.readme_template_mkd) with
            help_order = 10}
   in
 
@@ -73,9 +73,9 @@ let init () =
 
   let plugin = `Install, nm, ver in
   let self_id, _ = Install.create plugin in
-  let () = Install.register_act self_id 
+  let () = Install.register_act self_id
              ((std_no_generate "install"),
-              (std_no_generate "uninstall")) 
+              (std_no_generate "uninstall"))
   in
 
   let plugin = `Test, nm, ver in

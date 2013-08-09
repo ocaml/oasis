@@ -26,7 +26,7 @@ open OASISLicense_types
 %token <string> TOKEN
 %token COMMA
 %token AND
-%token OR 
+%token OR
 %token OR
 %token WITH
 %token EXCEPTION

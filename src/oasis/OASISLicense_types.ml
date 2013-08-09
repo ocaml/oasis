@@ -19,7 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-type t = 
-  | Or of t * t  
+type t =
+  | Or of t * t
   | And of t * t
   | License of string * (string option)

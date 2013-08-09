@@ -23,7 +23,7 @@
     @author Sylvain Le Gall
   *)
 
-open OASISTypes 
+open OASISTypes
 
 (** Default file for registering log.
   *)

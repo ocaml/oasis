@@ -20,7 +20,7 @@
 (******************************************************************************)
 
 (** Dump function calls with ODN
-   
+
    The idea of this module is to store a function and its argument with the ODN
    data structure that should be dumped. This allows to type in a way the
    function to be dumped.
@@ -34,7 +34,7 @@
 (** Function that can be generated using ODN
     func_call = APP(func, [], [func_arg]).
   *)
-type 'a func = 
+type 'a func =
     {
       func_call: 'a;
       func_name: string;

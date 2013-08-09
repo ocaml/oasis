@@ -22,7 +22,7 @@
 
 
 (** Various string utilities.
-   
+
     Mostly inspired by extlib and batteries ExtString and BatString libraries.
 
     @author Sylvain Le Gall
@@ -56,8 +56,8 @@ let nsplit str c =
 
 let find ~what ?(offset=0) str =
   let what_idx = ref 0 in
-  let str_idx = ref offset in 
-    while !str_idx < String.length str && 
+  let str_idx = ref offset in
+    while !str_idx < String.length str &&
           !what_idx < String.length what do
       if str.[!str_idx] = what.[!what_idx] then
         incr what_idx
@@ -67,10 +67,10 @@ let find ~what ?(offset=0) str =
     done;
     if !what_idx <> String.length what then
       raise Not_found
-    else 
+    else
       !str_idx - !what_idx
 
-let sub_start str len = 
+let sub_start str len =
   let str_len = String.length str in
   if len >= str_len then
     ""
@@ -89,7 +89,7 @@ let starts_with ~what ?(offset=0) str =
   let str_idx = ref offset in
   let ok = ref true in
     while !ok &&
-          !str_idx < String.length str && 
+          !str_idx < String.length str &&
           !what_idx < String.length what do
       if str.[!str_idx] = what.[!what_idx] then
         incr what_idx
@@ -99,7 +99,7 @@ let starts_with ~what ?(offset=0) str =
     done;
     if !what_idx = String.length what then
       true
-    else 
+    else
       false
 
 let strip_starts_with ~what str =
@@ -113,7 +113,7 @@ let ends_with ~what ?(offset=0) str =
   let str_idx = ref ((String.length str) - 1) in
   let ok = ref true in
     while !ok &&
-          offset <= !str_idx && 
+          offset <= !str_idx &&
           0 <= !what_idx do
       if str.[!str_idx] = what.[!what_idx] then
         decr what_idx
@@ -123,7 +123,7 @@ let ends_with ~what ?(offset=0) str =
     done;
     if !what_idx = -1 then
       true
-    else 
+    else
       false
 
 let strip_ends_with ~what str =
@@ -149,8 +149,8 @@ let is_whitespace =
 let tokenize ?(is_whitespace=is_whitespace) ?(tokens=[]) str =
   let lst = ref [] in
   let buf = Buffer.create 13 in
-  let idx = ref 0 in    
-  let push () = 
+  let idx = ref 0 in
+  let push () =
     (* Push the content of the buffer on the list. *)
     if Buffer.length buf > 0 then
       begin
@@ -158,7 +158,7 @@ let tokenize ?(is_whitespace=is_whitespace) ?(tokens=[]) str =
         Buffer.clear buf
       end
   in
-  let match_token () = 
+  let match_token () =
     List.exists
       (fun tok ->
          if starts_with ~what:tok ~offset:!idx str then

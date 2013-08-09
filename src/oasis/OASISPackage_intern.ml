@@ -19,7 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** Package schema and generator 
+(** Package schema and generator
     @author Sylvain Le Gall
   *)
 
@@ -33,9 +33,9 @@ open OASISSchema_intern
 open OASISGettext
 open OASISExpr
 
-let mod_build_depends f pkg = 
+let mod_build_depends f pkg =
   {pkg with
-       sections = 
+       sections =
          List.map
            (function
               | Library (cs, bs, lib) ->
@@ -55,7 +55,7 @@ let add_build_depend build_depend pkg =
     pkg
 
 let add_build_tool ?(no_test=false) ?(condition=[EBool true, true]) build_tool pkg =
-  let pkg = 
+  let pkg =
     mod_build_depends
       (fun bs ->
          {bs with bs_build_tools = build_tool :: bs.bs_build_tools})
@@ -64,19 +64,19 @@ let add_build_tool ?(no_test=false) ?(condition=[EBool true, true]) build_tool p
     if no_test then
       pkg
     else
-      {pkg with 
-           sections = 
-             List.map 
-               (function 
+      {pkg with
+           sections =
+             List.map
+               (function
                   | Test (cs, test) ->
-                      Test (cs, 
-                            {test with 
-                                 test_tools = 
+                      Test (cs,
+                            {test with
+                                 test_tools =
                                    build_tool :: test.test_tools})
                   | Doc (cs, doc) ->
                       Doc (cs,
-                           {doc with 
-                                doc_build_tools = 
+                           {doc with
+                                doc_build_tools =
                                   build_tool :: doc.doc_build_tools})
                   | Library _ | Object _
                   | Executable _ | Flag _ | SrcRepo _ as sct ->
@@ -121,19 +121,19 @@ let oasis_version =
 let generator =
   let schm = schema in
 
-  let new_field ?quickstart_level ?quickstart_question ?default nm value hlp sync = 
+  let new_field ?quickstart_level ?quickstart_question ?default nm value hlp sync =
     new_field schm ?quickstart_level ?quickstart_question ?default nm value hlp sync
   in
   let new_field_plugin nm ?default ?quickstart_question value hlp sync =
     new_field_plugin schm nm ?default ?quickstart_question value hlp sync
   in
-  let name = 
-    new_field "Name" string_not_empty 
+  let name =
+    new_field "Name" string_not_empty
       (fun () ->
          s_ "Name of the package.")
       (fun pkg -> pkg.name)
   in
-  let version = 
+  let version =
     new_field "Version" OASISVersion.value
       (fun () ->
          s_ "Version of the package.")
@@ -149,19 +149,19 @@ let generator =
     new_field "Description"
       ~default:None
       (opt string_not_empty)
-      (fun () -> 
+      (fun () ->
          s_ "Long description of the package purpose.")
       (fun pkg -> pkg.description)
   in
   let authors =
-    new_field "Authors" 
+    new_field "Authors"
       (comma_separated string_not_empty)
       (fun () ->
          s_ "Real people that had contributed to the package.")
       (fun pkg -> pkg.authors)
   in
   let copyrights =
-    new_field "Copyrights" 
+    new_field "Copyrights"
       ~default:[]
       (comma_separated copyright)
       (fun () ->
@@ -172,15 +172,15 @@ let generator =
     new_field "Maintainers"
       ~default:[]
       (comma_separated string_not_empty)
-      (fun () -> 
+      (fun () ->
          s_ "Current maintainers of the package.")
       (fun pkg -> pkg.maintainers)
   in
   let license_file =
-    new_field "LicenseFile" 
+    new_field "LicenseFile"
       ~default:None
       (opt file)
-      (fun () -> 
+      (fun () ->
          s_ "File containing the license.")
       (fun pkg -> pkg.license_file)
   in
@@ -197,7 +197,7 @@ let generator =
     new_field "OCamlVersion"
       ~default:None
       (opt OASISVersion.comparator_value)
-      (fun () -> 
+      (fun () ->
          s_ "Version constraint on OCaml.")
       (fun pkg -> pkg.ocaml_version)
   in
@@ -210,32 +210,32 @@ let generator =
       (fun pkg -> pkg.findlib_version)
   in
   let conf_type =
-    new_field_plugin "ConfType" 
+    new_field_plugin "ConfType"
       ~default:(OASISPlugin.builtin `Configure "internal")
-      ~quickstart_question:OASISPlugin.Configure.quickstart_question 
+      ~quickstart_question:OASISPlugin.Configure.quickstart_question
       `Configure
       OASISPlugin.Configure.value
-      (fun () -> 
+      (fun () ->
          s_ "Configuration system.")
       (fun pkg -> pkg.conf_type)
   in
-  let conf_custom = 
+  let conf_custom =
     OASISCustom.add_fields schm "Conf"
       (fun () -> s_ "Command to run before configuration.")
       (fun () -> s_ "Command to run after configuration.")
       (fun pkg -> pkg.conf_custom)
   in
   let build_type =
-    new_field_plugin "BuildType" 
+    new_field_plugin "BuildType"
       ~default:(OASISPlugin.builtin `Build "ocamlbuild")
       ~quickstart_question:OASISPlugin.Build.quickstart_question
       `Build
       OASISPlugin.Build.value
-      (fun () -> 
+      (fun () ->
          s_ "Build system.")
       (fun pkg -> pkg.build_type)
   in
-  let build_custom = 
+  let build_custom =
     OASISCustom.add_fields schm "Build"
       (fun () -> s_ "Command to run before build.")
       (fun () -> s_ "Command to run after build.")
@@ -247,39 +247,39 @@ let generator =
       ~quickstart_question:OASISPlugin.Install.quickstart_question
       `Install
       OASISPlugin.Install.value
-      (fun () -> 
+      (fun () ->
          s_ "Install/uninstall system.")
       (fun pkg -> pkg.install_type)
   in
-  let install_custom = 
+  let install_custom =
     OASISCustom.add_fields schm "Install"
       (fun () -> s_ "Command to run before install.")
       (fun () -> s_ "Command to run after install.")
       (fun pkg -> pkg.install_custom)
   in
-  let uninstall_custom = 
+  let uninstall_custom =
     OASISCustom.add_fields schm "Uninstall"
       (fun () -> s_ "Command to run before uninstall.")
       (fun () -> s_ "Command to run after uninstall.")
       (fun pkg -> pkg.uninstall_custom)
   in
-  let clean_custom = 
+  let clean_custom =
     OASISCustom.add_fields schm "Clean"
       (fun () -> s_ "Command to run before clean.")
       (fun () -> s_ "Command to run after clean.")
       (fun pkg -> pkg.clean_custom)
   in
-  let distclean_custom = 
+  let distclean_custom =
     OASISCustom.add_fields schm "Distclean"
       (fun () -> s_ "Command to run before distclean.")
       (fun () -> s_ "Command to run after distclean.")
       (fun pkg -> pkg.distclean_custom)
   in
   let homepage =
-    new_field "Homepage" 
+    new_field "Homepage"
       ~default:None
       (opt url)
-      (fun () -> 
+      (fun () ->
          s_ "URL of the package homepage.")
       (fun pkg -> pkg.homepage)
   in
@@ -300,8 +300,8 @@ let generator =
       (fun pkg -> pkg.files_ab)
   in
   let plugins =
-    let quickstart_question () = 
-      match OASISPlugin.Extra.quickstart_question () with 
+    let quickstart_question () =
+      match OASISPlugin.Extra.quickstart_question () with
         | ExclusiveChoices lst ->
             Choices lst
         | Choices _ | Field | Text as q ->
@@ -309,11 +309,11 @@ let generator =
     in
       new_field_plugins schm "Plugins"
         ~default:[]
-        ~quickstart_level:Beginner 
+        ~quickstart_level:Beginner
         ~quickstart_question
         `Extra
         OASISPlugin.Extra.value
-        (fun () -> 
+        (fun () ->
            s_ "Extra plugins to use.")
         (fun pkg -> pkg.plugins)
   in
@@ -334,11 +334,11 @@ let generator =
        (* Generate plugin data *)
        let set_plugin_data generator plugin_data data =
          let rplugin_data = ref plugin_data in
-           List.iter  
+           List.iter
              (fun plg ->
                 generator
-                  (plg :> plugin_kind plugin) 
-                  rplugin_data 
+                  (plg :> plugin_kind plugin)
+                  rplugin_data
                   data)
              plugins;
            generator
@@ -354,36 +354,36 @@ let generator =
        in
 
        (* Plugin data for package *)
-       let plugin_data = 
-         set_plugin_data 
-           OASISPlugin.generator_package 
+       let plugin_data =
+         set_plugin_data
+           OASISPlugin.generator_package
            []
            data
        in
-       
-       (* Fix plugin data for sections, set data from plugin 
-        * defined at package level 
+
+       (* Fix plugin data for sections, set data from plugin
+        * defined at package level
         *)
-       let sections = 
+       let sections =
          List.map
            (fun sct ->
-              let knd, cs = 
+              let knd, cs =
                 OASISSection.section_kind_common sct
               in
               let plugin_data =
-                set_plugin_data 
+                set_plugin_data
                   (OASISPlugin.generator_section knd)
                   cs.cs_plugin_data
                   cs.cs_data
               in
-                OASISSection.section_common_set 
+                OASISSection.section_common_set
                   {cs with cs_plugin_data = plugin_data}
                   sct)
            sections
        in
 
          List.fold_right
-           add_build_depend 
+           add_build_depend
            (build_depends data)
            (List.fold_right
               add_build_tool
@@ -416,5 +416,5 @@ let generator =
                 plugins          = plugins;
                 sections         = sections;
                 schema_data      = data;
-                plugin_data      = plugin_data; 
+                plugin_data      = plugin_data;
               }))

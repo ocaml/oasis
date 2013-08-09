@@ -22,7 +22,7 @@
 (** Camlidl package
   *)
 module Camlidl =
-struct 
+struct
   module Env = Environment
   module Chk = Check
   module Msg = Message

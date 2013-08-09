@@ -32,20 +32,20 @@ open PropList.Field
 
 let schema, generator =
   let schm =
-    schema "Executable" (fun (cs, _, _) -> cs.cs_plugin_data) 
+    schema "Executable" (fun (cs, _, _) -> cs.cs_plugin_data)
   in
   let cmn_section_gen =
-    OASISSection_intern.section_fields 
+    OASISSection_intern.section_fields
       (fun () -> (s_ "executable")) schm
       (fun (cs, _, _) -> cs)
   in
   let build_section_gen =
-    OASISBuildSection_intern.section_fields 
+    OASISBuildSection_intern.section_fields
       (fun () -> (s_ "executable")) Byte schm
       (fun (_, bs, _) -> bs)
   in
   let main_is =
-    new_field schm "MainIs" 
+    new_field schm "MainIs"
       (let base_value =
          {
            parse =
@@ -60,13 +60,13 @@ let schema, generator =
          }
        in
          {
-           parse  = (fun ~ctxt str -> 
-                       file.parse ~ctxt 
+           parse  = (fun ~ctxt str ->
+                       file.parse ~ctxt
                          (base_value.parse ~ctxt str));
            update = update_fail;
            print  = (fun fn -> file.print (base_value.print fn));
          })
-      (fun () -> 
+      (fun () ->
          s_ "OCaml file (.ml) containing main procedure for the executable.")
       (fun (_, _, exec) -> exec.exec_main_is)
   in

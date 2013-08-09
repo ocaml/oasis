@@ -29,7 +29,7 @@ open OASISTypes
 type ctxt =
     {
       (** Current condition for conditional fields. *)
-      cond: OASISExpr.t option; 
+      cond: OASISExpr.t option;
 
       (** Valid flags *)
       valid_flags: name list;
@@ -37,9 +37,9 @@ type ctxt =
       (** Combine values rather than setting it, when
           setting field values
        *)
-      append: bool; 
+      append: bool;
 
-      (** Global context *) 
+      (** Global context *)
       ctxt: OASISContext.t;
     }
 
@@ -54,7 +54,7 @@ type stmt =
   | SIfThenElse of OASISExpr.t * stmt * stmt
   | SBlock of stmt list
 
-type top_stmt = 
+type top_stmt =
   | TSLibrary of name * stmt
   | TSObject of name * stmt
   | TSExecutable of name * stmt

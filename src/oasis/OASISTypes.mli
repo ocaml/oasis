@@ -21,7 +21,7 @@
 
 (** Package definition
 
-    This module contains all the types used to build an OASIS package. 
+    This module contains all the types used to build an OASIS package.
     A package is described by an '_oasis' file.
 
     @author Sylvain Le Gall
@@ -42,41 +42,41 @@ type args          = arg list (** Command line arguments. *)
 type command_line  = (prog * args) (** Command line. *)
 
 (** Package name for findlib, doesn't contain '.'. *)
-type findlib_name = string  
+type findlib_name = string
 
 (** Package name + path for findlib, made of several findlib name concatenated with '.'. *)
-type findlib_full = string 
+type findlib_full = string
 
 (** {2 OASIS package definition} *)
 
 (** Compilation type.
   *)
 type compiled_object =
-  | Byte   (** Always use byte code. *) 
+  | Byte   (** Always use byte code. *)
   | Native (** Always use native code. *)
   | Best   (** Use either byte or native, depending ocamlopt availability. *)
-  
+
 (** Package dependency.
   *)
-type dependency = 
+type dependency =
   | FindlibPackage of findlib_full * OASISVersion.comparator option
     (** External findlib package. *)
 
   | InternalLibrary of name
     (** Section library of the given name. *)
-  
+
 (** Tool dependency.
   *)
 type tool =
   | ExternalTool of name
     (** External tool. *)
 
-  | InternalExecutable of name 
+  | InternalExecutable of name
     (** Section executable of the given name. *)
-  
+
 (** Possible VCS.
   *)
-type vcs = 
+type vcs =
   | Darcs (** Darcs *)
   | Git   (** Git *)
   | Svn   (** Subversion *)
@@ -86,20 +86,20 @@ type vcs =
   | Arch  (** GNU arch *)
   | Monotone (** Monotone *)
   | OtherVCS of url (** Anything else, follow URL for description. *)
-  
+
 (** Conditional value, last expression that evaluate to true define
     the value.
   *)
 type 'a conditional = 'a OASISExpr.choices
 
-(** Plugin kind. 
+(** Plugin kind.
   *)
-type plugin_kind = 
-    [`Configure 
-    | `Build 
-    | `Doc 
-    | `Test 
-    | `Install 
+type plugin_kind =
+    [`Configure
+    | `Build
+    | `Doc
+    | `Test
+    | `Install
     | `Extra]
 
 (** Additional data to allow registration of more than
@@ -122,7 +122,7 @@ type plugin_data_purpose =
 (** Plugin definition, plugin type depends on which fields this
     types is used for.
   *)
-type 'a plugin = 'a * name * OASISVersion.t option 
+type 'a plugin = 'a * name * OASISVersion.t option
 
 type all_plugin = plugin_kind plugin
 
@@ -132,12 +132,12 @@ type plugin_data = (all_plugin * plugin_data_purpose * (unit -> unit)) list
 
 (** Set of command lines to run before and after a step.
   *)
-type custom = 
+type custom =
     {
       pre_command:  (command_line option) conditional;
       (** Run before. *)
 
-      post_command: (command_line option) conditional; 
+      post_command: (command_line option) conditional;
       (** Run after. *)
     }
 
@@ -153,7 +153,7 @@ type common_section =
       cs_plugin_data: plugin_data;
       (** Property list attached to the section. *)
     }
-    
+
 (** Common attributes for Executable and Library sections.
   *)
 type build_section =
@@ -187,10 +187,10 @@ type build_section =
       bs_nativeopt:       args conditional;
       (** Option to pass to ocamlopt. *)
     }
-    
+
 (** Library definition.
   *)
-type library = 
+type library =
     {
       lib_modules:            string list;
       (** List of modules exported by the library. *)
@@ -201,14 +201,14 @@ type library =
       lib_findlib_parent:     findlib_name option;
       (** Name of the findlib parent, if any. *)
       lib_findlib_name:       findlib_name option;
-      (** Findlib name of this library, this name is used to refer to this 
-          library in build dependencies. 
+      (** Findlib name of this library, this name is used to refer to this
+          library in build dependencies.
         *)
       lib_findlib_containers: findlib_name list;
       (** Name of virtual containers (empty findlib package) between findlib
-          parent and findlib name 
+          parent and findlib name
         *)
-    } 
+    }
 
 (** Object definition.
   *)
@@ -223,7 +223,7 @@ type object_ =
 
 (** Executable definition.
   *)
-type executable = 
+type executable =
     {
       exec_custom:          bool;
       (** Use -custom ocamlc option. *)
@@ -231,21 +231,21 @@ type executable =
       (** Main file to compile, dependencies should be guessed
           by build system.
         *)
-    } 
+    }
 
 (** Command line flag definition.
   *)
-type flag = 
+type flag =
     {
       flag_description:  string option;
       (** Short description. *)
       flag_default:      bool conditional;
       (** Default value. *)
-    } 
+    }
 
 (** Source repository definition.
   *)
-type source_repository = 
+type source_repository =
     {
       src_repo_type:        vcs;
       (** Repository type. *)
@@ -261,11 +261,11 @@ type source_repository =
       (** Depending on VCS, which tag (e.g. tag for darcs, git or svn). *)
       src_repo_subdir:      unix_filename option;
       (** Depending on VCS, which sub directory (e.g. svn). *)
-    } 
+    }
 
 (** Test definition.
   *)
-type test = 
+type test =
     {
       test_type:               [`Test] plugin;
       (** Plugin to run the test, default custom. *)
@@ -279,21 +279,21 @@ type test =
       (** Should we run the test. *)
       test_tools:              tool list;
       (** Tools required for this test. *)
-    } 
+    }
 
 (** Document formats.
   *)
 type doc_format =
-  | HTML of unix_filename (** HTML files and their main entry point 
-                              (e.g. [HTML "index.html"]) 
+  | HTML of unix_filename (** HTML files and their main entry point
+                              (e.g. [HTML "index.html"])
                             *)
   | DocText               (** Plain text. *)
   | PDF                   (** Portable document format. *)
-  | PostScript       
+  | PostScript
   | Info of unix_filename (** Info files and their main entry point. *)
-  | DVI               
+  | DVI
   | OtherDoc              (** Anything else. *)
-  
+
 
 (** Document definition.
   *)
@@ -323,7 +323,7 @@ type doc =
         *)
       doc_build_tools: tool list;
       (** Tools required to generate this document. *)
-    } 
+    }
 
 (** All sections and their attributes. *)
 type section =
@@ -334,13 +334,13 @@ type section =
   | SrcRepo    of common_section * source_repository
   | Test       of common_section * test
   | Doc        of common_section * doc
-  
+
 type section_kind =
     [ `Library | `Object | `Executable | `Flag | `SrcRepo | `Test | `Doc ]
 
 (** OASIS package, what an '_oasis' file contains.
   *)
-type package = 
+type package =
     {
       oasis_version:    OASISVersion.t;
       (** OASIS version used to write this package. *)
@@ -406,7 +406,7 @@ type package =
       schema_data:      PropList.Data.t;
       plugin_data:      plugin_data;
       (** Property list attached to this package. *)
-    } 
+    }
 
 (** {2 Quickstart questions } *)
 
@@ -426,8 +426,8 @@ type 'a quickstart_question =
   | Choices of 'a list (** Multiple choices in a list. *)
   | ExclusiveChoices of 'a list (** Pick a single choice in the list. *)
 
-(** {2 ODN functions} 
-    
+(** {2 ODN functions}
+
     These functions allow to generate setup.ml standalone code, by serializing
     OCaml data using OCaml notation. They are {b not exported}.
 

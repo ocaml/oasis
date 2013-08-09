@@ -35,19 +35,19 @@ open OASISSchema
 open Format
 open FormatExt
 
-let plugin = 
+let plugin =
   `Extra, "StdFiles", Some OASISConf.version_short
 
-let self_id, all_id = 
+let self_id, all_id =
   Extra.create plugin
 
 type package =
     (* Standalone executable *)
   | LTool of prog
-    (* Findlib package *)  
+    (* Findlib package *)
   | LFindlibPackage of name * (OASISVersion.comparator option)
 
-let facts = 
+let facts =
   [
     LFindlibPackage ("ocaml", None),
     [
@@ -105,7 +105,7 @@ let facts =
       "unix";
     ];
 
-    LFindlibPackage ("findlib", None), 
+    LFindlibPackage ("findlib", None),
     ["ocamlfind"],
     ["findlib"];
   ]
@@ -117,8 +117,8 @@ let merge_version_opt ver_opt1 ver_opt2 =
    | None, v | v, None -> v
 
 (** Associate a tool to a findlib package or a tool *)
-let package_of_tool = 
-  let mp = 
+let package_of_tool =
+  let mp =
     map_string_of_assoc
       (List.fold_left
          (fun acc (pkg, tools, _) ->
@@ -130,14 +130,14 @@ let package_of_tool =
          facts)
   in
     fun tool ->
-      try 
+      try
         MapString.find tool mp
       with Not_found ->
         LTool tool
 
 (** Associate a library to a findlib package raw data *)
-let package_of_library = 
-  let mp = 
+let package_of_library =
+  let mp =
     map_string_of_assoc
       (List.fold_left
          (fun acc (pkg, _, libs) ->
@@ -149,7 +149,7 @@ let package_of_library =
          facts)
   in
     fun lib ver_opt ->
-      try 
+      try
         MapString.find lib mp
       with Not_found ->
         LFindlibPackage (lib, ver_opt)
@@ -164,30 +164,30 @@ type t =
 let pivot_data =
   data_new_property plugin
 
-let generator = 
-  let fn_enable fn sync = 
-    let enable = 
-      new_field 
+let generator =
+  let fn_enable fn sync =
+    let enable =
+      new_field
         OASISPackage.schema
         all_id
-        fn 
-        ~default:true 
+        fn
+        ~default:true
         boolean
         (fun () ->
            Printf.sprintf (f_ "Enable %s file generation.") fn)
-        pivot_data 
+        pivot_data
         (fun t t' -> (sync t t') <> None)
-    in 
-    let fn = 
-      new_field 
+    in
+    let fn =
+      new_field
         OASISPackage.schema
         all_id
         (fn^"Filename")
         ~default:(fn^".txt")
         string_not_empty
-        (fun () -> 
+        (fun () ->
            Printf.sprintf (f_ "Real filename to use for file %s.") fn)
-        pivot_data 
+        pivot_data
         (fun t t' ->
            match sync t t' with
              | Some fn -> fn
@@ -204,7 +204,7 @@ let generator =
     fn_enable "README" (fun _ t -> t.readme)
   in
 
-  let install = 
+  let install =
     fn_enable "INSTALL" (fun _ t -> t.install)
   in
 
@@ -212,18 +212,18 @@ let generator =
     fn_enable "AUTHORS" (fun _ t -> t.authors)
   in
 
-    fun data -> 
+    fun data ->
       {
         readme  = readme data;
         install = install data;
-        authors = authors data; 
+        authors = authors data;
       }
 
-module SetSection = 
+module SetSection =
   Set.Make
     (struct type t = section let compare = compare end)
 
-let main ctxt pkg = 
+let main ctxt pkg =
   let data =
     pkg.schema_data
   in
@@ -233,19 +233,19 @@ let main ctxt pkg =
     pp_print_cut fmt ()
   in
 
-  let pp_print_para fmt str = 
+  let pp_print_para fmt str =
     let str_len =
       String.length str
     in
-    let rec decode_string i = 
+    let rec decode_string i =
       if i < str_len then
         begin
-          match str.[i] with 
-            | ' ' -> 
+          match str.[i] with
+            | ' ' ->
                 pp_print_space fmt ();
                 decode_string (i + 1)
 
-            | '\n' -> 
+            | '\n' ->
                 if i + 1 < str_len && str.[i + 1] = '\n' then
                   begin
                     pp_close_box fmt ();
@@ -259,7 +259,7 @@ let main ctxt pkg =
                     decode_string (i + 1)
                   end
 
-            | c -> 
+            | c ->
                 pp_print_char fmt c;
                 decode_string (i + 1)
         end;
@@ -279,13 +279,13 @@ let main ctxt pkg =
   in
 
   (** All sections that contains a build_section *)
-  let all_build_sections_set = 
+  let all_build_sections_set =
     let all_build_sections =
       List.rev
         (List.fold_left
            (fun acc ->
               function
-                | Library (_, bs, _) 
+                | Library (_, bs, _)
                 | Object (_,bs,_)
                 | Executable (_, bs, _) as sct ->
                     (sct, bs) :: acc
@@ -296,7 +296,7 @@ let main ctxt pkg =
     in
       List.fold_left
         (fun acc e -> SetSection.add e acc)
-        SetSection.empty  
+        SetSection.empty
         (List.rev_map fst all_build_sections)
   in
 
@@ -306,7 +306,7 @@ let main ctxt pkg =
        is None, otherwise "Some sections".
      *)
     fun fmt sections ->
-      let is_all_build_sections, sections = 
+      let is_all_build_sections, sections =
         if SetSection.subset all_build_sections_set sections then
           true, SetSection.diff sections all_build_sections_set
         else
@@ -319,7 +319,7 @@ let main ctxt pkg =
             (fun fmt ->
                if is_all_build_sections then
                  fprintf fmt "all,@ ")
-            (pp_print_list 
+            (pp_print_list
                (fun fmt sct ->
                   fprintf fmt "%s" (OASISSection.string_of_section sct))
                ",@ ")
@@ -330,43 +330,43 @@ let main ctxt pkg =
     function
       | Some ver_cmp ->
           fprintf fmt " (%a)"
-            pp_print_string 
-            (OASISVersion.string_of_comparator 
+            pp_print_string
+            (OASISVersion.string_of_comparator
                (OASISVersion.comparator_reduce ver_cmp))
       | None ->
           ()
   in
 
-  let depends = 
-    let merge_package_section lst (new_pkg, new_sections) = 
+  let depends =
+    let merge_package_section lst (new_pkg, new_sections) =
       try
-        let old_pkg, new_pkg, old_sections = 
-          match new_pkg with 
+        let old_pkg, new_pkg, old_sections =
+          match new_pkg with
             | LTool _ as tool ->
-                tool, 
+                tool,
                 tool,
                 List.assoc tool lst
-                          
+
             | LFindlibPackage (nm1, ver_opt1) ->
                 begin
-                  let res_opt = 
+                  let res_opt =
                     List.fold_left
                       (fun acc pkg ->
-                         match acc, pkg with 
-                           | None, 
-                             ((LFindlibPackage (nm2, ver_opt2)) 
-                                as old_pkg, 
-                              sections) -> 
+                         match acc, pkg with
+                           | None,
+                             ((LFindlibPackage (nm2, ver_opt2))
+                                as old_pkg,
+                              sections) ->
                                if nm1 = nm2 then
-                                 Some 
+                                 Some
                                    (old_pkg,
-                                    LFindlibPackage 
-                                      (nm1, 
-                                       merge_version_opt 
-                                         ver_opt1 
+                                    LFindlibPackage
+                                      (nm1,
+                                       merge_version_opt
+                                         ver_opt1
                                          ver_opt2),
                                     sections)
-                               else 
+                               else
                                  acc
                            | _, _ ->
                                acc)
@@ -380,8 +380,8 @@ let main ctxt pkg =
                           raise Not_found
                 end
         in
-        let lst = 
-          try 
+        let lst =
+          try
             List.remove_assoc old_pkg lst
           with Not_found ->
             lst
@@ -392,7 +392,7 @@ let main ctxt pkg =
         (new_pkg, new_sections) :: lst
     in
 
-    let add_build_tools ssection = 
+    let add_build_tools ssection =
        List.fold_left
          (fun lst ->
             function
@@ -402,37 +402,37 @@ let main ctxt pkg =
                   lst)
     in
 
-    let split_package_section = 
-      List.fold_left 
+    let split_package_section =
+      List.fold_left
         (fun lst ->
-           function 
+           function
              | Library (_, bs, _)
              | Object (_,bs,_)
              | Executable (_, bs, _) as section ->
                  begin
-                   let ssection = 
+                   let ssection =
                      SetSection.singleton section
                    in
-                   let lst = 
+                   let lst =
                      (* Add build_depends *)
                      List.fold_left
                        (fun lst ->
                           function
                             | FindlibPackage (fndlb_nm, ver_opt) ->
-                                let fndlb_root = 
+                                let fndlb_root =
                                   match (OASISString.nsplit fndlb_nm '.') with
                                     | hd :: _ -> hd
                                     | _ -> fndlb_nm
                                 in
                                   (package_of_library fndlb_root ver_opt,
-                                   ssection) :: lst 
+                                   ssection) :: lst
                             | InternalLibrary _ ->
                                 lst)
                        lst
                        bs.bs_build_depends
                    in
                      (* Add build_tools *)
-                     add_build_tools 
+                     add_build_tools
                        ssection
                        lst
                        bs.bs_build_tools
@@ -444,7 +444,7 @@ let main ctxt pkg =
                    lst
                    build_tools
              | Flag _ | SrcRepo _ ->
-                 lst) 
+                 lst)
 
         (* Basic dependencies *)
         [
@@ -464,10 +464,10 @@ let main ctxt pkg =
   in
 
   let add_file ctxt (fn_opt, ppf) =
-    match fn_opt with 
+    match fn_opt with
       | Some unix_fn ->
           begin
-            let content = 
+            let content =
               ppf str_formatter;
               flush_str_formatter ()
             in
@@ -485,8 +485,8 @@ let main ctxt pkg =
           ctxt
   in
 
-  let t = 
-    generator data 
+  let t =
+    generator data
   in
 
     List.fold_left
@@ -497,18 +497,18 @@ let main ctxt pkg =
         t.readme,
         (fun fmt ->
            pp_open_vbox fmt 0;
-           fprintf fmt 
+           fprintf fmt
              "@[This is the README file for the %s distribution.@]@,@,"
              pkg.name;
 
            List.iter
              (pp_print_para fmt)
              pkg.copyrights;
-           
+
            pp_print_para fmt pkg.synopsis;
-           
+
            begin
-             match pkg.description with 
+             match pkg.description with
                | Some str ->
                    pp_print_para fmt str
                | None ->
@@ -517,8 +517,8 @@ let main ctxt pkg =
 
            pp_open_box fmt 0;
            begin
-             match t.install with 
-               | Some fn -> 
+             match t.install with
+               | Some fn ->
                    fprintf fmt
                      "See@ the@ files@ %s@ for@ building@ and@ installation@ instructions.@ "
                      fn
@@ -526,7 +526,7 @@ let main ctxt pkg =
                    ()
            end;
            begin
-             match pkg.license_file with 
+             match pkg.license_file with
                | Some fn ->
                    fprintf fmt "See@ the@ file@ %s@ for@ copying@ conditions.@ " fn
                | None ->
@@ -536,11 +536,11 @@ let main ctxt pkg =
            pp_print_cut2 fmt ();
 
            begin
-             match pkg.homepage with 
+             match pkg.homepage with
                | Some url ->
                    fprintf fmt
                      "@[<hv2>Home page: %s@]@,@," url;
-               | None -> 
+               | None ->
                    ()
            end;
 
@@ -550,7 +550,7 @@ let main ctxt pkg =
       t.install,
       (fun fmt ->
          pp_open_vbox fmt 0;
-         fprintf fmt 
+         fprintf fmt
            "@[This is the INSTALL file for the %s distribution.@]@,@,"
            pkg.name;
 
@@ -562,12 +562,12 @@ let main ctxt pkg =
          fprintf fmt "@[In order to compile this package, you will need:@]@,";
          pp_open_vbox fmt 0;
 
-         pp_print_list 
+         pp_print_list
            (fun fmt (pkg, sections) ->
-              fprintf fmt "* @[%a%a@]" 
+              fprintf fmt "* @[%a%a@]"
                 (fun fmt ->
                    function
-                     | LTool s -> 
+                     | LTool s ->
                          pp_print_string fmt s
                      | LFindlibPackage (nm, ver_opt) ->
                          fprintf fmt "%s%a"
@@ -584,7 +584,7 @@ let main ctxt pkg =
 
          pp_print_string fmt StdFilesData.install;
          pp_close_box fmt ());
-      
+
       (* Generate AUTHORS.txt *)
       t.authors,
       (fun fmt ->
@@ -611,10 +611,10 @@ let main ctxt pkg =
          pp_close_box fmt ());
       ]
 
-let init () = 
+let init () =
   register_help plugin
-    {(help_default StdFilesData.readme_template_mkd) with 
+    {(help_default StdFilesData.readme_template_mkd) with
          help_order = 50};
   Extra.register_act self_id main;
-  register_generator_package all_id pivot_data generator 
+  register_generator_package all_id pivot_data generator
 
