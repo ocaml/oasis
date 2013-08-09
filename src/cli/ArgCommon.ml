@@ -19,7 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** Common arguments 
+(** Common arguments
   *)
 
 open MainGettext
@@ -40,7 +40,7 @@ let oasis_fn_specs =
 let ignore_plugins =
   ref false
 
-let ignore_plugins_specs = 
+let ignore_plugins_specs =
   [
     "-ignore-plugins",
     Arg.Set ignore_plugins,

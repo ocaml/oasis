@@ -27,7 +27,7 @@ open OASISTypes
 
 type update = NoUpdate | Weak | Dynamic
 
-(** Restore generated files, when [generate] has been called with 
+(** Restore generated files, when [generate] has been called with
     [~restore:true]. {b Not exported}.
   *)
 val restore : ?msg:OASISContext.t -> unit -> unit

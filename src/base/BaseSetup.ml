@@ -83,7 +83,7 @@ let configure t args =
   (* Run configure *)
   BaseCustom.hook
     t.package.conf_custom
-    (fun () -> 
+    (fun () ->
        (* Reload if preconf has changed it *)
        begin
          try

@@ -26,28 +26,28 @@
 open SubCommand
 open OASISGettext
 
-let output = 
+let output =
   ref None
 
-let main () = 
-  let fmt, fclose = 
-    match !output with 
+let main () =
+  let fmt, fclose =
+    match !output with
       | Some fn ->
-          let chn = 
+          let chn =
             open_out fn
           in
             Format.formatter_of_out_channel chn,
             (fun () -> close_out chn)
 
       | None ->
-          let pager, fmt = 
+          let pager, fmt =
             Pager.open_out ()
           in
             fmt,
             (fun () -> Pager.close_out pager)
   in
-    
-    OASISHelp.pp_print_help 
+
+    OASISHelp.pp_print_help
       fmt
 
       (* CLI help *)
@@ -57,7 +57,7 @@ let main () =
       BaseEnv.schema
 
       (* Environment variable *)
-      (let lst = 
+      (let lst =
          BaseEnv.var_all ()
        in
          fun nm _ ->
@@ -65,16 +65,16 @@ let main () =
 
     fclose ()
 
-let scmd = 
+let scmd =
   {(SubCommand.make
       "manual"
       (s_ "Display user manual")
       CLIData.manual_mkd
       main)
-     with 
-         scmd_specs = ["-o", 
+     with
+         scmd_specs = ["-o",
                        Arg.String (fun s -> output := Some s),
                        "fn Output manual to filename."]}
 
-let () = 
+let () =
   SubCommand.register scmd

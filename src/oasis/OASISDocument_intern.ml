@@ -36,17 +36,17 @@ let schema, generator =
     schema "Document" (fun (cs, _) -> cs.cs_plugin_data)
   in
   let cmn_section_gen =
-    OASISSection_intern.section_fields 
-      (fun () -> (s_ "document")) schm 
+    OASISSection_intern.section_fields
+      (fun () -> (s_ "document")) schm
       (fun (cs, _) -> cs)
   in
-  let build_tools = 
+  let build_tools =
     OASISBuildSection_intern.build_tools_field schm
       (fun (_, doc) -> doc.doc_build_tools)
   in
   let typ =
     new_field_plugin schm "Type"
-      ~default:(OASISPlugin.builtin `Doc "none") 
+      ~default:(OASISPlugin.builtin `Doc "none")
       `Doc
       OASISPlugin.Doc.value
       (fun () ->
@@ -85,7 +85,7 @@ let schema, generator =
   let doc_format =
     new_field schm "Format"
       ~default:OtherDoc
-      (choices 
+      (choices
          (fun () -> "document format")
          ["HTML",       HTML "index.html";
           "Text",       DocText;
@@ -105,8 +105,8 @@ let schema, generator =
       (fun () ->
          s_ "Index or top-level file for the document, only apply to \
              HTML and Info.")
-      (fun (_, doc) -> 
-         match doc.doc_format with 
+      (fun (_, doc) ->
+         match doc.doc_format with
            | HTML idx | Info idx ->
                Some idx
            | DocText | PDF | PostScript | DVI | OtherDoc ->
@@ -120,7 +120,7 @@ let schema, generator =
          s_ "Default target directory to install data and documentation.")
       (fun (_, doc) -> Some doc.doc_install_dir)
   in
-  let build, install, data_files = 
+  let build, install, data_files =
    OASISBuildSection_intern.build_install_data_fields schm
      (fun (_, doc) -> doc.doc_build)
      (fun (_, doc) -> doc.doc_install)
@@ -128,13 +128,13 @@ let schema, generator =
   in
     schm,
     (fun oasis_version nm data ->
-       let cs = 
+       let cs =
          cmn_section_gen oasis_version nm data
        in
-       let typ = 
+       let typ =
          typ data
        in
-       let rplugin_data = 
+       let rplugin_data =
          ref cs.cs_plugin_data
        in
        let cs =
@@ -155,11 +155,11 @@ let schema, generator =
        in
          Doc
            (cs,
-            (* TODO: find a way to code that in a way compatible with 
+            (* TODO: find a way to code that in a way compatible with
              * quickstart
              *)
             let doc_format =
-              match doc_format data with 
+              match doc_format data with
                 | HTML _ ->
                     begin
                       match index data with

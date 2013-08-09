@@ -22,14 +22,14 @@
 
 open OASISRecDescParser
 
-let from_stream ~ctxt ?fn st = 
+let from_stream ~ctxt ?fn st =
   OASISAst.to_package {oasisfn = fn; ctxt = ctxt} st
 
-let from_file ~ctxt fn = 
+let from_file ~ctxt fn =
   let chn =
     open_in fn
   in
-  let pkg = 
+  let pkg =
     from_stream ~ctxt ~fn (Stream.of_channel chn)
   in
     close_in chn;

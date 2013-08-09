@@ -294,10 +294,10 @@ let dump ?(filename=default_filename) () =
   let chn =
     open_out_bin filename
   in
-  let output nm value = 
+  let output nm value =
     Printf.fprintf chn "%s=%S\n" nm value
   in
-  let mp_todo = 
+  let mp_todo =
     (* Dump data from schema *)
     Schema.fold
       (fun mp_todo nm def _ ->

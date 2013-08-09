@@ -22,7 +22,7 @@
 (** Load builtin plugins
   *)
 
-let init () = 
+let init () =
   NonePlugin.init ();
   InternalInstallPlugin.init ();
   InternalConfigurePlugin.init ();

@@ -25,19 +25,19 @@
 
 type level =
   [ `Debug
-  | `Info 
+  | `Info
   | `Warning
   | `Error]
 
-type t = 
-  { 
+type t =
+  {
     quiet: bool;
     (** Display nothing. *)
 
     info : bool;
     (** Display info messages. *)
 
-    debug : bool;   
+    debug : bool;
     (** Display also debug messages. *)
 
     ignore_plugins : bool;
@@ -46,7 +46,7 @@ type t =
     ignore_unknown_fields: bool;
     (** Ignore fields unknown *)
 
-    printf: level -> string -> unit; 
+    printf: level -> string -> unit;
     (** Redirect output *)
   }
 

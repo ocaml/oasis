@@ -54,7 +54,7 @@ exception Not_combinable
   *)
 val update_fail : 'a -> 'b -> 'c
 
-(** {2 Basic values and combinators} *) 
+(** {2 Basic values and combinators} *)
 
 (** Hidden value to build phantom data storage, cannot set/get
     it using string.
@@ -107,7 +107,7 @@ val opt : 'a t -> 'a option t
 
 (** [choices nm lst] Value that must be in a list of predefined choices.
     Find the right association in [lst], comparison is case insensitive.
-    If something failed output a message using [nm] as the name of the 
+    If something failed output a message using [nm] as the name of the
     value represented.
   *)
 val choices : (unit -> string) -> (string * 'a) list -> 'a t

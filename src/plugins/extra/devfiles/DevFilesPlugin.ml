@@ -31,12 +31,12 @@ open OASISSchema
 
 let plugin = `Extra, "DevFiles", Some OASISConf.version_short
 
-let self_id, all_id = 
+let self_id, all_id =
   Extra.create plugin
 
 let all_targets =
   [
-    "build"; 
+    "build";
     "doc";
     "test";
     "all";
@@ -48,17 +48,17 @@ let all_targets =
     "configure";
   ]
 
-type t = 
+type t =
     {
       makefile_notargets: string list;
       enable_makefile:    bool;
       enable_configure:   bool;
     }
 
-let pivot_data = 
+let pivot_data =
   data_new_property plugin
 
-let generator = 
+let generator =
   let makefile_notargets =
     new_field
       OASISPackage.schema
@@ -106,15 +106,15 @@ let generator =
        })
 
 
-let main ctxt pkg = 
-  let t = 
+let main ctxt pkg =
+  let t =
     generator pkg.schema_data
   in
-  let ctxt = 
+  let ctxt =
     (* Generate Makefile (for standard dev. env.) *)
     if t.enable_makefile then
       begin
-        let buff = 
+        let buff =
           Buffer.create 13
         in
         let targets =
@@ -125,18 +125,18 @@ let main ctxt pkg =
               (fun t -> not (OASISUtils.SetString.mem t excludes))
               all_targets
         in
-        let add_one_target ?(need_configure=true) ?(other_depends=[]) nm = 
-          Printf.bprintf buff 
+        let add_one_target ?(need_configure=true) ?(other_depends=[]) nm =
+          Printf.bprintf buff
             "%s: %s\n\
-             \t$(SETUP) -%s $(%sFLAGS)\n\n" 
-            nm 
+             \t$(SETUP) -%s $(%sFLAGS)\n\n"
+            nm
             (String.concat " "
-               ((if need_configure then 
+               ((if need_configure then
                    (fun l -> "setup.data" :: l)
-                 else 
+                 else
                    (fun l -> l))
                   other_depends))
-            nm (String.uppercase nm) 
+            nm (String.uppercase nm)
         in
           Buffer.add_string buff "\nSETUP = ocaml setup.ml\n\n";
           List.iter
@@ -146,20 +146,20 @@ let main ctxt pkg =
                | "test" | "doc" as nm ->
                    add_one_target ~other_depends:["build"] nm
                | "configure" ->
-                   Printf.bprintf buff 
+                   Printf.bprintf buff
                      "setup.data:\n\
-                      \t$(SETUP) -configure $(CONFIGUREFLAGS)\n\n" 
+                      \t$(SETUP) -configure $(CONFIGUREFLAGS)\n\n"
                | nm ->
                    add_one_target nm)
             targets;
           Buffer.add_string buff (".PHONY: "^(String.concat " " targets)^"\n");
-    
-          OASISPlugin.add_file 
-            (template_make 
+
+          OASISPlugin.add_file
+            (template_make
                "Makefile"
                comment_sh
                []
-               (OASISUtils.split_newline ~trim:false 
+               (OASISUtils.split_newline ~trim:false
                   (Buffer.contents buff))
                [])
             ctxt
@@ -167,13 +167,13 @@ let main ctxt pkg =
     else
       ctxt
   in
-  
-  let ctxt = 
+
+  let ctxt =
     (* Generate configure (for standard dev. env.) *)
     if t.enable_configure then
       begin
-        let tmpl = 
-          template_of_string_list  
+        let tmpl =
+          template_of_string_list
             ~ctxt:ctxt.OASISPlugin.ctxt
             ~template:true
             "configure"
@@ -195,6 +195,6 @@ let init () =
   Extra.register_act self_id main;
   register_help
     plugin
-    {(help_default DevFilesData.readme_template_mkd) with 
+    {(help_default DevFilesData.readme_template_mkd) with
          help_order = 60};
   register_generator_package all_id pivot_data generator

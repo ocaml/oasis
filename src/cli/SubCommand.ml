@@ -54,15 +54,15 @@ end)
 let all =
   ref Set.empty
 
-let register t = 
+let register t =
   all := Set.add t !all
 
 let fold f acc =
   Set.fold f !all acc
 
 let find nm =
-  let res = 
-    fold 
+  let res =
+    fold
       (fun c acc ->
          if acc = None && c.scmd_name = nm then
            Some c
@@ -70,10 +70,10 @@ let find nm =
            acc)
       None
   in
-    match res with 
-      | Some c -> 
+    match res with
+      | Some c ->
           c
-      | None -> 
+      | None ->
           failwithf
             (f_ "Subcommand '%s' doesn't exist")
             nm

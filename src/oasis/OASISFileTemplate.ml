@@ -293,7 +293,7 @@ let template_of_mlfile fn header body footer  =
     let found = ref false in
     let extract_line_modifier str =
       if starts_with "#" (trim str) then
-        try 
+        try
           match tokenize_genlex str with
             | [Genlex.Ident "#"; Genlex.Int _; Genlex.String fn] ->
                 fn

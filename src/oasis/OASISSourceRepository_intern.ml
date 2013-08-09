@@ -35,22 +35,22 @@ let schema, generator =
     schema "SourceRepository" (fun (cs, _) -> cs.cs_plugin_data)
   in
   let cmn_section_gen =
-    OASISSection_intern.section_fields 
-      (fun () -> (s_ "source repository")) 
+    OASISSection_intern.section_fields
+      (fun () -> (s_ "source repository"))
       schm
       (fun (cs, _) -> cs)
   in
-  let typ = 
+  let typ =
     new_field schm "Type"
-      (choices 
+      (choices
          (fun () -> s_ "source repository type")
-         ["darcs",    Darcs; 
-          "git",      Git; 
-          "svn",      Svn; 
-          "cvs",      Cvs; 
-          "hg",       Hg; 
-          "bzr",      Bzr; 
-          "arch",     Arch; 
+         ["darcs",    Darcs;
+          "git",      Git;
+          "svn",      Svn;
+          "cvs",      Cvs;
+          "hg",       Hg;
+          "bzr",      Bzr;
+          "arch",     Arch;
           "monotone", Monotone])
       (fun () -> s_ "VCS type.")
       (fun (_, src_repo) -> src_repo.src_repo_type)
@@ -86,17 +86,17 @@ let schema, generator =
   in
   let branch =
     new_field_opt "Branch"
-      (fun () -> 
+      (fun () ->
          s_ "Define a meaningful branch for this repository.")
       (fun (_, src_repo) -> src_repo.src_repo_branch)
   in
   let tag =
     new_field_opt "Tag"
-      (fun () -> 
+      (fun () ->
          s_ "Identify a state corresponding to this particular package version.")
       (fun (_, src_repo) -> src_repo.src_repo_tag)
   in
-  let subdir = 
+  let subdir =
     new_field_opt "Subdir"
       (fun () ->
          s_ "Define the relative path from the root of the repository to the \

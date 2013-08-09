@@ -24,8 +24,8 @@ open OASISTypes
 open OASISSection
 
 (** Add section fields *)
-let section_fields 
-      hlp 
+let section_fields
+      hlp
       (schm: 'a OASISSchema_intern.t)
       (sync: 'a -> common_section) =
   fun (oasis_version: OASISVersion.t) nm data ->
@@ -37,8 +37,8 @@ let section_fields
 
 (** {2 Containers for sections using id-only} *)
 
-module CIdSection = 
-struct 
+module CIdSection =
+struct
   type t = section_kind * name
   let compare = compare
 end

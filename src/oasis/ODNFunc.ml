@@ -26,14 +26,14 @@ type 'a func =
       func_arg:  ODN.t option;
     }
 
-let func f f_nm = 
+let func f f_nm =
   {
     func_call = f;
     func_name = f_nm;
     func_arg  = None;
   }
 
-let func_with_arg f f_nm arg odn_of_arg = 
+let func_with_arg f f_nm arg odn_of_arg =
   {
     func_call = f arg;
     func_name = f_nm;
@@ -41,7 +41,7 @@ let func_with_arg f f_nm arg odn_of_arg =
   }
 
 let odn_of_func t =
-  match t.func_arg with 
+  match t.func_arg with
     | Some arg ->
         ODN.APP (t.func_name, [], [arg])
     | None ->

@@ -196,7 +196,7 @@ let pp_print_help hext hsty fmt () =
   in
 
     begin
-      match hext with 
+      match hext with
         | NoSubCommand | AllSubCommand ->
             begin
               pp_print_string fmt usage_msg;
@@ -223,7 +223,7 @@ let pp_print_help hext hsty fmt () =
 
         | SubCommand nm ->
             pp_print_scmd fmt
-              ~global_options:true 
+              ~global_options:true
               (SubCommand.find nm)
 
         | AllSubCommand ->

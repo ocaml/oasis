@@ -32,8 +32,8 @@ type t =
   | BObj     (* Object. *)
   | BDoc     (* Document. *)
 
-(** Register files built. Each files built is provided as a list 
-    of alternatives. At least one alternative file should exist 
+(** Register files built. Each files built is provided as a list
+    of alternatives. At least one alternative file should exist
     when registering and we only register existing ones.
   *)
 val register : t -> name -> host_filename list list -> unit
@@ -50,9 +50,9 @@ val fold : t -> name -> ('a -> host_filename -> 'a) -> 'a -> 'a
   *)
 val is_built : t -> name -> bool
 
-(** [of_executable loc_fn (cs, bs, exec)] Compute at the same time events 
-    that should be registered by {!register} and data returned by 
-    {!OASISExecutable.unix_exec_is}. Use [loc_fn], if generated files 
+(** [of_executable loc_fn (cs, bs, exec)] Compute at the same time events
+    that should be registered by {!register} and data returned by
+    {!OASISExecutable.unix_exec_is}. Use [loc_fn], if generated files
     are moved to a directory different from sources (e.g. in directory
     "_build").
   *)

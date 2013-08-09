@@ -35,7 +35,7 @@ type tag = string with odn
 
 (* END EXPORT *)
 let rec odn_of_spec =
-  let vrt nm lst = 
+  let vrt nm lst =
     ODN.VRT ("Ocamlbuild_plugin."^nm, lst)
   in
   let vrt_str nm str =
@@ -50,30 +50,30 @@ let rec odn_of_spec =
       | Sh s  -> vrt_str "Sh" s
       | V s   -> vrt_str "V" s
       | Quote spc -> vrt "Quote" [odn_of_spec spc]
-      | T _ -> 
+      | T _ ->
           assert false
 (* START EXPORT *)
 
 type t =
     {
       lib_ocaml: (name * dir list * string list) list;
-      lib_c:     (name * dir * file list) list; 
+      lib_c:     (name * dir * file list) list;
       flags:     (tag list * (spec OASISExpr.choices)) list;
       (* Replace the 'dir: include' from _tags by a precise interdepends in
        * directory.
        *)
-      includes:  (dir * dir list) list; 
+      includes:  (dir * dir list) list;
     } with odn
 
 let env_filename =
-  Pathname.basename 
+  Pathname.basename
     BaseEnvLight.default_filename
 
 let dispatch_combine lst =
   fun e ->
-    List.iter 
+    List.iter
       (fun dispatch -> dispatch e)
-      lst 
+      lst
 
 let tag_libstubs nm =
   "use_lib"^nm^"_stubs"
@@ -81,14 +81,14 @@ let tag_libstubs nm =
 let nm_libstubs nm =
   nm^"_stubs"
 
-let dispatch t e = 
-  let env = 
-    BaseEnvLight.load 
-      ~filename:env_filename 
+let dispatch t e =
+  let env =
+    BaseEnvLight.load
+      ~filename:env_filename
       ~allow_empty:true
       ()
   in
-    match e with 
+    match e with
       | Before_options ->
           let no_trailing_dot s =
             if String.length s >= 1 && s.[0] = '.' then
@@ -98,7 +98,7 @@ let dispatch t e =
           in
             List.iter
               (fun (opt, var) ->
-                 try 
+                 try
                    opt := no_trailing_dot (BaseEnvLight.var_get var env)
                  with Not_found ->
                    Printf.eprintf "W: Cannot get variable %s" var)
@@ -108,9 +108,9 @@ let dispatch t e =
                 Options.ext_dll, "ext_dll";
               ]
 
-      | After_rules -> 
+      | After_rules ->
           (* Declare OCaml libraries *)
-          List.iter 
+          List.iter
             (function
                | nm, [], intf_modules ->
                    ocaml_lib nm;
@@ -120,8 +120,8 @@ let dispatch t e =
                    dep ["ocaml"; "link"; "library"; "file:"^nm^".cma"] cmis
                | nm, dir :: tl, intf_modules ->
                    ocaml_lib ~dir:dir (dir^"/"^nm);
-                   List.iter 
-                     (fun dir -> 
+                   List.iter
+                     (fun dir ->
                         List.iter
                           (fun str ->
                              flag ["ocaml"; "use_"^nm; str] (S[A"-I"; P dir]))
@@ -135,7 +135,7 @@ let dispatch t e =
             t.lib_ocaml;
 
           (* Declare directories dependencies, replace "include" in _tags. *)
-          List.iter 
+          List.iter
             (fun (dir, include_dirs) ->
                Pathname.define_context dir include_dirs)
             t.includes;
@@ -150,7 +150,7 @@ let dispatch t e =
 
                  flag ["link"; "library"; "ocaml"; "native"; tag_libstubs lib]
                    (S[A"-cclib"; A("-l"^(nm_libstubs lib))]);
-                      
+
                  flag ["link"; "program"; "ocaml"; "byte"; tag_libstubs lib]
                    (S[A"-dllib"; A("dll"^(nm_libstubs lib))]);
 
@@ -165,11 +165,11 @@ let dispatch t e =
 
                  (* TODO: be more specific about what depends on headers *)
                  (* Depends on .h files *)
-                 dep ["compile"; "c"] 
+                 dep ["compile"; "c"]
                    headers;
 
                  (* Setup search path for lib *)
-                 flag ["link"; "ocaml"; "use_"^lib] 
+                 flag ["link"; "ocaml"; "use_"^lib]
                    (S[A"-I"; P(dir)]);
             )
             t.lib_c;
@@ -177,16 +177,16 @@ let dispatch t e =
             (* Add flags *)
             List.iter
             (fun (tags, cond_specs) ->
-               let spec = 
+               let spec =
                  BaseEnvLight.var_choose cond_specs env
                in
                  flag tags & spec)
             t.flags
-      | _ -> 
+      | _ ->
           ()
 
 let dispatch_default t =
-  dispatch_combine 
+  dispatch_combine
     [
       dispatch t;
       MyOCamlbuildFindlib.dispatch;

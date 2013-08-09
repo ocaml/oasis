@@ -25,10 +25,10 @@
 
 open OASISTypes
 
-type std_args_fun = 
+type std_args_fun =
     package -> arg array -> unit
 
-type ('a, 'b) section_args_fun = 
+type ('a, 'b) section_args_fun =
     name * (package -> (common_section * 'a) -> arg array -> 'b)
 
 type t =
@@ -64,7 +64,7 @@ type t =
 
       setup_update: bool;
       (** Are we allowed to update the setup.ml (eq. of -setup-update weak). *)
-    } 
+    }
 
 (** Run the configure step.
   *)
@@ -118,7 +118,7 @@ val setup : t -> unit
   *)
 val default_filename : host_filename
 
-(** Get template 'setup.ml' file out of the plugin context. 
+(** Get template 'setup.ml' file out of the plugin context.
     {b Not exported}.
   *)
 val find : OASISPlugin.context_act -> OASISFileTemplate.template

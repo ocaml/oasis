@@ -224,7 +224,7 @@ type section =
 type section_kind =
     [ `Library | `Object | `Executable | `Flag | `SrcRepo | `Test | `Doc ]
 
-type package = 
+type package =
     {
       oasis_version:    OASISVersion.t;
       ocaml_version:    OASISVersion.comparator option;

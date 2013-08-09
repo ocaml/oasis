@@ -32,7 +32,7 @@ open OASISContext
 open OASISMessage
 open Genlex
 
-(** Configuration for parsing and checking 
+(** Configuration for parsing and checking
   *)
 type conf =
   {
@@ -50,18 +50,18 @@ type t =
   | StringBegin
   | StringEnd
 
-let parse_stream conf st = 
+let parse_stream conf st =
 
   let is_blank =
-    function 
+    function
       | ' ' | '\r' | '\t' -> true
       | _ -> false
   in
 
-  let position lineno charno = 
-    Printf.sprintf 
+  let position lineno charno =
+    Printf.sprintf
       (f_ "in file '%s' at line %d, char %d")
-      (match conf.oasisfn with 
+      (match conf.oasisfn with
          | Some fn -> fn
          | None -> "<>")
       lineno
@@ -79,14 +79,14 @@ let parse_stream conf st =
   let apply_transformations ops =
     List.fold_left
       (fun lines (msg, f) ->
-         let new_lines = 
+         let new_lines =
            f lines
          in
-           if conf.ctxt.debug && lines <> new_lines then 
+           if conf.ctxt.debug && lines <> new_lines then
              begin
-               let rec pp_lines mode = 
+               let rec pp_lines mode =
                  function
-                   | RealLine (lineno, charstart, str) :: tl -> 
+                   | RealLine (lineno, charstart, str) :: tl ->
                        debug "%s%04d:%s->%s<-"
                          mode
                          lineno
@@ -105,9 +105,9 @@ let parse_stream conf st =
                        ()
 
                and pp_blocks mode lvl e =
-                 function 
+                 function
                    | b :: tl when b = e ->
-                       pp_blocks mode (lvl + 1) e tl 
+                       pp_blocks mode (lvl + 1) e tl
                    | lst ->
                        debug "%s----:%s"
                          mode
@@ -116,7 +116,7 @@ let parse_stream conf st =
                             (match e with
                                | BlockBegin -> '{'
                                | BlockEnd   -> '}'
-                               | RealLine _ | StringBegin | StringEnd -> 
+                               | RealLine _ | StringBegin | StringEnd ->
                                    assert(false)));
                        pp_lines mode lst
                in
@@ -134,7 +134,7 @@ let parse_stream conf st =
       ops
   in
 
-  let lines = 
+  let lines =
     apply_transformations
       [
         "Extract all lines from the stream",
@@ -148,14 +148,14 @@ let parse_stream conf st =
            let lineno =
              ref 1
            in
-           let add_line () = 
+           let add_line () =
              lines := (RealLine (!lineno, 0, Buffer.contents buff)) :: !lines;
              Buffer.clear buff;
              incr lineno
            in
              Stream.iter
                (function
-                  | '\n' -> 
+                  | '\n' ->
                       add_line ()
                   | c ->
                       Buffer.add_char buff c)
@@ -164,14 +164,14 @@ let parse_stream conf st =
              List.rev !lines);
 
       "Get rid of MS-DOS file format",
-      List.map 
-        (function 
+      List.map
+        (function
            | RealLine (lineno, charstart, str) ->
                begin
-                 let len = 
+                 let len =
                    String.length str
                  in
-                 let str = 
+                 let str =
                    if len > 0 && str.[len - 1] = '\r' then
                      String.sub str 0 (len - 1)
                    else
@@ -182,7 +182,7 @@ let parse_stream conf st =
            | e -> e);
 
       "Remove comments",
-      List.map 
+      List.map
         (function
            | RealLine (lineno, charstart, str) ->
                begin
@@ -197,14 +197,14 @@ let parse_stream conf st =
            | e -> e);
 
       "Remove trailing whitespaces",
-      List.map 
-        (function 
+      List.map
+        (function
            | RealLine (lineno, charstart, str) ->
                begin
-                 let pos = 
+                 let pos =
                    ref ((String.length str) - 1)
                  in
-                   while !pos > 0 && is_blank str.[!pos] do 
+                   while !pos > 0 && is_blank str.[!pos] do
                      decr pos
                    done;
                    RealLine(lineno, charstart, String.sub str 0 (!pos + 1))
@@ -219,18 +219,18 @@ let parse_stream conf st =
 
       "Remove leading whitespaces and replace them with begin/end block",
       (fun lines ->
-         let add_blocks n lst = 
+         let add_blocks n lst =
            List.rev_append
-             (Array.to_list 
-                (Array.init 
-                   (abs n) 
+             (Array.to_list
+                (Array.init
+                   (abs n)
                    (if n < 0 then
                       (fun _ -> BlockEnd)
                     else
                       (fun _ -> BlockBegin))))
              lst
          in
-         let lines, last_indent_level, _ = 
+         let lines, last_indent_level, _ =
            List.fold_left
              (fun (lines, prv_indent_level, only_tab) ->
                 function
@@ -246,7 +246,7 @@ let parse_stream conf st =
                           let use_space =
                             ref false
                           in
-                            while !pos < String.length str && 
+                            while !pos < String.length str &&
                                   is_blank str.[!pos] do
                               use_tab   := str.[!pos] = '\t' || !use_tab;
                               use_space := not (str.[!pos] = '\t') || !use_space;
@@ -257,14 +257,14 @@ let parse_stream conf st =
                         let only_tab =
                           if use_space && use_tab then
                             begin
-                              warning 
+                              warning
                                 (f_ "Mixed use of '\\t' and ' ' to indent lines %s")
                                 (position lineno charstart);
                               only_tab
                             end
                           else
                             begin
-                              match only_tab with 
+                              match only_tab with
                                 | Some use_tab_before ->
                                     if use_tab_before && not use_tab then
                                       warning
@@ -280,13 +280,13 @@ let parse_stream conf st =
                                     Some use_tab
                             end
                         in
-                        let charstart = 
+                        let charstart =
                           charstart + cur_indent_level
                         in
-                        let str = 
-                          String.sub 
-                            str 
-                            cur_indent_level 
+                        let str =
+                          String.sub
+                            str
+                            cur_indent_level
                             ((String.length str) - cur_indent_level)
                         in
                         let diff_indent_level =
@@ -299,7 +299,7 @@ let parse_stream conf st =
                         in
                           lines, cur_indent_level, only_tab
                       end
-                  | BlockBegin as e -> 
+                  | BlockBegin as e ->
                       (e :: lines), prv_indent_level + 1, only_tab
                   | BlockEnd as e ->
                       (e :: lines), prv_indent_level - 1, only_tab
@@ -308,10 +308,10 @@ let parse_stream conf st =
              ([], 0, None)
              lines
          in
-           List.rev 
-             (add_blocks 
+           List.rev
+             (add_blocks
                 (* Return back to indent level 0 *)
-                (~- last_indent_level) 
+                (~- last_indent_level)
                 lines));
 
       "Split values and detect multi-line values",
@@ -320,11 +320,11 @@ let parse_stream conf st =
            function
              | RealLine (lineno, charstart, str) as e :: tl ->
                  begin
-                   try 
-                     let colon_pos = 
+                   try
+                     let colon_pos =
                        String.index str ':'
                      in
-                     let pos = 
+                     let pos =
                        ref (colon_pos + 1)
                      in
                      let () =
@@ -332,17 +332,17 @@ let parse_stream conf st =
                          incr pos
                        done
                      in
-                     let line_begin = 
+                     let line_begin =
                        RealLine (lineno, charstart, String.sub str 0 (colon_pos + 1))
                      in
                      let acc =
                        if !pos < String.length str then
-                         begin 
+                         begin
                            (* Split end of line *)
                            let line_end =
-                             RealLine 
-                               (lineno, 
-                                charstart + !pos, 
+                             RealLine
+                               (lineno,
+                                charstart + !pos,
                                 String.sub str !pos (String.length str - !pos))
                            in
                              line_end :: StringBegin :: line_begin :: acc
@@ -359,15 +359,15 @@ let parse_stream conf st =
                  end
 
              | e :: tl ->
-                 find_field (e :: acc) tl 
+                 find_field (e :: acc) tl
 
              | [] ->
                  List.rev acc
 
-         and fetch_multiline acc lvl lst = 
+         and fetch_multiline acc lvl lst =
 
            let lvl_ref =
-             let rec count_block_begin lvl = 
+             let rec count_block_begin lvl =
                function
                  | BlockBegin :: tl ->
                      (* Count the initial indentation (first line) *)
@@ -379,29 +379,29 @@ let parse_stream conf st =
            in
 
            let rec fetch_multiline_nxt acc lvl =
-             function 
+             function
                | BlockBegin :: tl ->
-                   fetch_multiline_nxt acc (lvl + 1) tl 
+                   fetch_multiline_nxt acc (lvl + 1) tl
 
-               | BlockEnd :: tl -> 
+               | BlockEnd :: tl ->
                    if lvl > 1 then
                      fetch_multiline_nxt acc (lvl - 1) tl
                    else if lvl = 1 then
                      find_field (StringEnd :: acc) tl
-                   else 
+                   else
                      find_field (StringEnd :: acc) (BlockEnd :: tl)
 
                | RealLine (lineno, charstart, str) as e :: tl ->
                    if lvl > 0 then
-                     let diff = 
+                     let diff =
                        lvl - lvl_ref
                      in
-                       fetch_multiline_nxt 
+                       fetch_multiline_nxt
                          (RealLine
-                            (lineno, 
+                            (lineno,
                              charstart - diff,
-                             String.make diff ' ' ^ str) :: acc) 
-                         lvl 
+                             String.make diff ' ' ^ str) :: acc)
+                         lvl
                          tl
                    else
                      find_field (StringEnd :: acc) (e :: tl)
@@ -423,27 +423,27 @@ let parse_stream conf st =
 
 
       "Replace line containing '.' only by blank line",
-      (let rec replace_dot = 
+      (let rec replace_dot =
          function
-           | (RealLine (l1, _, _) as e1) :: 
-             RealLine (l2, c, ".") :: 
+           | (RealLine (l1, _, _) as e1) ::
+             RealLine (l2, c, ".") ::
              (RealLine (l3, _, _) as e2) ::
-             tl when l1 <> l2 && l2 <> l3 -> 
+             tl when l1 <> l2 && l2 <> l3 ->
                e1 :: RealLine (l2, c, "") :: replace_dot (e2 :: tl)
 
            | (RealLine (l1, _, _) as e1) ::
-             RealLine (l2, c, ".") :: 
+             RealLine (l2, c, ".") ::
              StringEnd :: tl when l1 <> l2 ->
                e1 :: RealLine (l2, c, "") :: StringEnd :: lookup_string tl
 
-            | e :: tl -> 
+            | e :: tl ->
                 e :: replace_dot tl
 
            | [] ->
                []
 
        and lookup_string =
-         function 
+         function
            | StringBegin :: tl ->
                StringBegin :: replace_dot tl
            | e :: tl ->
@@ -456,17 +456,17 @@ let parse_stream conf st =
       "Add EOL",
       (let rec concat_string =
          function
-           | RealLine (l1, charstart, str) :: 
+           | RealLine (l1, charstart, str) ::
              ((RealLine (l2, _, _) :: _) as tl) when l2 <> l1 ->
                RealLine (l1, charstart, str^"\n") :: concat_string tl
            | StringEnd :: tl ->
                StringEnd :: lookup_string tl
            | hd :: tl ->
                hd :: concat_string tl
-           | [] -> 
+           | [] ->
                []
        and lookup_string =
-         function 
+         function
            | StringBegin :: tl ->
                StringBegin :: concat_string tl
            | e :: tl ->
@@ -478,7 +478,7 @@ let parse_stream conf st =
       ]
   in
 
-  let position, st = 
+  let position, st =
     let lineno =
       ref 0
     in
@@ -489,11 +489,11 @@ let parse_stream conf st =
       ref None
     in
 
-    let lines_q = 
+    let lines_q =
       let q =
         Queue.create ()
       in
-        List.iter 
+        List.iter
           (fun s -> Queue.add s q)
           lines;
         q
@@ -507,15 +507,15 @@ let parse_stream conf st =
       ref false
     in
 
-    let rec getc () = 
-      try 
+    let rec getc () =
+      try
         incr charno;
         Some (Queue.take chars_q)
       with Queue.Empty ->
         begin
           (* Refill the char queue *)
-          try 
-            let () = 
+          try
+            let () =
               match Queue.take lines_q with
                 | RealLine (nlineno, ncharno, str) ->
                     lineno := nlineno;
@@ -528,7 +528,7 @@ let parse_stream conf st =
                          str);
                 | BlockBegin ->
                     virtual_pos := Some "block begin";
-                    Queue.add '{'chars_q 
+                    Queue.add '{'chars_q
                 | BlockEnd ->
                     virtual_pos := Some "block end";
                     Queue.add '}' chars_q
@@ -550,24 +550,24 @@ let parse_stream conf st =
   in
 
   (* Lexer for OASIS language *)
-  let lexer = 
-    make_lexer 
-      [ 
+  let lexer =
+    make_lexer
+      [
         (* Statement *)
-        "+:"; "$:"; ":"; "if"; "{"; "}"; "else"; 
+        "+:"; "$:"; ":"; "if"; "{"; "}"; "else";
         (* Section *)
         "Flag"; "Library"; "Object"; "Executable";
         "SourceRepository"; "Test";
         "Document";
         (* Expression *)
-        "!"; "&&"; "||"; "("; ")"; "true"; "false" 
+        "!"; "&&"; "||"; "("; ")"; "true"; "false"
       ]
   in
 
   (* OASIS expression *)
   let rec parse_factor =
     parser
-      | [< 'Kwd "true" >] ->  
+      | [< 'Kwd "true" >] ->
           EBool true
       | [< 'Kwd "false" >] ->
           EBool false
@@ -575,12 +575,12 @@ let parse_stream conf st =
           ENot e
       | [< 'Kwd "("; e = parse_expr; 'Kwd ")" >] ->
           e
-      | [< 'Ident nm; 'Kwd "("; 'Ident vl; 'Kwd ")" >] -> 
+      | [< 'Ident nm; 'Kwd "("; 'Ident vl; 'Kwd ")" >] ->
           if nm = "flag" then
             EFlag vl
           else
             ETest (OASISExpr.test_of_string nm, vl)
-  and parse_term_follow = 
+  and parse_term_follow =
     parser
       | [< 'Kwd "&&"; e1 = parse_factor; e2 = parse_term_follow >] ->
           EAnd (e1, e2)
@@ -591,7 +591,7 @@ let parse_stream conf st =
       | [< e1 = parse_factor; e2 = parse_term_follow >] ->
           EAnd(e1, e2)
 
-  and parse_expr_follow = 
+  and parse_expr_follow =
     parser
       | [< 'Kwd "||"; e1 = parse_term; e2 = parse_expr_follow >] ->
           EOr (e1, e2)
@@ -610,8 +610,8 @@ let parse_stream conf st =
           else_blk
       | [< >] ->
           SBlock []
-    
-  and parse_field_op = 
+
+  and parse_field_op =
     parser
       | [<'Kwd ":"; 'String str>] ->
           FSet str
@@ -620,7 +620,7 @@ let parse_stream conf st =
           FAdd str
 
       | [<'Kwd "$:"; 'String str>] ->
-          let e = 
+          let e =
             try
               parse_expr (lexer (Stream.of_string str))
             with e ->
@@ -632,20 +632,20 @@ let parse_stream conf st =
           in
             FEval e
 
-  and parse_stmt = 
+  and parse_stmt =
     parser
       | [<'Ident nm; op = parse_field_op>] ->
           SField(nm, op)
 
-      | [< 'Kwd "if"; e = parse_expr; 
-           if_blk = parse_stmt; 
+      | [< 'Kwd "if"; e = parse_expr;
+           if_blk = parse_stmt;
            else_blk = parse_else>] ->
           SIfThenElse(e, if_blk, else_blk)
 
       | [< 'Kwd "{"; lst = parse_stmt_list; 'Kwd "}">] ->
           SBlock lst
 
-  and parse_stmt_list = 
+  and parse_stmt_list =
     parser
       | [< stmt = parse_stmt; tl = parse_stmt_list>] ->
           stmt :: tl
@@ -675,7 +675,7 @@ let parse_stream conf st =
       | [< 'Kwd "Executable"; nm = id_or_string; exec_blk = parse_stmt>] ->
           TSExecutable (nm, exec_blk)
 
-      | [< 'Kwd "SourceRepository"; nm = id_or_string; 
+      | [< 'Kwd "SourceRepository"; nm = id_or_string;
                         src_repo_blk = parse_stmt>] ->
           TSSourceRepository (nm, src_repo_blk)
 
@@ -691,7 +691,7 @@ let parse_stream conf st =
       | [< stmt = parse_stmt >] ->
           TSStmt stmt
 
-  and parse_top_stmt_list = 
+  and parse_top_stmt_list =
     parser
       | [< top_stmt = parse_top_stmt; tl = parse_top_stmt_list>] ->
           top_stmt :: tl
@@ -699,16 +699,16 @@ let parse_stream conf st =
           []
   in
     (* Main loop *)
-    try 
+    try
       let st_token =
         lexer st
       in
-      let ast = 
+      let ast =
         TSBlock (parse_top_stmt_list st_token)
       in
         ast
-    with 
-      | Stream.Error "" -> 
+    with
+      | Stream.Error "" ->
           failwithf (f_ "Syntax error %t") position
       | Stream.Error str ->
           failwithf (f_ "Syntax error %s %t") str position

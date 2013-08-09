@@ -36,7 +36,7 @@ type meta_type =
   | METALibrary
   | METASyntax
 
-type t = 
+type t =
     {
       enable:      bool;
       description: string option;
@@ -45,21 +45,21 @@ type t =
       extra_lines: string list;
     }
 
-let plugin = 
+let plugin =
   `Extra, "META", Some OASISConf.version_short
 
-let self_id, all_id = 
+let self_id, all_id =
   Extra.create plugin
 
-let pivot_data = 
+let pivot_data =
   data_new_property plugin
 
 let generator =
-  let new_field nm = 
+  let new_field nm =
     new_field OASISLibrary.schema all_id nm
   in
 
-  let enable = 
+  let enable =
     new_field
       "Enable"
       ~default:true
@@ -140,18 +140,18 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
       s
   in
 
-  let pp_print_field fmt (var, preds, vl) = 
+  let pp_print_field fmt (var, preds, vl) =
     fprintf fmt
       "@,@[%s(%s) =@ %S@]"
-      var 
+      var
       (String.concat ", " preds)
       (replace_chars vl)
   in
-  let pp_print_sfield fmt (var, vl) = 
+  let pp_print_sfield fmt (var, vl) =
     fprintf fmt "@,@[%s =@ %S@]" var (replace_chars vl)
   in
 
-  let default_synopsis = 
+  let default_synopsis =
     match root_t.description with
       | Some txt -> txt
       | None -> pkg.synopsis
@@ -184,7 +184,7 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
           name^".cmx", None
 
     in
-    let t = 
+    let t =
       generator cs.cs_data
     in
       pp_print_sfield fmt ("version", (OASISVersion.string_of_version pkg.version));
@@ -192,17 +192,17 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
         let txt =
           match t.description with
             | Some txt -> txt
-            | None -> default_synopsis 
+            | None -> default_synopsis
         in
           pp_print_sfield fmt ("description", txt)
       end;
-      begin 
-        let requires = 
-          match t.requires with 
+      begin
+        let requires =
+          match t.requires with
             | Some lst ->
                 lst
             | None ->
-                List.map 
+                List.map
                   (function
                      | InternalLibrary nm ->
                          findlib_name_of_library_name nm
@@ -212,9 +212,9 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
         in
          if requires <> [] then
           pp_print_sfield fmt ("requires", String.concat " " requires)
-      end; 
+      end;
       begin
-        match t.meta_type with 
+        match t.meta_type with
           | METALibrary ->
               pp_print_field fmt ("archive", ["byte"], archive_byte);
               may
@@ -241,28 +241,28 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
                 ("archive", ["syntax"; "toploop"], archive_byte)
       end;
       List.iter (fprintf fmt "@,%s") t.extra_lines;
-      pp_print_sfield fmt 
-        ("exists_if", 
+      pp_print_sfield fmt
+        ("exists_if",
          if bs.bs_compiled_object = Native then
            archive_native
          else
            archive_byte);
       FormatExt.pp_print_list pp_print_group "@," fmt children
 
-  and pp_print_group fmt = 
-    function 
+  and pp_print_group fmt =
+    function
       | Container (fndlb_nm, children) ->
-          fprintf fmt 
+          fprintf fmt
             "@,@[<v1>@[package %S (@]%a%a@]@,)"
             fndlb_nm
-            
-            pp_print_sfield 
+
+            pp_print_sfield
             ("description", "Virtual container")
-            
+
             (FormatExt.pp_print_list pp_print_group "") children
 
       | Package (fndlb_nm, lib_cs, lib_bs, lib, children) ->
-          let t = 
+          let t =
             generator lib_cs.cs_data
           in
             if t.enable then
@@ -275,7 +275,7 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
     pp_open_vbox fmt 0;
     fprintf fmt "# OASIS_START";
     begin
-      match grp with 
+      match grp with
         | Container (_, children) ->
             FormatExt.pp_print_list pp_print_group "" fmt children
         | Package (_, lib_cs, lib_bs, lib, children) ->
@@ -290,9 +290,9 @@ let main ctxt pkg =
     findlib_mapping pkg
   in
   let meta_created = Hashtbl.create 3 in
-    List.fold_left 
+    List.fold_left
       (fun ctxt grp ->
-         let root_cs, root_bs, root_lib = 
+         let root_cs, root_bs, root_lib =
            root_of_group grp
          in
          let root_t =
@@ -328,7 +328,7 @@ let main ctxt pkg =
                       ~template:true
                       meta_fn
                       comment_meta
-                      (OASISUtils.split_newline ~trim:false 
+                      (OASISUtils.split_newline ~trim:false
                          (Buffer.contents buff)))
                    ctxt
              end

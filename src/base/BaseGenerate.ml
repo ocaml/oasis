@@ -39,12 +39,12 @@ let required_modules =
   ]
 
 (**/**)
-let ev_create, ev_backup = 
+let ev_create, ev_backup =
   "restore_create", "restore_backup"
 
 let log_change f =
   function
-    | Create fn -> 
+    | Create fn ->
         f ev_create fn
 
     | Change (fn, Some bak) ->
@@ -70,29 +70,29 @@ let register =
 let unregister =
   log_change BaseLog.unregister
 
-let restore ?msg () = 
-  let msg = 
-    match msg with 
-      | Some e -> e 
-      | None -> !BaseContext.default 
+let restore ?msg () =
+  let msg =
+    match msg with
+      | Some e -> e
+      | None -> !BaseContext.default
   in
     List.iter
       (fun (ev, d) ->
-         let chng = 
+         let chng =
            if ev = ev_create then
              Create d
            else if ev = ev_backup then
-             Scanf.sscanf 
+             Scanf.sscanf
                d
                "%S -> %S"
-               (fun fn bak -> 
+               (fun fn bak ->
                   Change (fn, Some bak))
-           else 
+           else
              NoChange
          in
            file_rollback ~ctxt:msg chng;
            BaseLog.unregister ev d)
-      (BaseLog.filter 
+      (BaseLog.filter
          [ev_create; ev_backup])
 
 
@@ -105,19 +105,19 @@ let generate ?msg
       ?oasis_setup_args
       update
       pkg =
-  let ctxt, _ = 
+  let ctxt, _ =
     BaseSetup.of_package
       ?oasis_fn ?oasis_exec ?oasis_setup_args
       ~setup_update:(update = Weak) pkg
   in
 
-  let msg = 
-    match msg with 
-      | Some e -> e 
-      | None -> !BaseContext.default 
+  let msg =
+    match msg with
+      | Some e -> e
+      | None -> !BaseContext.default
   in
 
-  let change_setup_fn = 
+  let change_setup_fn =
     (* Do we need to change setup filename *)
     setup_fn <> BaseSetup.default_filename
   in
@@ -128,18 +128,18 @@ let generate ?msg
     in
       if change_setup_fn then
         begin
-          (* Copy the setup.ml file to its right filename 
+          (* Copy the setup.ml file to its right filename
            * and update context accordingly
            *)
           let setup_tmpl = BaseSetup.find ctxt in
 
             if Sys.file_exists default_fn then
               OASISFileUtil.cp ~ctxt:msg default_fn setup_fn;
-            {ctxt with 
-                 files = 
+            {ctxt with
+                 files =
                    OASISFileTemplate.add
                      {setup_tmpl with fn = setup_fn}
-                     (OASISFileTemplate.remove 
+                     (OASISFileTemplate.remove
                         setup_tmpl.fn
                         ctxt.files)}
         end
@@ -182,7 +182,7 @@ let generate ?msg
       ctxt
   in
 
-  let () = 
+  let () =
     if ctxt.error then
       failwith (s_ "There are errors during the file generation.")
   in
@@ -190,15 +190,15 @@ let generate ?msg
   let chngs =
     (* Generate files *)
     OASISFileTemplate.fold
-      (fun tmpl acc -> 
-         let chng = 
-           try 
+      (fun tmpl acc ->
+         let chng =
+           try
              file_generate ~ctxt:msg ~backup tmpl
            with e ->
              List.iter (file_rollback ~ctxt:msg) acc;
              raise e
          in
-           if restore then 
+           if restore then
              register chng;
 
            chng :: acc)
@@ -220,18 +220,18 @@ let generate ?msg
         (function
            | Change (fn, bak) as chng when setup_fn = fn ->
                begin
-                 let () = 
+                 let () =
                    unregister chng;
-                   begin 
+                   begin
                      match bak with
                        | Some fn -> Sys.remove fn
                        | None    -> ()
                    end
                  in
-                 let chng = 
+                 let chng =
                    Create fn
                  in
-                   if restore then 
+                   if restore then
                      register chng;
                    chng
                end

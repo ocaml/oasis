@@ -36,29 +36,29 @@ let schema, generator =
    schema "Test" (fun (cs, _) -> cs.cs_plugin_data)
   in
   let cmn_section_gen =
-    OASISSection_intern.section_fields 
-      (fun () -> (s_ "test")) 
+    OASISSection_intern.section_fields
+      (fun () -> (s_ "test"))
       schm
       (fun (cs, _) -> cs)
   in
   let typ =
     new_field_plugin schm "Type"
-      ~default:(OASISPlugin.builtin `Test "custom") 
+      ~default:(OASISPlugin.builtin `Test "custom")
       `Test
       OASISPlugin.Test.value
       (fun () ->
          s_ "Plugin to use to run test.")
       (fun (_, test) -> test.test_type)
   in
-  let tools = 
+  let tools =
     new_field schm "TestTools"
       ~default:[]
       OASISBuildSection_intern.build_tools_value
-      (fun () -> 
+      (fun () ->
          s_ "Tools required to run the test, including internal executables.")
       (fun (_, test) -> test.test_tools)
   in
-  let command = 
+  let command =
     new_field_conditional schm "Command"
       command_line
       (fun () ->
@@ -66,7 +66,7 @@ let schema, generator =
       (fun (_, test) -> test.test_command)
   in
   let working_directory =
-    new_field schm "WorkingDirectory" 
+    new_field schm "WorkingDirectory"
       ~default:None
       (opt string_not_empty)
       (fun () ->
@@ -79,7 +79,7 @@ let schema, generator =
       (fun () -> s_ "Command to run after the test")
       (fun (_, test) -> test.test_custom)
   in
-  let run = 
+  let run =
     new_field_conditional schm "Run"
       ~default:true
       boolean
@@ -89,7 +89,7 @@ let schema, generator =
   in
     schm,
     (fun oasis_version nm data ->
-       let cs = 
+       let cs =
          cmn_section_gen oasis_version nm data
        in
        (* Set data specific to plugin used for this test *)
@@ -99,8 +99,8 @@ let schema, generator =
        let rplugin_data =
          ref cs.cs_plugin_data
        in
-       let cs = 
-         OASISPlugin.generator_section 
+       let cs =
+         OASISPlugin.generator_section
            `Test
            (typ :> plugin_kind plugin)
            rplugin_data
