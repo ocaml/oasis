@@ -23,15 +23,15 @@ open OASISTypes
 
 (*
  *
- * Plugin operation 
+ * Plugin operation
  *
  *)
 
-let plugin_compare (k1, n1, vo1) (k2, n2, vo2) = 
-  match compare k1 k2 with 
+let plugin_compare (k1, n1, vo1) (k2, n2, vo2) =
+  match compare k1 k2 with
     | 0 ->
         begin
-          match OASISUtils.compare_csl n1 n2 with 
+          match OASISUtils.compare_csl n1 n2 with
             | 0 ->
                 begin
                   match vo1, vo2 with
@@ -39,8 +39,8 @@ let plugin_compare (k1, n1, vo1) (k2, n2, vo2) =
                         OASISVersion.version_compare v1 v2
                     | None, _ | _, None ->
                         0
-                end 
-            | n -> 
+                end
+            | n ->
                 n
         end
     | n ->
@@ -48,37 +48,37 @@ let plugin_compare (k1, n1, vo1) (k2, n2, vo2) =
 
 let plugin_equal plg1 plg2 =
   plugin_compare plg1 plg2 = 0
-                               
-let plugin_hash (k, n, _) = 
+
+let plugin_hash (k, n, _) =
   Hashtbl.hash (k, String.lowercase n, None)
 
-(* 
- * 
- * Plugin properties 
+(*
+ *
+ * Plugin properties
  *
  *)
 
 exception Not_set
 
-type 'a setter = plugin_data ref -> 'a -> unit 
+type 'a setter = plugin_data ref -> 'a -> unit
 type 'a getter = plugin_data ref -> 'a
 type 'a prop   = 'a setter * 'a getter
 
-let data_create () = 
+let data_create () =
   ref []
 
-let data_new_property ?(purpose: plugin_data_purpose option) plg = 
-  let (knd, _, _) = 
+let data_new_property ?(purpose: plugin_data_purpose option) plg =
+  let (knd, _, _) =
     plg
   in
   let prp =
-    match purpose, knd with 
+    match purpose, knd with
       | Some p, _ ->
           p
       | _, knd ->
           (knd :> plugin_data_purpose)
   in
-  let v = 
+  let v =
     ref None
   in
   let set t x =
@@ -87,20 +87,20 @@ let data_new_property ?(purpose: plugin_data_purpose option) plg =
 
   let get t =
     try
-      let _, _, f = 
-        List.find 
-          (fun (plg', prp', _) -> 
-             prp = prp' && plugin_equal plg plg') 
+      let _, _, f =
+        List.find
+          (fun (plg', prp', _) ->
+             prp = prp' && plugin_equal plg plg')
           !t
       in
         f ();
         match !v with
-          | Some x -> 
+          | Some x ->
               x
-          | None -> 
+          | None ->
               raise Not_set
 
-    with Not_found -> 
+    with Not_found ->
       raise Not_set
   in
     (set, get)
@@ -114,33 +114,33 @@ open ODNFunc
 type modul = string
 
 type ('a, 'b) setup_changes =
-    { 
+    {
       chng_moduls: modul list;
       chng_main: 'a func;
       chng_clean: ('b func) option;
       chng_distclean: ('b func) option;
     }
 
-type context_act = 
+type context_act =
     {
       ctxt: OASISContext.t;
       error: bool;
       files: OASISFileTemplate.templates;
-      other_actions: (unit -> unit) list; 
+      other_actions: (unit -> unit) list;
     }
 
-type ('a, 'b) section_act = 
+type ('a, 'b) section_act =
     context_act ->
-    package -> 
-    (common_section * 'a) -> 
+    package ->
+    (common_section * 'a) ->
       context_act *
       ((package -> (common_section * 'a) -> string array -> 'b),
-       (package -> (common_section * 'a) -> string array -> unit) 
+       (package -> (common_section * 'a) -> string array -> unit)
       ) setup_changes
 
 type package_act =
     context_act ->
-    package -> 
+    package ->
       context_act *
       ((package -> string array -> unit),
        (package -> string array -> unit)
@@ -150,19 +150,19 @@ type 'a t = 'a plugin
 type all_t = plugin_kind plugin
 
 module MapPlugin = Map.Make (
-struct 
+struct
   type t = plugin_kind plugin
-  let compare = plugin_compare 
+  let compare = plugin_compare
 end)
 
 module SetPlugin = Set.Make (
-struct 
+struct
   type t = plugin_kind plugin
   let compare = plugin_compare
-end) 
+end)
 
-module HashPlugin = 
-  Hashtbl.Make 
+module HashPlugin =
+  Hashtbl.Make
   (struct
      type t = plugin_kind plugin
      let equal = plugin_equal
@@ -173,7 +173,7 @@ module HashPluginAll =
   Hashtbl.Make
     (struct
        type t = [`All] plugin
-       let equal = plugin_equal 
+       let equal = plugin_equal
        let hash = plugin_hash
      end)
 
@@ -184,26 +184,26 @@ let find_fuzzy tbl ((knd, nm, vo) as id) =
   with Not_found ->
     HashPlugin.find tbl (knd, nm, None)
 
-let string_of_plugin (_, nm, vo) = 
-  match vo with 
+let string_of_plugin (_, nm, vo) =
+  match vo with
     | Some v ->
         Printf.sprintf
           "%s (%s)"
-          nm 
+          nm
           (OASISVersion.string_of_version v)
     | None ->
         nm
 
 let plugin_of_string knd str =
-  match split_optional_parentheses str with 
+  match split_optional_parentheses str with
     | plg, Some ver ->
         knd, plg, Some (OASISVersion.version_of_string ver)
     | plg, None ->
         knd, plg, None
 
 let plugins_of_string knd str =
-  List.map 
-    (plugin_of_string knd) 
+  List.map
+    (plugin_of_string knd)
     (split_comma str)
 
 (* General data for plugin *)
@@ -217,14 +217,14 @@ type help =
 let help_all =
   HashPluginAll.create 5
 
-let help_default lst = 
+let help_default lst =
   {
     help_template   = lst;
     help_order      = 0;
   }
 
-let register_help (_, nm, vo) hlp = 
-  HashPluginAll.replace help_all (`All, nm, vo) hlp 
+let register_help (_, nm, vo) hlp =
+  HashPluginAll.replace help_all (`All, nm, vo) hlp
 
 let help plg =
   HashPluginAll.find help_all plg
@@ -232,48 +232,48 @@ let help plg =
 let version_all =
   HashPlugin.create 5
 
-let all = 
+let all =
   version_all
 
-let all_plugins () = 
+let all_plugins () =
   HashPlugin.fold
     (fun k _ acc -> k :: acc)
     all
     []
 
-(* 
+(*
  * Quickstart completion
  *)
 
 let qstrt_cmplt_all =
   HashPlugin.create 5
 
-let register_quickstart_completion t f = 
+let register_quickstart_completion t f =
   HashPlugin.add qstrt_cmplt_all t f
 
-let quickstart_completion plg = 
+let quickstart_completion plg =
   try
     find_fuzzy qstrt_cmplt_all plg
   with Not_found ->
     (fun pkg -> pkg)
 
-(* 
+(*
  * Generators
  *)
 
-let gen_all = 
+let gen_all =
   HashPlugin.create 5
 
-let register_generator_package t (prop_set, _) generator = 
+let register_generator_package t (prop_set, _) generator =
   HashPlugin.add gen_all t
     (fun t data -> prop_set t (generator data))
 
-let generator_package plg rplugin_data data = 
-  try 
-    let lst = 
+let generator_package plg rplugin_data data =
+  try
+    let lst =
       HashPlugin.find_all gen_all plg
     in
-      List.iter 
+      List.iter
         (fun gen ->
            gen rplugin_data data)
         lst
@@ -290,7 +290,7 @@ let register_generator_section knd t (prop_set, _) generator =
 let generator_section knd plg rplugin_data data =
   try
     let lst =
-      HashPlugin.find_all gen_section plg 
+      HashPlugin.find_all gen_section plg
     in
       List.iter
         (fun (knd', gen) ->
@@ -301,12 +301,12 @@ let generator_section knd plg rplugin_data data =
     ()
 
 (** List all plugins *)
-let ls knd = 
-  HashPlugin.fold 
-    (fun ((knd', _, _) as id) _ lst -> 
-       if knd = knd' then 
+let ls knd =
+  HashPlugin.fold
+    (fun ((knd', _, _) as id) _ lst ->
+       if knd = knd' then
          (string_of_plugin id) :: lst
-       else 
+       else
          lst)
     all
     []
@@ -323,7 +323,7 @@ sig
   type self_t = kind t
   type self_plugin = kind plugin
 
-  val create: self_plugin -> self_t * all_t 
+  val create: self_plugin -> self_t * all_t
 
   val register_act: self_t -> act -> unit
   val act : self_plugin -> act
@@ -332,8 +332,8 @@ sig
 end
 
 (* Family of plugins data *)
-module type FAMILY = 
-sig 
+module type FAMILY =
+sig
   type act
   type data
   type kind = private [< plugin_kind]
@@ -341,13 +341,13 @@ sig
   val to_plugin_kind: kind -> plugin_kind
 end
 
-module Make (F: FAMILY) : PLUGINS with type data = F.data 
-                                   and type act = F.act 
+module Make (F: FAMILY) : PLUGINS with type data = F.data
+                                   and type act = F.act
                                    and type kind = F.kind =
-struct 
+struct
 
-  (* 
-   * Types 
+  (*
+   * Types
    *)
 
   type data = F.data
@@ -359,11 +359,11 @@ struct
 
   module HashPluginGlobal = HashPlugin
 
-  let create plg = 
-     let ver = 
-       match plg with 
+  let create plg =
+     let ver =
+       match plg with
          | _, _, Some v -> v
-         | _, _, None -> 
+         | _, _, None ->
              failwithf
                (f_ "Plugin %s is defined without version.")
                (string_of_plugin plg)
@@ -373,8 +373,8 @@ struct
        HashPlugin.add version_all all_id ver;
        self_id, all_id
 
-  module HashPlugin = 
-    Hashtbl.Make 
+  module HashPlugin =
+    Hashtbl.Make
       (struct
          type t = self_plugin
          let equal = plugin_equal
@@ -391,18 +391,18 @@ struct
     with Not_found ->
       HashPlugin.find tbl (knd, nm, None)
 
-  (* 
-   * Act 
+  (*
+   * Act
    *)
 
-  let act_all = 
+  let act_all =
     HashPlugin.create 5
 
-  let register_act t e = 
-    HashPlugin.add act_all t e 
+  let register_act t e =
+    HashPlugin.add act_all t e
 
-  let act plg = 
-    try 
+  let act plg =
+    try
       find_fuzzy' act_all plg
     with Not_found ->
       failwithf
@@ -411,7 +411,7 @@ struct
 
   (** Parse value *)
   let value =
-    let kind_default :> plugin_kind = 
+    let kind_default :> plugin_kind =
       F.kind_default
     in
 
@@ -426,14 +426,14 @@ struct
     in
 
     let parse ~ctxt s =
-      let (knd, nm, ver_opt) as plg = 
+      let (knd, nm, ver_opt) as plg =
         plugin_of_string kind_default s
       in
         if not ctxt.OASISContext.ignore_plugins then
           begin
-            try 
-              let ver_plg = 
-                try 
+            try
+              let ver_plg =
+                try
                   find_fuzzy version_all (plg :> plugin_kind plugin)
                 with Not_found ->
                   failwithf
@@ -441,7 +441,7 @@ struct
                     (string_of_plugin plg)
                     (String.concat ", " (ls kind_default))
               in
-                match ver_opt with 
+                match ver_opt with
                   | Some ver ->
                       if OASISVersion.version_compare ver ver_plg <> 0 then
                         OASISMessage.info ~ctxt
@@ -469,13 +469,13 @@ struct
         print              = string_of_plugin;
       }
 
-  let quickstart_question () = 
-    let knd :> plugin_kind = 
+  let quickstart_question () =
+    let knd :> plugin_kind =
       F.kind_default
     in
       ExclusiveChoices
         (HashPluginGlobal.fold
-           (fun (knd', nm, vo) _ lst -> 
+           (fun (knd', nm, vo) _ lst ->
               if knd' = knd then
                 (F.kind_default, nm, vo) :: lst
               else
@@ -486,7 +486,7 @@ end
 
 (** Configure plugins
   *)
-module Configure = 
+module Configure =
   Make
     (struct
        type act  = package_act
@@ -496,7 +496,7 @@ module Configure =
        let to_plugin_kind = function `Configure -> `Configure
      end)
 
-(** Build plugins 
+(** Build plugins
   *)
 module Build =
   Make
@@ -508,11 +508,11 @@ module Build =
        let to_plugin_kind = function `Build -> `Build
      end)
 
-(** Document plugins 
+(** Document plugins
   *)
 module Doc =
   Make
-    (struct 
+    (struct
        type act  = (doc, unit) section_act
        type data = common_section * doc
        type kind = [`Doc]
@@ -540,7 +540,7 @@ module Install =
        type act  = package_act * package_act
        type data = package
        type kind = [`Install]
-       let kind_default = `Install 
+       let kind_default = `Install
        let to_plugin_kind = function `Install -> `Install
      end)
 
@@ -561,10 +561,10 @@ module Extra =
 
 (** Check that given field name belong to any plugin
   *)
-let test_field_name nm = 
+let test_field_name nm =
   String.length nm > 0 && (nm.[0] = 'x' || nm.[0] = 'X')
 
-(** Create value for a builtin plugin 
+(** Create value for a builtin plugin
   *)
 let builtin knd nm =
   let builtin_version =
@@ -572,10 +572,10 @@ let builtin knd nm =
   in
     knd, nm, builtin_version
 
-(** Add a generated template file 
+(** Add a generated template file
   *)
 let add_file tmpl ctxt =
-  {ctxt with 
+  {ctxt with
        files = OASISFileTemplate.add tmpl ctxt.files}
 
 (** Tests for error and set error status

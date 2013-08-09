@@ -33,7 +33,7 @@ open OASISTypes
 val unix_exec_is :
   common_section * build_section * executable ->
   (unit -> bool) ->
-  (unit -> string) -> (unit -> string) -> 
+  (unit -> string) -> (unit -> string) ->
   unix_filename * unix_filename option
 
 (** Schema for the section. {b Not exported}.

@@ -141,7 +141,7 @@ let build pkg argv =
                         (OASISUnixPath.chop_extension
                            exec.exec_main_is))^ext
                    in
-                   let evs = 
+                   let evs =
                      (* Fix evs, we want to use the unix_tgt, without copying *)
                      List.map
                        (function
@@ -182,7 +182,7 @@ let build pkg argv =
       (fun fns ->
          if not (List.exists OASISFileUtil.file_exists_case fns) then
            failwithf
-             (fn_ 
+             (fn_
                 "Expected built file %s doesn't exist."
                 "None of expected built files %s exists."
                 (List.length fns))
@@ -197,8 +197,8 @@ let build pkg argv =
   in
 
     (* Run a list of target... *)
-    run_ocamlbuild 
-      (List.flatten 
+    run_ocamlbuild
+      (List.flatten
          (List.map snd cond_targets))
       argv;
     (* ... and register events *)
@@ -521,12 +521,12 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
 
     ctxt, tag_t, myocamlbuild_t
 
-module MapDirs = 
-  Map.Make 
-    (struct 
+module MapDirs =
+  Map.Make
+    (struct
        type t = [`Library of string | `Object of string | `Executable of string]
-       let compare t1 t2 = 
-         match t1, t2 with 
+       let compare t1 t2 =
+         match t1, t2 with
            | `Library _, `Executable _
            | `Library _, `Object _
            | `Object _, `Executable _ ->
@@ -535,27 +535,27 @@ module MapDirs =
            | `Executable _, `Library _
            | `Executable _, `Object _ ->
                1
-           | `Library s1, `Library s2 
+           | `Library s1, `Library s2
            | `Object s1, `Object s2
            | `Executable s1, `Executable s2 ->
                String.compare s1 s2
      end)
 
-let compute_map_dirs pkg = 
+let compute_map_dirs pkg =
   let add k dirs internal_dirs mp =
-    let src_dirs, src_internal_dirs = 
-      try 
+    let src_dirs, src_internal_dirs =
+      try
         MapDirs.find k mp
       with Not_found ->
         SetString.empty, SetString.empty
     in
     let add_dirs st dirs = SetString.union st (set_string_of_list dirs) in
-      MapDirs.add k 
-        (add_dirs src_dirs dirs, 
-         add_dirs src_internal_dirs internal_dirs) 
+      MapDirs.add k
+        (add_dirs src_dirs dirs,
+         add_dirs src_internal_dirs internal_dirs)
         mp
   in
-  let map_dirs = 
+  let map_dirs =
     List.fold_left
       (fun mp ->
          function
@@ -593,26 +593,26 @@ let compute_map_dirs pkg =
       map_dirs
 
 let compute_includes map_dirs pkg =
-  let add_includes dir set_dirs includes = 
+  let add_includes dir set_dirs includes =
     (* Not self-dependent *)
-    let set_dirs = SetString.diff set_dirs (SetString.singleton dir) in 
-    let pre_dirs = 
-      try 
-        MapString.find dir includes 
+    let set_dirs = SetString.diff set_dirs (SetString.singleton dir) in
+    let pre_dirs =
+      try
+        MapString.find dir includes
       with Not_found ->
         SetString.empty
     in
       MapString.add dir (SetString.union set_dirs pre_dirs) includes
   in
 
-  let add_map_dirs k bs includes = 
-    let dep_dirs = 
+  let add_map_dirs k bs includes =
+    let dep_dirs =
       (* Source dirs of dependent libraries *)
-      List.fold_left 
+      List.fold_left
         (fun set ->
            function
              | InternalLibrary nm ->
-                let src_dirs, _ = 
+                let src_dirs, _ =
                    try MapDirs.find (`Library nm) map_dirs
                    with Not_found -> MapDirs.find (`Object nm) map_dirs
                  in
@@ -626,18 +626,18 @@ let compute_includes map_dirs pkg =
     let self_dirs =
       (* Source dirs *)
       let src_dirs, src_internal_dirs = MapDirs.find k map_dirs in
-        SetString.union 
+        SetString.union
           (set_string_of_list src_dirs)
           (set_string_of_list src_internal_dirs)
     in
     let all_dirs = SetString.union dep_dirs self_dirs in
-    let all_dirs = 
+    let all_dirs =
       (* No need to include the current dir. *)
       SetString.filter
         (fun dn -> not (OASISUnixPath.is_current_dir dn))
         all_dirs
     in
-        
+
       (* All self_dirs depends on all_dirs *)
       SetString.fold
         (fun dir includes ->
@@ -646,7 +646,7 @@ let compute_includes map_dirs pkg =
         includes
   in
 
-  let includes = 
+  let includes =
     List.fold_left
       (fun includes ->
          function
@@ -682,7 +682,7 @@ let is_pure_interface bs mn =
 
 let add_ocamlbuild_files ctxt pkg =
 
-  let map_dirs = 
+  let map_dirs =
     compute_map_dirs pkg
   in
 
@@ -695,7 +695,7 @@ let add_ocamlbuild_files ctxt pkg =
                  (* Extract content for libraries *)
 
                  (* All paths of the library *)
-                 let src_dirs, src_internal_dirs = 
+                 let src_dirs, src_internal_dirs =
                    MapDirs.find (`Library cs.cs_name) map_dirs
                  in
 
@@ -976,7 +976,7 @@ let add_ocamlbuild_files ctxt pkg =
                    bs_tags
                      pkg sct cs bs
                      src_dirs
-                     src_internal_dirs 
+                     src_internal_dirs
                      target_exec
                      ctxt
                      tag_t

@@ -116,9 +116,9 @@ let split_comma str =
 
 let split_newline ?(trim=true) str =
   let lst = OASISString.nsplit str '\n' in
-    if trim then 
+    if trim then
       List.map OASISString.trim lst
-    else 
+    else
       lst
 
 let split_optional_parentheses str =

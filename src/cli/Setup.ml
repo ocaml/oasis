@@ -19,7 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** Create the configure, build and install system 
+(** Create the configure, build and install system
     @author Sylvain Le Gall
   *)
 
@@ -58,8 +58,8 @@ let main () =
           [];
       ]
   in
-  let _chngs : OASISFileTemplate.file_generate_change list = 
-    BaseGenerate.generate 
+  let _chngs : OASISFileTemplate.file_generate_change list =
+    BaseGenerate.generate
       ~backup:false
       ~setup_fn:BaseSetup.default_filename
       ~restore:false
@@ -67,15 +67,15 @@ let main () =
       ?oasis_exec:!roasis_exec
       ~oasis_setup_args
       !rupdate
-      (OASISParse.from_file 
-         ~ctxt:!BaseContext.default 
+      (OASISParse.from_file
+         ~ctxt:!BaseContext.default
          !ArgCommon.oasis_fn)
   in
     ()
 
-let scmd = 
-  {(SubCommand.make 
-      "setup" 
+let scmd =
+  {(SubCommand.make
+      "setup"
       (s_ "Translate _oasis into a build system")
       CLIData.setup_mkd
       main)
@@ -107,6 +107,6 @@ let scmd =
                  with mode 'none'."
            ] @ ArgCommon.oasis_fn_specs}
 
-let () = 
+let () =
   SubCommand.register scmd
-    
+

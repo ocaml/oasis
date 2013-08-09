@@ -20,7 +20,7 @@
 (******************************************************************************)
 
 (** i18n functions
-  
+
     This module is really bind to ocaml-gettext library if gettext has been selected
     when compiling the project. All these functions {b are exported} but their are bound
     to {b dummy functions} in this case (i.e. not ocaml-gettext).
@@ -45,4 +45,4 @@ val f_ : ('a, 'b, 'c, 'd) format4 -> ('a, 'b, 'c, 'd) format4
 val fn_ : ('a, 'b, 'c, 'd) format4 -> ('a, 'b, 'c, 'd) format4 ->  int -> ('a, 'b, 'c, 'd) format4
 
 (** Gettext initialization. *)
-val init: (string * string option * string option) list  
+val init: (string * string option * string option) list

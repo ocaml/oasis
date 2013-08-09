@@ -20,7 +20,7 @@
 (******************************************************************************)
 
 (** License definition
-    
+
     This module allows to manipulate DEP-5 style license.
 
     @author Sylvain Le Gall
@@ -34,10 +34,10 @@ type license
 (** Valid license exceptions.
   *)
 type license_exception
-  
+
 (** License version.
   *)
-type license_version = 
+type license_version =
   | Version of OASISVersion.t
   | VersionOrLater of OASISVersion.t
   | NoVersion
@@ -66,12 +66,12 @@ type t =
 
 (** Extra data about license {b Not exported}
   *)
-type license_data = 
+type license_data =
     {
       long_name: string;
       (** Expanded name of the license. *)
 
-      versions:  OASISVersion.t list; 
+      versions:  OASISVersion.t list;
       (** Standard versions of the license. *)
 
       note:      string option;
@@ -80,7 +80,7 @@ type license_data =
 
 (** Extra data about license exception {b Not exported}
   *)
-type license_exception_data = 
+type license_exception_data =
     {
       explanation: string;
       (** Purpose of the exception. *)
@@ -109,7 +109,7 @@ val value : t OASISValues.t
   *)
 val choices: unit -> t list
 
-(** All available license, their short name, their long name, and compatible 
+(** All available license, their short name, their long name, and compatible
     versions. {b Not exported}.
   *)
 val license_data: unit -> (license * license_data) list
@@ -124,7 +124,7 @@ val license_exception_data: unit -> (license_exception * license_exception_data)
 val odn_of_t : t -> ODN.t
 
 (** {2 License definitions}
-   
+
     {b No licenses are exported.}
   *)
 

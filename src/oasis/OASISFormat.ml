@@ -27,32 +27,32 @@ open FormatExt
 (** Pretty printing of OASIS files
   *)
 
-let pp_print_fields fmt (schm, _, data) = 
+let pp_print_fields fmt (schm, _, data) =
   let fake_data =
     PropList.Data.create ()
   in
   let key_value =
     List.rev
-      (PropList.Schema.fold 
+      (PropList.Schema.fold
          (fun acc key extra _ ->
-            try 
+            try
               let str =
-                PropList.Schema.get 
+                PropList.Schema.get
                   schm
                   data
                   key
               in
               let is_default =
-                try 
+                try
                   let default =
-                    PropList.Schema.get 
+                    PropList.Schema.get
                       schm
                       fake_data
-                      key 
+                      key
                   in
                     str = default
-                with 
-                  | OASISValues.Not_printable 
+                with
+                  | OASISValues.Not_printable
                   | PropList.Not_set _ ->
                       (* Unable to compare so this is not default *)
                       false
@@ -61,9 +61,9 @@ let pp_print_fields fmt (schm, _, data) =
                   (key, str) :: acc
                 else
                   acc
-            with 
+            with
               | OASISValues.Not_printable ->
-                  acc 
+                  acc
               | PropList.Not_set _ ->
                   (* TODO: is it really necessary *)
                   (* when extra. <> None ->*)
@@ -71,10 +71,10 @@ let pp_print_fields fmt (schm, _, data) =
          []
          schm)
   in
-    
+
   let max_key_length =
     (* ":" *)
-    1 
+    1
     +
     (* Maximum length of a key *)
     (List.fold_left
@@ -86,9 +86,9 @@ let pp_print_fields fmt (schm, _, data) =
           fst
 
           (* Remove key/value that exceed line length *)
-          (List.filter 
+          (List.filter
              (fun (k, v) -> k + v < pp_get_margin fmt ())
-             
+
              (* Consider only length of key/value *)
              (List.rev_map
                 (fun (k, v) -> String.length k, String.length v)
@@ -109,21 +109,21 @@ let pp_print_fields fmt (schm, _, data) =
     pp_close_box fmt ()
 
 
-let pp_print_section plugins fmt sct = 
-  let pp_print_section' schm t = 
-    let (schm, _, _) as sct_data = 
+let pp_print_section plugins fmt sct =
+  let pp_print_section' schm t =
+    let (schm, _, _) as sct_data =
       OASISSchema_intern.to_proplist schm plugins t
     in
 
-    let {cs_name = nm; cs_data = data} = 
+    let {cs_name = nm; cs_data = data} =
       OASISSection.section_common sct
-    in 
+    in
 
     let pp_id_or_string fmt str =
       (* A string is an id if varname_of_string doesn't change it *)
-      if OASISUtils.is_varname str then 
+      if OASISUtils.is_varname str then
         fprintf fmt "%s" str
-      else 
+      else
         fprintf fmt "%S" str
     in
       fprintf fmt "@[<v 2>%s %a@,%a@]@,"
@@ -132,12 +132,12 @@ let pp_print_section plugins fmt sct =
         pp_print_fields sct_data
   in
 
-   match sct with 
+   match sct with
      | Library (cs, bs, lib) ->
          pp_print_section' OASISLibrary.schema (cs, bs, lib)
      | Object (cs, bs, obj) ->
          pp_print_section' OASISObject.schema (cs, bs, obj)
-     | Executable (cs, bs, exec) -> 
+     | Executable (cs, bs, exec) ->
          pp_print_section' OASISExecutable.schema (cs, bs, exec)
      | SrcRepo (cs, src_repo) ->
          pp_print_section' OASISSourceRepository.schema (cs, src_repo)
@@ -149,10 +149,10 @@ let pp_print_section plugins fmt sct =
          pp_print_section' OASISDocument.schema (cs, doc)
 
 
-let pp_print_package fmt pkg = 
+let pp_print_package fmt pkg =
 
-  let (_, plugins, _) as pkg_data = 
-    OASISSchema_intern.to_proplist OASISPackage.schema [] pkg 
+  let (_, plugins, _) as pkg_data =
+    OASISSchema_intern.to_proplist OASISPackage.schema [] pkg
   in
 
     pp_open_vbox fmt 0;

@@ -20,7 +20,7 @@
 (******************************************************************************)
 
 (** Message to user
-  
+
     This module is the same as {!OASISMessage}, except we use the
     context {!BaseContext.default}.
 

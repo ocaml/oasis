@@ -31,32 +31,32 @@ open PropList
 
 let check_schema ~ctxt where schm oasis_version data =
 
-  let check_is_default schm data fld = 
-    let fake_data = 
+  let check_is_default schm data fld =
+    let fake_data =
       Data.create ()
     in
-      try 
+      try
         (Schema.get schm data fld) = (Schema.get schm fake_data fld)
-      with 
+      with
         | Not_set _
-        | No_printer _ 
+        | No_printer _
         | OASISValues.Not_printable ->
             (* TODO: Don't know what to answer *)
             true
   in
 
-  let check_is_set schm data fld = 
+  let check_is_set schm data fld =
     let field_set = Data.elements data in
       List.mem fld field_set
   in
 
   let check_get schm data fld msgfld =
     try
-      let _ = 
+      let _ =
         Schema.get schm data fld
-      in 
-        msgfld 
-    with 
+      in
+        msgfld
+    with
       | Not_set _ ->
           fld :: msgfld
       | No_printer _ ->
@@ -70,11 +70,11 @@ let check_schema ~ctxt where schm oasis_version data =
   let plugins, msgfld =
     Schema.fold
       (fun ((plugins, msgfld) as acc) fld extra hlp ->
-         match extra.kind with 
+         match extra.kind with
            | DefinePlugin knd ->
                begin
-                 try 
-                   let id = 
+                 try
+                   let id =
                      plugin_of_string knd (Schema.get schm data fld)
                    in
                      SetPlugin.add id plugins,
@@ -84,11 +84,11 @@ let check_schema ~ctxt where schm oasis_version data =
                    check_get schm data fld msgfld
                end
 
-               
+
            | DefinePlugins knd ->
                begin
-                 try 
-                   let lst = 
+                 try
+                   let lst =
                      plugins_of_string knd (Schema.get schm data fld)
                    in
                      List.fold_left
@@ -101,7 +101,7 @@ let check_schema ~ctxt where schm oasis_version data =
                    check_get schm data fld msgfld
                end
 
-           | StandardField 
+           | StandardField
            | FieldFromPlugin _ ->
                acc)
       (SetPlugin.empty, [])
@@ -111,7 +111,7 @@ let check_schema ~ctxt where schm oasis_version data =
   let msgfld =
     Schema.fold
       (fun acc fld extra hlp ->
-         match extra.kind with 
+         match extra.kind with
            | DefinePlugin _ | DefinePlugins _ ->
                begin
                  (* Already checked before *)
@@ -125,12 +125,12 @@ let check_schema ~ctxt where schm oasis_version data =
 
            | FieldFromPlugin plg_id ->
                begin
-                 if SetPlugin.mem plg_id plugins then 
+                 if SetPlugin.mem plg_id plugins then
                    begin
                      check_get schm data fld acc
                    end
 
-                 else if check_is_set schm data fld && 
+                 else if check_is_set schm data fld &&
                          not (check_is_default schm data fld) then
                    begin
                      OASISMessage.warning ~ctxt

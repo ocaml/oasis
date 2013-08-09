@@ -92,11 +92,11 @@ let rec version_compare v1 v2 =
             while !p < String.length v && is_digit v.[!p] do
               incr p
             done;
-            let substr = 
+            let substr =
               String.sub v !p ((String.length v) - !p)
-            in 
-            let res = 
-              match String.sub v start_p (!p - start_p) with 
+            in
+            let res =
+              match String.sub v start_p (!p - start_p) with
                 | "" -> 0
                 | s -> int_of_string s
             in

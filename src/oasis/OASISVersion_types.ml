@@ -23,7 +23,7 @@
     @author Sylvain Le Gall
   *)
 
-type t =  
+type t =
   | VCGt of string
   | VCGe of string
   | VCEq of string

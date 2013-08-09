@@ -23,7 +23,7 @@
     @author Sylvain Le Gall
   *)
 
-open OASISTypes 
+open OASISTypes
 
 (** Schema for the section. {b Not exported}.
   *)

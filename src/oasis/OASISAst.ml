@@ -30,13 +30,13 @@ open OASISRecDescParser
 open OASISAstTypes
 open OASISExpr
 
-(** Convert OASIS stream into package 
+(** Convert OASIS stream into package
   *)
-let to_package conf st = 
+let to_package conf st =
 
-  let ast = 
-    OASISRecDescParser.parse_stream 
-      conf 
+  let ast =
+    OASISRecDescParser.parse_stream
+      conf
       st
   in
 
@@ -51,11 +51,11 @@ let to_package conf st =
 
   (* Convert flags into ctxt *)
   let ctxt_of_sections scts =
-    {default_ctxt with 
-         valid_flags = 
-           (List.fold_left 
+    {default_ctxt with
+         valid_flags =
+           (List.fold_left
               (fun acc ->
-                function 
+                function
                   | Flag (cs, _) -> cs.cs_name :: acc
                   | _ -> acc)
               default_ctxt.valid_flags
@@ -64,7 +64,7 @@ let to_package conf st =
 
   (* Merge an expression with a condition in a ctxt *)
   let ctxt_add_expr ctxt e =
-    match ctxt with 
+    match ctxt with
       | {cond = None} ->
           {ctxt with cond = Some e}
       | {cond = Some e'} ->
@@ -76,25 +76,25 @@ let to_package conf st =
    *)
   let rec stmt schm data ctxt =
     function
-      | SField (nm, op) -> 
+      | SField (nm, op) ->
           begin
             try
               match op with
                 | FSet s ->
                     begin
-                      PropList.Schema.set 
-                        schm 
-                        data 
-                        nm 
+                      PropList.Schema.set
+                        schm
+                        data
+                        nm
                         ~context:{ctxt with append = false}
                         s
                     end
                 | FAdd s ->
                     begin
-                      PropList.Schema.set 
-                        schm 
-                        data 
-                        nm 
+                      PropList.Schema.set
+                        schm
+                        data
+                        nm
                         ~context:{ctxt with append = true}
                         s
                     end
@@ -106,15 +106,15 @@ let to_package conf st =
                         nm
                         ~context:{ctxt with append = false}
                         (string_of_bool false);
-                      PropList.Schema.set 
-                        schm 
+                      PropList.Schema.set
+                        schm
                         data
-                        nm 
+                        nm
                         ~context:{(ctxt_add_expr ctxt e) with append = false}
                         (string_of_bool true)
                     end
             with (PropList.Unknown_field _) as exc ->
-              if OASISPlugin.test_field_name nm && 
+              if OASISPlugin.test_field_name nm &&
                  ctxt.ctxt.OASISContext.ignore_plugins then
                 ()
               else if ctxt.ctxt.OASISContext.ignore_unknown_fields then
@@ -123,20 +123,20 @@ let to_package conf st =
                 raise exc
           end
 
-      | SIfThenElse (e, stmt1, stmt2) -> 
+      | SIfThenElse (e, stmt1, stmt2) ->
           begin
             (* Check that we have a valid expression *)
             OASISExpr.check ctxt.valid_flags e;
             (* Explore if branch *)
-            stmt 
+            stmt
               schm
               data
               (ctxt_add_expr ctxt e)
               stmt1;
             (* Explore then branch *)
-            stmt 
+            stmt
               schm
-              data 
+              data
               (ctxt_add_expr ctxt (ENot e))
               stmt2
           end
@@ -155,11 +155,11 @@ let to_package conf st =
     let ctxt =
       ctxt_of_sections scts
     in
-    let schm = 
-      schm.OASISSchema_intern.schm 
+    let schm =
+      schm.OASISSchema_intern.schm
     in
       stmt schm data ctxt stmt';
-      OASISCheck.check_schema ~ctxt:ctxt.ctxt 
+      OASISCheck.check_schema ~ctxt:ctxt.ctxt
         ((PropList.Schema.name schm)^" "^nm)
         schm
         oasis_version
@@ -192,17 +192,17 @@ let to_package conf st =
                         consider starting with 'OASISFormat: ...'")
   in
 
-  (* Recurse into top-level statement. At this level there is 
+  (* Recurse into top-level statement. At this level there is
    * no conditional expression but there is Flag, Library and
    * Executable structure defined.
-   *) 
+   *)
   let rec top_stmt pkg_data acc =
     function
-      | TSLibrary (nm, stmt) -> 
-          schema_stmt 
+      | TSLibrary (nm, stmt) ->
+          schema_stmt
             OASISLibrary_intern.generator
             nm
-            OASISLibrary.schema 
+            OASISLibrary.schema
             (oasis_version pkg_data)
             acc
             stmt
@@ -216,7 +216,7 @@ let to_package conf st =
             acc
             stmt
 
-      | TSExecutable (nm, stmt) -> 
+      | TSExecutable (nm, stmt) ->
           schema_stmt
             OASISExecutable_intern.generator
             nm
@@ -225,11 +225,11 @@ let to_package conf st =
             acc
             stmt
 
-      | TSFlag (nm, stmt) -> 
-          schema_stmt 
-            OASISFlag_intern.generator 
+      | TSFlag (nm, stmt) ->
+          schema_stmt
+            OASISFlag_intern.generator
             nm
-            OASISFlag.schema 
+            OASISFlag.schema
             (oasis_version pkg_data)
             acc
             stmt
@@ -253,7 +253,7 @@ let to_package conf st =
             stmt
 
       | TSDocument (nm, stmt) ->
-          schema_stmt 
+          schema_stmt
             OASISDocument_intern.generator
             nm
             OASISDocument.schema
@@ -261,18 +261,18 @@ let to_package conf st =
             acc
             stmt
 
-      | TSStmt stmt' -> 
-          stmt 
+      | TSStmt stmt' ->
+          stmt
             OASISPackage.schema.OASISSchema_intern.schm
-            pkg_data 
-            (ctxt_of_sections acc) 
+            pkg_data
+            (ctxt_of_sections acc)
             stmt';
           acc
 
-      | TSBlock blk -> 
-          List.fold_left 
-            (top_stmt pkg_data) 
-            acc 
+      | TSBlock blk ->
+          List.fold_left
+            (top_stmt pkg_data)
+            acc
             blk
   in
 
@@ -281,24 +281,24 @@ let to_package conf st =
     PropList.Data.create ()
   in
   let sections =
-    top_stmt 
+    top_stmt
       data
       []
       ast
   in
-  let pkg = 
+  let pkg =
     OASISCheck.check_schema ~ctxt:default_ctxt.ctxt
       "package"
       OASISPackage.schema.OASISSchema_intern.schm
       (oasis_version data)
       data;
-    OASISPackage_intern.generator 
+    OASISPackage_intern.generator
       data
       sections
   in
 
   (* Fix build depends to reflect internal dependencies *)
-  let pkg = 
+  let pkg =
     (* Map of findlib name to internal libraries *)
     let _, _, internal_of_findlib =
       OASISFindlib.findlib_mapping pkg
@@ -331,7 +331,7 @@ let to_package conf st =
                bd)
     in
 
-    let internal_tools = 
+    let internal_tools =
       List.fold_left
         (fun st ->
            function
@@ -343,8 +343,8 @@ let to_package conf st =
         pkg.sections
     in
 
-    let map_internal_tools sct = 
-      List.map 
+    let map_internal_tools sct =
+      List.map
         (function
            | ExternalTool lnm as bt ->
                begin
@@ -357,22 +357,22 @@ let to_package conf st =
                bt)
     in
 
-    let map_internal sct bs = 
-      {bs with 
-           bs_build_depends = 
+    let map_internal sct bs =
+      {bs with
+           bs_build_depends =
              map_internal_libraries sct bs.bs_build_depends;
-           bs_build_tools = 
+           bs_build_tools =
              map_internal_tools sct bs.bs_build_tools}
     in
 
-      {pkg with 
+      {pkg with
            sections =
-             List.map 
+             List.map
                (function
                   | Library (cs, bs, lib) as sct ->
-                      Library 
-                        (cs, 
-                         map_internal 
+                      Library
+                        (cs,
+                         map_internal
                            sct
                            bs,
                          lib)
@@ -391,11 +391,11 @@ let to_package conf st =
                            bs,
                          exec)
                   | Test (cs, tst) as sct ->
-                      Test 
+                      Test
                         (cs,
-                         {tst with 
-                              test_tools = 
-                                map_internal_tools 
+                         {tst with
+                              test_tools =
+                                map_internal_tools
                                   sct
                                   tst.test_tools})
                   | Doc (cs, doc) as sct ->
@@ -412,9 +412,9 @@ let to_package conf st =
   in
 
   (* Check recursion and re-order library/tools so that build order is
-     respected 
+     respected
    *)
-  let pkg = 
+  let pkg =
     {pkg with sections = OASISBuildSection.build_order pkg}
   in
     OASISCheck.check_package ~ctxt:default_ctxt.ctxt pkg;

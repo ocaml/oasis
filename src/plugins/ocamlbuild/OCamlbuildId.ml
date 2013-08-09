@@ -32,7 +32,7 @@ let version = OASISConf.version_short
 
 open OASISPlugin
 
-let init () = 
-  register_help (`All, name, Some version) 
-    {(help_default OCamlbuildData.readme_template_mkd) with 
+let init () =
+  register_help (`All, name, Some version)
+    {(help_default OCamlbuildData.readme_template_mkd) with
          help_order = 20}

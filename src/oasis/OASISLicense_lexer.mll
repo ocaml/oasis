@@ -23,7 +23,7 @@
 open OASISLicense_parser
 }
 
-rule token = parse 
+rule token = parse
   [' ''\t''\n'] { token lexbuf }
 | ','           { COMMA }
 | "and"         { AND }

@@ -32,7 +32,7 @@
 %left OR   /* lowest precedence */
 %left AND  /* highest precedence */
 
-%start main 
+%start main
 %type <OASISVersion_types.t> main
 %%
 main:

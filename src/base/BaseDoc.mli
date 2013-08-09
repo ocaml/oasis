@@ -29,12 +29,12 @@ open OASISTypes
     [(f, cs, doc)], apply in turn [f pkg (cs, doc) extra_args].
   *)
 val doc :
-  ((package -> 
-      common_section * doc -> 
-      arg array -> 
+  ((package ->
+      common_section * doc ->
+      arg array ->
       unit) *
-   common_section * 
-   doc) list -> 
-  package -> 
+   common_section *
+   doc) list ->
+  package ->
   arg array ->
   unit

@@ -21,9 +21,9 @@
 
 open OASISTypes
 
-let section_kind_common = 
+let section_kind_common =
   function
-    | Library (cs, _, _) -> 
+    | Library (cs, _, _) ->
         `Library, cs
     | Object (cs, _, _) ->
         `Object, cs
@@ -53,8 +53,8 @@ let section_common_set cs =
 
 (** Key used to identify section
   *)
-let section_id sct = 
-  let k, cs = 
+let section_id sct =
+  let k, cs =
     section_kind_common sct
   in
     k, cs.cs_name
@@ -64,7 +64,7 @@ let string_of_section sct =
     section_id sct
   in
     (match k with
-       | `Library    -> "library" 
+       | `Library    -> "library"
        | `Object     -> "object"
        | `Executable -> "executable"
        | `Flag       -> "flag"
@@ -84,9 +84,9 @@ struct
 
   let id = section_id
 
-  let compare t1 t2 = 
+  let compare t1 t2 =
     compare (id t1) (id t2)
-    
+
   let equal t1 t2 =
     (id t1) = (id t2)
 

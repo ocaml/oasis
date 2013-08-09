@@ -19,7 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** Library schema and generator 
+(** Library schema and generator
     @author Sylvain Le Gall
   *)
 
@@ -34,28 +34,28 @@ let schema, generator =
     schema "Library" (fun (cs, _, _) -> cs.cs_plugin_data)
   in
   let cmn_section_gen =
-    OASISSection_intern.section_fields 
-      (fun () -> (s_ "library")) 
+    OASISSection_intern.section_fields
+      (fun () -> (s_ "library"))
       schm
       (fun (cs, _, _) -> cs)
   in
   let build_section_gen =
-    OASISBuildSection_intern.section_fields 
-      (fun () -> (s_ "library")) 
-      Best 
+    OASISBuildSection_intern.section_fields
+      (fun () -> (s_ "library"))
+      Best
       schm
       (fun (_, bs, _) -> bs)
   in
   let external_modules =
-    new_field schm "Modules" 
+    new_field schm "Modules"
       ~default:[]
       ~quickstart_level:Beginner
       modules
       (fun () ->
-         s_ "List of modules to compile.") 
+         s_ "List of modules to compile.")
       (fun (_, _, lib) -> lib.lib_modules)
   in
-  let internal_modules = 
+  let internal_modules =
     new_field schm "InternalModules"
       ~default:[]
       ~quickstart_level:Beginner
@@ -83,11 +83,11 @@ let schema, generator =
              will be built as its parents and installed along it.")
       (fun (_, _, lib) -> lib.lib_findlib_parent)
   in
-  let findlib_name = 
+  let findlib_name =
     new_field schm "FindlibName"
       ~default:None
       (* TODO: Check that the name is correct if this value is None, the
-               package name must be correct 
+               package name must be correct
        *)
       (opt findlib_name)
       (fun () ->
@@ -97,7 +97,7 @@ let schema, generator =
   let findlib_containers =
     new_field schm "FindlibContainers"
       ~default:[]
-      (* TODO: check that a container doesn't overwrite a real package 
+      (* TODO: check that a container doesn't overwrite a real package
        *)
       (dot_separated string_not_empty)
       (fun () ->

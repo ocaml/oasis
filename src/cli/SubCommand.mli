@@ -19,13 +19,13 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** SubCommand definition 
+(** SubCommand definition
     @author Sylvain Le Gall
   *)
 
 open OASISTypes
 
-type t = 
+type t =
     {
       scmd_name:     name;   (** Name of the subcommand, used to call it *)
       scmd_synopsis: string; (** Short description of the subcommnad,
@@ -33,7 +33,7 @@ type t =
                                  available subcommands
                                *)
       scmd_help:     string; (** Long description of the subcommand,
-                                 displayed when showing help of the 
+                                 displayed when showing help of the
                                  subcommand.
 
                                  It can contains variable substitution as
@@ -52,11 +52,11 @@ type t =
     a sane default.
   *)
 val make :
-  ?std_usage:bool -> 
-  name -> 
-  string -> 
-  string -> 
-  (unit -> unit) -> 
+  ?std_usage:bool ->
+  name ->
+  string ->
+  string ->
+  (unit -> unit) ->
   t
 
 (** Register a subcommand.
