@@ -19,7 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** Property list 
+(** Property list
     @author Sylvain Le Gall
   *)
 
@@ -40,14 +40,14 @@ exception No_printer of name
   *)
 exception Unknown_field of name * name
 
-(** {2 Modules} *) 
+(** {2 Modules} *)
 
 (** This module stores heterogeneous data defined in Schema and Field.
   *)
 module Data:
   sig
 
-    type t 
+    type t
 
     (** Create a data storage. *)
     val create : unit -> t
@@ -62,16 +62,16 @@ module Data:
     val odn_of_t : t -> ODN.t
   end
 
-(** This module is a set of fields (Field.t and FieldRO.t) that can be 
+(** This module is a set of fields (Field.t and FieldRO.t) that can be
     addressed by their name (as string). Value can be set and retrieved
-    as string only. However, the value itself is stored in its native 
+    as string only. However, the value itself is stored in its native
     type.
   *)
 module Schema:
   sig
     (** A value. *)
-    type ('a, 'b) value 
-    
+    type ('a, 'b) value
+
     (** A schema. *)
     type ('a, 'b) t
 
@@ -106,14 +106,14 @@ module Schema:
     val name: ('a, 'b) t -> name
   end
 
-(** This module defines a field that hold a value. A field can be set and 
+(** This module defines a field that hold a value. A field can be set and
     retrieve. It is stored in {!Data.t}.
   *)
 module Field:
   sig
     (** A field. *)
-    type ('a, 'b, 'c) t 
-    
+    type ('a, 'b, 'c) t
+
     (** Create a field, and optionally attached it to a schema.
       *)
     val create :

@@ -20,7 +20,7 @@
 (******************************************************************************)
 
 (** Global context for messages and i18n
-  
+
     This module is the same as {!OASISContext}. It is only aliases.
 
     @author Sylvain Le Gall

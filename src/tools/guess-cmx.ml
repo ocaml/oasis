@@ -32,10 +32,10 @@ let () =
 #require "unix";;
 #require "pcre";;
 
-let warning msg = 
+let warning msg =
   prerr_endline msg
 
-let error msg = 
+let error msg =
   prerr_endline msg;
   exit 1
 
@@ -46,11 +46,11 @@ let find_unit directory unit_name extensions =
       (String.uncapitalize unit_name);
     ]
   in
-  let unit_ext_fn = 
+  let unit_ext_fn =
     List.flatten
-      (List.rev_map 
-         (fun unit_nm -> 
-            List.rev_map 
+      (List.rev_map
+         (fun unit_nm ->
+            List.rev_map
               (fun ext -> unit_nm^"."^ext)
               extensions
          )
@@ -58,13 +58,13 @@ let find_unit directory unit_name extensions =
       )
   in
   let unit_fn =
-    List.rev_map 
-      (fun fn -> 
+    List.rev_map
+      (fun fn ->
          Filename.concat directory fn
       )
       unit_ext_fn
   in
-  let () = 
+  let () =
     prerr_endline (String.concat " -> " unit_fn)
   in
   let unit_exist_fn =
@@ -72,7 +72,7 @@ let find_unit directory unit_name extensions =
       Sys.file_exists
       unit_fn
   in
-    match unit_exist_fn with 
+    match unit_exist_fn with
       | fn :: _ ->
           fn
       | [] ->
@@ -82,27 +82,27 @@ let cmx_of_cma cma =
   let dirname =
     Filename.dirname cma
   in
-  let () = 
+  let () =
     if not (Filename.check_suffix cma ".cma") then
       failwith (cma^" is not an OCaml library")
   in
   let unit_name =
-    let reg = 
+    let reg =
       Pcre.regexp "Unit name: ([A-Z][A-Za-z0-9]*)"
     in
       fun line ->
         Pcre.get_substring (Pcre.exec ~rex:reg line) 1
   in
-  let unit_list = 
+  let unit_list =
     ref []
   in
   let chn =
     Unix.open_process_in ("ocamlobjinfo "^cma)
   in
-  let () = 
-    try 
+  let () =
+    try
       while true do
-        try 
+        try
           unit_list := (unit_name (input_line chn)) :: !unit_list
         with Not_found ->
           ()
@@ -113,7 +113,7 @@ let cmx_of_cma cma =
   let _ =
     Unix.close_process_in chn
   in
-  let add_cmx acc unit_nm = 
+  let add_cmx acc unit_nm =
     try
       (find_unit dirname unit_nm ["cmx"]) :: acc
     with Not_found ->
@@ -130,14 +130,14 @@ let install_lib ~directory ~archive ~interfaces =
       error ("Could not find file '"^fn^"'");
     fn
   in
-  let fn_cma = 
+  let fn_cma =
     mandatory_file (Filename.concat directory (archive^".cma"))
   in
-  let fn_a = 
+  let fn_a =
     mandatory_file (Filename.concat directory (archive^".a"))
   in
-  let fn_lst_cmi = 
-    List.rev_map 
+  let fn_lst_cmi =
+    List.rev_map
       (fun interf ->
          try
            find_unit directory interf ["cmi"]
@@ -164,9 +164,9 @@ let install_lib ~directory ~archive ~interfaces =
   let fn_lst_stubs =
     (* TODO *)
     List.flatten
-      (List.rev_map 
+      (List.rev_map
          (fun archive ->
-            let fn_stubs_a = 
+            let fn_stubs_a =
               (* FIXME msvc: .lib .dll ? *)
               mandatory_file
                 (Filename.concat directory ("lib"^archive^"_stubs.a"))
@@ -181,7 +181,7 @@ let install_lib ~directory ~archive ~interfaces =
       )
   in
   let fn_lst_native =
-    let fn_cmxa = 
+    let fn_cmxa =
       Filename.concat directory (archive^".cmxa")
     in
       if Sys.file_exists fn_cmxa then
@@ -196,7 +196,7 @@ let install_lib ~directory ~archive ~interfaces =
           []
         )
   in
-    List.flatten 
+    List.flatten
       [
         [fn_cma; fn_a];
         fn_lst_cmi;
@@ -207,9 +207,9 @@ let install_lib ~directory ~archive ~interfaces =
 
 (* QUID: .o (.obj), .a (.lib), .so (.dll) *)
 
-let () = 
-  print_endline 
+let () =
+  print_endline
     ("To install: "^
-     (String.concat ", " 
+     (String.concat ", "
         (install_lib ~directory:"." ~archive:"stlang" ~interfaces:["STLang"; "STLangTypes"])))
 

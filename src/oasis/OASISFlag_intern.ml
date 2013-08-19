@@ -32,26 +32,26 @@ open OASISUtils
 open OASISGettext
 open PropList.Field
 
-let schema, generator = 
+let schema, generator =
   let schm =
     schema "Flag" (fun (cs, _) -> cs.cs_plugin_data)
   in
   let cmn_section_gen =
-    OASISSection_intern.section_fields 
-      (fun () -> (s_ "flag")) 
+    OASISSection_intern.section_fields
+      (fun () -> (s_ "flag"))
       schm
       (fun (cs, _) -> cs)
   in
-  let descr = 
-    new_field schm "Description" 
-      ~default:None 
+  let descr =
+    new_field schm "Description"
+      ~default:None
       (opt string_not_empty)
-      (fun () -> 
+      (fun () ->
          s_ "Help for the flag")
       (fun (_, flag) -> flag.flag_description)
   in
-  let default = 
-    new_field_conditional schm "Default" 
+  let default =
+    new_field_conditional schm "Default"
       ~default:true
       boolean
       (fun () ->

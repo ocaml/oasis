@@ -19,10 +19,10 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** Unix path manipulation 
-  
+(** Unix path manipulation
+
   The filename and dirname used in '_oasis' file and {!OASISTypes.package} are
-  always encoded as Unix path. They are changed when using it on the target 
+  always encoded as Unix path. They are changed when using it on the target
   system.
 
   @author Sylvain Le Gall

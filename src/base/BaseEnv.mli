@@ -28,7 +28,7 @@ open OASISTypes
 (** Origin of the variable, if a variable has been already set
     with a higher origin, it won't be set again.
   *)
-type origin_t = 
+type origin_t =
   | ODefault     (** Default computed value. *)
   | OGetEnv      (** Extracted from environment, using Sys.getenv. *)
   | OFileLoad    (** From loading file setup.data. *)
@@ -79,9 +79,9 @@ val var_get : name -> string
 (** Choose a value among conditional expressions.
   *)
 val var_choose :
-  ?printer:('a -> string) -> 
-  ?name:string -> 
-  'a OASISExpr.choices -> 
+  ?printer:('a -> string) ->
+  ?name:string ->
+  'a OASISExpr.choices ->
   'a
 
 (** Protect a variable content, to avoid expansion.
@@ -96,9 +96,9 @@ val var_define :
   ?short_desc:(unit -> string) ->
   ?cli:cli_handle_t ->
   ?arg_help:string ->
-  ?group:string -> 
+  ?group:string ->
   name ->
-  (unit -> string) -> 
+  (unit -> string) ->
   (unit -> string)
 
 (** Define a variable or redefine it.
@@ -110,8 +110,8 @@ val var_redefine :
   ?cli:cli_handle_t ->
   ?arg_help:string ->
   ?group:string ->
-  name -> 
-  (unit -> string) -> 
+  name ->
+  (unit -> string) ->
   (unit -> string)
 
 (** Well-typed ignore for [var_define].
@@ -146,6 +146,6 @@ val dump : ?filename:host_filename -> unit -> unit
   *)
 val print : unit -> unit
 
-(** Default command line arguments, computed using variable definitions. 
+(** Default command line arguments, computed using variable definitions.
   *)
 val args : unit -> (Arg.key * Arg.spec * Arg.doc) list

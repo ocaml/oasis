@@ -36,15 +36,15 @@ type t =
       cmd_distclean: (command_line option) conditional;
     } with odn
 
-let run  = BaseCustom.run 
+let run  = BaseCustom.run
 
 let main t _ extra_args =
   let cmd, args =
-    var_choose 
-      ~name:(s_ "main command") 
+    var_choose
+      ~name:(s_ "main command")
       t.cmd_main
   in
-    run cmd args extra_args 
+    run cmd args extra_args
 
 let clean t pkg extra_args =
   match var_choose t.cmd_clean with
@@ -61,19 +61,19 @@ let distclean t pkg extra_args =
         ()
 
 module Build =
-struct 
+struct
   let main t pkg extra_args =
     main t pkg extra_args;
     List.iter
       (fun sct ->
          let evs =
-           match sct with 
+           match sct with
              | Library (cs, bs, lib) when var_choose bs.bs_build ->
                  begin
-                   let evs, _ = 
-                     BaseBuilt.of_library 
+                   let evs, _ =
+                     BaseBuilt.of_library
                        OASISHostPath.of_unix
-                       (cs, bs, lib) 
+                       (cs, bs, lib)
                    in
                      evs
                  end
@@ -121,7 +121,7 @@ struct
       main t pkg extra_args;
       0.0
     with Failure s ->
-      BaseMessage.warning 
+      BaseMessage.warning
         (f_ "Test '%s' fails: %s")
         cs.cs_name
         s;
@@ -131,7 +131,7 @@ struct
     clean t pkg extra_args
 
   let distclean t pkg (cs, test) extra_args =
-    distclean t pkg extra_args 
+    distclean t pkg extra_args
 end
 
 module Doc =
@@ -161,7 +161,7 @@ open OASISValues
 open OASISPlugin
 open OASISSchema
 
-let nm, ver = 
+let nm, ver =
   "Custom", Some OASISConf.version_short
 
 let conf_plugin = `Configure, nm, ver
@@ -180,15 +180,15 @@ let test_data   = data_new_property test_plugin
 let doc_plugin = `Doc, nm, ver
 let doc_data = data_new_property doc_plugin
 
-(** Add standard fields 
+(** Add standard fields
   *)
 let add_fields
       ~schema
       id
       data
-      nm 
-      hlp 
-      hlp_clean 
+      nm
+      hlp
+      hlp_clean
       hlp_distclean =
   let cmd_main =
     new_field_conditional
@@ -222,7 +222,7 @@ let add_fields
       (fun () -> s_ hlp_distclean)
       data (fun _ t -> t.cmd_distclean)
   in
-  let generator data = 
+  let generator data =
     {
       cmd_main      = cmd_main data;
       cmd_clean     = cmd_clean data;
@@ -235,41 +235,41 @@ let add_fields
   *)
 let std id data nm hlp hlp_clean hlp_distclean =
   let cmd_main, cmd_clean, cmd_distclean, generator =
-    add_fields ~schema:OASISPackage.schema 
-      id data nm hlp hlp_clean hlp_distclean 
+    add_fields ~schema:OASISPackage.schema
+      id data nm hlp hlp_clean hlp_distclean
   in
     generator,
-    fun ctxt pkg -> 
-      let t = 
+    fun ctxt pkg ->
+      let t =
         generator pkg.schema_data
       in
         ctxt,
         {
-          OASISPlugin.chng_moduls = 
+          OASISPlugin.chng_moduls =
             [CustomData.customsys_ml];
 
-          chng_main = 
-            ODNFunc.func_with_arg 
+          chng_main =
+            ODNFunc.func_with_arg
               main ("CustomPlugin.main")
               t odn_of_t;
 
-          chng_clean = 
-            Some 
+          chng_clean =
+            Some
               (ODNFunc.func_with_arg
                  clean ("CustomPlugin.clean")
                  t odn_of_t);
 
-          chng_distclean = 
-            Some 
+          chng_distclean =
+            Some
               (ODNFunc.func_with_arg
                  distclean ("CustomPlugin.distclean")
                  t odn_of_t);
         }
 
 (* Configure plugin *)
-let conf_init () = 
-  let self_id, id = 
-    Configure.create 
+let conf_init () =
+  let self_id, id =
+    Configure.create
       conf_plugin
   in
   let generator, doit =
@@ -286,42 +286,42 @@ let conf_init () =
     register_generator_package id conf_data generator
 
 (* Build plugin *)
-let build_init () = 
-  let self_id, id = 
+let build_init () =
+  let self_id, id =
     Build.create build_plugin
   in
   let cmd_main, cmd_clean, cmd_distclean, generator =
     add_fields
       id
       build_data
-      ~schema:OASISPackage.schema 
+      ~schema:OASISPackage.schema
       "Build"
       (ns_ "Run command to build.")
       (ns_ "Run command to clean build step.")
       (ns_ "Run command to distclean build step.")
   in
-  let doit ctxt pkg = 
-    let t = 
+  let doit ctxt pkg =
+    let t =
       generator pkg.schema_data
     in
       ctxt,
       {
-        OASISPlugin.chng_moduls = 
+        OASISPlugin.chng_moduls =
           [CustomData.customsys_ml];
 
-        chng_main = 
-          ODNFunc.func_with_arg 
+        chng_main =
+          ODNFunc.func_with_arg
             BuildRuntime.main ("CustomPlugin.Build.main")
             t odn_of_t;
 
-        chng_clean = 
-          Some 
+        chng_clean =
+          Some
             (ODNFunc.func_with_arg
                BuildRuntime.clean ("CustomPlugin.Build.clean")
                t odn_of_t);
 
-        chng_distclean = 
-          Some 
+        chng_distclean =
+          Some
             (ODNFunc.func_with_arg
                BuildRuntime.distclean ("CustomPlugin.Build.distclean")
                t odn_of_t);
@@ -332,10 +332,10 @@ let build_init () =
 
 (* Install plugin *)
 let install_init () =
-  let self_id, id = 
+  let self_id, id =
     Install.create install_plugin
   in
-  let generate_install, doit_install = 
+  let generate_install, doit_install =
     std
       id
       install_data
@@ -344,7 +344,7 @@ let install_init () =
       (ns_ "Run command to clean install step.")
       (ns_ "Run command to distclean install step.")
   in
-  let generate_uninstall, doit_uninstall = 
+  let generate_uninstall, doit_uninstall =
     std
       id
       uninstall_data
@@ -374,27 +374,27 @@ let doc_init () =
       (ns_ "Run command to distclean build documentation step.")
   in
   let doit ctxt pkg (cs, doc) =
-      let t = 
+      let t =
         generator cs.cs_data
       in
         ctxt,
         {
-          OASISPlugin.chng_moduls = 
+          OASISPlugin.chng_moduls =
             [CustomData.customsys_ml];
 
-          chng_main = 
-            ODNFunc.func_with_arg 
+          chng_main =
+            ODNFunc.func_with_arg
               DocRuntime.main ("CustomPlugin.Doc.main")
               t odn_of_t;
 
-          chng_clean = 
-            Some 
+          chng_clean =
+            Some
               (ODNFunc.func_with_arg
                  DocRuntime.clean ("CustomPlugin.Doc.clean")
                  t odn_of_t);
 
-          chng_distclean = 
-            Some 
+          chng_distclean =
+            Some
               (ODNFunc.func_with_arg
                  DocRuntime.distclean ("CustomPlugin.Doc.distclean")
                  t odn_of_t);
@@ -405,7 +405,7 @@ let doc_init () =
 
 (* Test plugin *)
 let test_init () =
-  let self_id, id = 
+  let self_id, id =
     Test.create test_plugin
   in
   let test_clean =
@@ -430,35 +430,35 @@ let test_init () =
          s_ "Run command to distclean test step.")
       test_data (fun _ t -> t.cmd_distclean)
   in
-  let generator data = 
-    { 
+  let generator data =
+    {
       cmd_main      = [OASISExpr.EBool true, ("false", [])];
       cmd_clean     = test_clean data;
       cmd_distclean = test_distclean data;
     }
   in
   let doit ctxt pkg (cs, test) =
-      let t = 
+      let t =
         {(generator cs.cs_data) with cmd_main = test.test_command}
       in
         ctxt,
         {
-          OASISPlugin.chng_moduls = 
+          OASISPlugin.chng_moduls =
             [CustomData.customsys_ml];
 
-          chng_main = 
-            ODNFunc.func_with_arg 
+          chng_main =
+            ODNFunc.func_with_arg
               TestRuntime.main ("CustomPlugin.Test.main")
               t odn_of_t;
 
-          chng_clean = 
-            Some 
+          chng_clean =
+            Some
               (ODNFunc.func_with_arg
                  TestRuntime.clean ("CustomPlugin.Test.clean")
                  t odn_of_t);
 
-          chng_distclean = 
-            Some 
+          chng_distclean =
+            Some
               (ODNFunc.func_with_arg
                  TestRuntime.distclean ("CustomPlugin.Test.distclean")
                  t odn_of_t);
@@ -467,8 +467,8 @@ let test_init () =
     Test.register_act self_id doit;
     register_generator_package id test_data generator
 
-let init () = 
-  register_help 
+let init () =
+  register_help
     conf_plugin
     (help_default CustomData.readme_template_mkd);
   conf_init ();

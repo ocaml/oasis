@@ -93,12 +93,12 @@ let split_install_command ocamlfind findlib_name meta files =
               | (firsts, others) ->
                   let cmd = args @ firsts in
                   (* Use -add for remaining commands: *)
-                  let () = 
+                  let () =
                     let findlib_ge_132 =
                       OASISVersion.comparator_apply
-                        (OASISVersion.version_of_string 
+                        (OASISVersion.version_of_string
                            (BaseStandardVar.findlib_version ()))
-                        (OASISVersion.VGreaterEqual 
+                        (OASISVersion.VGreaterEqual
                            (OASISVersion.version_of_string "1.3.2"))
                     in
                       if not findlib_ge_132 then
@@ -389,7 +389,7 @@ let install pkg argv =
                     findlib_name;
                 res
             in
-            let files = 
+            let files =
               (* Make filename shorter to avoid hitting command max line length
                * too early, esp. on Windows.
                *)
@@ -398,24 +398,24 @@ let install pkg argv =
                 let nlen = String.length n in
                   if plen <= nlen && String.sub n 0 plen = p then
                     begin
-                      let fn_sep = 
+                      let fn_sep =
                         if Sys.os_type = "Win32" then
                           '\\'
                         else
                           '/'
                       in
                       let cutpoint = plen +
-                        (if plen < nlen && n.[plen] = fn_sep then 
+                        (if plen < nlen && n.[plen] = fn_sep then
                            1
-                         else 
+                         else
                            0)
                       in
                         String.sub n cutpoint (nlen - cutpoint)
                     end
-                  else 
+                  else
                     n
               in
-                List.map (remove_prefix (Sys.getcwd ())) files 
+                List.map (remove_prefix (Sys.getcwd ())) files
             in
               info
                 (f_ "Installing findlib library '%s'")

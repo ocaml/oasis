@@ -88,7 +88,7 @@ let generated_unix_files
       ~source_file_exists
       (cs, bs, lib) =
 
-  let find_modules lst ext = 
+  let find_modules lst ext =
     let find_module modul =
       match find_module source_file_exists bs modul with
         | `Sources (base_fn, [fn]) when ext <> "cmi"
@@ -134,7 +134,7 @@ let generated_unix_files
     in
       if should_be_built then
         if lib.lib_pack then
-          find_modules 
+          find_modules
             [cs.cs_name]
             "cmx"
         else
@@ -162,7 +162,7 @@ let generated_unix_files
       add_pack_header ([cs.cs_name^".cma"] :: acc)
     in
     let native acc =
-      let acc = 
+      let acc =
         add_pack_header
           (if has_native_dynlink then
              [cs.cs_name^".cmxs"] :: acc

@@ -31,16 +31,16 @@ let () =
   Printexc.register_printer
     (function
        | Not_set (nm, Some rsn) ->
-           Some 
+           Some
              (Printf.sprintf (f_ "Field '%s' is not set: %s") nm rsn)
        | Not_set (nm, None) ->
-           Some 
+           Some
              (Printf.sprintf (f_ "Field '%s' is not set") nm)
        | No_printer nm ->
            Some
              (Printf.sprintf (f_ "No default printer for value %s") nm)
        | Unknown_field (nm, schm) ->
-           Some 
+           Some
              (Printf.sprintf (f_ "Field %s is not defined in schema %s") nm schm)
        | _ ->
            None)
@@ -58,9 +58,9 @@ struct
     Hashtbl.clear t
 
 (* END EXPORT *)
-  let elements t = 
+  let elements t =
     let rlst = ref [] in
-      Hashtbl.iter 
+      Hashtbl.iter
         (fun nm _ -> rlst := nm :: !rlst)
         t;
       !rlst

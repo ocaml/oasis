@@ -37,8 +37,8 @@ let update_fail _ _ =
 
 let blackbox =
   {
-    parse  = 
-      (fun ~ctxt s -> 
+    parse  =
+      (fun ~ctxt s ->
          failwithf
            (f_ "Blackbox type cannot be set to the value '%s'")
            s);
@@ -100,9 +100,9 @@ let copyright =
                   str)}
 
 let string =
-  { 
+  {
     parse =  (fun ~ctxt s -> s);
-    update = (fun s1 s2 -> s1^" "^s2); 
+    update = (fun s1 s2 -> s1^" "^s2);
     print =  (fun s -> s);
   }
 
@@ -118,7 +118,7 @@ let string_not_empty =
     print = (fun s -> s);
   }
 
-let file = 
+let file =
   {string_not_empty with update = update_fail}
 
 let file_glob =
@@ -129,7 +129,7 @@ let directory =
 
 
 let expandable value =
-  (* TODO: check expandable value and return a list rather 
+  (* TODO: check expandable value and return a list rather
    * than a single value. Use split_expandable defined above.
    *)
   value
@@ -141,29 +141,29 @@ let dot_separated value =
          List.map
            (value.parse ~ctxt)
            (OASISString.nsplit s '.'));
-    update = 
+    update =
       List.append;
     print =
       (fun lst ->
-         String.concat "." 
-           (List.map 
+         String.concat "."
+           (List.map
               value.print
               lst));
   }
 
 let comma_separated value =
-  { 
-    parse = 
+  {
+    parse =
       (fun ~ctxt s ->
-         List.map 
+         List.map
            (fun s -> value.parse ~ctxt s)
            (split_comma s));
-    update = 
+    update =
       List.append;
-    print = 
+    print =
       (fun lst ->
          String.concat ", "
-           (List.map 
+           (List.map
               value.print
               lst));
   }
@@ -185,14 +185,14 @@ let newline_separated value =
               lst));
   }
 
-let space_separated = 
+let space_separated =
   {
-    parse = 
+    parse =
       (fun ~ctxt s ->
-         List.filter 
+         List.filter
            (fun s -> s <> "")
            (OASISString.nsplit s ' '));
-    update = 
+    update =
       List.append;
     print =
       (fun lst ->
@@ -201,9 +201,9 @@ let space_separated =
 
 let with_optional_parentheses main_value optional_value =
   {
-    parse = 
+    parse =
       (fun ~ctxt str ->
-         match split_optional_parentheses str with 
+         match split_optional_parentheses str with
            | e1, Some e2 ->
                main_value.parse ~ctxt e1,
                Some (optional_value.parse ~ctxt e2)
@@ -232,19 +232,19 @@ let opt value =
   }
 
 let modules =
-  let base_value = 
+  let base_value =
     lexer
       StdLexer.modul
       (fun () -> s_ "module")
   in
     comma_separated
       {
-        parse = 
+        parse =
          (fun ~ctxt s ->
-            let path = 
+            let path =
               OASISUnixPath.dirname s
             in
-            let modul = 
+            let modul =
               OASISUnixPath.basename s
             in
               if String.contains path ' ' then
@@ -258,20 +258,20 @@ let modules =
         print  = (fun s -> s);
       }
 
-let files = 
+let files =
   comma_separated file
 
-let categories = 
-  comma_separated url 
+let categories =
+  comma_separated url
 
 let choices nm lst =
   {
-    parse = 
+    parse =
       (fun ~ctxt str ->
-         try 
-           List.assoc 
+         try
+           List.assoc
              (String.lowercase str)
-             (List.map 
+             (List.map
                (fun (k, v) ->
                   String.lowercase k, v)
                   lst)
@@ -296,13 +296,13 @@ let choices nm lst =
   }
 
 let boolean =
-  choices 
+  choices
     (fun () -> s_ "boolean")
     ["true", true; "false", false]
 
 let findlib_name =
   {
-    parse = 
+    parse =
       (fun ~ctxt s ->
          if s = "" then
            failwith (s_ "Empty string is not a valid findlib package")
@@ -332,16 +332,16 @@ let internal_library =
   (* TODO: check that the library really exists *)
   {string with update = update_fail}
 
-let command_line = 
+let command_line =
   let split_expandable str =
 
     (* Add a single char to accumulator *)
     let rec addchr c =
       function
-        | Some b, _ as acc -> 
+        | Some b, _ as acc ->
             Buffer.add_char b c;
             acc
-        | None, l -> 
+        | None, l ->
             let b =
               Buffer.create 13
             in
@@ -353,7 +353,7 @@ let command_line =
      *)
     let addsep =
       function
-        | Some b, l -> 
+        | Some b, l ->
             None, (Buffer.contents b) :: l
         | None, l ->
             None, l
@@ -365,7 +365,7 @@ let command_line =
     let rec lookup_closing oc cc acc =
       function
         | c :: tl ->
-            let acc = 
+            let acc =
               addchr c acc
             in
               if c = oc then
@@ -381,33 +381,33 @@ let command_line =
                 end
               else
                 begin
-                  lookup_closing oc cc acc tl 
+                  lookup_closing oc cc acc tl
                 end
         | [] ->
             failwithf
               (f_ "'%s' contains unbalanced curly braces")
               str
     in
-    let rec lookup_dollar acc = 
-      function 
+    let rec lookup_dollar acc =
+      function
         | '$' :: ('(' as c) :: tl
-        | '$' :: ('{' as c) :: tl -> 
+        | '$' :: ('{' as c) :: tl ->
             begin
-              let acc, tl = 
-                lookup_closing 
+              let acc, tl =
+                lookup_closing
                   c (if c = '(' then ')' else '}')
                   (addchr c (addchr '$' acc))
                   tl
               in
                 lookup_dollar acc tl
             end
-        | ' ' :: tl -> 
+        | ' ' :: tl ->
             lookup_dollar (addsep acc) tl
-        | c :: tl -> 
+        | c :: tl ->
             lookup_dollar (addchr c acc) tl
         | [] ->
             begin
-              let l = 
+              let l =
                 match acc with
                   | Some b, l -> Buffer.contents b :: l
                   | None, l -> l
@@ -427,11 +427,11 @@ let command_line =
 
       lookup_dollar (None, []) lst
   in
-    
-    { 
-      parse = 
+
+    {
+      parse =
         (fun ~ctxt s ->
-           match split_expandable s with 
+           match split_expandable s with
              | cmd :: args ->
                  cmd, args
              | [] ->
@@ -439,8 +439,8 @@ let command_line =
       update =
         (fun (cmd, args1) (arg2, args3) ->
            (cmd, args1 @ (arg2 :: args3)));
-      print = 
-        (fun (cmd, args) -> 
+      print =
+        (fun (cmd, args) ->
            space_separated.print (cmd :: args))
     }
 

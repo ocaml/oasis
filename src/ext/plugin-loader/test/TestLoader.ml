@@ -20,7 +20,7 @@ let bracket_tmpdir f =
          fn)
     f
     (fun fn ->
-       FileUtil.rm ~recurse:true [fn]) 
+       FileUtil.rm ~recurse:true [fn])
 
 let bracket_findlib f =
   bracket_tmpdir
@@ -65,7 +65,7 @@ let bracket_findlib f =
 let assert_pluginloader dn args =
   let buf = Buffer.create 13 in
   let lst = ref [] in
-  let ocamlpath = 
+  let ocamlpath =
     try
       FilePath.string_of_path
         ((FilePath.path_of_string (Sys.getenv "OCAMLPATH")) @ [dn])
@@ -91,7 +91,7 @@ let assert_pluginloader dn args =
                          Buffer.add_char buf c))
       !pluginloader args;
 
-    if !verbose then 
+    if !verbose then
       prerr_endline (Buffer.contents buf);
     List.rev (Buffer.contents buf :: !lst)
 

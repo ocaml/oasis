@@ -27,9 +27,9 @@ open OASISGettext
 open OASISUtils
 
 let pager_cmd =
-  try 
-    Some 
-      (try 
+  try
+    Some
+      (try
          Sys.getenv "OASIS_PAGER"
        with Not_found ->
          begin
@@ -41,35 +41,35 @@ let pager_cmd =
   with Not_found ->
     None
 
-let open_out () = 
-  let buf = 
+let open_out () =
+  let buf =
     Buffer.create 13
   in
-  let fmt = 
+  let fmt =
     Format.formatter_of_buffer buf
   in
     (buf, fmt),
     fmt
 
 
-let close_out (buf, fmt) = 
-  let () = 
+let close_out (buf, fmt) =
+  let () =
     Format.pp_print_flush fmt ()
   in
-    match pager_cmd with 
+    match pager_cmd with
       | Some cmd ->
           begin
-            let proc = 
+            let proc =
               Unix.open_process_out cmd
             in
-            let () = 
+            let () =
               Buffer.output_buffer proc buf
             in
-              match Unix.close_process_out proc with 
+              match Unix.close_process_out proc with
                 | Unix.WEXITED 0 ->
                     ()
-                | Unix.WEXITED n 
-                | Unix.WSIGNALED n 
+                | Unix.WEXITED n
+                | Unix.WSIGNALED n
                 | Unix.WSTOPPED n ->
                     failwithf
                       (f_ "Command %S exited with error code %d")

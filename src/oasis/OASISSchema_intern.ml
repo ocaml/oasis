@@ -19,7 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** Property list and schema checker 
+(** Property list and schema checker
     @author Sylvain Le Gall
   *)
 
@@ -31,7 +31,7 @@ open OASISValues
 open OASISExpr
 open PropList
 
-module Sync = 
+module Sync =
 struct
 
   (* TODO: we should use a Queue or a list here or include the sync method
@@ -39,11 +39,11 @@ struct
    *)
   type 'a t = ('a -> (plugin_kind plugin) option -> PropList.Data.t -> PropList.Data.t) ref
 
-  let create () = 
+  let create () =
     ref (fun _ _ data -> data)
 
-  let add t schm value nm sync plugin = 
-    let fake_context = 
+  let add t schm value nm sync plugin =
+    let fake_context =
       {
         OASISAstTypes.cond = None;
         append             = false;
@@ -52,41 +52,41 @@ struct
       }
     in
 
-    let prev_f = 
+    let prev_f =
       !t
     in
 
-    let new_f = 
-      fun t plugin' data -> 
+    let new_f =
+      fun t plugin' data ->
         let data = prev_f t plugin' data in
-          
-        let is_field_active = 
-          match plugin, plugin' with 
+
+        let is_field_active =
+          match plugin, plugin' with
             | Some plg, Some plg' ->
                 OASISPlugin.plugin_equal plg plg'
 
             | None, None ->
                 true
 
-            | Some _, _ 
+            | Some _, _
             | _, Some _ ->
                 false
         in
 
-        let () = 
-                
-          if is_field_active then 
-            try 
-              (* TODO: we should just restore the value 
+        let () =
+
+          if is_field_active then
+            try
+              (* TODO: we should just restore the value
                * wether or not it is printable should not
-               * be important 
+               * be important
                *)
-              PropList.Schema.set 
-                schm 
-                data 
+              PropList.Schema.set
+                schm
+                data
                 (* TODO: really need to kill this ~context *)
-                ~context:fake_context 
-                nm 
+                ~context:fake_context
+                nm
                 (value.print (sync t))
             with Not_printable ->
               ()
@@ -96,11 +96,11 @@ struct
       t := new_f
 end
 
-type kind = 
-  | DefinePlugin of plugin_kind 
+type kind =
+  | DefinePlugin of plugin_kind
   | DefinePlugins  of plugin_kind
   | FieldFromPlugin of plugin_kind plugin
-  | StandardField 
+  | StandardField
 
 type extra =
   {
@@ -118,7 +118,7 @@ type 'a t =
     }
 
 
-let schema nm plg_data = 
+let schema nm plg_data =
   {
     schm   = Schema.create ~case_insensitive:true nm;
     sync   = Sync.create ();
@@ -127,13 +127,13 @@ let schema nm plg_data =
 
 (** Define extra data contained in the schema
   *)
-let extra 
+let extra
       ?(kind=StandardField)
-      ?(quickstart_level=Expert) 
+      ?(quickstart_level=Expert)
       ?(quickstart_question=(fun () -> Field))
       ?since_version
       value =
-          
+
   let qckstrt_lvl =
     match quickstart_level with
       | NoChoice v -> NoChoice (value.print v)
@@ -168,21 +168,21 @@ let extra
 
 (** Create  a conditional field
   *)
-let new_field_conditional 
+let new_field_conditional
       t
-      name 
-      ?plugin 
+      name
+      ?plugin
       ?default_cond
-      ?default 
+      ?default
       ?quickstart_level
       ?quickstart_question
       ?since_version
-      value 
+      value
       help
       sync =
   let update ?context old_choices new_choices =
     let choices =
-      match context with 
+      match context with
         | Some {append = true} ->
             (* Append in conditional context means a cartesian product between
                the choices and the (None :: Some + appends). We then combine
@@ -190,7 +190,7 @@ let new_field_conditional
 
                WARNING: quadratic expansion in space
              *)
-            let all_appends = 
+            let all_appends =
               None :: (List.map (fun v -> Some v) new_choices)
             in
               List.flatten
@@ -201,7 +201,7 @@ let new_field_conditional
                            | None ->
                                cond, choice
                            | Some (new_cond, append) ->
-                               EAnd(cond, new_cond), 
+                               EAnd(cond, new_cond),
                                value.update choice append)
                         all_appends)
                    old_choices)
@@ -211,7 +211,7 @@ let new_field_conditional
       OASISExpr.reduce_choices choices
   in
 
-  let default = 
+  let default =
     match default_cond, default with
       | Some lst, Some x ->
           Some ((EBool true, x) :: lst)
@@ -223,12 +223,12 @@ let new_field_conditional
           None
   in
 
-  let parse ?context s = 
-     match context with 
+  let parse ?context s =
+     match context with
        | Some ctxt ->
            begin
              let real_cond =
-               match ctxt.cond with 
+               match ctxt.cond with
                  | Some e -> e
                  | None -> EBool true
              in
@@ -238,15 +238,15 @@ let new_field_conditional
            (* TODO: this is ugly, try to find a solution without ?context *)
            failwithf
              (f_ "No context defined for field '%s' when parsing value %S")
-             name 
+             name
              s
   in
 
-  let trivial_value = 
+  let trivial_value =
     function
-      | [] -> 
+      | [] ->
           raise (PropList.Not_set(name, None))
-      | [EBool true, v] -> 
+      | [EBool true, v] ->
           v
       | _ ->
           raise OASISValues.Not_printable
@@ -262,25 +262,25 @@ let new_field_conditional
       | None -> None
   in
 
-  let sync pkg = 
+  let sync pkg =
     (* TODO: this prevent to synchronize complex
-     * conditional value 
+     * conditional value
      *)
     trivial_value (sync pkg)
   in
 
 
     Sync.add t.sync t.schm value name sync plugin;
-    FieldRO.create 
-      ~schema:t.schm 
+    FieldRO.create
+      ~schema:t.schm
       ~name
-      ~parse 
+      ~parse
       ~print
       ~update
       ?default
       ~help
       (extra
-        ?kind 
+        ?kind
         ?quickstart_level
         ?quickstart_question
         ?since_version
@@ -288,10 +288,10 @@ let new_field_conditional
 
 (** Default parser and updater for new_field and new_field_plugin
   *)
-let default_parse_update name value = 
+let default_parse_update name value =
 
   let update ?context old_v v =
-    match context with 
+    match context with
       | Some {append = true} ->
           value.update old_v v
       | _ ->
@@ -299,7 +299,7 @@ let default_parse_update name value =
   in
 
   let parse ?context s =
-    match context with 
+    match context with
       | Some ctxt ->
           begin
             if ctxt.cond <> None then
@@ -314,23 +314,23 @@ let default_parse_update name value =
   in
 
     update, parse
-  
+
 
 (** Create a simple field
   *)
-let new_field 
+let new_field
       t
-      name 
-      ?plugin 
-      ?default 
+      name
+      ?plugin
+      ?default
       ?quickstart_level
       ?quickstart_question
       ?since_version
-      value 
+      value
       help
       sync =
 
-  let update, parse = 
+  let update, parse =
     default_parse_update name value
   in
   let kind =
@@ -341,31 +341,31 @@ let new_field
 
     Sync.add t.sync t.schm value name sync plugin;
     FieldRO.create
-      ~schema:t.schm 
+      ~schema:t.schm
       ~name
-      ~parse 
+      ~parse
       ~print:value.print
       ~update
       ?default
       ~help
       (extra
-        ?kind 
+        ?kind
         ?quickstart_level
         ?quickstart_question
         ?since_version
          value)
 
-(** Create a field that enables a plugin 
+(** Create a field that enables a plugin
   *)
-let new_field_plugin 
+let new_field_plugin
       t
       name
-      ?default 
+      ?default
       ?quickstart_level
       ?quickstart_question
       ?since_version
       knd
-      value 
+      value
       help
       sync =
 
@@ -374,9 +374,9 @@ let new_field_plugin
   in
     Sync.add t.sync t.schm value name sync None;
     FieldRO.create
-      ~schema:t.schm 
+      ~schema:t.schm
       ~name
-      ~parse 
+      ~parse
       ~print:value.print
       ~update
       ?default
@@ -400,21 +400,21 @@ let new_field_plugins
       ?quickstart_question
       ?since_version
       knd
-      value 
+      value
       help
       sync =
 
-  let values = 
-    comma_separated value 
+  let values =
+    comma_separated value
   in
   let update, parse =
     default_parse_update name values
   in
     Sync.add t.sync t.schm values name sync None;
     FieldRO.create
-      ~schema:t.schm 
+      ~schema:t.schm
       ~name
-      ~parse 
+      ~parse
       ~print:values.print
       ~update
       ?default
@@ -426,17 +426,17 @@ let new_field_plugins
         ?since_version
         value)
 
-let to_proplist t plugins e = 
-  let data = 
+let to_proplist t plugins e =
+  let data =
     (* First synchronization, no plugin *)
     !(t.sync) e None (PropList.Data.create ())
   in
-  let plugins = 
-    PropList.Schema.fold 
+  let plugins =
+    PropList.Schema.fold
       (fun acc key extra _ ->
-         match extra.kind with 
+         match extra.kind with
            | DefinePlugin knd ->
-               let str = 
+               let str =
                  PropList.Schema.get t.schm data key
                in
                  (OASISPlugin.plugin_of_string knd str)
@@ -449,7 +449,7 @@ let to_proplist t plugins e =
                  (OASISPlugin.plugins_of_string knd str)
                  @ acc
 
-           | FieldFromPlugin _ 
+           | FieldFromPlugin _
            | StandardField ->
                acc)
       plugins

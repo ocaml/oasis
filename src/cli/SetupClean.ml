@@ -26,33 +26,33 @@
 open SubCommand
 open OASISGettext
 open OASISFileTemplate
-open OASISPlugin 
+open OASISPlugin
 
 let replace_sections =
   ref false
 
-let main () = 
+let main () =
   BaseGenerate.restore ();
   if !replace_sections then
     begin
-      let ctxt, _ = 
-        BaseSetup.of_package 
+      let ctxt, _ =
+        BaseSetup.of_package
           ~oasis_fn:!ArgCommon.oasis_fn
           ~setup_update:false
-          (OASISParse.from_file 
+          (OASISParse.from_file
              ~ctxt:!BaseContext.default
              !ArgCommon.oasis_fn)
       in
         OASISFileTemplate.fold
           (fun tmpl () ->
-             match tmpl.body with 
-             | Body _ 
+             match tmpl.body with
+             | Body _
              | BodyWithDigest _ ->
                  begin
                    let _chng: file_generate_change =
-                     file_generate 
+                     file_generate
                        ~ctxt:!BaseContext.default
-                       ~backup:false 
+                       ~backup:false
                        {tmpl with body = Body []}
                    in
                      ()
@@ -63,14 +63,14 @@ let main () =
           ()
     end
 
-let scmd = 
+let scmd =
   {(SubCommand.make
       ~std_usage:true
       "setup-clean"
       (s_ "Clean all template files from their content")
       CLIData.setup_clean_mkd
       main)
-     with 
+     with
          scmd_specs =
            [
              "-replace-sections",
@@ -79,6 +79,6 @@ let scmd =
                  between OASIS_START and OASIS_STOP).";
            ]}
 
-let () = 
+let () =
   SubCommand.register scmd
 

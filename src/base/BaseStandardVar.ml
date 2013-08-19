@@ -92,7 +92,7 @@ let ext_dll                  = c "ext_dll"
 let default_executable_name  = c "default_executable_name"
 let systhread_supported      = c "systhread_supported"
 
-let flexlink = 
+let flexlink =
   BaseCheck.prog "flexlink"
 
 let flexdll_version =
@@ -100,11 +100,11 @@ let flexdll_version =
     ~short_desc:(fun () -> "FlexDLL version (Win32)")
     "flexdll_version"
     (fun () ->
-       let lst = 
+       let lst =
          OASISExec.run_read_output ~ctxt:!BaseContext.default
            (flexlink ()) ["-help"]
        in
-         match lst with 
+         match lst with
            | line :: _ ->
                Scanf.sscanf line "FlexDLL version %s" (fun ver -> ver)
            | [] ->
@@ -330,7 +330,7 @@ let native_dynlink =
     "native_dynlink"
     (fun () ->
        let res =
-         let ocaml_lt_312 () = 
+         let ocaml_lt_312 () =
            OASISVersion.comparator_apply
              (OASISVersion.version_of_string (ocaml_version ()))
              (OASISVersion.VLesser
@@ -342,7 +342,7 @@ let native_dynlink =
              (OASISVersion.VLesser
                 (OASISVersion.version_of_string "0.30"))
          in
-         let has_native_dynlink = 
+         let has_native_dynlink =
            let ocamlfind = ocamlfind () in
              try
                let fn =
@@ -360,10 +360,10 @@ let native_dynlink =
              false
            else if ocaml_lt_312 () then
              false
-           else if (os_type () = "Win32" || os_type () = "Cygwin") 
+           else if (os_type () = "Win32" || os_type () = "Cygwin")
                    && flexdll_lt_030 () then
              begin
-               BaseMessage.warning 
+               BaseMessage.warning
                  (f_ ".cmxs generation disabled because FlexDLL needs to be \
                       at least 0.30. Please upgrade FlexDLL from %s to 0.30.")
                  (flexdll_version ());

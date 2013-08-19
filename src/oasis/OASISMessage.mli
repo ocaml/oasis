@@ -20,12 +20,12 @@
 (******************************************************************************)
 
 (** Messages to user
-  
+
     These functions display information depending on the verbosity level
     set in {!OASISContext.t}. They use [Printf.fprintf] syntax to output.
     You can use a [~after] function, that will be called if something has
     been displayed.
-    
+
     @author Sylvain Le Gall
   *)
 

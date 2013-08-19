@@ -74,7 +74,7 @@ let ocamlc_config_map =
           mp
   in
 
-  let cache = 
+  let cache =
     lazy
       (var_protect
          (Marshal.to_string
@@ -101,15 +101,15 @@ let var_define nm =
       0
   in
   let chop_version_suffix s =
-    try 
+    try
       String.sub s 0 (String.index s '+')
-    with _ -> 
+    with _ ->
       s
    in
 
   let nm_config, value_config =
     match nm with
-      | "ocaml_version" -> 
+      | "ocaml_version" ->
           "version", chop_version_suffix
       | _ -> nm, (fun x -> x)
   in

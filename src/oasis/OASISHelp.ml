@@ -38,7 +38,7 @@ let fields_of_section ?plugin schm =
     (PropList.Schema.fold
        (fun acc key extra help ->
           match extra.kind, plugin with
-            | StandardField, None 
+            | StandardField, None
             | DefinePlugin _, None
             | DefinePlugins _, None ->
                 (key, help) :: acc
@@ -47,52 +47,52 @@ let fields_of_section ?plugin schm =
                   (key, help) :: acc
                 else
                   acc
-            | FieldFromPlugin _, None 
+            | FieldFromPlugin _, None
             | _, Some _ ->
                 acc)
        []
        schm)
 
-module Var = 
-struct 
-  type t = 
+module Var =
+struct
+  type t =
       {
         values:  (unit -> string) MapString.t;
         used:    (string * bool ref) list;
         plugin:  ([`All | plugin_kind] plugin) option;
       }
 
-  let create ?plugin () = 
+  let create ?plugin () =
     {
       values = MapString.empty;
       used   = [];
       plugin = plugin;
     }
 
-  let loc = 
-    function 
-      | Some plg -> 
+  let loc =
+    function
+      | Some plg ->
           Printf.sprintf " in plugin %s" (OASISPlugin.string_of_plugin plg)
       | None ->
           ""
-  let add nm f t = 
-    let used = 
+  let add nm f t =
+    let used =
       ref false
     in
       if MapString.mem nm t.values then
         failwithf
           (f_ "Help variable '%s' already defined%s")
           nm (loc t.plugin);
-      {t with 
-           values = MapString.add 
-                      nm 
-                      (fun () -> used := true; f ()) 
+      {t with
+           values = MapString.add
+                      nm
+                      (fun () -> used := true; f ())
                       t.values;
            used   = (nm, used) :: t.used;
       }
-  
-  let find ~line nm t = 
-    try 
+
+  let find ~line nm t =
+    try
       MapString.find nm t.values
     with Not_found ->
       failwithf
@@ -100,13 +100,13 @@ struct
         nm line (loc t.plugin)
 
   let check t =
-    let lst = 
+    let lst =
       List.map fst
-        (List.filter 
+        (List.filter
            (fun (_, r) -> not !r)
            t.used)
     in
-      match lst with 
+      match lst with
         | [] ->
             ()
         | lst ->
@@ -115,7 +115,7 @@ struct
               (String.concat (s_ ", ") lst)
               (loc t.plugin)
 
-  let of_list ?plugin lst = 
+  let of_list ?plugin lst =
     List.fold_left
       (fun t (nm, f) ->
          add nm f t)
@@ -126,29 +126,29 @@ end
 
 exception Empty of string
 
-let pp_section_fields ?plugin ?allowed_fields schm nm = 
+let pp_section_fields ?plugin ?allowed_fields schm nm =
 
-  let schm = 
+  let schm =
     schm.schm
   in
 
-  let fields = 
+  let fields =
     let all_fields =
       fields_of_section ?plugin schm
     in
       match allowed_fields with
         | Some st ->
-            List.filter 
+            List.filter
               (fun (f, _) -> SetString.mem f st)
               all_fields
         | None ->
             all_fields
   in
-    if fields = [] then 
+    if fields = [] then
       raise (Empty nm);
-          
+
     nm,
-    fun () -> 
+    fun () ->
       let fake_data =
         PropList.Data.create ()
       in
@@ -160,25 +160,25 @@ let pp_section_fields ?plugin ?allowed_fields schm nm =
         pp_open_vbox fmt 0;
         pp_print_list
           (fun fmt (key, help) ->
-             let help = 
+             let help =
                (match help with
                   | Some h -> h ()
                   | None -> "<No help>")^
                (
-                 try 
-                   let _s : string = 
+                 try
+                   let _s : string =
                      PropList.Schema.get schm fake_data key
                    in
                      ""
-                 with 
+                 with
                    | PropList.Not_set _ ->
                        s_ " (__mandatory__)"
                    | PropList.No_printer _ | OASISValues.Not_printable ->
                        ""
                )
              in
-               fprintf fmt 
-                 (f_ " * @[`%s`: %a@]") 
+               fprintf fmt
+                 (f_ " * @[`%s`: %a@]")
                  key
                  pp_print_string_spaced help)
             "@,"
@@ -188,7 +188,7 @@ let pp_section_fields ?plugin ?allowed_fields schm nm =
         flush_str_formatter ()
 
 
-let pp_short_licenses () = 
+let pp_short_licenses () =
   let fmt =
     str_formatter
   in
@@ -196,28 +196,28 @@ let pp_short_licenses () =
     pp_open_vbox fmt 0;
     pp_print_list
       (fun fmt (license, data) ->
-         let str_license = 
+         let str_license =
             string_of_license license
          in
-         let long_name fmt = 
+         let long_name fmt =
             pp_print_string_spaced fmt data.long_name
          in
-         let vers = 
+         let vers =
            List.map OASISVersion.string_of_version data.versions
          in
          match vers, data.note with
            | [], None ->
-               fprintf fmt 
-                 (f_ " * @[`%s`: %t@]") 
+               fprintf fmt
+                 (f_ " * @[`%s`: %t@]")
                  str_license long_name
            | [], Some txt ->
-               fprintf fmt 
-                 (f_ " * @[`%s`: %t. %a@]") 
+               fprintf fmt
+                 (f_ " * @[`%s`: %t. %a@]")
                  str_license long_name
                  pp_print_string_spaced txt
            | lst, None ->
                fprintf fmt
-                 (fn_ 
+                 (fn_
                     " * @[`%s`: %t (version@ %a)@]"
                     " * @[`%s`: %t (versions@ %a)@]"
                     (List.length vers))
@@ -225,20 +225,20 @@ let pp_short_licenses () =
                  (pp_print_list pp_print_string ",@, ") lst
            | lst, Some txt ->
                fprintf fmt
-                 (fn_ 
+                 (fn_
                     " * @[`%s`: %t. %a (version@ %a)@]"
                     " * @[`%s`: %t. %a (versions@ %a)@]"
                     (List.length vers))
                  str_license long_name
                  pp_print_string_spaced txt
-                 (pp_print_list pp_print_string ",@, ") lst) 
+                 (pp_print_list pp_print_string ",@, ") lst)
         "@,"
         fmt
         (OASISLicense.license_data ());
     pp_close_box fmt ();
     flush_str_formatter ()
 
-let pp_license_exceptions () = 
+let pp_license_exceptions () =
   let fmt =
     str_formatter
   in
@@ -246,23 +246,23 @@ let pp_license_exceptions () =
     pp_open_vbox fmt 0;
     pp_print_list
       (fun fmt (excpt, data) ->
-         let excpt_str = 
+         let excpt_str =
           string_of_license_exception excpt
          in
-         let explanation fmt = 
+         let explanation fmt =
            pp_print_string_spaced fmt data.explanation
          in
-         let licenses = 
+         let licenses =
            List.map string_of_license data.licenses
          in
            match licenses with
              | [] ->
-                 fprintf fmt 
-                   (f_ " * @[`%s`: %t@]") 
+                 fprintf fmt
+                   (f_ " * @[`%s`: %t@]")
                    excpt_str explanation
              | lst ->
                  fprintf fmt
-                   (fn_ 
+                   (fn_
                       " * @[`%s` compatible with %a: %t@]"
                       " * @[`%s` compatible with %a: %t@]"
                       (List.length licenses))
@@ -275,14 +275,14 @@ let pp_license_exceptions () =
     pp_close_box fmt ();
     flush_str_formatter ()
 
-let pp_standard_variables display schm = 
+let pp_standard_variables display schm =
   let env =
     PropList.Data.create ()
   in
   let fmt =
     str_formatter
   in
-  let vars = 
+  let vars =
     List.rev
       (PropList.Schema.fold
          (fun acc name def short_descr_opt ->
@@ -291,12 +291,12 @@ let pp_standard_variables display schm =
                (match short_descr_opt with
                   | Some txt -> Some (txt ())
                   | None -> None),
-               (try 
+               (try
                   Some (PropList.Schema.get schm env name)
-                with PropList.Not_set _ -> 
+                with PropList.Not_set _ ->
                   None))
               :: acc
-            else 
+            else
               acc)
          []
          schm)
@@ -305,7 +305,7 @@ let pp_standard_variables display schm =
     pp_open_vbox fmt 0;
     pp_print_list
       (fun fmt ->
-         function 
+         function
            | name, None, _ ->
                fprintf fmt (f_ " * `%s`") name
            | name, Some descr, _ ->
@@ -318,8 +318,8 @@ let pp_standard_variables display schm =
     pp_close_box fmt ();
     flush_str_formatter ()
 
-let kind_str knd = 
-    match knd with 
+let kind_str knd =
+    match knd with
       | `Configure -> "conf"
       | `Build     -> "build"
       | `Doc       -> "doc"
@@ -329,8 +329,8 @@ let kind_str knd =
 
 (** Standard variables to replace in help files *)
 let mk_std_vars ?plugin ?(filter=(fun _ -> true)) acc =
-  let bn = 
-    match plugin with 
+  let bn =
+    match plugin with
       | None ->
           "OASIS"
       | Some (knd, nm, ver) ->
@@ -338,12 +338,12 @@ let mk_std_vars ?plugin ?(filter=(fun _ -> true)) acc =
           (String.capitalize (kind_str knd))
   in
 
-  let add_if_valid schm vars (pre, suf) = 
-    let nm = 
+  let add_if_valid schm vars (pre, suf) =
+    let nm =
       pre^bn^suf
     in
-      try 
-        let nm, f = 
+      try
+        let nm, f =
           pp_section_fields ?plugin schm nm
         in
           if filter (nm, f) then
@@ -359,36 +359,36 @@ let mk_std_vars ?plugin ?(filter=(fun _ -> true)) acc =
          add acc (pre, suf))
       acc
       [
-        "List", "PackageFields", 
+        "List", "PackageFields",
         add_if_valid OASISPackage.schema;
 
-        "List", "FlagFields", 
+        "List", "FlagFields",
         add_if_valid OASISFlag.schema;
 
-        "List", "LibraryFields", 
+        "List", "LibraryFields",
         add_if_valid OASISLibrary.schema;
-        
-        "List", "ExecutableFields", 
+
+        "List", "ExecutableFields",
         add_if_valid OASISExecutable.schema;
 
-        "List", "DocumentFields", 
+        "List", "DocumentFields",
         add_if_valid OASISDocument.schema;
 
-        "List", "TestFields", 
+        "List", "TestFields",
         add_if_valid OASISTest.schema;
 
         "List", "SourceRepositoryFields",
         add_if_valid OASISSourceRepository.schema;
       ]
 
-let pp_help_replace vars fmt str = 
-  let buff = 
+let pp_help_replace vars fmt str =
+  let buff =
     Buffer.create 13
   in
-    List.iter 
+    List.iter
       (fun str ->
          (* Replace variables *)
-         Buffer.add_substitute 
+         Buffer.add_substitute
            buff
            (fun nm -> (Var.find ~line:str nm vars) ())
            str;
@@ -401,12 +401,12 @@ let pp_help_replace vars fmt str =
 
 let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
   let build_section_fields, library_fields, executable_fields =
-    let set_fields_of_section schm = 
-      set_string_of_list 
-        (List.rev_map fst 
+    let set_fields_of_section schm =
+      set_string_of_list
+        (List.rev_map fst
            (fields_of_section ?plugin schm.schm))
     in
-    let lib_flds = 
+    let lib_flds =
       set_fields_of_section OASISLibrary.schema
     in
     let exec_flds =
@@ -420,21 +420,21 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
       SetString.diff exec_flds common_flds
   in
 
-  let pp_plugin fmt (nm, knds, vo, hlp) = 
+  let pp_plugin fmt (nm, knds, vo, hlp) =
 
-    (* Create additional variables that match the different 
+    (* Create additional variables that match the different
      * plugin kind.
      *)
-    let mk_derived_vars acc knd = 
-      let plugin = 
+    let mk_derived_vars acc knd =
+      let plugin =
         knd, nm, vo
       in
         mk_std_vars ~plugin acc
     in
-    let plugin = 
+    let plugin =
       `All, nm, vo
     in
-    let vars = 
+    let vars =
       List.fold_left
         mk_derived_vars
         (Var.create ~plugin ())
@@ -448,17 +448,17 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
 
       fprintf fmt (f_ "### Plugin %s (%s)\n\n") nm all_kinds;
       begin
-        match vo with 
-          | Some ver -> 
-              fprintf fmt (f_ "__Version__: %s<br/>\n\n") 
+        match vo with
+          | Some ver ->
+              fprintf fmt (f_ "__Version__: %s<br/>\n\n")
                 (OASISVersion.string_of_version ver)
-          | None -> 
+          | None ->
               ()
       end;
       pp_help_replace vars fmt hlp.OASISPlugin.help_template
   in
 
-  let plugins = 
+  let plugins =
     let module MapGen =
       Map.Make
         (struct
@@ -467,11 +467,11 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
              OASISPlugin.plugin_compare (`All, nm1, vo1) (`All, nm2, vo2)
          end)
     in
-    let mp = 
+    let mp =
       List.fold_left
         (fun mp (knd, nm, ver) ->
            let frmr =
-             try 
+             try
                MapGen.find (nm, ver) mp
              with Not_found ->
                []
@@ -481,24 +481,24 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
         (OASISPlugin.all_plugins ())
     in
     let lst =
-      MapGen.fold 
+      MapGen.fold
         (fun (nm, vo) knds acc ->
            (nm, knds, vo, OASISPlugin.help (`All, nm, vo)) :: acc)
         mp
         []
     in
-      List.sort 
-        (fun (nm1, _, vo1, {OASISPlugin.help_order = ord1}) 
+      List.sort
+        (fun (nm1, _, vo1, {OASISPlugin.help_order = ord1})
                (nm2, _, vo2, {OASISPlugin.help_order = ord2}) ->
            match ord1 - ord2 with
-             | 0 -> 
+             | 0 ->
                  OASISPlugin.plugin_compare (`All, nm1, vo1) (`All, nm2, vo2)
              | n ->
                  n)
         lst
   in
 
-  let vars = 
+  let vars =
     Var.of_list
       [
         "ListShortLicenses",
@@ -511,34 +511,34 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
         (fun () ->
            pp_standard_variables env_display env_schm);
 
-        (* TODO 
+        (* TODO
         "ListFunctionVariables",
-        (fun () -> 
+        (fun () ->
            "TODO");
            *)
 
-        pp_section_fields 
-          ~allowed_fields:build_section_fields 
-          ?plugin 
+        pp_section_fields
+          ~allowed_fields:build_section_fields
+          ?plugin
           OASISLibrary.schema
           "ListOASISBuildFields";
 
-        pp_section_fields 
+        pp_section_fields
           ~allowed_fields:library_fields
-          ?plugin 
+          ?plugin
           OASISLibrary.schema
           "ListOASISLibraryFields";
 
-        pp_section_fields 
+        pp_section_fields
           ~allowed_fields:executable_fields
-          ?plugin 
+          ?plugin
           OASISExecutable.schema
           "ListOASISExecutableFields";
 
         "OASISCommandLineHelp",
-        (fun () -> 
-           let fmt = 
-             str_formatter 
+        (fun () ->
+           let fmt =
+             str_formatter
            in
              pp_set_margin fmt 80;
              pp_print_cli_help fmt ();
@@ -546,10 +546,10 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
 
         "ListOASISPlugins",
         (fun () ->
-           let buff = 
+           let buff =
              Buffer.create 13
            in
-           let fmt = 
+           let fmt =
              formatter_of_buffer buff
            in
              pp_open_vbox fmt 0;
@@ -566,22 +566,22 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
 
         "ListOASISTests",
         (fun () ->
-           String.concat 
+           String.concat
              "\n"
              (List.map
                 (fun et ->
-                   Printf.sprintf "* `%s(X)`" 
+                   Printf.sprintf "* `%s(X)`"
                      (OASISExpr.string_of_test et))
                 OASISExpr.tests));
       ]
   in
-  let vars = 
-    mk_std_vars 
-      ~filter:(fun (nm, _) -> 
-                 (* These two variables are handled directly, to make 
+  let vars =
+    mk_std_vars
+      ~filter:(fun (nm, _) ->
+                 (* These two variables are handled directly, to make
                   * a difference with common build fields.
                   *)
-                 nm <> "ListOASISLibraryFields" && 
+                 nm <> "ListOASISLibraryFields" &&
                  nm <> "ListOASISExecutableFields")
       vars
   in

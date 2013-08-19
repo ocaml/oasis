@@ -37,32 +37,32 @@ open OASISUtils
 let run ?f_exit_code prg args =
   OASISExec.run ~ctxt:!BaseContext.default ?f_exit_code prg args
 
-let with_tmpdir f = 
+let with_tmpdir f =
   let res =
     Filename.temp_file "oasis-dist-" ".dir"
   in
-  let clean () = 
+  let clean () =
     OASISFileUtil.rmdir ~ctxt:!BaseContext.default res
   in
-    Sys.remove res; 
+    Sys.remove res;
     OASISFileUtil.mkdir ~ctxt:!BaseContext.default res;
-    try 
+    try
       f res;
       clean ()
     with e ->
       clean ();
       raise e
 
-let update_oasis_in_tarball fn topdir = 
+let update_oasis_in_tarball fn topdir =
   with_tmpdir
     (fun dn ->
        run "tar" ["-C"; dn; "-xzf"; fn];
        run "oasis" ["-C"; Filename.concat dn topdir; "setup"];
        run "tar" ["-C"; dn; "-czf"; fn; topdir])
 
-class virtual vcs = 
+class virtual vcs =
 object
-  method check_uncommited_changes = 
+  method check_uncommited_changes =
     true
 
   method list_tags : string list =
@@ -74,7 +74,7 @@ object
 end
 
 class svn ~ctxt =
-object 
+object
   inherit vcs
 
   method check_uncommited_changes =
@@ -85,10 +85,10 @@ object
       | lst ->
           false
 
-  method dist topdir tarball = 
-    with_tmpdir 
+  method dist topdir tarball =
+    with_tmpdir
       (fun dir ->
-         let tgt = 
+         let tgt =
            Filename.concat dir topdir
          in
          let cur_pwd = Sys.getcwd () in
@@ -100,21 +100,21 @@ object
 end
 
 (* TODO: check file permissions +x for darcs *)
-class darcs ~ctxt = 
+class darcs ~ctxt =
 object
   inherit vcs
 
   val ctxt = ctxt
 
-  method check_uncommited_changes = 
-    let ok = 
+  method check_uncommited_changes =
+    let ok =
       ref false
     in
       (* Check that everything is commited *)
       run
         ~f_exit_code:
-        (function 
-           | 1 -> 
+        (function
+           | 1 ->
                ok := true
            | 0 ->
                ()
@@ -125,16 +125,16 @@ object
         "darcs" ["whatsnew"; "-ls"];
       !ok
 
-  method list_tags = 
+  method list_tags =
     OASISExec.run_read_output ~ctxt:!BaseContext.default
       "darcs" ["show"; "tags"]
 
-  method dist topdir tarball = 
+  method dist topdir tarball =
     (* Create the tarball *)
     run "darcs" ["dist"; "--dist-name"; topdir];
     Sys.rename (topdir^".tar.gz") tarball
 
-  method tag ver = 
+  method tag ver =
     run "darcs" ["tag"; ver]
 end
 
@@ -142,23 +142,23 @@ class git ~ctxt =
 object
   inherit vcs
 
-  method check_uncommited_changes = 
+  method check_uncommited_changes =
     match OASISExec.run_read_output ~ctxt:!BaseContext.default
             "git" ["status"; "--porcelain"] with
-      | [] -> 
+      | [] ->
           true
       | _ ->
           false
 
-  method list_tags = 
+  method list_tags =
     OASISExec.run_read_output ~ctxt:!BaseContext.default "git" ["tag"]
 
-  method dist topdir tarball = 
-    let tarfn = 
+  method dist topdir tarball =
+    let tarfn =
       Filename.chop_extension tarball
     in
       run
-        "git" 
+        "git"
         ["archive"; "--prefix";  (Filename.concat topdir "");
          "--format"; "tar"; "HEAD"; "-o"; tarfn];
       run "gzip" [tarfn]
@@ -168,21 +168,21 @@ object
 end
 
 class no_vcs ~ctxt =
-object 
+object
   inherit vcs
 
   val ctxt = ctxt
 
-  method dist topdir tarball = 
-    with_tmpdir 
+  method dist topdir tarball =
+    with_tmpdir
       (fun dir ->
-         let tgt = 
+         let tgt =
            Filename.concat dir topdir
          in
          let cur_pwd = Sys.getcwd () in
            OASISFileUtil.cp ~ctxt ~recurse:true cur_pwd tgt;
            begin
-             try 
+             try
                Sys.chdir tgt;
                run "ocaml" ["setup.ml"; "-distclean"];
                Sys.chdir dir;
@@ -197,12 +197,12 @@ object
     warning ~ctxt "No tag method"
 end
 
-let () = 
+let () =
   let build = ref true in
   let tag = ref true in
   let sign = ref true in
-  let () = 
-    Arg.parse 
+  let () =
+    Arg.parse
       [
         "-no-build",
         Arg.Clear build,
@@ -219,31 +219,31 @@ let () =
       (fun s -> failwith (Printf.sprintf "Don't know what to do with %S" s))
       "oasis-dist: build tarball out of oasis enabled sources."
   in
-  let ctxt = 
-    {!OASISContext.default with 
+  let ctxt =
+    {!OASISContext.default with
          OASISContext.ignore_plugins = true}
   in
-  let pkg = 
+  let pkg =
     OASISParse.from_file
       ~ctxt
       "_oasis"
   in
 
-  let topdir = 
+  let topdir =
     pkg.name^"-"^(OASISVersion.string_of_version pkg.version)
   in
 
-  let tarball = 
+  let tarball =
     Filename.concat (Sys.getcwd ()) (topdir^".tar.gz")
   in
 
-  let vcs = 
-    let test_dir dn () = 
+  let vcs =
+    let test_dir dn () =
       Sys.file_exists dn && Sys.is_directory dn
     in
-      try 
+      try
         snd
-          (List.find 
+          (List.find
              (fun (f, res) -> f ())
              [
                test_dir "_darcs", new darcs ctxt;
@@ -267,8 +267,8 @@ let () =
     update_oasis_in_tarball tarball topdir;
 
     (* Check that the tarball can build *)
-    with_tmpdir 
-      (fun dir -> 
+    with_tmpdir
+      (fun dir ->
          let pwd = Sys.getcwd () in
            (* Uncompress tarball in tmpdir *)
            run "tar" ["xz"; "-C"; dir; "-f"; tarball];
@@ -276,8 +276,8 @@ let () =
            Sys.chdir dir;
            Sys.chdir topdir;
 
-           try 
-             let () = 
+           try
+             let () =
                if Sys.file_exists "setup.data" then
                  failwith
                    "Remaining 'setup.data' file.";
@@ -288,14 +288,14 @@ let () =
              in
 
 
-             let () = 
+             let () =
                if !build then
                  (* Check that build, test, doc run smoothly *)
                  run "ocaml" ["setup.ml"; "-all"]
              in
 
-             let () = 
-               let bak_files = 
+             let () =
+               let bak_files =
                  (* Check for remaining .bak files *)
                  FileUtil.find (FileUtil.Has_extension "bak")
                    Filename.current_dir_name
@@ -314,13 +314,13 @@ let () =
              Sys.chdir pwd;
              raise e);
 
-    if !tag then 
+    if !tag then
       begin
-        let tags = 
-          List.sort 
-            OASISVersion.version_compare 
+        let tags =
+          List.sort
+            OASISVersion.version_compare
             (List.rev_map
-               OASISVersion.version_of_string 
+               OASISVersion.version_of_string
                vcs#list_tags)
         in
         let ver_str =
@@ -329,7 +329,7 @@ let () =
           match tags with
             | hd :: _ ->
                 begin
-                  let cmp = 
+                  let cmp =
                     OASISVersion.version_compare hd pkg.version
                   in
                     if List.mem pkg.version tags then
@@ -338,7 +338,7 @@ let () =
                       end
                     else if cmp > 0 then
                       begin
-                        warning ~ctxt "Version %s is smaller than already tagged version %s" 
+                        warning ~ctxt "Version %s is smaller than already tagged version %s"
                           ver_str (OASISVersion.string_of_version hd);
                         vcs#tag ver_str
                       end
@@ -350,11 +350,11 @@ let () =
             | _ ->
                 vcs#tag ver_str
       end;
-    
+
     if !sign then
       run
         ~f_exit_code:
-        (fun i -> 
+        (fun i ->
            if i <> 0 then
              warning ~ctxt "Cannot sign '%s' with gpg" tarball
            else

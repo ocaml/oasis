@@ -20,7 +20,7 @@
 (******************************************************************************)
 
 (** Handle output of 'ocamlc -config'
-  
+
    Read output of command ocamlc -config and transform it
    into environment variables.
 

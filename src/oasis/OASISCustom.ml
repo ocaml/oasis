@@ -29,22 +29,22 @@ open OASISSchema_intern
 open OASISValues
 open OASISTypes
 
-let add_fields schm nm hlp_pre hlp_post sync = 
-  let pre_command = 
+let add_fields schm nm hlp_pre hlp_post sync =
+  let pre_command =
     new_field_conditional schm ("Pre"^nm^"Command")
       ~default:None
       (opt command_line)
       hlp_pre
       (fun pkg -> (sync pkg).pre_command)
   in
-  let post_command = 
+  let post_command =
     new_field_conditional schm ("Post"^nm^"Command")
       ~default:None
       (opt command_line)
       hlp_post
       (fun pkg -> (sync pkg).post_command)
   in
-    (fun data -> 
+    (fun data ->
        {
          pre_command  = pre_command data;
          post_command = post_command data;

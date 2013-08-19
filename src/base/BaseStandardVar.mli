@@ -34,8 +34,8 @@ val ocamlbuild: unit -> host_filename
 val flexlink:   unit -> host_filename
 val flexdll_version: unit -> string
 
-(** {2 Variables from OASIS package} 
- 
+(** {2 Variables from OASIS package}
+
     See {!OASISTypes.package} for more information.
 
   *)
@@ -43,7 +43,7 @@ val flexdll_version: unit -> string
 val pkg_name:    unit -> name
 val pkg_version: unit -> OASISVersion.s
 
-(** {2 ocamlc config variables} *) 
+(** {2 ocamlc config variables} *)
 
 val os_type:                  unit -> string
 val system:                   unit -> string
@@ -63,7 +63,7 @@ val ext_dll:                  unit -> string
 val default_executable_name:  unit -> string
 val systhread_supported:      unit -> string
 
-(** {2 Paths} 
+(** {2 Paths}
 
     See {{:http://www.gnu.org/prep/standards/html_node/Directory-Variables.html} GNU standards}.
 

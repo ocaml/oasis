@@ -218,10 +218,10 @@ let rec to_string =
     | EFlag nm -> "flag("^nm^")"
     | ETest (nm, vl) -> nm^"("^vl^")"
 
-    | EOr (e1, e2) -> 
+    | EOr (e1, e2) ->
         (to_string e1)^" || "^(to_string e2)
 
-    | ENot (EBool _ | EFlag _ | ETest _ | ENot _ as e) -> 
+    | ENot (EBool _ | EFlag _ | ETest _ | ENot _ as e) ->
         "!"^(to_string e)
     | ENot (EAnd _ | EOr _ as e) ->
         "!("^(to_string e)^")"
@@ -235,6 +235,6 @@ let rec to_string =
     | EAnd (e1, e2) ->
         (to_string e1)^" && "^(to_string e2)
 
-let string_of_choices f lst = 
-  "["^(String.concat "; " 
+let string_of_choices f lst =
+  "["^(String.concat "; "
          (List.rev_map (fun (e, vl) -> (to_string e)^" -> "^(f vl)) lst))^"]"

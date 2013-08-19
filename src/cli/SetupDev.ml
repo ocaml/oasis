@@ -29,14 +29,14 @@ open OASISGettext
 let main () =
   failwith (s_ "The SetupDev subcommand is deprecated, use Setup")
 
-let scmd = 
+let scmd =
   {(SubCommand.make
       ~std_usage:true
       "setup-dev"
       (s_ "Translate _oasis into a build system that auto-update (deprecated).")
       CLIData.setup_dev_mkd
       main)
-     with 
+     with
          scmd_specs =
            ([
              "-real-oasis",
@@ -55,5 +55,5 @@ let scmd =
                   delete other generated files.";
            ] @ ArgCommon.oasis_fn_specs)}
 
-let () = 
+let () =
   SubCommand.register scmd
