@@ -29,7 +29,7 @@ generated there is no additional dependencies (just like an autoconf
 
 OASIS has been created with [OCamlbuild][] in mind. So there is probably some
 features/bugs that are oriented toward this build system.
- 
+
   [OCamlbuild]: http://brion.inria.fr/gallium/index.php/Ocamlbuild
 
 Features:
@@ -43,7 +43,7 @@ Features:
 Planned features:
 
  * [OCaml autoconf](http://ocaml-autoconf.forge.ocamlcore.org)
- * [OCamlMakefile](http://ocaml.info/home/ocaml_sources.html)
+ * [OCamlMakefile](http://www.ocaml.info/software.html#build_tools)
  * [OMake](http://omake.metaprl.org)
 
 Writing `_oasis` file
@@ -68,7 +68,7 @@ The file contains semi-colon fields and sections.
 ### Fields
 
 Fields are defined as `field_name: field_value`:
- 
+
  * Field name is an identifier, it contains only alphanumeric chars.
  * Field name is case insensitive.
  * Field value follow OCaml string convention, expect you don't need '"' around it.
@@ -90,7 +90,7 @@ Sections can be an identifier or a string:
 
     Library foo
 
-or 
+or
 
     Library "foo".
 
@@ -103,7 +103,7 @@ Example:
     OASISFormat:  1.0
     
     Library "foo"
-      # Library fields 
+      # Library fields
       Path: src/
     
     # Back to toplevel fields
@@ -115,7 +115,7 @@ It is possible to define some fields conditionally. Not all fields can be
 specified this way, only fields that have no good default values and that must
 be evaluated at runtime is defined.
 
-For example: 
+For example:
 
  * Toplevel fields `Name` and `Version` cannot be conditional.
  * Library fields `Build` and `Install` can be conditional.
@@ -127,7 +127,7 @@ Example:
     Library bar
       if os_type(Win32)
         Build: true
-      else 
+      else
         Build: false
 
 Available tests are :
@@ -137,7 +137,7 @@ $ListOASISTests
 The values from these tests are extracted from theoutput of `ocamlc -config`.
 
 
-An additional `flag` test is available which check that the a Flag is defined. See 
+An additional `flag` test is available which check that the a Flag is defined. See
 the chapter on the [Flag section](#flag).
 
 Tests and flags can be combined using standard boolean operation:
@@ -156,7 +156,7 @@ For example:
     Library bar
       if os_type(Win32)
         Build: true
-      else 
+      else
         Build: false
 
 is equivalent to:
@@ -206,15 +206,15 @@ $ListOASISFlagFields
 
 ### Common fields
 
-These fields are used inside `Library` and `Executable`. 
+These fields are used inside `Library` and `Executable`.
 
-Fields: 
+Fields:
 
 $ListOASISBuildFields
 
 All files defined in the section are relative to `Path`.
 
-### Library 
+### Library
 
 Define an OCaml library. OCaml API is generated using `ocamldoc` applied to
 `Modules` with `BuildDepends` required flags.
@@ -224,7 +224,7 @@ Fields:
 $ListOASISLibraryFields
  * Include all common fields.
 
-### Executable 
+### Executable
 
 Define an OCaml executable. If the executable is a bytecode that use internal
 library, an helper script can be generated to set library path.
@@ -242,7 +242,7 @@ Fields:
 
 $ListOASISDocumentFields
 
-### Test 
+### Test
 
 Define a test to run.
 
@@ -250,10 +250,10 @@ Fields:
 
 $ListOASISTestFields
 
-### SourceRepository 
+### SourceRepository
 
-Define VCS information. There are two special identified repositories: 
- 
+Define VCS information. There are two special identified repositories:
+
  * head: identify the main development repository.
  * this: identify the repository at the state of the current version.
 
@@ -266,9 +266,9 @@ Supported VCS types are: darcs, git, svn, cvs, hg, bzr, arch, monotone.
 License
 -------
 
-We have adopted a [DEP-5][] license style description. 
+We have adopted a [DEP-5][] license style description.
 
- [DEP-5]: http://dep.debian.net/deps/dep5/#license-specification 
+ [DEP-5]: http://dep.debian.net/deps/dep5/#license-specification
 
 The reason of this format is to have machine-readable license description.
 Using this former work, we hope to be compatible with future standards of
@@ -285,7 +285,7 @@ $ListLicenseExceptions
  * or an URL describing the license exception
 
 You can specify a license version using a dash and only digits or dashes at the
-end of the license short name. 
+end of the license short name.
 
 Examples :
 
@@ -296,8 +296,8 @@ Data files
 ----------
 
 `DataFiles` fields help to install extra data inside `\$datadir/\$pkg_name`. This
-field is a comma separated list of file, with optional value inside parenthesis. 
-You can override target directory using `fn (\$datadir/other_location)`. 
+field is a comma separated list of file, with optional value inside parenthesis.
+You can override target directory using `fn (\$datadir/other_location)`.
 
 You can use wildcard `*` but only for a filename and followed by a single dot
 extension: `dir/*.html` is valid but `dir/*` and `dir/*.tar.gz` are not valid.
@@ -312,7 +312,7 @@ Substitution is performed using [Buffer.add\_substitute][].
 Variable are evaluated using environment. This is a mix of various data coming
 from `_oasis` file, `ocamlc -config` output and configure tests. So environment
 variables depends of each project. You can have a precise idea of what variables
-is available looking at the file `setup.data`. 
+is available looking at the file `setup.data`.
 
 Here is a list of standard variables:
 
@@ -325,10 +325,10 @@ Other variables are defined depending on your `_oasis` file:
    If there is a version constraint, it is also translated to a variable. It
    contains a boolean value to know if the version is ok or not.
    Internal findlib packages don't create variables.
-   Example: `BuildDepends: oUnit (>= 1.0.3)` becomes two variables 
+   Example: `BuildDepends: oUnit (>= 1.0.3)` becomes two variables
    `pkg_oUnit = /usr/lib/ocaml/ounit` and `pkg_oUnit_ge_1_0_3 = true`.
  * Variables from external BuildTools: the variable is the name given
-   in the field and its value the filename of the executable. 
+   in the field and its value the filename of the executable.
    Example: `BuildTools: make` becomes `make = /usr/bin/make`.
  * Dynamic variables from internal BuildTools: the variable is the name
    of the Executable section and its value the filename of the executable.
@@ -343,7 +343,7 @@ when you need to use properties that need to be determined at runtime:
 
  * `utoh`: convert an Unix filename into a host filename (e.g. UNIX -> Win32
     conversion).
- * `ocaml_escaped`: call to `String.escaped`. 
+ * `ocaml_escaped`: call to `String.escaped`.
 
 For example `\$(utoh src/test.ml)` will be replaced by `src\test.ml` on Windows.
 
@@ -372,20 +372,20 @@ Using OASIS during software development
 ---------------------------------------
 
 Since `_oasis` becomes a central place of information about the building
-process, it can be quite cumbersome to run again and again `oasis`. You can 
+process, it can be quite cumbersome to run again and again `oasis`. You can
 avoid it using the `-dev` flags when calling `oasis` for the first time. This
 way it will rebuilt very dependents build files each time you call `ocaml
 setup.ml`. A `setup.ml` built this way, should not be distributed. This intended
 for development purpose only.
 
-Plugins 
+Plugins
 -------
 
 OASIS is basically built around plugins. They are used to define
 specific behavior for generating files and including their own code in `setup.ml`.
 
 There are 6 categories of plugin:
- 
+
  * __Conf__: apply to configure step, used in the field `ConfType`
  * __Build__: apply to build stepi, used in the field `BuildType`
  * __Test__: apply to test sections, used in the field `Type` of a test
@@ -406,7 +406,7 @@ loading.
 
 The file `setup.data` is the result of the configure step and contains data that
 can be used for other step. It is removed only in `distclean` target. The format
-of this file is on variable and values per line: `var="value"`. The value is an 
+of this file is on variable and values per line: `var="value"`. The value is an
 OCaml string. The file in this form can be read by `make` and `sh`. Once
 generated this file should not be modified.
 
@@ -418,7 +418,7 @@ ocaml setup.ml -configure
 -------------------------
 
 This is the first step to perform. It is mandatory. It runs various test of the
-build environment to check that everything required is installed. 
+build environment to check that everything required is installed.
 
 
 ocaml setup.ml -build
@@ -437,7 +437,7 @@ ocaml setup.ml -doc
 This step is optional. It builds API documentation for library and extra
 documentation as defined in `Document`.
 
-ocaml setup.ml -install 
+ocaml setup.ml -install
 -----------------------
 
 This step is mandatory. Install what has been built in build and doc step. Also
@@ -446,7 +446,7 @@ install data files as defined in `DataFiles` fields.
 ocaml setup.ml -uninstall
 -------------------------
 
-This step is optional. Remove files and libraries installed. 
+This step is optional. Remove files and libraries installed.
 
 ocaml setup.ml -reinstall
 -------------------------

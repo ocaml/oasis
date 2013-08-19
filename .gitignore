@@ -12,3 +12,4 @@ patches-to-apply
 tarballs
 test/oUnit.log
 dist/
+po/*.mo
