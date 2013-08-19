@@ -44,7 +44,7 @@ Planned features:
 
  * [OCaml autoconf](http://ocaml-autoconf.forge.ocamlcore.org)
  * [OCamlMakefile](http://www.ocaml.info/software.html#build_tools)
- * [OMake](http://omake.metaprl.org)
+ * [OMake](http://omake.metaprl.org/index.html)
 
 Writing `_oasis` file
 =====================
