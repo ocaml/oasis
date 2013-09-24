@@ -597,8 +597,7 @@ let setup t =
 
 open OASISPlugin
 
-let default_filename =
-  "setup.ml"
+let default_filename = "setup.ml"
 
 let find ctxt =
   try

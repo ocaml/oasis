@@ -40,76 +40,39 @@ struct
 end
 ENDIF
 
-open OUnit
+open OUnit2
 
 module MapString = Map.Make(String)
 module SetString = Set.Make(String)
 
-let dbug = ref false
-let long = ref true
-let oasis_exec = ref None
-let oasis_args = ref []
-
 let has_ocamlopt =
-  ref (bool_of_string (BaseStandardVar.is_native ()))
+  Conf.make_bool
+    "has_ocamlopt"
+    (bool_of_string (BaseStandardVar.is_native ()))
+    "Wether native compilation possible."
 
 let has_native_dynlink =
-  ref (bool_of_string (BaseStandardVar.native_dynlink ()))
+  Conf.make_bool
+    "has_native_dynlink"
+    (bool_of_string (BaseStandardVar.native_dynlink ()))
+    "Wether native dynlink is possible."
 
-let oasis () = 
-  match !oasis_exec with 
-    | None -> 
-        failwith "You must define oasis executable with -oasis-exec"
-    | Some e ->
-        e
+let oasis_exec = Conf.make_exec "oasis"
 
-let oasis_ctxt = 
-  ref OASISContext.quiet
+let oasis_args ctxt = 
+  (* TODO: add make_string_list to OUnit2. *)
+  []
 
-let set_verbose b = 
-  dbug := b;
-  if b then 
-    oasis_ctxt := !OASISContext.default
+let oasis_ctxt = OASISContext.quiet
 
-let test_args = 
-  let gettext_args, _ =
-    Gettext.init 
-  in
-    [
-      "-not-long",
-      Arg.Clear long,
-      " Don't run long tests";
+let long = 
+  Conf.make_bool
+    "long"
+    true
+    "Don't run long tests."
 
-      (* TODO: remove *)
-      "-has-ocamlopt",
-      Arg.String (fun s -> has_ocamlopt := bool_of_string s),
-      "bool Can use ocamlopt for tests";
-
-      "-oasis-exec",
-      Arg.String (fun s -> oasis_exec := Some s),
-      "fn Define oasis executable";
-
-      "-oasis-args",
-      Arg.Rest (fun str -> oasis_args := !oasis_args @ [str]),
-      "args* Define oasis arguments";
-    ] @ gettext_args @ (BaseContext.args ())
-
-let in_data =
-  let pwd = FileUtil.pwd () in
-    fun fn -> FilePath.make_filename [pwd; "data"; fn]
-;;
-
-(* Create a temporary dir *)
-let temp_dir () =
-  let res = 
-    Filename.temp_file "oasis-" ".dir"
-  in
-    FileUtil.rm [res];
-    FileUtil.mkdir res;
-    at_exit 
-      (fun () -> 
-         FileUtil.rm ~recurse:true [res]);
-    res
+let skip_long_test ctxt () =
+  skip_if (not (long ctxt)) "Long test."
 
 module Output = 
 struct
@@ -123,7 +86,7 @@ module DiffSetOutput = OUnitDiff.SetMake (Output)
 module DiffListOutput = OUnitDiff.ListSimpleMake (Output)
 
 (* Assert checking that command run well *)
-let assert_command ?exit_code ?output ?extra_env ?(unorder=false) cmd args  =
+let assert_command ~ctxt ?chdir ?exit_code ?output ?extra_env ?(unorder=false) cmd args =
   let foutput = 
     match output with 
       | Some exp_output ->
@@ -184,11 +147,22 @@ let assert_command ?exit_code ?output ?extra_env ?(unorder=false) cmd args  =
     in
       Some (Array.of_list (extra_env @ min_env))
   in
-    
     assert_command 
-      ?foutput ?env ?exit_code ~use_stderr:true ~verbose:!dbug 
+      ~ctxt ?chdir ?foutput ?env ?exit_code ~use_stderr:true
       cmd args
 
-let assert_oasis_cli ?exit_code ?output ?extra_env ?unorder args  =
-  assert_command ?exit_code ?output ?extra_env ?unorder
-    (oasis ()) (!oasis_args @ args)
+let assert_oasis_cli ~ctxt ?chdir ?exit_code ?output ?extra_env ?unorder args  =
+  assert_command ~ctxt ?chdir ?exit_code ?output ?extra_env ?unorder
+    (oasis_exec ctxt) ((oasis_args ctxt) @ args)
+
+let file_content fn =
+  let chn = open_in_bin fn in
+  let size = in_channel_length chn in
+  let buff = Buffer.create size in
+    Buffer.add_channel buff chn size;
+    close_in chn;
+    Buffer.contents buff
+
+let dbug_file_content test_ctxt fn =
+  logf test_ctxt `Info "Content of %S:" fn; 
+  logf test_ctxt `Info "%s" (file_content fn)

@@ -23,7 +23,7 @@
     @author Sylvain Le Gall
   *)
 
-open OUnit
+open OUnit2
 open TestCommon
 open OASISFileTemplate
 
@@ -31,49 +31,43 @@ let tests =
 
   let test_of_vector (fn, content_lst, comment_fmt) = 
     fn >::
-    bracket
-      (fun () -> ref NoChange)
-      (fun rchng ->
-         let real_fn = 
-           in_data fn
-         in
-         let expected_fn =
-           real_fn ^ "-exp"
-         in
+    (fun test_ctxt ->
+       let real_fn = in_testdata_dir test_ctxt [fn] in
+       let tmp_fn, chn_out = bracket_tmpfile test_ctxt in
+       let expected_fn = real_fn ^ "-exp" in
 
-         let file_content fn =
-           let chn =
-             open_in_bin fn
-           in
-           let size =
-             in_channel_length chn
-           in
-           let buff =
-             Buffer.create size
-           in
-             Buffer.add_channel buff chn size;
-             close_in chn;
-             Buffer.contents buff
-         in
+       let () = 
+         (* Copy file to temporary. *)
+         output_string chn_out (file_content real_fn);
+         close_out chn_out
+       in
 
-           rchng := file_generate 
-                      ~ctxt:!oasis_ctxt
-                      ~backup:true
-                      (template_of_string_list
-                         ~ctxt:!oasis_ctxt
-                         ~template:true
-                         real_fn 
-                         comment_fmt
-                         content_lst);
+       let chng: file_generate_change =
+         file_generate 
+           ~ctxt:oasis_ctxt
+           (* TODO: put this in a temporary directory and check that
+            * the temporary directory only contains one file at the end.
+            *)
+           ~backup:true
+           (template_of_string_list
+              ~ctxt:oasis_ctxt
+              ~template:true
+              tmp_fn 
+              comment_fmt
+              content_lst)
+       in
+         assert_equal 
+           ~msg:"File content"
+           ~printer:(Printf.sprintf "%S")
+           (file_content expected_fn)
+           (file_content tmp_fn);
+         
+         file_rollback ~ctxt:oasis_ctxt chng;
 
-           assert_equal 
-             ~msg:"File content"
-             ~printer:(Printf.sprintf "%S")
-             (file_content expected_fn)
-             (file_content real_fn))
-
-      (fun rchng -> file_rollback ~ctxt:!oasis_ctxt !rchng)
-
+         assert_equal 
+           ~msg:"File content back to pristine."
+           (file_content real_fn)
+           (file_content tmp_fn))
   in
 
   "FileTemplate" >:::
@@ -125,64 +119,60 @@ let tests =
   @
   [
     "Keep file rights" >::
-    (fun () ->
+    (fun test_ctxt ->
        let () = 
          skip_if (Sys.os_type = "Win32") "UNIX only test"
        in
-       let fn, chn = 
-         Filename.open_temp_file "oasis-db" ".txt"
-       in
+       (* TODO: temporary directory and ensure to keep the same right. *)
+       let fn, chn = bracket_tmpfile test_ctxt in
+       let () =
          output_string 
            chn
            "# OASIS_START\n\
             # OASIS_STOP\n";
-         close_out chn;
-         try 
-           let own, grp_org =
-             let st = Unix.stat fn in
-               st.Unix.st_uid, st.Unix.st_gid
-           in
+         close_out chn
+       in
+       let own, grp_org =
+         let st = Unix.stat fn in
+           st.Unix.st_uid, st.Unix.st_gid
+       in
 
-           let grp = 
-             let lst =
-               Array.to_list (Unix.getgroups ())
-             in
-               (* Try to find a group accessible to the user
-                * and different from the current group 
-                *)
-               try 
-                 List.find (fun gid' -> grp_org <> gid') lst
-               with Not_found ->
-                 skip_if true "No available group to change group of the file";
-                 grp_org
-           in
+       let grp = 
+         let lst =
+           Array.to_list (Unix.getgroups ())
+         in
+           (* Try to find a group accessible to the user
+            * and different from the current group 
+            *)
+           try 
+             List.find (fun gid' -> grp_org <> gid') lst
+           with Not_found ->
+             skip_if true "No available group to change group of the file";
+             grp_org
+       in
 
-           let () = 
-             Unix.chown fn own grp
-           in
+       let () = 
+         Unix.chown fn own grp
+       in
 
-           let chng = 
-             file_generate 
-               ~ctxt:!oasis_ctxt
-               ~backup:true
-               (template_make
-                  fn
-                  comment_sh
-                  []
-                  ["echo Hello"]
-                  [])
-           in
-             file_rollback ~ctxt:!oasis_ctxt chng;
-             assert_equal
-               ~msg:"File chgrp"
-               ~printer:string_of_int
-               grp
-               ((Unix.stat fn).Unix.st_gid);
-             Sys.remove fn
-
-         with e ->
-           Sys.remove fn;
-           raise e)
+       let chng = 
+         file_generate 
+           ~ctxt:oasis_ctxt
+           (* TODO: in a temporary directory. *)
+           ~backup:true
+           (template_make
+              fn
+              comment_sh
+              []
+              ["echo Hello"]
+              [])
+       in
+         file_rollback ~ctxt:oasis_ctxt chng;
+         assert_equal
+           ~msg:"File chgrp"
+           ~printer:string_of_int
+           grp
+           ((Unix.stat fn).Unix.st_gid))
   ]
 
 ;;

@@ -23,18 +23,22 @@
     @author Sylvain Le Gall
   *)
 
-open OUnit
+open OUnit2
 open TestCommon
 open BaseLog
 
 let tests =
   let test_of_vector (nm, f) =
     nm >:: 
-    bracket
-      ignore
-      f
-      (fun () ->
-         FileUtil.rm [BaseLog.default_filename])
+    (* TODO: depends on chdir! *)
+    (fun test_ctxt ->
+       let () = bracket
+                  ignore
+                  (fun () test_ctxt ->
+                     FileUtil.rm [BaseLog.default_filename])
+                  test_ctxt
+       in
+         f ())
   in
   let assert_equal_log msg exp =
     assert_equal

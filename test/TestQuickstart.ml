@@ -27,7 +27,7 @@
 open TestCommon
 open Expect
 open ExpectPcre
-open OUnit
+open OUnit2
 open OASISTypes
 
 let () = 
@@ -38,44 +38,31 @@ module MapString = Map.Make(String)
 let tests = 
 
   let assert_exit_code_equal exp rel = 
-      assert_equal 
-        ~msg:"exit code"
-        ~printer:(function 
-                    | Unix.WEXITED i 
-                    | Unix.WSIGNALED i 
-                    | Unix.WSTOPPED i -> 
-                        string_of_int i)
-        exp
-        rel
+    assert_equal 
+      ~msg:"exit code"
+      ~printer:(function 
+                  | Unix.WEXITED i 
+                  | Unix.WSIGNALED i 
+                  | Unix.WSTOPPED i -> 
+                      string_of_int i)
+      exp
+      rel
   in
 
-  let with_quickstart_spawn args f exp_exit_code =
+  let with_quickstart_spawn test_ctxt args f exp_exit_code =
     let args = 
-      ["quickstart"; "-machine"] @ args
-    in
-    let args = 
-      if not !dbug then 
-        "-quiet" :: args
-      else
-        "-debug" :: args
+      (oasis_args test_ctxt) @ ["quickstart"; "-machine" ; "-debug"] @ args
     in
 
-    let args = 
-      !oasis_args @ args
-    in
-
-    let () = 
-      if !dbug then
-        Printf.eprintf 
-          "Quickstart command line: %s\n%!" 
-          (String.concat " " (oasis () :: args))
-    in
     let _, exit_code = 
       try
+        logf test_ctxt `Info 
+          "Quickstart command line: %s\n%!" 
+          (String.concat " " (oasis_exec test_ctxt :: args));
         with_spawn
-          ~verbose:!dbug
+          ~verbose:true
           ~timeout:(Some 0.1)
-          (oasis ())
+          (oasis_exec test_ctxt)
           (Array.of_list args)
           (fun t () -> f t) 
           ()
@@ -89,8 +76,9 @@ let tests =
         exit_code
   in
 
-  let run_quickstart args qa = 
+  let run_quickstart test_ctxt args qa = 
     with_quickstart_spawn
+      test_ctxt
       args
       (fun t ->
          let rec continue = 
@@ -164,41 +152,23 @@ let tests =
 
   let test_of_vector (nm, args, qa, post) = 
     nm >::
-    bracket 
-      (fun () ->
-         let pwd = FileUtil.pwd () in
-         let tmp = temp_dir () in
-           Sys.chdir tmp;
-           pwd, tmp)
-      (fun _ ->
-         run_quickstart args qa;
-         if !dbug then 
-           begin
-             let chn = open_in "_oasis" in
-             let () = 
-               try 
-                 while true do 
-                   prerr_endline (input_line chn)
-                 done
-               with End_of_file ->
-                 ()
-             in
-               close_in chn
-           end;
-         assert_oasis_cli ["check"];
-         begin
-           try 
-             assert_oasis_cli ["setup"];
-           with e ->
-             failwith "'oasis setup' failed but 'oasis check' succeed"
-         end;
-         let pkg = 
-           OASISParse.from_file ~ctxt:!oasis_ctxt "_oasis"
-         in
-           post pkg)
-      (fun (pwd, tmp) ->
-         Sys.chdir pwd;
-         FileUtil.rm ~recurse:true [tmp])
+    (fun test_ctxt ->
+       let tmp = bracket_tmpdir test_ctxt in
+         (* TODO: syschdir *)
+       Sys.chdir tmp;
+       run_quickstart test_ctxt args qa;
+       dbug_file_content test_ctxt (Filename.concat tmp "_oasis");
+       assert_oasis_cli ~ctxt:test_ctxt ~chdir:tmp ["check"];
+       begin
+         try 
+           assert_oasis_cli ~ctxt:test_ctxt ~chdir:tmp ["setup"]
+         with e ->
+           failwith "'oasis setup' failed but 'oasis check' succeed"
+       end;
+       let pkg = 
+         OASISParse.from_file ~ctxt:oasis_ctxt "_oasis"
+       in
+         post pkg)
   in
   let test_simple_qa = 
     [
@@ -446,8 +416,9 @@ let tests =
     @
     [
       "error" >::
-      (fun () ->
+      (fun test_ctxt ->
          with_quickstart_spawn
+           test_ctxt
            []
            (fun t ->
               let q = `Prefix ("???name "), true in

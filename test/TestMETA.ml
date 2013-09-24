@@ -23,7 +23,7 @@
     @author Sylvain Le Gall
   *)
 
-open OUnit
+open OUnit2
 open TestCommon
 open Fl_metascanner
 open OASISTypes
@@ -32,149 +32,132 @@ open OASISFindlib
 let tests =
   let test_of_vector (nm, oasis_str, pkg_tests) =
     nm >::
-    (bracket 
-       (fun () ->
-          Filename.temp_file "oasis-meta-" ".meta")
-       (fun fn ->
-          (* Parse string to get OASIS package *)
-          let pkg = 
-            OASISParse.from_string 
-              ~ctxt:!oasis_ctxt
-              oasis_str
-          in
+    (fun test_ctxt ->
+       let fn, _ = 
+         bracket_tmpfile ~prefix:"oasis-meta-" ~suffix:".meta" test_ctxt
+       in
+       (* Parse string to get OASIS package *)
+       let pkg = 
+         OASISParse.from_string 
+           ~ctxt:oasis_ctxt
+           oasis_str
+       in
 
-          (* Generate META file *)
-          let groups, findlib_name_of_library_name, _ =
-            OASISFindlib.findlib_mapping pkg
-          in
-          let write_meta fndlb_nm =
-            let grp = 
-              try
-                (* Find the package in all group *)
-                List.find 
-                  (fun grp ->
-                     match grp with 
-                       | Container (nm, _)
-                       | Package (nm, _, _, _, _) -> nm = fndlb_nm)
-                  groups
-              with Not_found ->
-                failwith 
-                  (Printf.sprintf
-                     "Cannot find group of name '%s'"
-                     fndlb_nm)
-            in
-            let chn =
-              open_out fn
-            in
-            let fmt =
-              Format.formatter_of_out_channel chn
-            in
-            let root_t =
-              let root_cs, _, _ = 
-                root_of_group grp
+       (* Generate META file *)
+       let groups, findlib_name_of_library_name, _ =
+         OASISFindlib.findlib_mapping pkg
+       in
+       let write_meta fndlb_nm =
+         let grp = 
+           try
+             (* Find the package in all group *)
+             List.find 
+               (fun grp ->
+                  match grp with 
+                    | Container (nm, _)
+                    | Package (nm, _, _, _, _) -> nm = fndlb_nm)
+               groups
+           with Not_found ->
+             failwith 
+               (Printf.sprintf
+                  "Cannot find group of name '%s'"
+                  fndlb_nm)
+         in
+         let chn =
+           open_out fn
+         in
+         let fmt =
+           Format.formatter_of_out_channel chn
+         in
+         let root_t =
+           let root_cs, _, _ = 
+             root_of_group grp
+           in
+             METAPlugin.generator root_cs.cs_data
+         in
+           METAPlugin.pp_print_meta
+             pkg root_t findlib_name_of_library_name fmt grp;
+           close_out chn
+       in
+
+       (* Check META file *)
+       let rec find_pkg_defs pkg_expr = 
+         function
+           | hd :: tl ->
+               begin
+                 try 
+                   find_pkg_defs 
+                     (List.assoc hd pkg_expr.pkg_children)
+                     tl
+                 with Not_found ->
+                   failwith 
+                     (Printf.sprintf 
+                        "Could not find subpackage component '%s'"
+                        hd)
+               end
+           | [] -> 
+               pkg_expr.pkg_defs 
+       in
+       let Some (_, _) | None = 
+         List.fold_left
+           (fun former_meta (pkg_name, var, preds, res) ->
+              let pkg_root, pkg_paths =
+                match ExtString.String.nsplit pkg_name "." with
+                  | hd :: tl -> hd, tl
+                  | _ -> assert(false)
               in
-                METAPlugin.generator root_cs.cs_data
-            in
-              METAPlugin.pp_print_meta
-                pkg root_t findlib_name_of_library_name fmt grp;
-              close_out chn
-          in
-
-          let dbug_meta () = 
-            let chn =
-              open_in fn
-            in
-              begin
-                try
-                  while true do
-                    prerr_endline (input_line chn)
-                  done
-                with End_of_file ->
-                  ()
-              end;
-              close_in chn
-          in
-
-          (* Check META file *)
-          let rec find_pkg_defs pkg_expr = 
-            function
-              | hd :: tl ->
-                  begin
+              let pkg_expr = 
+                match former_meta with 
+                  | Some (nm, pkg_expr) when nm = pkg_root -> 
+                      pkg_expr
+                  | _ ->
+                      begin
+                        let chn =
+                          write_meta pkg_root;
+                          dbug_file_content test_ctxt fn;
+                          open_in fn
+                        in
+                        let res =
+                          parse chn
+                        in
+                          close_in chn;
+                          res
+                      end
+              in
+              let pkg_defs =
+                find_pkg_defs pkg_expr pkg_paths
+              in
+                begin
+                  let msg = 
+                    Printf.sprintf 
+                      "%s %s(%s)"
+                      pkg_name
+                      var
+                      (String.concat "," preds)
+                  in
                     try 
-                      find_pkg_defs 
-                        (List.assoc hd pkg_expr.pkg_children)
-                        tl
+                      assert_equal
+                        ~msg
+                        ~printer:(fun s -> s)
+                        res
+                        (lookup var preds pkg_defs)
                     with Not_found ->
                       failwith 
                         (Printf.sprintf 
-                           "Could not find subpackage component '%s'"
-                           hd)
-                  end
-              | [] -> 
-                  pkg_expr.pkg_defs 
-          in
-          let Some (_, _) | None = 
-            List.fold_left
-              (fun former_meta (pkg_name, var, preds, res) ->
-                 let pkg_root, pkg_paths =
-                   match ExtString.String.nsplit pkg_name "." with
-                     | hd :: tl -> hd, tl
-                     | _ -> assert(false)
-                 in
-                 let pkg_expr = 
-                   match former_meta with 
-                     | Some (nm, pkg_expr) when nm = pkg_root -> 
-                         pkg_expr
-                     | _ ->
-                         begin
-                           let chn =
-                             write_meta pkg_root;
-                             if !dbug then
-                               dbug_meta ();
-                             open_in fn
-                           in
-                           let res =
-                             parse chn
-                           in
-                             close_in chn;
-                             res
-                         end
-                 in
-                 let pkg_defs =
-                   find_pkg_defs pkg_expr pkg_paths
-                 in
-                   begin
-                     let msg = 
-                       Printf.sprintf 
-                         "%s %s(%s)"
-                         pkg_name
-                         var
-                         (String.concat "," preds)
-                     in
-                       try 
-                         assert_equal
-                           ~msg
-                           ~printer:(fun s -> s)
-                           res
-                           (lookup var preds pkg_defs)
-                       with Not_found ->
-                         failwith 
-                           (Printf.sprintf 
-                              "Cannot find META variable '%s'"
-                              msg)
-                   end;
-                   Some (pkg_root, pkg_expr))
-              None
-              pkg_tests
-          in
-            ())
-       (fun fn ->
-          Sys.remove fn))
+                           "Cannot find META variable '%s'"
+                           msg)
+                end;
+                Some (pkg_root, pkg_expr))
+           None
+           pkg_tests
+       in
+         ())
   in
     
     "META" >:::
     (List.map test_of_vector
        [
+(* TODO: move that to files. *)
          "2-subpackages",
          "\
 OASISFormat:  0.1

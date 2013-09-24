@@ -19,22 +19,23 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-open OUnit;;
-open TestCommon;;
+open OUnit2
+open TestCommon
 
 let tests =
   "Basic" >:::
   [
     "Help1" >::
-    (fun () -> assert_oasis_cli ["--help"]);
+    (fun test_ctxt -> assert_oasis_cli ~ctxt:test_ctxt ["--help"]);
  
     "Help2" >::
-    (fun () -> assert_oasis_cli ["help"]);
+    (fun test_ctxt -> assert_oasis_cli ~ctxt:test_ctxt ["help"]);
  
     "Env dump/load" >::
-    (fun () ->
+    (fun test_ctxt ->
+       (* TODO: lock *)
        BaseEnv.unload ();
-       BaseEnv.load ~filename:(in_data "dir.data") ();
+       BaseEnv.load ~filename:(in_testdata_dir test_ctxt ["dir.data"]) ();
        (* Reset lazy values ? *)
        assert_equal 
          ~printer:(fun s -> s)
@@ -42,7 +43,7 @@ let tests =
          (BaseStandardVar.bindir ()));
 
     "OCaml dev version" >::
-    (fun () ->
+    (fun test_ctxt ->
        PropList.Schema.set
          BaseEnv.schema 
          BaseEnv.env
@@ -60,15 +61,13 @@ let tests =
          (BaseStandardVar.ocaml_version ()));
 
     "Compileable BaseSysBundle.ml" >::
-    TestDevFiles.bracket_tmpdir
-      (fun dn ->
-         let chn = open_out (Filename.concat dn "bundle.ml") in
-           output_string chn OASISData.oasissysbundle_ml;
-           output_string chn BaseData.basesysbundle_ml;
-           close_out chn;
-           assert_command
-             "ocamlc" ["-o"; (Filename.concat dn "bundle");
-                       (Filename.concat dn "bundle.ml")])
+    (fun test_ctxt ->
+       let dn = bracket_tmpdir test_ctxt in
+       let chn = open_out (Filename.concat dn "bundle.ml") in
+         output_string chn OASISData.oasissysbundle_ml;
+         output_string chn BaseData.basesysbundle_ml;
+         close_out chn;
+         assert_command ~ctxt:test_ctxt
+           "ocamlc" ["-o"; (Filename.concat dn "bundle");
+                     (Filename.concat dn "bundle.ml")])
   ]
-;;
-   

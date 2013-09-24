@@ -23,7 +23,7 @@
     @author Sylvain Le Gall
   *)
 
-open OUnit
+open OUnit2
 open TestCommon
 open OASISTypes
 open OASISParse
@@ -76,23 +76,24 @@ let tests =
 
   let file_of_vector (fn, test) = 
     fn >::
-    (fun () ->
+    (fun test_ctxt ->
+       let real_fn = in_testdata_dir test_ctxt [fn] in
        let pkg =
          from_file 
-           ~ctxt:{!oasis_ctxt with 
+           ~ctxt:{oasis_ctxt with 
                       OASISContext.ignore_plugins = true} 
-           fn
+           real_fn
        in
          test pkg)
   in
 
   let test_file_of_vector (fn, test) = 
-    file_of_vector (in_data fn, test)
+    file_of_vector (fn, test)
   in
 
   let test_value_parser_of_vector (str, value_parse, fail) = 
     str >::
-    (fun () ->
+    (fun test_ctxt ->
        try
          ( 
            let _s : comparator = 
@@ -126,7 +127,7 @@ let tests =
             (fun (v, f) -> 
                (v, 
                 OASISVersion.comparator_value.parse 
-                  ~ctxt:!oasis_ctxt,
+                  ~ctxt:oasis_ctxt,
                 f))
             [
               ">= 3.11.1", false;
@@ -416,7 +417,7 @@ let tests =
       @
       [
         "SinceVersion" >::
-        (fun () ->
+        (fun test_ctxt ->
            assert_raises
              ~msg:"Pack is supported only in 0.3"
              (Failure "Field 'Pack' in Library test1 is only valid since \
@@ -425,23 +426,24 @@ let tests =
              (fun () ->
                 let _pkg =
                   from_file
-                    ~ctxt:{!oasis_ctxt with
+                    (* TODO: introduce oasis_ignore_plugin_ctxt *)
+                    ~ctxt:{oasis_ctxt with
                                OASISContext.ignore_plugins = true}
-                    (in_data "test13.oasis")
+                    (in_testdata_dir test_ctxt ["test13.oasis"])
                 in
                   ()));
         "test15.oasis" >::
-        (fun () ->
+        (fun test_ctxt ->
            try
              let _pkg : OASISTypes.package =
                 from_file
-                  ~ctxt:{!oasis_ctxt with
+                  (* TODO: introduce oasis_ignore_plugin_ctxt *)
+                  ~ctxt:{oasis_ctxt with
                              OASISContext.ignore_plugins = true}
-                  (in_data "test13.oasis")
+                  (in_testdata_dir test_ctxt ["test13.oasis"])
               in
                assert_string "test15.oasis should fail to parse"
           with Failure _ ->
             ());
       ]
     ]
-;;

@@ -24,9 +24,10 @@
   *)
 
 open FileUtil;;
-open OUnit;;
+open OUnit2;;
 open TestCommon;;
 
+(*
 type filename = FilePath.filename;;
 
 let exec fn = 
@@ -57,7 +58,6 @@ module SetFileDigest =
            | n ->
                n
      end)
-;;
 
 module SetFile =
   Set.Make
@@ -65,19 +65,6 @@ module SetFile =
        type t = filename
        let compare = compare_filename
      end)
-;;
-
-type location_t = 
-    {
-      build_dir:     filename;
-      ocaml_lib_dir: filename;
-      bin_dir:       filename;
-      lib_dir:       filename;
-      data_dir:      filename;
-      doc_dir:       filename;
-      html_dir:      filename;
-    }
-;;
 
 let assert_equal_ext ?cmp ?printer ?diff ?msg exp real =
   try 
@@ -89,7 +76,6 @@ let assert_equal_ext ?cmp ?printer ?diff ?msg exp real =
              (txt ^ "\ndiff: " ^(f exp real))
        | None ->
            raise e)
-;;
 
 module OUnitSet (S:Set.S) =
 struct
@@ -127,110 +113,351 @@ struct
             exp
             real
 end
-;;
 
-module OUnitSetFileDigest = OUnitSet(SetFileDigest);;
-module OUnitSetFile = OUnitSet(SetFile);;
+module OUnitSetFileDigest = OUnitSet(SetFileDigest)
+module OUnitSetFile = OUnitSet(SetFile)
+
+let setup_ml = OASISBaseSetup.default_filename 
+
+(* List all files in directory *)
+let all_files dir =
+  find 
+    Is_file
+    dir
+    (fun st fn -> SetFile.add fn st)
+    SetFile.empty
+
+(* Create a set of file/digest of the current directory *)
+let all_file_digests dn = 
+  SetFile.fold
+    (fun fn st ->
+       SetFileDigest.add (fn, Digest.file fn) st)
+    (all_files dn)
+    SetFileDigest.empty
+
+(* Convert a listing of filename + digest to only filenames. *)
+let set_file_of_file_digest st =
+  SetFileDigest.fold
+    (fun (fn, _) st ->
+       SetFile.add fn st)
+    st
+    SetFile.empty
+
+(* Assert with setup.ml *)
+let run_ocaml_setup_ml ~test_ctxt ?exit_code ?extra_env args =
+  (* Speed up for testing, compile setup.ml *)
+  let can_compile =
+    let chn = open_in setup_ml in
+    let hash_load = ref false in
+    let () =
+      try
+        while not !hash_load do
+          if OASISString.starts_with ~what:"#load" (input_line chn) then
+            hash_load := true
+        done
+      with End_of_file ->
+        ()
+    in
+      close_in chn;
+      not !hash_load
+  in
+  let setup_base = Filename.chop_extension setup_ml in
+  let setup_digest = setup_base ^ ".digest" in
+  let setup_exe = 
+    Filename.concat Filename.current_dir_name (exec setup_base)
+  in
+    if can_compile then
+      begin
+        (* TODO: this is very complex, simplify. *)
+        let self_digest =
+          let chn = open_in setup_ml in
+          let digest = Digest.channel chn (in_channel_length chn) in
+            close_in chn;
+            digest
+        in
+        let pre_digest =
+          try
+            let chn = open_in setup_digest in
+            let digest =
+              try
+                Digest.input chn 
+              with _ ->
+                Digest.string ""
+            in
+              close_in chn;
+              digest
+          with _ ->
+            Digest.string ""
+        in
+        let clean ?(all=false) () =
+          List.iter
+            (fun fn -> try Sys.remove fn with _ -> ())
+            (
+              (if all then
+                 [setup_exe; setup_digest]
+               else
+                 [])
+              @
+              [setup_base ^ ".cmi"; setup_base ^ ".cmo"]
+            )
+        in
+        if not (Sys.file_exists setup_exe) || self_digest <> pre_digest then
+          begin
+            match Sys.command ("ocamlfind ocamlc -o "^(exec "setup")^" setup.ml") with
+              | 0 ->
+                  (* Compilation succeed, update the digest *)
+                  let chn = open_out setup_digest in
+                    Digest.output chn self_digest;
+                    close_out chn;
+                    clean ()
+              | _ ->
+                  prerr_endline "E: Compilation of setup.ml doesn't succeed.";
+                  clean ~all:true ()
+          end
+      end;
+    if Sys.file_exists setup_exe then
+      assert_command ~ctxt:test_ctxt ?exit_code ?extra_env 
+        setup_exe ("-info" :: "-debug" :: args)
+    else
+      assert_command ~ctxt:test_ctxt ?exit_code ?extra_env "ocaml"
+        (setup_ml :: "-info" :: "-debug" :: args)
+
+(* Add a path to a path like environment varialbe. *)
+let add_path nm dir = 
+  nm,
+  try 
+    FilePath.string_of_path
+      ((FilePath.path_of_string (Sys.getenv nm)) @ [dir])
+  with Not_found ->
+    dir
+
+
+type t = 
+    {
+      src_dir:       filename;
+      build_dir:     filename;
+      ocaml_lib_dir: filename;
+      bin_dir:       filename;
+      lib_dir:       filename;
+      data_dir:      filename;
+      doc_dir:       filename;
+      html_dir:      filename;
+    }
+
+let setup_test_directories test_ctxt dn =
+  (* Create a temporary directory. *)
+  let tmpdir = brack_tmpdir test_ctxt in
+
+  (* Copy sources in this temporary directory. *)
+  let src_dir = 
+    FileUtil.cp [in_testdata_dir test_ctxt [dn]] tmpdir;
+    Filename.concat tmpdir dn
+  in
+ 
+  (* Create the build_dir. *)
+  let build_dir = Filename.concat "build" in
+
+  (* Create a directory in build_dir and return its name *)
+  let mkdir_return fn_parts =
+    let fn = FilePath.make_filename (build_dir :: fn_parts) in
+      mkdir ~parent:true fn;
+      fn
+  in
+    {
+      src_dir       = src_dir;
+      build_dir     = build_dir;
+      ocaml_lib_dir = mkdir_return ["lib"; "ocaml"];
+      bin_dir       = mkdir_return ["bin"];
+      lib_dir       = mkdir_return ["lib"];
+      data_dir      = mkdir_return ["share"];
+      doc_dir       = mkdir_return ["share"; "doc"];
+      html_dir      = mkdir_return ["share"; "doc"; "html"];
+      pristine      = all_file_digests src_dir;
+    }
+
+(* Try to run an installed executable *)
+let try_installed_exec ?exit_code test_ctxt t cmd args =
+
+  (* Libraries located inside the test
+   * directory
+   *)
+  let local_lib_paths = 
+    find
+      Is_dir
+      t.lib_dir 
+      (fun acc fn -> fn :: acc)
+      (find 
+         Is_dir
+         t.ocaml_lib_dir
+         (fun acc fn -> fn :: acc)
+         [])
+  in
+
+  let env_paths =
+    try
+      FilePath.path_of_string (Unix.getenv "PATH")
+    with Not_found ->
+      []
+  in
+
+  let paths, extra_env = 
+    if Sys.os_type = "Win32" then
+      begin
+        (t.bin_dir :: (local_lib_paths @ env_paths)),
+        []
+      end
+    else
+      begin
+        let paths = 
+          t.bin_dir :: env_paths
+        in
+        let ld_library_paths = 
+          local_lib_paths @
+          (try
+             FilePath.path_of_string (Unix.getenv "LD_LIBRARY_PATH")
+           with Not_found ->
+             [])
+        in
+          paths,
+          [
+            "LD_LIBRARY_PATH", ld_library_paths;
+          ]
+      end
+  in
+
+  let real_cmd = 
+    try 
+      which ~path:paths cmd
+    with Not_found ->
+      assert_failure
+        (Printf.sprintf 
+           "Command '%s' cannot be found in %s"
+           cmd
+           (String.concat ";" paths))
+  in
+    assert_command 
+      ?exit_code
+      ~extra_env:((add_path "OCAMLPATH" t.ocaml_lib_dir)
+                  ::
+                  (List.map
+                     (fun (v, lst) ->
+                        v, FilePath.string_of_path lst)
+                     (("PATH", paths) :: extra_env)))
+      real_cmd
+      args
+
+(* Try to run an installed library. *)
+let try_installed_library test_ctxt t pkg modules = 
+  (* TODO: merge this with try_installed_executable for OCAMLPATH. *)
+  (* Create a file that contains every modules *)
+  let srcdir = bracket_tmpdir test_ctxt in 
+  let pkg_as_module =
+    OASISString.replace_chars
+      (function
+         | '-' -> '_'
+         | c -> c)
+      pkg
+  in
+  let fn = 
+    FilePath.concat srcdir ("test_"^pkg_as_module^".ml")
+  in
+  let extra_env = 
+    [add_path "OCAMLPATH" t.ocaml_lib_dir]
+  in
+  let assert_compile cmd args =
+    assert_command 
+      ~ctxt:test_ctxt
+      ~extra_env 
+      "ocamlfind" 
+      (cmd :: "-package" :: pkg :: args )
+  in
+  let () = 
+    (* Fill the file with open statement *)
+    let chn_out =
+      open_out fn
+    in
+      List.iter
+        (Printf.fprintf chn_out "open %s;;\n")
+        modules;
+      close_out chn_out
+  in
+    (* Library + bytecode compilation *)
+    assert_compile 
+      ~ctxt:test_ctxt
+      "ocamlc" 
+      ["-a"; 
+       "-o"; FilePath.replace_extension fn "cma"; 
+       fn];
+
+    (* Program + bytecode compilation *)
+    assert_compile 
+      ~ctxt:test_ctxt
+      "ocamlc" 
+      ["-o"; FilePath.replace_extension fn "byte"; 
+       fn];
+
+    if !has_ocamlopt then
+      begin
+        (* Library + native compilation *)
+        assert_compile 
+          ~ctxt:test_ctxt
+          "ocamlopt" 
+          ["-a"; 
+           "-o"; FilePath.replace_extension fn "cmxa";
+           fn];
+
+        (* Program + native compilation *)
+        assert_compile 
+          ~ctxt:test_ctxt
+          "ocamlopt" 
+          ["-o"; FilePath.replace_extension fn "native"; 
+           fn];
+      end
+
+let unix_filename_to_host_filename lst = 
+  let check_suff fn suff = Filename.check_suffix fn ("."^suff) in
+  List.fold_left 
+    (fun acc fn -> 
+       if (check_suff fn "cmx" || check_suff fn "cmxa") then
+         if !has_ocamlopt then
+           fn :: acc
+         else
+           acc
+       else if check_suff fn "cmxs" then
+         if !has_native_dynlink then
+           fn :: acc
+         else
+           acc
+       else if check_suff fn "a" then 
+         let fn =
+           if Sys.os_type = "Win32" then
+             (Filename.chop_extension fn) ^ ".lib"
+           else
+             fn
+         in
+           if OASISString.starts_with (Filename.basename fn) "lib" then
+             (* stubs library *)
+             fn :: acc
+           else if !has_ocamlopt then
+             (* library matching the .cmxa *)
+             fn :: acc
+           else
+             acc
+       else if check_suff fn "so" then
+         let fn = 
+           if Sys.os_type = "Win32" then
+             (Filename.chop_extension fn) ^ ".dll"
+           else
+             fn
+         in
+           fn :: acc
+       else 
+         fn :: acc)
+    [] lst
 
 let tests =
 
-  (* Create a temporary dir *)
-  let temp_dir pref suff =
-    let res = 
-      Filename.temp_file pref suff
-    in
-      rm [res];
-      mkdir res;
-      res
-  in
-
-  let set_file_of_file_digest st =
-    SetFileDigest.fold
-      (fun (fn, _) st ->
-         SetFile.add fn st)
-      st
-      SetFile.empty
-  in
-
-  let setup_ml = "setup.ml" in
-
-  (* Assert with setup.ml *)
-  let assert_run_setup ?exit_code ?extra_env args =
-    (* Speed up for testing, compile setup.ml *)
-    let can_compile =
-      let chn = open_in setup_ml in
-      let hash_load = ref false in
-      let () =
-        try
-          while not !hash_load do
-            if OASISString.starts_with ~what:"#load" (input_line chn) then
-              hash_load := true
-          done
-        with End_of_file ->
-          ()
-      in
-        close_in chn;
-        not !hash_load
-    in
-    let setup_base = Filename.chop_extension setup_ml in
-    let setup_digest = setup_base ^ ".digest" in
-    let setup_exe = 
-      Filename.concat Filename.current_dir_name (exec setup_base)
-    in
-      if can_compile then
-        begin
-          let self_digest =
-            let chn = open_in setup_ml in
-            let digest = Digest.channel chn (in_channel_length chn) in
-              close_in chn;
-              digest
-          in
-          let pre_digest =
-            try
-              let chn = open_in setup_digest in
-              let digest =
-                try
-                  Digest.input chn 
-                with _ ->
-                  Digest.string ""
-              in
-                close_in chn;
-                digest
-            with _ ->
-              Digest.string ""
-          in
-          let clean ?(all=false) () =
-            List.iter
-              (fun fn -> try Sys.remove fn with _ -> ())
-              (
-                (if all then
-                   [setup_exe; setup_digest]
-                 else
-                   [])
-                @
-                [setup_base ^ ".cmi"; setup_base ^ ".cmo"]
-              )
-          in
-          if not (Sys.file_exists setup_exe) || self_digest <> pre_digest then
-            begin
-              match Sys.command ("ocamlfind ocamlc -o "^(exec "setup")^" setup.ml") with
-                | 0 ->
-                    (* Compilation succeed, update the digest *)
-                    let chn = open_out setup_digest in
-                      Digest.output chn self_digest;
-                      close_out chn;
-                      clean ()
-                | _ ->
-                    prerr_endline "E: Compilation of setup.ml doesn't succeed.";
-                    clean ~all:true ()
-            end
-        end;
-      if Sys.file_exists setup_exe then
-        assert_command ?exit_code ?extra_env setup_exe ("-info" :: "-debug" :: args)
-      else
-        assert_command ?exit_code ?extra_env "ocaml" (setup_ml :: "-info" :: "-debug" :: args)
-  in
-
+  (* TODO: convert this into something simpler. *)
   (* Files always generated *)
   let oasis_std_files = 
     [
@@ -303,15 +530,6 @@ let tests =
                moduls)))
   in
 
-  let add_path nm dir = 
-    nm,
-    try 
-      FilePath.string_of_path
-        ((FilePath.path_of_string (Sys.getenv nm)) @ [dir])
-    with Not_found ->
-      dir
-  in
-
   (* Set all files location into buid_dir + data *)
   let in_data_dir files loc acc =
     List.fold_left
@@ -338,313 +556,17 @@ let tests =
       acc
   in
 
-  (* Try to run an installed executable *)
-  let try_installed_exec ?exit_code cmd args loc =
-
-    (* Libraries located inside the test
-     * directory
-     *)
-    let local_lib_paths = 
-      find
-        Is_dir
-        loc.lib_dir 
-        (fun acc fn -> fn :: acc)
-        (find 
-           Is_dir
-           loc.ocaml_lib_dir
-           (fun acc fn -> fn :: acc)
-           [])
-    in
-
-    let env_paths =
-      try
-        FilePath.path_of_string (Unix.getenv "PATH")
-      with Not_found ->
-        []
-    in
-
-    let paths, extra_env = 
-      if Sys.os_type = "Win32" then
-        begin
-          (loc.bin_dir :: (local_lib_paths @ env_paths)),
-          []
-        end
-      else
-        begin
-          let paths = 
-            loc.bin_dir :: env_paths
-          in
-          let ld_library_paths = 
-            local_lib_paths @
-            (try
-               FilePath.path_of_string (Unix.getenv "LD_LIBRARY_PATH")
-             with Not_found ->
-               [])
-          in
-            paths,
-            [
-              "LD_LIBRARY_PATH", ld_library_paths;
-            ]
-        end
-    in
-
-    let test () = 
-      let real_cmd = 
-        try 
-          which ~path:paths cmd
-        with Not_found ->
-          assert_failure
-            (Printf.sprintf 
-               "Command '%s' cannot be found in %s"
-               cmd
-               (String.concat ";" paths))
-      in
-        assert_command 
-          ?exit_code
-          ~extra_env:((add_path "OCAMLPATH" loc.ocaml_lib_dir)
-                      ::
-                      (List.map
-                         (fun (v, lst) ->
-                            v, FilePath.string_of_path lst)
-                         (("PATH", paths) :: extra_env)))
-          real_cmd
-          args
-    in
-      fun acc -> test :: acc
-  in
-
-  let try_installed_library pkg modules loc acc = 
-    let test () = 
-      (* Create a file that contains every modules *)
-      let srcdir = 
-        let res =
-          FilePath.concat loc.build_dir ("src-"^pkg)
-        in
-          mkdir res;
-          res
-      in
-
-        try 
-          let pkg_as_module =
-            OASISString.replace_chars
-              (function
-                 | '-' -> '_'
-                 | c -> c)
-              pkg
-          in
-          let fn = 
-            FilePath.concat srcdir ("test_"^pkg_as_module^".ml")
-          in
-          let extra_env = 
-            [add_path "OCAMLPATH" loc.ocaml_lib_dir]
-          in
-          let assert_compile cmd args =
-            assert_command 
-              ~extra_env 
-              "ocamlfind" 
-              (cmd :: "-package" :: pkg :: args )
-          in
-          let () = 
-            (* Fill the file with open statement *)
-            let chn_out =
-              open_out fn
-            in
-              List.iter
-                (Printf.fprintf chn_out "open %s;;\n")
-                modules;
-              close_out chn_out
-          in
-            (* Library + bytecode compilation *)
-            assert_compile 
-              "ocamlc" 
-              ["-a"; 
-               "-o"; FilePath.replace_extension fn "cma"; 
-               fn];
-
-            (* Program + bytecode compilation *)
-            assert_compile 
-              "ocamlc" 
-              ["-o"; FilePath.replace_extension fn "byte"; 
-               fn];
-
-            if !has_ocamlopt then
-              begin
-                (* Library + native compilation *)
-                assert_compile 
-                  "ocamlopt" 
-                  ["-a"; 
-                   "-o"; FilePath.replace_extension fn "cmxa";
-                   fn];
-
-                (* Program + native compilation *)
-                assert_compile 
-                  "ocamlopt" 
-                  ["-o"; FilePath.replace_extension fn "native"; 
-                   fn];
-              end;
-
-            rm ~recurse:true [srcdir];
-
-        with e ->
-          (
-            rm ~recurse:true [srcdir];
-            raise e
-          )
-    in
-      test :: acc
-  in
-
-  (* List all files in directory *)
-  let all_files dir =
-    find 
-      Is_file
-      dir
-      (fun st fn -> SetFile.add fn st)
-      SetFile.empty
-  in
-
-  (* List all files in current working dir *)
-  let all_files_cwd () = 
-    all_files (pwd ())
-  in
-
-  (* Create a set of file/digest of the current directory *)
-  let all_file_digests () = 
-    SetFile.fold
-      (fun fn st ->
-         SetFileDigest.add (fn, Digest.file fn) st)
-      (all_files_cwd ())
-      SetFileDigest.empty
-  in
-
   (* Print a short version of the filename *)
   let fn_printer ?(root = pwd ()) fn =
     Printf.sprintf "'%s'" (FilePath.make_relative root fn)
   in
 
-  let mkloc build_dir =
-    (* Create a directory in build_dir and return its name *)
-    let mkdir_return fn_parts =
-      let fn = 
-        FilePath.make_filename (build_dir :: fn_parts)
-      in
-        mkdir ~parent:true fn;
-        fn
-    in
-
-      {
-        build_dir     = build_dir;
-        ocaml_lib_dir = mkdir_return ["lib"; "ocaml"];
-        bin_dir       = mkdir_return ["bin"];
-        lib_dir       = mkdir_return ["lib"];
-        data_dir      = mkdir_return ["share"];
-        doc_dir       = mkdir_return ["share"; "doc"];
-        html_dir      = mkdir_return ["share"; "doc"; "html"];
-      }
-  in
-
-  let long_test () =
-    skip_if (not !long) "Long test"
-  in
-
-  let filter_platform lst = 
-    let check_suff fn suff = Filename.check_suffix fn ("."^suff) in
-    List.fold_left 
-      (fun acc fn -> 
-         if (check_suff fn "cmx" || check_suff fn "cmxa") then
-           if !has_ocamlopt then
-             fn :: acc
-           else
-             acc
-         else if check_suff fn "cmxs" then
-           if !has_native_dynlink then
-             fn :: acc
-           else
-             acc
-         else if check_suff fn "a" then 
-           let fn =
-             if Sys.os_type = "Win32" then
-               (Filename.chop_extension fn) ^ ".lib"
-             else
-               fn
-           in
-             if OASISString.starts_with (Filename.basename fn) "lib" then
-               (* stubs library *)
-               fn :: acc
-             else if !has_ocamlopt then
-               (* library matching the .cmxa *)
-               fn :: acc
-             else
-               acc
-         else if check_suff fn "so" then
-           let fn = 
-             if Sys.os_type = "Win32" then
-               (Filename.chop_extension fn) ^ ".dll"
-             else
-               fn
-           in
-             fn :: acc
-         else 
-           fn :: acc)
-      [] lst
-  in
     
   let bracket_setup 
         ?(dev=false)
         ?(dynamic=false)
         (srcdir, vars)
         f = 
-    bracket
-      (fun () ->
-         let (skip_cond, oasis_extra_files, _, post_install_runs) = 
-           vars () 
-         in
-
-         let cur_dir = 
-           pwd ()
-         in
-
-         (* Create build dir *)
-         let build_dir = 
-           temp_dir "oasis-" ".dir"
-         in
-
-         let () = 
-           (* Change to srcdir directory *)
-           Sys.chdir srcdir
-         in
-
-         (* Make a backup of already existing OASIS files *)
-         let bak_lst = 
-           List.fold_left
-             (fun acc fn ->
-                if Sys.file_exists fn then 
-                  begin
-                    let bak_fn = 
-                      Filename.temp_file "oasis-" ".bak"
-                    in
-                      FileUtil.cp [fn] bak_fn;
-                      (fn, bak_fn) :: acc
-                  end
-                else
-                  begin
-                    acc
-                  end)
-             []
-             oasis_extra_files
-         in
-
-         let pristine = 
-           (* Memorize file listing/digest of the current srcdir *)
-           all_file_digests ()
-         in
-
-           cur_dir, 
-           (mkloc build_dir),
-           pristine, 
-           bak_lst)
-
-      (fun (cur_dir, loc, pristine, bak_lst) ->
          let (skip_cond, oasis_extra_files, _, post_install_runs) = 
            vars () 
          in
@@ -813,43 +735,6 @@ let tests =
              pristine
              (all_file_digests ())
       )
-
-      (* Clean test environment -- the backup way *)
-      (fun (cur_dir, loc, pristine, bak_lst) ->
-
-         (* Restore backup file *)
-         let () = 
-           List.iter 
-             (fun (fn, bak_fn) ->
-                if Sys.file_exists bak_fn then
-                  begin
-                    FileUtil.cp [bak_fn] fn;
-                    FileUtil.rm [bak_fn]
-                  end)
-             bak_lst
-         in
-
-         let st_pristine = 
-           set_file_of_file_digest pristine
-         in
-           (* Remove what was not here *)
-           find
-             Is_file
-             (pwd ())
-             (fun () fn ->
-                if not (SetFile.mem fn st_pristine) then
-                  rm [fn])
-             ();
-
-           rm ~recurse:true ["_build"];
-           rm ["setup.data"; "setup.log"];
-
-           (* Back into current dir *)
-           Sys.chdir cur_dir;
-
-           (* Destroy build directory *)
-           rm ~recurse:true [loc.build_dir]
-      )
   in
 
   (* Run short test *)
@@ -948,18 +833,12 @@ let tests =
                  !rst
          in
 
-         (* Run build target *)
          let () = 
-           assert_run_setup ["-build"]
-         in
-
-         (* Run test target *)
-         let () = 
-           assert_run_setup ["-test"]
-         in
-
-         (* Run documentation target *)
-         let () = 
+           (* Run build target *)
+           assert_run_setup ["-build"];
+           (* Run test target *)
+           assert_run_setup ["-test"];
+           (* Run documentation target *)
            assert_run_setup ["-doc"]
          in
 
@@ -1427,10 +1306,10 @@ let tests =
         
          (* Need to create a a parent directory *)
          "data/create-parent-dir",
-         (fun () ->
+         (fun test_ctxt ->
             long_test,
             [] @ oasis_ocamlbuild_files,
-            [in_data_dir ["toto/toto/toto.txt"]],
+            [in_data_dir test_ctxt ["toto/toto/toto.txt"]],
             []);
 
          "data/bug588",
@@ -1715,3 +1594,6 @@ let tests =
          rm ["test-done"; "doc-done"; exec "setup"; "setup.digest"])
     ]
 ;;
+*)
+
+let tests =  []

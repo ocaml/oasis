@@ -23,7 +23,7 @@
     @author Sylvain Le Gall
   *)
 
-open OUnit
+open OUnit2
 open TestCommon
 open OASISVersion
 
@@ -37,7 +37,7 @@ let tests =
 
   let version_compare_of_vector (v1, v2, exp) =
     (Printf.sprintf "version_compare %S %S" v1 v2) >::
-    (fun () ->
+    (fun test_ctxt ->
        let norm_sign i =
          if i = 0 then
            0
@@ -52,13 +52,13 @@ let tests =
                    v1 
                    v2)
            ~printer:string_of_int
-            exp
-            (norm_sign (vstr_compare v1 v2)))
+           exp
+           (norm_sign (vstr_compare v1 v2)))
   in
 
   let comparator_apply_of_vector (v, c, exp) =
     (Printf.sprintf "comparator_apply %S %S" v c) >::
-    (fun () ->
+    (fun test_ctxt ->
        let op =
          comparator_of_string c
        in
@@ -102,7 +102,7 @@ let tests =
        ]);
 
     "sort" >::
-    (fun () ->
+    (fun test_ctxt ->
        let lst = 
          ["0.2.0~rc2"; "0.2.0~alpha1"; "0.1.0"; "0.2.0~alpha2"; "0.2.0~beta1"; "0.2.0"]
        in
@@ -112,7 +112,7 @@ let tests =
            (List.sort vstr_compare lst));
 
     "back-and-forth" >::
-    (fun () ->
+    (fun test_ctxt ->
        let str = ">= 1.0 && <= 2.0 || = 3.0" in
        let cmp = comparator_of_string str in
        let cmp' = comparator_of_string (string_of_comparator cmp) in
