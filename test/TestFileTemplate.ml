@@ -33,21 +33,19 @@ let tests =
     fn >::
     (fun test_ctxt ->
        let real_fn = in_testdata_dir test_ctxt [fn] in
-       let tmp_fn, chn_out = bracket_tmpfile test_ctxt in
+       let tmpdir = bracket_tmpdir test_ctxt in
        let expected_fn = real_fn ^ "-exp" in
 
-       let () = 
+       let tmp_fn = 
          (* Copy file to temporary. *)
-         output_string chn_out (file_content real_fn);
-         close_out chn_out
+         if Sys.file_exists real_fn then
+           FileUtil.cp [real_fn] tmpdir;
+         Filename.concat tmpdir (Filename.basename real_fn)
        in
 
        let chng: file_generate_change =
          file_generate 
            ~ctxt:oasis_ctxt
-           (* TODO: put this in a temporary directory and check that
-            * the temporary directory only contains one file at the end.
-            *)
            ~backup:true
            (template_of_string_list
               ~ctxt:oasis_ctxt
@@ -64,10 +62,19 @@ let tests =
          
          file_rollback ~ctxt:oasis_ctxt chng;
 
-         assert_equal 
-           ~msg:"File content back to pristine."
-           (file_content real_fn)
-           (file_content tmp_fn))
+         if Sys.file_exists real_fn then begin
+           assert_equal 
+             ~msg:"File content back to pristine."
+             (file_content real_fn)
+             (file_content tmp_fn);
+           
+           FileUtil.rm [tmp_fn];
+         end;
+
+         assert_equal
+           ~msg:"Temporary directory empty."
+           0
+           (List.length (FileUtil.ls tmpdir)))
   in
 
   "FileTemplate" >:::

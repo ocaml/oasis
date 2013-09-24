@@ -35,8 +35,8 @@ let () =
        [
          TestPropList.tests;
          TestOASIS.tests; 
-(*          TestVersion.tests; *)
-(*          TestFileTemplate.tests; *)
+         TestVersion.tests;
+         TestFileTemplate.tests;
 (*          TestBasic.tests; *)
 (*          TestFull.tests; *)
 (*          TestMETA.tests; *)
