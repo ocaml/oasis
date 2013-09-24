@@ -34,16 +34,16 @@ let () =
       ("OASIS">:::
        [
          TestPropList.tests;
-         TestOASIS.tests;
-         TestVersion.tests;
-         TestFileTemplate.tests;
-         TestBasic.tests;
+         TestOASIS.tests; 
+(*          TestVersion.tests; *)
+(*          TestFileTemplate.tests; *)
+(*          TestBasic.tests; *)
 (*          TestFull.tests; *)
-         TestMETA.tests;
-         TestLog.tests;
-         TestLicense.tests;
-         TestValues.tests;
+(*          TestMETA.tests; *)
+(*          TestLog.tests; *)
+         TestLicense.tests; 
+         TestValues.tests; 
          TestQuery.tests;
-         TestQuickstart.tests;
-         TestDevFiles.tests;
+(*          TestQuickstart.tests; *)
+(*          TestDevFiles.tests; *)
        ])

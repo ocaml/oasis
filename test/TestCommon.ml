@@ -74,6 +74,24 @@ let long =
 let skip_long_test ctxt () =
   skip_if (not (long ctxt)) "Long test."
 
+
+let example_dir = 
+  let value = 
+    Conf.make_string
+      "example_dir"
+      "../examples/"
+      "Examples directory."
+  in
+    fun ctxt ->
+      let fn = value ctxt in
+        if FilePath.is_relative fn then
+          FilePath.make_absolute (FileUtil.pwd ()) fn
+        else
+          fn
+
+let in_example_dir test_ctxt lst = 
+  FilePath.make_filename ((example_dir test_ctxt) :: lst)
+
 module Output = 
 struct
  type t = string
