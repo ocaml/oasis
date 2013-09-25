@@ -102,7 +102,7 @@ let tests =
          List.fold_left
            (fun former_meta (pkg_name, var, preds, res) ->
               let pkg_root, pkg_paths =
-                match ExtString.String.nsplit pkg_name "." with
+                match OASISString.nsplit pkg_name '.' with
                   | hd :: tl -> hd, tl
                   | _ -> assert(false)
               in

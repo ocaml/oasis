@@ -37,13 +37,13 @@ let () =
          TestOASIS.tests; 
          TestVersion.tests;
          TestFileTemplate.tests;
-(*          TestBasic.tests; *)
+         TestBasic.tests; 
 (*          TestFull.tests; *)
-(*          TestMETA.tests; *)
-(*          TestLog.tests; *)
+         TestMETA.tests;
+         TestLog.tests;
          TestLicense.tests; 
          TestValues.tests; 
          TestQuery.tests;
-(*          TestQuickstart.tests; *)
+         TestQuickstart.tests;
 (*          TestDevFiles.tests; *)
        ])

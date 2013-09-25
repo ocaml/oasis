@@ -51,16 +51,17 @@ let tests =
 
   let with_quickstart_spawn test_ctxt args f exp_exit_code =
     let args = 
-      (oasis_args test_ctxt) @ ["quickstart"; "-machine" ; "-debug"] @ args
+      (oasis_args test_ctxt) @ ["-debug"; "quickstart"; "-machine"] @ args
     in
 
     let _, exit_code = 
       try
         logf test_ctxt `Info 
-          "Quickstart command line: %s\n%!" 
+          "Quickstart command line: %s" 
           (String.concat " " (oasis_exec test_ctxt :: args));
         with_spawn
           ~verbose:true
+          ~verbose_output:(logf test_ctxt `Info "expect: %s")
           ~timeout:(Some 0.1)
           (oasis_exec test_ctxt)
           (Array.of_list args)
@@ -153,22 +154,25 @@ let tests =
   let test_of_vector (nm, args, qa, post) = 
     nm >::
     (fun test_ctxt ->
-       let tmp = bracket_tmpdir test_ctxt in
-         (* TODO: syschdir *)
-       Sys.chdir tmp;
-       run_quickstart test_ctxt args qa;
-       dbug_file_content test_ctxt (Filename.concat tmp "_oasis");
-       assert_oasis_cli ~ctxt:test_ctxt ~chdir:tmp ["check"];
-       begin
-         try 
-           assert_oasis_cli ~ctxt:test_ctxt ~chdir:tmp ["setup"]
-         with e ->
-           failwith "'oasis setup' failed but 'oasis check' succeed"
-       end;
-       let pkg = 
-         OASISParse.from_file ~ctxt:oasis_ctxt "_oasis"
+       let tmpdir = bracket_tmpdir test_ctxt in
+       let () = 
+         with_bracket_chdir test_ctxt tmpdir
+           (fun test_ctxt ->
+              run_quickstart test_ctxt args qa)
        in
-         post pkg)
+         dbug_file_content test_ctxt (Filename.concat tmpdir "_oasis");
+         assert_oasis_cli ~ctxt:test_ctxt ["-C"; tmpdir; "check"];
+         begin
+           try 
+             assert_oasis_cli ~ctxt:test_ctxt ["-C"; tmpdir; "setup"]
+           with e ->
+             failwith "'oasis setup' failed but 'oasis check' succeed"
+         end;
+         let pkg = 
+           OASISParse.from_file ~ctxt:oasis_ctxt
+             (Filename.concat tmpdir "_oasis")
+         in
+           post pkg)
   in
   let test_simple_qa = 
     [

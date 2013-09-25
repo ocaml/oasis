@@ -204,7 +204,7 @@ Executable test
   Install: false
   CompiledObject: byte
   Build$: flag(tests)
-  BuildDepends: oUnit (>= 2.0.0), findlib, fileutils (>= 0.4.2), expect.pcre (>= 0.0.2),
+  BuildDepends: oUnit (>= 2.0.0), findlib, fileutils (>= 0.4.2), expect.pcre (>= 0.0.4),
                 oasis, oasis.base, oasis.builtin-plugins
 
 Test main
