@@ -35,6 +35,9 @@ let ocamlbuildflags =
     "ocamlbuildflags"
     (fun () -> "")
 
+(* TODO: this flag is used at compile time, but use oasis.base, check that this is ok 
+   or convert it to a feature.
+ *)
 let ocamlbuild_supports_ocamlfind () =
   let var =
     var_define
