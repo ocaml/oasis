@@ -35,10 +35,24 @@ let ocamlbuildflags =
     "ocamlbuildflags"
     (fun () -> "")
 
+let ocamlbuild_supports_ocamlfind =
+  lazy begin
+    let min_ocaml_version = OASISVersion.version_of_string "3.12.1" in
+    let comparator = OASISVersion.VGreaterEqual min_ocaml_version in
+    let version = BaseStandardVar.ocaml_version () in
+    let version = OASISVersion.version_of_string version in
+    OASISVersion.comparator_apply version comparator
+  end
+
 (** Fix special arguments depending on environment *)
 let fix_args args extra_argv =
   List.flatten
     [
+      if Lazy.force ocamlbuild_supports_ocamlfind then
+        ["-use-ocamlfind"]
+      else
+        [];
+
       if (os_type ()) = "Win32" then
         [
           "-classic-display";

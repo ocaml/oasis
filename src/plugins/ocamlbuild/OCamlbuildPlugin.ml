@@ -492,6 +492,9 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
     let mp =
       OASISBuildSection.transitive_build_depends pkg
     in
+    let ocamlfind_support =
+      Lazy.force OCamlbuildCommon.ocamlbuild_supports_ocamlfind
+    in
       add_tags
         tag_t
         (if link_pkg then
@@ -502,7 +505,12 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
            (fun acc ->
               function
                 | FindlibPackage (findlib_pkg, _) ->
-                    ("pkg_"^findlib_pkg) :: acc
+                    (if ocamlfind_support then
+                       ("package("^findlib_pkg^")")
+                     else
+                       ("pkg_"^findlib_pkg)
+                    )
+                    :: acc
                 | InternalLibrary nm ->
                     ("use_"^nm) :: acc)
            []
