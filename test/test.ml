@@ -45,5 +45,5 @@ let () =
          TestValues.tests; 
          TestQuery.tests;
          TestQuickstart.tests;
-(*          TestDevFiles.tests; *)
+         TestDevFiles.tests; 
        ])
