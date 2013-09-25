@@ -35,10 +35,10 @@ let ocamlbuildflags =
     "ocamlbuildflags"
     (fun () -> "")
 
-(* TODO: this flag is used at compile time, but use oasis.base, check that this is ok 
+(* TODO: this flag is used at compile time, but use oasis.base, check that this is ok
    or convert it to a feature.
  *)
-let ocamlbuild_supports_ocamlfind () =
+let ocamlbuild_supports_ocamlfind =
   let var =
     var_define
       ~short_desc:(fun () -> "Turn on the ocamlfind support in ocamlbuild")
@@ -50,9 +50,8 @@ let ocamlbuild_supports_ocamlfind () =
          let version = OASISVersion.version_of_string version in
          string_of_bool (OASISVersion.comparator_apply version comparator)
       )
-      ()
   in
-  bool_of_string var
+  (fun () -> bool_of_string (var ()))
 
 (** Fix special arguments depending on environment *)
 let fix_args args extra_argv =
