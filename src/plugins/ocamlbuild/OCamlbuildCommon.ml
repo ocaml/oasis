@@ -35,20 +35,27 @@ let ocamlbuildflags =
     "ocamlbuildflags"
     (fun () -> "")
 
-let ocamlbuild_supports_ocamlfind =
-  lazy begin
-    let min_ocaml_version = OASISVersion.version_of_string "3.12.1" in
-    let comparator = OASISVersion.VGreaterEqual min_ocaml_version in
-    let version = BaseStandardVar.ocaml_version () in
-    let version = OASISVersion.version_of_string version in
-    OASISVersion.comparator_apply version comparator
-  end
+let ocamlbuild_supports_ocamlfind () =
+  let var =
+    var_define
+      ~short_desc:(fun () -> "Turn on the ocamlfind support in ocamlbuild")
+      "ocamlbuild_use_ocamlfind"
+      (fun () ->
+         let min_ocaml_version = OASISVersion.version_of_string "3.12.1" in
+         let comparator = OASISVersion.VGreaterEqual min_ocaml_version in
+         let version = BaseStandardVar.ocaml_version () in
+         let version = OASISVersion.version_of_string version in
+         string_of_bool (OASISVersion.comparator_apply version comparator)
+      )
+      ()
+  in
+  bool_of_string var
 
 (** Fix special arguments depending on environment *)
 let fix_args args extra_argv =
   List.flatten
     [
-      if Lazy.force ocamlbuild_supports_ocamlfind then
+      if ocamlbuild_supports_ocamlfind () then
         ["-use-ocamlfind"]
       else
         [];

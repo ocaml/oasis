@@ -493,7 +493,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
       OASISBuildSection.transitive_build_depends pkg
     in
     let ocamlfind_support =
-      Lazy.force OCamlbuildCommon.ocamlbuild_supports_ocamlfind
+      OCamlbuildCommon.ocamlbuild_supports_ocamlfind ()
     in
       add_tags
         tag_t
