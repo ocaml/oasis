@@ -31,11 +31,17 @@ open OCamlbuildCommon
 open BaseStandardVar
 open BaseMessage
 
+TYPE_CONV_PATH "OCamlbuildPlugin"
+
 let cond_targets_hook =
   ref (fun lst -> lst)
 
-let build pkg argv =
+type ocamlbuild_plugin =
+  { plugin_tags : string
+  ; extra_args : string list
+  } with odn
 
+let build t pkg argv =
   (* Return the filename in build directory *)
   let in_build_dir fn =
     Filename.concat
@@ -196,10 +202,13 @@ let build pkg argv =
     !cond_targets_hook cond_targets
   in
 
+  let extra_args = "-plugin-tags" :: ("'"^t.plugin_tags^"'") :: t.extra_args in
+
     (* Run a list of target... *)
     run_ocamlbuild
       (List.flatten
-         (List.map snd cond_targets))
+         (List.map snd cond_targets)
+       @ extra_args)
       argv;
     (* ... and register events *)
     List.iter
@@ -230,6 +239,7 @@ open ODN
 open OASISPlugin
 open OASISTypes
 open OASISValues
+open OASISSchema
 open MyOCamlbuildBase
 open Ocamlbuild_plugin
 open OCamlbuildId
@@ -239,6 +249,9 @@ let plugin =
 
 let self_id, all_id =
   Build.create plugin
+
+let pivot_data =
+  data_new_property plugin
 
 let only_h_files lst =
   List.filter
@@ -1091,8 +1104,34 @@ let add_ocamlbuild_files ctxt pkg =
 let qstrt_completion pkg =
   fix_build_tools (ExternalTool "ocamlbuild") pkg
 
+let generator =
+  let new_field value = new_field OASISPackage.schema all_id value in
+  let plugin_tags =
+    new_field
+      "PluginTags"
+      ~default:""
+      string
+      (fun () -> ns_ "")
+      pivot_data (fun _ t -> t.plugin_tags)
+  in
+  let extra_args =
+    new_field
+      "ExtraArgs"
+      ~default:[]
+      command_line_options
+      (fun () -> ns_ "")
+      pivot_data (fun _ t -> t.extra_args)
+  in
+  (fun cs_data ->
+     let plugin_tags = plugin_tags cs_data in
+     let extra_args = extra_args cs_data in
+     {plugin_tags; extra_args}
+  )
+
 let init () =
   let doit ctxt pkg =
+    let t = generator pkg.schema_data in
+
     let ctxt =
       add_ocamlbuild_files ctxt pkg
     in
@@ -1100,7 +1139,7 @@ let init () =
       ctxt,
       {
         chng_moduls       = [OCamlbuildData.ocamlbuildsys_ml];
-        chng_main         = ODNFunc.func build "OCamlbuildPlugin.build";
+        chng_main         = ODNFunc.func_with_arg build "OCamlbuildPlugin.build" t odn_of_ocamlbuild_plugin;
         chng_clean        = Some (ODNFunc.func clean "OCamlbuildPlugin.clean");
         chng_distclean    = None;
       }
