@@ -202,7 +202,11 @@ let build t pkg argv =
     !cond_targets_hook cond_targets
   in
 
-  let extra_args = "-plugin-tags" :: ("'"^t.plugin_tags^"'") :: t.extra_args in
+  let extra_args =
+    if t.plugin_tags <> ""
+    then "-plugin-tags" :: ("'"^t.plugin_tags^"'") :: t.extra_args
+    else t.extra_args
+  in
 
     (* Run a list of target... *)
     run_ocamlbuild
