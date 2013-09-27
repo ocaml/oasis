@@ -1149,6 +1149,12 @@ let init () =
   let doit ctxt pkg =
     let t = generator pkg.schema_data in
 
+    if t.plugin_tags <> "" && not (ocamlbuild_supports_ocamlfind pkg) then
+      OASISMessage.warning
+        ~ctxt:ctxt.ctxt
+        (f_ "'XOCamlbuildPluginTags' in only available for OCaml >= 4.01. \
+             Please restrict your requirements with 'OCamlVersion: >= 4.01'");
+
     let ctxt =
       add_ocamlbuild_files ctxt pkg
     in
