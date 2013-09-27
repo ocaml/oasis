@@ -87,6 +87,9 @@ val string_of_comparator: comparator -> string
   *)
 val varname_of_comparator: comparator -> string
 
+(** [comparator_ge version comparator]
+    Check if [comparator] is compatible with all versions >= than [version]
+  *)
 val comparator_ge : t -> comparator -> bool
 
 (** Convert a string to comparator. {b Not exported}.
