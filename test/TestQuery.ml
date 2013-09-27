@@ -87,6 +87,8 @@ let tests =
            \nXStdFilesINSTALLFilename\
            \nXStdFilesAUTHORS\
            \nXStdFilesAUTHORSFilename\
+           \nXOCamlbuildPluginTags\
+           \nXOCamlbuildExtraArgs\
            \nTest(main).Run\
            \nTest(main).Type\
            \nTest(main).TestTools\
