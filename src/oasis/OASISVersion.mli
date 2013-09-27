@@ -87,6 +87,8 @@ val string_of_comparator: comparator -> string
   *)
 val varname_of_comparator: comparator -> string
 
+val comparator_ge : t -> comparator -> bool
+
 (** Convert a string to comparator. {b Not exported}.
   *)
 val comparator_of_string: string -> comparator

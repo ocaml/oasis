@@ -193,6 +193,17 @@ let rec varname_of_comparator =
 let version_0_3_or_after t =
   comparator_apply t (VGreaterEqual (string_of_version "0.3"))
 
+let rec comparator_ge v' =
+  let cmp v = version_compare v v' >= 0 in
+  function
+    | VEqual v
+    | VGreaterEqual v
+    | VGreater v -> cmp v
+    | VLesserEqual _
+    | VLesser _ -> false
+    | VOr (c1, c2) -> comparator_ge v' c1 || comparator_ge v' c2
+    | VAnd (c1, c2) -> comparator_ge v' c1 && comparator_ge v' c2
+
 (* END EXPORT *)
 
 open OASISUtils
@@ -254,4 +265,3 @@ let comparator_value =
     update = update_fail;
     print  = string_of_comparator;
   }
-

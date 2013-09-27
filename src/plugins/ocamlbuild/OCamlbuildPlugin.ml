@@ -41,6 +41,14 @@ type ocamlbuild_plugin =
   ; extra_args : string list
   } with odn
 
+let ocamlbuild_supports_ocamlfind pkg =
+  match pkg.ocaml_version with
+    | Some ocaml_version ->
+        let min_ocaml_version = OASISVersion.version_of_string "3.12.1" in
+        OASISVersion.comparator_ge min_ocaml_version ocaml_version
+    | None ->
+        false
+
 let build t pkg argv =
   (* Return the filename in build directory *)
   let in_build_dir fn =
@@ -203,9 +211,16 @@ let build t pkg argv =
   in
 
   let extra_args =
-    if t.plugin_tags <> ""
-    then "-plugin-tags" :: ("'"^t.plugin_tags^"'") :: t.extra_args
-    else t.extra_args
+    if t.plugin_tags <> "" then
+      "-plugin-tags" :: ("'" ^ t.plugin_tags ^ "'") :: t.extra_args
+    else
+      t.extra_args
+  in
+  let extra_args =
+    if ocamlbuild_supports_ocamlfind pkg then
+      "-use-ocamlfind" :: extra_args
+    else
+      extra_args
   in
 
     (* Run a list of target... *)
@@ -509,9 +524,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
     let mp =
       OASISBuildSection.transitive_build_depends pkg
     in
-    let ocamlfind_support =
-      OCamlbuildCommon.ocamlbuild_supports_ocamlfind ()
-    in
+    let supports_ocamlfind = ocamlbuild_supports_ocamlfind pkg in
       add_tags
         tag_t
         (if link_pkg then
@@ -522,7 +535,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
            (fun acc ->
               function
                 | FindlibPackage (findlib_pkg, _) ->
-                    (if ocamlfind_support then
+                    (if supports_ocamlfind then
                        ("package("^findlib_pkg^")")
                      else
                        ("pkg_"^findlib_pkg)
