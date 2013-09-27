@@ -1224,8 +1224,6 @@ let tests =
 
               api_ref_html "with-c"
                 ["A"];
-              in_html "with-c"
-                ["code_VALA.ident.html"];
             ],
          (if !has_ocamlopt then
             (fun lst ->  
