@@ -37,9 +37,20 @@ let cond_targets_hook =
   ref (fun lst -> lst)
 
 type ocamlbuild_plugin =
-  { plugin_tags : string
+  { plugin_tags : string option
   ; extra_args : string list
   } with odn
+
+let check_ocaml_version version pkg =
+  match pkg.ocaml_version with
+    | Some ocaml_version ->
+        let min_ocaml_version = OASISVersion.version_of_string version in
+        OASISVersion.comparator_ge min_ocaml_version ocaml_version
+    | None ->
+        false
+
+let ocamlbuild_supports_ocamlfind = check_ocaml_version "3.12.1"
+let ocamlbuild_supports_plugin_tags = check_ocaml_version "4.01"
 
 let build t pkg argv =
   (* Return the filename in build directory *)
@@ -202,7 +213,17 @@ let build t pkg argv =
     !cond_targets_hook cond_targets
   in
 
-  let extra_args = "-plugin-tags" :: ("'"^t.plugin_tags^"'") :: t.extra_args in
+  let extra_args =
+    match t.plugin_tags with
+      | Some tags -> "-plugin-tags" :: ("'" ^ tags ^ "'") :: t.extra_args
+      | None -> t.extra_args
+  in
+  let extra_args =
+    if ocamlbuild_supports_ocamlfind pkg then
+      "-use-ocamlfind" :: extra_args
+    else
+      extra_args
+  in
 
     (* Run a list of target... *)
     run_ocamlbuild
@@ -505,9 +526,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
     let mp =
       OASISBuildSection.transitive_build_depends pkg
     in
-    let ocamlfind_support =
-      OCamlbuildCommon.ocamlbuild_supports_ocamlfind ()
-    in
+    let supports_ocamlfind = ocamlbuild_supports_ocamlfind pkg in
       add_tags
         tag_t
         (if link_pkg then
@@ -518,7 +537,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocaml
            (fun acc ->
               function
                 | FindlibPackage (findlib_pkg, _) ->
-                    (if ocamlfind_support then
+                    (if supports_ocamlfind then
                        ("package("^findlib_pkg^")")
                      else
                        ("pkg_"^findlib_pkg)
@@ -1109,9 +1128,10 @@ let generator =
   let plugin_tags =
     new_field
       "PluginTags"
-      ~default:""
-      string
-      (fun () -> ns_ "")
+      ~default:None
+      (opt string)
+      (fun () -> ns_ "Gives the plugin tags to ocambuild through \
+                      '-plugin-tags' (OCaml >= 4.01 only)")
       pivot_data (fun _ t -> t.plugin_tags)
   in
   let extra_args =
@@ -1119,7 +1139,7 @@ let generator =
       "ExtraArgs"
       ~default:[]
       command_line_options
-      (fun () -> ns_ "")
+      (fun () -> ns_ "Gives extra arguments to ocamlbuild")
       pivot_data (fun _ t -> t.extra_args)
   in
   (fun cs_data ->
@@ -1131,6 +1151,12 @@ let generator =
 let init () =
   let doit ctxt pkg =
     let t = generator pkg.schema_data in
+
+    if t.plugin_tags <> None && not (ocamlbuild_supports_plugin_tags pkg) then
+      OASISMessage.warning
+        ~ctxt:ctxt.ctxt
+        (f_ "'XOCamlbuildPluginTags' in only available for OCaml >= 4.01. \
+             Please restrict your requirements with 'OCamlVersion: >= 4.01'");
 
     let ctxt =
       add_ocamlbuild_files ctxt pkg

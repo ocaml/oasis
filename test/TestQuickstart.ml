@@ -403,6 +403,8 @@ let tests =
            "xstdfilesinstallfilename", "bar";
            "xstdfilesauthors", "";
            "xstdfilesauthorsfilename", "baz";
+           "xocamlbuildplugintags", "";
+           "xocamlbuildextraargs", "";
          ],
          (fun pkg ->
             let libtest = 
