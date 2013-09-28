@@ -1127,7 +1127,8 @@ let generator =
       "PluginTags"
       ~default:None
       (opt string)
-      (fun () -> ns_ "")
+      (fun () -> ns_ "Gives the plugin tags to ocambuild through \
+                      '-plugin-tags' (OCaml >= 4.01 only)")
       pivot_data (fun _ t -> t.plugin_tags)
   in
   let extra_args =
@@ -1135,7 +1136,7 @@ let generator =
       "ExtraArgs"
       ~default:[]
       command_line_options
-      (fun () -> ns_ "")
+      (fun () -> ns_ "Gives extra arguments to ocamlbuild")
       pivot_data (fun _ t -> t.extra_args)
   in
   (fun cs_data ->
