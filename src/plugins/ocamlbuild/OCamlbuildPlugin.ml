@@ -37,7 +37,7 @@ let cond_targets_hook =
   ref (fun lst -> lst)
 
 type ocamlbuild_plugin =
-  { plugin_tags : string
+  { plugin_tags : string option
   ; extra_args : string list
   } with odn
 
@@ -211,10 +211,9 @@ let build t pkg argv =
   in
 
   let extra_args =
-    if t.plugin_tags <> "" then
-      "-plugin-tags" :: ("'" ^ t.plugin_tags ^ "'") :: t.extra_args
-    else
-      t.extra_args
+    match t.plugin_tags with
+      | Some tags -> "-plugin-tags" :: ("'" ^ tags ^ "'") :: t.extra_args
+      | None -> t.extra_args
   in
   let extra_args =
     if ocamlbuild_supports_ocamlfind pkg then
@@ -1126,8 +1125,8 @@ let generator =
   let plugin_tags =
     new_field
       "PluginTags"
-      ~default:""
-      string
+      ~default:None
+      (opt string)
       (fun () -> ns_ "")
       pivot_data (fun _ t -> t.plugin_tags)
   in
@@ -1149,7 +1148,7 @@ let init () =
   let doit ctxt pkg =
     let t = generator pkg.schema_data in
 
-    if t.plugin_tags <> "" && not (ocamlbuild_supports_ocamlfind pkg) then
+    if t.plugin_tags <> None && not (ocamlbuild_supports_ocamlfind pkg) then
       OASISMessage.warning
         ~ctxt:ctxt.ctxt
         (f_ "'XOCamlbuildPluginTags' in only available for OCaml >= 4.01. \
