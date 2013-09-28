@@ -41,13 +41,16 @@ type ocamlbuild_plugin =
   ; extra_args : string list
   } with odn
 
-let ocamlbuild_supports_ocamlfind pkg =
+let check_ocaml_version version pkg =
   match pkg.ocaml_version with
     | Some ocaml_version ->
-        let min_ocaml_version = OASISVersion.version_of_string "3.12.1" in
+        let min_ocaml_version = OASISVersion.version_of_string version in
         OASISVersion.comparator_ge min_ocaml_version ocaml_version
     | None ->
         false
+
+let ocamlbuild_supports_ocamlfind = check_ocaml_version "3.12.1"
+let ocamlbuild_supports_plugin_tags = check_ocaml_version "4.01"
 
 let build t pkg argv =
   (* Return the filename in build directory *)
@@ -1149,7 +1152,7 @@ let init () =
   let doit ctxt pkg =
     let t = generator pkg.schema_data in
 
-    if t.plugin_tags <> None && not (ocamlbuild_supports_ocamlfind pkg) then
+    if t.plugin_tags <> None && not (ocamlbuild_supports_plugin_tags pkg) then
       OASISMessage.warning
         ~ctxt:ctxt.ctxt
         (f_ "'XOCamlbuildPluginTags' in only available for OCaml >= 4.01. \
