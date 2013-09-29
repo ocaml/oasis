@@ -71,7 +71,7 @@ let long =
     true
     "Don't run long tests."
 
-let skip_long_test ctxt () =
+let skip_long_test ctxt =
   skip_if (not (long ctxt)) "Long test."
 
 
@@ -170,6 +170,7 @@ let assert_command ~ctxt ?chdir ?exit_code ?output ?extra_env ?(unorder=false) c
       cmd args
 
 let assert_oasis_cli ~ctxt ?chdir ?exit_code ?output ?extra_env ?unorder args  =
+  (* TODO: transfert chdir to -C chdir. *)
   assert_command ~ctxt ?chdir ?exit_code ?output ?extra_env ?unorder
     (oasis_exec ctxt) ((oasis_args ctxt) @ args)
 

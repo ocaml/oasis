@@ -38,7 +38,7 @@ let () =
          TestVersion.tests;
          TestFileTemplate.tests;
          TestBasic.tests; 
-(*          TestFull.tests; *)
+         TestFull.tests;
          TestMETA.tests;
          TestLog.tests;
          TestLicense.tests; 

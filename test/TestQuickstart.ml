@@ -161,9 +161,11 @@ let tests =
               run_quickstart test_ctxt args qa)
        in
          dbug_file_content test_ctxt (Filename.concat tmpdir "_oasis");
+         (* TODO: rewrite with chdir *)
          assert_oasis_cli ~ctxt:test_ctxt ["-C"; tmpdir; "check"];
          begin
            try 
+             (* TODO: rewrite with chdir *)
              assert_oasis_cli ~ctxt:test_ctxt ["-C"; tmpdir; "setup"]
            with e ->
              failwith "'oasis setup' failed but 'oasis check' succeed"
