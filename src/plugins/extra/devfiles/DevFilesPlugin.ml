@@ -126,16 +126,20 @@ let main ctxt pkg =
               all_targets
         in
         let add_one_target ?(need_configure=true) ?(other_depends=[]) nm =
+          let deps =
+            String.concat " "
+              ((if need_configure then
+                  (fun l -> "setup.data" :: l)
+                else
+                  (fun l -> l))
+                 other_depends)
+          in
+          let deps = if deps <> "" then " " ^ deps else deps in
           Printf.bprintf buff
-            "%s: %s\n\
+            "%s:%s\n\
              \t$(SETUP) -%s $(%sFLAGS)\n\n"
             nm
-            (String.concat " "
-               ((if need_configure then
-                   (fun l -> "setup.data" :: l)
-                 else
-                   (fun l -> l))
-                  other_depends))
+            deps
             nm (String.uppercase nm)
         in
           Buffer.add_string buff "\nSETUP = ocaml setup.ml\n\n";
