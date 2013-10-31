@@ -23,32 +23,27 @@
     @author Sylvain Le Gall
   *)
 
-open OUnit;;
-open TestCommon;;
+open OUnit2
+open TestCommon
 
-module SetString = Set.Make(String)
-
-let _ =  
+let () =  
   let () = 
     OASISBuiltinPlugins.init ()
   in
     run_test_tt_main
-      ~arg_specs:test_args 
-      ~set_verbose
       ("OASIS">:::
        [
          TestPropList.tests;
-         TestOASIS.tests;
+         TestOASIS.tests; 
          TestVersion.tests;
          TestFileTemplate.tests;
-         TestBasic.tests;
+         TestBasic.tests; 
          TestFull.tests;
          TestMETA.tests;
          TestLog.tests;
-         TestLicense.tests;
-         TestValues.tests;
+         TestLicense.tests; 
+         TestValues.tests; 
          TestQuery.tests;
          TestQuickstart.tests;
-         TestDevFiles.tests;
+         TestDevFiles.tests; 
        ])
-;;

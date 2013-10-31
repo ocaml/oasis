@@ -26,13 +26,13 @@
 open Printf
 open TestCommon
 open OASISValues
-open OUnit
+open OUnit2
 
 let tests_url =
   List.map
     (fun txt ->
-     TestCase (fun () ->
-               let _a = url.parse ~ctxt:!oasis_ctxt txt in
+     test_case (fun test_ctxt ->
+               let _a = url.parse ~ctxt:oasis_ctxt txt in
                ()))
     ["https://oasis.forge.ocamlcore.org";
      "svn://scm.ocamlcore.org/svnroot/cryptokit/tags";
@@ -44,10 +44,10 @@ let tests_url =
 let tests_command_line_options =
   List.map
     (fun (s, r) ->
-     let title = sprintf "command_line_options: %S" s in
-     title >:: (fun () ->
-                let p = command_line_options.parse ~ctxt:!oasis_ctxt s in
-                assert_equal p r))
+     (sprintf "command_line_options: %S" s) >:: 
+      (fun test_ctxt ->
+         let p = command_line_options.parse ~ctxt:oasis_ctxt s in
+           assert_equal p r))
   ["", [];
    "a", ["a"];
    "a b", ["a"; "b"];
@@ -82,17 +82,17 @@ let tests_command_line_options =
 let tests_posix_quoting =
   List.map
     (fun s ->
-     let title = sprintf "OASISUtils.POSIXShell: %S" s in
-     title >:: (fun () ->
-                let q = OASISUtils.POSIXShell.escape s in
-                let u =
-                  if q.[0] = '"' then
-                    let q' = String.sub q 1 (String.length q - 2) in
-                    OASISUtils.POSIXShell.unescape q'
-                  else q in
-                assert_equal s u))
+      (sprintf "OASISUtils.POSIXShell: %S" s) >::
+      (fun test_ctxt ->
+         let q = OASISUtils.POSIXShell.escape s in
+         let u =
+           if q.[0] = '"' then
+             let q' = String.sub q 1 (String.length q - 2) in
+               OASISUtils.POSIXShell.unescape q'
+           else q 
+         in
+           assert_equal s u))
     [""; "a b"; "a'b"; "echo \'abcd"; "a\\b"]
-
 
 let tests =
   "Values" >:::

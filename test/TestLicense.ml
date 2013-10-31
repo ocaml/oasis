@@ -23,7 +23,7 @@
     @author Sylvain Le Gall
   *)
 
-open OUnit
+open OUnit2
 open TestCommon
 open OASISValues
 open OASISTypes
@@ -49,16 +49,16 @@ let tests =
     (List.map
        (fun (txt, res) ->
           txt >::
-          (fun () ->
+          (fun test_ctxt ->
              match res with
                | Some exp ->
                    assert_equal 
                      ~printer:(fun v -> Printf.sprintf "%S" (to_string v))
                      exp
-                     (value.parse ~ctxt:!oasis_ctxt txt)
+                     (value.parse ~ctxt:oasis_ctxt txt)
                | None ->
                    try 
-                     ignore (value.parse ~ctxt:!oasis_ctxt txt);
+                     ignore (value.parse ~ctxt:oasis_ctxt txt);
                      assert_failure 
                        (Printf.sprintf
                           "License '%s' is not valid but parse without problem"

@@ -25,45 +25,19 @@
   *)
 
 open TestCommon
-open OUnit
-
-(* TODO: move this to OUnit *)
-let bracket_tmpdir f = 
-  bracket
-    (fun () ->
-       let dn =
-         Filename.temp_file "oasis-db-" ".dir"
-       in
-         FileUtil.rm [dn];
-         FileUtil.mkdir dn;
-         dn)
-    f
-    (fun dn ->
-       FileUtil.rm ~recurse:true [dn])
+open OUnit2
 
 let tests = 
   "DevFiles" >::
-  (bracket_tmpdir 
-     (fun dn ->
-        bracket 
-          (fun () ->
-             let pwd = FileUtil.pwd () in
-               Sys.chdir dn;
-               pwd)
-          (fun _ ->
-             FileUtil.cp 
-               [in_data "test-devfiles1.oasis"] 
-               "_oasis";
-             assert_command 
-               (oasis ()) (!oasis_args @ ["setup"]);
-             if Sys.os_type <> "Win32" then
-               assert_command
-                 "./configure" ["--prefix=/usr"; "--mandir=/usr/share/man"; 
-                                "--infodir=/usr/share/info"; "--datadir=/usr/share";
-                                "--sysconfdir=/etc"; "--localstatedir=/var/lib"];)
-          (fun pwd ->
-             Sys.chdir pwd)
-          ()))
-
-
-
+  (fun test_ctxt ->
+     let tmpdir = bracket_tmpdir test_ctxt in
+     FileUtil.cp 
+       [in_testdata_dir test_ctxt ["test-devfiles1.oasis"]]
+       (Filename.concat tmpdir "_oasis");
+     assert_oasis_cli ~ctxt:test_ctxt ["-C"; tmpdir; "setup"];
+     if Sys.os_type <> "Win32" then
+       assert_command ~ctxt:test_ctxt ~chdir:tmpdir
+         "./configure" ["--prefix=/usr"; "--mandir=/usr/share/man"; 
+                        "--infodir=/usr/share/info"; "--datadir=/usr/share";
+                        "--sysconfdir=/etc"; "--localstatedir=/var/lib"];
+     ())

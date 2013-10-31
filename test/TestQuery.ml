@@ -25,7 +25,7 @@
   *)
 
 open TestCommon
-open OUnit
+open OUnit2
 
 let tests =
   let test_of_vector (fn, qa) = 
@@ -38,11 +38,12 @@ let tests =
         fn (String.concat ", " q)
     in
       test_name >::
-      (fun () ->
+      (fun test_ctxt ->
          assert_oasis_cli 
+           ~ctxt:test_ctxt
            ~output:((String.concat "\n" a)^"\n")
            ~unorder:true
-           (["-quiet"; "query"; "-oasis"; in_data fn] @ q))
+           (["-quiet"; "query"; "-oasis"; in_testdata_dir test_ctxt [fn]] @ q))
   in
 
     "query" >:::

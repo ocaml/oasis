@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: d471c9d7d5a1ce73f9fe3fdfbd92627e)
+# DO NOT EDIT (digest: b0f33f22f3fba881e821ce61ae4d4b8b)
 version = "0.3.1"
 description = "_oasis file functions"
 requires = "unix odn"
@@ -52,7 +52,7 @@ package "cli" (
 package "builtin-plugins" (
  version = "0.3.1"
  description = "_oasis file functions"
- requires = "oasis oasis.base"
+ requires = "oasis oasis.base ocamlbuild"
  archive(byte) = "builtin-plugins.cma"
  archive(byte, plugin) = "builtin-plugins.cma"
  archive(native) = "builtin-plugins.cmxa"

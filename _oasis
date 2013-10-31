@@ -204,12 +204,12 @@ Executable test
   Install: false
   CompiledObject: byte
   Build$: flag(tests)
-  BuildDepends: oUnit (>= 1.1.0), findlib, fileutils (>= 0.4.2), expect.pcre (>= 0.0.2),
+  BuildDepends: oUnit (>= 2.0.0), findlib, fileutils (>= 0.4.2), expect.pcre (>= 0.0.4),
                 oasis, oasis.base, oasis.builtin-plugins
 
 Test main
   Type: custom (0.3)
-  Command: $test -oasis-exec $oasis -has-ocamlopt $is_native
+  Command: $test -oasis $oasis
   WorkingDirectory: test
   TestTools: oasis, test
 

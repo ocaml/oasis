@@ -23,7 +23,7 @@
     @author Sylvain Le Gall
   *)
 
-open OUnit
+open OUnit2
 open TestCommon
 open OASISTypes
 open OASISParse
@@ -74,25 +74,25 @@ let tests =
         assert_failure msg
   in
 
-  let file_of_vector (fn, test) = 
-    fn >::
-    (fun () ->
-       let pkg =
-         from_file 
-           ~ctxt:{!oasis_ctxt with 
-                      OASISContext.ignore_plugins = true} 
-           fn
-       in
-         test pkg)
+  let check_one (fn, test) = 
+     let pkg =
+       from_file 
+         ~ctxt:{oasis_ctxt with 
+                    OASISContext.ignore_plugins = true} 
+         fn
+     in
+       test pkg
   in
 
   let test_file_of_vector (fn, test) = 
-    file_of_vector (in_data fn, test)
+    fn >::
+    (fun test_ctxt ->
+       check_one (in_testdata_dir test_ctxt [fn], test))
   in
 
   let test_value_parser_of_vector (str, value_parse, fail) = 
     str >::
-    (fun () ->
+    (fun test_ctxt ->
        try
          ( 
            let _s : comparator = 
@@ -126,7 +126,7 @@ let tests =
             (fun (v, f) -> 
                (v, 
                 OASISVersion.comparator_value.parse 
-                  ~ctxt:!oasis_ctxt,
+                  ~ctxt:oasis_ctxt,
                 f))
             [
               ">= 3.11.1", false;
@@ -142,281 +142,286 @@ let tests =
       );
 
       "File" >:::
-      ((List.map test_file_of_vector 
-          [
-            "test1.oasis",
-            (fun pkg ->
-               assert_flag "devmod" pkg;
-               assert_alternative
-                 "At least one of ostest, linuxtest64 and linuxtest32 is defined"
-                 (List.map
-                    (fun nm -> (fun () -> assert_flag nm pkg))
-                    [
-                      "ostest";
-                      "linuxtest64";
-                      "linuxtest32";
-                    ])
-                 ());
+      (List.map test_file_of_vector 
+         [
+           "test1.oasis",
+           (fun pkg ->
+              assert_flag "devmod" pkg;
+              assert_alternative
+                "At least one of ostest, linuxtest64 and linuxtest32 is defined"
+                (List.map
+                   (fun nm -> (fun () -> assert_flag nm pkg))
+                   [
+                     "ostest";
+                     "linuxtest64";
+                     "linuxtest32";
+                   ])
+                ());
 
-            "test2.oasis",
-            ignore;
+           "test2.oasis",
+           ignore;
 
-            "test3.oasis",
-            ignore;
+           "test3.oasis",
+           ignore;
 
-            "test4.oasis",
-            ignore;
-            
-            "test5.oasis",
-            ignore;
-            
-            "test6.oasis",
-            ignore;
+           "test4.oasis",
+           ignore;
+           
+           "test5.oasis",
+           ignore;
+           
+           "test6.oasis",
+           ignore;
 
-            "test7.oasis",
-            ignore;
+           "test7.oasis",
+           ignore;
 
-            "test8.oasis",
-            ignore;
+           "test8.oasis",
+           ignore;
 
-            "test9.oasis",
-            (fun pkg ->
-               let deps =
-                 List.fold_left
-                   (fun acc ->
-                      function
-                        | Executable (cs, bs, _) ->
-                            if cs.cs_name = "test" then
-                              bs.bs_build_depends @ acc
-                            else
-                              acc
-                        | _ ->
-                            acc)
-                   []
-                   pkg.sections
-               in
-                 List.iter
-                   (fun lib ->
-                      assert_bool
-                        (Printf.sprintf
-                           "Existence of library %s"
-                           (match lib with
-                              | InternalLibrary s -> s
-                              | FindlibPackage (s, _) -> s))
-                        (List.mem 
-                           lib
-                           deps))
-                   ((List.map
-                       (fun s -> FindlibPackage(s, None))
-                       ["test1"; "pa_test1"; "test_with_str"])
-                    @
-                    (List.map
-                       (fun s -> InternalLibrary s)
-                       ["test1"; "pa_test1"; "test_with_str"])));
+           "test9.oasis",
+           (fun pkg ->
+              let deps =
+                List.fold_left
+                  (fun acc ->
+                     function
+                       | Executable (cs, bs, _) ->
+                           if cs.cs_name = "test" then
+                             bs.bs_build_depends @ acc
+                           else
+                             acc
+                       | _ ->
+                           acc)
+                  []
+                  pkg.sections
+              in
+                List.iter
+                  (fun lib ->
+                     assert_bool
+                       (Printf.sprintf
+                          "Existence of library %s"
+                          (match lib with
+                             | InternalLibrary s -> s
+                             | FindlibPackage (s, _) -> s))
+                       (List.mem 
+                          lib
+                          deps))
+                  ((List.map
+                      (fun s -> FindlibPackage(s, None))
+                      ["test1"; "pa_test1"; "test_with_str"])
+                   @
+                   (List.map
+                      (fun s -> InternalLibrary s)
+                      ["test1"; "pa_test1"; "test_with_str"])));
 
-            "test10.oasis",
-            (fun pkg ->
-               let flag_test =
-                 match OASISSection.section_find 
-                         (`Flag, "test") 
+           "test10.oasis",
+           (fun pkg ->
+              let flag_test =
+                match OASISSection.section_find 
+                        (`Flag, "test") 
+                        pkg.sections with
+                  | Flag (_, e) -> e
+                  | _ -> assert false
+              in
+              let test_main =
+                match OASISSection.section_find 
+                        (`Test, "main") 
+                        pkg.sections with 
+                  | Test (_, e)-> e
+                  | _ -> assert false
+              in
+              let choose_with_env ?(vars=[]) v =
+                OASISExpr.choose 
+                  (fun nm -> 
+                     try 
+                       List.assoc nm vars
+                     with Not_found ->
+                       failwith ("Unable to find var "^nm))
+                  v
+              in
+                assert_equal
+                  ~msg:"Default for flag 'test' when os_type='win32'"
+                  ~printer:string_of_bool
+                  true
+                  (choose_with_env 
+                     ~vars:["os_type", "win32"] 
+                     flag_test.flag_default);
+
+                assert_equal
+                  ~msg:"Default for flag 'test' when os_type='linux'"
+                  ~printer:string_of_bool
+                  false
+                  (choose_with_env 
+                     ~vars:["os_type", "linux"] 
+                     flag_test.flag_default);
+
+               assert_equal 
+                 ~msg:"Default for authors"
+                 ~printer:(String.concat ", ")
+                 ["Sylvain Le Gall"; "Another one"]
+                 pkg.authors;
+
+               assert_equal
+                 ~msg:"Synopsis"
+                 ~printer:(fun s -> s)
+                 "Just a test with extra text"
+                 pkg.synopsis;
+
+               assert_equal
+                 ~msg:"Command of test 'main' with test='true'"
+                 ~printer:(fun (cmd, args) -> String.concat " " (cmd :: args))
+                 ("main", ["-test"])
+                 (choose_with_env
+                    ~vars:["test", "true"]
+                    test_main.test_command);
+
+               assert_equal
+                 ~msg:"Command of test 'main' with test='false'"
+                 ~printer:(fun (cmd, args) -> String.concat " " (cmd :: args))
+                 ("main", [])
+                 (choose_with_env
+                    ~vars:["test", "false"]
+                    test_main.test_command);
+           );
+
+           "comment-in-field.oasis",
+           ignore;
+
+           "bug571/_oasis",
+           ignore;
+
+           "test-freeform.oasis",
+           (fun pkg ->
+              assert_equal
+                ~printer:printer_optional_string
+                (Some "a\nb\n\nc")
+                pkg.description);
+
+           "test11.oasis",
+           ignore;
+
+           "test12.oasis",
+           (fun pkg ->
+              assert_equal
+                ~printer:printer_optional_string
+                (Some
+                   "Thin bindings to various low-level system APIs (often non-portable)\n\
+                    which are not covered by Unix module.\n\
+                    \n\
+                    Example functions:\n\
+                    \ * uname\n\
+                    \ * statvfs\n\
+                    \ * fsync")
+                pkg.description;
+              assert_equal
+                ~printer:printer_optional_string
+                (Some
+                   "Foo is a great library for:\n\
+                    \ * pattern matching\n\
+                    \ * GC")
+                (match OASISSection.section_find 
+                         (`Doc, "foo") 
                          pkg.sections with
-                   | Flag (_, e) -> e
-                   | _ -> assert false
-               in
-               let test_main =
-                 match OASISSection.section_find 
-                         (`Test, "main") 
-                         pkg.sections with 
-                   | Test (_, e)-> e
-                   | _ -> assert false
-               in
-               let choose_with_env ?(vars=[]) v =
-                 OASISExpr.choose 
-                   (fun nm -> 
-                      try 
-                        List.assoc nm vars
-                      with Not_found ->
-                        failwith ("Unable to find var "^nm))
-                   v
-               in
-                 assert_equal
-                   ~msg:"Default for flag 'test' when os_type='win32'"
-                   ~printer:string_of_bool
-                   true
-                   (choose_with_env 
-                      ~vars:["os_type", "win32"] 
-                      flag_test.flag_default);
+                   | Doc (_, doc) ->
+                       doc.doc_abstract
+                   | _ ->
+                       assert false));
 
-                 assert_equal
-                   ~msg:"Default for flag 'test' when os_type='linux'"
-                   ~printer:string_of_bool
-                   false
-                   (choose_with_env 
-                      ~vars:["os_type", "linux"] 
-                      flag_test.flag_default);
+           "test14.oasis",
+           (fun pkg ->
+              let _, _, lib_name_of_findlib_name =
+                OASISFindlib.findlib_mapping pkg
+              in
+                List.iter
+                  (fun (fndlb_nm, lib_nm) ->
+                     assert_equal
+                       ~msg:(Printf.sprintf
+                               "library name of findlib package %s"
+                               fndlb_nm)
+                       ~printer:(fun s -> s)
+                       lib_nm
+                       (lib_name_of_findlib_name fndlb_nm))
+                  ["test", "test1";
+                   "test.test2", "test2";
+                   "test.test2.test3", "test3";
+                   "test.test2.test3.test4.test5p", "test5";
+                   "test.test2.test3.test4.test5p.test6", "test6"]);
 
-                assert_equal 
-                  ~msg:"Default for authors"
-                  ~printer:(String.concat ", ")
-                  ["Sylvain Le Gall"; "Another one"]
-                  pkg.authors;
+           "test16.oasis",
+           ignore;
 
+           "bug1239/_oasis",
+           (fun pkg ->
+              let template_by_fn l fn =
+                try 
+                  Some (List.find (fun t -> t.OASISFileTemplate.fn = fn) l)
+                with Not_found -> 
+                  None
+              in
+              let template_body x =
+                match x.OASISFileTemplate.body with
+                  | OASISFileTemplate.NoBody -> []
+                  | OASISFileTemplate.Body l -> l
+                  | OASISFileTemplate.BodyWithDigest (_,l) -> l
+              in
+              let initial_ctxt = { 
+                OASISPlugin.ctxt = OASISContext.quiet ;
+                error = false ;
+                files = OASISFileTemplate.empty ;
+                other_actions = []
+              }
+              in
+              let ctxt = OCamlbuildPlugin.add_ocamlbuild_files initial_ctxt pkg in
+              let templates =
+                OASISFileTemplate.fold 
+                  (fun t accu -> t :: accu) 
+                  ctxt.OASISPlugin.files [] 
+              in
+              let mllib = 
+                match template_by_fn templates "src/bar/bar.mllib" with
+                  | None -> 
+                      let msg = 
+                        Printf.sprintf 
+                          "Missing mllib file for packed library bar, \
+                           here is the list of generated files:\n%s\n"
+                          (String.concat "\n" 
+                             (List.map 
+                                (fun t -> t.OASISFileTemplate.fn)
+                                templates))
+                      in
+                        assert_failure msg
+                  | Some x -> x
+              in
                 assert_equal
-                  ~msg:"Synopsis"
-                  ~printer:(fun s -> s)
-                  "Just a test with extra text"
-                  pkg.synopsis;
-
-                assert_equal
-                  ~msg:"Command of test 'main' with test='true'"
-                  ~printer:(fun (cmd, args) -> String.concat " " (cmd :: args))
-                  ("main", ["-test"])
-                  (choose_with_env
-                     ~vars:["test", "true"]
-                     test_main.test_command);
-
-                assert_equal
-                  ~msg:"Command of test 'main' with test='false'"
-                  ~printer:(fun (cmd, args) -> String.concat " " (cmd :: args))
-                  ("main", [])
-                  (choose_with_env
-                     ~vars:["test", "false"]
-                     test_main.test_command);
-            );
-
-            "comment-in-field.oasis",
-            ignore;
-
-            "bug571/_oasis",
-            ignore;
-
-            "test-freeform.oasis",
-            (fun pkg ->
-               assert_equal
-                 ~printer:printer_optional_string
-                 (Some "a\nb\n\nc")
-                 pkg.description);
-
-            "test11.oasis",
-            ignore;
-
-            "test12.oasis",
-            (fun pkg ->
-               assert_equal
-                 ~printer:printer_optional_string
-                 (Some
-                    "Thin bindings to various low-level system APIs (often non-portable)\n\
-                     which are not covered by Unix module.\n\
-                     \n\
-                     Example functions:\n\
-                     \ * uname\n\
-                     \ * statvfs\n\
-                     \ * fsync")
-                 pkg.description;
-               assert_equal
-                 ~printer:printer_optional_string
-                 (Some
-                    "Foo is a great library for:\n\
-                     \ * pattern matching\n\
-                     \ * GC")
-                 (match OASISSection.section_find 
-                          (`Doc, "foo") 
-                          pkg.sections with
-                    | Doc (_, doc) ->
-                        doc.doc_abstract
-                    | _ ->
-                        assert false));
-
-            "test14.oasis",
-            (fun pkg ->
-               let _, _, lib_name_of_findlib_name =
-                 OASISFindlib.findlib_mapping pkg
-               in
-                 List.iter
-                   (fun (fndlb_nm, lib_nm) ->
-                      assert_equal
-                        ~msg:(Printf.sprintf
-                                "library name of findlib package %s"
-                                fndlb_nm)
-                        ~printer:(fun s -> s)
-                        lib_nm
-                        (lib_name_of_findlib_name fndlb_nm))
-                   ["test", "test1";
-                    "test.test2", "test2";
-                    "test.test2.test3", "test3";
-                    "test.test2.test3.test4.test5p", "test5";
-                    "test.test2.test3.test4.test5p.test6", "test6"]);
-
-            "test16.oasis",
-            ignore;
-
-            "bug1239/_oasis",
-            (fun pkg ->
-               let template_by_fn l fn =
-                 try 
-                   Some (List.find (fun t -> t.OASISFileTemplate.fn = fn) l)
-                 with Not_found -> 
-                   None
-               in
-               let template_body x =
-                 match x.OASISFileTemplate.body with
-                   | OASISFileTemplate.NoBody -> []
-                   | OASISFileTemplate.Body l -> l
-                   | OASISFileTemplate.BodyWithDigest (_,l) -> l
-               in
-               let initial_ctxt = { 
-                 OASISPlugin.ctxt = OASISContext.quiet ;
-                 error = false ;
-                 files = OASISFileTemplate.empty ;
-                 other_actions = []
-               }
-               in
-               let ctxt = OCamlbuildPlugin.add_ocamlbuild_files initial_ctxt pkg in
-               let templates =
-                 OASISFileTemplate.fold 
-                   (fun t accu -> t :: accu) 
-                   ctxt.OASISPlugin.files [] 
-               in
-               let mllib = 
-                 match template_by_fn templates "src/bar/bar.mllib" with
-                   | None -> 
-                       let msg = 
-                         Printf.sprintf 
-                           "Missing mllib file for packed library bar, \
-                            here is the list of generated files:\n%s\n"
-                           (String.concat "\n" 
-                              (List.map 
-                                 (fun t -> t.OASISFileTemplate.fn)
-                                 templates))
-                       in
-                         assert_failure msg
-                   | Some x -> x
-               in
-                 assert_equal
-                   ~msg:"The mllib of a packed library should contain the name of the pack"
-                   ~printer:(fun x -> 
-                               Printf.sprintf "[ %s ]"
-                                 (String.concat " ; " (List.map (Printf.sprintf "%S") x)))
-                   [ "Bar" ]
-                   (template_body mllib)
-            )
-          ])
-      @
-       (List.rev_map file_of_vector
-          (List.rev_map 
-             (fun fn ->
-                fn, ignore)
-             (find 
-                (* Collect _oasis in examples/ *)
-                (Basename_is "_oasis") "../examples" 
-                (fun a e -> e :: a) 
-                (* Collect examples/oasis/*.oasis *)
-                (filter (Has_extension "oasis") 
-                   (ls "../examples/oasis"))))))
+                  ~msg:"The mllib of a packed library should contain the name of the pack"
+                  ~printer:(fun x -> 
+                              Printf.sprintf "[ %s ]"
+                                (String.concat " ; " (List.map (Printf.sprintf "%S") x)))
+                  [ "Bar" ]
+                  (template_body mllib)
+           )
+         ])
       @
       [
+        "Examples" >::
+        (fun test_ctxt ->
+           let lst_examples = 
+             (find 
+                (* Collect _oasis in examples/ *)
+                (Basename_is "_oasis") 
+                (example_dir test_ctxt)
+                (fun a e -> e :: a) 
+                [])
+             @
+             (filter 
+                (* Collect examples/oasis/*.oasis *)
+                (Has_extension "oasis") 
+                (ls (example_dir test_ctxt)))
+           in
+             List.iter (fun fn -> check_one (fn, ignore)) lst_examples);
+
         "SinceVersion" >::
-        (fun () ->
+        (fun test_ctxt ->
            assert_raises
              ~msg:"Pack is supported only in 0.3"
              (Failure "Field 'Pack' in Library test1 is only valid since \
@@ -425,23 +430,25 @@ let tests =
              (fun () ->
                 let _pkg =
                   from_file
-                    ~ctxt:{!oasis_ctxt with
+                    (* TODO: introduce oasis_ignore_plugin_ctxt *)
+                    ~ctxt:{oasis_ctxt with
                                OASISContext.ignore_plugins = true}
-                    (in_data "test13.oasis")
+                    (in_testdata_dir test_ctxt ["test13.oasis"])
                 in
                   ()));
+
         "test15.oasis" >::
-        (fun () ->
+        (fun test_ctxt ->
            try
              let _pkg : OASISTypes.package =
                 from_file
-                  ~ctxt:{!oasis_ctxt with
+                  (* TODO: introduce oasis_ignore_plugin_ctxt *)
+                  ~ctxt:{oasis_ctxt with
                              OASISContext.ignore_plugins = true}
-                  (in_data "test13.oasis")
+                  (in_testdata_dir test_ctxt ["test13.oasis"])
               in
                assert_string "test15.oasis should fail to parse"
           with Failure _ ->
             ());
       ]
     ]
-;;

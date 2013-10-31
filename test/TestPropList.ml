@@ -23,14 +23,14 @@
     @author Sylvain Le Gall
   *)
 
-open OUnit;;
-open TestCommon;;
-open PropList;;
-open PropList.Field;;
+open OUnit2
+open TestCommon
+open PropList
+open PropList.Field
 
 let tests =
   "PropList" >::
-  (fun () ->
+  (fun test_ctxt ->
      let toto =
        Field.create
          ~default:1

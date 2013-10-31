@@ -30,7 +30,7 @@ let generated_fn = OASISHostPath.of_unix "src/cli/PluginsLoaded.ml"
 let post_configure pkg = 
   (* Compute build depends *)
   let _, findlib_of_name, _ =
-    OASISLibrary.findlib_mapping pkg 
+    OASISFindlib.findlib_mapping pkg 
   in
   let mp_int, set_ext =
     (* Collect dependencies and external dependencies from the package. *)
