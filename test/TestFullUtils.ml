@@ -654,7 +654,7 @@ let standard_test test_ctxt t =
       ["-configure"; "--prefix";  t.build_dir; "--docdir";  t.doc_dir;
        "--htmldir"; t.html_dir];
   assert_bool "File 'setup.data' has been created" 
-    (Sys.file_exists "setup.data");
+    (Sys.file_exists (in_src_dir t "setup.data"));
 
   (* Run build target *)
   run_ocaml_setup_ml test_ctxt t ["-build"];

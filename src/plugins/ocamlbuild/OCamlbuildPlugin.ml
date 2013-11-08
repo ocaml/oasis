@@ -37,8 +37,9 @@ let cond_targets_hook =
   ref (fun lst -> lst)
 
 type ocamlbuild_plugin =
-  { plugin_tags : string option
-  ; extra_args : string list
+  { 
+    plugin_tags : string option;
+    extra_args : string list;
   } with odn
 
 let check_ocaml_version version pkg =
@@ -1120,18 +1121,15 @@ let add_ocamlbuild_files ctxt pkg =
 
     ctxt
 
-let qstrt_completion pkg =
-  fix_build_tools (ExternalTool "ocamlbuild") pkg
-
 let generator =
-  let new_field value = new_field OASISPackage.schema all_id value in
+  let new_field nm = new_field OASISPackage.schema all_id nm in
   let plugin_tags =
     new_field
       "PluginTags"
       ~default:None
-      (opt string)
-      (fun () -> ns_ "Gives the plugin tags to ocambuild through \
-                      '-plugin-tags' (OCaml >= 4.01 only)")
+      (opt string_not_empty)
+      (fun () -> s_ "Gives the plugin tags to ocambuild through \
+                     '-plugin-tags' (OCaml >= 4.01 only)")
       pivot_data (fun _ t -> t.plugin_tags)
   in
   let extra_args =
@@ -1139,37 +1137,38 @@ let generator =
       "ExtraArgs"
       ~default:[]
       command_line_options
-      (fun () -> ns_ "Gives extra arguments to ocamlbuild")
+      (fun () -> s_ "Gives extra arguments to ocamlbuild")
       pivot_data (fun _ t -> t.extra_args)
   in
-  (fun cs_data ->
-     let plugin_tags = plugin_tags cs_data in
-     let extra_args = extra_args cs_data in
-     {plugin_tags; extra_args}
-  )
+    fun data  ->
+      {
+        extra_args = extra_args data;
+        plugin_tags = plugin_tags data;
+      }
+
+let doit ctxt pkg =
+  let t = generator pkg.schema_data in
+  let ctxt = add_ocamlbuild_files ctxt pkg in
+
+  if t.plugin_tags <> None && not (ocamlbuild_supports_plugin_tags pkg) then
+    OASISMessage.warning
+      ~ctxt:ctxt.ctxt
+      (f_ "'XOCamlbuildPluginTags' in only available for OCaml >= 4.01. \
+           Please restrict your requirements with 'OCamlVersion: >= 4.01'");
+
+    ctxt,
+    {
+      chng_moduls       = [OCamlbuildData.ocamlbuildsys_ml];
+      chng_main         = ODNFunc.func_with_arg build "OCamlbuildPlugin.build" t odn_of_ocamlbuild_plugin;
+      chng_clean        = Some (ODNFunc.func clean "OCamlbuildPlugin.clean");
+      chng_distclean    = None;
+    }
+
+let qstrt_completion pkg =
+  fix_build_tools (ExternalTool "ocamlbuild") pkg
 
 let init () =
-  let doit ctxt pkg =
-    let t = generator pkg.schema_data in
-
-    if t.plugin_tags <> None && not (ocamlbuild_supports_plugin_tags pkg) then
-      OASISMessage.warning
-        ~ctxt:ctxt.ctxt
-        (f_ "'XOCamlbuildPluginTags' in only available for OCaml >= 4.01. \
-             Please restrict your requirements with 'OCamlVersion: >= 4.01'");
-
-    let ctxt =
-      add_ocamlbuild_files ctxt pkg
-    in
-
-      ctxt,
-      {
-        chng_moduls       = [OCamlbuildData.ocamlbuildsys_ml];
-        chng_main         = ODNFunc.func_with_arg build "OCamlbuildPlugin.build" t odn_of_ocamlbuild_plugin;
-        chng_clean        = Some (ODNFunc.func clean "OCamlbuildPlugin.clean");
-        chng_distclean    = None;
-      }
-  in
-    OCamlbuildId.init ();
-    Build.register_act self_id doit;
-    register_quickstart_completion all_id qstrt_completion
+  OCamlbuildId.init ();
+  Build.register_act self_id doit;
+  register_quickstart_completion all_id qstrt_completion;
+  register_generator_package all_id pivot_data generator
