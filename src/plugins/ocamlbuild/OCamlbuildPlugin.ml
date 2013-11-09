@@ -37,7 +37,7 @@ let cond_targets_hook =
   ref (fun lst -> lst)
 
 type ocamlbuild_plugin =
-  { 
+  {
     plugin_tags : string option;
     extra_args : string list;
   } with odn
