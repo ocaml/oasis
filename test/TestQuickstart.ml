@@ -37,19 +37,23 @@ module MapString = Map.Make(String)
 
 let tests = 
 
-  let assert_exit_code_equal exp rel = 
-    assert_equal 
-      ~msg:"exit code"
-      ~printer:(function 
-                  | Unix.WEXITED i 
-                  | Unix.WSIGNALED i 
-                  | Unix.WSTOPPED i -> 
-                      string_of_int i)
-      exp
-      rel
+  let assert_exit_code_equal exp_list rel = 
+    let string_of_exit_code = 
+      function 
+        | Unix.WEXITED i 
+        | Unix.WSIGNALED i 
+        | Unix.WSTOPPED i -> 
+            string_of_int i
+    in
+    if not (List.mem rel exp_list) then
+      assert_failure
+        (Printf.sprintf
+           "Got exit code %s but expecting exit of to be in list [%s]."
+           (string_of_exit_code rel)
+           (String.concat ", " (List.map string_of_exit_code exp_list)))
   in
 
-  let with_quickstart_spawn test_ctxt args f exp_exit_code =
+  let with_quickstart_spawn test_ctxt args f exp_exit_codes =
     let args = 
       (oasis_args test_ctxt) @ ["-debug"; "quickstart"; "-machine"] @ args
     in
@@ -73,7 +77,7 @@ let tests =
         raise e
     in
       assert_exit_code_equal 
-        exp_exit_code
+        exp_exit_codes
         exit_code
   in
 
@@ -148,7 +152,7 @@ let tests =
            assert_bool
              "wait for eof"
              (expect t [`Eof, true] false)) 
-      (Unix.WEXITED 0)
+      [Unix.WEXITED 0]
   in
 
   let test_of_vector (nm, args, qa, post) = 
@@ -439,9 +443,6 @@ let tests =
                   ~msg:"Second question"
                   true
                   (expect t [q] false))
-           (if Sys.os_type = "Win32" then
-              (Unix.WEXITED 2)
-            else
-              (Unix.WSIGNALED ~-8)));
+           [Unix.WEXITED 2; Unix.WSIGNALED ~-8]);
     ]
 
