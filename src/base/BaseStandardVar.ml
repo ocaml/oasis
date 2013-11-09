@@ -288,20 +288,6 @@ let rmdir =
          | "Win32" -> "rd"
          | _ -> "rm -rf")
 
-let debug =
-  var_define
-    ~short_desc:(fun () -> s_ "Turn ocaml debug flag on")
-    ~cli:CLIEnable
-    "debug"
-    (fun () -> "true")
-
-let profile =
-  var_define
-    ~short_desc:(fun () -> s_ "Turn ocaml profile flag on")
-    ~cli:CLIEnable
-    "profile"
-    (fun () -> "false")
-
 let tests =
   var_define_cond ~since_version:"0.3"
     (fun () ->
@@ -377,4 +363,3 @@ let native_dynlink =
 let init pkg =
   rpkg := Some pkg;
   List.iter (fun f -> f pkg.oasis_version) !var_cond
-

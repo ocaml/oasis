@@ -113,14 +113,6 @@ val rm: unit -> string
   *)
 val rmdir: unit -> string
 
-(** Compile in debug mode.
-  *)
-val debug: unit -> string
-
-(** Compile in profile mode.
-  *)
-val profile: unit -> string
-
 (** Run tests.
   *)
 val tests: unit -> string

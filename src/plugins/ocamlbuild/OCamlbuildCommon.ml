@@ -58,16 +58,6 @@ let fix_args args extra_argv =
         [];
       args;
 
-      if bool_of_string (debug ()) then
-        ["-tag"; "debug"]
-      else
-        [];
-
-      if bool_of_string (profile ()) then
-        ["-tag"; "profile"]
-      else
-        [];
-
       OASISString.nsplit (ocamlbuildflags ()) ' ';
 
       Array.to_list extra_argv;
