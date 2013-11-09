@@ -134,6 +134,10 @@ let version_of_string str = str
 
 let string_of_version t = t
 
+
+let version_compare_string s1 s2 =
+  version_compare (version_of_string s1) (version_of_string s2)
+
 let chop t =
   try
     let pos =

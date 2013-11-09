@@ -43,6 +43,10 @@ type t
   *)
 val version_compare: t -> t -> int
 
+(** Convert and compare version strings.
+  *)
+val version_compare_string: string -> string -> int
+
 (** Convert a string to version.
   *)
 val version_of_string: string -> t

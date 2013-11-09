@@ -204,9 +204,10 @@ let tests =
                 "libwith-c_stubs.a"; "dllwith-c_stubs.so";
                 "with-c.a"; "A.cmx"; "with-c.cmxa"; "with-c.cmxs"]);
             InstalledAPIRef("with-c", ["A"]);
-            (* TODO: maybe this file is not generated for ocaml 4.0 *)
-            InstalledHTML("with-c", ["code_VALA.ident.html"]);
           ];
+        if OASISVersion.version_compare_string t.ocaml_version "4.00" < 0 then
+          register_installed_files test_ctxt t
+            [InstalledHTML("with-c", ["code_VALA.ident.html"])];
         (* Run standard test. *)
         standard_test test_ctxt t;
         (* Try the result. *)

@@ -105,6 +105,7 @@ type t =
       html_dir: filename;
       precompile_dir: filename;
       pristine: SetFileDigest.t;
+      ocaml_version: string;
       mutable generated_files: SetFile.t;
       mutable installed_files: SetFile.t;
       mutable setup_ml_precompiled:
@@ -138,6 +139,16 @@ let setup_test_directories test_ctxt dn =
       mkdir ~parent:true fn;
       fn
   in
+
+  (* Evaluate the ocaml version, in the current environment. *)
+  let ocaml_version =
+    let buff = Buffer.create 10 in
+    OUnit2.assert_command ~ctxt:test_ctxt
+      ~foutput:(Stream.iter
+                  (function '\n' -> () | c -> Buffer.add_char buff c))
+      "ocamlc" ["-version"];
+    Buffer.contents buff
+  in
     {
       src_dir = src_dir;
       build_dir = build_dir;
@@ -149,6 +160,7 @@ let setup_test_directories test_ctxt dn =
       html_dir = mkdir_return ["share"; "doc"; "html"];
       precompile_dir = precompile_dir;
       pristine = all_file_digests src_dir;
+      ocaml_version = ocaml_version;
       generated_files = SetFile.empty;
       installed_files = SetFile.empty;
       setup_ml_precompiled = `Not_tried;
