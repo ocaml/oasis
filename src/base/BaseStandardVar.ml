@@ -267,7 +267,7 @@ let ext_program =
     "suffix_program"
     (fun () ->
        match os_type () with
-         | "Win32" -> ".exe"
+         | "Win32" | "Cygwin" -> ".exe"
          | _ -> "")
 
 let rm =
