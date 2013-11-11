@@ -20,7 +20,7 @@
 #  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               #
 ################################################################################
 
-set -e 
+set -e
 
 echo 'myvar="true"' >> setup.data
 echo 'ocamlopt="myocamlopt"' >> setup.data

@@ -21,8 +21,8 @@
 
 open OUnit;;
 
-let myrun t = 
-  let lst = 
+let myrun t =
+  let lst =
     run_test_tt_main t
   in
     lst

@@ -22,8 +22,8 @@
 open OUnit2
 open Big_int
 
-let () = 
-  let _ = 
+let () =
+  let _ =
     Big_int.big_int_of_string "1234"
   in
     ()

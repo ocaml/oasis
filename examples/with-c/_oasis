@@ -26,7 +26,7 @@ Executable "test-with-c"
   Path: src
   MainIs: main.ml
   CompiledObject: byte
-  BuildDepends: with-c 
+  BuildDepends: with-c
   CSources: main_stub.c
   CCOpt: -D OPTION_PASSED
 
@@ -35,7 +35,7 @@ Executable "test-with-c-custom"
   MainIs: main_custom.ml
   CompiledObject: byte
   Custom: true
-  BuildDepends: with-c 
+  BuildDepends: with-c
   CSources: main_custom_stub.c
 
 Executable "test-with-c-native"
@@ -43,5 +43,5 @@ Executable "test-with-c-native"
   Path: src
   MainIs: main_native.ml
   CompiledObject: native
-  BuildDepends: with-c 
+  BuildDepends: with-c
   CSources: main_native_stub.c

@@ -98,7 +98,7 @@ Document API
   XOCamlbuildPath: src
   XOCamlbuildLibraries: archimedes
 
-  
+
 Executable "test_main"
   Path:         tests
   Build$:	flag(tests)

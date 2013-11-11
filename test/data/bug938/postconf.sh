@@ -20,8 +20,8 @@
 #  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               #
 ################################################################################
 
-set -e 
-set -x 
+set -e
+set -x
 
 . ./setup.data
 

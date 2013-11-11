@@ -7,7 +7,7 @@ LicenseFile:  LICENSE
 Authors:      Sylvain Le Gall
 BuildType:    None (0.0.1)
 BuildDepends: oUnit (>= 0.1.2), benchmark (>= 0.6)
-Description: 
+Description:
  a
  b
  .

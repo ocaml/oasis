@@ -9,7 +9,7 @@ License: LGPL with OCaml linking exception
 BuildTools: ocamlbuild
 
 Synopsis: Minimal ADT just to illustrate how libs work.
-Description: 
+Description:
   Minimal ADT just to illustrate how libs work.
   .
   Not much more to say

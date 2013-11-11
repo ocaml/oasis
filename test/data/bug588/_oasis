@@ -11,7 +11,7 @@ Library libtest
   Install: false
   Modules: Libtest
   BuildDepends: bitstring.syntax, bitstring
-  
+
 Document libtest
   Title:                API reference for libtest
   Type:                 ocamlbuild (0.1.0)
@@ -26,4 +26,4 @@ Executable test
   Install: false
   MainIs: test.ml
   BuildDepends: libtest
-  
+

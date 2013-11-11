@@ -7,10 +7,10 @@ Copyrights: (C) 2008 Mauricio Fernandez
 LicenseFile: LICENSE
 License: LGPL with OCaml linking exception
 ConfType:              custom (0.0.1)
-if os_type(Win32) 
+if os_type(Win32)
   XCustomConf:  myconfigure.bat
   XCustomBuild: make -f TopMakefile all 'OCAMLC=${ocamlc}' WIN32=true
-else 
+else
   XCustomConf:  ./myconfigure
   XCustomBuild: make -f TopMakefile all 'OCAMLC=${ocamlc}'
 BuildType:             custom (0.0.1)
@@ -18,7 +18,7 @@ XCustomBuildClean:     make -f TopMakefile clean
 XCustomBuildDistclean: make -f TopMakefile distclean
 
 Synopsis: Minimal ADT just to illustrate how libs work.
-Description: 
+Description:
   Minimal ADT just to illustrate how libs work.
   .
   Not much more to say

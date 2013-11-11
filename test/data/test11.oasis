@@ -7,10 +7,10 @@ LicenseFile:  LICENSE
 Authors:      Sylvain Le Gall
 ConfType:     MyConf
 BuildType:    MyNone (0.2)
-InstallType:  MyInstall 
+InstallType:  MyInstall
 
 Test main
-  Type: MyTest 
+  Type: MyTest
   Command: false
 
 Document changelog

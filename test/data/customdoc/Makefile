@@ -21,7 +21,7 @@
 
 all:
 
-doc: 
+doc:
 	ocamldoc -html A.ml
 
 doc-clean:

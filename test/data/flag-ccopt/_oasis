@@ -7,7 +7,7 @@ BuildTools:  ocamlbuild, ocamldoc
 
 Synopsis: Cryptographic primitives
 
-Flag zlib 
+Flag zlib
   Description: Enable ZLib
   Default$: !os_type(Win32)
 
@@ -19,4 +19,4 @@ Library cryptokit
   if flag(zlib)
     CCOpt: -O -DHAVE_ZLIB
     CCLib: -lz
-  
+

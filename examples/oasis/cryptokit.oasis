@@ -11,7 +11,7 @@ Description:
   This library provides a variety of cryptographic primitives that can be used
   to implement cryptographic protocols in security-sensitive applications.  The
   primitives provided include:
-  . 
+  .
   - Symmetric-key ciphers: AES, DES, Triple-DES, ARCfour,
     in ECB, CBC, CFB and OFB modes.
   - Public-key cryptography: RSA encryption, Diffie-Hellman key agreement.
@@ -26,7 +26,7 @@ Description:
   promotes a "Lego"-like style of constructing and composing
   transformations over character streams.
 
-Flag zlib 
+Flag zlib
   Description: Enable ZLib
   Default$: !os_type(Win32)
 
@@ -62,25 +62,25 @@ Library cryptokit
   if flag(zlib)
     CCOpt: -O -DHAVE_ZLIB
     CCLib: -lz
-  
+
 Executable test
   Path:         test
   MainIs:       test.ml
   Custom:       true
   BuildDepends: cryptokit
   Install:      false
-  
+
 Test main
   Command:   $test
   TestTools: test
-  
+
 Executable speedtest
   Path:           test
   MainIs:         speedtest.ml
   CompiledObject: native
   BuildDepends:   cryptokit
   Install:        false
-  
+
 Test bench
   Command:   $speedtest
   TestTools: speedtest
@@ -92,12 +92,12 @@ Document "api-cryptokit"
   BuildTools+:          ocamldoc
   XOCamlBuildPath:      src/
   XOCamlbuildLibraries: cryptokit
-  
+
 SourceRepository head
   Type:     svn
   Location: svn://scm.ocamlcore.org/svnroot/cryptokit/trunk
   Browser:  http://forge.ocamlcore.org/scm/viewvc.php/trunk/?root=cryptokit
-  
+
 SourceRepository this
   Type:     svn
   # TODO: we need to add version here

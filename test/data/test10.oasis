@@ -4,7 +4,7 @@ OASISFormat:  0.1
 Synopsis:     Just a test
 Synopsis+:    with extra text
 License:      GPL
-LicenseFile:  LICENSE 
+LicenseFile:  LICENSE
 Authors:      Sylvain Le Gall
 Authors+:     Another one
 
@@ -14,5 +14,5 @@ Flag "test"
 
 Test main
   Command: main
-  if flag(test) 
+  if flag(test)
     Command+: -test

@@ -20,11 +20,11 @@
 #  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               #
 ################################################################################
 
-set -e 
+set -e
 
 . ./setup.data
 
-set -x 
+set -x
 
 echo "testing ocamlopt"
 test "$ocamlopt" = "myocamlopt"

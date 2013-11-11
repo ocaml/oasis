@@ -23,5 +23,5 @@ Library test_with_str
 Executable test
   Path:    test
   MainIs:  main.ml
-  BuildDepends: oUnit, test, test.syntax, test.str, 
+  BuildDepends: oUnit, test, test.syntax, test.str,
    test1, pa_test1, test_with_str

@@ -12,13 +12,13 @@ Library liba
   Path:            src/liba
   BuildDepends:    str
   Install:         false
-  
+
 Library libb
   Modules:      B
   Path:         src/libb
   BuildDepends: liba, unix
   Install:      false
-  
+
 Library libc
   Modules:      C
   Path:         src/libc
@@ -35,7 +35,7 @@ Library libe
   Path:              src/libe
   Install:           false
   BuildDepends:      libd
-  
+
 Executable execa
   MainIs:       Main.ml
   Path:         src/execa

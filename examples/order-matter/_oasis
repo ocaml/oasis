@@ -11,18 +11,18 @@ Library foo
   Modules: Foo
   Install: false
   BuildDepends: baz
-  
+
 Library bar
   Path:    src/bar
   Install: false
   Modules: Bar
-  
+
 Library baz
   Path:    src/baz
   Modules: Baz
   Install: false
   BuildDepends: bar
-  
+
 Document "order-matter"
   Title:                API reference for order-matter
   Type:                 ocamlbuild (0.1.0)

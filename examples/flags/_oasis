@@ -26,7 +26,7 @@ Document simplelib
 
 Library simplelibext
   Build: false
-  if flag(buildext) 
+  if flag(buildext)
     Build: true
   Path: src/simplelibext
   Modules: FooExt, BarExt

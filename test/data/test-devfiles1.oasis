@@ -8,7 +8,7 @@ Authors:      Sylvain Le Gall
 BuildType:    None (0.2)
 BuildDepends: oUnit (>= 0.1.2), benchmark (>= 0.6)
 Plugins:      DevFiles (0.2)
-Description: 
+Description:
  This is a test to check that everything is working great
  with this kind of parser.
  .

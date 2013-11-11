@@ -18,7 +18,7 @@ Document test
   BuildTools+:          ocamldoc
   XOCamlbuildPath:      src
   XOCamlbuildLibraries: test
-  
+
 # This library will be installed with library 'test' above
 # and will be named 'test.syntax'.
 Library pa_test
@@ -29,7 +29,7 @@ Library pa_test
   CompiledObject: byte
 
 Executable mytest
-  Path:    src 
+  Path:    src
   MainIs:  main.ml
   # We need to use the findlib name to build depend on
   # pa_test library.

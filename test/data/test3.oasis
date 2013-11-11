@@ -6,7 +6,7 @@ License:      GPL
 LicenseFile:  LICENSE
 Authors:      Sylvain Le Gall
 BuildType:    None (0.0.1)
-Description: 
+Description:
  This is a test to check that everything is working great
  with this kind of parser.
  .

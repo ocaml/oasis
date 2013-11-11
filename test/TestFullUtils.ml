@@ -93,6 +93,32 @@ let all_file_digests dn =
     (all_files dn)
     SetFileDigest.empty
 
+(* Verify that generated files follow some style rules. *)
+let check_file_style test_ctxt fn =
+  let chn = open_in fn in
+  let line_number = ref 0 in
+  try 
+    while true do 
+      let line = input_line chn in
+      incr line_number;
+      non_fatal test_ctxt 
+        (fun test_ctxt ->
+           let strlen = String.length line in
+           if strlen > 0 && line.[strlen - 1] = ' ' then
+             assert_failure 
+               (Printf.sprintf
+                  "Found a blank at the end of line in file '%s' line %d: %S"
+                  (Filename.basename fn) !line_number line));
+    done
+  with End_of_file ->
+    close_in chn
+
+(* Find and test the style of all files in a directory. *)
+let check_all_files_style test_ctxt dn =
+  FileUtil.find Is_file dn
+    (fun () fn -> check_file_style test_ctxt fn)
+    ()
+
 type t = 
     {
       src_dir: filename;
@@ -643,7 +669,9 @@ let oasis_setup ?(dev=false) ?(dynamic=false) test_ctxt t =
          (List.rev fixed_lst);
        close_out chn;
        dbug_file_content test_ctxt (in_src_dir t setup_ml)
-   end
+   end;
+
+   check_all_files_style test_ctxt t.src_dir
 
 let standard_checks test_ctxt t = 
   check_generated_files t;
