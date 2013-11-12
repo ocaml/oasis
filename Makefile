@@ -21,18 +21,9 @@
 
 
 CONFIGUREFLAGS += --override ocamlbuildflags -classic-display
-
 CONFIGUREFLAGS += $(if $(shell ocamlfind query gettext),--enable-gettext,--disable-gettext)
 
-PRECOMMIT=$(shell which OCamlDarcsPrecommit || echo true)
-
 default: test
-	-$(PRECOMMIT)
-
-export OCAMLRUNPARAM=b
-#TESTFLAGS      += -not-long
-#TESTFLAGS      += -verbose
-#TESTFLAGS      += -only-test OASIS:5:TestFull:2:../examples/packedlib:0:standard
 
 # OASIS_START
 # DO NOT EDIT (digest: bc1e05bfc8b39b664f29dae8dbd3ebbb)
@@ -73,23 +64,34 @@ setup.data:
 
 # OASIS_STOP
 
+# Count number of lines
+#
+
 wc:
 	find src/ -name "*.ml" | xargs wc -l
 
 wc-setup:
 	awk -f src/tools/setup-wc.awk setup.ml
 
+.PHONY: wc wc-setup
+
+# Headache target
+#  Fix license header of file.
+
 headache:
-	find ./ -name .git -prune -false -o -name _build -prune \
-	  -false -o -name test/data -prune \
-	  -false -o -name ext -prune -false -o -name bindist -prune \
-	  -false -o -name boot -prune -false \
+	find ./ \
+	  -name _darcs -prune -false \
+	  -o -name .git -prune -false \
+	  -o -name .svn -prune -false \
+	  -o -name _build -prune -false \
+	  -o -name dist -prune -false \
 	  -o -name '*[^~]' -type f \
 	  | xargs headache -h _header -c _headache.config
 
-.PHONY: wc wc-setup headache
+.PHONY: headache
 
 # Binary distribution
+# TODO: delegate this to a jenkins builder.
 
 BINDIST_DEBUG=false
 
@@ -135,6 +137,7 @@ bindist-step2:
 .PHONY: bindist bindist-step2
 
 # Source distribution
+# TODO: consider removing in favor of deploy
 
 dist:
 #	Check consistency of versions
@@ -158,3 +161,45 @@ doc-dist: doc
 
 .PHONY: doc-dist
 
+# Precommit target
+#  Check style of code.
+
+PRECOMMIT_ARGS= \
+	    --exclude myocamlbuild.ml \
+	    --exclude setup.ml \
+	    --exclude README.txt \
+	    --exclude INSTALL.txt \
+	    --exclude Makefile \
+	    --exclude configure \
+	    --exclude _tags
+
+precommit:
+	@if command -v OCamlPrecommit > /dev/null; then \
+	  OCamlPrecommit $(PRECOMMIT_ARGS); \
+	else \
+	  echo "Skipping precommit checks.";\
+	fi
+
+precommit-full:
+	OCamlPrecommit --full $(PRECOMMIT_ARGS)
+
+test: precommit
+
+.PHONY: precommit
+
+# Deploy target
+#  Deploy/release the software.
+
+# TODO: check that this can work.
+deploy: headache
+	# TODO: create a plugin to create documentation.
+	# oasis doc-dist
+	admin-gallu-deploy --verbose \
+	  --forge_upload --forge_group oasis --forge_user gildor-admin
+	# TODO: when oasis doc-dist will work, re-add.
+	#  --forge_extra_file "dist/oasis-doc-$(shell oasis query version).tar.gz"
+	# TODO: create a plugin to send announcement.
+	# oasis announce
+	admin-gallu-oasis-increment --setup_run --use_vcs
+
+.PHONY: deploy
