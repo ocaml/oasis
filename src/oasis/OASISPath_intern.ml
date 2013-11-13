@@ -26,7 +26,7 @@ let fn_reader ?(os_type=Sys.os_type) fn =
       | ".." -> `ParentDir
       | str  -> `Component str
   in
-  if os_type = "Unix" then
+  if os_type = "Unix" || os_type = "Cygwin" then
     begin
       let sep = '/' in
       let fbeg, fn' =
