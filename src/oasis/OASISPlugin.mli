@@ -126,16 +126,21 @@ val register_quickstart_completion: all_t -> (package -> package) -> unit
 val quickstart_completion: plugin_kind plugin -> package -> package
 
 (** Register a generator for package, to store data of a plugin *)
-val register_generator_package: all_t -> 'a prop -> (PropList.Data.t -> 'a) -> unit
+val register_generator_package:
+    all_t -> 'a prop -> (PropList.Data.t -> 'a) -> unit
 
 (** Call generator for provided plugin *)
-val generator_package: plugin_kind plugin -> plugin_data ref -> PropList.Data.t -> unit
+val generator_package:
+    plugin_kind plugin -> plugin_data ref -> PropList.Data.t -> unit
 
 (** Register a generator for a section, to store data of a plugin *)
-val register_generator_section: section_kind -> all_t -> 'a prop -> (PropList.Data.t -> 'a) -> unit
+val register_generator_section:
+    section_kind -> all_t -> 'a prop -> (PropList.Data.t -> 'a) -> unit
 
 (** Call generator for provided plugin on a section *)
-val generator_section: section_kind -> plugin_kind plugin -> plugin_data ref -> PropList.Data.t -> unit
+val generator_section:
+    section_kind -> plugin_kind plugin -> plugin_data ref ->
+    PropList.Data.t -> unit
 
 (** List available plugins. *)
 val ls : plugin_kind -> name list
@@ -273,4 +278,5 @@ val data_create: unit -> plugin_data ref
                  for the same plugin. If not defined, it is derived from the
                  kind of plugin.
   *)
-val data_new_property : ?purpose:plugin_data_purpose -> plugin_kind plugin -> 'a prop
+val data_new_property :
+    ?purpose:plugin_data_purpose -> plugin_kind plugin -> 'a prop

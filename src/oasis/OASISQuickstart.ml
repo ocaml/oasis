@@ -394,7 +394,8 @@ let ask_schema ~ctxt schema lvl interface plugins =
                   set s
                 with e ->
                   failwithf
-                    (f_ "Trying to set field '%s' using mandatory value '%s': %s")
+                    (f_ "Trying to set field '%s' using mandatory \
+                         value '%s': %s")
                     key s (Printexc.to_string e)
               end
           | _ when not has_default || lvl >= extra.qckstrt_lvl ->
@@ -731,9 +732,9 @@ let to_file ~ctxt fn lvl intrf oasis_setup =
               pp_open_vbox fmt 0;
               pp_open_box fmt 0;
               pp_print_string_spaced fmt
-                (s_ "The program will ask some questions to create the `_oasis` \
-                     file. If you answer '?' to a question, an help text will \
-                     be displayed.");
+                (s_ "The program will ask some questions to create the \
+                     `_oasis` file. If you answer '?' to a question, an help \
+                     text will be displayed.");
               pp_close_box fmt ();
               pp_print_cut fmt ();
               pp_close_box fmt ();

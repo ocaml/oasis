@@ -1,4 +1,4 @@
-% OASIS User Manual 
+% OASIS User Manual
 % author Sylvain Le Gall and others
 
 Introduction
@@ -71,18 +71,20 @@ Fields are defined as `field_name: field_value`:
 
  * Field name is an identifier, it contains only alphanumeric chars.
  * Field name is case insensitive.
- * Field value follow OCaml string convention, expect you don't need '"' around it.
+ * Field value follow OCaml string convention, expect you don't need '"'
+   around it.
  * Leading and trailing blanks of field value are removed.
- * A field value can continue on several lines, in this case the content of the value
-   must be indented one level more then the field name. In the body of the value a 
-   blank line is represented by `.`.
+ * A field value can continue on several lines, in this case the content of
+   the value must be indented one level more then the field name. In the body of
+   the value a blank line is represented by `.`.
  * If two fields have the same `field_name`, only the latter sets the value.
 
 The separator ':' can be replaced by '+:' which appends the `field_value` to
 the previous value of the value (rather than erasing it). Beware that appending
 is value dependent, some fields can concatenate, some cannot.
 
-The ':' can also be replaced by '\$:', see [Conditional value](#conditional-value).
+The ':' can also be replaced by '\$:', see
+[Conditional value](#conditional-value).
 
 ### Sections
 

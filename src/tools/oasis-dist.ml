@@ -338,7 +338,8 @@ let () =
                       end
                     else if cmp > 0 then
                       begin
-                        warning ~ctxt "Version %s is smaller than already tagged version %s"
+                        warning ~ctxt
+                          "Version %s is smaller than already tagged version %s"
                           ver_str (OASISVersion.string_of_version hd);
                         vcs#tag ver_str
                       end

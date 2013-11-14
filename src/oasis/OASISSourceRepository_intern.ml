@@ -93,7 +93,8 @@ let schema, generator =
   let tag =
     new_field_opt "Tag"
       (fun () ->
-         s_ "Identify a state corresponding to this particular package version.")
+         s_ "Identify a state corresponding to this particular package \
+             version.")
       (fun (_, src_repo) -> src_repo.src_repo_tag)
   in
   let subdir =

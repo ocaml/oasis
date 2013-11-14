@@ -41,8 +41,8 @@ let scmd =
            ([
              "-real-oasis",
              Arg.Unit ignore,
-             s_ " Use the real 'oasis' executable filename when generating developper mode \
-                  setup.ml.";
+             s_ " Use the real 'oasis' executable filename when generating \
+                  developper mode setup.ml.";
 
              "-run",
              Arg.Rest ignore,

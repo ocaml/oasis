@@ -37,7 +37,8 @@ struct
   (* TODO: we should use a Queue or a list here or include the sync method
      directly in extra
    *)
-  type 'a t = ('a -> (plugin_kind plugin) option -> PropList.Data.t -> PropList.Data.t) ref
+  type 'a t = ('a -> (plugin_kind plugin) option ->
+                 PropList.Data.t -> PropList.Data.t) ref
 
   let create () =
     ref (fun _ _ data -> data)

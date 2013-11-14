@@ -33,12 +33,12 @@ let tests =
   let test_of_vector (nm, oasis_str, pkg_tests) =
     nm >::
     (fun test_ctxt ->
-       let fn, _ = 
+       let fn, _ =
          bracket_tmpfile ~prefix:"oasis-meta-" ~suffix:".meta" test_ctxt
        in
        (* Parse string to get OASIS package *)
-       let pkg = 
-         OASISParse.from_string 
+       let pkg =
+         OASISParse.from_string
            ~ctxt:oasis_ctxt
            oasis_str
        in
@@ -48,17 +48,17 @@ let tests =
          OASISFindlib.findlib_mapping pkg
        in
        let write_meta fndlb_nm =
-         let grp = 
+         let grp =
            try
              (* Find the package in all group *)
-             List.find 
+             List.find
                (fun grp ->
-                  match grp with 
+                  match grp with
                     | Container (nm, _)
                     | Package (nm, _, _, _, _) -> nm = fndlb_nm)
                groups
            with Not_found ->
-             failwith 
+             failwith
                (Printf.sprintf
                   "Cannot find group of name '%s'"
                   fndlb_nm)
@@ -70,7 +70,7 @@ let tests =
            Format.formatter_of_out_channel chn
          in
          let root_t =
-           let root_cs, _, _ = 
+           let root_cs, _, _ =
              root_of_group grp
            in
              METAPlugin.generator root_cs.cs_data
@@ -81,24 +81,24 @@ let tests =
        in
 
        (* Check META file *)
-       let rec find_pkg_defs pkg_expr = 
+       let rec find_pkg_defs pkg_expr =
          function
            | hd :: tl ->
                begin
-                 try 
-                   find_pkg_defs 
+                 try
+                   find_pkg_defs
                      (List.assoc hd pkg_expr.pkg_children)
                      tl
                  with Not_found ->
-                   failwith 
-                     (Printf.sprintf 
+                   failwith
+                     (Printf.sprintf
                         "Could not find subpackage component '%s'"
                         hd)
                end
-           | [] -> 
-               pkg_expr.pkg_defs 
+           | [] ->
+               pkg_expr.pkg_defs
        in
-       let Some (_, _) | None = 
+       let Some (_, _) | None =
          List.fold_left
            (fun former_meta (pkg_name, var, preds, res) ->
               let pkg_root, pkg_paths =
@@ -106,9 +106,9 @@ let tests =
                   | hd :: tl -> hd, tl
                   | _ -> assert(false)
               in
-              let pkg_expr = 
-                match former_meta with 
-                  | Some (nm, pkg_expr) when nm = pkg_root -> 
+              let pkg_expr =
+                match former_meta with
+                  | Some (nm, pkg_expr) when nm = pkg_root ->
                       pkg_expr
                   | _ ->
                       begin
@@ -128,22 +128,22 @@ let tests =
                 find_pkg_defs pkg_expr pkg_paths
               in
                 begin
-                  let msg = 
-                    Printf.sprintf 
+                  let msg =
+                    Printf.sprintf
                       "%s %s(%s)"
                       pkg_name
                       var
                       (String.concat "," preds)
                   in
-                    try 
+                    try
                       assert_equal
                         ~msg
                         ~printer:(fun s -> s)
                         res
                         (lookup var preds pkg_defs)
                     with Not_found ->
-                      failwith 
-                        (Printf.sprintf 
+                      failwith
+                        (Printf.sprintf
                            "Cannot find META variable '%s'"
                            msg)
                 end;
@@ -153,7 +153,7 @@ let tests =
        in
          ())
   in
-    
+
     "META" >:::
     (List.map test_of_vector
        [
@@ -170,7 +170,7 @@ Authors:      me
 Library odn
   Path:    src
   Modules: ODN
-  
+
 Library pa_odn
   Path:              src
   Modules:           Pa_odn
@@ -189,8 +189,8 @@ Library pa_noodn
          [
            "odn", "archive", ["byte"], "odn.cma";
            "odn.with.syntax", "archive", ["byte"], "pa_odn.cma";
-           
-           "odn.without.syntax", "description", [], 
+
+           "odn.without.syntax", "description", [],
            "Syntax extension that removes 'with odn'";
          ];
 
@@ -243,7 +243,8 @@ Library pa_odn
 OASISFormat:  0.1
 Name:         ocaml-data-notation
 Version:      0.0.1
-Synopsis:     store data using OCaml notation with a very very very very very very very long synopsis
+Synopsis:     store data using OCaml notation with a very very very very very \
+                                                     very very long synopsis
               and with line breaks
 License:      LGPL with OCaml linking exception
 Authors:      me

@@ -211,5 +211,6 @@ let () =
   print_endline
     ("To install: "^
      (String.concat ", "
-        (install_lib ~directory:"." ~archive:"stlang" ~interfaces:["STLang"; "STLangTypes"])))
+        (install_lib ~directory:"." ~archive:"stlang"
+           ~interfaces:["STLang"; "STLangTypes"])))
 

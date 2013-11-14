@@ -177,7 +177,9 @@ let pp_print_help hext hsty fmt () =
       ~check_last_char:scmd.scmd_help
       fmt ();
 
-    fprintf fmt (f_ "Usage: oasis [global-options*] %s %s") scmd.scmd_name scmd.scmd_usage;
+    fprintf fmt
+      (f_ "Usage: oasis [global-options*] %s %s")
+      scmd.scmd_name scmd.scmd_usage;
     pp_print_endblock fmt ();
 
     if global_options then

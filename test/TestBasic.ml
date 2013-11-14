@@ -27,17 +27,17 @@ let tests =
   [
     "Help1" >::
     (fun test_ctxt -> assert_oasis_cli ~ctxt:test_ctxt ["--help"]);
- 
+
     "Help2" >::
     (fun test_ctxt -> assert_oasis_cli ~ctxt:test_ctxt ["help"]);
- 
+
     "Env dump/load" >::
     (fun test_ctxt ->
        (* TODO: lock *)
        BaseEnv.unload ();
        BaseEnv.load ~filename:(in_testdata_dir test_ctxt ["dir.data"]) ();
        (* Reset lazy values ? *)
-       assert_equal 
+       assert_equal
          ~printer:(fun s -> s)
          "toto"
          (BaseStandardVar.bindir ()));
@@ -45,17 +45,17 @@ let tests =
     "OCaml dev version" >::
     (fun test_ctxt ->
        PropList.Schema.set
-         BaseEnv.schema 
+         BaseEnv.schema
          BaseEnv.env
          ~context:BaseEnv.OCommandLine
          "ocamlc_config_map"
-         (Marshal.to_string 
-            (MapString.add 
+         (Marshal.to_string
+            (MapString.add
                "version"
-               "3.13.0+dev2 (2010-10-22)" 
+               "3.13.0+dev2 (2010-10-22)"
                MapString.empty)
             []);
-       assert_equal 
+       assert_equal
          ~printer:(fun s -> s)
          "3.13.0"
          (BaseStandardVar.ocaml_version ()));

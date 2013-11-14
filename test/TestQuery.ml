@@ -28,18 +28,18 @@ open TestCommon
 open OUnit2
 
 let tests =
-  let test_of_vector (fn, qa) = 
-    let q, a = 
+  let test_of_vector (fn, qa) =
+    let q, a =
       List.split qa
     in
-    let test_name = 
-      Printf.sprintf 
-        "query('%s', %s)" 
+    let test_name =
+      Printf.sprintf
+        "query('%s', %s)"
         fn (String.concat ", " q)
     in
       test_name >::
       (fun test_ctxt ->
-         assert_oasis_cli 
+         assert_oasis_cli
            ~ctxt:test_ctxt
            ~output:((String.concat "\n" a)^"\n")
            ~unorder:true
@@ -57,7 +57,7 @@ let tests =
          ["Flag(devmod).Default", "false"];
 
          "test10.oasis",
-         ["ListSections", 
+         ["ListSections",
           "Test(main)\nFlag(test)"];
 
          "test10.oasis",

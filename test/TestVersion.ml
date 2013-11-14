@@ -30,7 +30,7 @@ open OASISVersion
 let tests =
 
   let vstr_compare v1 v2 =
-    version_compare 
+    version_compare
       (version_of_string v1)
       (version_of_string v2)
   in
@@ -47,9 +47,9 @@ let tests =
            1
        in
          assert_equal
-           ~msg:(Printf.sprintf 
-                   "Result of '%s' and '%s' comparison" 
-                   v1 
+           ~msg:(Printf.sprintf
+                   "Result of '%s' and '%s' comparison"
+                   v1
                    v2)
            ~printer:string_of_int
            exp
@@ -69,7 +69,7 @@ let tests =
                    v)
            ~printer:string_of_bool
            exp
-           (comparator_apply 
+           (comparator_apply
               (version_of_string v)
               op))
   in
@@ -103,12 +103,14 @@ let tests =
 
     "sort" >::
     (fun test_ctxt ->
-       let lst = 
-         ["0.2.0~rc2"; "0.2.0~alpha1"; "0.1.0"; "0.2.0~alpha2"; "0.2.0~beta1"; "0.2.0"]
+       let lst =
+         ["0.2.0~rc2"; "0.2.0~alpha1"; "0.1.0"; "0.2.0~alpha2"; "0.2.0~beta1";
+          "0.2.0"]
        in
-         assert_equal 
+         assert_equal
            ~printer:(String.concat "; ")
-           ["0.1.0"; "0.2.0~alpha1"; "0.2.0~alpha2"; "0.2.0~beta1"; "0.2.0~rc2"; "0.2.0"]
+           ["0.1.0"; "0.2.0~alpha1"; "0.2.0~alpha2"; "0.2.0~beta1"; "0.2.0~rc2";
+            "0.2.0"]
            (List.sort vstr_compare lst));
 
     "back-and-forth" >::
@@ -116,8 +118,8 @@ let tests =
        let str = ">= 1.0 && <= 2.0 || = 3.0" in
        let cmp = comparator_of_string str in
        let cmp' = comparator_of_string (string_of_comparator cmp) in
-         assert_equal 
+         assert_equal
            ~printer:string_of_comparator
-           cmp 
+           cmp
            cmp');
   ]

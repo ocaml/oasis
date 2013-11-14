@@ -448,8 +448,10 @@ let main ctxt pkg =
 
         (* Basic dependencies *)
         [
-          LFindlibPackage ("findlib", pkg.findlib_version), all_build_sections_set;
-          LFindlibPackage ("ocaml", pkg.ocaml_version), all_build_sections_set;
+          LFindlibPackage ("findlib", pkg.findlib_version),
+                           all_build_sections_set;
+          LFindlibPackage ("ocaml", pkg.ocaml_version),
+                           all_build_sections_set;
         ]
 
         (* Go through all sections *)
@@ -520,15 +522,16 @@ let main ctxt pkg =
              match t.install with
                | Some fn ->
                    fprintf fmt
-                     "See@ the@ files@ %s@ for@ building@ and@ installation@ instructions.@ "
-                     fn
+                     "See@ the@ files@ %s@ for@ building@ and@ installation@ \
+                      instructions.@ " fn
                | None ->
                    ()
            end;
            begin
              match pkg.license_file with
                | Some fn ->
-                   fprintf fmt "See@ the@ file@ %s@ for@ copying@ conditions.@ " fn
+                   fprintf fmt
+                     "See@ the@ file@ %s@ for@ copying@ conditions.@ " fn
                | None ->
                    ()
            end;

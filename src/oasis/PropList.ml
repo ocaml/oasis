@@ -41,7 +41,8 @@ let () =
              (Printf.sprintf (f_ "No default printer for value %s") nm)
        | Unknown_field (nm, schm) ->
            Some
-             (Printf.sprintf (f_ "Field %s is not defined in schema %s") nm schm)
+             (Printf.sprintf
+                (f_ "Field %s is not defined in schema %s") nm schm)
        | _ ->
            None)
 

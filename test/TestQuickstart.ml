@@ -30,19 +30,19 @@ open ExpectPcre
 open OUnit2
 open OASISTypes
 
-let () = 
+let () =
   METAPlugin.init ()
 
 module MapString = Map.Make(String)
 
-let tests = 
+let tests =
 
-  let assert_exit_code_equal exp_list rel = 
-    let string_of_exit_code = 
-      function 
-        | Unix.WEXITED i 
-        | Unix.WSIGNALED i 
-        | Unix.WSTOPPED i -> 
+  let assert_exit_code_equal exp_list rel =
+    let string_of_exit_code =
+      function
+        | Unix.WEXITED i
+        | Unix.WSIGNALED i
+        | Unix.WSTOPPED i ->
             string_of_int i
     in
     if not (List.mem rel exp_list) then
@@ -54,14 +54,14 @@ let tests =
   in
 
   let with_quickstart_spawn test_ctxt args f exp_exit_codes =
-    let args = 
+    let args =
       (oasis_args test_ctxt) @ ["-debug"; "quickstart"; "-machine"] @ args
     in
 
-    let _, exit_code = 
+    let _, exit_code =
       try
-        logf test_ctxt `Info 
-          "Quickstart command line: %s" 
+        logf test_ctxt `Info
+          "Quickstart command line: %s"
           (String.concat " " (oasis_exec test_ctxt :: args));
         with_spawn
           ~verbose:true
@@ -69,42 +69,42 @@ let tests =
           ~timeout:(Some 0.1)
           (oasis_exec test_ctxt)
           (Array.of_list args)
-          (fun t () -> f t) 
+          (fun t () -> f t)
           ()
 
       with e ->
         Printexc.print_backtrace stderr;
         raise e
     in
-      assert_exit_code_equal 
+      assert_exit_code_equal
         exp_exit_codes
         exit_code
   in
 
-  let run_quickstart test_ctxt args qa = 
+  let run_quickstart test_ctxt args qa =
     with_quickstart_spawn
       test_ctxt
       args
       (fun t ->
-         let rec continue = 
+         let rec continue =
            function
              | [] ->
                  begin
                    ()
                  end
 
-             | qa -> 
+             | qa ->
                  begin
-                   let expectations = 
-                     let rec expectations' prev next = 
-                       match next with 
+                   let expectations =
+                     let rec expectations' prev next =
+                       match next with
                          | (q, a) :: tl ->
                              (* next QA if we chose this answer *)
-                             let qa' = 
+                             let qa' =
                                List.rev_append prev tl
                              in
-                             let q_pat = 
-                               match q with 
+                             let q_pat =
+                               match q with
                                  | "create_section" ->
                                      "create a(nother)? section\\? "
                                  | "end" ->
@@ -112,11 +112,11 @@ let tests =
                                  | "name" ->
                                      "'?name'?\\? "
                                  | q ->
-                                     Printf.sprintf 
+                                     Printf.sprintf
                                        "value for field '%s'\\? "
                                        q
                              in
-                             let q_rex = 
+                             let q_rex =
                                Pcre.regexp ~flags:[`CASELESS] q_pat
                              in
                                (`Rex q_rex, Some (a, qa'))
@@ -129,19 +129,19 @@ let tests =
                      in
                        expectations' [] qa
                    in
-                   let exp_q = 
+                   let exp_q =
                      expect t expectations None
                    in
 
-                     match exp_q with 
-                       | Some (a, qa) -> 
+                     match exp_q with
+                       | Some (a, qa) ->
                            send t (a^"\n");
                            continue qa
-                       | None -> 
-                           let assert_msg = 
+                       | None ->
+                           let assert_msg =
                              Printf.sprintf "expecting questions: %s"
                                (String.concat ", "
-                                  (List.map 
+                                  (List.map
                                      (fun (q, _) -> Printf.sprintf "%S" q)
                                      qa))
                            in
@@ -151,15 +151,15 @@ let tests =
            continue qa;
            assert_bool
              "wait for eof"
-             (expect t [`Eof, true] false)) 
+             (expect t [`Eof, true] false))
       [Unix.WEXITED 0]
   in
 
-  let test_of_vector (nm, args, qa, post) = 
+  let test_of_vector (nm, args, qa, post) =
     nm >::
     (fun test_ctxt ->
        let tmpdir = bracket_tmpdir test_ctxt in
-       let () = 
+       let () =
          with_bracket_chdir test_ctxt tmpdir
            (fun test_ctxt ->
               run_quickstart test_ctxt args qa)
@@ -168,19 +168,19 @@ let tests =
          (* TODO: rewrite with chdir *)
          assert_oasis_cli ~ctxt:test_ctxt ["-C"; tmpdir; "check"];
          begin
-           try 
+           try
              (* TODO: rewrite with chdir *)
              assert_oasis_cli ~ctxt:test_ctxt ["-C"; tmpdir; "setup"]
            with e ->
              failwith "'oasis setup' failed but 'oasis check' succeed"
          end;
-         let pkg = 
+         let pkg =
            OASISParse.from_file ~ctxt:oasis_ctxt
              (Filename.concat tmpdir "_oasis")
          in
            post pkg)
   in
-  let test_simple_qa = 
+  let test_simple_qa =
     [
       "name",           "test";
       "version",        "0.0.1";
@@ -197,33 +197,33 @@ let tests =
     ]
   in
     "Quickstart" >:::
-    (List.map test_of_vector 
+    (List.map test_of_vector
        [
          "simple",
          [],
          test_simple_qa,
          (fun pkg ->
-            let () = 
-              assert_equal 
+            let () =
+              assert_equal
                 ~msg:"field name"
                 ~printer:(fun s -> s)
                 "test" pkg.name
             in
 
-            let sct = 
-              try 
-                OASISSection.section_find 
+            let sct =
+              try
+                OASISSection.section_find
                   (`Executable, "test")
                   pkg.sections
               with Not_found ->
                  failwith "Cannot find executable section 'test'"
             in
-              match sct with 
+              match sct with
                 | Executable (cs, bs, exec) ->
-                    assert_equal 
+                    assert_equal
                       ~msg:"mainis of test"
                       ~printer:(fun s -> s)
-                      "test.ml" exec.exec_main_is 
+                      "test.ml" exec.exec_main_is
                 | _ ->
                     assert false);
 
@@ -281,7 +281,7 @@ let tests =
            "xdevfilesenableconfigure", "";
          ],
          (fun pkg ->
-            assert_equal 
+            assert_equal
               ~msg:"field name"
               ~printer:(fun s -> s)
               "test" pkg.name);
@@ -387,9 +387,9 @@ let tests =
            "xocamlbuildextraargs", "";
          ],
          (fun pkg ->
-            let libtest = 
-              let res = 
-                OASISSection.section_find 
+            let libtest =
+              let res =
+                OASISSection.section_find
                   (`Library, "libtest")
                   pkg.sections
               in
@@ -398,25 +398,25 @@ let tests =
             let meta =
               METAPlugin.generator libtest.cs_data
             in
-              assert_equal 
+              assert_equal
                 ~msg:"field name"
                 ~printer:(fun s -> s)
                 "test" pkg.name;
               assert_equal
                 ~msg:"field XMETAType"
-                ~printer:(function 
+                ~printer:(function
                             | METAPlugin.METASyntax -> "syntax"
                             | METAPlugin.METALibrary -> "library")
                 METAPlugin.METASyntax
                 meta.METAPlugin.meta_type;
-              assert_equal 
+              assert_equal
                 ~msg:"field XMETADescription"
                 ~printer:(function
                             | Some s -> s
                             | None -> "<none>")
                 (Some "this is a test")
                 meta.METAPlugin.description;
-              assert_equal 
+              assert_equal
                 ~msg:"field XMETARequires"
                 ~printer:(function
                             | Some lst -> String.concat ", " lst

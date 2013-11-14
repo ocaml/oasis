@@ -28,18 +28,18 @@ should create files which summarize choices made.  Files are created through
 replacement of variable in files (%.ab -> %).
 
 We rely on `_oasis` file to describe "user choices" (Flag) and "build
-dependencies" (BuildDepends and BuildTools). 
+dependencies" (BuildDepends and BuildTools).
 
 OASIS should provide 2 choices for configure:
 - internal (default): an OCaml module is embedded in the project that perform
-  all this checks, use translated `_oasis` in setup.ml structure. 
+  all this checks, use translated `_oasis` in setup.ml structure.
 - ocaml-autoconf: use translated `_oasis` in configure.ac, output setup.data.
 
 build
 -----
 
 The build phase should build all the project objects. It should take care of
-building native and bytecode object depending on the target system. 
+building native and bytecode object depending on the target system.
 
 OASIS provides 3 choices for build:
 - ocamlbuild (default): use translated `_oasis` files (.mllib, .itarget...) and
@@ -49,12 +49,12 @@ OASIS provides 3 choices for build:
 - OMake: use translated `_oasis` files (TODO)
 
 build phase use configure phase result through a generated file that list
-important variable regarding build process. 
+important variable regarding build process.
 
 test
 ----
 
-The test phase is optional. 
+The test phase is optional.
 TODO
 
 doc

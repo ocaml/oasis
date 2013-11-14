@@ -54,7 +54,8 @@ let add_build_depend build_depend pkg =
        {bs with bs_build_depends = build_depend :: bs.bs_build_depends})
     pkg
 
-let add_build_tool ?(no_test=false) ?(condition=[EBool true, true]) build_tool pkg =
+let add_build_tool ?(no_test=false) ?(condition=[EBool true, true])
+    build_tool pkg =
   let pkg =
     mod_build_depends
       (fun bs ->
@@ -121,8 +122,8 @@ let oasis_version =
 let generator =
   let schm = schema in
 
-  let new_field ?quickstart_level ?quickstart_question ?default nm value hlp sync =
-    new_field schm ?quickstart_level ?quickstart_question ?default nm value hlp sync
+  let new_field ?quickstart_level ?quickstart_question ?default  =
+    new_field schm ?quickstart_level ?quickstart_question ?default
   in
   let new_field_plugin nm ?default ?quickstart_question value hlp sync =
     new_field_plugin schm nm ?default ?quickstart_question value hlp sync
@@ -187,7 +188,8 @@ let generator =
   let license =
     new_field "License"
       OASISLicense.value
-      ~quickstart_question:(fun () -> ExclusiveChoices (OASISLicense.choices ()))
+      ~quickstart_question:(fun () ->
+                              ExclusiveChoices (OASISLicense.choices ()))
       (fun () ->
          (s_ "DEP-5 license of the package \
               (See [DEP-5](http://dep.debian.net/deps/dep5/#index6h3))."))
@@ -296,7 +298,8 @@ let generator =
       ~default:[]
       (* TODO: check that filenames end with .ab *)
       (comma_separated file)
-      (fun () -> s_ "Files to generate using environment variable substitution.")
+      (fun () -> s_ "Files to generate using environment variable \
+                     substitution.")
       (fun pkg -> pkg.files_ab)
   in
   let plugins =

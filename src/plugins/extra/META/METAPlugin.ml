@@ -187,7 +187,8 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
     let t =
       generator cs.cs_data
     in
-      pp_print_sfield fmt ("version", (OASISVersion.string_of_version pkg.version));
+      pp_print_sfield fmt
+        ("version", (OASISVersion.string_of_version pkg.version));
       begin
         let txt =
           match t.description with
@@ -243,11 +244,13 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
                 ("archive", ["syntax"; "byte"], archive_byte);
               may
                 (fun x ->
-                   pp_print_field fmt ("archive", ["syntax"; "byte"; "plugin"], x))
+                   pp_print_field fmt
+                     ("archive", ["syntax"; "byte"; "plugin"], x))
                 archive_byte_plugin;
               begin match bs.bs_compiled_object with
               | Best | Native ->
-                  pp_print_field fmt ("archive", ["syntax"; "native"], archive_native);
+                  pp_print_field fmt
+                    ("archive", ["syntax"; "native"], archive_native);
                   may
                     (fun x ->
                        pp_print_field fmt

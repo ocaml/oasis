@@ -60,11 +60,11 @@ let before_space s =
     String.before s (String.index s ' ')
   with Not_found -> s
 
-(* this lists all supported packages *)
+(* This lists all supported packages. *)
 let find_packages () =
   List.map before_space (split_nl & run_and_read "ocamlfind list")
 
-(* this is supposed to list available syntaxes, but I don't know how to do it. *)
+(* Mock to list available syntaxes. *)
 let find_syntaxes () = ["camlp4o"; "camlp4r"]
 
 (* ocamlfind command *)
@@ -73,9 +73,9 @@ let ocamlfind x = S[A"ocamlfind"; x]
 let dispatch =
   function
     | Before_options ->
-        (* by using Before_options one let command line options have an higher priority *)
-        (* on the contrary using After_options will guarantee to have the higher priority *)
-        (* override default commands by ocamlfind ones *)
+        (* By using Before_options one let command line options have an higher
+         * priority on the contrary using After_options will guarantee to have
+         * the higher priority override default commands by ocamlfind ones *)
         Options.ocamlc     := ocamlfind & A"ocamlc";
         Options.ocamlopt   := ocamlfind & A"ocamlopt";
         Options.ocamldep   := ocamlfind & A"ocamldep";
@@ -84,7 +84,8 @@ let dispatch =
 
     | After_rules ->
 
-        (* When one link an OCaml library/binary/package, one should use -linkpkg *)
+        (* When one link an OCaml library/binary/package, one should use
+         * -linkpkg *)
         flag ["ocaml"; "link"; "program"] & A"-linkpkg";
 
         (* For each ocamlfind package one inject the -package option when
@@ -95,8 +96,8 @@ let dispatch =
             let base_args = [A"-package"; A pkg] in
             let syn_args = [A"-syntax"; A "camlp4o"] in
             let args =
-			  (* heuristic to identify syntax extensions:
-				 whether they end in ".syntax"; some might not *)
+        (* Heuristic to identify syntax extensions: whether they end in
+         * ".syntax"; some might not *)
               if Filename.check_suffix pkg "syntax"
               then syn_args @ base_args
               else base_args
@@ -115,7 +116,8 @@ let dispatch =
         flag ["ocaml"; "compile";  "syntax_"^syntax] & S[A"-syntax"; A syntax];
         flag ["ocaml"; "ocamldep"; "syntax_"^syntax] & S[A"-syntax"; A syntax];
         flag ["ocaml"; "doc";      "syntax_"^syntax] & S[A"-syntax"; A syntax];
-        flag ["ocaml"; "infer_interface"; "syntax_"^syntax] & S[A"-syntax"; A syntax];
+        flag ["ocaml"; "infer_interface"; "syntax_"^syntax] &
+              S[A"-syntax"; A syntax];
         end (find_syntaxes ());
 
         (* The default "thread" tag is not compatible with ocamlfind.

@@ -134,7 +134,8 @@ let check_schema ~ctxt where schm oasis_version data =
                          not (check_is_default schm data fld) then
                    begin
                      OASISMessage.warning ~ctxt
-                       (f_ "Field %s is set but matching plugin is not enabled.")
+                       (f_ "Field %s is set but matching plugin is not \
+                            enabled.")
                        fld;
                      acc
                    end

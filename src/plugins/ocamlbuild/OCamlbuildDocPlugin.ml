@@ -120,7 +120,8 @@ let libraries =
     "Libraries"
     ~default:[]
     (comma_separated findlib_full)
-    (ns_ "Findlib names of internal libraries used to generate the ocamldoc documentation")
+    (ns_ "Findlib names of internal libraries used to generate the ocamldoc \
+          documentation")
     (fun _ t -> t.libraries)
 
 (* TODO: the following 2 options require to edit _tags after OCamlbuildDoc
@@ -131,7 +132,8 @@ let intro =
     ~default:None
     "Intro"
     (opt file)
-    (ns_ "OCamldoc formatted file used to generate index.html of the ocamldoc documentation")
+    (ns_ "OCamldoc formatted file used to generate index.html of the ocamldoc \
+          documentation")
     (fun _ t -> t.intro)
 
 let flags =

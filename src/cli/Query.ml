@@ -167,7 +167,8 @@ let query pkg str =
                      fold_schm (prefix^".") schm data acc)
 
                 (* Start with the package fields *)
-                (fold_schm "" (proplist_schema OASISPackage.schema) pkg.schema_data [])
+                (fold_schm "" (proplist_schema OASISPackage.schema)
+                   pkg.schema_data [])
 
                 (* Continue with section fields *)
                 pkg.sections

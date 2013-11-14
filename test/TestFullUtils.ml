@@ -10,7 +10,7 @@ open TestCommon
 
 type filename = FilePath.filename;;
 
-let exec fn = 
+let exec fn =
   if Sys.os_type = "Win32" then
     fn^".exe"
   else
@@ -19,21 +19,21 @@ let exec fn =
 (* Print a short version of the filename *)
 let fn_printer ~root fn = FilePath.make_relative root fn
 
-module SetFileElement = 
-struct 
+module SetFileElement =
+struct
   type t = filename
-  let compare = 
+  let compare =
     if Sys.os_type = "Win32" then
       (* Win32 FS is case insensitive *)
       (fun a b ->
-         String.compare 
-           (String.lowercase a) 
+         String.compare
+           (String.lowercase a)
            (String.lowercase b))
     else
       String.compare
 
   let pp_printer = Format.pp_print_string
-                     
+
   let pp_print_sep = OUnitDiff.pp_comma_separator
 end
 
@@ -43,34 +43,34 @@ struct
   module Diff = OUnitDiff.SetMake(SetFileElement)
 
   let assert_equal ?msg ~root exp act =
-    Diff.assert_equal ?msg 
+    Diff.assert_equal ?msg
       (Diff.of_list (List.rev_map (fn_printer ~root) (elements exp)))
       (Diff.of_list (List.rev_map (fn_printer ~root) (elements act)))
 end
-module SetFileDigestElement = 
+module SetFileDigestElement =
 struct
   type t = filename * Digest.t
-                        
+
   let compare (f1,d1) (f2, d2) =
     match SetFileElement.compare f1 f2 with
       | 0 -> String.compare d1 d2
       | n -> n
 
-  let pp_printer frmtr (filename, digest) = 
+  let pp_printer frmtr (filename, digest) =
     Format.fprintf frmtr "(%S, %s)" filename (Digest.to_hex digest)
-                     
+
   let pp_print_sep = OUnitDiff.pp_comma_separator
 end
 
-module SetFileDigest = 
-struct 
+module SetFileDigest =
+struct
   include Set.Make(SetFileDigestElement)
   module Diff = OUnitDiff.SetMake(SetFileDigestElement)
 
   let assert_equal ?msg ~root exp act =
-    let convert lst = 
-      Diff.of_list 
-        (List.rev_map 
+    let convert lst =
+      Diff.of_list
+        (List.rev_map
            (fun (fn, digest) ->
               fn_printer ~root fn, digest)
            (elements exp))
@@ -79,14 +79,14 @@ struct
 end
 
 
-let setup_ml = BaseSetup.default_filename 
+let setup_ml = BaseSetup.default_filename
 
 (* List all files in directory *)
 let all_files dir =
   find Is_file dir (fun st fn -> SetFile.add fn st) SetFile.empty
 
 (* Create a set of file/digest of the current directory *)
-let all_file_digests dn = 
+let all_file_digests dn =
   SetFile.fold
     (fun fn st ->
        SetFileDigest.add (fn, Digest.file fn) st)
@@ -97,15 +97,15 @@ let all_file_digests dn =
 let check_file_style test_ctxt fn =
   let chn = open_in fn in
   let line_number = ref 0 in
-  try 
-    while true do 
+  try
+    while true do
       let line = input_line chn in
       incr line_number;
-      non_fatal test_ctxt 
+      non_fatal test_ctxt
         (fun test_ctxt ->
            let strlen = String.length line in
            if strlen > 0 && line.[strlen - 1] = ' ' then
-             assert_failure 
+             assert_failure
                (Printf.sprintf
                   "Found a blank at the end of line in file '%s' line %d: %S"
                   (Filename.basename fn) !line_number line));
@@ -119,7 +119,7 @@ let check_all_files_style test_ctxt dn =
     (fun () fn -> check_file_style test_ctxt fn)
     ()
 
-type t = 
+type t =
     {
       src_dir: filename;
       build_dir: filename;
@@ -144,18 +144,18 @@ let setup_test_directories test_ctxt dn =
   let tmpdir = bracket_tmpdir test_ctxt in
 
   (* Copy sources in this temporary directory. *)
-  let src_dir = 
+  let src_dir =
     OASISFileUtil.cp ~ctxt:oasis_ctxt ~recurse:true dn tmpdir;
     Filename.concat tmpdir (Filename.basename dn)
   in
 
   (* Directory where we store precompiled setup.ml. *)
-  let precompile_dir = 
+  let precompile_dir =
     let dn = Filename.concat tmpdir "precompile" in
       mkdir dn;
       dn
   in
- 
+
   (* Create the build_dir. *)
   let build_dir = Filename.concat tmpdir "build" in
 
@@ -196,7 +196,7 @@ let setup_test_directories test_ctxt dn =
 let in_src_dir t fn = Filename.concat t.src_dir fn
 
 (* Precompile setup.ml to speedup the tests, if possible. *)
-let rec precompile_setup_ml test_ctxt t = 
+let rec precompile_setup_ml test_ctxt t =
   let setup_exe =
     Filename.concat t.precompile_dir (Filename.chop_extension setup_ml)
   in
@@ -218,8 +218,8 @@ let rec precompile_setup_ml test_ctxt t =
       not !hash_load
   in
 
-  let compile () = 
-    let exit_code = 
+  let compile () =
+    let exit_code =
       FileUtil.cp ~force:FileUtil.Force [full_setup_ml] t.precompile_dir;
       Sys.command ("ocamlfind ocamlc -o "^setup_exe^" "
                    ^(Filename.concat t.precompile_dir setup_ml))
@@ -233,7 +233,7 @@ let rec precompile_setup_ml test_ctxt t =
       `Not_possible
     end
   in
-    match t.setup_ml_precompiled with 
+    match t.setup_ml_precompiled with
       | `Not_tried ->
           if can_compile () then begin
             t.setup_ml_precompiled <- compile ()
@@ -258,13 +258,13 @@ let rec precompile_setup_ml test_ctxt t =
 let run_ocaml_setup_ml ?exit_code ?(extra_env=[]) test_ctxt t args =
   (* Speed up for testing, compile setup.ml *)
   let extra_env =
-    ("OCAMLFIND_DESTDIR", t.ocaml_lib_dir) 
+    ("OCAMLFIND_DESTDIR", t.ocaml_lib_dir)
     :: ("OCAMLFIND_LDCONF", "ignore")
     :: extra_env
   in
-    match precompile_setup_ml test_ctxt t with 
+    match precompile_setup_ml test_ctxt t with
       | Some setup_exe ->
-          assert_command ~ctxt:test_ctxt ?exit_code ~extra_env ~chdir:t.src_dir 
+          assert_command ~ctxt:test_ctxt ?exit_code ~extra_env ~chdir:t.src_dir
             setup_exe ("-info" :: "-debug" :: args)
       | None ->
           assert_command ~ctxt:test_ctxt ?exit_code ~extra_env ~chdir:t.src_dir
@@ -273,23 +273,23 @@ let run_ocaml_setup_ml ?exit_code ?(extra_env=[]) test_ctxt t args =
 (* Run a command after setting everything to run using binaries and libraries
    as generated by "ocaml setup.ml -install" of a test project.
  *)
-let assert_command_with_ocaml_env  ?exit_code test_ctxt t cmd args = 
+let assert_command_with_ocaml_env  ?exit_code test_ctxt t cmd args =
   (* Libraries located inside the test directory *)
-  let local_lib_paths = 
+  let local_lib_paths =
     find Is_dir t.lib_dir (fun acc fn -> fn :: acc)
       (find Is_dir t.ocaml_lib_dir (fun acc fn -> fn :: acc) [])
   in
   let env_paths =
     try FilePath.path_of_string (Unix.getenv "PATH") with Not_found -> []
   in
-  let paths, extra_env = 
+  let paths, extra_env =
     if Sys.os_type = "Win32" then begin
       (t.bin_dir :: (local_lib_paths @ env_paths)), []
     end else begin
-      let paths = 
+      let paths =
         t.bin_dir :: env_paths
       in
-      let ld_library_paths = 
+      let ld_library_paths =
         local_lib_paths @
         (try
            FilePath.path_of_string (Unix.getenv "LD_LIBRARY_PATH")
@@ -302,26 +302,26 @@ let assert_command_with_ocaml_env  ?exit_code test_ctxt t cmd args =
         ]
     end
   in
-  let real_cmd = 
-    try 
+  let real_cmd =
+    try
       which ~path:paths cmd
     with Not_found ->
       assert_failure
-        (Printf.sprintf 
+        (Printf.sprintf
            "Command '%s' cannot be found in %s."
            cmd
            (String.concat ";" paths))
   in
   (* Add a path to a path like environment varialbe. *)
-  let add_path nm dir = 
+  let add_path nm dir =
     nm,
-    try 
+    try
       FilePath.string_of_path
         ((FilePath.path_of_string (Sys.getenv nm)) @ [dir])
     with Not_found ->
       dir
   in
-    assert_command 
+    assert_command
       ~ctxt:test_ctxt
       ?exit_code
       ~extra_env:((add_path "OCAMLPATH" t.ocaml_lib_dir)
@@ -338,11 +338,11 @@ let try_installed_exec ?exit_code test_ctxt t cmd args =
   assert_command_with_ocaml_env test_ctxt ?exit_code t cmd args
 
 (* Try to run an installed library. *)
-let try_installed_library test_ctxt t pkg modules = 
+let try_installed_library test_ctxt t pkg modules =
   (* Create a file that contains every modules *)
-  let srcdir = bracket_tmpdir test_ctxt in 
+  let srcdir = bracket_tmpdir test_ctxt in
   let fn = FilePath.concat srcdir ("testZZZ.ml") in
-  let () = 
+  let () =
     (* Fill the file with open statement *)
     let chn_out =
       open_out fn
@@ -358,20 +358,20 @@ let try_installed_library test_ctxt t pkg modules =
       "ocamlfind" (cmd :: "-package" :: pkg :: args)
   in
     (* Library + bytecode compilation *)
-    assert_compile 
+    assert_compile
       "ocamlc" ["-a"; "-o"; FilePath.replace_extension fn "cma"; fn];
 
     (* Program + bytecode compilation *)
-    assert_compile 
+    assert_compile
       "ocamlc" ["-o"; FilePath.replace_extension fn "byte"; fn];
 
     if has_ocamlopt test_ctxt then begin
       (* Library + native compilation *)
-      assert_compile 
+      assert_compile
         "ocamlopt" ["-a"; "-o"; FilePath.replace_extension fn "cmxa"; fn];
 
       (* Program + native compilation *)
-      assert_compile 
+      assert_compile
         "ocamlopt" ["-o"; FilePath.replace_extension fn "native"; fn];
     end
 
@@ -380,21 +380,21 @@ let try_installed_library test_ctxt t pkg modules =
 let oasis_ocamlbuild_files = ["myocamlbuild.ml"; "_tags"]
 
 (* Add files to the list of generated files. *)
-let register_generated_files t lst = 
-  List.iter 
+let register_generated_files t lst =
+  List.iter
     (fun fn ->
        t.generated_files <- SetFile.add (in_src_dir t fn) t.generated_files)
     lst
 
 (* Check presence of generated files. *)
-let check_generated_files t = 
-  let expected_files = 
+let check_generated_files t =
+  let expected_files =
     SetFileDigest.fold
       (fun (fn, _) st -> SetFile.add fn st)
       t.pristine t.generated_files
   in
   (* Check generated files *)
-  SetFile.assert_equal 
+  SetFile.assert_equal
     ~msg:"Generated files"
     ~root:t.src_dir
     expected_files
@@ -411,8 +411,8 @@ let back_to_pristine t =
     t.pristine
     (all_file_digests t.src_dir)
 
-type installed_files = 
-  | InstalledLibrary of filename list 
+type installed_files =
+  | InstalledLibrary of filename list
   | InstalledOCamlLibrary of string * filename list (* lib * files *)
   | InstalledHTML of string * filename list (* lib * files *)
   | InstalledAPIRef of string * string list (* lib * module name *)
@@ -421,7 +421,7 @@ type installed_files =
 
 (* Register a set of files expected to be built. *)
 let register_installed_files test_ctxt t installed_files_lst =
-  let rec file_list = 
+  let rec file_list =
     function
       | InstalledLibrary fn_lst ->
          List.rev_map (FilePath.concat t.lib_dir) fn_lst
@@ -434,23 +434,23 @@ let register_installed_files test_ctxt t installed_files_lst =
            (fun fn -> FilePath.make_filename [t.html_dir; lib; fn])
            fn_lst
       | InstalledAPIRef (lib, modules) ->
-          let files = 
+          let files =
             List.rev_append
               [
-                "index.html"; 
-                "index_attributes.html"; 
-                "index_class_types.html"; 
-                "index_classes.html"; 
-                "index_exceptions.html"; 
-                "index_methods.html"; 
-                "index_module_types.html"; 
-                "index_modules.html"; 
-                "index_types.html"; 
-                "index_values.html"; 
-                "style.css"; 
+                "index.html";
+                "index_attributes.html";
+                "index_class_types.html";
+                "index_classes.html";
+                "index_exceptions.html";
+                "index_methods.html";
+                "index_module_types.html";
+                "index_modules.html";
+                "index_types.html";
+                "index_values.html";
+                "style.css";
               ]
               (List.flatten
-                 (List.rev_map 
+                 (List.rev_map
                     (fun modul ->
                        ["type_"^modul^".html";
                         modul^".html"])
@@ -467,12 +467,12 @@ let register_installed_files test_ctxt t installed_files_lst =
     *)
   let adapt_files_to_platform test_ctxt lst =
     let is_win32 = Sys.os_type = "Win32" in
-    List.fold_left 
+    List.fold_left
       (fun acc fn ->
-         let ext = 
+         let ext =
            try FilePath.get_extension fn with Not_found -> ""
          in
-         match ext with 
+         match ext with
            | "cmx" | "cmxa" when not (has_ocamlopt test_ctxt) ->
                acc
            | "cmxs" when not (has_native_dynlink test_ctxt) ->
@@ -495,11 +495,11 @@ let register_installed_files test_ctxt t installed_files_lst =
                fn :: acc)
       [] lst
   in
-    t.installed_files <- 
-    List.fold_left 
+    t.installed_files <-
+    List.fold_left
       (fun set fn -> SetFile.add fn set)
       t.installed_files
-      (adapt_files_to_platform test_ctxt 
+      (adapt_files_to_platform test_ctxt
          (List.flatten (List.rev_map file_list installed_files_lst)))
 
 (* Check that we have installed everything as expected. *)
@@ -519,14 +519,14 @@ let check_nothing_installed test_ctxt t id =
     (all_files t.build_dir)
 
 (* Extract ocamlbuild flags and check that they are correct. *)
-let check_myocamlbuild_ml test_ctxt t = 
+let check_myocamlbuild_ml test_ctxt t =
   if Sys.file_exists (in_src_dir t "myocamlbuild.ml") then begin
     let () = dbug_file_content test_ctxt (in_src_dir t "myocamlbuild.ml") in
-    let documentation_output = 
+    let documentation_output =
       let buf = Buffer.create 16000 in
-      OUnit2.assert_command 
+      OUnit2.assert_command
         ~chdir:t.src_dir
-        ~ctxt:test_ctxt 
+        ~ctxt:test_ctxt
         ~foutput:(Stream.iter (Buffer.add_char buf))
         "ocamlbuild" ["-documentation"];
       Buffer.contents buf
@@ -534,13 +534,13 @@ let check_myocamlbuild_ml test_ctxt t =
     let lst = OASISUtils.split_newline documentation_output in
     let rst = ref SetString.empty in
     let () =
-      List.iter 
+      List.iter
         (fun line ->
            try
              let _ = "(*" in
              let substr = Pcre.exec ~pat:"flag {\\. (.*) \\.}" line in
-             let lst = 
-               Pcre.split ~pat:"\\s*,\\s*" 
+             let lst =
+               Pcre.split ~pat:"\\s*,\\s*"
                  (Pcre.get_substring substr 1)
              in
                rst :=
@@ -554,16 +554,16 @@ let check_myocamlbuild_ml test_ctxt t =
     in
       if !rst = SetString.empty then
         assert_failure ("Set of flags should not be empty.");
-      SetString.iter 
+      SetString.iter
         (fun flag ->
-           String.iter 
+           String.iter
              (function
-                | 'A'..'Z' | 'a'..'z' | '0'..'9' 
-                | '_' | '.' | ':' | '-' | '(' | ')' -> 
+                | 'A'..'Z' | 'a'..'z' | '0'..'9'
+                | '_' | '.' | ':' | '-' | '(' | ')' ->
                     ()
                 | c ->
-                    assert_failure 
-                      (Printf.sprintf 
+                    assert_failure
+                      (Printf.sprintf
                          "flag %S contains %C which is illegal."
                          flag c))
              flag)
@@ -571,12 +571,12 @@ let check_myocamlbuild_ml test_ctxt t =
   end
 
 (* If a _tags file exists, try to test its content. *)
-let check_tags test_ctxt t = 
+let check_tags test_ctxt t =
   if Sys.file_exists (in_src_dir t "_tags") then begin
     let () =
      dbug_file_content test_ctxt (in_src_dir t "_tags")
     in
-    let _, lst = 
+    let _, lst =
       List.fold_right
         (fun line (lineno, lst) -> lineno + 1, (lineno, line) :: lst)
         (OASISString.nsplit (file_content (in_src_dir t "_tags")) '\n')
@@ -612,9 +612,9 @@ let check_tags test_ctxt t =
   end
 
 (* Run oasis setup and fix generated files accordingly. *)
-let oasis_setup ?(dev=false) ?(dynamic=false) test_ctxt t = 
+let oasis_setup ?(dev=false) ?(dynamic=false) test_ctxt t =
    (* Create build system using OASIS *)
-   assert_oasis_cli     
+   assert_oasis_cli
      ~ctxt:test_ctxt
      ~chdir:t.src_dir
      ("setup" ::
@@ -630,20 +630,20 @@ let oasis_setup ?(dev=false) ?(dynamic=false) test_ctxt t =
    if dynamic then begin
      let load lst =
        let cma =
-         FilePath.make_filename 
+         FilePath.make_filename
            ([FileUtil.pwd (); ".."; "_build"; "src"] @ lst)
        in
        Printf.sprintf "#load %S;;\n#directory %S;;" cma (Filename.dirname cma)
      in
-     let orig_lst = 
-       OASISString.nsplit 
+     let orig_lst =
+       OASISString.nsplit
          (file_content (in_src_dir t setup_ml))
          '\n'
      in
      let fixed_lst =
        List.fold_left
          (fun fixed_lst line ->
-            match line with 
+            match line with
             | "#require \"oasis.dynrun\";;" ->
                 List.rev_append
                   [
@@ -663,7 +663,7 @@ let oasis_setup ?(dev=false) ?(dynamic=false) test_ctxt t =
      in
      let chn = open_out (in_src_dir t setup_ml) in
        List.iter
-         (fun line -> 
+         (fun line ->
             output_string chn line;
             output_char chn '\n')
          (List.rev fixed_lst);
@@ -673,7 +673,7 @@ let oasis_setup ?(dev=false) ?(dynamic=false) test_ctxt t =
 
    check_all_files_style test_ctxt t.src_dir
 
-let standard_checks test_ctxt t = 
+let standard_checks test_ctxt t =
   check_generated_files t;
   check_tags test_ctxt t
 
@@ -693,7 +693,7 @@ let standard_test test_ctxt t =
   run_ocaml_setup_ml test_ctxt t
       ["-configure"; "--prefix";  t.build_dir; "--docdir";  t.doc_dir;
        "--htmldir"; t.html_dir];
-  assert_bool "File 'setup.data' has been created" 
+  assert_bool "File 'setup.data' has been created"
     (Sys.file_exists (in_src_dir t "setup.data"));
 
   (* Run build target *)
@@ -715,13 +715,13 @@ let standard_test test_ctxt t =
   run_ocaml_setup_ml test_ctxt t ["-install"];
   check_installed_files test_ctxt t "1st install";
   run_ocaml_setup_ml test_ctxt t ["-uninstall"];
-  check_nothing_installed test_ctxt t "1st uninstall"; 
+  check_nothing_installed test_ctxt t "1st uninstall";
 
   (* 2nd install *)
   run_ocaml_setup_ml test_ctxt t ["-install"];
   check_installed_files test_ctxt t "2nd install";
   run_ocaml_setup_ml test_ctxt t ["-uninstall"];
-  check_nothing_installed test_ctxt t "2nd uninstall"; 
+  check_nothing_installed test_ctxt t "2nd uninstall";
 
   (* Run install/uninstall target with destdir *)
   if Sys.os_type <> "Win32" then begin
@@ -737,16 +737,16 @@ let standard_test test_ctxt t =
            mkdir ~parent:true (FilePath.make_filename (destdir :: lst)))
         [
           ["bin"];
-          ["lib"; "ocaml"]; 
+          ["lib"; "ocaml"];
           ["share"; "doc"; "html"]
         ]
     in
     let t =
-      {t with 
+      {t with
            (* This will change OCAMLPATH as well when running setup.ml. *)
            ocaml_lib_dir = FilePath.make_filename [destdir; "lib"; "ocaml"]}
     in
-      run_ocaml_setup_ml test_ctxt t 
+      run_ocaml_setup_ml test_ctxt t
         ~extra_env:["destdir", destdir] ["-install"];
 
       assert_equal

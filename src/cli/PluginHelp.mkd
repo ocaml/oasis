@@ -1,17 +1,17 @@
-This subcommand list available plugins on the system. 
+This subcommand list available plugins on the system.
 
 TODO: most of the plugins listed here are not yet released.
 
-There are two kind of plugin: 
+There are two kind of plugin:
 
 * command line plugins: they create subcommand for the command line interface
   of `oasis`. For example, the subcommand `oasis install pkg_name` is provided
-  by the plugin `install`. You can load them using 
+  by the plugin `install`. You can load them using
   `oasis --plugin-cli install ...`.
-* plugin that are used in `_oasis`: these plugins help to process the content 
+* plugin that are used in `_oasis`: these plugins help to process the content
   of an `_oasis` file. They generate additional content in `setup.ml` and so on.
   You don't have to load them, they will be automatically loaded when they are
-  found in the `_oasis` file. For example `Plugins: AutoGenerate (0.1)` in the 
+  found in the `_oasis` file. For example `Plugins: AutoGenerate (0.1)` in the
   `_oasis` file will trigger the load of the plugin `autogenerate`.
 
 The plugin system of `oasis` use findlib to detect plugins, so you must instal

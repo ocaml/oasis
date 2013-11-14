@@ -44,7 +44,8 @@ type command_line  = (prog * args) (** Command line. *)
 (** Package name for findlib, doesn't contain '.'. *)
 type findlib_name = string
 
-(** Package name + path for findlib, made of several findlib name concatenated with '.'. *)
+(** Package name + path for findlib, made of several findlib name concatenated
+    with '.'. *)
 type findlib_full = string
 
 (** {2 OASIS package definition} *)
@@ -414,9 +415,9 @@ type package =
   *)
 type 'a quickstart_level =
   | NoChoice of 'a (** Don't ask question, use provided value. *)
-  | Beginner       (** Ask the question to an OASIS beginner and above. *)
-  | Intermediate   (** Ask the question to an intermediate OASIS user and above. *)
-  | Expert         (** Ask the question to an OASIS expert. *)
+  | Beginner       (** Ask the question to a beginner and above. *)
+  | Intermediate   (** Ask the question to an intermediate user and above. *)
+  | Expert         (** Ask the question to an expert. *)
 
 (** Howto ask questions in quickstart. {b Not exported}.
   *)

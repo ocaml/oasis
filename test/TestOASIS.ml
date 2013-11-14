@@ -38,17 +38,17 @@ let tests =
   (* Check flag equality *)
   let assert_flag nm pkg =
     try
-      let _ = 
-        List.find 
+      let _ =
+        List.find
           (function
              | Flag (cs, _) -> cs.cs_name = nm
-             | _ -> false) 
+             | _ -> false)
           pkg.sections
       in
         ()
     with Not_found ->
-      assert_failure 
-        (Printf.sprintf 
+      assert_failure
+        (Printf.sprintf
            "No flag '%s' defined"
            nm)
   in
@@ -74,32 +74,32 @@ let tests =
         assert_failure msg
   in
 
-  let check_one (fn, test) = 
+  let check_one (fn, test) =
      let pkg =
-       from_file 
-         ~ctxt:{oasis_ctxt with 
-                    OASISContext.ignore_plugins = true} 
+       from_file
+         ~ctxt:{oasis_ctxt with
+                    OASISContext.ignore_plugins = true}
          fn
      in
        test pkg
   in
 
-  let test_file_of_vector (fn, test) = 
+  let test_file_of_vector (fn, test) =
     fn >::
     (fun test_ctxt ->
        check_one (in_testdata_dir test_ctxt [fn], test))
   in
 
-  let test_value_parser_of_vector (str, value_parse, fail) = 
+  let test_value_parser_of_vector (str, value_parse, fail) =
     str >::
     (fun test_ctxt ->
        try
-         ( 
-           let _s : comparator = 
+         (
+           let _s : comparator =
              value_parse str
            in
              if fail then
-               assert_failure 
+               assert_failure
                  (Printf.sprintf "Parsing '%s' should have failed" str)
          )
        with _ ->
@@ -112,7 +112,7 @@ let tests =
 
   let printer_optional_string =
     function
-      | Some str -> 
+      | Some str ->
           Printf.sprintf "%S" str
       | None ->
           "<none>"
@@ -121,11 +121,11 @@ let tests =
     "OASIS" >:::
     [
       "ValueParser" >:::
-      (List.map test_value_parser_of_vector 
-         (List.map 
-            (fun (v, f) -> 
-               (v, 
-                OASISVersion.comparator_value.parse 
+      (List.map test_value_parser_of_vector
+         (List.map
+            (fun (v, f) ->
+               (v,
+                OASISVersion.comparator_value.parse
                   ~ctxt:oasis_ctxt,
                 f))
             [
@@ -142,7 +142,7 @@ let tests =
       );
 
       "File" >:::
-      (List.map test_file_of_vector 
+      (List.map test_file_of_vector
          [
            "test1.oasis",
            (fun pkg ->
@@ -166,10 +166,10 @@ let tests =
 
            "test4.oasis",
            ignore;
-           
+
            "test5.oasis",
            ignore;
-           
+
            "test6.oasis",
            ignore;
 
@@ -203,7 +203,7 @@ let tests =
                           (match lib with
                              | InternalLibrary s -> s
                              | FindlibPackage (s, _) -> s))
-                       (List.mem 
+                       (List.mem
                           lib
                           deps))
                   ((List.map
@@ -217,23 +217,23 @@ let tests =
            "test10.oasis",
            (fun pkg ->
               let flag_test =
-                match OASISSection.section_find 
-                        (`Flag, "test") 
+                match OASISSection.section_find
+                        (`Flag, "test")
                         pkg.sections with
                   | Flag (_, e) -> e
                   | _ -> assert false
               in
               let test_main =
-                match OASISSection.section_find 
-                        (`Test, "main") 
-                        pkg.sections with 
+                match OASISSection.section_find
+                        (`Test, "main")
+                        pkg.sections with
                   | Test (_, e)-> e
                   | _ -> assert false
               in
               let choose_with_env ?(vars=[]) v =
-                OASISExpr.choose 
-                  (fun nm -> 
-                     try 
+                OASISExpr.choose
+                  (fun nm ->
+                     try
                        List.assoc nm vars
                      with Not_found ->
                        failwith ("Unable to find var "^nm))
@@ -243,19 +243,19 @@ let tests =
                   ~msg:"Default for flag 'test' when os_type='win32'"
                   ~printer:string_of_bool
                   true
-                  (choose_with_env 
-                     ~vars:["os_type", "win32"] 
+                  (choose_with_env
+                     ~vars:["os_type", "win32"]
                      flag_test.flag_default);
 
                 assert_equal
                   ~msg:"Default for flag 'test' when os_type='linux'"
                   ~printer:string_of_bool
                   false
-                  (choose_with_env 
-                     ~vars:["os_type", "linux"] 
+                  (choose_with_env
+                     ~vars:["os_type", "linux"]
                      flag_test.flag_default);
 
-               assert_equal 
+               assert_equal
                  ~msg:"Default for authors"
                  ~printer:(String.concat ", ")
                  ["Sylvain Le Gall"; "Another one"]
@@ -305,7 +305,8 @@ let tests =
               assert_equal
                 ~printer:printer_optional_string
                 (Some
-                   "Thin bindings to various low-level system APIs (often non-portable)\n\
+                   "Thin bindings to various low-level system APIs \
+                    (often non-portable)\n\
                     which are not covered by Unix module.\n\
                     \n\
                     Example functions:\n\
@@ -319,8 +320,8 @@ let tests =
                    "Foo is a great library for:\n\
                     \ * pattern matching\n\
                     \ * GC")
-                (match OASISSection.section_find 
-                         (`Doc, "foo") 
+                (match OASISSection.section_find
+                         (`Doc, "foo")
                          pkg.sections with
                    | Doc (_, doc) ->
                        doc.doc_abstract
@@ -353,9 +354,9 @@ let tests =
            "bug1239/_oasis",
            (fun pkg ->
               let template_by_fn l fn =
-                try 
+                try
                   Some (List.find (fun t -> t.OASISFileTemplate.fn = fn) l)
-                with Not_found -> 
+                with Not_found ->
                   None
               in
               let template_body x =
@@ -364,28 +365,30 @@ let tests =
                   | OASISFileTemplate.Body l -> l
                   | OASISFileTemplate.BodyWithDigest (_,l) -> l
               in
-              let initial_ctxt = { 
+              let initial_ctxt = {
                 OASISPlugin.ctxt = OASISContext.quiet ;
                 error = false ;
                 files = OASISFileTemplate.empty ;
                 other_actions = []
               }
               in
-              let ctxt = OCamlbuildPlugin.add_ocamlbuild_files initial_ctxt pkg in
-              let templates =
-                OASISFileTemplate.fold 
-                  (fun t accu -> t :: accu) 
-                  ctxt.OASISPlugin.files [] 
+              let ctxt =
+                OCamlbuildPlugin.add_ocamlbuild_files initial_ctxt pkg
               in
-              let mllib = 
+              let templates =
+                OASISFileTemplate.fold
+                  (fun t accu -> t :: accu)
+                  ctxt.OASISPlugin.files []
+              in
+              let mllib =
                 match template_by_fn templates "src/bar/bar.mllib" with
-                  | None -> 
-                      let msg = 
-                        Printf.sprintf 
+                  | None ->
+                      let msg =
+                        Printf.sprintf
                           "Missing mllib file for packed library bar, \
                            here is the list of generated files:\n%s\n"
-                          (String.concat "\n" 
-                             (List.map 
+                          (String.concat "\n"
+                             (List.map
                                 (fun t -> t.OASISFileTemplate.fn)
                                 templates))
                       in
@@ -393,10 +396,12 @@ let tests =
                   | Some x -> x
               in
                 assert_equal
-                  ~msg:"The mllib of a packed library should contain the name of the pack"
-                  ~printer:(fun x -> 
+                  ~msg:"The mllib of a packed library should contain the name \
+                        of the pack"
+                  ~printer:(fun x ->
                               Printf.sprintf "[ %s ]"
-                                (String.concat " ; " (List.map (Printf.sprintf "%S") x)))
+                                (String.concat " ; "
+                                   (List.map (Printf.sprintf "%S") x)))
                   [ "Bar" ]
                   (template_body mllib)
            )
@@ -405,17 +410,17 @@ let tests =
       [
         "Examples" >::
         (fun test_ctxt ->
-           let lst_examples = 
-             (find 
+           let lst_examples =
+             (find
                 (* Collect _oasis in examples/ *)
-                (Basename_is "_oasis") 
+                (Basename_is "_oasis")
                 (example_dir test_ctxt)
-                (fun a e -> e :: a) 
+                (fun a e -> e :: a)
                 [])
              @
-             (filter 
+             (filter
                 (* Collect examples/oasis/*.oasis *)
-                (Has_extension "oasis") 
+                (Has_extension "oasis")
                 (ls (example_dir test_ctxt)))
            in
              List.iter (fun fn -> check_one (fn, ignore)) lst_examples);

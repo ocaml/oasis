@@ -164,7 +164,8 @@ let build t pkg argv =
                      List.map
                        (function
                           | BaseBuilt.BExec, nm, lst when nm = cs.cs_name ->
-                              BaseBuilt.BExec, nm, [[in_build_dir_of_unix unix_tgt]]
+                              BaseBuilt.BExec, nm,
+                              [[in_build_dir_of_unix unix_tgt]]
                           | ev ->
                               ev)
                        evs
@@ -323,7 +324,8 @@ let bs_paths bs files =
       (set_string_of_list
          (List.rev_map OASISUnixPath.reduce (bs.bs_path :: subdirs)))
 
-let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t myocamlbuild_t =
+let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t
+      myocamlbuild_t =
 
   let link_pkg =
     (* Only link findlib package with executable *)
@@ -832,7 +834,8 @@ let add_ocamlbuild_files ctxt pkg =
                    let mllib = OASISHostPath.add_extension fn_base "mllib" in
                    let mlpack = OASISHostPath.add_extension fn_base "mlpack" in
                    let mllib_template_lines =
-                     (* mllib contains either the name of the pack or the list of modules*)
+                     (* mllib contains either the name of the pack or the list
+                      * of modules. *)
                      if lib.lib_pack then
                        [ String.capitalize cs.cs_name ]
                      else
@@ -1040,13 +1043,14 @@ let add_ocamlbuild_files ctxt pkg =
       pkg.sections
   in
 
-  (* Filter duplicate and reverse content in tag_t *)
+  (* Filter duplicate and reverse content in tag_t. *)
   let tag_t =
     snd
       (List.fold_left
          (fun (prev_tag, acc) tag ->
-            if (String.length tag > 0 && tag.[0] = '#') || (* Don't remove comment *)
-               not (SetString.mem tag prev_tag) then (* Remove already seen tag *)
+            (* Don't remove comment but remove already seen tag. *)
+            if (String.length tag > 0 && tag.[0] = '#') ||
+               not (SetString.mem tag prev_tag) then
               (
                 SetString.add tag prev_tag,
                 tag :: acc
@@ -1159,7 +1163,8 @@ let doit ctxt pkg =
     ctxt,
     {
       chng_moduls       = [OCamlbuildData.ocamlbuildsys_ml];
-      chng_main         = ODNFunc.func_with_arg build "OCamlbuildPlugin.build" t odn_of_ocamlbuild_plugin;
+      chng_main         = ODNFunc.func_with_arg build
+                            "OCamlbuildPlugin.build" t odn_of_ocamlbuild_plugin;
       chng_clean        = Some (ODNFunc.func clean "OCamlbuildPlugin.clean");
       chng_distclean    = None;
     }

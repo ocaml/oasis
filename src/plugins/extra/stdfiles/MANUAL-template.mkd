@@ -1,5 +1,5 @@
 This plugin generates standard files like `README.txt`, `INSTALL.txt` and
-`AUTHORS.txt`. These files will summarize data contains in `_oasis`. 
+`AUTHORS.txt`. These files will summarize data contains in `_oasis`.
 
 The `.txt` extension has been added to allow easy editing/viewing under Windows
 and other system that look for extension to determine file type.

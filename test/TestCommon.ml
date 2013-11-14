@@ -35,7 +35,7 @@ module Gettext =
     (GettextStub.Native)
 ELSE
 module Gettext =
-struct 
+struct
   let init = [], ""
 end
 ENDIF
@@ -59,13 +59,13 @@ let has_native_dynlink =
 
 let oasis_exec = Conf.make_exec "oasis"
 
-let oasis_args ctxt = 
+let oasis_args ctxt =
   (* TODO: add make_string_list to OUnit2. *)
   []
 
 let oasis_ctxt = OASISContext.quiet
 
-let long = 
+let long =
   Conf.make_bool
     "long"
     true
@@ -75,8 +75,8 @@ let skip_long_test ctxt =
   skip_if (not (long ctxt)) "Long test."
 
 
-let example_dir = 
-  let value = 
+let example_dir =
+  let value =
     Conf.make_string
       "example_dir"
       "../examples/"
@@ -89,10 +89,10 @@ let example_dir =
         else
           fn
 
-let in_example_dir test_ctxt lst = 
+let in_example_dir test_ctxt lst =
   FilePath.make_filename ((example_dir test_ctxt) :: lst)
 
-module Output = 
+module Output =
 struct
  type t = string
  let compare = String.compare
@@ -104,14 +104,15 @@ module DiffSetOutput = OUnitDiff.SetMake (Output)
 module DiffListOutput = OUnitDiff.ListSimpleMake (Output)
 
 (* Assert checking that command run well *)
-let assert_command ~ctxt ?chdir ?exit_code ?output ?extra_env ?(unorder=false) cmd args =
-  let foutput = 
-    match output with 
+let assert_command ~ctxt ?chdir ?exit_code ?output ?extra_env ?(unorder=false)
+      cmd args =
+  let foutput =
+    match output with
       | Some exp_output ->
-          let foutput strm = 
-            let output = 
-              let buff = 
-                Buffer.create 13 
+          let foutput strm =
+            let output =
+              let buff =
+                Buffer.create 13
               in
                 Stream.iter (Buffer.add_char buff) strm;
                 Buffer.contents buff
@@ -121,7 +122,7 @@ let assert_command ~ctxt ?chdir ?exit_code ?output ?extra_env ?(unorder=false) c
 
             let assert_equal_diff ~msg t1 t2 =
               if unorder then
-                DiffSetOutput.assert_equal 
+                DiffSetOutput.assert_equal
                   ~msg
                   (DiffSetOutput.of_list t1)
                   (DiffSetOutput.of_list t2)
@@ -132,31 +133,31 @@ let assert_command ~ctxt ?chdir ?exit_code ?output ?extra_env ?(unorder=false) c
                   (DiffListOutput.of_list t2)
             in
               assert_equal_diff
-                ~msg:(Printf.sprintf "'%s' command output" 
+                ~msg:(Printf.sprintf "'%s' command output"
                         (String.concat " " (cmd :: args)))
                 exp_output
                 rel_output
           in
             Some foutput
 
-      | None -> 
+      | None ->
           None
   in
-  let env = 
-    let readd lst nm = 
-      try 
+  let env =
+    let readd lst nm =
+      try
         (nm^"="^(Sys.getenv nm)) :: lst
       with Not_found ->
         lst
     in
     let min_env =
-      if Sys.os_type = "Win32" then 
+      if Sys.os_type = "Win32" then
         Array.to_list (Unix.environment ())
       else
         List.fold_left readd [] ["PATH"; "OCAMLPATH"]
     in
-    let extra_env = 
-      match extra_env with 
+    let extra_env =
+      match extra_env with
         | Some lst ->
             List.map (fun (k,v) -> k^"="^v) lst
 
@@ -165,7 +166,7 @@ let assert_command ~ctxt ?chdir ?exit_code ?output ?extra_env ?(unorder=false) c
     in
       Some (Array.of_list (extra_env @ min_env))
   in
-    assert_command 
+    assert_command
       ~ctxt ?chdir ?foutput ?env ?exit_code ~use_stderr:true
       cmd args
 
@@ -183,5 +184,5 @@ let file_content fn =
     Buffer.contents buff
 
 let dbug_file_content test_ctxt fn =
-  logf test_ctxt `Info "Content of %S:" fn; 
+  logf test_ctxt `Info "Content of %S:" fn;
   logf test_ctxt `Info "%s" (file_content fn)

@@ -5,7 +5,7 @@ The configure part take care of checking:
 
  * Tools availability (ocamlfind, ocamlc et al)
  * OCaml version
- * Findlib packages 
+ * Findlib packages
 
 The install part take care of installing executables, libraries and data files
 using standard environment variable (`\$bindir`, `\$datadir` et al).

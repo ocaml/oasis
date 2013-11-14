@@ -27,10 +27,10 @@ open BaseEnv
 
 let generated_fn = OASISHostPath.of_unix "src/cli/PluginsLoaded.ml"
 
-let post_configure pkg = 
+let post_configure pkg =
   (* Compute build depends *)
   let _, findlib_of_name, _ =
-    OASISFindlib.findlib_mapping pkg 
+    OASISFindlib.findlib_mapping pkg
   in
   let mp_int, set_ext =
     (* Collect dependencies and external dependencies from the package. *)
@@ -42,15 +42,15 @@ let post_configure pkg =
                  let deps, set_ext =
                    List.fold_left
                      (fun (deps, set_ext) sct ->
-                        let deps = 
-                          match sct with 
+                        let deps =
+                          match sct with
                             | InternalLibrary nm ->
                                 SetString.add (findlib_of_name nm) deps
                             | FindlibPackage (fndlb_pkg, _) ->
                                 SetString.add fndlb_pkg deps
                         in
                         let set_ext =
-                          match sct with 
+                          match sct with
                             | InternalLibrary _ ->
                                 set_ext
                             | FindlibPackage (fndlb_pkg, _) ->
@@ -60,7 +60,7 @@ let post_configure pkg =
                        (SetString.empty, set_ext)
                        bs.bs_build_depends
                  in
-                   MapString.add (findlib_of_name cs.cs_name) deps mp_int, 
+                   MapString.add (findlib_of_name cs.cs_name) deps mp_int,
                    set_ext
                end
            | Executable (cs, bs, exec) when var_choose bs.bs_build ->
@@ -81,13 +81,13 @@ let post_configure pkg =
       (MapString.empty, SetString.empty)
       pkg.sections
   in
-  let mp = 
+  let mp =
     (* Expand external dependencies. *)
     SetString.fold
       (fun fndlb_nm mp ->
          let lst =
            OASISExec.run_read_output ~ctxt:!BaseContext.default
-             "ocamlfind" 
+             "ocamlfind"
              ["query"; fndlb_nm; "-recursive"; "-p-format"]
          in
          let set_deps = List.fold_right SetString.add lst SetString.empty in
@@ -99,47 +99,59 @@ let post_configure pkg =
       begin
         let visited = SetString.add nm visited in
         let set =
-          try  
+          try
             MapString.find nm mp
           with Not_found ->
             SetString.empty
         in
           SetString.fold transitive_closure set visited
       end
-    else 
+    else
       visited
   in
   let chn = open_out generated_fn in
+  let fmt = Format.formatter_of_out_channel chn in
+    Format.fprintf fmt "@[<v>";
     List.iter
-      (function 
+      (function
          | Executable (cs, bs, _) ->
              let st =
                List.fold_left
                  (fun st ->
-                    function 
+                    function
                       | InternalLibrary nm ->
                           transitive_closure (findlib_of_name nm) st
                       | FindlibPackage (fndlb_nm, _) ->
                           transitive_closure fndlb_nm st)
                  SetString.empty bs.bs_build_depends
              in
-               Printf.fprintf chn
-                 "let exec_%s_build_depends_rec = [%s]\n" 
-                 (OASISUtils.varname_of_string cs.cs_name)
-                 (String.concat "; "
-                    (List.rev_map (Printf.sprintf "%S") (SetString.elements st)))
+             let first = ref true in
+               Format.fprintf fmt
+                 "let exec_%s_build_depends_rec = [@[<hv>"
+                 (OASISUtils.varname_of_string cs.cs_name);
+               List.iter
+                 (fun str ->
+                    if !first then begin
+                      Format.fprintf fmt "%s" str;
+                      first := false
+                    end else begin
+                      Format.fprintf fmt ";@ %s" str
+                    end)
+                 (List.rev (SetString.elements st));
+               Format.fprintf fmt "@]]@,"
          | _ ->
              ())
       pkg.sections;
+    Format.fprintf fmt "@]@?";
     close_out chn
 
-let setup_t = 
-  {setup_t with 
-       BaseSetup.configure = 
+let setup_t =
+  {setup_t with
+       BaseSetup.configure =
          (fun pkg args ->
             setup_t.BaseSetup.configure pkg args;
             post_configure pkg);
-       BaseSetup.distclean = 
+       BaseSetup.distclean =
          (fun pkg args -> Sys.remove generated_fn)
          :: setup_t.BaseSetup.distclean}
 

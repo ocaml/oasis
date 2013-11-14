@@ -43,7 +43,7 @@ let tests =
      in
 
      let assert_equal_int =
-       assert_equal 
+       assert_equal
          ~printer:string_of_int
      in
 

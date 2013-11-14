@@ -249,7 +249,8 @@ let parse_stream conf st =
                             while !pos < String.length str &&
                                   is_blank str.[!pos] do
                               use_tab   := str.[!pos] = '\t' || !use_tab;
-                              use_space := not (str.[!pos] = '\t') || !use_space;
+                              use_space := (not (str.[!pos] = '\t')
+                                              || !use_space);
                               incr pos
                             done;
                             !pos, !use_tab, !use_space
@@ -258,7 +259,8 @@ let parse_stream conf st =
                           if use_space && use_tab then
                             begin
                               warning
-                                (f_ "Mixed use of '\\t' and ' ' to indent lines %s")
+                                (f_ "Mixed use of '\\t' and ' ' to indent \
+                                     lines %s")
                                 (position lineno charstart);
                               only_tab
                             end
@@ -268,11 +270,13 @@ let parse_stream conf st =
                                 | Some use_tab_before ->
                                     if use_tab_before && not use_tab then
                                       warning
-                                        (f_ "Use of ' ' but '\\t' was used before to indent lines %s")
+                                        (f_ "Use of ' ' but '\\t' was used \
+                                             before to indent lines %s")
                                         (position lineno charstart);
                                     if not use_tab_before && use_tab then
                                       warning
-                                        (f_ "Use of '\\t' but ' ' was used before to indent lines %s")
+                                        (f_ "Use of '\\t' but ' ' was used \
+                                             before to indent lines %s")
                                         (position lineno charstart);
 
                                     only_tab
@@ -333,7 +337,8 @@ let parse_stream conf st =
                        done
                      in
                      let line_begin =
-                       RealLine (lineno, charstart, String.sub str 0 (colon_pos + 1))
+                       RealLine (lineno, charstart,
+                                 String.sub str 0 (colon_pos + 1))
                      in
                      let acc =
                        if !pos < String.length str then

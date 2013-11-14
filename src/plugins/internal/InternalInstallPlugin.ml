@@ -103,10 +103,11 @@ let split_install_command ocamlfind findlib_name meta files =
                     in
                       if not findlib_ge_132 then
                         failwithf
-                          (f_ "Installing the library %s require to use the flag \
-                               '-add' of ocamlfind because the command line is too \
-                                long. This flag is only available for findlib 1.3.2. \
-                                Please upgrade findlib from %s to 1.3.2")
+                          (f_ "Installing the library %s require to use the \
+                               flag '-add' of ocamlfind because the command \
+                               line is too long. This flag is only available \
+                               for findlib 1.3.2. Please upgrade findlib from \
+                               %s to 1.3.2")
                           findlib_name (BaseStandardVar.findlib_version ())
                   in
                   let cmds = split other_args others in

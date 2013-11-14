@@ -60,7 +60,8 @@ val of_executable :
   (unix_filename -> host_filename) ->
   common_section * build_section *
   executable ->
-  (t * name * host_filename list list) list * unix_filename * unix_filename option
+  (t * name * host_filename list list) list *
+  unix_filename * unix_filename option
 
 (** [of_library loc_fn (cs, bs, lib)]  Same as {!of_executable}, but
     using {!OASISLibrary.generated_unix_files}.

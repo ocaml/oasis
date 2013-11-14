@@ -54,8 +54,8 @@ type t =
   | ENot of t      (** ! e *)
   | EAnd of t * t  (** e1 && e2 *)
   | EOr of t * t   (** e1 || e2 *)
-  | EFlag of flag  (** flag(foo), a boolean value *)
-  | ETest of test * string (** os_type(Win32), a value compared against provided string *)
+  | EFlag of flag  (** flag(foo), a boolean value. *)
+  | ETest of test * string (** os_type(Win32), a value compared to a string. *)
 
 (** Choose among different values
   *)

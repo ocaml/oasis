@@ -29,14 +29,14 @@ open OASISFileTemplate
 
 let tests =
 
-  let test_of_vector (fn, content_lst, comment_fmt) = 
+  let test_of_vector (fn, content_lst, comment_fmt) =
     fn >::
     (fun test_ctxt ->
        let real_fn = in_testdata_dir test_ctxt [fn] in
        let tmpdir = bracket_tmpdir test_ctxt in
        let expected_fn = real_fn ^ "-exp" in
 
-       let tmp_fn = 
+       let tmp_fn =
          (* Copy file to temporary. *)
          if Sys.file_exists real_fn then
            FileUtil.cp [real_fn] tmpdir;
@@ -44,30 +44,30 @@ let tests =
        in
 
        let chng: file_generate_change =
-         file_generate 
+         file_generate
            ~ctxt:oasis_ctxt
            ~backup:true
            (template_of_string_list
               ~ctxt:oasis_ctxt
               ~template:true
-              tmp_fn 
+              tmp_fn
               comment_fmt
               content_lst)
        in
-         assert_equal 
+         assert_equal
            ~msg:"File content"
            ~printer:(Printf.sprintf "%S")
            (file_content expected_fn)
            (file_content tmp_fn);
-         
+
          file_rollback ~ctxt:oasis_ctxt chng;
 
          if Sys.file_exists real_fn then begin
-           assert_equal 
+           assert_equal
              ~msg:"File content back to pristine."
              (file_content real_fn)
              (file_content tmp_fn);
-           
+
            FileUtil.rm [tmp_fn];
          end;
 
@@ -81,45 +81,45 @@ let tests =
   (
     List.map test_of_vector
       [
-        "filetemplate1.txt", 
+        "filetemplate1.txt",
         [
           "toto";
           "# OASIS_START ";
           "# OASIS_STOP ";
-        ], 
+        ],
         comment_sh;
 
-        "filetemplate2.txt", 
+        "filetemplate2.txt",
         [
           "toto";
           "# OASIS_START ";
           "# OASIS_STOP ";
-        ], 
+        ],
         comment_sh;
 
-        "filetemplate3.txt", 
+        "filetemplate3.txt",
         [
           "toto";
           "# OASIS_START ";
           "# OASIS_STOP ";
-        ], 
+        ],
         comment_sh;
 
-        "filetemplate4.txt", 
+        "filetemplate4.txt",
         [
           "toto";
           "# OASIS_START ";
           "# OASIS_STOP ";
-        ], 
+        ],
         comment_sh;
 
-        "filetemplate5.txt", 
+        "filetemplate5.txt",
         [
           "toto";
           "# OASIS_START ";
           "tata";
           "# OASIS_STOP ";
-        ], 
+        ],
         comment_sh;
       ]
   )
@@ -127,13 +127,13 @@ let tests =
   [
     "Keep file rights" >::
     (fun test_ctxt ->
-       let () = 
+       let () =
          skip_if (Sys.os_type = "Win32") "UNIX only test"
        in
        (* TODO: temporary directory and ensure to keep the same right. *)
        let fn, chn = bracket_tmpfile test_ctxt in
        let () =
-         output_string 
+         output_string
            chn
            "# OASIS_START\n\
             # OASIS_STOP\n";
@@ -144,26 +144,26 @@ let tests =
            st.Unix.st_uid, st.Unix.st_gid
        in
 
-       let grp = 
+       let grp =
          let lst =
            Array.to_list (Unix.getgroups ())
          in
            (* Try to find a group accessible to the user
-            * and different from the current group 
+            * and different from the current group
             *)
-           try 
+           try
              List.find (fun gid' -> grp_org <> gid') lst
            with Not_found ->
              skip_if true "No available group to change group of the file";
              grp_org
        in
 
-       let () = 
+       let () =
          Unix.chown fn own grp
        in
 
-       let chng = 
-         file_generate 
+       let chng =
+         file_generate
            ~ctxt:oasis_ctxt
            (* TODO: in a temporary directory. *)
            ~backup:true

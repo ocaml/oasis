@@ -172,7 +172,8 @@ let rec reduce e =
           EBool true
       | ENot (ENot e) ->
           e
-      | (ENot _ | EAnd (_, _) | EOr (_, _) | EFlag _ | ETest (_, _) | (EBool _)) as e ->
+      | (ENot _ | EAnd (_, _) | EOr (_, _) | EFlag _ | ETest (_, _)
+      | (EBool _)) as e ->
           e
 
 let reduce_choices choices =

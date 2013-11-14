@@ -28,8 +28,8 @@ open OUnit2
 open TestCommon
 open TestFullUtils
 
-let tests =  
-  "TestFull" >::: 
+let tests =
+  "TestFull" >:::
   [
     (* Use flags *)
     "examples/flags" >::
@@ -49,23 +49,23 @@ let tests =
             ]);
          register_installed_files test_ctxt t
            [
-             InstalledOCamlLibrary 
+             InstalledOCamlLibrary
                ("simplelib",
-                ["simplelib.cma"; 
-                 "Foo.cmi"; "Foo.ml"; 
-                 "Bar.cmi"; "Bar.ml"; 
+                ["simplelib.cma";
+                 "Foo.cmi"; "Foo.ml";
+                 "Bar.cmi"; "Bar.ml";
                  "META";
-                 "simplelib.cmxa"; 
+                 "simplelib.cmxa";
                  "simplelib.cmxs";
                  "Foo.cmx"; "Bar.cmx";
                  "simplelib.a"]);
              InstalledOCamlLibrary
                ("simplelibext",
-                ["simplelibext.cma"; 
-                 "FooExt.cmi"; "FooExt.ml"; 
-                 "BarExt.cmi"; "BarExt.ml"; 
+                ["simplelibext.cma";
+                 "FooExt.cmi"; "FooExt.ml";
+                 "BarExt.cmi"; "BarExt.ml";
                  "META";
-                 "simplelibext.cmxa"; 
+                 "simplelibext.cmxa";
                  "simplelibext.cmxs";
                  "FooExt.cmx"; "BarExt.cmx";
                  "simplelibext.a"]);
@@ -74,7 +74,7 @@ let tests =
            ];
          (* Run standard test. *)
          standard_test test_ctxt t);
-    
+
     (* Complete library *)
     "examples/simplelib" >::
     (fun test_ctxt ->
@@ -86,20 +86,20 @@ let tests =
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
          register_generated_files t
-           (oasis_ocamlbuild_files @ 
+           (oasis_ocamlbuild_files @
             [
               "src/simplelib.mllib";
               "src/simplelib.odocl";
             ]);
          register_installed_files test_ctxt t
            [
-             InstalledOCamlLibrary 
+             InstalledOCamlLibrary
                ("simplelib" ,
-                ["simplelib.cma"; 
-                 "foo.cmi"; "foo.mli"; 
-                 "bar.cmi"; "bar.mli"; 
+                ["simplelib.cma";
+                 "foo.cmi"; "foo.mli";
+                 "bar.cmi"; "bar.mli";
                  "META";
-                 "simplelib.cmxa"; 
+                 "simplelib.cmxa";
                  "simplelib.cmxs";
                  "foo.cmx"; "bar.cmx";
                  "simplelib.a"]);
@@ -107,10 +107,10 @@ let tests =
            ];
          (* Run standard test. *)
          standard_test test_ctxt t);
-    
+
     (* Packed library *)
     "examples/packedlib" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -119,7 +119,7 @@ let tests =
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
          register_generated_files t
-           (oasis_ocamlbuild_files @ 
+           (oasis_ocamlbuild_files @
             ["src/packedlib.mlpack"; "src/packedlib.mllib"; "src/META"]);
          register_installed_files test_ctxt t
            [
@@ -136,7 +136,7 @@ let tests =
 
     (* Complete library with findlib package to check *)
     "examples/findlib" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -150,7 +150,7 @@ let tests =
 
     (* Complete library with custom build system *)
     "examples/custom" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -162,9 +162,9 @@ let tests =
            [
              InstalledOCamlLibrary
                ("simplelib",
-                ["simplelib.cma"; 
-                 "foo.cmi"; "foo.mli"; 
-                 "bar.cmi"; "bar.mli"; 
+                ["simplelib.cma";
+                 "foo.cmi"; "foo.mli";
+                 "bar.cmi"; "bar.mli";
                  "META"])
            ];
          (* Run standard test. *)
@@ -172,7 +172,7 @@ let tests =
 
     (* Library/executable using C files *)
     "examples/with-c" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -180,10 +180,10 @@ let tests =
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
-         register_generated_files t 
+         register_generated_files t
            (oasis_ocamlbuild_files @
             [
-              "src/META"; 
+              "src/META";
               "src/libtest-with-c-custom_stubs.clib";
               "src/libtest-with-c-native_stubs.clib";
               "src/libtest-with-c_stubs.clib";
@@ -191,7 +191,7 @@ let tests =
               "src/with-c.mllib";
               "src/with-c.odocl";
             ]);
-        if has_ocamlopt test_ctxt then 
+        if has_ocamlopt test_ctxt then
           register_installed_files test_ctxt t
             [InstalledBin ["test-with-c-native"]];
         register_installed_files test_ctxt t
@@ -200,7 +200,7 @@ let tests =
             InstalledLibrary ["with-c/dlltest-with-c_stubs.so"];
             InstalledOCamlLibrary
               ("with-c",
-               ["A.cmi"; "A.ml"; "META"; "with-c.cma"; 
+               ["A.cmi"; "A.ml"; "META"; "with-c.cma";
                 "libwith-c_stubs.a"; "dllwith-c_stubs.so";
                 "with-c.a"; "A.cmx"; "with-c.cmxa"; "with-c.cmxs"]);
             InstalledAPIRef("with-c", ["A"]);
@@ -219,7 +219,7 @@ let tests =
 
     (* Library/executable using data files *)
     "examples/with-data" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -227,7 +227,7 @@ let tests =
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
-         register_generated_files t 
+         register_generated_files t
            (oasis_ocamlbuild_files @
             [
               "src/META";
@@ -243,7 +243,7 @@ let tests =
                   "test.ml"; "test.cmi"; "META"; "test.cma";
                 ]);
              InstalledData
-               ["with-data/test.txt"; 
+               ["with-data/test.txt";
                 "doc/html/test.html";
                 "with-data-0.1/test.txt"];
              InstalledAPIRef("test", ["Test"]);
@@ -255,7 +255,7 @@ let tests =
 
     (* Library with a pure interface module in subdirectory. *)
     "examples/with-interface-module" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -269,7 +269,7 @@ let tests =
               "src/META";
               "src/pimlib.mllib";
             ]);
-         register_installed_files test_ctxt t 
+         register_installed_files test_ctxt t
            [
              InstalledOCamlLibrary
                ("pimlib",
@@ -286,7 +286,7 @@ let tests =
 
     (* Library with a pure interface module in top source directory. *)
     "examples/with-interface-module/src" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -301,7 +301,7 @@ let tests =
               "META";
               "pimlib.mllib";
             ]);
-         register_installed_files test_ctxt t 
+         register_installed_files test_ctxt t
            [
              InstalledOCamlLibrary
                ("pimlib",
@@ -318,7 +318,7 @@ let tests =
 
     (* Test executable *)
     "examples/with-test" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -332,7 +332,7 @@ let tests =
 
     (* Use sub-packages *)
     "examples/with-subpackage" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -348,7 +348,7 @@ let tests =
               "src/test.odocl";
               "src/syntax/pa_test.mllib";
             ]);
-         register_installed_files test_ctxt t 
+         register_installed_files test_ctxt t
            [
              InstalledOCamlLibrary
                ("test",
@@ -367,7 +367,7 @@ let tests =
 
     (* Interdependencies *)
     "examples/interdepend-libraries" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -390,7 +390,7 @@ let tests =
 
     (* Build order *)
     "examples/order-matter" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -398,7 +398,7 @@ let tests =
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
-         register_generated_files t 
+         register_generated_files t
            (oasis_ocamlbuild_files @
             [
               "src/order-matter.odocl";
@@ -411,7 +411,7 @@ let tests =
 
     (* Single level package *)
     "1level" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -426,12 +426,12 @@ let tests =
               "with-a.mllib";
               "with-a.odocl";
             ]);
-         register_installed_files test_ctxt t 
+         register_installed_files test_ctxt t
            [
              InstalledOCamlLibrary
                ("with-a",
                 ["META"; "A.ml"; "A.cmi"; "with-a.cma";
-                 "A.cmx"; "with-a.cmxa"; "with-a.cmxs"; 
+                 "A.cmx"; "with-a.cmxa"; "with-a.cmxs";
                  "with-a.a"]);
              InstalledBin ["test-with-a"];
              InstalledAPIRef("with-a", ["A"]);
@@ -444,7 +444,7 @@ let tests =
 
     (* Try custom document build *)
     "customdoc" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        (* TODO: check custom install as well. *)
        let () = skip_long_test test_ctxt in
        let t =
@@ -455,7 +455,7 @@ let tests =
          (* Setup expectation. *)
          register_generated_files t
            (oasis_ocamlbuild_files @ ["META"; "with-a.mllib"]);
-         register_installed_files test_ctxt t 
+         register_installed_files test_ctxt t
            [
              InstalledOCamlLibrary
                ("with-a",
@@ -466,10 +466,10 @@ let tests =
 
     (* Use cclib option *)
     "with-cclib" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () =
          skip_long_test test_ctxt;
-         skip_if 
+         skip_if
            (not (Sys.file_exists "/usr/include/stringprep.h"))
            "Cannot find 'stringprep.h'"
        in
@@ -482,9 +482,9 @@ let tests =
          register_generated_files t
            (oasis_ocamlbuild_files @
             [
-              "src/META"; 
-              "Makefile"; 
-              "configure"; 
+              "src/META";
+              "Makefile";
+              "configure";
               "src/libtest_oasis_c_dependency_stubs.clib";
               "src/test_oasis_c_dependency.mllib";
             ]);
@@ -493,7 +493,7 @@ let tests =
 
     (* With a documentation that is not built *)
     "no-install-doc" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -504,10 +504,10 @@ let tests =
          register_generated_files t oasis_ocamlbuild_files;
          (* Run standard test. *)
          standard_test test_ctxt t);
-  
+
     (* Need to create a a parent directory *)
     "create-parent-dir" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -516,16 +516,17 @@ let tests =
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
          register_generated_files t oasis_ocamlbuild_files;
-         register_installed_files test_ctxt t [InstalledData ["toto/toto/toto.txt"]];
+         register_installed_files test_ctxt t
+           [InstalledData ["toto/toto/toto.txt"]];
          (* Run standard test. *)
          standard_test test_ctxt t);
 
     (* TODO: move full tests under their own directory. *)
     "bug588" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let () =
-         let cmd = 
+         let cmd =
            Printf.sprintf
              "ocamlfind query bitstring > %s 2>&1"
              (if Sys.os_type = "Win32" then
@@ -533,7 +534,7 @@ let tests =
               else
                 "/dev/null")
          in
-           skip_if 
+           skip_if
              (Sys.command cmd <> 0)
              "Cannot find package bitstring"
        in
@@ -550,7 +551,7 @@ let tests =
          standard_test test_ctxt t);
 
     "bug619" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -563,7 +564,7 @@ let tests =
          standard_test test_ctxt t);
 
     "bug571" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -576,8 +577,8 @@ let tests =
          standard_test test_ctxt t);
 
     "flag-ccopt" >::
-    (fun test_ctxt -> 
-       let () = 
+    (fun test_ctxt ->
+       let () =
          skip_long_test test_ctxt;
          skip_if
            (not (Sys.file_exists "/usr/lib/libz.so.1"))
@@ -595,7 +596,7 @@ let tests =
          standard_test test_ctxt t);
 
     "bug738" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -605,13 +606,13 @@ let tests =
          (* Setup expectation. *)
          register_generated_files t
            (oasis_ocamlbuild_files @ ["src/test.mllib"; "src/META"]);
-         register_installed_files test_ctxt t 
+         register_installed_files test_ctxt t
            [InstalledOCamlLibrary ("test", ["META"; "foo.cmi"; "test.cma"])];
          (* Run standard test. *)
          standard_test test_ctxt t);
 
     "bug982" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () =
          skip_long_test test_ctxt;
          skip_if (Sys.os_type = "Win32") "UNIX only test"
@@ -627,7 +628,7 @@ let tests =
          standard_test test_ctxt t);
 
    "bug823" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () =
          skip_long_test test_ctxt;
          skip_if (Sys.os_type = "Win32") "UNIX only test"
@@ -643,7 +644,7 @@ let tests =
          standard_test test_ctxt t);
 
    "bugClib" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -654,13 +655,13 @@ let tests =
          register_generated_files t
            (oasis_ocamlbuild_files @
             ["META"; "mylib.mlpack"; "mylib.mllib"; "libmylib_stubs.clib"]);
-         register_installed_files test_ctxt t 
+         register_installed_files test_ctxt t
            [
              InstalledOCamlLibrary
                ("mylib",
                 ["META"; "dllmylib_stubs.so";
                  "foo.ml"; "mylib.cma"; "mylib.cmi";
-                 "mylib.cmxa"; "mylib.cmxs"; "mylib.cmx"; 
+                 "mylib.cmxa"; "mylib.cmxs"; "mylib.cmx";
                  "mylib.a"; "libmylib_stubs.a"])
            ];
          (* Run standard test. *)
@@ -669,7 +670,7 @@ let tests =
          try_installed_library test_ctxt t "mylib" ["Mylib.Foo"; "Mylib.Bar"]);
 
     "bug791" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -683,7 +684,7 @@ let tests =
          standard_test test_ctxt t);
 
     "examples/object" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -694,7 +695,7 @@ let tests =
          register_generated_files t
            (oasis_ocamlbuild_files @
             ["src1/META"; "src2/META"; "src2/packed_modules.mlpack"]);
-         register_installed_files test_ctxt t 
+         register_installed_files test_ctxt t
            [
              InstalledOCamlLibrary
                ("single_module",
@@ -710,8 +711,8 @@ let tests =
          standard_test test_ctxt t);
 
     "bug938">::
-    (fun test_ctxt -> 
-       let () = 
+    (fun test_ctxt ->
+       let () =
          skip_if (Sys.os_type = "Win32") "UNIX test"
        in
        let t =
@@ -725,11 +726,11 @@ let tests =
          standard_checks test_ctxt t;
          (* Try to run. *)
          (* TODO: quid of the use of this test. Check and comment. *)
-         run_ocaml_setup_ml test_ctxt t 
+         run_ocaml_setup_ml test_ctxt t
            ["-configure"; "--enable-all"; "--disable-over"]);
 
     "TEMP=a b" >::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let t =
          setup_test_directories test_ctxt
            (in_testdata_dir test_ctxt ["bug571"])
@@ -752,8 +753,8 @@ let tests =
            ["-configure"]);
 
     "setup with dev mode (weak)">::
-    (fun test_ctxt -> 
-       let () = 
+    (fun test_ctxt ->
+       let () =
          skip_if (Sys.os_type = "Win32") "UNIX test"
        in
        let t =
@@ -779,7 +780,7 @@ let tests =
            (Sys.file_exists (in_src_dir t "_build/mylib.cma")));
 
     "setup with dev mode (light)">::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let t =
          setup_test_directories test_ctxt
            (in_testdata_dir test_ctxt ["dev"])
@@ -795,7 +796,7 @@ let tests =
          assert_bool
            "setup.ml is smaller than 2kB"
            (let chn = open_in (in_src_dir t setup_ml) in
-              try 
+              try
                 let size = in_channel_length chn in
                   close_in chn;
                   size < 2048 (* 2kB *)
@@ -808,7 +809,7 @@ let tests =
            (Sys.file_exists (in_src_dir t "_build/mylib.cma")));
 
     "setup with no dev mode">::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt
@@ -833,7 +834,7 @@ let tests =
            (not (Sys.file_exists (in_src_dir t "_build/mylib.cma"))));
 
     "ver0.3">::
-    (fun test_ctxt -> 
+    (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt

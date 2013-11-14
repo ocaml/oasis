@@ -44,7 +44,7 @@ let tests_url =
 let tests_command_line_options =
   List.map
     (fun (s, r) ->
-     (sprintf "command_line_options: %S" s) >:: 
+     (sprintf "command_line_options: %S" s) >::
       (fun test_ctxt ->
          let p = command_line_options.parse ~ctxt:oasis_ctxt s in
            assert_equal p r))
@@ -89,7 +89,7 @@ let tests_posix_quoting =
            if q.[0] = '"' then
              let q' = String.sub q 1 (String.length q - 2) in
                OASISUtils.POSIXShell.unescape q'
-           else q 
+           else q
          in
            assert_equal s u))
     [""; "a b"; "a'b"; "echo \'abcd"; "a\\b"]

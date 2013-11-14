@@ -52,14 +52,14 @@ let tests =
           (fun test_ctxt ->
              match res with
                | Some exp ->
-                   assert_equal 
+                   assert_equal
                      ~printer:(fun v -> Printf.sprintf "%S" (to_string v))
                      exp
                      (value.parse ~ctxt:oasis_ctxt txt)
                | None ->
-                   try 
+                   try
                      ignore (value.parse ~ctxt:oasis_ctxt txt);
-                     assert_failure 
+                     assert_failure
                        (Printf.sprintf
                           "License '%s' is not valid but parse without problem"
                           txt)
@@ -67,22 +67,22 @@ let tests =
                      ()))
 
        [
-         "BSD4", 
+         "BSD4",
          mk bsd4;
 
-         "BSD4-1.0+", 
+         "BSD4-1.0+",
          mk ~v:(VersionOrLater (ver "1.0")) bsd4;
 
-         "BSD3", 
+         "BSD3",
          mk bsd3;
 
-         "GPL",  
+         "GPL",
          mk gpl;
 
-         "GPL-2", 
+         "GPL-2",
          mk ~v:(Version (ver "2")) gpl;
 
-         "GPL-2+", 
+         "GPL-2+",
          mk ~v:(VersionOrLater (ver "2")) gpl;
 
          "LGPL-2.1 with OCaml linking exception",

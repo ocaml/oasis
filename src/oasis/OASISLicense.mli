@@ -117,7 +117,8 @@ val license_data: unit -> (license * license_data) list
 (** All available license exception, their name, and compatible license.
   {b Not exported}.
   *)
-val license_exception_data: unit -> (license_exception * license_exception_data) list
+val license_exception_data:
+    unit -> (license_exception * license_exception_data) list
 
 (** Dump [ODN.t]. {b Not exported}.
   *)
