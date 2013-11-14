@@ -132,10 +132,10 @@ let post_configure pkg =
                List.iter
                  (fun str ->
                     if !first then begin
-                      Format.fprintf fmt "%s" str;
+                      Format.fprintf fmt "%S" str;
                       first := false
                     end else begin
-                      Format.fprintf fmt ";@ %s" str
+                      Format.fprintf fmt ";@ %S" str
                     end)
                  (List.rev (SetString.elements st));
                Format.fprintf fmt "@]]@,"

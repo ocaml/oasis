@@ -20,8 +20,9 @@
 ################################################################################
 
 
-CONFIGUREFLAGS += --override ocamlbuildflags -classic-display
-CONFIGUREFLAGS += $(if $(shell ocamlfind query gettext),--enable-gettext,--disable-gettext)
+CONFIGUREFLAGS += --override ocamlbuildflags -classic-display --enable-tests
+# TODO: gettext doesn't play nice with dynrun.
+#CONFIGUREFLAGS += $(if $(shell ocamlfind query gettext),--enable-gettext,--disable-gettext)
 
 default: test
 
