@@ -19,21 +19,26 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Functions common to OCamlbuild build and doc plugin
   *)
+
 
 open OASISGettext
 open BaseEnv
 open BaseStandardVar
 
+
 let ocamlbuild_clean_ev =
   "ocamlbuild-clean"
+
 
 let ocamlbuildflags =
   var_define
     ~short_desc:(fun () -> "OCamlbuild additional flags")
     "ocamlbuildflags"
     (fun () -> "")
+
 
 (** Fix special arguments depending on environment *)
 let fix_args args extra_argv =
@@ -73,6 +78,7 @@ let fix_args args extra_argv =
       Array.to_list extra_argv;
     ]
 
+
 (** Run 'ocamlbuild -clean' if not already done *)
 let run_clean extra_argv =
   let extra_cli =
@@ -92,6 +98,7 @@ let run_clean extra_argv =
                ())
       end
 
+
 (** Run ocamlbuild, unregister all clean events *)
 let run_ocamlbuild args extra_argv =
   (* TODO: enforce that target in args must be UNIX encoded i.e. toto/index.html
@@ -102,6 +109,7 @@ let run_ocamlbuild args extra_argv =
   List.iter
     (fun (e, d) -> BaseLog.unregister e d)
     (BaseLog.filter [ocamlbuild_clean_ev])
+
 
 (** Determine real build directory *)
 let build_dir extra_argv =
@@ -116,9 +124,12 @@ let build_dir extra_argv =
   in
     search_args "_build" (fix_args [] extra_argv)
 
+
 (* END EXPORT *)
 
+
 open OASISTypes
+
 
 let fix_build_tools tool pkg =
   let fix_build_tools' sct bs =
@@ -162,5 +173,4 @@ struct
     *)
   let filename_concat fn1 fn2 =
     OASISUnixPath.concat (OASISUnixPath.reduce fn1) fn2
-
 end

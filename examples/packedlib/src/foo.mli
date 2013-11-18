@@ -19,7 +19,8 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 type t
-val create : int -> t
-val value : t -> int
-val dump : unit -> unit
+val create: int -> t
+val value: t -> int
+val dump: unit -> unit

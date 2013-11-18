@@ -26,6 +26,7 @@ open OASISUtils
 open OASISTypes
 open OASISString
 
+
 type comment =
     {
       (** Return the string as a comment. *)
@@ -36,12 +37,15 @@ type comment =
       stop:      string;
     }
 
+
 type line = string
+
 
 type body =
   | NoBody
   | Body of line list
   | BodyWithDigest of Digest.t * line list
+
 
 type template =
     {
@@ -53,8 +57,10 @@ type template =
       perm:    int;
     }
 
+
 let start_msg = "OASIS_START"
 let stop_msg  = "OASIS_STOP"
+
 
 let comment cmt_beg cmt_end =
   let of_string =
@@ -87,20 +93,26 @@ let comment cmt_beg cmt_end =
       stop      = of_string stop_msg;
     }
 
+
 let comment_ml =
   comment "(*" (Some "*)")
+
 
 let comment_sh =
   comment "#" None
 
+
 let comment_makefile =
   comment_sh
+
 
 let comment_ocamlbuild =
   comment_sh
 
+
 let comment_bat =
   comment "rem" None
+
 
 let comment_meta =
   comment_sh
@@ -147,7 +159,7 @@ let template_of_string_list ~ctxt ~template fn comment lst =
     match comment.to_string str with
       | Some str' ->
           begin
-            match tokenize ~tokens:["(";")";":"] str' with
+            match tokenize ~tokens:["("; ")"; ":"] str' with
               | ["DO"; "NOT"; "EDIT"; "("; "digest"; ":"; digest; ")"] ->
                   digest
               | _ ->
@@ -383,6 +395,7 @@ let template_of_mlfile fn header body footer  =
       body
       footer
 
+
 let digest_update t =
   {t with
        body =
@@ -394,6 +407,7 @@ let digest_update t =
                  (Digest.string (String.concat "\n" lst),
                   lst)}
 
+
 let digest_check t =
   let t' = digest_update t in
     match t'.body, t.body with
@@ -401,6 +415,7 @@ let digest_check t =
           d' = d
       | _, _ ->
           true
+
 
 let merge t_org t_new =
   {t_new with
@@ -411,6 +426,7 @@ let merge t_org t_new =
           else
             t_new.body);
        footer = t_org.footer}
+
 
 let to_file t =
   (* Be sure that digest match body content *)
@@ -460,10 +476,12 @@ let to_file t =
     close_out chn_out;
     Unix.chmod t.fn t.perm
 
+
 type file_generate_change =
   | Create of host_filename
   | Change of host_filename * host_filename option
   | NoChange
+
 
 let file_rollback ~ctxt =
   function
@@ -498,6 +516,7 @@ let file_rollback ~ctxt =
 
     | NoChange ->
         ()
+
 
 let file_generate ~ctxt ~backup t =
 
@@ -627,15 +646,20 @@ struct
     OASISHostPath.compare
 end)
 
+
 exception AlreadyExists of host_filename
 
+
 type templates = template S.t
+
 
 let empty =
   S.empty
 
+
 let find =
   S.find
+
 
 let add e t =
   if S.mem e.fn t then
@@ -643,11 +667,14 @@ let add e t =
   else
     S.add e.fn e t
 
+
 let remove fn t =
   S.remove fn t
 
+
 let replace e t =
   S.add e.fn e t
+
 
 let fold f t acc =
   S.fold

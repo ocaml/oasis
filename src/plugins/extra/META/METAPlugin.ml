@@ -19,9 +19,11 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** META generator
     @author Sylvain Le Gall
   *)
+
 
 open OASISGettext
 open OASISTypes
@@ -32,9 +34,11 @@ open OASISPlugin
 open OASISSchema
 open Format
 
+
 type meta_type =
   | METALibrary
   | METASyntax
+
 
 type t =
     {
@@ -45,14 +49,18 @@ type t =
       extra_lines: string list;
     }
 
+
 let plugin =
   `Extra, "META", Some OASISConf.version_short
+
 
 let self_id, all_id =
   Extra.create plugin
 
+
 let pivot_data =
   data_new_property plugin
+
 
 let generator =
   let new_field nm =
@@ -124,6 +132,7 @@ let generator =
         requires    = requires data;
         extra_lines = extra_lines data;
       }
+
 
 let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
   let may f =
@@ -304,6 +313,7 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
     fprintf fmt "@,# OASIS_STOP@,";
     pp_close_box fmt ();
     pp_print_flush fmt ()
+
 
 let main ctxt pkg =
   let group_libs, findlib_name_of_library_name, _ =

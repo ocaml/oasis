@@ -19,9 +19,11 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Install using internal scheme
     @author Sylvain Le Gall
   *)
+
 
 open BaseEnv
 open BaseStandardVar
@@ -31,28 +33,37 @@ open OASISFindlib
 open OASISGettext
 open OASISUtils
 
+
 let exec_hook =
   ref (fun (cs, bs, exec) -> cs, bs, exec)
+
 
 let lib_hook =
   ref (fun (cs, bs, lib) -> cs, bs, lib, [])
 
+
 let obj_hook =
   ref (fun (cs, bs, obj) -> cs, bs, obj, [])
+
 
 let doc_hook =
   ref (fun (cs, doc) -> cs, doc)
 
+
 let install_file_ev =
   "install-file"
+
 
 let install_dir_ev =
   "install-dir"
 
+
 let install_findlib_ev =
   "install-findlib"
 
+
 let win32_max_command_line_length = 8000
+
 
 let split_install_command ocamlfind findlib_name meta files =
   if Sys.os_type = "Win32" then
@@ -117,6 +128,7 @@ let split_install_command ocamlfind findlib_name meta files =
     split first_args files
   else
     ["install" :: findlib_name :: meta :: files]
+
 
 let install pkg argv =
 
@@ -377,7 +389,7 @@ let install pkg argv =
           begin
             let meta =
               (* Search META file *)
-              let (_, bs, _) =
+              let _, bs, _ =
                 root_lib
               in
               let res =
@@ -450,7 +462,7 @@ let install pkg argv =
 
   let install_execs pkg =
     let install_exec data_exec =
-      let (cs, bs, exec) =
+      let cs, bs, exec =
         !exec_hook data_exec
       in
         if var_choose bs.bs_install &&
@@ -497,7 +509,7 @@ let install pkg argv =
 
   let install_docs pkg =
     let install_doc data =
-      let (cs, doc) =
+      let cs, doc =
         !doc_hook data
       in
         if var_choose doc.doc_install &&
@@ -532,6 +544,7 @@ let install pkg argv =
     install_libs  pkg;
     install_execs pkg;
     install_docs  pkg
+
 
 (* Uninstall already installed data *)
 let uninstall _ argv =
@@ -596,15 +609,19 @@ let uninstall _ argv =
        (BaseLog.filter
           [install_file_ev;
            install_dir_ev;
-           install_findlib_ev;]))
+           install_findlib_ev]))
+
 
 (* END EXPORT *)
+
 
 open OASISPlugin
 open InternalId
 
+
 let plugin =
   `Install, name, Some version
+
 
 let init () =
   let self_id, _ =

@@ -19,13 +19,14 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open OASISTypes
 
+
 (*
- *
  * Plugin operation
- *
  *)
+
 
 let plugin_compare (k1, n1, vo1) (k2, n2, vo2) =
   match compare k1 k2 with
@@ -46,29 +47,34 @@ let plugin_compare (k1, n1, vo1) (k2, n2, vo2) =
     | n ->
         n
 
+
 let plugin_equal plg1 plg2 =
   plugin_compare plg1 plg2 = 0
+
 
 let plugin_hash (k, n, _) =
   Hashtbl.hash (k, String.lowercase n, None)
 
+
 (*
- *
  * Plugin properties
- *
  *)
 
+
 exception Not_set
+
 
 type 'a setter = plugin_data ref -> 'a -> unit
 type 'a getter = plugin_data ref -> 'a
 type 'a prop   = 'a setter * 'a getter
 
+
 let data_create () =
   ref []
 
+
 let data_new_property ?(purpose: plugin_data_purpose option) plg =
-  let (knd, _, _) =
+  let knd, _, _ =
     plg
   in
   let prp =
@@ -105,13 +111,17 @@ let data_new_property ?(purpose: plugin_data_purpose option) plg =
   in
     (set, get)
 
+
 (* END EXPORT *)
+
 
 open OASISGettext
 open OASISUtils
 open ODNFunc
 
+
 type modul = string
+
 
 type ('a, 'b) setup_changes =
     {
@@ -121,6 +131,7 @@ type ('a, 'b) setup_changes =
       chng_distclean: ('b func) option;
     }
 
+
 type context_act =
     {
       ctxt: OASISContext.t;
@@ -128,6 +139,7 @@ type context_act =
       files: OASISFileTemplate.templates;
       other_actions: (unit -> unit) list;
     }
+
 
 type ('a, 'b) section_act =
     context_act ->
@@ -138,6 +150,7 @@ type ('a, 'b) section_act =
        (package -> (common_section * 'a) -> string array -> unit)
       ) setup_changes
 
+
 type package_act =
     context_act ->
     package ->
@@ -146,8 +159,10 @@ type package_act =
        (package -> string array -> unit)
       ) setup_changes
 
+
 type 'a t = 'a plugin
 type all_t = plugin_kind plugin
+
 
 module MapPlugin = Map.Make (
 struct
@@ -155,11 +170,13 @@ struct
   let compare = plugin_compare
 end)
 
+
 module SetPlugin = Set.Make (
 struct
   type t = plugin_kind plugin
   let compare = plugin_compare
 end)
+
 
 module HashPlugin =
   Hashtbl.Make
@@ -169,6 +186,7 @@ module HashPlugin =
      let hash  = plugin_hash
    end)
 
+
 module HashPluginAll =
   Hashtbl.Make
     (struct
@@ -177,12 +195,14 @@ module HashPluginAll =
        let hash = plugin_hash
      end)
 
+
 (** Find a plugin with or without version *)
 let find_fuzzy tbl ((knd, nm, vo) as id) =
   try
     HashPlugin.find tbl id
   with Not_found ->
     HashPlugin.find tbl (knd, nm, None)
+
 
 let string_of_plugin (_, nm, vo) =
   match vo with
@@ -194,6 +214,7 @@ let string_of_plugin (_, nm, vo) =
     | None ->
         nm
 
+
 let plugin_of_string knd str =
   match split_optional_parentheses str with
     | plg, Some ver ->
@@ -201,12 +222,15 @@ let plugin_of_string knd str =
     | plg, None ->
         knd, plg, None
 
+
 let plugins_of_string knd str =
   List.map
     (plugin_of_string knd)
     (split_comma str)
 
+
 (* General data for plugin *)
+
 
 type help =
   {
@@ -214,8 +238,10 @@ type help =
     help_order:      int;
   }
 
+
 let help_all =
   HashPluginAll.create 5
+
 
 let help_default lst =
   {
@@ -223,17 +249,22 @@ let help_default lst =
     help_order      = 0;
   }
 
+
 let register_help (_, nm, vo) hlp =
   HashPluginAll.replace help_all (`All, nm, vo) hlp
+
 
 let help plg =
   HashPluginAll.find help_all plg
 
+
 let version_all =
   HashPlugin.create 5
 
+
 let all =
   version_all
+
 
 let all_plugins () =
   HashPlugin.fold
@@ -241,15 +272,19 @@ let all_plugins () =
     all
     []
 
+
 (*
  * Quickstart completion
  *)
 
+
 let qstrt_cmplt_all =
   HashPlugin.create 5
 
+
 let register_quickstart_completion t f =
   HashPlugin.add qstrt_cmplt_all t f
+
 
 let quickstart_completion plg =
   try
@@ -257,16 +292,20 @@ let quickstart_completion plg =
   with Not_found ->
     (fun pkg -> pkg)
 
+
 (*
  * Generators
  *)
 
+
 let gen_all =
   HashPlugin.create 5
+
 
 let register_generator_package t (prop_set, _) generator =
   HashPlugin.add gen_all t
     (fun t data -> prop_set t (generator data))
+
 
 let generator_package plg rplugin_data data =
   try
@@ -280,12 +319,15 @@ let generator_package plg rplugin_data data =
   with Not_found ->
     ()
 
+
 let gen_section =
   HashPlugin.create 5
+
 
 let register_generator_section knd t (prop_set, _) generator =
   HashPlugin.add gen_section t
     (knd, (fun t data -> prop_set t (generator data)))
+
 
 let generator_section knd plg rplugin_data data =
   try
@@ -300,6 +342,7 @@ let generator_section knd plg rplugin_data data =
   with Not_found ->
     ()
 
+
 (** List all plugins *)
 let ls knd =
   HashPlugin.fold
@@ -311,8 +354,10 @@ let ls knd =
     all
     []
 
+
 let to_plugin t =
   t
+
 
 module type PLUGINS =
 sig
@@ -324,12 +369,12 @@ sig
   type self_plugin = kind plugin
 
   val create: self_plugin -> self_t * all_t
-
   val register_act: self_t -> act -> unit
-  val act : self_plugin -> act
+  val act: self_plugin -> act
   val quickstart_question: unit -> self_plugin quickstart_question
-  val value : self_plugin OASISValues.t
+  val value: self_plugin OASISValues.t
 end
+
 
 (* Family of plugins data *)
 module type FAMILY =
@@ -341,7 +386,8 @@ sig
   val to_plugin_kind: kind -> plugin_kind
 end
 
-module Make (F: FAMILY) : PLUGINS with type data = F.data
+
+module Make (F: FAMILY): PLUGINS with type data = F.data
                                    and type act = F.act
                                    and type kind = F.kind =
 struct
@@ -484,6 +530,7 @@ struct
            [])
 end
 
+
 (** Configure plugins
   *)
 module Configure =
@@ -495,6 +542,7 @@ module Configure =
        let kind_default = `Configure
        let to_plugin_kind = function `Configure -> `Configure
      end)
+
 
 (** Build plugins
   *)
@@ -508,6 +556,7 @@ module Build =
        let to_plugin_kind = function `Build -> `Build
      end)
 
+
 (** Document plugins
   *)
 module Doc =
@@ -519,6 +568,7 @@ module Doc =
        let kind_default = `Doc
        let to_plugin_kind = function `Doc -> `Doc
      end)
+
 
 (** Test plugins
   *)
@@ -532,6 +582,7 @@ module Test =
        let to_plugin_kind = function `Test -> `Test
      end)
 
+
 (** Install/uninstall plugins
   *)
 module Install =
@@ -543,6 +594,7 @@ module Install =
        let kind_default = `Install
        let to_plugin_kind = function `Install -> `Install
      end)
+
 
 (** Extra plugins
   *)
@@ -556,13 +608,16 @@ module Extra =
        let to_plugin_kind = function `Extra -> `Extra
      end)
 
+
 (** Functions for plugin writer
   *)
+
 
 (** Check that given field name belong to any plugin
   *)
 let test_field_name nm =
   String.length nm > 0 && (nm.[0] = 'x' || nm.[0] = 'X')
+
 
 (** Create value for a builtin plugin
   *)
@@ -572,11 +627,13 @@ let builtin knd nm =
   in
     knd, nm, builtin_version
 
+
 (** Add a generated template file
   *)
 let add_file tmpl ctxt =
   {ctxt with
        files = OASISFileTemplate.add tmpl ctxt.files}
+
 
 (** Tests for error and set error status
   *)

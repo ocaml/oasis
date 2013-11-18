@@ -19,12 +19,16 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Main gettext interfaces
   *)
 
+
 let s_ s = s
 
+
 let f_ fmt = fmt^^""
+
 
 IFDEF HAS_GETTEXT THEN
 include
@@ -40,6 +44,7 @@ include
            None
      end)
     (GettextStub.Native)
+
 
 (* Auto initialization of gettext *)
 let _ =

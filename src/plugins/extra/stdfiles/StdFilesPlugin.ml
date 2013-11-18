@@ -19,9 +19,11 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Generate standard text files: INSTALL.txt, README.txt
     @author Sylvain Le Gall
   *)
+
 
 open OASISFileTemplate
 open OASISPlugin
@@ -35,17 +37,21 @@ open OASISSchema
 open Format
 open FormatExt
 
+
 let plugin =
   `Extra, "StdFiles", Some OASISConf.version_short
 
+
 let self_id, all_id =
   Extra.create plugin
+
 
 type package =
     (* Standalone executable *)
   | LTool of prog
     (* Findlib package *)
   | LFindlibPackage of name * (OASISVersion.comparator option)
+
 
 let facts =
   [
@@ -110,11 +116,13 @@ let facts =
     ["findlib"];
   ]
 
+
 (** Merge 2 versions constraint *)
 let merge_version_opt ver_opt1 ver_opt2 =
  match ver_opt1, ver_opt2 with
    | Some v1, Some v2 -> Some (VAnd (v1, v2))
    | None, v | v, None -> v
+
 
 (** Associate a tool to a findlib package or a tool *)
 let package_of_tool =
@@ -135,6 +143,7 @@ let package_of_tool =
       with Not_found ->
         LTool tool
 
+
 (** Associate a library to a findlib package raw data *)
 let package_of_library =
   let mp =
@@ -154,6 +163,7 @@ let package_of_library =
       with Not_found ->
         LFindlibPackage (lib, ver_opt)
 
+
 type t =
     {
       readme:  unix_filename option;
@@ -161,8 +171,10 @@ type t =
       authors: unix_filename option;
     }
 
+
 let pivot_data =
   data_new_property plugin
+
 
 let generator =
   let fn_enable fn sync =
@@ -219,9 +231,11 @@ let generator =
         authors = authors data;
       }
 
+
 module SetSection =
   Set.Make
     (struct type t = section let compare = compare end)
+
 
 let main ctxt pkg =
   let data =
@@ -286,7 +300,7 @@ let main ctxt pkg =
            (fun acc ->
               function
                 | Library (_, bs, _)
-                | Object (_,bs,_)
+                | Object (_, bs, _)
                 | Executable (_, bs, _) as sct ->
                     (sct, bs) :: acc
                 | SrcRepo _ | Flag _ | Test _ | Doc _ ->
@@ -407,7 +421,7 @@ let main ctxt pkg =
         (fun lst ->
            function
              | Library (_, bs, _)
-             | Object (_,bs,_)
+             | Object (_, bs, _)
              | Executable (_, bs, _) as section ->
                  begin
                    let ssection =
@@ -613,6 +627,7 @@ let main ctxt pkg =
 
          pp_close_box fmt ());
       ]
+
 
 let init () =
   register_help plugin

@@ -19,6 +19,8 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-external reident : 'a -> 'a = "caml_reident_native";;
 
-print_endline (reident (A.ident "hello world!"));;
+external reident: 'a -> 'a = "caml_reident_native"
+
+
+let () = print_endline (reident (A.ident "hello world!"))

@@ -19,16 +19,21 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Common arguments
   *)
 
+
 open MainGettext
+
 
 let default_oasis_fn =
   "_oasis"
 
+
 let oasis_fn =
   ref default_oasis_fn
+
 
 let oasis_fn_specs =
   [
@@ -37,8 +42,10 @@ let oasis_fn_specs =
     s_ "fn _oasis file to use.";
   ]
 
+
 let ignore_plugins =
   ref false
+
 
 let ignore_plugins_specs =
   [

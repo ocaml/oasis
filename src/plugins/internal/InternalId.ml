@@ -19,17 +19,23 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Internal plugin identification
     @author Sylvain Le Gall
   *)
 
+
 let name = "Internal"
+
 
 let version = OASISConf.version_short
 
+
 (* END EXPORT *)
 
+
 open OASISPlugin
+
 
 let init () =
   register_help (`All, name, Some version)

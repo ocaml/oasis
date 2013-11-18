@@ -19,6 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Dynamic variables sets using 'setup.log'
 
     This variables are typically executable real name that are initially not
@@ -28,6 +29,7 @@
     @author Sylvain Le Gall
   *)
 
+
 (** Read 'setup.log' and sets variables.
   *)
-val init : OASISTypes.package -> unit
+val init: OASISTypes.package -> unit

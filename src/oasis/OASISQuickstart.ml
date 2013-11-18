@@ -19,9 +19,11 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Helper function to write an _oasis file
     @author Sylvain Le Gall
   *)
+
 
 open OASISGettext
 open OASISSchema_intern
@@ -31,15 +33,18 @@ open FormatExt
 open OASISUtils
 open OASISMessage
 
+
 type 'a default =
   | Default_value of 'a
   | Default_answer of string
   | Default_not_printable
   | NoDefault
 
+
 type interface =
   | Human
   | Machine
+
 
 type 'a t =
     {
@@ -52,10 +57,12 @@ type 'a t =
       parse:     string -> 'a;
     }
 
+
 (** This expression is raised when an unprintable default
   * is chosen
   *)
 exception ChooseNotPrintableDefault
+
 
 (** Convert a default into a text *)
 let help_of_default =
@@ -68,6 +75,7 @@ let help_of_default =
 
     | NoDefault ->
         s_ "No default exists, you need to answer this question."
+
 
 (** Ask a question until a correct answer is given
   *)
@@ -183,6 +191,7 @@ let printable_default default choices =
           with Not_found ->
             d
         end
+
 
 (** Extend [t] so that it can be processed using a choices
     list.
@@ -303,6 +312,7 @@ let mk_numbered_choices t choices =
       {t with help = t.help ^(s_ "\nChoices:")}
       (List.rev num_choices)
 
+
 let mk_numbered_choices_multi t choices =
   let t =
     mk_numbered_choices t choices
@@ -334,6 +344,7 @@ let mk_numbered_choices_multi t choices =
 
     {t with parse = parse}
 
+
 let mk_yes_no t =
   mk_shortcut_choices
     t
@@ -341,6 +352,7 @@ let mk_yes_no t =
       (s_ "y"), (s_ "yes"), None, true;
       (s_ "n"), (s_ "no"),  None, false;
     ]
+
 
 (** Ask questions for a schema (Package, Library, Executable...) *)
 let ask_schema ~ctxt schema lvl interface plugins =
@@ -550,6 +562,7 @@ let ask_schema ~ctxt schema lvl interface plugins =
       (PropList.Data.create (), plugins)
       schm
 
+
 (** Ask questions for a package and its sections *)
 let ask_package ~ctxt lvl intrf =
   let pkg_data, plugins =
@@ -717,6 +730,7 @@ let ask_package ~ctxt lvl intrf =
       plugins
   in
     pkg
+
 
 (** Create an _oasis file *)
 let to_file ~ctxt fn lvl intrf oasis_setup =

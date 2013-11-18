@@ -19,15 +19,19 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Display the manual
     @author Sylvain Le Gall
   *)
 
+
 open SubCommand
 open OASISGettext
 
+
 let output =
   ref None
+
 
 let main () =
   let fmt, fclose =
@@ -65,6 +69,7 @@ let main () =
 
     fclose ()
 
+
 let scmd =
   {(SubCommand.make
       "manual"
@@ -75,6 +80,7 @@ let scmd =
          scmd_specs = ["-o",
                        Arg.String (fun s -> output := Some s),
                        "fn Output manual to filename."]}
+
 
 let () =
   SubCommand.register scmd

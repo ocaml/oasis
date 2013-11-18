@@ -19,8 +19,8 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-let run () =
-  print_endline "hello"
 
-let q = BITSTRING { 1l : 32 }
+let run () = print_endline "hello"
 
+
+let q = BITSTRING { 1l: 32 }

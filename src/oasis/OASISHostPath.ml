@@ -22,7 +22,9 @@
 
 open Filename
 
+
 module Unix = OASISUnixPath
+
 
 let make =
   function
@@ -30,6 +32,7 @@ let make =
         invalid_arg "OASISHostPath.make"
     | hd :: tl ->
         List.fold_left Filename.concat hd tl
+
 
 let of_unix ufn =
   if Sys.os_type = "Unix" then
@@ -48,6 +51,7 @@ let of_unix ufn =
 
 
 (* END EXPORT *)
+
 
 let compare fn1 fn2 =
   let fn_norm fn =
@@ -84,6 +88,7 @@ let compare fn1 fn2 =
           -1
   in
     compare' (fn_norm fn1, fn_norm fn2)
+
 
 let add_extension fn ext =
   fn^"."^ext

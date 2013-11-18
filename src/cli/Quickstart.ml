@@ -19,20 +19,25 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Run a oasis writer helper
     @author Sylvain Le Gall
   *)
+
 
 open OASISGettext
 open OASISQuickstart
 open OASISTypes
 open SubCommand
 
+
 let qckstrt_lvl =
   ref Beginner
 
+
 let interf =
   ref Human
+
 
 let main () =
   OASISQuickstart.to_file
@@ -41,6 +46,7 @@ let main () =
     !qckstrt_lvl
     !interf
     Setup.main
+
 
 let scmd =
   let lvls =
@@ -72,6 +78,7 @@ let scmd =
                (s_ " Computer readable questions for automatic completion.")
              )
              :: SetupDev.scmd.scmd_specs}
+
 
 let () =
   SubCommand.register scmd

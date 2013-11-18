@@ -19,54 +19,64 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** File operations
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
+
 
 (** [find_file paths exts] Find a file among all provided [paths], trying
     various extensiosn [exts]. Return the first combination of [paths]
     and [exts].
   *)
-val find_file :
+val find_file:
   ?case_sensitive:bool ->
   host_filename list list ->
   string list ->
   host_filename
 
+
 (** Find real filename of an executable.
   *)
-val which : ctxt:OASISContext.t -> host_filename -> host_filename
+val which: ctxt:OASISContext.t -> host_filename -> host_filename
+
 
 (** Copy a file.
   *)
-val cp :
+val cp:
   ctxt:OASISContext.t ->
   ?recurse:bool ->
   host_filename ->
   host_filename ->
   unit
 
+
 (** Create a directory.
   *)
-val mkdir : ctxt:OASISContext.t -> host_filename -> unit
+val mkdir: ctxt:OASISContext.t -> host_filename -> unit
+
 
 (** [mkdir_parent f tgt] Create a directory and its parent, call f with
     directory name created, in order.
   *)
-val mkdir_parent :
+val mkdir_parent:
   ctxt:OASISContext.t -> (host_filename -> 'a) -> host_filename -> unit
+
 
 (** Remove a directory.
   *)
-val rmdir : ctxt:OASISContext.t -> host_filename -> unit
+val rmdir: ctxt:OASISContext.t -> host_filename -> unit
+
 
 (** Expand a filename containing '*.ext' into corresponding
     real files.
   *)
-val glob : ctxt:OASISContext.t -> string -> host_filename list
+val glob: ctxt:OASISContext.t -> string -> host_filename list
+
 
 (** Test file existence, considering case even on case insensitive filesystem.
   *)
-val file_exists_case : string -> bool
+val file_exists_case: string -> bool

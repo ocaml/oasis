@@ -19,6 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 let fn_reader ?(os_type=Sys.os_type) fn =
   let fn_part_of_string =
     function
@@ -61,6 +62,7 @@ let fn_reader ?(os_type=Sys.os_type) fn =
     end
   else
     invalid_arg "OASISHostPath.dir_reader"
+
 
 let rec fn_reduce acc =
   function

@@ -19,6 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 type t
-val create : string -> t
-val value : t -> string
+val create: string -> t
+val value: t -> string

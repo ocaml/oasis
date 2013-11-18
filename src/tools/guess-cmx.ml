@@ -19,25 +19,31 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (* Work in progress, only for testing purpose
    Try to guess file to install depending on archive (.cma) and published
    interface (.cmi)
  *)
 
+
 let () =
   try Topdirs.dir_directory (Sys.getenv "OCAML_TOPLEVEL_PATH")
-  with Not_found -> ();;
+  with Not_found -> ()
 
-#use "topfind";;
-#require "unix";;
-#require "pcre";;
+
+#use "topfind"
+#require "unix"
+#require "pcre"
+
 
 let warning msg =
   prerr_endline msg
 
+
 let error msg =
   prerr_endline msg;
   exit 1
+
 
 let find_unit directory unit_name extensions =
   let unit_base_fn =
@@ -77,6 +83,7 @@ let find_unit directory unit_name extensions =
           fn
       | [] ->
           raise Not_found
+
 
 let cmx_of_cma cma =
   let dirname =
@@ -123,6 +130,7 @@ let cmx_of_cma cma =
       )
   in
     List.fold_left add_cmx [] !unit_list
+
 
 let install_lib ~directory ~archive ~interfaces =
   let mandatory_file fn =
@@ -205,7 +213,9 @@ let install_lib ~directory ~archive ~interfaces =
         fn_lst_stubs;
       ]
 
+
 (* QUID: .o (.obj), .a (.lib), .so (.dll) *)
+
 
 let () =
   print_endline

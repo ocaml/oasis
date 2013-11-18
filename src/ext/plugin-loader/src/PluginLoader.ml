@@ -19,6 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (* The content of this file started with ocsigen_loader.ml
  * from the ocsigen project (http://www.ocsigen.org).
  *
@@ -26,9 +27,11 @@
  * Copyright (C) 2008 Stéphane Glondu
  *)
 
+
 exception Dynlink_error of string * exn
 exception Findlib_error of string * exn
 exception Plugin_not_found of string
+
 
 (**/**)
 (** TODO: Gettext related functions, to be replaced by real ones. *)
@@ -36,9 +39,12 @@ let s_ s = s
 let f_ fmt = ""^^fmt
 (**/**)
 
+
 (* Error formatting *)
 
+
 open Printf
+
 
 let () =
   Printexc.register_printer
@@ -70,26 +76,34 @@ let () =
        | _ ->
            None);
 
+
 module StringSet = Set.Make(String)
+
 
 (* Loading files *)
 
+
 module SetString = Set.Make(String)
 
+
 let findlib_packages_loaded = ref SetString.empty
+
 
 let add_findlib_package e =
   findlib_packages_loaded := SetString.add e !findlib_packages_loaded
 
+
 let init findlib_packages_loaded =
   List.iter add_findlib_package findlib_packages_loaded;
   Findlib.init ()
+
 
 type 'a t =
     {
       system: string;
       msg: ([>`Debug | `Warning | `Error] as 'a) -> string -> unit;
     }
+
 
 type entry =
     {
@@ -99,6 +113,7 @@ type entry =
       description: string option;
       version: string option;
     }
+
 
 (* Using Findlib to locate files *)
 let findfiles t package =
@@ -186,6 +201,7 @@ let findfiles t package =
     with e ->
       raise (Findlib_error (package, e))
 
+
 module SetEntry =
   Set.Make
     (struct
@@ -193,6 +209,7 @@ module SetEntry =
        let compare e1 e2 =
          String.compare e1.name e2.name
      end)
+
 
 let list t =
   let lst = Fl_package_base.list_packages () in
@@ -245,6 +262,7 @@ let list t =
       lst
   in
     SetEntry.elements set
+
 
 let load t nm =
   let entry =

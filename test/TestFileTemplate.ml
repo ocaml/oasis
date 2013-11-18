@@ -19,13 +19,16 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Tests for OASISFileTemplate
     @author Sylvain Le Gall
   *)
 
+
 open OUnit2
 open TestCommon
 open OASISFileTemplate
+
 
 let tests =
 
@@ -181,5 +184,3 @@ let tests =
            grp
            ((Unix.stat fn).Unix.st_gid))
   ]
-
-;;

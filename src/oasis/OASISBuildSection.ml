@@ -19,21 +19,24 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (* END EXPORT *)
+
 
 open OASISTypes
 open OASISUtils
-
 open OASISSection
 open OASISSection_intern
 
 module G = OASISGraph
 
+
 type extended_kind = [section_kind | `ExternalTool | `FindlibPackage]
 type vertex = extended_kind * string
 
+
 let build_graph pkg =
-  let g : vertex G.t = G.create (2 * List.length pkg.sections) in
+  let g: vertex G.t = G.create (2 * List.length pkg.sections) in
   let sct_of_vrtx = Hashtbl.create (List.length pkg.sections) in
   let ext_of_vrtx = Hashtbl.create 13 in
 
@@ -99,6 +102,7 @@ let build_graph pkg =
 
     sct_of_vrtx, ext_of_vrtx, g
 
+
 let build_order pkg =
   let sct_of_vrtx, _, g = build_graph pkg in
     List.rev
@@ -110,6 +114,7 @@ let build_order pkg =
               acc)
          []
          (G.topological_sort g))
+
 
 let transitive_build_depends pkg =
   let sct_of_vrtx, ext_of_vrtx, g = build_graph pkg in

@@ -19,13 +19,17 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Standard variables
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
 
+
 (** {2 Programs} *)
+
 
 val ocamlfind:  unit -> host_filename
 val ocamlc:     unit -> host_filename
@@ -34,16 +38,20 @@ val ocamlbuild: unit -> host_filename
 val flexlink:   unit -> host_filename
 val flexdll_version: unit -> string
 
+
 (** {2 Variables from OASIS package}
 
     See {!OASISTypes.package} for more information.
 
   *)
 
+
 val pkg_name:    unit -> name
 val pkg_version: unit -> OASISVersion.s
 
+
 (** {2 ocamlc config variables} *)
+
 
 val os_type:                  unit -> string
 val system:                   unit -> string
@@ -63,11 +71,13 @@ val ext_dll:                  unit -> string
 val default_executable_name:  unit -> string
 val systhread_supported:      unit -> string
 
+
 (** {2 Paths}
 
     See {{:http://www.gnu.org/prep/standards/html_node/Directory-Variables.html} GNU standards}.
 
   *)
+
 
 val prefix:         unit -> host_dirname
 val exec_prefix:    unit -> host_dirname
@@ -90,48 +100,60 @@ val pdfdir:         unit -> host_dirname
 val psdir:          unit -> host_dirname
 val destdir:        unit -> host_dirname
 
+
 (** {2 Various} *)
+
 
 (** Findlib version.
   *)
 val findlib_version: unit -> OASISVersion.s
+
 
 (** Check that the platform is a native platform (can compile native
     exec/library).
   *)
 val is_native: unit -> string
 
+
 (** Compute the default suffix for program (e.g. '.exe' on Win32).
   *)
 val ext_program: unit -> string
+
 
 (** Host command to delete a file.
   *)
 val rm: unit -> string
 
+
 (** Host command to delete a directory.
   *)
 val rmdir: unit -> string
+
 
 (** Compile in debug mode.
   *)
 val debug: unit -> string
 
+
 (** Compile in profile mode.
   *)
 val profile: unit -> string
+
 
 (** Run tests.
   *)
 val tests: unit -> string
 
+
 (** Compile docs.
   *)
 val docs: unit -> string
 
+
 (** Support for .cmxs.
   *)
 val native_dynlink: unit -> string
+
 
 (** Initialize some variables.
   *)

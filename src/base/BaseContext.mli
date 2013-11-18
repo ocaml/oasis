@@ -19,6 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Global context for messages and i18n
 
     This module is the same as {!OASISContext}. It is only aliases.
@@ -29,8 +30,9 @@
 
 (** See {!OASISContext.args}.
   *)
-val args : unit -> (string * Arg.spec * string) list
+val args: unit -> (string * Arg.spec * string) list
+
 
 (** See {!OASISContext.default}
   *)
-val default : OASISContext.t ref
+val default: OASISContext.t ref

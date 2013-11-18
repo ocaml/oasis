@@ -19,18 +19,24 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 type unix_filename = string
 type unix_dirname = string
+
 
 type host_filename = string
 type host_dirname = string
 
+
 let current_dir_name = "."
+
 
 let parent_dir_name = ".."
 
+
 let is_current_dir fn =
   fn = current_dir_name || fn = ""
+
 
 let concat f1 f2 =
   if is_current_dir f1 then
@@ -40,6 +46,7 @@ let concat f1 f2 =
       try OASISString.strip_ends_with ~what:"/" f1 with Not_found -> f1
     in
       f1'^"/"^f2
+
 
 let make =
   function
@@ -51,11 +58,13 @@ let make =
     | [] ->
         invalid_arg "OASISUnixPath.make"
 
+
 let dirname f =
   try
     String.sub f 0 (String.rindex f '/')
   with Not_found ->
     current_dir_name
+
 
 let basename f =
   try
@@ -65,6 +74,7 @@ let basename f =
       String.sub f pos_start ((String.length f) - pos_start)
   with Not_found ->
     f
+
 
 let chop_extension f =
   try
@@ -88,29 +98,37 @@ let chop_extension f =
   with Not_found ->
     f
 
+
 let capitalize_file f =
   let dir = dirname f in
   let base = basename f in
   concat dir (String.capitalize base)
+
 
 let uncapitalize_file f =
   let dir = dirname f in
   let base = basename f in
   concat dir (String.uncapitalize base)
 
+
 (* END EXPORT *)
+
 
 let check_extension fn ext =
   OASISString.ends_with ~what:("."^ext) fn
 
+
 let add_extension fn ext =
   fn^"."^ext
+
 
 let replace_extension fn ext =
   add_extension (Filename.chop_extension fn) ext
 
+
 open OASISPath_intern
 open OASISUtils
+
 
 let filename_of_list lst =
   let buf = Buffer.create 34 in
@@ -137,9 +155,12 @@ let filename_of_list lst =
       lst;
     Buffer.contents buf
 
+
 let fn_norm fn = fn_reduce [] (fn_reader ~os_type:"Unix" fn)
 
+
 let reduce fn = filename_of_list  (fn_norm fn)
+
 
 let make_relative fn_root fn =
   (* Basic analysis of fn_root and fn. *)
@@ -211,6 +232,7 @@ let make_relative fn_root fn =
              ())
       (fn_norm res);
     res
+
 
 let is_current fn =
   if fn = current_dir_name || fn = "" then

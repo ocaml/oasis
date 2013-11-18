@@ -24,16 +24,19 @@
     @author Sylvain Le Gall
   *)
 
+
 open TestCommon
 open Expect
 open ExpectPcre
 open OUnit2
 open OASISTypes
 
-let () =
-  METAPlugin.init ()
+
+let () = METAPlugin.init ()
+
 
 module MapString = Map.Make(String)
+
 
 let tests =
 

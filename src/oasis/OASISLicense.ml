@@ -19,21 +19,27 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** License for _oasis fields
     @author Sylvain Le Gall
   *)
 
+
 TYPE_CONV_PATH "OASISLicense"
+
 
 type license = string with odn
 
+
 type license_exception = string with odn
+
 
 type license_version =
   | Version of OASISVersion.t
   | VersionOrLater of OASISVersion.t
   | NoVersion
   with odn
+
 
 type license_dep_5_unit =
   {
@@ -43,26 +49,33 @@ type license_dep_5_unit =
   }
   with odn
 
+
 type license_dep_5 =
   | DEP5Unit of license_dep_5_unit
   | DEP5Or of license_dep_5 list
   | DEP5And of license_dep_5 list
   with odn
 
+
 type t =
   | DEP5License of license_dep_5
   | OtherLicense of string (* URL *)
   with odn
 
+
 (* END EXPORT *)
+
 
 open OASISValues
 open OASISUtils
 open OASISGettext
 
+
 let string_of_license s = s
 
+
 let string_of_license_exception s = s
+
 
 type license_data =
     {
@@ -71,8 +84,10 @@ type license_data =
       note:      string option;
     }
 
+
 let all_licenses =
   HashStringCsl.create 13
+
 
 let mk_license nm ?(versions=[]) ?note long_name =
   let rec expand_version =
@@ -104,6 +119,7 @@ let mk_license nm ?(versions=[]) ?note long_name =
     };
   nm
 
+
 let license_data () =
   let lst =
     HashStringCsl.fold
@@ -122,10 +138,12 @@ let license_data () =
   in
     List.sort (fun (nm1, _) (nm2, _) -> compare_csl nm1 nm2) lst
 
+
 let proprietary =
   mk_license
     "PROP"
     (ns_ "Proprietary license, all rights reserved")
+
 
 let apache =
   mk_license
@@ -133,21 +151,25 @@ let apache =
     ~versions:["1.0"; "1.1"; "2.0"]
     (ns_ "Apache license")
 
+
 let artistic =
   mk_license
     "Artistic"
     ~versions:["1.0"; "2.0"]
     (ns_ "Artistic license")
 
+
 let bsd3 =
   mk_license
     "BSD3"
     (ns_ "Berkeley software distribution license (3 clauses)")
 
+
 let bsd4 =
   mk_license
     "BSD4"
     (ns_ "Berkeley software distribution license (4 clauses)")
+
 
 let cecill =
   mk_license
@@ -156,20 +178,24 @@ let cecill =
     ~note:(ns_ "GPL like.")
     (ns_ "CEA-CNRS-INRIA Logiciel Libre")
 
+
 let cecillb =
   mk_license
     "CeCILL-B"
     (ns_ "CEA-CNRS-INRIA Logiciel Libre, BSD-like")
+
 
 let cecillc =
   mk_license
     "CeCILL-C"
     (ns_ "CEA-CNRS-INRIA Logiciel Libre, LGPL-like")
 
+
 let freebsd =
   mk_license
     "FreeBSD"
     "FreeBSD Project license"
+
 
 let isc =
   mk_license
@@ -177,45 +203,54 @@ let isc =
     ~note:(ns_ "Sometimes also known as the OpenBSD License.")
     (ns_ "Internet Software Consortium's license")
 
+
 let cc_by =
   mk_license
     "CC-BY"
     (ns_ "Creative Commons Attribution license")
+
 
 let cc_by_sa =
   mk_license
     "CC-BY-SA"
     (ns_ "Creative Commons Attribution Share Alike license")
 
+
 let cc_by_nd =
   mk_license
     "CC-BY-ND"
     (ns_ "Creative Commons Attribution No Derivatives")
+
 
 let cc_by_nc =
   mk_license
     "CC-BY-NC"
     (ns_ "Creative Commons Attribution Non-Commercial")
 
+
 let cc_by_nc_sa =
   mk_license
     "CC-BY-NC-SA"
     (ns_ "Creative Commons Attribution Non-Commercial Share Alike")
+
 
 let cc_by_nc_nd =
   mk_license
     "CC-BY-NC-ND"
     (ns_ "Creative Commons Attribution Non-Commercial No Derivatives")
 
+
 let cc0 =
   mk_license
     "CC0"
     (ns_ "Creative Commons Universal waiver")
 
+
 let cddl =
   mk_license
     "CDDL"
     (ns_ "Common Development and Distribution License")
+
 
 let cpl =
   mk_license
@@ -223,22 +258,26 @@ let cpl =
     ~versions:["1.0"]
     (ns_ "IBM Common Public License")
 
+
 let eiffel =
   mk_license
     "Eiffel"
     ~versions:["2"]
     (ns_ "The Eiffel Forum License")
 
+
 let expat =
   mk_license
     "Expat"
     (ns_ "The Expat license")
+
 
 let gpl =
   mk_license
     "GPL"
     ~versions:["1.0"; "2.0"; "3.0"]
     (ns_ "GNU General Public License")
+
 
 let lgpl =
   mk_license
@@ -247,11 +286,13 @@ let lgpl =
     ~note:"GNU Library General Public License for versions lower than 2.1"
     (ns_ "GNU Lesser General Public License")
 
+
 let agpl =
   mk_license
     "AGPL"
     ~versions:["3.0"]
     (ns_ "GNU Affero General Public License")
+
 
 let gfdl =
   mk_license
@@ -259,11 +300,13 @@ let gfdl =
     ~versions:["1.1"; "1.2"; "1.3"]
     (ns_ "GNU Free Documentation License")
 
+
 let gfdl_niv =
   mk_license
     "GFDL-NIV"
     ~versions:["1.1"; "1.2"; "1.3"]
     (ns_ "GNU Free Documentation License, with no invariant sections")
+
 
 let lppl =
   mk_license
@@ -271,11 +314,13 @@ let lppl =
     ~versions:["1.3c"]
     (ns_ "LaTeX Project Public License")
 
+
 let mpl =
   mk_license
     "MPL"
     ~versions:["1.0"; "1.1"]
     (ns_ "Mozilla Public License")
+
 
 let perl =
   mk_license
@@ -283,11 +328,13 @@ let perl =
     ~note:(ns_ "Equates to GPL-1+ or Artistic-1.")
     (ns_ "Perl license")
 
+
 let psf =
   mk_license
     "PSF"
     ~versions:["2"]
     (ns_ "Python Software Foundation license")
+
 
 let qpl =
   mk_license
@@ -295,11 +342,13 @@ let qpl =
     ~versions:["1.0"]
     (ns_ "Q Public License")
 
+
 let w3c_software =
   mk_license
     "W3C-Software"
     ~versions:["20021231"]
     (ns_ "W3C Software License")
+
 
 let zlib =
   mk_license
@@ -307,21 +356,25 @@ let zlib =
     ~versions:["1.2.2"]
     (ns_ "zlib/libpng license")
 
+
 let zope =
   mk_license
     "Zope"
     ~versions:["1.0"; "2.0"; "2.1"]
     (ns_ "Zope Public License")
 
+
 let mit =
   mk_license
     "MIT"
     (ns_ "MIT License")
 
+
 let wtfpl =
   mk_license
     "WTFPL"
     (ns_ "Do What The F*ck You Want To Public License")
+
 
 let public_domain =
   mk_license
@@ -329,14 +382,17 @@ let public_domain =
     ~note:(ns_ "This is not a true license.")
     (ns_ "Public domain")
 
+
 type license_exception_data =
     {
       explanation: string;
       licenses:    license list;
     }
 
+
 let all_exceptions =
   HashStringCsl.create 13
+
 
 let mk_exception nm explanation licenses =
   if HashStringCsl.mem all_exceptions nm then
@@ -350,6 +406,7 @@ let mk_exception nm explanation licenses =
     };
   nm
 
+
 let license_exception_data () =
   HashStringCsl.fold
     (fun license_exception data acc ->
@@ -361,6 +418,7 @@ let license_exception_data () =
     all_exceptions
     []
 
+
 let ocaml_linking_exception =
   mk_exception
     "OCaml linking"
@@ -369,6 +427,7 @@ let ocaml_linking_exception =
           library force license propagation. The LGPL is equal to GPL \
           without this exception.")
     [lgpl]
+
 
 let parse_dep5 ~ctxt str =
   let rec solve_token =
@@ -514,6 +573,7 @@ let parse_dep5 ~ctxt str =
   let t' = OASISLicense_parser.main OASISLicense_lexer.token lexbuf in
     merge (solve_token t')
 
+
 let parse ~ctxt str =
     try
       OtherLicense
@@ -527,6 +587,7 @@ let parse ~ctxt str =
             (f_ "Cannot parse license '%s': %s")
             str (Printexc.to_string e)
         end
+
 
 let rec string_of_dep5 =
   function
@@ -573,10 +634,12 @@ let rec string_of_dep5 =
                lst)
         end
 
+
 let to_string =
   function
     | DEP5License dep5 -> string_of_dep5 dep5
     | OtherLicense url -> url
+
 
 let value =
   {

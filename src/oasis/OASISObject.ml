@@ -19,8 +19,10 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open OASISTypes
 open OASISGettext
+
 
 let source_unix_files ~ctxt (cs, bs, obj) source_file_exists =
   List.fold_left
@@ -79,11 +81,14 @@ let generated_unix_files
         | Byte | Best ->
             byte :: header :: [])
 
+
 (* END EXPORT *)
+
 
 open OASISSchema_intern
 open PropList.Field
 open OASISValues
+
 
 let schema, generator =
   let schm =

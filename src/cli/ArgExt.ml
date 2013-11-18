@@ -19,8 +19,10 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Parsing of command line arguments
   *)
+
 
 open OASISGettext
 open BaseMessage
@@ -30,11 +32,14 @@ open Format
 open FormatExt
 open FormatMarkdown
 
+
 let global_options =
   ref []
 
+
 let add_global_options lst =
   global_options := lst @ !global_options
+
 
 let specs, usage_msg =
   [
@@ -56,14 +61,17 @@ let specs, usage_msg =
       \n\
       Global command line options:")
 
+
 type help_extent =
   | NoSubCommand
   | SubCommand of string
   | AllSubCommand
 
+
 type help_style =
   | Markdown
   | Output
+
 
 let pp_print_help hext hsty fmt () =
 

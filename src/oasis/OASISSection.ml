@@ -19,7 +19,9 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open OASISTypes
+
 
 let section_kind_common =
   function
@@ -38,8 +40,10 @@ let section_kind_common =
     | Doc (cs, _) ->
         `Doc, cs
 
+
 let section_common sct =
   snd (section_kind_common sct)
+
 
 let section_common_set cs =
   function
@@ -51,6 +55,7 @@ let section_common_set cs =
     | Test (_, tst)            -> Test (cs, tst)
     | Doc (_, doc)             -> Doc (cs, doc)
 
+
 (** Key used to identify section
   *)
 let section_id sct =
@@ -58,6 +63,7 @@ let section_id sct =
     section_kind_common sct
   in
     k, cs.cs_name
+
 
 let string_of_section sct =
   let k, nm =
@@ -73,10 +79,12 @@ let string_of_section sct =
        | `Doc        -> "doc")
     ^" "^nm
 
+
 let section_find id scts =
   List.find
     (fun sct -> id = section_id sct)
     scts
+
 
 module CSection =
 struct
@@ -94,7 +102,9 @@ struct
     Hashtbl.hash (id t)
 end
 
+
 module MapSection = Map.Make(CSection)
 module SetSection = Set.Make(CSection)
+
 
 (* END EXPORT *)

@@ -19,15 +19,19 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Like Setup but in development mode (deprecated).
     @author Sylvain Le Gall
   *)
 
+
 open SubCommand
 open OASISGettext
 
+
 let main () =
   failwith (s_ "The SetupDev subcommand is deprecated, use Setup")
+
 
 let scmd =
   {(SubCommand.make
@@ -54,6 +58,7 @@ let scmd =
              s_ " When generating the build system, keep only setup.ml and \
                   delete other generated files.";
            ] @ ArgCommon.oasis_fn_specs)}
+
 
 let () =
   SubCommand.register scmd

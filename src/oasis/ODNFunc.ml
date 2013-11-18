@@ -19,12 +19,14 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 type 'a func =
     {
       func_call: 'a;
       func_name: string;
       func_arg:  ODN.t option;
     }
+
 
 let func f f_nm =
   {
@@ -33,6 +35,7 @@ let func f f_nm =
     func_arg  = None;
   }
 
+
 let func_with_arg f f_nm arg odn_of_arg =
   {
     func_call = f arg;
@@ -40,12 +43,14 @@ let func_with_arg f f_nm arg odn_of_arg =
     func_arg  = Some (odn_of_arg arg);
   }
 
+
 let odn_of_func t =
   match t.func_arg with
     | Some arg ->
         ODN.APP (t.func_name, [], [arg])
     | None ->
         ODN.VAR t.func_name
+
 
 let func_call t =
   t.func_call

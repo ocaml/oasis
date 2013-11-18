@@ -19,15 +19,18 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Test for OASISLicense
     @author Sylvain Le Gall
   *)
+
 
 open OUnit2
 open TestCommon
 open OASISValues
 open OASISTypes
 open OASISLicense
+
 
 let tests =
   let ver =

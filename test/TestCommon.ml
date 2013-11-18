@@ -19,9 +19,11 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Common utilities for testing
     @author Sylvain Le Gall
   *)
+
 
 IFDEF HAS_GETTEXT THEN
 module Gettext =
@@ -40,10 +42,13 @@ struct
 end
 ENDIF
 
+
 open OUnit2
+
 
 module MapString = Map.Make(String)
 module SetString = Set.Make(String)
+
 
 let has_ocamlopt =
   Conf.make_bool
@@ -51,25 +56,31 @@ let has_ocamlopt =
     (bool_of_string (BaseStandardVar.is_native ()))
     "Wether native compilation possible."
 
+
 let has_native_dynlink =
   Conf.make_bool
     "has_native_dynlink"
     (bool_of_string (BaseStandardVar.native_dynlink ()))
     "Wether native dynlink is possible."
 
+
 let oasis_exec = Conf.make_exec "oasis"
+
 
 let oasis_args ctxt =
   (* TODO: add make_string_list to OUnit2. *)
   []
 
+
 let oasis_ctxt = OASISContext.quiet
+
 
 let long =
   Conf.make_bool
     "long"
     true
     "Don't run long tests."
+
 
 let skip_long_test ctxt =
   skip_if (not (long ctxt)) "Long test."
@@ -89,8 +100,10 @@ let example_dir =
         else
           fn
 
+
 let in_example_dir test_ctxt lst =
   FilePath.make_filename ((example_dir test_ctxt) :: lst)
+
 
 module Output =
 struct
@@ -100,8 +113,10 @@ struct
  let pp_print_sep = OUnitDiff.pp_comma_separator
 end
 
+
 module DiffSetOutput = OUnitDiff.SetMake (Output)
 module DiffListOutput = OUnitDiff.ListSimpleMake (Output)
+
 
 (* Assert checking that command run well *)
 let assert_command ~ctxt ?chdir ?exit_code ?output ?extra_env ?(unorder=false)
@@ -159,7 +174,7 @@ let assert_command ~ctxt ?chdir ?exit_code ?output ?extra_env ?(unorder=false)
     let extra_env =
       match extra_env with
         | Some lst ->
-            List.map (fun (k,v) -> k^"="^v) lst
+            List.map (fun (k, v) -> k^"="^v) lst
 
         | None ->
             []
@@ -170,10 +185,12 @@ let assert_command ~ctxt ?chdir ?exit_code ?output ?extra_env ?(unorder=false)
       ~ctxt ?chdir ?foutput ?env ?exit_code ~use_stderr:true
       cmd args
 
+
 let assert_oasis_cli ~ctxt ?chdir ?exit_code ?output ?extra_env ?unorder args  =
   (* TODO: transfert chdir to -C chdir. *)
   assert_command ~ctxt ?chdir ?exit_code ?output ?extra_env ?unorder
     (oasis_exec ctxt) ((oasis_args ctxt) @ args)
+
 
 let file_content fn =
   let chn = open_in_bin fn in
@@ -182,6 +199,7 @@ let file_content fn =
     Buffer.add_channel buff chn size;
     close_in chn;
     Buffer.contents buff
+
 
 let dbug_file_content test_ctxt fn =
   logf test_ctxt `Info "Content of %S:" fn;

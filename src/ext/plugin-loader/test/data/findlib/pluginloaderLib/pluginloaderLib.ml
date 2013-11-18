@@ -1,3 +1,3 @@
 
-let registered_plugins : string list ref =
-  ref []
+
+let registered_plugins: string list ref = ref []

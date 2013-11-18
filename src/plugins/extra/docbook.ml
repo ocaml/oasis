@@ -19,6 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Docbook package
   *)
 module Docbook =
@@ -29,7 +30,4 @@ struct
 
   let xsltproc   = Chk.prog "xsltproc"
   let xmllint    = Chk.prog "xmllint"
-
 end
-
-

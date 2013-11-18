@@ -19,4 +19,5 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-val myrun : OUnit.test -> OUnit.test_result list
+
+val myrun: OUnit.test -> OUnit.test_result list

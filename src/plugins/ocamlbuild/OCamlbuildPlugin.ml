@@ -19,9 +19,11 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Build using ocamlbuild
     @author Sylvain Le Gall
   *)
+
 
 open OASISTypes
 open OASISGettext
@@ -31,16 +33,20 @@ open OCamlbuildCommon
 open BaseStandardVar
 open BaseMessage
 
+
 TYPE_CONV_PATH "OCamlbuildPlugin"
+
 
 let cond_targets_hook =
   ref (fun lst -> lst)
 
+
 type ocamlbuild_plugin =
   {
-    plugin_tags : string option;
-    extra_args : string list;
+    plugin_tags: string option;
+    extra_args: string list;
   } with odn
+
 
 let check_ocaml_version version pkg =
   match pkg.ocaml_version with
@@ -50,8 +56,10 @@ let check_ocaml_version version pkg =
     | None ->
         false
 
+
 let ocamlbuild_supports_ocamlfind = check_ocaml_version "3.12.1"
 let ocamlbuild_supports_plugin_tags = check_ocaml_version "4.01"
+
 
 let build t pkg argv =
   (* Return the filename in build directory *)
@@ -252,7 +260,9 @@ let clean pkg extra_args  =
            ())
     pkg.sections
 
+
 (* END EXPORT *)
+
 
 open OASISFileTemplate
 open OASISUtils
@@ -267,24 +277,30 @@ open MyOCamlbuildBase
 open Ocamlbuild_plugin
 open OCamlbuildId
 
+
 let plugin =
   `Build, name, Some version
+
 
 let self_id, all_id =
   Build.create plugin
 
+
 let pivot_data =
   data_new_property plugin
+
 
 let only_h_files lst =
   List.filter
     (fun fn -> OASISUnixPath.check_extension fn "h")
     lst
 
+
 let only_c_files lst =
   List.filter
     (fun fn -> OASISUnixPath.check_extension fn "c")
     lst
+
 
 let add_tags tag_t tgts tags =
   let quote_target fn =
@@ -314,6 +330,7 @@ let add_tags tag_t tgts tags =
 let prepend_bs_path bs fn =
   Tag.filename_concat bs.bs_path fn
 
+
 let bs_paths bs files =
   let subdirs =
     List.rev_map OASISUnixPath.dirname
@@ -323,6 +340,7 @@ let bs_paths bs files =
     SetString.elements
       (set_string_of_list
          (List.rev_map OASISUnixPath.reduce (bs.bs_path :: subdirs)))
+
 
 let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t
       myocamlbuild_t =
@@ -564,6 +582,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t
 
     ctxt, tag_t, myocamlbuild_t
 
+
 module MapDirs =
   Map.Make
     (struct
@@ -583,6 +602,7 @@ module MapDirs =
            | `Executable s1, `Executable s2 ->
                String.compare s1 s2
      end)
+
 
 let compute_map_dirs pkg =
   let add k dirs internal_dirs mp =
@@ -634,6 +654,7 @@ let compute_map_dirs pkg =
          SetString.elements src_dirs,
          SetString.elements (SetString.diff src_internal_dirs src_dirs))
       map_dirs
+
 
 let compute_includes map_dirs pkg =
   let add_includes dir set_dirs includes =
@@ -713,6 +734,7 @@ let compute_includes map_dirs pkg =
       includes
       []
 
+
 let is_pure_interface bs mn =
   let fn_lc = prepend_bs_path bs (String.uncapitalize mn) in
   let fn_uc = prepend_bs_path bs mn in
@@ -722,6 +744,7 @@ let is_pure_interface bs mn =
     OASISFileUtil.file_exists_case
       (OASISHostPath.add_extension fn_uc ext) in
   not (have "ml") && have "mli"
+
 
 let add_ocamlbuild_files ctxt pkg =
 
@@ -1125,6 +1148,7 @@ let add_ocamlbuild_files ctxt pkg =
 
     ctxt
 
+
 let generator =
   let new_field nm = new_field OASISPackage.schema all_id nm in
   let plugin_tags =
@@ -1150,6 +1174,7 @@ let generator =
         plugin_tags = plugin_tags data;
       }
 
+
 let doit ctxt pkg =
   let t = generator pkg.schema_data in
   let ctxt = add_ocamlbuild_files ctxt pkg in
@@ -1169,8 +1194,10 @@ let doit ctxt pkg =
       chng_distclean    = None;
     }
 
+
 let qstrt_completion pkg =
   fix_build_tools (ExternalTool "ocamlbuild") pkg
+
 
 let init () =
   OCamlbuildId.init ();

@@ -19,6 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Boolean expressions
 
     This module provides a boolean expression evaluator. See OASIS manual
@@ -28,24 +29,32 @@
     @see <http://oasis.forge.ocamlcore.org/MANUAL.html#conditional-value> OASIS Manual
   *)
 
+
 (** {2 Test} *)
+
 
 (** Test definition.
   *)
 type test
 
+
 (** Mandatory tests. *)
 val tests: test list
+
 
 (** Convert a test to string. *)
 val string_of_test: test -> string
 
+
 (** Convert a string to test. *)
 val test_of_string: string -> test
 
+
 (** {2 Expression} *)
 
+
 type flag = string
+
 
 (** Boolean expression definition.
   *)
@@ -57,14 +66,17 @@ type t =
   | EFlag of flag  (** flag(foo), a boolean value. *)
   | ETest of test * string (** os_type(Win32), a value compared to a string. *)
 
+
 (** Choose among different values
   *)
 type 'a choices = (t * 'a) list
+
 
 (** [eval eval_tst t] Evaluates the expression. Use [eval_tst]
     to get values of flags and tests.
   *)
 val eval: (string -> string) -> t -> bool
+
 
 (** [choose ~printer ~name eval_tst choices] Evaluate each conditions
     of [choices] and choose the last condition that evaluates to [true].
@@ -78,29 +90,36 @@ val choose:
   ?name:string ->
   (string -> string) -> 'a choices  -> 'a
 
+
 (** Check that a boolean expression only use available flags. {b Not exported}.
   *)
 val check: (flag list) -> t -> unit
+
 
 (** Try to reduce the size of a boolean expression. {b Not exported}.
   *)
 val reduce: t -> t
 
+
 (** Try to reduce the size of a choice list. {b Not exported}.
   *)
 val reduce_choices: (t * 'a) list -> (t * 'a) list
+
 
 (** [if_then_else cond choices_if choices_else] Combine choices, if_then_else
     style.
   *)
 val if_then_else: t -> (t * 'a) list -> (t * 'a) list -> (t * 'a) list
 
+
 (** Dump ODN.t. {b Not exported}. *)
 val odn_of_t: t -> ODN.t
 val odn_of_choices: ('a -> ODN.t) -> 'a choices -> ODN.t
 
+
 (** Transform an expression into a string. {b Not exported} *)
 val to_string: t -> string
+
 
 (** Transform a list of choice into a string. {b Not exported} *)
 val string_of_choices: ('a -> string) -> 'a choices -> string

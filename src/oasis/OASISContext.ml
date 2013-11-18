@@ -19,13 +19,16 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open OASISGettext
+
 
 type level =
   [ `Debug
   | `Info
   | `Warning
   | `Error]
+
 
 type t =
   {
@@ -37,6 +40,7 @@ type t =
     printf:                level -> string -> unit;
   }
 
+
 let printf lvl str =
   let beg =
     match lvl with
@@ -46,6 +50,7 @@ let printf lvl str =
       | `Debug -> s_ "D: "
   in
     prerr_endline (beg^str)
+
 
 let default =
   ref
@@ -57,6 +62,7 @@ let default =
       ignore_unknown_fields = false;
       printf                = printf;
     }
+
 
 let quiet =
   {!default with quiet = true}

@@ -19,26 +19,32 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Manipulate host filenames
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
+
 
 (** Create a filename out of its components.
   *)
-val make : host_filename list -> host_filename
+val make: host_filename list -> host_filename
+
 
 (** Convert a unix filename into host filename.
   *)
-val of_unix : unix_filename -> host_filename
+val of_unix: unix_filename -> host_filename
+
 
 (** Compare host filename.
     {b Not exported}
   *)
-val compare : host_filename -> host_filename -> int
+val compare: host_filename -> host_filename -> int
+
 
 (** See {!OASISUnixPath.add_extension}.
     {b Not exported}
   *)
-val add_extension : host_filename -> string -> host_filename
+val add_extension: host_filename -> string -> host_filename

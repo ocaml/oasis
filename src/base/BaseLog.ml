@@ -19,12 +19,15 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open OASISUtils
+
 
 let default_filename =
   Filename.concat
     (Filename.dirname BaseEnv.default_filename)
     "setup.log"
+
 
 module SetTupleString =
   Set.Make
@@ -35,6 +38,7 @@ module SetTupleString =
            | 0 -> String.compare s12 s22
            | n -> n
      end)
+
 
 let load () =
   if Sys.file_exists default_filename then
@@ -85,12 +89,14 @@ let load () =
       []
     end
 
+
 let register event data =
   let chn_out =
     open_out_gen [Open_append; Open_creat; Open_text] 0o644 default_filename
   in
     Printf.fprintf chn_out "%S %S\n" event data;
     close_out chn_out
+
 
 let unregister event data =
   if Sys.file_exists default_filename then
@@ -117,6 +123,7 @@ let unregister event data =
           Sys.remove default_filename
     end
 
+
 let filter events =
   let st_events =
     List.fold_left
@@ -128,6 +135,7 @@ let filter events =
     List.filter
       (fun (e, _) -> SetString.mem e st_events)
       (load ())
+
 
 let exists event data =
   List.exists

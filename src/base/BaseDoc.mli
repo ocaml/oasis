@@ -19,16 +19,19 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Build documentation
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
+
 
 (** [doc lst pkg extra_args] Build all documents. [lst] elements are tuples
     [(f, cs, doc)], apply in turn [f pkg (cs, doc) extra_args].
   *)
-val doc :
+val doc:
   ((package ->
       common_section * doc ->
       arg array ->

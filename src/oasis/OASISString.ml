@@ -20,13 +20,13 @@
 (******************************************************************************)
 
 
-
 (** Various string utilities.
 
     Mostly inspired by extlib and batteries ExtString and BatString libraries.
 
     @author Sylvain Le Gall
   *)
+
 
 let nsplitf str f =
   if str = "" then
@@ -48,11 +48,13 @@ let nsplitf str f =
       push ();
       List.rev !lst
 
+
 (** [nsplit c s] Split the string [s] at char [c]. It doesn't include the
     separator.
   *)
 let nsplit str c =
   nsplitf str ((=) c)
+
 
 let find ~what ?(offset=0) str =
   let what_idx = ref 0 in
@@ -70,6 +72,7 @@ let find ~what ?(offset=0) str =
     else
       !str_idx - !what_idx
 
+
 let sub_start str len =
   let str_len = String.length str in
   if len >= str_len then
@@ -77,12 +80,14 @@ let sub_start str len =
   else
     String.sub str len (str_len - len)
 
+
 let sub_end ?(offset=0) str len =
   let str_len = String.length str in
   if len >= str_len then
     ""
   else
     String.sub str 0 (str_len - len)
+
 
 let starts_with ~what ?(offset=0) str =
   let what_idx = ref 0 in
@@ -102,11 +107,13 @@ let starts_with ~what ?(offset=0) str =
     else
       false
 
+
 let strip_starts_with ~what str =
   if starts_with ~what str then
     sub_start str (String.length what)
   else
     raise Not_found
+
 
 let ends_with ~what ?(offset=0) str =
   let what_idx = ref ((String.length what) - 1) in
@@ -126,11 +133,13 @@ let ends_with ~what ?(offset=0) str =
     else
       false
 
+
 let strip_ends_with ~what str =
   if ends_with ~what str then
     sub_end str (String.length what)
   else
     raise Not_found
+
 
 let replace_chars f s =
   let buf = String.make (String.length s) 'X' in
@@ -139,12 +148,15 @@ let replace_chars f s =
     done;
     buf
 
+
 (* END EXPORT *)
+
 
 let is_whitespace =
   function
     | ' ' | '\r' | '\n' | '\t' -> true
     |  _  -> false
+
 
 let tokenize ?(is_whitespace=is_whitespace) ?(tokens=[]) str =
   let lst = ref [] in
@@ -192,16 +204,19 @@ let tokenize ?(is_whitespace=is_whitespace) ?(tokens=[]) str =
     push ();
     List.rev !lst
 
+
 let tokenize_genlex ?(tokens=[]) str =
   let strm = Genlex.make_lexer tokens (Stream.of_string str) in
   let lst = ref [] in
     Stream.iter (fun tok -> lst := tok :: !lst) strm;
     List.rev !lst
 
+
 let split str c =
   let idx = String.index str c in
     String.sub str 0 idx,
     String.sub str (idx + 1) (String.length str - idx - 1)
+
 
 let trim str =
   let start_non_blank = ref 0 in
@@ -215,6 +230,7 @@ let trim str =
       decr stop_non_blank
     done;
     String.sub str !start_non_blank (!stop_non_blank - !start_non_blank + 1)
+
 
 let fold_left f acc str =
   let racc = ref acc in

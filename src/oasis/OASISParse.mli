@@ -19,6 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Parse '_oasis' file
 
     The whole module is {b not exported}.
@@ -26,7 +27,9 @@
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
+
 
 (** [from_stream ~ctxt ~ignore_plugins ~fn st] Parse the OASIS file [~fn] and
     check it. If [~ignore_plugins] is set, ignore unknown plugin's fields in the
@@ -38,16 +41,18 @@ val from_stream:
   (char Stream.t) ->
   package
 
+
 (** See {!from_stream}, apply to a filename.
   *)
-val from_file :
+val from_file:
   ctxt:OASISContext.t ->
   host_filename ->
   package
 
+
 (** See {!from_stream}, apply to a string.
   *)
-val from_string :
+val from_string:
   ctxt:OASISContext.t ->
   ?fn:host_filename ->
   string ->

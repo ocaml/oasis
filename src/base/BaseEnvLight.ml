@@ -19,14 +19,18 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 module MapString = Map.Make(String)
 
+
 type t = string MapString.t
+
 
 let default_filename =
   Filename.concat
     (Sys.getcwd ())
     "setup.data"
+
 
 let load ?(allow_empty=false) ?(filename=default_filename) () =
   if Sys.file_exists filename then
@@ -85,6 +89,7 @@ let load ?(allow_empty=false) ?(filename=default_filename) () =
            filename)
     end
 
+
 let var_get name env =
   let rec var_expand str =
     let buff =
@@ -105,6 +110,7 @@ let var_get name env =
       Buffer.contents buff
   in
     var_expand (MapString.find name env)
+
 
 let var_choose lst env =
   OASISExpr.choose

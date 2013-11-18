@@ -24,10 +24,13 @@ open BaseEnv
 open OASISUtils
 open OASISGettext
 
+
 module SMap = Map.Make(String)
+
 
 let ocamlc =
   BaseCheck.prog_opt "ocamlc"
+
 
 let ocamlc_config_map =
   (* Map name to value for ocamlc -config output
@@ -92,6 +95,7 @@ let ocamlc_config_map =
       (fun () ->
          (* TODO: update if ocamlc change !!! *)
          Lazy.force cache)
+
 
 let var_define nm =
   (* Extract data from ocamlc -config *)

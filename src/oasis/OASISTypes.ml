@@ -22,6 +22,7 @@
 
 TYPE_CONV_PATH "OASISTypes"
 
+
 type name          = string with odn
 type package_name  = string with odn
 type url           = string with odn
@@ -34,8 +35,10 @@ type arg           = string with odn
 type args          = string list with odn
 type command_line  = (prog * arg list) with odn
 
+
 type findlib_name = string with odn
 type findlib_full = string with odn
+
 
 type compiled_object =
   | Byte
@@ -43,15 +46,18 @@ type compiled_object =
   | Best
   with odn
 
+
 type dependency =
   | FindlibPackage of findlib_full * OASISVersion.comparator option
   | InternalLibrary of name
   with odn
 
+
 type tool =
   | ExternalTool of name
   | InternalExecutable of name
   with odn
+
 
 type vcs =
   | Darcs
@@ -65,6 +71,7 @@ type vcs =
   | OtherVCS of url
   with odn
 
+
 type plugin_kind =
     [  `Configure
      | `Build
@@ -73,6 +80,7 @@ type plugin_kind =
      | `Install
      | `Extra
     ]
+
 
 type plugin_data_purpose =
     [  `Configure
@@ -88,11 +96,15 @@ type plugin_data_purpose =
      | `Other of string
     ]
 
+
 type 'a plugin = 'a * name * OASISVersion.t option with odn
+
 
 type all_plugin = plugin_kind plugin
 
+
 type plugin_data = (all_plugin * plugin_data_purpose * (unit -> unit)) list
+
 
 (* END EXPORT *)
 (* TODO: really export this *)
@@ -100,7 +112,9 @@ let odn_of_plugin_data _ =
   ODN.of_list (fun _ -> ODN.UNT) []
 (* START EXPORT *)
 
+
 type 'a conditional = 'a OASISExpr.choices with odn
+
 
 type custom =
     {
@@ -109,6 +123,7 @@ type custom =
     }
     with odn
 
+
 type common_section =
     {
       cs_name: name;
@@ -116,6 +131,7 @@ type common_section =
       cs_plugin_data: plugin_data;
     }
     with odn
+
 
 type build_section =
     {
@@ -136,6 +152,7 @@ type build_section =
     }
     with odn
 
+
 type library =
     {
       lib_modules:            string list;
@@ -153,17 +170,20 @@ type object_ =
       obj_findlib_fullname:   findlib_name list option;
     } with odn
 
+
 type executable =
     {
       exec_custom:          bool;
       exec_main_is:         unix_filename;
     } with odn
 
+
 type flag =
     {
       flag_description:  string option;
       flag_default:      bool conditional;
     } with odn
+
 
 type source_repository =
     {
@@ -176,6 +196,7 @@ type source_repository =
       src_repo_subdir:      unix_filename option;
     } with odn
 
+
 type test =
     {
       test_type:               [`Test] plugin;
@@ -186,6 +207,7 @@ type test =
       test_tools:              tool list;
     } with odn
 
+
 type doc_format =
   | HTML of unix_filename
   | DocText
@@ -195,6 +217,7 @@ type doc_format =
   | DVI
   | OtherDoc
   with odn
+
 
 type doc =
     {
@@ -211,6 +234,7 @@ type doc =
       doc_build_tools: tool list;
     } with odn
 
+
 type section =
   | Library    of common_section * build_section * library
   | Object     of common_section * build_section * object_
@@ -221,8 +245,10 @@ type section =
   | Doc        of common_section * doc
   with odn
 
+
 type section_kind =
     [ `Library | `Object | `Executable | `Flag | `SrcRepo | `Test | `Doc ]
+
 
 type package =
     {
@@ -261,13 +287,16 @@ type package =
       plugin_data:      plugin_data;
     } with odn
 
+
 (* END EXPORT *)
+
 
 type 'a quickstart_level =
   | NoChoice of 'a (* Don't ask question, use provided value *)
   | Beginner
   | Intermediate
   | Expert
+
 
 type 'a quickstart_question =
   | Field

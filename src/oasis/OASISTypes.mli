@@ -19,6 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Package definition
 
     This module contains all the types used to build an OASIS package.
@@ -27,7 +28,9 @@
     @author Sylvain Le Gall
   *)
 
+
 (** {2 Aliases} *)
+
 
 type name          = string  (** Standard name. *)
 type package_name  = string  (** Name of a package, see {!package}. *)
@@ -41,14 +44,18 @@ type arg           = string  (** Command line argument. *)
 type args          = arg list (** Command line arguments. *)
 type command_line  = (prog * args) (** Command line. *)
 
+
 (** Package name for findlib, doesn't contain '.'. *)
 type findlib_name = string
+
 
 (** Package name + path for findlib, made of several findlib name concatenated
     with '.'. *)
 type findlib_full = string
 
+
 (** {2 OASIS package definition} *)
+
 
 (** Compilation type.
   *)
@@ -56,6 +63,7 @@ type compiled_object =
   | Byte   (** Always use byte code. *)
   | Native (** Always use native code. *)
   | Best   (** Use either byte or native, depending ocamlopt availability. *)
+
 
 (** Package dependency.
   *)
@@ -66,6 +74,7 @@ type dependency =
   | InternalLibrary of name
     (** Section library of the given name. *)
 
+
 (** Tool dependency.
   *)
 type tool =
@@ -74,6 +83,7 @@ type tool =
 
   | InternalExecutable of name
     (** Section executable of the given name. *)
+
 
 (** Possible VCS.
   *)
@@ -88,10 +98,12 @@ type vcs =
   | Monotone (** Monotone *)
   | OtherVCS of url (** Anything else, follow URL for description. *)
 
+
 (** Conditional value, last expression that evaluate to true define
     the value.
   *)
 type 'a conditional = 'a OASISExpr.choices
+
 
 (** Plugin kind.
   *)
@@ -102,6 +114,7 @@ type plugin_kind =
     | `Test
     | `Install
     | `Extra]
+
 
 (** Additional data to allow registration of more than
     one data property per plugin. See {!OASISPlugin.data_new_property}
@@ -120,16 +133,20 @@ type plugin_data_purpose =
      | `Other of string
     ]
 
+
 (** Plugin definition, plugin type depends on which fields this
     types is used for.
   *)
 type 'a plugin = 'a * name * OASISVersion.t option
 
+
 type all_plugin = plugin_kind plugin
+
 
 (** Property list storage for plugin data
   *)
 type plugin_data = (all_plugin * plugin_data_purpose * (unit -> unit)) list
+
 
 (** Set of command lines to run before and after a step.
   *)
@@ -141,6 +158,7 @@ type custom =
       post_command: (command_line option) conditional;
       (** Run after. *)
     }
+
 
 (** Common attributes for sections.
   *)
@@ -154,6 +172,7 @@ type common_section =
       cs_plugin_data: plugin_data;
       (** Property list attached to the section. *)
     }
+
 
 (** Common attributes for Executable and Library sections.
   *)
@@ -189,6 +208,7 @@ type build_section =
       (** Option to pass to ocamlopt. *)
     }
 
+
 (** Library definition.
   *)
 type library =
@@ -211,6 +231,7 @@ type library =
         *)
     }
 
+
 (** Object definition.
   *)
 type object_ =
@@ -221,6 +242,7 @@ type object_ =
           library in build dependencies.
         *)
     }
+
 
 (** Executable definition.
   *)
@@ -234,6 +256,7 @@ type executable =
         *)
     }
 
+
 (** Command line flag definition.
   *)
 type flag =
@@ -243,6 +266,7 @@ type flag =
       flag_default:      bool conditional;
       (** Default value. *)
     }
+
 
 (** Source repository definition.
   *)
@@ -264,6 +288,7 @@ type source_repository =
       (** Depending on VCS, which sub directory (e.g. svn). *)
     }
 
+
 (** Test definition.
   *)
 type test =
@@ -281,6 +306,7 @@ type test =
       test_tools:              tool list;
       (** Tools required for this test. *)
     }
+
 
 (** Document formats.
   *)
@@ -326,6 +352,7 @@ type doc =
       (** Tools required to generate this document. *)
     }
 
+
 (** All sections and their attributes. *)
 type section =
   | Library    of common_section * build_section * library
@@ -336,8 +363,10 @@ type section =
   | Test       of common_section * test
   | Doc        of common_section * doc
 
+
 type section_kind =
     [ `Library | `Object | `Executable | `Flag | `SrcRepo | `Test | `Doc ]
+
 
 (** OASIS package, what an '_oasis' file contains.
   *)
@@ -409,7 +438,9 @@ type package =
       (** Property list attached to this package. *)
     }
 
+
 (** {2 Quickstart questions } *)
+
 
 (** Quickstart level. {b Not exported}.
   *)
@@ -419,6 +450,7 @@ type 'a quickstart_level =
   | Intermediate   (** Ask the question to an intermediate user and above. *)
   | Expert         (** Ask the question to an expert. *)
 
+
 (** Howto ask questions in quickstart. {b Not exported}.
   *)
 type 'a quickstart_question =
@@ -427,6 +459,7 @@ type 'a quickstart_question =
   | Choices of 'a list (** Multiple choices in a list. *)
   | ExclusiveChoices of 'a list (** Pick a single choice in the list. *)
 
+
 (** {2 ODN functions}
 
     These functions allow to generate setup.ml standalone code, by serializing
@@ -434,6 +467,7 @@ type 'a quickstart_question =
 
     See {{:http://forge.ocamlcore.org/projects/odn} the OCaml data notation project}
  *)
+
 
 val odn_of_name:          name -> ODN.t
 val odn_of_package_name:  package_name -> ODN.t
@@ -446,5 +480,5 @@ val odn_of_args:          args -> ODN.t
 val odn_of_command_line:  prog * args -> ODN.t
 val odn_of_findlib_name:  findlib_name -> ODN.t
 val odn_of_findlib_full:  findlib_name -> ODN.t
-val odn_of_conditional :  ('a -> ODN.t) -> 'a OASISExpr.choices -> ODN.t
-val odn_of_package : package -> ODN.t
+val odn_of_conditional:  ('a -> ODN.t) -> 'a OASISExpr.choices -> ODN.t
+val odn_of_package: package -> ODN.t

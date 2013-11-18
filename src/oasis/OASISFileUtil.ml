@@ -19,7 +19,9 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open OASISGettext
+
 
 let file_exists_case fn =
   let dirname = Filename.dirname fn in
@@ -34,6 +36,7 @@ let file_exists_case fn =
     else
       false
 
+
 let find_file ?(case_sensitive=true) paths exts =
 
   (* Cardinal product of two list *)
@@ -42,7 +45,7 @@ let find_file ?(case_sensitive=true) paths exts =
       (List.map
          (fun a ->
             List.map
-              (fun b -> a,b)
+              (fun b -> a, b)
               lst2)
          lst1)
   in
@@ -52,7 +55,7 @@ let find_file ?(case_sensitive=true) paths exts =
       | p1 :: p2 :: tl ->
           let acc =
             (List.map
-               (fun (a,b) -> Filename.concat a b)
+               (fun (a, b) -> Filename.concat a b)
                (p1 * p2))
           in
             combined_paths (acc :: tl)
@@ -64,7 +67,7 @@ let find_file ?(case_sensitive=true) paths exts =
 
   let alternatives =
     List.map
-      (fun (p,e) ->
+      (fun (p, e) ->
          if String.length e > 0 && e.[0] <> '.' then
            p ^ "." ^ e
          else
@@ -77,6 +80,7 @@ let find_file ?(case_sensitive=true) paths exts =
        else
          Sys.file_exists)
       alternatives
+
 
 let which ~ctxt prg =
   let path_sep =
@@ -96,6 +100,7 @@ let which ~ctxt prg =
   in
     find_file ~case_sensitive:false [path_lst; [prg]] exec_ext
 
+
 (**/**)
 let rec fix_dir dn =
   (* Windows hack because Sys.file_exists "src\\" = false when
@@ -109,8 +114,10 @@ let rec fix_dir dn =
     else
       dn
 
+
 let q = Filename.quote
 (**/**)
+
 
 let cp ~ctxt ?(recurse=false) src tgt =
   if recurse then
@@ -128,12 +135,14 @@ let cp ~ctxt ?(recurse=false) src tgt =
        | _ -> "cp")
       [q src; q tgt]
 
+
 let mkdir ~ctxt tgt =
   OASISExec.run ~ctxt
     (match Sys.os_type with
        | "Win32" -> "md"
        | _ -> "mkdir")
     [q tgt]
+
 
 let rec mkdir_parent ~ctxt f tgt =
   let tgt =
@@ -157,6 +166,7 @@ let rec mkdir_parent ~ctxt f tgt =
           end
       end
 
+
 let rmdir ~ctxt tgt =
   if Sys.readdir tgt = [||] then
     begin
@@ -166,6 +176,7 @@ let rmdir ~ctxt tgt =
         | _ ->
             OASISExec.run ~ctxt "rm" ["-r"; q tgt]
     end
+
 
 let glob ~ctxt fn =
  let basename =

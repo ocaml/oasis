@@ -19,7 +19,9 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 type vertex = int
+
 
 module SetInt =
   Set.Make
@@ -28,11 +30,13 @@ module SetInt =
        let compare = ( - )
      end)
 
+
 type 'a t =
     {
       mutable vertexes: ('a * SetInt.t ref) array;
       values: ('a, int) Hashtbl.t;
     }
+
 
 let create len =
   {
@@ -40,11 +44,13 @@ let create len =
     values   = Hashtbl.create len;
   }
 
+
 let copy t =
   {
     vertexes = Array.copy t.vertexes;
     values   = Hashtbl.copy t.values;
   }
+
 
 let value_of_vertex t v =
   if 0 <= v && v < Array.length t.vertexes then
@@ -52,8 +58,10 @@ let value_of_vertex t v =
   else
     invalid_arg "get_vertex"
 
+
 let vertex_of_value t e =
   Hashtbl.find t.values e
+
 
 let add_vertex t e =
   if Hashtbl.mem t.values e then
@@ -75,6 +83,7 @@ let add_vertex t e =
         v
     end
 
+
 let add_edge t v1 v2 =
   let size = Array.length t.vertexes in
     if 0 <= v1 && v1 < size &&
@@ -85,6 +94,7 @@ let add_edge t v1 v2 =
       end
     else
       invalid_arg "add_edge"
+
 
 let topological_sort t =
   let size = Array.length t.vertexes in
@@ -120,6 +130,7 @@ let topological_sort t =
     done;
     !l
 
+
 let fold_edges f t acc =
   let racc = ref acc in
     for v1 = 0 to Array.length t.vertexes - 1 do
@@ -128,6 +139,7 @@ let fold_edges f t acc =
         !(snd t.vertexes.(v1))
     done;
     !racc
+
 
 let transitive_closure t =
   let size = Array.length t.vertexes in

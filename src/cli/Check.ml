@@ -19,12 +19,15 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Check an _oasis file
     @author Sylvain Le Gall
   *)
 
+
 open OASISGettext
 open SubCommand
+
 
 let main () =
   let _pkg: OASISTypes.package =
@@ -34,6 +37,7 @@ let main () =
       !ArgCommon.oasis_fn
   in
     ()
+
 
 let scmd =
   {(SubCommand.make
@@ -47,6 +51,7 @@ let scmd =
            (ArgCommon.ignore_plugins_specs
             @
             ArgCommon.oasis_fn_specs)}
+
 
 let () =
   SubCommand.register scmd

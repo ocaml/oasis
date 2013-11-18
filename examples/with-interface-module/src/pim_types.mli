@@ -19,7 +19,9 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (* This module is not referred by the library itself.  The mli and cmi files
  * should still be installed. *)
+
 
 type ('a, 'b) either = This of 'a | That of 'b

@@ -19,12 +19,15 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Test section
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
+
 
 (** Schema for the section. {b Not exported}.
   *)
-val schema : (common_section * test) OASISSchema.t
+val schema: (common_section * test) OASISSchema.t

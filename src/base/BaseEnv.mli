@@ -19,11 +19,14 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Read-write access to 'setup.data'
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
+
 
 (** Origin of the variable, if a variable has been already set
     with a higher origin, it won't be set again.
@@ -33,6 +36,7 @@ type origin_t =
   | OGetEnv      (** Extracted from environment, using Sys.getenv. *)
   | OFileLoad    (** From loading file setup.data. *)
   | OCommandLine (** Set on command line. *)
+
 
 (** Command line handling for variable.
   *)
@@ -48,6 +52,7 @@ type cli_handle_t =
   | CLIUser of (Arg.key * Arg.spec * Arg.doc) list
   (** Fully define the command line arguments. *)
 
+
 (** Variable type.
   *)
 type definition_t =
@@ -59,38 +64,45 @@ type definition_t =
       group:      name option; (** Group of the variable. *)
     }
 
+
 (** Schema for environment.
   *)
-val schema : (origin_t, definition_t) PropList.Schema.t
+val schema: (origin_t, definition_t) PropList.Schema.t
+
 
 (** Data for environment.
   *)
-val env : PropList.Data.t
+val env: PropList.Data.t
+
 
 (** Expand variable that can be found in string. Variable follow definition of
   * variable for [Buffer.add_substitute].
   *)
-val var_expand : string -> string
+val var_expand: string -> string
+
 
 (** Get variable.
   *)
-val var_get : name -> string
+val var_get: name -> string
+
 
 (** Choose a value among conditional expressions.
   *)
-val var_choose :
+val var_choose:
   ?printer:('a -> string) ->
   ?name:string ->
   'a OASISExpr.choices ->
   'a
 
+
 (** Protect a variable content, to avoid expansion.
   *)
-val var_protect : string -> string
+val var_protect: string -> string
+
 
 (** Define a variable.
   *)
-val var_define :
+val var_define:
   ?hide:bool ->
   ?dump:bool ->
   ?short_desc:(unit -> string) ->
@@ -100,10 +112,11 @@ val var_define :
   name ->
   (unit -> string) ->
   (unit -> string)
+
 
 (** Define a variable or redefine it.
   *)
-val var_redefine :
+val var_redefine:
   ?hide:bool ->
   ?dump:bool ->
   ?short_desc:(unit -> string) ->
@@ -114,38 +127,47 @@ val var_redefine :
   (unit -> string) ->
   (unit -> string)
 
+
 (** Well-typed ignore for [var_define].
   *)
-val var_ignore : (unit -> string) -> unit
+val var_ignore: (unit -> string) -> unit
+
 
 (** Display all variables, even hidden one.
   *)
-val print_hidden : unit -> string
+val print_hidden: unit -> string
+
 
 (** Get all variables.
   *)
-val var_all : unit -> name list
+val var_all: unit -> name list
+
 
 (** Environment default file.
   *)
-val default_filename : host_filename
+val default_filename: host_filename
+
 
 (** Initialize environment.
   *)
-val load : ?allow_empty:bool -> ?filename:host_filename -> unit -> unit
+val load: ?allow_empty:bool -> ?filename:host_filename -> unit -> unit
+
 
 (** Uninitialize environment.
   *)
-val unload : unit -> unit
+val unload: unit -> unit
+
 
 (** Save environment on disk.
   *)
-val dump : ?filename:host_filename -> unit -> unit
+val dump: ?filename:host_filename -> unit -> unit
+
 
 (** Display environment to user.
   *)
-val print : unit -> unit
+val print: unit -> unit
+
 
 (** Default command line arguments, computed using variable definitions.
   *)
-val args : unit -> (Arg.key * Arg.spec * Arg.doc) list
+val args: unit -> (Arg.key * Arg.spec * Arg.doc) list

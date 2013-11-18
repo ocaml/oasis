@@ -19,15 +19,19 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Help on subcommands
   *)
+
 
 open SubCommand
 open ArgExt
 open OASISGettext
 
+
 let scmd_name =
   ref None
+
 
 let main () =
   let pp_print_help =
@@ -49,6 +53,7 @@ let main () =
       Pager.close_out pager;
       raise e
 
+
 let scmd =
   {(SubCommand.make
       "help"
@@ -58,6 +63,7 @@ let scmd =
      with
          scmd_usage = s_ "[subcommand|all]";
          scmd_anon  = (fun s -> scmd_name := Some s)}
+
 
 let () =
   SubCommand.register scmd

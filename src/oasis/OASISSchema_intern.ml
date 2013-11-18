@@ -19,9 +19,11 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Property list and schema checker
     @author Sylvain Le Gall
   *)
+
 
 open OASISTypes
 open OASISAstTypes
@@ -30,6 +32,7 @@ open OASISUtils
 open OASISValues
 open OASISExpr
 open PropList
+
 
 module Sync =
 struct
@@ -97,11 +100,13 @@ struct
       t := new_f
 end
 
+
 type kind =
   | DefinePlugin of plugin_kind
   | DefinePlugins  of plugin_kind
   | FieldFromPlugin of plugin_kind plugin
   | StandardField
+
 
 type extra =
   {
@@ -110,6 +115,7 @@ type extra =
     qckstrt_q:     unit -> string quickstart_question;
     since_version: OASISVersion.t option;
   }
+
 
 type 'a t =
     {
@@ -125,6 +131,7 @@ let schema nm plg_data =
     sync   = Sync.create ();
     plugin = plg_data;
   }
+
 
 (** Define extra data contained in the schema
   *)
@@ -287,6 +294,7 @@ let new_field_conditional
         ?since_version
          value)
 
+
 (** Default parser and updater for new_field and new_field_plugin
   *)
 let default_parse_update name value =
@@ -356,6 +364,7 @@ let new_field
         ?since_version
          value)
 
+
 (** Create a field that enables a plugin
   *)
 let new_field_plugin
@@ -388,6 +397,7 @@ let new_field_plugin
         ?quickstart_question
         ?since_version
          value)
+
 
 (** Create a field that enables some plugins
   *)
@@ -426,6 +436,7 @@ let new_field_plugins
         ?quickstart_question
         ?since_version
         value)
+
 
 let to_proplist t plugins e =
   let data =

@@ -19,11 +19,14 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** AST types
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
+
 
 (** Context for parsing and checking AST *)
 type ctxt =
@@ -43,16 +46,19 @@ type ctxt =
       ctxt: OASISContext.t;
     }
 
+
 (** Abstract Syntax Tree *)
 type field_op =
   | FSet of string
   | FAdd of string
   | FEval of OASISExpr.t
 
+
 type stmt =
   | SField of name * field_op
   | SIfThenElse of OASISExpr.t * stmt * stmt
   | SBlock of stmt list
+
 
 type top_stmt =
   | TSLibrary of name * stmt

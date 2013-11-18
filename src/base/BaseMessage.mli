@@ -19,6 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Message to user
 
     This module is the same as {!OASISMessage}, except we use the
@@ -27,18 +28,22 @@
     @author Sylvain Le Gall
   *)
 
+
 (** See {!OASISMessage.debug}.
   *)
-val debug : ('a, unit, string, unit) format4 -> 'a
+val debug: ('a, unit, string, unit) format4 -> 'a
+
 
 (** See {!OASISMessage.info}.
   *)
-val info : ('a, unit, string, unit) format4 -> 'a
+val info: ('a, unit, string, unit) format4 -> 'a
+
 
 (** See {!OASISMessage.warning}.
   *)
-val warning : ('a, unit, string, unit) format4 -> 'a
+val warning: ('a, unit, string, unit) format4 -> 'a
+
 
 (** See {!OASISMessage.error}.
   *)
-val error : ('a, unit, string, unit) format4 -> 'a
+val error: ('a, unit, string, unit) format4 -> 'a

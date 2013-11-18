@@ -19,9 +19,12 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open OASISGettext
 
+
 module MapString = Map.Make(String)
+
 
 let map_string_of_assoc assoc =
   List.fold_left
@@ -29,13 +32,16 @@ let map_string_of_assoc assoc =
     MapString.empty
     assoc
 
+
 module SetString = Set.Make(String)
+
 
 let set_string_add_list st lst =
   List.fold_left
     (fun acc e -> SetString.add e acc)
     st
     lst
+
 
 let set_string_of_list =
   set_string_add_list
@@ -44,6 +50,7 @@ let set_string_of_list =
 
 let compare_csl s1 s2 =
   String.compare (String.lowercase s1) (String.lowercase s2)
+
 
 module HashStringCsl =
   Hashtbl.Make
@@ -56,6 +63,7 @@ module HashStringCsl =
        let hash s =
          Hashtbl.hash (String.lowercase s)
      end)
+
 
 let varname_of_string ?(hyphen='_') s =
   if String.length s = 0 then
@@ -87,6 +95,7 @@ let varname_of_string ?(hyphen='_') s =
         String.lowercase buf
     end
 
+
 let varname_concat ?(hyphen='_') p s =
   let what = String.make 1 hyphen in
   let p =
@@ -107,12 +116,16 @@ let varname_concat ?(hyphen='_') p s =
 let is_varname str =
   str = varname_of_string str
 
+
 let failwithf fmt = Printf.ksprintf failwith fmt
+
 
 (* END EXPORT *)
 
+
 let split_comma str =
   List.map OASISString.trim (OASISString.nsplit str ',')
+
 
 let split_newline ?(trim=true) str =
   let lst = OASISString.nsplit str '\n' in
@@ -120,6 +133,7 @@ let split_newline ?(trim=true) str =
       List.map OASISString.trim lst
     else
       lst
+
 
 let split_optional_parentheses str =
   try
@@ -130,12 +144,13 @@ let split_optional_parentheses str =
   with Not_found ->
     OASISString.trim str, None
 
+
 module POSIXShell =
 struct
 
   let unescape s =
     let buf = Buffer.create (String.length s) in
-    let _b : bool =
+    let _b: bool =
       OASISString.fold_left
         (fun escaped_char ->
            function
@@ -192,7 +207,7 @@ struct
     in
 
     (* Protect Buffer.add_substitute substitution inside a string, the $... will
-     * be transformed into $X0, $X1,...
+     * be transformed into $X0, $X1...
      *)
     let substr_data =
       Hashtbl.create 13
@@ -349,5 +364,4 @@ struct
       if last <> "" then rargs := last :: !rargs
     in
     List.rev_map unprotect_subst !rargs
-
 end

@@ -19,11 +19,14 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (* TODO: move this file to src/cli/Manual.ml *)
+
 
 (** Display help for OASIS
     @author Sylvain Le Gall
   *)
+
 
 open OASISLicense
 open OASISTypes
@@ -32,6 +35,7 @@ open OASISGettext
 open OASISUtils
 open Format
 open FormatExt
+
 
 let fields_of_section ?plugin schm =
   List.rev
@@ -52,6 +56,7 @@ let fields_of_section ?plugin schm =
                 acc)
        []
        schm)
+
 
 module Var =
 struct
@@ -121,10 +126,11 @@ struct
          add nm f t)
       (create ?plugin ())
       lst
-
 end
 
+
 exception Empty of string
+
 
 let pp_section_fields ?plugin ?allowed_fields schm nm =
 
@@ -166,7 +172,7 @@ let pp_section_fields ?plugin ?allowed_fields schm nm =
                   | None -> "<No help>")^
                (
                  try
-                   let _s : string =
+                   let _s: string =
                      PropList.Schema.get schm fake_data key
                    in
                      ""
@@ -238,6 +244,7 @@ let pp_short_licenses () =
     pp_close_box fmt ();
     flush_str_formatter ()
 
+
 let pp_license_exceptions () =
   let fmt =
     str_formatter
@@ -274,6 +281,7 @@ let pp_license_exceptions () =
         (OASISLicense.license_exception_data ());
     pp_close_box fmt ();
     flush_str_formatter ()
+
 
 let pp_standard_variables display schm =
   let env =
@@ -318,6 +326,7 @@ let pp_standard_variables display schm =
     pp_close_box fmt ();
     flush_str_formatter ()
 
+
 let kind_str knd =
     match knd with
       | `Configure -> "conf"
@@ -326,6 +335,7 @@ let kind_str knd =
       | `Test      -> "test"
       | `Install   -> "install"
       | `Extra     -> "extra"
+
 
 (** Standard variables to replace in help files *)
 let mk_std_vars ?plugin ?(filter=(fun _ -> true)) acc =
@@ -380,6 +390,7 @@ let mk_std_vars ?plugin ?(filter=(fun _ -> true)) acc =
         "List", "SourceRepositoryFields",
         add_if_valid OASISSourceRepository.schema;
       ]
+
 
 let pp_help_replace vars fmt str =
   let buff =

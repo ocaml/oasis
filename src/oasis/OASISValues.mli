@@ -19,6 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Parse, print and check values
 
     This module allows to parse values that should match a particular content
@@ -29,80 +30,97 @@
     @author Sylvain Le Gall
   *)
 
+
 (** {2 Types and exception} *)
+
 
 (** Definition of a value. *)
 type 'a t =
       {
-        parse : ctxt:OASISContext.t -> string -> 'a;
+        parse: ctxt:OASISContext.t -> string -> 'a;
         (** Parse a string into value *)
-        update : 'a -> 'a -> 'a;
+        update: 'a -> 'a -> 'a;
         (** Merge two values into one *)
-        print : 'a -> string;
+        print: 'a -> string;
         (** Convert a value to string *)
       }
+
 
 (** The value exist but there is no easy way to represent it.
   *)
 exception Not_printable
 
+
 (** It is not possible to combine values.
   *)
 exception Not_combinable
 
+
 (** Always raise {!Not_combinable}.
   *)
-val update_fail : 'a -> 'b -> 'c
+val update_fail: 'a -> 'b -> 'c
+
 
 (** {2 Basic values and combinators} *)
+
 
 (** Hidden value to build phantom data storage, cannot set/get
     it using string.
   *)
-val blackbox : 'a t
+val blackbox: 'a t
+
 
 (** String value. *)
-val string : string t
+val string: string t
+
 
 (** String value, must not be "". *)
-val string_not_empty : string t
+val string_not_empty: string t
+
 
 (** Boolean value, use [bool_of_string] to parse. *)
-val boolean : bool t
+val boolean: bool t
+
 
 (** Extra check to see if the string value, can be expanded
     using [Buffer.add_substitute] rules.
   *)
-val expandable : string t -> string t
+val expandable: string t -> string t
+
 
 (** [dot_separated v] When parsing split the input string using '.' separator
     and apply [v.parse]. Merge by concatenate two values, and print by joining
     [v.print] generated strings using a '.' separator. Don't strip whitespaces.
   *)
-val dot_separated : 'a t -> 'a list t
+val dot_separated: 'a t -> 'a list t
+
 
 (** Same as {!dot_separated} using ',' as separator. Strip whitespaces before
     and after the input string.
   *)
-val comma_separated : 'a t -> 'a list t
+val comma_separated: 'a t -> 'a list t
+
 
 (** Same {!dot_separated} using '\n' as separator. Strip whitespaces before and
     after the input string.
   *)
-val newline_separated : 'a t -> 'a list t
+val newline_separated: 'a t -> 'a list t
+
 
 (** Same as {!dot_separated} using blanks as separator. *)
-val space_separated : string list t
+val space_separated: string list t
+
 
 (** [with_optional_parentheses v_main v_opt] Combine two values. The input
     string ["abcd (defg)"] is split between the part not between parentheses
     and the one between. [v_main] is applied to the first one and [v_opt] to
     the latter. If no parentheses is found, only apply [v_main].
  *)
-val with_optional_parentheses : 'a t -> 'b t -> ('a * 'b option) t
+val with_optional_parentheses: 'a t -> 'b t -> ('a * 'b option) t
+
 
 (** Optional value. *)
-val opt : 'a t -> 'a option t
+val opt: 'a t -> 'a option t
 
 
 (** [choices nm lst] Value that must be in a list of predefined choices.
@@ -110,46 +128,60 @@ val opt : 'a t -> 'a option t
     If something failed output a message using [nm] as the name of the
     value represented.
   *)
-val choices : (unit -> string) -> (string * 'a) list -> 'a t
+val choices: (unit -> string) -> (string * 'a) list -> 'a t
+
 
 (** {2 Standard values} *)
 
+
 (** URL value. *)
-val url : string t
+val url: string t
+
 
 (** Copyright value. *)
-val copyright : string t
+val copyright: string t
+
 
 (** File value. *)
-val file : string t
+val file: string t
+
 
 (** File list value. *)
-val files : string list t
+val files: string list t
+
 
 (** File with glob value. *)
-val file_glob : string t
+val file_glob: string t
+
 
 (** Directory value. *)
-val directory : string t
+val directory: string t
+
 
 (** Module list value. *)
-val modules : string list t
+val modules: string list t
+
 
 (** Category list value. *)
-val categories : string list t
+val categories: string list t
+
 
 (** Findlib package name value, without its path. *)
-val findlib_name : string t
+val findlib_name: string t
+
 
 (** Findlib package name with path value, e.g. oasis.base. *)
-val findlib_full : string t
+val findlib_full: string t
+
 
 (** Internal library. *)
-val internal_library : string t
+val internal_library: string t
+
 
 (** Command line. *)
-val command_line : (string * string list) t
+val command_line: (string * string list) t
+
 
 (** Arguments of command line programs.  See {!OASISUtils.POSIX.split}
     for more information. *)
-val command_line_options : string list t
+val command_line_options: string list t

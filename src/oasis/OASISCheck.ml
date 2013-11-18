@@ -19,8 +19,10 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Check an OASIS package
   *)
+
 
 open OASISGettext
 open OASISSchema_intern
@@ -28,6 +30,7 @@ open OASISUtils
 open OASISPlugin
 open OASISTypes
 open PropList
+
 
 let check_schema ~ctxt where schm oasis_version data =
 
@@ -220,6 +223,7 @@ let check_schema ~ctxt where schm oasis_version data =
   in
     ()
 
+
 let check_package ~ctxt pkg =
 
   let standard_vars =
@@ -232,7 +236,6 @@ let check_package ~ctxt pkg =
   in
 
   (** Check that there is no overlap in variable name. *)
-
   let _mp : string MapString.t =
     List.fold_left
       (fun mp ->

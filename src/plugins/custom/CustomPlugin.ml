@@ -19,15 +19,19 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Generate custom configure/build/doc/test/install system
     @author
   *)
+
 
 open BaseEnv
 open OASISGettext
 open OASISTypes
 
+
 TYPE_CONV_PATH "CustomPlugin"
+
 
 type t =
     {
@@ -36,7 +40,9 @@ type t =
       cmd_distclean: (command_line option) conditional;
     } with odn
 
+
 let run  = BaseCustom.run
+
 
 let main t _ extra_args =
   let cmd, args =
@@ -46,6 +52,7 @@ let main t _ extra_args =
   in
     run cmd args extra_args
 
+
 let clean t pkg extra_args =
   match var_choose t.cmd_clean with
     | Some (cmd, args) ->
@@ -53,12 +60,14 @@ let clean t pkg extra_args =
     | _ ->
         ()
 
+
 let distclean t pkg extra_args =
   match var_choose t.cmd_distclean with
     | Some (cmd, args) ->
         run cmd args extra_args
     | _ ->
         ()
+
 
 module Build =
 struct
@@ -114,6 +123,7 @@ struct
     distclean t pkg extra_args
 end
 
+
 module Test =
 struct
   let main t pkg (cs, test) extra_args =
@@ -134,6 +144,7 @@ struct
     distclean t pkg extra_args
 end
 
+
 module Doc =
 struct
   let main t pkg (cs, _) extra_args =
@@ -148,11 +159,14 @@ struct
     distclean t pkg extra_args
 end
 
+
 (* END EXPORT *)
+
 
 module BuildRuntime = Build
 module TestRuntime  = Test
 module DocRuntime   = Doc
+
 
 open OASISGettext
 open ODN
@@ -161,24 +175,31 @@ open OASISValues
 open OASISPlugin
 open OASISSchema
 
+
 let nm, ver =
   "Custom", Some OASISConf.version_short
+
 
 let conf_plugin = `Configure, nm, ver
 let conf_data   = data_new_property conf_plugin
 
+
 let build_plugin = `Build, nm, ver
 let build_data   = data_new_property build_plugin
+
 
 let install_plugin = `Install, nm, ver
 let install_data   = data_new_property install_plugin
 let uninstall_data = data_new_property ~purpose:`Uninstall install_plugin
 
+
 let test_plugin = `Test, nm, ver
 let test_data   = data_new_property test_plugin
 
+
 let doc_plugin = `Doc, nm, ver
 let doc_data = data_new_property doc_plugin
+
 
 (** Add standard fields
   *)
@@ -231,6 +252,7 @@ let add_fields
   in
     cmd_main, cmd_clean, cmd_distclean, generator
 
+
 (** Standard custom handling
   *)
 let std id data nm hlp hlp_clean hlp_distclean =
@@ -266,6 +288,7 @@ let std id data nm hlp hlp_clean hlp_distclean =
                  t odn_of_t);
         }
 
+
 (* Configure plugin *)
 let conf_init () =
   let self_id, id =
@@ -284,6 +307,7 @@ let conf_init () =
   in
     Configure.register_act self_id doit;
     register_generator_package id conf_data generator
+
 
 (* Build plugin *)
 let build_init () =
@@ -329,6 +353,7 @@ let build_init () =
   in
     Build.register_act self_id doit;
     register_generator_package id build_data generator
+
 
 (* Install plugin *)
 let install_init () =
@@ -403,6 +428,7 @@ let doc_init () =
     Doc.register_act self_id doit;
     register_generator_package id doc_data generator
 
+
 (* Test plugin *)
 let test_init () =
   let self_id, id =
@@ -466,6 +492,7 @@ let test_init () =
   in
     Test.register_act self_id doit;
     register_generator_package id test_data generator
+
 
 let init () =
   register_help

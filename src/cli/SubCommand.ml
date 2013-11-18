@@ -19,8 +19,10 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open OASISUtils
 open OASISGettext
+
 
 type t =
     {
@@ -33,6 +35,7 @@ type t =
       scmd_main:      unit -> unit;
     }
 
+
 let make ?(std_usage=false) nm snps hlp main =
   {
     scmd_name      = nm;
@@ -44,6 +47,7 @@ let make ?(std_usage=false) nm snps hlp main =
     scmd_main      = main;
   }
 
+
 module Set = Set.Make (
 struct
   type t' = t
@@ -51,14 +55,18 @@ struct
   let compare t1 t2 = String.compare t1.scmd_name t2.scmd_name
 end)
 
+
 let all =
   ref Set.empty
+
 
 let register t =
   all := Set.add t !all
 
+
 let fold f acc =
   Set.fold f !all acc
+
 
 let find nm =
   let res =

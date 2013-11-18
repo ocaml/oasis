@@ -19,6 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** License definition
 
     This module allows to manipulate DEP-5 style license.
@@ -27,13 +28,16 @@
     @see <http://dep.debian.net/deps/dep5/> DEP-5
   *)
 
+
 (** Valid licenses
   *)
 type license
 
+
 (** Valid license exceptions.
   *)
 type license_exception
+
 
 (** License version.
   *)
@@ -41,6 +45,7 @@ type license_version =
   | Version of OASISVersion.t
   | VersionOrLater of OASISVersion.t
   | NoVersion
+
 
 (** DEP-5 license, basic.
   *)
@@ -51,6 +56,7 @@ type license_dep_5_unit =
     version:    license_version;
   }
 
+
 (** DEP-5 license, complex.
   *)
 type license_dep_5 =
@@ -58,11 +64,13 @@ type license_dep_5 =
   | DEP5Or of license_dep_5 list
   | DEP5And of license_dep_5 list
 
+
 (** OASIS supported type of license.
   *)
 type t =
   | DEP5License of license_dep_5
   | OtherLicense of string (* URL *)
+
 
 (** Extra data about license {b Not exported}
   *)
@@ -78,6 +86,7 @@ type license_data =
       (** Extra information about the license. *)
     }
 
+
 (** Extra data about license exception {b Not exported}
   *)
 type license_exception_data =
@@ -89,30 +98,37 @@ type license_exception_data =
       (** Compatible licenses with the exception. *)
     }
 
+
 (** Convert a DEP-5 license to string. {b Not exported}.
   *)
-val to_string : t -> string
+val to_string: t -> string
+
 
 (** Convert a license to string. {b Not exported}.
   *)
 val string_of_license: license -> string
 
+
 (** Convert a license exception to string. {b Not exported}.
   *)
 val string_of_license_exception: license_exception -> string
 
+
 (** License value. {b Not exported}.
   *)
-val value : t OASISValues.t
+val value: t OASISValues.t
+
 
 (** Choices for quickstart question. {b Not exported}.
   *)
 val choices: unit -> t list
 
+
 (** All available license, their short name, their long name, and compatible
     versions. {b Not exported}.
   *)
 val license_data: unit -> (license * license_data) list
+
 
 (** All available license exception, their name, and compatible license.
   {b Not exported}.
@@ -120,14 +136,17 @@ val license_data: unit -> (license * license_data) list
 val license_exception_data:
     unit -> (license_exception * license_exception_data) list
 
+
 (** Dump [ODN.t]. {b Not exported}.
   *)
-val odn_of_t : t -> ODN.t
+val odn_of_t: t -> ODN.t
+
 
 (** {2 License definitions}
 
     {b No licenses are exported.}
   *)
+
 
 val proprietary: license
 val apache: license
@@ -166,5 +185,6 @@ val zope: license
 val mit: license
 val wtfpl: license
 val public_domain: license
+
 
 val ocaml_linking_exception: license_exception

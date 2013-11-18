@@ -19,32 +19,40 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Maintain a log of actions done
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
+
 
 (** Default file for registering log.
   *)
-val default_filename : host_filename
+val default_filename: host_filename
+
 
 (** Load the log file.
   *)
-val load : unit -> (name * string) list
+val load: unit -> (name * string) list
+
 
 (** Add an event to the log file.
   *)
-val register : name -> string -> unit
+val register: name -> string -> unit
+
 
 (** Remove an event from the log file.
   *)
-val unregister : name -> string -> unit
+val unregister: name -> string -> unit
+
 
 (** Filter events of the log file.
   *)
-val filter : name list -> (name * string) list
+val filter: name list -> (name * string) list
+
 
 (** Check if an event exists in the log file.
   *)
-val exists : name -> string -> bool
+val exists: name -> string -> bool

@@ -19,9 +19,11 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Tests for OASIS
     @author Sylvain Le Gall
   *)
+
 
 open OUnit2
 open TestCommon
@@ -32,6 +34,7 @@ open OASISValues
 open OASISVersion
 open OASISExpr
 open FileUtil
+
 
 let tests =
 
@@ -95,7 +98,7 @@ let tests =
     (fun test_ctxt ->
        try
          (
-           let _s : comparator =
+           let _s: comparator =
              value_parse str
            in
              if fail then
@@ -363,7 +366,7 @@ let tests =
                 match x.OASISFileTemplate.body with
                   | OASISFileTemplate.NoBody -> []
                   | OASISFileTemplate.Body l -> l
-                  | OASISFileTemplate.BodyWithDigest (_,l) -> l
+                  | OASISFileTemplate.BodyWithDigest (_, l) -> l
               in
               let initial_ctxt = {
                 OASISPlugin.ctxt = OASISContext.quiet ;
@@ -445,7 +448,7 @@ let tests =
         "test15.oasis" >::
         (fun test_ctxt ->
            try
-             let _pkg : OASISTypes.package =
+             let _pkg: OASISTypes.package =
                 from_file
                   (* TODO: introduce oasis_ignore_plugin_ctxt *)
                   ~ctxt:{oasis_ctxt with

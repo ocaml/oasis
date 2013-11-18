@@ -19,9 +19,11 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Generate standard development files
     @author Sylvain Le Gall
   *)
+
 
 open OASISFileTemplate
 open OASISGettext
@@ -29,10 +31,13 @@ open OASISTypes
 open OASISPlugin
 open OASISSchema
 
+
 let plugin = `Extra, "DevFiles", Some OASISConf.version_short
+
 
 let self_id, all_id =
   Extra.create plugin
+
 
 let all_targets =
   [
@@ -48,6 +53,7 @@ let all_targets =
     "configure";
   ]
 
+
 type t =
     {
       makefile_notargets: string list;
@@ -55,8 +61,10 @@ type t =
       enable_configure:   bool;
     }
 
+
 let pivot_data =
   data_new_property plugin
+
 
 let generator =
   let makefile_notargets =

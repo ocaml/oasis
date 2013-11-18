@@ -19,6 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** OCamlbuild extension, copied from
   * http://brion.inria.fr/gallium/index.php/Using_ocamlfind_with_ocamlbuild
   * by N. Pouillard and others
@@ -29,12 +30,15 @@
   *)
 open Ocamlbuild_plugin
 
+
 (* these functions are not really officially exported *)
 let run_and_read =
   Ocamlbuild_pack.My_unix.run_and_read
 
+
 let blank_sep_strings =
   Ocamlbuild_pack.Lexers.blank_sep_strings
+
 
 let split s ch =
   let buf = Buffer.create 13 in
@@ -53,22 +57,28 @@ let split s ch =
     flush ();
     List.rev !x
 
+
 let split_nl s = split s '\n'
+
 
 let before_space s =
   try
     String.before s (String.index s ' ')
   with Not_found -> s
 
+
 (* This lists all supported packages. *)
 let find_packages () =
   List.map before_space (split_nl & run_and_read "ocamlfind list")
 
+
 (* Mock to list available syntaxes. *)
 let find_syntaxes () = ["camlp4o"; "camlp4r"]
 
+
 (* ocamlfind command *)
 let ocamlfind x = S[A"ocamlfind"; x]
+
 
 let dispatch =
   function

@@ -19,19 +19,24 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Base functions for writing myocamlbuild.ml
     @author Sylvain Le Gall
   *)
 
+
 TYPE_CONV_PATH "MyOCamlbuildBase"
+
 
 open Ocamlbuild_plugin
 module OC = Ocamlbuild_pack.Ocaml_compiler
+
 
 type dir = string with odn
 type file = string with odn
 type name = string with odn
 type tag = string with odn
+
 
 (* END EXPORT *)
 let rec odn_of_spec =
@@ -54,6 +59,7 @@ let rec odn_of_spec =
           assert false
 (* START EXPORT *)
 
+
 type t =
     {
       lib_ocaml: (name * dir list * string list) list;
@@ -65,9 +71,11 @@ type t =
       includes:  (dir * dir list) list;
     } with odn
 
+
 let env_filename =
   Pathname.basename
     BaseEnvLight.default_filename
+
 
 let dispatch_combine lst =
   fun e ->
@@ -75,11 +83,14 @@ let dispatch_combine lst =
       (fun dispatch -> dispatch e)
       lst
 
+
 let tag_libstubs nm =
   "use_lib"^nm^"_stubs"
 
+
 let nm_libstubs nm =
   nm^"_stubs"
+
 
 let dispatch t e =
   let env =
@@ -185,11 +196,13 @@ let dispatch t e =
       | _ ->
           ()
 
+
 let dispatch_default t =
   dispatch_combine
     [
       dispatch t;
       MyOCamlbuildFindlib.dispatch;
     ]
+
 
 (* END EXPORT *)

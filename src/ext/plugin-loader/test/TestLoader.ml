@@ -1,15 +1,20 @@
 
 open OUnit
 
+
 let verbose = ref false
 
+
 let pluginloader = ref "false"
+
 
 let datadir =
   FilePath.make_filename ["src"; "ext"; "plugin-loader"; "test"; "data"]
 
+
 let findlibdir =
   FilePath.concat datadir "findlib"
+
 
 let bracket_tmpdir f =
   bracket
@@ -21,6 +26,7 @@ let bracket_tmpdir f =
     f
     (fun fn ->
        FileUtil.rm ~recurse:true [fn])
+
 
 let bracket_findlib f =
   bracket_tmpdir
@@ -62,6 +68,7 @@ let bracket_findlib f =
          ();
        f dn)
 
+
 let assert_pluginloader dn args =
   let buf = Buffer.create 13 in
   let lst = ref [] in
@@ -95,7 +102,8 @@ let assert_pluginloader dn args =
       prerr_endline (Buffer.contents buf);
     List.rev (Buffer.contents buf :: !lst)
 
-let _lst : test_result list  =
+
+let _lst: test_result list  =
   run_test_tt_main
     ~arg_specs:["--pluginloader",
                 Arg.Set_string pluginloader,

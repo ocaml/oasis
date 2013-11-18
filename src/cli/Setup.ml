@@ -19,20 +19,25 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Create the configure, build and install system
     @author Sylvain Le Gall
   *)
+
 
 open OASISGettext
 open OASISUtils
 open SubCommand
 open BaseGenerate
 
+
 let roasis_exec =
   ref None
 
+
 let rupdate =
   ref NoUpdate
+
 
 let main () =
   let oasis_setup_args =
@@ -58,7 +63,7 @@ let main () =
           [];
       ]
   in
-  let _chngs : OASISFileTemplate.file_generate_change list =
+  let _chngs: OASISFileTemplate.file_generate_change list =
     BaseGenerate.generate
       ~backup:false
       ~setup_fn:BaseSetup.default_filename
@@ -72,6 +77,7 @@ let main () =
          !ArgCommon.oasis_fn)
   in
     ()
+
 
 let scmd =
   {(SubCommand.make
@@ -106,6 +112,7 @@ let scmd =
                  pollution, use the 'dynamic' mode. Always distribute tarball
                  with mode 'none'."
            ] @ ArgCommon.oasis_fn_specs}
+
 
 let () =
   SubCommand.register scmd

@@ -19,23 +19,30 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Plugin to handle "none" generation
     @author Sylvain Le Gall
   *)
 
+
 open OASISGettext
 open OASISUtils
+
 
 let not_implemented str _ _ =
   failwithf (f_ "No implementation for %s") str
 
+
 let section_not_implemented str pkg _ _ extra_args =
   not_implemented str pkg extra_args
 
+
 (* END EXPORT *)
+
 
 open OASISTypes
 open OASISPlugin
+
 
 let std_no_generate str ctxt pkg =
   ctxt,
@@ -49,11 +56,13 @@ let std_no_generate str ctxt pkg =
          str ODN.of_string);
   }
 
+
 let section_no_generate str ctxt pkg (cs, section) =
   std_no_generate
     (str^" of section "^cs.cs_name)
     ctxt
     pkg
+
 
 let init () =
   let nm, ver = "None", Some OASISConf.version_short in

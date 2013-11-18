@@ -19,12 +19,15 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Markdown formatter
     @author Sylvain Le Gall
   *)
 
+
 open Format
 open FormatExt
+
 
 let pp_print_endblock ?check_last_char fmt () =
   match check_last_char with
@@ -47,6 +50,7 @@ let pp_print_endblock ?check_last_char fmt () =
           pp_print_newline fmt ()
         end
 
+
 let pp_print_title lvl fmt str =
   let pp_print_underlined c fmt str =
     pp_print_string fmt str;
@@ -65,6 +69,7 @@ let pp_print_title lvl fmt str =
       end;
     pp_print_endblock fmt ()
 
+
 let pp_print_def fmt term defs =
   pp_print_string fmt term;
   pp_print_newline fmt ();
@@ -77,6 +82,7 @@ let pp_print_def fmt term defs =
        pp_print_newline fmt ())
     defs;
   pp_print_newline fmt ()
+
 
 let pp_print_para fmt str =
   pp_open_box fmt 0;

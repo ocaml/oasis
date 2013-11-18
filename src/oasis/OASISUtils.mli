@@ -19,101 +19,121 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Various utilities
     @author Sylvain Le Gall
   *)
 
+
 (** {2 Map} *)
+
 
 module MapString: Map.S with type key = String.t
 
+
 (** Convert a string association list to a map. *)
-val map_string_of_assoc : (string * 'a) list -> 'a MapString.t
+val map_string_of_assoc: (string * 'a) list -> 'a MapString.t
+
 
 (** {2 Set} *)
+
 
 (** Set for String.
   *)
 module SetString: Set.S with type elt = String.t
 
+
 (** Add a string list to an existing Set. *)
-val set_string_add_list : SetString.t -> SetString.elt list -> SetString.t
+val set_string_add_list: SetString.t -> SetString.elt list -> SetString.t
+
 
 (** Convert a string list to a Set. *)
-val set_string_of_list : SetString.elt list -> SetString.t
+val set_string_of_list: SetString.elt list -> SetString.t
+
 
 (** {2 Hashtable} *)
+
 
 (** Caseless string hashtable
   *)
 module HashStringCsl: Hashtbl.S with type key = String.t
 
+
 (** {2 Variable name} *)
+
 
 (** [varname_of_string ~hyphen:c s] Transform a string [s] into a variable name,
     following this convention: no digit at the beginning, lowercase, only a-z
     and 0-9 chars. Whenever there is a problem, use an hyphen.
   *)
-val varname_of_string : ?hyphen:char -> string -> string
+val varname_of_string: ?hyphen:char -> string -> string
+
 
 (** [varname_concat ~hyphen p s] Concat variable name, removing hyphen at end
     of [p] and at beginning of [s].
   *)
-val varname_concat : ?hyphen:char -> string -> string -> string
+val varname_concat: ?hyphen:char -> string -> string -> string
+
 
 (** [is_varname str] Check that the string [str] is a valid varname. See
     {!varname_of_string} for definition.
   *)
 val is_varname: string -> bool
 
+
 (** {2 Fail with Printf.sprintf} *)
+
 
 (** This function raise the [Failure] exception just as [failwith]
     except that one specify the string raised through a format string.
 
     Example: [failwithf "Cannot do %s because of %d" str i]
   *)
-val failwithf : ('a, unit, string, 'b) format4 -> 'a
+val failwithf: ('a, unit, string, 'b) format4 -> 'a
+
 
 (** {2 String} *)
 
+
 (** Caseless compare function
   *)
-val compare_csl : string -> string -> int
+val compare_csl: string -> string -> int
+
 
 (** Split a list using ',' as separator. {b Not exported}
   *)
-val split_comma : string -> string list
+val split_comma: string -> string list
+
 
 (** Split a list using '\n' as separator. {b Not exported}
   *)
-val split_newline : ?trim:bool -> string -> string list
+val split_newline: ?trim:bool -> string -> string list
+
 
 (** Split a string containing '(...)' optionally. {b Not exported}
   *)
-val split_optional_parentheses : string -> string * (string option)
+val split_optional_parentheses: string -> string * (string option)
 
-module POSIXShell :
+
+module POSIXShell:
 sig
-
-  val split : string -> string list
   (** [split s]: the string [s] is interpreted as command line
       arguments and splitted into its components (un-escaped).  For
       example [split "a \"b c\" d" = ["a"; "b c"; "d"]].  Note that
       [split "" = []].  It is possible that substitutions such as "$a"
       (resp. "$(a b)") may be transformed into "$\{a\}" (resp. "$\{a b\}"). *)
+  val split: string -> string list
 
-  val escape : string -> string
   (** [escape s] quote [s] if needed to protect spaces, '"' and '\''
       so it reads as a single argument in a POSIX shell command, the
       content of which is identical to [s] (interpreted with OCaml
       conventions).  If quoted, the returned string will start and end
       with '"'.  The original string [s] is returned if no quoting is
       necessary. *)
+  val escape: string -> string
 
-  val unescape : string -> string
   (** [unescape s] returns a string [s'] removing all backslashes
       preceding a char. *)
-  ;;
+  val unescape: string -> string
 end
 

@@ -19,23 +19,29 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (* Dynamic runtime for building setup.ml.
 
    We use this to reduce setup.ml replaceable section to a few lines
    everything else is dynamically generated.
  *)
 
+
 let () = OASISBuiltinPlugins.init ()
+
 
 open OASISTypes
 open BaseSetup
 
+
 let oasis_fn = "_oasis"
+
 
 let setup_t =
   let pkg = OASISParse.from_file ~ctxt:!BaseContext.default oasis_fn in
   let _, setup_t = BaseSetup.of_package ~setup_update:false pkg in
     setup_t
+
 
 (* Re-export BaseSetup.setup so one can modify setup_t before passing it
    to setup(). *)
@@ -77,5 +83,6 @@ module BaseSetup = struct
       cleanup ();
       raise e
 end
+
 
 let setup () = BaseSetup.setup setup_t

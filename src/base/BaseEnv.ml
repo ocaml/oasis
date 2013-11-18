@@ -23,7 +23,9 @@ open OASISGettext
 open OASISUtils
 open PropList
 
+
 module MapString = BaseEnvLight.MapString
+
 
 type origin_t =
   | ODefault
@@ -31,12 +33,14 @@ type origin_t =
   | OFileLoad
   | OCommandLine
 
+
 type cli_handle_t =
   | CLINone
   | CLIAuto
   | CLIWith
   | CLIEnable
   | CLIUser of (Arg.key * Arg.spec * Arg.doc) list
+
 
 type definition_t =
     {
@@ -47,20 +51,25 @@ type definition_t =
       group:      string option;
     }
 
+
 let schema =
   Schema.create "environment"
+
 
 (* Environment data *)
 let env =
   Data.create ()
 
+
 (* Environment data from file *)
 let env_from_file =
   ref MapString.empty
 
+
 (* Lexer for var *)
 let var_lxr =
   Genlex.make_lexer []
+
 
 let rec var_expand str =
   let buff =
@@ -112,6 +121,7 @@ let rec var_expand str =
       str;
     Buffer.contents buff
 
+
 and var_get name =
   let vl =
     try
@@ -126,12 +136,14 @@ and var_get name =
   in
     var_expand vl
 
+
 let var_choose ?printer ?name lst =
   OASISExpr.choose
     ?printer
     ?name
     var_get
     lst
+
 
 let var_protect vl =
   let buff =
@@ -143,6 +155,7 @@ let var_protect vl =
          | c   -> Buffer.add_char   buff c)
       vl;
     Buffer.contents buff
+
 
 let var_define
       ?(hide=false)
@@ -229,6 +242,7 @@ let var_define
     fun () ->
       var_expand (var_get_low (var_get_lst env))
 
+
 let var_redefine
       ?hide
       ?dump
@@ -257,8 +271,9 @@ let var_redefine
         dflt
     end
 
-let var_ignore (e : unit -> string) =
-  ()
+
+let var_ignore (e: unit -> string) = ()
+
 
 let print_hidden =
   var_define
@@ -268,6 +283,7 @@ let print_hidden =
     ~arg_help:"Print even non-printable variable. (debug)"
     "print_hidden"
     (fun () -> "false")
+
 
 let var_all () =
   List.rev
@@ -280,15 +296,19 @@ let var_all () =
        []
        schema)
 
+
 let default_filename =
   BaseEnvLight.default_filename
+
 
 let load ?allow_empty ?filename () =
   env_from_file := BaseEnvLight.load ?allow_empty ?filename ()
 
+
 let unload () =
   env_from_file := MapString.empty;
   Data.clear env
+
 
 let dump ?(filename=default_filename) () =
   let chn =
@@ -323,6 +343,7 @@ let dump ?(filename=default_filename) () =
 
     (* End of the dump *)
     close_out chn
+
 
 let print () =
   let printable_vars =
@@ -362,10 +383,11 @@ let print () =
 
   Printf.printf "\nConfiguration: \n";
   List.iter
-    (fun (name,value) ->
+    (fun (name, value) ->
       Printf.printf "%s: %s %s\n" name (dot_pad name) value)
     (List.rev printable_vars);
   Printf.printf "\n%!"
+
 
 let args () =
   let arg_concat =

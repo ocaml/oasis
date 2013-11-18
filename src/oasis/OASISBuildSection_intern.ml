@@ -19,15 +19,18 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Build section internal functions
     @author Sylvain Le Gall
   *)
+
 
 open OASISSchema_intern
 open OASISValues
 open OASISUtils
 open OASISGettext
 open OASISTypes
+
 
 let build_depends_field schm sync =
   new_field schm "BuildDepends"
@@ -63,6 +66,7 @@ let build_depends_field schm sync =
            findlib packages.")
     sync
 
+
 let build_tools_value =
    let base =
      comma_separated file
@@ -87,12 +91,14 @@ let build_tools_value =
               lst))
      }
 
+
 let build_tools_field schm sync =
   new_field schm "BuildTools"
     ~default:[]
     build_tools_value
     (fun () -> s_ "Tools required to compile, including internal executables.")
     sync
+
 
 let build_install_data_fields
       ?default_cond
@@ -129,6 +135,7 @@ let build_install_data_fields
       sync_datafiles
   in
     build, install, data_files
+
 
 let section_fields nm comp_dflt schm sync =
   let path =

@@ -19,18 +19,23 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (* Identity of OCamlbuild plugin
    @author Sylvain Le Gall
  *)
 
+
 let name    = "OCamlbuild"
+
 
 let version = OASISConf.version_short
 
 
 (* END EXPORT *)
 
+
 open OASISPlugin
+
 
 let init () =
   register_help (`All, name, Some version)

@@ -19,14 +19,18 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open OASISTypes
+
 
 type library_name = name
 type findlib_part_name = name
 type 'a map_of_findlib_part_name = 'a OASISUtils.MapString.t
 
+
 exception InternalLibraryNotFound of library_name
 exception FindlibPackageNotFound of findlib_name
+
 
 (** Library groups are organized in trees.
   *)
@@ -38,6 +42,7 @@ type group_t =
                 [`Library of library | `Object of object_] *
                 group_t list)
 
+
 (** Compute groups of libraries, associate root libraries with
     a tree of its children. A group of libraries is defined by
     the fact that these libraries have a parental relationship
@@ -48,14 +53,16 @@ val findlib_mapping: package ->
   (library_name -> findlib_name) *
   (findlib_name -> library_name)
 
+
 (** Return the findlib root name of a group, it takes into account
     containers. So the return group name is the toplevel name
     for both libraries and theirs containers.
   *)
-val findlib_of_group : group_t -> findlib_name
+val findlib_of_group: group_t -> findlib_name
+
 
 (** Return the root library, i.e. the first found into the group tree
     that has no parent.
   *)
-val root_of_group : group_t ->
+val root_of_group: group_t ->
   common_section * build_section * [`Library of library | `Object of object_]

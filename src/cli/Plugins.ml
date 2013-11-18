@@ -19,13 +19,16 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Load extra action from plugins
     @author Sylvain Le Gall
   *)
 
+
 open OASISGettext
 open SubCommand
 open PluginLoader
+
 
 (** Plugin for the command line. *)
 let plugin_cli_t () =
@@ -35,9 +38,11 @@ let plugin_cli_t () =
     msg    = !BaseContext.default.OASISContext.printf
   }
 
+
 (** Plugin for handling _oasis. *)
 let plugin_pkg_t () =
   {(plugin_cli_t ()) with system = "oasis"}
+
 
 (** Initialization and general command-line argument. *)
 let () =
@@ -52,8 +57,10 @@ let () =
       (s_ "nm Load a plugin.")
     ]
 
+
 (** Display long help. *)
 let long = ref false
+
 
 let main () =
   let print =
@@ -100,6 +107,7 @@ let main () =
       (s_ "_oasis plugins, loaded if present in _oasis:");
     print (PluginLoader.list (plugin_pkg_t ()))
 
+
 let scmd =
   {(SubCommand.make
       ~std_usage:true
@@ -113,6 +121,7 @@ let scmd =
               Arg.Set long,
               " Display a long description for plugin."
             ]}
+
 
 let () =
   SubCommand.register scmd

@@ -23,6 +23,7 @@
 open OASISGettext
 open OASISContext
 
+
 let generic_message ~ctxt lvl fmt =
   let cond =
     if ctxt.quiet then
@@ -41,14 +42,18 @@ let generic_message ~ctxt lvl fmt =
            end)
       fmt
 
+
 let debug ~ctxt fmt =
   generic_message ~ctxt `Debug fmt
+
 
 let info ~ctxt fmt =
   generic_message ~ctxt `Info fmt
 
+
 let warning ~ctxt fmt =
   generic_message ~ctxt `Warning fmt
+
 
 let error ~ctxt fmt =
   generic_message ~ctxt `Error fmt

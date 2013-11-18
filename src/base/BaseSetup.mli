@@ -19,17 +19,22 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Entry points for 'setup.ml'
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
+
 
 type std_args_fun =
     package -> arg array -> unit
 
+
 type ('a, 'b) section_args_fun =
     name * (package -> (common_section * 'a) -> arg array -> 'b)
+
 
 type t =
     {
@@ -66,67 +71,83 @@ type t =
       (** Are we allowed to update the setup.ml (eq. of -setup-update weak). *)
     }
 
+
+
 (** Run the configure step.
   *)
-val configure : t -> arg array -> unit
+val configure: t -> arg array -> unit
+
 
 (** Run the build step.
   *)
-val build : t -> arg array -> unit
+val build: t -> arg array -> unit
+
 
 (** Run the doc step: build all documents.
   *)
-val doc : t -> arg array -> unit
+val doc: t -> arg array -> unit
+
 
 (** Run the test step: run all tests.
   *)
-val test : t -> arg array -> unit
+val test: t -> arg array -> unit
+
 
 (** Run the install step.
   *)
-val install : t -> arg array -> unit
+val install: t -> arg array -> unit
+
 
 (** Run the uninstall step.
   *)
-val uninstall : t -> arg array -> unit
+val uninstall: t -> arg array -> unit
+
 
 (** Run the clean step.
   *)
-val clean : t -> arg array -> unit
+val clean: t -> arg array -> unit
+
 
 (** Run the distclean step.
   *)
-val distclean : t -> arg array -> unit
+val distclean: t -> arg array -> unit
+
 
 (** Run the reinstall step: deinstall and install.
   *)
-val reinstall : t -> arg array -> unit
+val reinstall: t -> arg array -> unit
+
 
 (** Run all steps: configure, build, doc, test and install.
   *)
-val all : t -> arg array -> unit
+val all: t -> arg array -> unit
+
 
 (** Display OASIS version used to generate this setup.ml
   *)
 val version: t -> arg array -> unit
 
+
 (** The first function called when running 'setup.ml'.
   *)
-val setup : t -> unit
+val setup: t -> unit
+
 
 (** Default filename for 'setup.ml'. {b Not exported}
   *)
-val default_filename : host_filename
+val default_filename: host_filename
+
 
 (** Get template 'setup.ml' file out of the plugin context.
     {b Not exported}.
   *)
-val find : OASISPlugin.context_act -> OASISFileTemplate.template
+val find: OASISPlugin.context_act -> OASISFileTemplate.template
+
 
 (** Create [t] and plugin context from an OASIS package and the
     matching _oasis. {b Not exported}.
   *)
-val of_package :
+val of_package:
   ?oasis_fn:host_filename ->
   ?oasis_exec:host_filename ->
   ?oasis_setup_args:string list ->

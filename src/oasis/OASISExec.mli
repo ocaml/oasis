@@ -19,11 +19,14 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Running commands
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
+
 
 (** Run a command.
     @param f_exit_code if provided, run this command on the exit code
@@ -31,24 +34,26 @@ open OASISTypes
     [Failure].
     @param quote quote the prog.
   *)
-val run :
+val run:
   ctxt:OASISContext.t ->
   ?f_exit_code:(int -> unit) ->
   ?quote:bool ->
   prog -> args ->
   unit
 
+
 (** Run a command and returns its output as a list of lines.
 *)
-val run_read_output :
+val run_read_output:
   ctxt:OASISContext.t ->
   ?f_exit_code:(int -> unit) ->
   prog -> args ->
   string list
 
+
 (** Run a command and returns only first line.
     @raise Failure if the output contains more than one line. *)
-val run_read_one_line :
+val run_read_one_line:
   ctxt:OASISContext.t ->
   ?f_exit_code:(int -> unit) ->
   prog -> args ->

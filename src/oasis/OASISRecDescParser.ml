@@ -19,9 +19,11 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Parse OASIS files using Genlex.
     @author Sylvain Le Gall
   *)
+
 
 open OASISTypes
 open OASISAstTypes
@@ -32,6 +34,7 @@ open OASISContext
 open OASISMessage
 open Genlex
 
+
 (** Configuration for parsing and checking
   *)
 type conf =
@@ -40,8 +43,10 @@ type conf =
     ctxt:    OASISContext.t;
   }
 
+
 type line_pos = int
 type char_pos = int
+
 
 type t =
   | RealLine of line_pos * char_pos * string (* line, begin char, data *)
@@ -49,6 +54,7 @@ type t =
   | BlockEnd
   | StringBegin
   | StringEnd
+
 
 let parse_stream conf st =
 

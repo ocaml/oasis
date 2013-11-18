@@ -19,11 +19,14 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** SubCommand definition
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
+
 
 type t =
     {
@@ -46,12 +49,13 @@ type t =
       scmd_main:     unit -> unit; (** Real action of the subcommand *)
     }
 
+
 (** [make ~std_usage name synopsis help main] Create a subcommand using
     provided data, see {!t} for their meanings. If [~std_usage] is set
     use ["[options*]"] for it. Fields that are not defined by make use
     a sane default.
   *)
-val make :
+val make:
   ?std_usage:bool ->
   name ->
   string ->
@@ -59,14 +63,17 @@ val make :
   (unit -> unit) ->
   t
 
+
 (** Register a subcommand.
   *)
-val register : t -> unit
+val register: t -> unit
+
 
 (** Iterate through subcommands.
   *)
-val fold : (t -> 'a -> 'a) -> 'a -> 'a
+val fold: (t -> 'a -> 'a) -> 'a -> 'a
+
 
 (** Find a subcommand.
   *)
-val find : name -> t
+val find: name -> t

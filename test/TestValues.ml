@@ -19,14 +19,17 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Test OASISValues defined fields
     @author Sylvain Le Gall
   *)
+
 
 open Printf
 open TestCommon
 open OASISValues
 open OUnit2
+
 
 let tests_url =
   List.map
@@ -40,6 +43,7 @@ let tests_url =
      "http://foo.org/~bar/baz";
      "git+ssh://test.com";
     ]
+
 
 let tests_command_line_options =
   List.map
@@ -79,6 +83,7 @@ let tests_command_line_options =
    ["-DEXTERNAL_EXP10"; "-L/sw/lib"; "-framework vecLib"];
   ]
 
+
 let tests_posix_quoting =
   List.map
     (fun s ->
@@ -93,6 +98,7 @@ let tests_posix_quoting =
          in
            assert_equal s u))
     [""; "a b"; "a'b"; "echo \'abcd"; "a\\b"]
+
 
 let tests =
   "Values" >:::

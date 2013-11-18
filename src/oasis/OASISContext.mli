@@ -19,9 +19,11 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Global context for messages and i18n
     @author Sylvain Le Gall
   *)
+
 
 type level =
   [ `Debug
@@ -29,18 +31,19 @@ type level =
   | `Warning
   | `Error]
 
+
 type t =
   {
     quiet: bool;
     (** Display nothing. *)
 
-    info : bool;
+    info: bool;
     (** Display info messages. *)
 
-    debug : bool;
+    debug: bool;
     (** Display also debug messages. *)
 
-    ignore_plugins : bool;
+    ignore_plugins: bool;
     (** Don't use plugins *)
 
     ignore_unknown_fields: bool;
@@ -50,11 +53,13 @@ type t =
     (** Redirect output *)
   }
 
+
 (** Default context *)
 val default: t ref
 
 (** Command line arguments to change {!default}. *)
 val args: unit -> (string * Arg.spec * string) list
 
+
 (** Quiet context. *)
-val quiet : t
+val quiet: t

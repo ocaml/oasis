@@ -19,11 +19,14 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Document section
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
+
 
 (** Schema for the section. {b Not exported}.
   *)

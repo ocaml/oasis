@@ -1,5 +1,6 @@
 #!/usr/bin/ocamlrun ocaml
 
+
 (******************************************************************************)
 (* OASIS: architecture for building OCaml libraries and applications          *)
 (*                                                                            *)
@@ -21,21 +22,26 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 let () =
   try Topdirs.dir_directory (Sys.getenv "OCAML_TOPLEVEL_PATH")
-  with Not_found -> ();;
+  with Not_found -> ()
 
-#use "topfind";;
-#require "oasis";;
-#require "oasis.base";;
-#require "fileutils";;
+
+#use "topfind"
+#require "oasis"
+#require "oasis.base"
+#require "fileutils"
+
 
 open OASISMessage
 open OASISTypes
 open OASISUtils
 
+
 let run ?f_exit_code prg args =
   OASISExec.run ~ctxt:!BaseContext.default ?f_exit_code prg args
+
 
 let with_tmpdir f =
   let res =
@@ -53,6 +59,7 @@ let with_tmpdir f =
       clean ();
       raise e
 
+
 let update_oasis_in_tarball fn topdir =
   with_tmpdir
     (fun dn ->
@@ -60,18 +67,20 @@ let update_oasis_in_tarball fn topdir =
        run "oasis" ["-C"; Filename.concat dn topdir; "setup"];
        run "tar" ["-C"; dn; "-czf"; fn; topdir])
 
+
 class virtual vcs =
 object
   method check_uncommited_changes =
     true
 
-  method list_tags : string list =
+  method list_tags: string list =
     []
 
-  method virtual dist : string -> host_filename -> unit
+  method virtual dist: string -> host_filename -> unit
 
-  method virtual tag : string -> unit
+  method virtual tag: string -> unit
 end
+
 
 class svn ~ctxt =
 object
@@ -98,6 +107,7 @@ object
   method tag ver =
     warning ~ctxt "No tag method"
 end
+
 
 (* TODO: check file permissions +x for darcs *)
 class darcs ~ctxt =
@@ -138,6 +148,7 @@ object
     run "darcs" ["tag"; ver]
 end
 
+
 class git ~ctxt =
 object
   inherit vcs
@@ -166,6 +177,7 @@ object
   method tag ver =
     run "git" ["tag"; ver]
 end
+
 
 class no_vcs ~ctxt =
 object
@@ -196,6 +208,7 @@ object
   method tag ver =
     warning ~ctxt "No tag method"
 end
+
 
 let () =
   let build = ref true in

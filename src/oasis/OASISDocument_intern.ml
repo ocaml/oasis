@@ -19,17 +19,21 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Test schema and generator
     @author Sylvain Le Gall
   *)
 
+
 (* END EXPORT *)
+
 
 open OASISTypes
 open OASISSchema_intern
 open OASISValues
 open OASISUtils
 open OASISGettext
+
 
 let schema, generator =
   let schm =

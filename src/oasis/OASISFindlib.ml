@@ -25,12 +25,15 @@ open OASISUtils
 open OASISGettext
 open OASISSection
 
+
 type library_name = name
 type findlib_part_name = name
 type 'a map_of_findlib_part_name = 'a OASISUtils.MapString.t
 
+
 exception InternalLibraryNotFound of library_name
 exception FindlibPackageNotFound of findlib_name
+
 
 type group_t =
   | Container of findlib_name * group_t list
@@ -40,12 +43,14 @@ type group_t =
                 [`Library of library | `Object of object_] *
                 group_t list)
 
+
 type data = common_section *
             build_section *
             [`Library of library | `Object of object_]
 type tree =
   | Node of (data option) * (tree MapString.t)
   | Leaf of data
+
 
 let findlib_mapping pkg =
   (* Map from library name to either full findlib name or parts + parent. *)
@@ -169,7 +174,7 @@ let findlib_mapping pkg =
       let lib_name = cs.cs_name in
         findlib_name_of_library_name lib_name
     in
-    let rec add_children nm_lst (children : tree MapString.t) =
+    let rec add_children nm_lst (children: tree MapString.t) =
       match nm_lst with
         | (hd :: tl) ->
             begin
@@ -272,10 +277,12 @@ let findlib_mapping pkg =
     findlib_name_of_library_name,
     library_name_of_findlib_name
 
+
 let findlib_of_group =
   function
     | Container (fndlb_nm, _)
     | Package (fndlb_nm, _, _, _, _) -> fndlb_nm
+
 
 let root_of_group grp =
   let rec root_lib_aux =
@@ -301,7 +308,9 @@ let root_of_group grp =
             (f_ "Unable to determine root library of findlib library '%s'")
             (findlib_of_group grp)
 
+
 (* END EXPORT *)
+
 
 let () =
   Printexc.register_printer

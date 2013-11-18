@@ -19,13 +19,17 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 module MapString = Map.Make(String)
 module SetString = Set.Make(String)
+
 
 open OASISTypes
 open BaseEnv
 
+
 let generated_fn = OASISHostPath.of_unix "src/cli/PluginsLoaded.ml"
+
 
 let post_configure pkg =
   (* Compute build depends *)
@@ -145,6 +149,7 @@ let post_configure pkg =
     Format.fprintf fmt "@]@?";
     close_out chn
 
+
 let setup_t =
   {setup_t with
        BaseSetup.configure =
@@ -155,4 +160,5 @@ let setup_t =
          (fun pkg args -> Sys.remove generated_fn)
          :: setup_t.BaseSetup.distclean}
 
-let setup () =  BaseSetup.setup setup_t;;
+
+let setup () =  BaseSetup.setup setup_t

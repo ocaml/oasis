@@ -26,11 +26,14 @@ open OASISSection
 open OASISGettext
 open OASISUtils
 
+
 type std_args_fun =
     package -> string array -> unit
 
+
 type ('a, 'b) section_args_fun =
     name * (package -> (common_section * 'a) -> string array -> 'b)
+
 
 type t =
     {
@@ -55,6 +58,7 @@ type t =
       setup_update:     bool;
     }
 
+
 (* Associate a plugin function with data from package *)
 let join_plugin_sections filter_map lst =
   List.rev
@@ -68,6 +72,7 @@ let join_plugin_sections filter_map lst =
        []
        lst)
 
+
 (* Search for plugin data associated with a section name *)
 let lookup_plugin_section plugin action nm lst =
   try
@@ -78,6 +83,7 @@ let lookup_plugin_section plugin action nm lst =
       plugin
       nm
       action
+
 
 let configure t args =
   (* Run configure *)
@@ -110,11 +116,13 @@ let configure t args =
   (* Replace data in file *)
   BaseFileAB.replace t.package.files_ab
 
+
 let build t args =
   BaseCustom.hook
     t.package.build_custom
     (t.build t.package)
     args
+
 
 let doc t args =
   BaseDoc.doc
@@ -135,6 +143,7 @@ let doc t args =
     t.package
     args
 
+
 let test t args =
   BaseTest.test
     (join_plugin_sections
@@ -153,6 +162,7 @@ let test t args =
        t.package.sections)
     t.package
     args
+
 
 let all t args =
   let rno_doc =
@@ -207,11 +217,13 @@ let all t args =
         info "Skipping test step"
       end
 
+
 let install t args =
   BaseCustom.hook
     t.package.install_custom
     (t.install t.package)
     args
+
 
 let uninstall t args =
   BaseCustom.hook
@@ -219,9 +231,11 @@ let uninstall t args =
     (t.uninstall t.package)
     args
 
+
 let reinstall t args =
   uninstall t args;
   install t args
+
 
 let clean, distclean =
   let failsafe f a =
@@ -320,8 +334,10 @@ let clean, distclean =
 
     clean, distclean
 
+
 let version t _ =
   print_endline t.oasis_version
+
 
 let update_setup_ml, no_update_setup_ml_cli =
   let b = ref true in
@@ -329,6 +345,7 @@ let update_setup_ml, no_update_setup_ml_cli =
     ("-no-update-setup-ml",
      Arg.Clear b,
      s_ " Don't try to update setup.ml, even if _oasis has changed.")
+
 
 let update_setup_ml t =
   let oasis_fn =
@@ -451,6 +468,7 @@ let update_setup_ml t =
     end
   else
     false
+
 
 let setup t =
   let catch_exn =
@@ -593,11 +611,15 @@ let setup t =
       error "%s" (Printexc.to_string e);
       exit 1
 
+
 (* END EXPORT *)
+
 
 open OASISPlugin
 
+
 let default_filename = "setup.ml"
+
 
 let find ctxt =
   try

@@ -19,9 +19,11 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open OASISGettext
 open OASISUtils
 open OASISMessage
+
 
 (* TODO: I don't like this quote, it is there because $(rm) foo expands to
  * 'rm -f' foo...
@@ -53,6 +55,7 @@ let run ~ctxt ?f_exit_code ?(quote=true) cmd args =
       | Some f, i ->
           f i
 
+
 let run_read_output ~ctxt ?f_exit_code cmd args =
   let fn =
     Filename.temp_file "oasis-" ".txt"
@@ -83,6 +86,7 @@ let run_read_output ~ctxt ?f_exit_code cmd args =
     with e ->
       (try Sys.remove fn with _ -> ());
       raise e
+
 
 let run_read_one_line ~ctxt ?f_exit_code cmd args =
   match run_read_output ~ctxt ?f_exit_code cmd args with

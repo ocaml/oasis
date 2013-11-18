@@ -19,11 +19,14 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Flag schema and generator
     @author Sylvain Le Gall
   *)
 
+
 (* END EXPORT *)
+
 
 open OASISTypes
 open OASISSchema_intern
@@ -31,6 +34,7 @@ open OASISValues
 open OASISUtils
 open OASISGettext
 open PropList.Field
+
 
 let schema, generator =
   let schm =

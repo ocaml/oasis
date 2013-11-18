@@ -19,9 +19,11 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Load and query _oasis file
     @author Sylvain Le Gall
   *)
+
 
 open SubCommand
 open BaseMessage
@@ -31,15 +33,19 @@ open OASISTypes
 open OASISSection
 open OASISUtils
 
+
 let queries =
   ref []
+
 
 let separator =
   ref "\n"
 
+
 let lexer =
   make_lexer
     ["ListSections"; "ListFields"; "("; ")"; "."]
+
 
 let query pkg str =
   let proplist_schema schm =
@@ -64,7 +70,7 @@ let query pkg str =
   in
 
   let mk_section sct =
-    let (knd, nm) =
+    let knd, nm =
       OASISSection.section_id sct
     in
     let start, (_, schm) =
@@ -150,7 +156,7 @@ let query pkg str =
               PropList.Schema.fold
                 (fun acc nm _ _ ->
                    try
-                     let _v : string =
+                     let _v: string =
                        PropList.Schema.get schm data nm
                      in
                        (prefix^nm) :: acc
@@ -215,6 +221,7 @@ let scmd =
              s_ "str String to add between answers."
            ]
            @ ArgCommon.oasis_fn_specs @ ArgCommon.ignore_plugins_specs)}
+
 
 let () =
   SubCommand.register scmd

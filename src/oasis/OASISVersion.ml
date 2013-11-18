@@ -19,13 +19,18 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open OASISGettext
+
 
 TYPE_CONV_PATH "OASISVersion"
 
+
 type s = string
 
+
 type t = string with odn
+
 
 type comparator =
   | VGreater of t
@@ -37,17 +42,21 @@ type comparator =
   | VAnd of comparator * comparator
   with odn
 
+
 (* Range of allowed characters *)
 let is_digit c =
   '0' <= c && c <= '9'
 
+
 let is_alpha c =
   ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')
+
 
 let is_special =
   function
     | '.' | '+' | '-' | '~' -> true
     | _ -> false
+
 
 let rec version_compare v1 v2 =
   if v1 <> "" || v2 <> "" then
@@ -132,11 +141,13 @@ let rec version_compare v1 v2 =
 
 let version_of_string str = str
 
+
 let string_of_version t = t
 
 
 let version_compare_string s1 s2 =
   version_compare (version_of_string s1) (version_of_string s2)
+
 
 let chop t =
   try
@@ -146,6 +157,7 @@ let chop t =
       String.sub t 0 pos
   with Not_found ->
     t
+
 
 let rec comparator_apply v op =
   match op with
@@ -164,6 +176,7 @@ let rec comparator_apply v op =
     | VAnd (op1, op2) ->
         (comparator_apply v op1) && (comparator_apply v op2)
 
+
 let rec string_of_comparator =
   function
     | VGreater v  -> "> "^(string_of_version v)
@@ -175,6 +188,7 @@ let rec string_of_comparator =
         (string_of_comparator c1)^" || "^(string_of_comparator c2)
     | VAnd (c1, c2) ->
         (string_of_comparator c1)^" && "^(string_of_comparator c2)
+
 
 let rec varname_of_comparator =
   let concat p v =
@@ -194,8 +208,10 @@ let rec varname_of_comparator =
       | VAnd (c1, c2) ->
           (varname_of_comparator c1)^"_and_"^(varname_of_comparator c2)
 
+
 let version_0_3_or_after t =
   comparator_apply t (VGreaterEqual (string_of_version "0.3"))
+
 
 let rec comparator_ge v' =
   let cmp v = version_compare v v' >= 0 in
@@ -208,10 +224,13 @@ let rec comparator_ge v' =
     | VOr (c1, c2) -> comparator_ge v' c1 || comparator_ge v' c2
     | VAnd (c1, c2) -> comparator_ge v' c1 && comparator_ge v' c2
 
+
 (* END EXPORT *)
+
 
 open OASISUtils
 open OASISVersion_types
+
 
 let comparator_of_string str =
   let lexbuf =
@@ -237,6 +256,7 @@ let comparator_of_string str =
         str
         (Printexc.to_string e)
 
+
 let rec comparator_reduce =
   function
     | VAnd (v1, v2) ->
@@ -254,7 +274,9 @@ let rec comparator_reduce =
     | cmp ->
         cmp
 
+
 open OASISValues
+
 
 let value =
   {
@@ -262,6 +284,7 @@ let value =
     update = update_fail;
     print  = string_of_version;
   }
+
 
 let comparator_value =
   {

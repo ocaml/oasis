@@ -19,13 +19,17 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open OASISGettext
 
+
 type name = string
+
 
 exception Not_set of name * string option
 exception No_printer of name
 exception Unknown_field of name * name
+
 
 let () =
   Printexc.register_printer
@@ -46,9 +50,9 @@ let () =
        | _ ->
            None)
 
+
 module Data =
 struct
-
   type t =
       (name, unit -> unit) Hashtbl.t
 
@@ -57,6 +61,7 @@ struct
 
   let clear t =
     Hashtbl.clear t
+
 
 (* END EXPORT *)
   let elements t =
@@ -71,9 +76,9 @@ struct
 (* START EXPORT *)
 end
 
+
 module Schema =
 struct
-
   type ('ctxt, 'extra) value =
       {
         get:   Data.t -> string;
@@ -161,9 +166,9 @@ struct
     t.name
 end
 
+
 module Field =
 struct
-
   type ('ctxt, 'value, 'extra) t =
       {
         set:    Data.t -> ?context:'ctxt -> 'value -> unit;
@@ -293,16 +298,14 @@ struct
 
   let fgets data t =
     t.gets data
-
 end
+
 
 module FieldRO =
 struct
-
   let create ?schema ?name ?parse ?print ?default ?update ?help extra =
     let fld =
       Field.create ?schema ?name ?parse ?print ?default ?update ?help extra
     in
       fun data -> Field.fget data fld
-
 end

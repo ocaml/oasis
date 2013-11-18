@@ -19,14 +19,14 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-open OUnit;;
+
+open OUnit
 
 let myrun t =
   let lst =
     run_test_tt_main t
   in
     lst
-;;
 
-myrun ("main" >:: (fun () -> ()))
-;;
+
+let _ = myrun ("main" >:: (fun () -> ()))

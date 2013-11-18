@@ -19,10 +19,12 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open OASISTypes
 open OASISGettext
 open BaseStandardVar
 open BaseMessage
+
 
 type t =
   | BExec    (* Executable *)
@@ -30,6 +32,7 @@ type t =
   | BLib     (* Library *)
   | BObj     (* Library *)
   | BDoc     (* Document *)
+
 
 let to_log_event_file t nm =
   "built_"^
@@ -41,8 +44,10 @@ let to_log_event_file t nm =
      | BDoc -> "doc")^
   "_"^nm
 
+
 let to_log_event_done t nm =
   "is_"^(to_log_event_file t nm)
+
 
 let register t nm lst =
   BaseLog.register
@@ -74,6 +79,7 @@ let register t nm lst =
              (String.concat (s_ ", ") alt))
     lst
 
+
 let unregister t nm =
   List.iter
     (fun (e, d) ->
@@ -81,6 +87,7 @@ let unregister t nm =
     (BaseLog.filter
        [to_log_event_file t nm;
         to_log_event_done t nm])
+
 
 let fold t nm f acc =
   List.fold_left
@@ -112,6 +119,7 @@ let fold t nm f acc =
     (BaseLog.filter
        [to_log_event_file t nm])
 
+
 let is_built t nm =
   List.fold_left
     (fun is_built (_, d) ->
@@ -122,6 +130,7 @@ let is_built t nm =
     false
     (BaseLog.filter
        [to_log_event_done t nm])
+
 
 let of_executable ffn (cs, bs, exec) =
   let unix_exec_is, unix_dll_opt =
@@ -145,6 +154,7 @@ let of_executable ffn (cs, bs, exec) =
     evs,
     unix_exec_is,
     unix_dll_opt
+
 
 let of_library ffn (cs, bs, lib) =
   let unix_lst =

@@ -22,8 +22,10 @@
 
 open OASISRecDescParser
 
+
 let from_stream ~ctxt ?fn st =
   OASISAst.to_package {oasisfn = fn; ctxt = ctxt} st
+
 
 let from_file ~ctxt fn =
   let chn =
@@ -34,6 +36,7 @@ let from_file ~ctxt fn =
   in
     close_in chn;
     pkg
+
 
 (** [from_string ~conf str] Parse the OASIS string [str] and check it using
     context [conf].

@@ -19,6 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** File generated using environment variables
 
     This is the same kind of file as .in file for autoconf, except we
@@ -31,12 +32,15 @@
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
+
 
 (** Compute the target filename of an .ab file.
   *)
-val to_filename : unix_filename -> host_filename
+val to_filename: unix_filename -> host_filename
+
 
 (** Replace variable in file %.ab to generate %.
   *)
-val replace : unix_filename list -> unit
+val replace: unix_filename list -> unit

@@ -19,14 +19,18 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open OASISTypes
 
+
 type 'a t = 'a OASISSchema_intern.t
+
 
 (** Create field name derived from a plugin
   *)
 let make_field_name (_, nm', _) nm =
   "X"^nm'^nm
+
 
 (** Synchronize between plugin datastructure and PropList.Data.t
   *)
@@ -45,6 +49,7 @@ let sync_proxy schema t nm (_, get) sync ds =
       (Printexc.to_string e);
     raise OASISValues.Not_printable
 
+
 let new_field schema t nm ?default ?since_version parse hlp pivot_data sync =
   let plugin =
     OASISPlugin.to_plugin t
@@ -58,6 +63,7 @@ let new_field schema t nm ?default ?since_version parse hlp pivot_data sync =
       parse
       hlp
       (sync_proxy schema plugin nm pivot_data sync)
+
 
 let new_field_conditional
       schema

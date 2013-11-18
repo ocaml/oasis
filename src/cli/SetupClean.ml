@@ -19,17 +19,21 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Clean generated template files
     @author Sylvain Le Gall
   *)
+
 
 open SubCommand
 open OASISGettext
 open OASISFileTemplate
 open OASISPlugin
 
+
 let replace_sections =
   ref false
+
 
 let main () =
   BaseGenerate.restore ();
@@ -63,6 +67,7 @@ let main () =
           ()
     end
 
+
 let scmd =
   {(SubCommand.make
       ~std_usage:true
@@ -78,6 +83,7 @@ let scmd =
              s_ "Empty replace section in generated files (i.e. remove content \
                  between OASIS_START and OASIS_STOP).";
            ]}
+
 
 let () =
   SubCommand.register scmd

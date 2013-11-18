@@ -19,23 +19,28 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Generate 'setup.ml' and other files
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
 
+
 type update = NoUpdate | Weak | Dynamic
+
 
 (** Restore generated files, when [generate] has been called with
     [~restore:true]. {b Not exported}.
   *)
-val restore : ?msg:OASISContext.t -> unit -> unit
+val restore: ?msg:OASISContext.t -> unit -> unit
+
 
 (** Generate 'setup.ml' file and the rest of the build system.
     {b Not exported}.
   *)
-val generate :
+val generate:
   ?msg:OASISContext.t ->
   restore:bool ->
   backup:bool ->

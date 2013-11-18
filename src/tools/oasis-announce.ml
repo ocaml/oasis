@@ -1,5 +1,6 @@
 #!/usr/bin/ocamlrun ocaml
 
+
 (******************************************************************************)
 (* OASIS: architecture for building OCaml libraries and applications          *)
 (*                                                                            *)
@@ -21,17 +22,21 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 let () =
   try Topdirs.dir_directory (Sys.getenv "OCAML_TOPLEVEL_PATH")
-  with Not_found -> ();;
+  with Not_found -> ()
 
-#use "topfind";;
-#require "oasis";;
-#require "oasis.base";;
-#require "pcre";;
+
+#use "topfind"
+#require "oasis"
+#require "oasis.base"
+#require "pcre"
+
 
 open OASISMessage
 open OASISTypes
+
 
 let () =
   let ctxt =

@@ -19,9 +19,11 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Configure using internal scheme
     @author Sylvain Le Gall
   *)
+
 
 open BaseEnv
 open OASISTypes
@@ -29,24 +31,14 @@ open OASISUtils
 open OASISGettext
 open BaseMessage
 
+
 (** Configure build using provided series of check to be done
   * and then output corresponding file.
   *)
 let configure pkg argv =
-  let var_ignore_eval var =
-    let _s : string =
-      var ()
-    in
-      ()
-  in
-
-  let errors =
-    ref SetString.empty
-  in
-
-  let buff =
-    Buffer.create 13
-  in
+  let var_ignore_eval var = let _s: string = var () in () in
+  let errors = ref SetString.empty in
+  let buff = Buffer.create 13 in
 
   let add_errors fmt =
     Printf.kbprintf
@@ -270,13 +262,17 @@ let configure pkg argv =
         (SetString.cardinal !errors)
     end
 
+
 (* END EXPORT *)
+
 
 open OASISPlugin
 open InternalId
 
+
 let plugin =
   `Configure, name, Some version
+
 
 let init () =
   let self_id, _ =

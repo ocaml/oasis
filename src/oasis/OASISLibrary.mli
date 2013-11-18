@@ -19,37 +19,42 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Library section
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
 
+
 (** Looks for a module file, considering capitalization or not. *)
-val find_module :
+val find_module:
   (string -> bool) ->
   build_section ->
   OASISUnixPath.unix_filename ->
   [ `No_sources of OASISUnixPath.unix_filename list
   | `Sources of OASISUnixPath.unix_filename * string list ]
 
+
 (** [source_unix_files (cs, bs, lib) source_file_exists] Source files for this
     library. The first part of the tuple is the file without extenstion for
     modules and the second part is the source files matching (e.g. .ml and
     .mli).
   *)
-val source_unix_files :
+val source_unix_files:
   ctxt:OASISContext.t ->
   common_section * build_section * library ->
   (unix_filename -> bool) ->
   (unix_filename * (unix_filename list)) list
+
 
 (** [generated_unix_files ~ctxt source_file_exists has_native_dynlink
     is_native ext_lib ext_dll (cs, bs, lib)]
     Compute all files expected by a build of the library. For each file a list
     of alternatives is provided.
   *)
-val generated_unix_files :
+val generated_unix_files:
   ctxt:OASISContext.t ->
   is_native:bool ->
   has_native_dynlink:bool ->
@@ -59,6 +64,7 @@ val generated_unix_files :
   common_section * build_section * library ->
   unix_filename list list
 
+
 (** Schema for the section. {b Not exported}.
   *)
-val schema : (common_section * build_section * library) OASISSchema.t
+val schema: (common_section * build_section * library) OASISSchema.t

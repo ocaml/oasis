@@ -19,13 +19,18 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 TYPE_CONV_PATH "OASISExpr"
+
 
 open OASISGettext
 
+
 type test = string with odn
 
+
 type flag = string with odn
+
 
 type t =
   | EBool of bool
@@ -36,7 +41,9 @@ type t =
   | ETest of test * string
   with odn
 
+
 type 'a choices = (t * 'a) list with odn
+
 
 let eval var_get t =
   let rec eval' =
@@ -67,6 +74,7 @@ let eval var_get t =
             (v = vl)
   in
     eval' t
+
 
 let choose ?printer ?name var_get lst =
   let rec choose_aux =
@@ -104,9 +112,12 @@ let choose ?printer ?name var_get lst =
   in
     choose_aux (List.rev lst)
 
+
 (* END EXPORT *)
 
+
 open OASISUtils
+
 
 let tests =
   [
@@ -117,12 +128,15 @@ let tests =
     "ocaml_version";
   ]
 
+
 let test_of_string str =
   (* TODO: check for correct syntax of str *)
   str
 
+
 let string_of_test t =
   t
+
 
 let check valid_flags =
   let lowercase_eq str1 str2 =
@@ -145,6 +159,7 @@ let check valid_flags =
           ()
   in
     check_aux valid_flags
+
 
 let rec reduce e =
   let e =
@@ -176,6 +191,7 @@ let rec reduce e =
       | (EBool _)) as e ->
           e
 
+
 let reduce_choices choices =
   (* Naive reduction, we only look for exactly the same condition in
    * after one condition. It works but is not complete and not efficient
@@ -204,6 +220,7 @@ let reduce_choices choices =
       []
       (List.map (fun (cond, vl) -> reduce cond, vl) choices)
 
+
 let if_then_else t choices_if choices_else =
   let choices_if' =
     List.rev_map (fun (t', v) -> EAnd (t, t'), v) choices_if
@@ -212,6 +229,7 @@ let if_then_else t choices_if choices_else =
     List.rev_map (fun (t', v) -> EAnd (ENot t, t'), v) choices_else
   in
     reduce_choices (List.rev_append choices_else' (List.rev choices_if'))
+
 
 let rec to_string =
   function
@@ -235,6 +253,7 @@ let rec to_string =
         (to_string e1)^" && ("^(to_string e2)^")"
     | EAnd (e1, e2) ->
         (to_string e1)^" && "^(to_string e2)
+
 
 let string_of_choices f lst =
   "["^(String.concat "; "

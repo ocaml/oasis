@@ -19,19 +19,24 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Package schema and generator
     @author Sylvain Le Gall
   *)
 
+
 open OASISTypes
 
+
 (* END EXPORT *)
+
 
 open OASISValues
 open OASISUtils
 open OASISSchema_intern
 open OASISGettext
 open OASISExpr
+
 
 let mod_build_depends f pkg =
   {pkg with
@@ -48,11 +53,13 @@ let mod_build_depends f pkg =
                   sct)
            pkg.sections}
 
+
 let add_build_depend build_depend pkg =
   mod_build_depends
     (fun bs ->
        {bs with bs_build_depends = build_depend :: bs.bs_build_depends})
     pkg
+
 
 let add_build_tool ?(no_test=false) ?(condition=[EBool true, true])
     build_tool pkg =
@@ -84,8 +91,10 @@ let add_build_tool ?(no_test=false) ?(condition=[EBool true, true])
                       sct)
                pkg.sections}
 
+
 let schema =
   schema "Package" (fun pkg -> pkg.plugin_data)
+
 
 let oasis_version =
   let current_version =
@@ -118,6 +127,7 @@ let oasis_version =
       (fun () ->
          s_ "OASIS format version used to write file `_oasis`.")
       (fun pkg -> pkg.oasis_version)
+
 
 let generator =
   let schm = schema in

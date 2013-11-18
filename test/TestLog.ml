@@ -19,13 +19,16 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** BaseLog tests
     @author Sylvain Le Gall
   *)
 
+
 open OUnit2
 open TestCommon
 open BaseLog
+
 
 let tests =
   let test_of_vector (nm, f) =

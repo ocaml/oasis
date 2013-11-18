@@ -28,7 +28,9 @@ open OASISPlugin
 open BaseMessage
 open OASISGettext
 
+
 type update = NoUpdate | Weak | Dynamic
+
 
 let required_modules =
   [
@@ -38,9 +40,11 @@ let required_modules =
     BaseData.basesys_ml;
   ]
 
+
 (**/**)
 let ev_create, ev_backup =
   "restore_create", "restore_backup"
+
 
 let log_change f =
   function
@@ -58,17 +62,21 @@ let log_change f =
     | NoChange ->
         ()
 
+
 (**/**)
+
 
 (** Register a generated file
   *)
 let register =
   log_change BaseLog.register
 
+
 (** Unregister a generated file
   *)
 let unregister =
   log_change BaseLog.unregister
+
 
 let restore ?msg () =
   let msg =

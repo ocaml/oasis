@@ -23,6 +23,7 @@
 open OASISTypes
 open OASISSection
 
+
 (** Add section fields *)
 let section_fields
       hlp
@@ -35,7 +36,9 @@ let section_fields
       cs_data = data;
     }
 
+
 (** {2 Containers for sections using id-only} *)
+
 
 module CIdSection =
 struct
@@ -43,8 +46,10 @@ struct
   let compare = compare
 end
 
+
 module MapSectionId = Map.Make(CIdSection)
 module SetSectionId = Set.Make(CIdSection)
+
 
 (** Convert a MapSection.t into a MapSectionId.t
   *)

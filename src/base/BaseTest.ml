@@ -19,11 +19,13 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open BaseEnv
 open BaseMessage
 open OASISTypes
 open OASISExpr
 open OASISGettext
+
 
 let test lst pkg extra_args =
 
@@ -75,7 +77,7 @@ let test lst pkg extra_args =
         (failure, n)
       end
   in
-  let (failed, n) =
+  let failed, n =
     List.fold_left
       one_test
       (0.0, 0)

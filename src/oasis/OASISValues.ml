@@ -19,11 +19,14 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open OASISGettext
 open OASISUtils
 
+
 exception Not_printable
 exception Not_combinable
+
 
 type 'a t =
     {
@@ -32,8 +35,10 @@ type 'a t =
       print:  'a -> string;
     }
 
+
 let update_fail _ _ =
   raise Not_combinable
+
 
 let blackbox =
   {
@@ -46,12 +51,14 @@ let blackbox =
     print  = (fun _ -> raise Not_printable);
   }
 
+
 module StdLexer =
 struct
   let url = OASISValues_lexer.url
   let copyright = OASISValues_lexer.copyright
   let modul = OASISValues_lexer.modul
 end
+
 
 let lexer lxr nm =
   {
@@ -77,10 +84,12 @@ let lexer lxr nm =
     print = (fun s -> s);
   }
 
+
 let url =
   lexer
     StdLexer.url
     (fun () -> s_ "URL")
+
 
 let copyright =
   let base_value =
@@ -99,12 +108,14 @@ let copyright =
                        '(C) 2008-2009 J.R. Hacker', here it is '%s'")
                   str)}
 
+
 let string =
   {
     parse =  (fun ~ctxt s -> s);
     update = (fun s1 s2 -> s1^" "^s2);
     print =  (fun s -> s);
   }
+
 
 let string_not_empty =
   {
@@ -118,11 +129,14 @@ let string_not_empty =
     print = (fun s -> s);
   }
 
+
 let file =
   {string_not_empty with update = update_fail}
 
+
 let file_glob =
   {string_not_empty with update = update_fail}
+
 
 let directory =
   {string_not_empty with update = update_fail}
@@ -133,6 +147,7 @@ let expandable value =
    * than a single value. Use split_expandable defined above.
    *)
   value
+
 
 let dot_separated value =
   {
@@ -151,6 +166,7 @@ let dot_separated value =
               lst));
   }
 
+
 let comma_separated value =
   {
     parse =
@@ -167,6 +183,7 @@ let comma_separated value =
               value.print
               lst));
   }
+
 
 let newline_separated value =
   {
@@ -185,6 +202,7 @@ let newline_separated value =
               lst));
   }
 
+
 let space_separated =
   {
     parse =
@@ -198,6 +216,7 @@ let space_separated =
       (fun lst ->
          String.concat " " lst);
   }
+
 
 let with_optional_parentheses main_value optional_value =
   {
@@ -221,6 +240,7 @@ let with_optional_parentheses main_value optional_value =
                (optional_value.print opt));
   }
 
+
 let opt value =
   {
     parse = (fun ~ctxt str -> Some (value.parse ~ctxt str));
@@ -230,6 +250,7 @@ let opt value =
          | Some v -> value.print v
          | None -> raise Not_printable);
   }
+
 
 let modules =
   let base_value =
@@ -258,11 +279,14 @@ let modules =
         print  = (fun s -> s);
       }
 
+
 let files =
   comma_separated file
 
+
 let categories =
   comma_separated url
+
 
 let choices nm lst =
   {
@@ -295,10 +319,12 @@ let choices nm lst =
              (nm ()));
   }
 
+
 let boolean =
   choices
     (fun () -> s_ "boolean")
     ["true", true; "false", false]
+
 
 let findlib_name =
   {
@@ -314,13 +340,14 @@ let findlib_name =
     print = (fun s -> s);
   }
 
+
 let findlib_full =
   {
     parse =
       (fun ~ctxt s ->
          let cpnts = OASISString.nsplit s '.' in
          List.iter (fun cpnt ->
-                    let _s : string = findlib_name.parse ~ctxt cpnt in
+                    let _s: string = findlib_name.parse ~ctxt cpnt in
                     ())
              cpnts;
            s);
@@ -328,9 +355,11 @@ let findlib_full =
     print = (fun s -> s);
   }
 
+
 let internal_library =
   (* TODO: check that the library really exists *)
   {string with update = update_fail}
+
 
 let command_line =
   let split_expandable str =

@@ -19,12 +19,15 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Handle 'pager' command
   *)
+
 
 open BaseMessage
 open OASISGettext
 open OASISUtils
+
 
 let pager_cmd =
   try
@@ -40,6 +43,7 @@ let pager_cmd =
          end)
   with Not_found ->
     None
+
 
 let open_out () =
   let buf =

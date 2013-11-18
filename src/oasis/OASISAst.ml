@@ -19,9 +19,11 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** AST manipulation
     @author Sylvain Le Gall
   *)
+
 
 open OASISTypes
 open OASISUtils
@@ -29,6 +31,7 @@ open OASISGettext
 open OASISRecDescParser
 open OASISAstTypes
 open OASISExpr
+
 
 (** Convert OASIS stream into package
   *)

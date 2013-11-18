@@ -19,10 +19,12 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 open BaseEnv
 open BaseMessage
 open OASISUtils
 open OASISGettext
+
 
 let prog_best prg prg_lst =
   var_redefine
@@ -46,14 +48,18 @@ let prog_best prg prg_lst =
            | Some prg -> prg
            | None -> raise Not_found)
 
+
 let prog prg =
   prog_best prg [prg]
+
 
 let prog_opt prg =
   prog_best prg [prg^".opt"; prg]
 
+
 let ocamlfind =
   prog "ocamlfind"
+
 
 let version
       var_prefix
@@ -96,10 +102,12 @@ let version
                version_str)
       ()
 
+
 let package_version pkg =
   OASISExec.run_read_one_line ~ctxt:!BaseContext.default
     (ocamlfind ())
     ["query"; "-format"; "%v"; pkg]
+
 
 let package ?version_comparator pkg () =
   let var =

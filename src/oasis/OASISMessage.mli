@@ -19,6 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (** Messages to user
 
     These functions display information depending on the verbosity level
@@ -29,19 +30,23 @@
     @author Sylvain Le Gall
   *)
 
+
 (** Print a debug message.
   *)
-val debug : ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
+val debug: ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
+
 
 (** Print information message.
   *)
-val info : ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
+val info: ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
+
 
 (** Print a warning message.
   *)
-val warning : ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
+val warning: ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
+
 
 (** Print an error message.
   *)
-val error : ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
+val error: ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
 

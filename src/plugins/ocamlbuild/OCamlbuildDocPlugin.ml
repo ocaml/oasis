@@ -19,9 +19,11 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+
 (* Create documentation using ocamlbuild .odocl files
    @author Sylvain Le Gall
  *)
+
 
 open OASISTypes
 open OASISGettext
@@ -29,7 +31,9 @@ open OASISMessage
 open OCamlbuildCommon
 open BaseStandardVar
 
+
 TYPE_CONV_PATH "OCamlbuildDocPlugin"
+
 
 let doc_build path pkg (cs, doc) argv =
   let index_html =
@@ -58,11 +62,14 @@ let doc_build path pkg (cs, doc) argv =
               (Filename.concat tgt_dir glb)])
       ["*.html"; "*.css"]
 
+
 let doc_clean t pkg (cs, doc) argv =
   run_clean argv;
   BaseBuilt.unregister BaseBuilt.BDoc cs.cs_name
 
+
 (* END EXPORT *)
+
 
 open OASISFileTemplate
 open OASISPlugin
@@ -72,8 +79,10 @@ open OASISPlugin
 open OASISSchema
 open OCamlbuildId
 
+
 let plugin =
   `Doc, name, Some version
+
 
 type t =
     {
@@ -84,11 +93,14 @@ type t =
       flags:     string list;
     }
 
+
 let pivot_data =
   data_new_property plugin
 
+
 let self_id, all_id =
   Doc.create plugin
+
 
 let new_field nm ?default vl hlp sync =
   new_field
@@ -100,12 +112,14 @@ let new_field nm ?default vl hlp sync =
     (fun () -> s_ hlp)
     pivot_data sync
 
+
 let path =
   new_field
     "Path"
     directory
     (ns_ "Top level directory for building ocamldoc documentation")
     (fun _ t -> t.path)
+
 
 let modules =
   new_field
@@ -115,6 +129,7 @@ let modules =
     (ns_ "List of OCaml modules used to generate ocamldoc documentation")
     (fun _ t -> t.modules)
 
+
 let libraries =
   new_field
     "Libraries"
@@ -123,6 +138,7 @@ let libraries =
     (ns_ "Findlib names of internal libraries used to generate the ocamldoc \
           documentation")
     (fun _ t -> t.libraries)
+
 
 (* TODO: the following 2 options require to edit _tags after OCamlbuildDoc
  *)
@@ -136,6 +152,7 @@ let intro =
           documentation")
     (fun _ t -> t.intro)
 
+
 let flags =
   new_field
     ~default:[]
@@ -145,7 +162,9 @@ let flags =
     (fun _ t -> t.flags)
  *)
 
+
 (* TODO: use -t for title *)
+
 
 let doit ctxt pkg (cs, doc) =
 
@@ -267,12 +286,14 @@ let doit ctxt pkg (cs, doc) =
         None;
     }
 
+
 let qstrt_completion pkg =
   List.fold_left
     (fun pkg tool -> fix_build_tools tool pkg)
     pkg
     [ExternalTool "ocamlbuild";
      ExternalTool "ocamldoc"]
+
 
 let init () =
   OCamlbuildId.init ();
