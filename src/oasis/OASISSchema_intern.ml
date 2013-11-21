@@ -36,7 +36,6 @@ open PropList
 
 module Sync =
 struct
-
   (* TODO: we should use a Queue or a list here or include the sync method
      directly in extra
    *)

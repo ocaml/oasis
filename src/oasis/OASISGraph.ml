@@ -167,6 +167,6 @@ let transitive_closure t =
   in
 
     for v = 0 to size - 1 do
-      let _set : SetInt.t = visit SetInt.empty v in
+      let _set: SetInt.t = visit SetInt.empty v in
         ()
     done

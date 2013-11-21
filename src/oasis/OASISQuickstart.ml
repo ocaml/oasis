@@ -457,7 +457,6 @@ let ask_schema ~ctxt schema lvl interface plugins =
                                    (mk_numbered_choices_multi
                                       t
                                       (List.map (fun s -> s, None) lst)))
-
                             end
 
                         | ExclusiveChoices lst ->

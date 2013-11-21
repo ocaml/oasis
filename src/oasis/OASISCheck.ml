@@ -147,7 +147,6 @@ let check_schema ~ctxt where schm oasis_version data =
                    begin
                      acc
                    end
-
                end)
       msgfld
       schm
@@ -236,7 +235,7 @@ let check_package ~ctxt pkg =
   in
 
   (** Check that there is no overlap in variable name. *)
-  let _mp : string MapString.t =
+  let _mp: string MapString.t =
     List.fold_left
       (fun mp ->
          function

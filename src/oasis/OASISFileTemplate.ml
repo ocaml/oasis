@@ -619,7 +619,6 @@ let file_generate ~ctxt ~backup t =
                   in
                     to_file (merge t_org t);
                     Change (t.fn, fn_backup)
-
                 end
 
             | _, false -> (* No change *)
@@ -633,7 +632,6 @@ let file_generate ~ctxt ~backup t =
         info ~ctxt (f_ "File %s doesn't exist, creating it.") t.fn;
         to_file t;
         Create t.fn
-
       end
 
 

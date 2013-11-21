@@ -147,7 +147,6 @@ let split_optional_parentheses str =
 
 module POSIXShell =
 struct
-
   let unescape s =
     let buf = Buffer.create (String.length s) in
     let _b: bool =
