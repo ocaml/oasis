@@ -171,6 +171,9 @@ let all t args =
   let rno_test =
     ref false
   in
+  let arg_rest =
+    ref []
+  in
     Arg.parse_argv
       ~current:(ref 0)
       (Array.of_list
@@ -184,12 +187,16 @@ let all t args =
         "-no-test",
         Arg.Set rno_test,
         s_ "Don't run test target";
+
+        "--",
+        Arg.Rest (fun arg -> arg_rest := arg :: !arg_rest),
+        s_ "All arguments for configure.";
       ]
       (failwithf (f_ "Don't know what to do with '%s'"))
       "";
 
     info "Running configure step";
-    configure t [||];
+    configure t (Array.of_list (List.rev !arg_rest));
 
     info "Running build step";
     build     t [||];

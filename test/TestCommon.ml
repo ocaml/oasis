@@ -50,16 +50,16 @@ module MapString = Map.Make(String)
 module SetString = Set.Make(String)
 
 
-let has_ocamlopt =
+let is_native =
   Conf.make_bool
-    "has_ocamlopt"
+    "is_native"
     (bool_of_string (BaseStandardVar.is_native ()))
     "Wether native compilation possible."
 
 
-let has_native_dynlink =
+let native_dynlink =
   Conf.make_bool
-    "has_native_dynlink"
+    "native_dynlink"
     (bool_of_string (BaseStandardVar.native_dynlink ()))
     "Wether native dynlink is possible."
 

@@ -209,7 +209,7 @@ Executable test
 
 Test main
   Type: custom (0.3)
-  Command: $test -oasis $oasis
+  Command: $test -oasis $oasis -is_native $is_native -native_dynlink $native_dynlink
   WorkingDirectory: test
   TestTools: oasis, test
 

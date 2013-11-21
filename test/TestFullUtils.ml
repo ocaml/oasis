@@ -135,6 +135,8 @@ let check_all_files_style test_ctxt dn =
 
 type t =
     {
+      is_native: bool;
+      native_dynlink: bool;
       src_dir: filename;
       build_dir: filename;
       ocaml_lib_dir: filename;
@@ -154,7 +156,7 @@ type t =
 
 
 (* Create tree structure for a test project and copy it there. *)
-let setup_test_directories test_ctxt dn =
+let setup_test_directories test_ctxt ~is_native ~native_dynlink dn =
   (* Create a temporary directory. *)
   let tmpdir = bracket_tmpdir test_ctxt in
 
@@ -191,6 +193,8 @@ let setup_test_directories test_ctxt dn =
     Buffer.contents buff
   in
     {
+      is_native = is_native;
+      native_dynlink = native_dynlink;
       src_dir = src_dir;
       build_dir = build_dir;
       ocaml_lib_dir = mkdir_return ["lib"; "ocaml"];
@@ -386,7 +390,7 @@ let try_installed_library test_ctxt t pkg modules =
     assert_compile
       "ocamlc" ["-o"; FilePath.replace_extension fn "byte"; fn];
 
-    if has_ocamlopt test_ctxt then begin
+    if t.is_native then begin
       (* Library + native compilation *)
       assert_compile
         "ocamlopt" ["-a"; "-o"; FilePath.replace_extension fn "cmxa"; fn];
@@ -499,18 +503,19 @@ let register_installed_files test_ctxt t installed_files_lst =
            try FilePath.get_extension fn with Not_found -> ""
          in
          match ext with
-           | "cmx" | "cmxa" when not (has_ocamlopt test_ctxt) ->
+           | "cmx" | "cmxa" | "o" when not t.is_native ->
                acc
-           | "cmxs" when not (has_native_dynlink test_ctxt) ->
+           | "cmxs" when not t.native_dynlink ->
                acc
            | "a" ->
                let fn =
                  if is_win32 then FilePath.replace_extension fn "lib" else fn
                in
                  if (* library matching the .cmxa *)
-                   has_ocamlopt test_ctxt ||
+                   t.is_native ||
                     (* stubs library *)
-                   OASISString.starts_with (Filename.basename fn) "lib" then
+                   OASISString.starts_with ~what:"lib"
+                      (Filename.basename fn) then
                    fn :: acc
                  else
                    (* no .a matching bytecode only library. *)
@@ -715,7 +720,8 @@ let standard_test test_ctxt t =
   standard_checks test_ctxt t;
 
   (* Quick test. *)
-  run_ocaml_setup_ml test_ctxt t ["-all"];
+  run_ocaml_setup_ml test_ctxt t
+    ["-all"; "--"; "--override"; "is_native"; string_of_bool t.is_native];
   check_myocamlbuild_ml test_ctxt t;
 
   (* Distclean. *)
@@ -725,7 +731,8 @@ let standard_test test_ctxt t =
   (* Run configure target *)
   run_ocaml_setup_ml test_ctxt t
       ["-configure"; "--prefix";  t.build_dir; "--docdir";  t.doc_dir;
-       "--htmldir"; t.html_dir];
+       "--htmldir"; t.html_dir;
+       "--override"; "is_native"; string_of_bool t.is_native];
   assert_bool "File 'setup.data' has been created"
     (Sys.file_exists (in_src_dir t "setup.data"));
 
