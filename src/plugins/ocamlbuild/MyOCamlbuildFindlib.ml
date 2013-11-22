@@ -66,6 +66,18 @@ let before_space s =
     String.before s (String.index s ' ')
   with Not_found -> s
 
+(* ocamlfind command *)
+let ocamlfind x =
+  let ocamlfind_prog =
+    let env_filename = Pathname.basename BaseEnvLight.default_filename in
+    let env = BaseEnvLight.load ~filename:env_filename ~allow_empty:true () in
+    try
+      BaseEnvLight.var_get "ocamlfind" env
+    with Not_found ->
+      Printf.eprintf "W: Cannot get variable ocamlfind";
+      "ocamlfind"
+  in
+    S[Sh ocamlfind_prog; x]
 
 (* This lists all supported packages. *)
 let find_packages () =
@@ -74,10 +86,6 @@ let find_packages () =
 
 (* Mock to list available syntaxes. *)
 let find_syntaxes () = ["camlp4o"; "camlp4r"]
-
-
-(* ocamlfind command *)
-let ocamlfind x = S[A"ocamlfind"; x]
 
 
 let dispatch =
@@ -90,7 +98,8 @@ let dispatch =
         Options.ocamlopt   := ocamlfind & A"ocamlopt";
         Options.ocamldep   := ocamlfind & A"ocamldep";
         Options.ocamldoc   := ocamlfind & A"ocamldoc";
-        Options.ocamlmktop := ocamlfind & A"ocamlmktop"
+        Options.ocamlmktop := ocamlfind & A"ocamlmktop";
+        Options.ocamlmklib := ocamlfind & A"ocamlmklib"
 
     | After_rules ->
 
