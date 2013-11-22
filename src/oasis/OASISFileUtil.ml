@@ -74,12 +74,13 @@ let find_file ?(case_sensitive=true) paths exts =
            p ^ e)
       ((combined_paths paths) * exts)
   in
-    List.find
+    List.find (fun file ->
       (if case_sensitive then
-         file_exists_case
+         file_exists_case file
        else
-         Sys.file_exists)
-      alternatives
+         Sys.file_exists file)
+      && not (Sys.is_directory file)
+    ) alternatives
 
 
 let which ~ctxt prg =
