@@ -49,4 +49,5 @@ let () =
          TestQuery.tests;
          TestQuickstart.tests;
          TestDevFiles.tests;
+         TestOCamlbuild.tests;
        ])

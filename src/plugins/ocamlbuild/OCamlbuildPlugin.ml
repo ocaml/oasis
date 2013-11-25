@@ -28,6 +28,7 @@
 open OASISTypes
 open OASISGettext
 open OASISUtils
+open OASISString
 open BaseEnv
 open OCamlbuildCommon
 open BaseStandardVar
@@ -74,19 +75,6 @@ let build t pkg argv =
     in_build_dir (OASISHostPath.of_unix fn)
   in
 
-  (* Checks if the string [fn] ends with [nd] *)
-  let ends_with nd fn =
-    let nd_len =
-      String.length nd
-    in
-      (String.length fn >= nd_len)
-      &&
-      (String.sub
-         fn
-         (String.length fn - nd_len)
-         nd_len) = nd
-  in
-
   let cond_targets =
     List.fold_left
       (fun acc ->
@@ -106,11 +94,11 @@ let build t pkg argv =
                         (List.map
                            (List.filter
                               (fun fn ->
-                               ends_with ".cma" fn
-                               || ends_with ".cmxs" fn
-                               || ends_with ".cmxa" fn
-                               || ends_with (ext_lib ()) fn
-                               || ends_with (ext_dll ()) fn))
+                               ends_with ~what:".cma" fn
+                               || ends_with ~what:".cmxs" fn
+                               || ends_with ~what:".cmxa" fn
+                               || ends_with ~what:(ext_lib ()) fn
+                               || ends_with ~what:(ext_dll ()) fn))
                            unix_files))
                  in
 

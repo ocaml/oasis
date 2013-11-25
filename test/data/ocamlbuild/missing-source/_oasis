@@ -1,0 +1,12 @@
+OASISFormat: 0.3
+Name: missing-source
+Version: 0
+BuildType: OCamlbuild (0.3)
+License: GPL-3
+Authors: foo
+Synopsis: foo
+BuildTools: ocamlbuild
+
+Library test
+  Path: .
+  Modules: A, B, C
