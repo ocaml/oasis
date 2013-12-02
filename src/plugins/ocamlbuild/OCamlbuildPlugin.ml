@@ -723,16 +723,20 @@ let compute_includes map_dirs pkg =
       []
 
 
-let is_pure_interface bs mn =
-  let fn_lc = prepend_bs_path bs (String.uncapitalize mn) in
-  let fn_uc = prepend_bs_path bs mn in
-  let have ext =
-    OASISFileUtil.file_exists_case
-      (OASISHostPath.add_extension fn_lc ext) ||
-    OASISFileUtil.file_exists_case
-      (OASISHostPath.add_extension fn_uc ext) in
-  not (have "ml") && have "mli"
-
+(* Check if the given files list only contains .mli. *)
+let is_pure_interface (base_fn, fn_lst) =
+  let rec is_pure_interface_aux =
+    (* TODO: this needs to be refine because sometime we don't have the .ml file
+     * because it is generated (BaseData.ml) but we have the .mli.
+     *)
+    function
+      | [fn] ->
+          OASISString.ends_with ~what:".mli" fn
+      | fn :: tl ->
+          OASISString.ends_with ~what:".mli" fn && is_pure_interface_aux tl
+      | [] -> false
+  in
+    is_pure_interface_aux fn_lst
 
 let add_ocamlbuild_files ctxt pkg =
 
@@ -773,6 +777,34 @@ let add_ocamlbuild_files ctxt pkg =
                    (Printf.sprintf "# Library %s" cs.cs_name) :: tag_t
                  in
 
+                 (* Sources of the library. *)
+                 let sources =
+                   OASISLibrary.source_unix_files
+                     ~ctxt:ctxt.ctxt
+                     (cs, bs, lib)
+                     (fun ufn ->
+                        OASISFileUtil.file_exists_case
+                          (OASISHostPath.of_unix ufn))
+                 in
+
+                 let intf_module_list, impl_module_list =
+                   let intf_module_list =
+                     (* TODO: activate. *)
+(*                      if OASISFeature.pure_interface pkg then *)
+                       List.rev_map
+                         (fun (base_fn, _) ->
+                            String.capitalize (Filename.basename base_fn))
+                         (List.filter is_pure_interface sources)
+(*
+                     else
+                       []
+ *)
+                   in
+                     List.partition
+                       (fun modul -> List.mem modul intf_module_list)
+                       (lib.lib_modules @ lib.lib_internal_modules)
+                 in
+
                  (* Add dependency of cmxs to their own library: used
                     at link time when there is C code *)
                  let tag_t =
@@ -786,20 +818,12 @@ let add_ocamlbuild_files ctxt pkg =
 
                  let tag_t =
                    if lib.lib_pack then
-                     let base_sources =
-                       OASISLibrary.source_unix_files
-                         ~ctxt:ctxt.ctxt
-                         (cs, bs, lib)
-                         (fun ufn ->
-                            OASISFileUtil.file_exists_case
-                              (OASISHostPath.of_unix ufn))
-                     in
                      add_tags
                        tag_t
                        (List.rev_map
                           (fun (base_fn, _) ->
                              OASISUnixPath.add_extension base_fn "cmx")
-                          base_sources)
+                          sources)
                        ["for-pack("^String.capitalize cs.cs_name^")"]
                    else
                      tag_t
@@ -815,10 +839,6 @@ let add_ocamlbuild_files ctxt pkg =
                      tag_t
                      myocamlbuild_t
                  in
-
-                 let intf_module_list, impl_module_list =
-                   List.partition (is_pure_interface bs)
-                       (lib.lib_modules @ lib.lib_internal_modules) in
 
                  let myocamlbuild_t =
                    {myocamlbuild_t with
