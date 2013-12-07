@@ -378,6 +378,10 @@ type package =
       (** OCaml version required for this package. *)
       findlib_version:  OASISVersion.comparator option;
       (** Findlib version required for this package. *)
+      alpha_features:   string list;
+      (** Alpha features enabled for this package. *)
+      beta_features:    string list;
+      (** Beta features enabled for this package. *)
       name:             package_name;
       (** Name of this package. *)
       version:          OASISVersion.t;

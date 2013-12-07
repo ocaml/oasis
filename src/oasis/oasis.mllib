@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 18724322be944e54406842b45d2d44b2)
+# DO NOT EDIT (digest: ca694a15876243e4a0c1d60e6b113355)
 FormatExt
 FormatMarkdown
 ODNFunc
@@ -56,6 +56,7 @@ OASISExec
 OASISFileUtil
 OASISHostPath
 OASISGraph
+OASISFeatures
 OASISVersion_types
 OASISVersion_lexer
 OASISVersion_parser
@@ -78,6 +79,7 @@ OASISDocument_intern
 OASISExecutable_intern
 OASISFlag_intern
 OASISLibrary_intern
+OASISObject_intern
 OASISPackage_intern
 OASISSourceRepository_intern
 OASISTest_intern

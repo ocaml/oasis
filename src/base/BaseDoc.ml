@@ -45,7 +45,7 @@ let doc lst pkg extra_args =
   in
     List.iter one_doc lst;
 
-    if OASISVersion.version_0_3_or_after pkg.oasis_version &&
+    if OASISFeatures.package_test OASISFeatures.flag_docs pkg &&
        not (bool_of_string (BaseStandardVar.docs ())) &&
        lst <> [] then
       BaseMessage.warning

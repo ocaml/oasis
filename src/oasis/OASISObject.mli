@@ -48,12 +48,6 @@ val generated_unix_files:
   unix_filename list list
 
 
-(** Generator for the section. {b Not exported}.
-  *)
-val generator: OASISVersion.t -> OASISTypes.name ->
-  PropList.Data.t -> OASISTypes.section
-
-
 (** Schema for the section. {b Not exported}.
   *)
 val schema: (common_section * build_section * object_) OASISSchema.t

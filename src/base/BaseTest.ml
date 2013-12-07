@@ -100,7 +100,7 @@ let test lst pkg extra_args =
       info "%s" msg;
 
     (* Possible explanation why the tests where not run. *)
-    if OASISVersion.version_0_3_or_after pkg.oasis_version &&
+    if OASISFeatures.package_test OASISFeatures.flag_tests pkg &&
        not (bool_of_string (BaseStandardVar.tests ())) &&
        lst <> [] then
       BaseMessage.warning

@@ -131,9 +131,9 @@ let schema, generator =
      (fun (_, doc) -> doc.doc_data_files)
   in
     schm,
-    (fun oasis_version nm data ->
+    (fun features_data nm data ->
        let cs =
-         cmn_section_gen oasis_version nm data
+         cmn_section_gen features_data nm data
        in
        let typ =
          typ data
@@ -150,7 +150,7 @@ let schema, generator =
          {cs with cs_plugin_data = !rplugin_data}
        in
        let build =
-         if OASISVersion.version_0_3_or_after oasis_version then
+         if OASISFeatures.data_test OASISFeatures.flag_docs features_data then
            (* TODO: establish a formal link between here and BaseStandardVars *)
            OASISExpr.if_then_else
              (OASISExpr.EFlag "docs") (build data) [OASISExpr.EBool true, false]

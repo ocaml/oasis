@@ -211,10 +211,10 @@ sig
   (** Get action. *)
   val act: self_plugin -> act
 
-  (** Quickstart question *)
+  (** Quickstart question. *)
   val quickstart_question: unit -> self_plugin quickstart_question
 
-  (** Parse a plugin field *)
+  (** Parse a plugin field. *)
   val value: self_plugin OASISValues.t
 end
 

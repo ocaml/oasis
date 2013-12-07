@@ -282,6 +282,8 @@ let tests =
            "xdevfilesmakefilenotargets", "";
            "xdevfilesenablemakefile", "";
            "xdevfilesenableconfigure", "";
+           "alphafeatures", "";
+           "betafeatures", "";
          ],
          (fun pkg ->
             assert_equal
@@ -388,6 +390,8 @@ let tests =
            "xstdfilesauthorsfilename", "baz";
            "xocamlbuildplugintags", "";
            "xocamlbuildextraargs", "";
+           "alphafeatures", "";
+           "betafeatures", "";
          ],
          (fun pkg ->
             let libtest =

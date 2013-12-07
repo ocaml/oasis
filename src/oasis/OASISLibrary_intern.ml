@@ -71,7 +71,7 @@ let schema, generator =
     new_field schm "Pack"
       ~default:false
       ~quickstart_level:Expert
-      ~since_version:"0.3"
+      ~feature:OASISFeatures.pack
       boolean
       (fun () ->
          s_ "Set if we should build a packed library.")
@@ -108,9 +108,9 @@ let schema, generator =
       (fun (_, _, lib) -> lib.lib_findlib_containers)
   in
     schm,
-    (fun oasis_version nm data ->
+    (fun features_data nm data ->
        Library
-         (cmn_section_gen oasis_version nm data,
+         (cmn_section_gen features_data nm data,
           (build_section_gen nm data),
           {
             lib_modules            = external_modules data;

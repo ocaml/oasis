@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 30b50993f19311a293781368d85c0608)
+# DO NOT EDIT (digest: 2ec50fd5ae8117ddde2c06be76db1070)
 oasis/FormatExt
 oasis/FormatMarkdown
 oasis/ODNFunc
@@ -56,6 +56,7 @@ oasis/OASISExec
 oasis/OASISFileUtil
 oasis/OASISHostPath
 oasis/OASISGraph
+oasis/OASISFeatures
 base/BaseArgExt
 base/BaseBuilt
 base/BaseCheck

@@ -112,9 +112,9 @@ let schema, generator =
      * in src_repo_type
      *)
     schm,
-    (fun oasis_version nm data ->
+    (fun features_data nm data ->
        SrcRepo
-         (cmn_section_gen oasis_version nm data,
+         (cmn_section_gen features_data nm data,
           {
             src_repo_type        = typ data;
             src_repo_location    = location data;

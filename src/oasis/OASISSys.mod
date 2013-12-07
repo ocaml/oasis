@@ -8,6 +8,7 @@ OASISVersion.ml
 OASISLicense.ml
 OASISExpr.ml
 OASISTypes.ml
+OASISFeatures.ml
 OASISUnixPath.ml
 OASISHostPath.ml
 OASISSection.ml

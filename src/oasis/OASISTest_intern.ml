@@ -92,9 +92,9 @@ let schema, generator =
       (fun (_, test) -> test.test_run)
   in
     schm,
-    (fun oasis_version nm data ->
+    (fun features_data nm data ->
        let cs =
-         cmn_section_gen oasis_version nm data
+         cmn_section_gen features_data nm data
        in
        (* Set data specific to plugin used for this test *)
        let typ =
@@ -112,7 +112,7 @@ let schema, generator =
          {cs with cs_plugin_data = !rplugin_data}
        in
        let run =
-         if OASISVersion.version_0_3_or_after oasis_version then
+         if OASISFeatures.data_test OASISFeatures.flag_tests features_data then
            (* TODO: establish a formal link between here and BaseStandardVars *)
            OASISExpr.if_then_else
              (OASISExpr.EFlag "tests") (run data) [OASISExpr.EBool true, false]

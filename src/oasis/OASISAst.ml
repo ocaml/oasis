@@ -43,28 +43,6 @@ let to_package conf st =
       st
   in
 
-  let default_ctxt =
-    {
-      cond        = None;
-      append      = false;
-      valid_flags = [];
-      ctxt        = conf.OASISRecDescParser.ctxt;
-    }
-  in
-
-  (* Convert flags into ctxt *)
-  let ctxt_of_sections scts =
-    {default_ctxt with
-         valid_flags =
-           (List.fold_left
-              (fun acc ->
-                function
-                  | Flag (cs, _) -> cs.cs_name :: acc
-                  | _ -> acc)
-              default_ctxt.valid_flags
-              scts)}
-  in
-
   (* Merge an expression with a condition in a ctxt *)
   let ctxt_add_expr ctxt e =
     match ctxt with
@@ -151,71 +129,36 @@ let to_package conf st =
   (* Explore statement and register data into a newly created
    * Schema.writer.
    *)
-  let schema_stmt gen nm schm oasis_version scts stmt' =
-    let data =
-      PropList.Data.create ()
-    in
-    let ctxt =
-      ctxt_of_sections scts
-    in
-    let schm =
-      schm.OASISSchema_intern.schm
-    in
+  let schema_stmt gen nm schm (ctxt, scts) stmt' =
+    let data = PropList.Data.create () in
+    let schm = schm.OASISSchema_intern.schm in
+    let where = (PropList.Schema.name schm)^" "^nm in
       stmt schm data ctxt stmt';
-      OASISCheck.check_schema ~ctxt:ctxt.ctxt
-        ((PropList.Schema.name schm)^" "^nm)
-        schm
-        oasis_version
-        data;
-      (gen oasis_version nm data) :: scts
+      ctxt,
+      (schm, where, data,
+       fun features_data -> gen features_data nm data)
+      :: scts
   in
 
-  (* Extract and cache oasis_version *)
-  let oasis_version =
-    let rver = ref None in
-      fun data ->
-        try
-          let nver =
-            OASISPackage_intern.oasis_version data
-          in
-          let () =
-            match !rver with
-              | Some ver ->
-                  if nver <> ver then
-                    failwithf
-                      (f_ "Multiple definition of OASISFormat (%s and %s)")
-                      (OASISVersion.string_of_version ver)
-                      (OASISVersion.string_of_version nver);
-              | None ->
-                  rver := Some nver
-          in
-            nver
-        with PropList.Not_set _ ->
-          failwith (s_ "OASISFormat not defined at the beginning of the file, \
-                        consider starting with 'OASISFormat: ...'")
-  in
-
-  (* Recurse into top-level statement. At this level there is
-   * no conditional expression but there is Flag, Library and
-   * Executable structure defined.
+  (* Recurse into top-level statement. At this level there is no conditional
+   * expression but there is Flag, Library and Executable structure defined.
    *)
-  let rec top_stmt pkg_data acc =
+  let rec top_stmt pkg_data (ctxt, scts as acc) =
+    (* TODO: refactor all section into one common function call. *)
     function
       | TSLibrary (nm, stmt) ->
           schema_stmt
             OASISLibrary_intern.generator
             nm
             OASISLibrary.schema
-            (oasis_version pkg_data)
             acc
             stmt
 
       | TSObject (nm, stmt) ->
           schema_stmt
-            OASISObject.generator
+            OASISObject_intern.generator
             nm
             OASISObject.schema
-            (oasis_version pkg_data)
             acc
             stmt
 
@@ -224,17 +167,16 @@ let to_package conf st =
             OASISExecutable_intern.generator
             nm
             OASISExecutable.schema
-            (oasis_version pkg_data)
             acc
             stmt
 
       | TSFlag (nm, stmt) ->
+          let ctxt = {ctxt with valid_flags = nm :: ctxt.valid_flags} in
           schema_stmt
             OASISFlag_intern.generator
             nm
             OASISFlag.schema
-            (oasis_version pkg_data)
-            acc
+            (ctxt, scts)
             stmt
 
       | TSSourceRepository (nm, stmt) ->
@@ -242,7 +184,6 @@ let to_package conf st =
             OASISSourceRepository_intern.generator
             nm
             OASISSourceRepository.schema
-            (oasis_version pkg_data)
             acc
             stmt
 
@@ -251,7 +192,6 @@ let to_package conf st =
             OASISTest_intern.generator
             nm
             OASISTest.schema
-            (oasis_version pkg_data)
             acc
             stmt
 
@@ -260,7 +200,6 @@ let to_package conf st =
             OASISDocument_intern.generator
             nm
             OASISDocument.schema
-            (oasis_version pkg_data)
             acc
             stmt
 
@@ -268,7 +207,7 @@ let to_package conf st =
           stmt
             OASISPackage.schema.OASISSchema_intern.schm
             pkg_data
-            (ctxt_of_sections acc)
+            ctxt
             stmt';
           acc
 
@@ -279,25 +218,60 @@ let to_package conf st =
             blk
   in
 
-  (* Start with package schema/writer *)
-  let data =
-    PropList.Data.create ()
+  (* Interpret AST and inject it into data. *)
+  let data = PropList.Data.create () in
+  let ctxt, sections =
+    let default_ctxt =
+      {
+        cond        = None;
+        append      = false;
+        valid_flags = [];
+        ctxt        = conf.OASISRecDescParser.ctxt;
+      }
+    in
+    top_stmt data (default_ctxt, []) ast
   in
-  let sections =
-    top_stmt
-      data
-      []
-      ast
+
+
+  (* Extract features_data *)
+  let features_data =
+    let oasis_version =
+      try
+        OASISPackage_intern.oasis_version data
+      with PropList.Not_set _ ->
+        failwith (s_ "OASISFormat not defined at the beginning of the file, \
+                      consider starting with 'OASISFormat: ...'")
+    in
+      OASISFeatures.Data.create oasis_version
+        (OASISPackage_intern.alpha_features data)
+        (OASISPackage_intern.beta_features data)
   in
+
+  (* Check all schema. *)
+  let () =
+    let plugins =
+      OASISCheck.check_schema ~ctxt:ctxt.ctxt
+        "package"
+        OASISPackage.schema.OASISSchema_intern.schm
+        OASISPlugin.SetPlugin.empty
+        features_data
+        data
+    in
+      List.iter
+        (fun (schm, where, data, _) ->
+           let _plugins: OASISPlugin.SetPlugin.t =
+             OASISCheck.check_schema ~ctxt:ctxt.ctxt
+               where schm plugins features_data data
+           in
+             ())
+        sections
+  in
+
   let pkg =
-    OASISCheck.check_schema ~ctxt:default_ctxt.ctxt
-      "package"
-      OASISPackage.schema.OASISSchema_intern.schm
-      (oasis_version data)
-      data;
-    OASISPackage_intern.generator
-      data
-      sections
+    let sections =
+      List.map (fun (_, _, _, gen) -> gen features_data) sections
+    in
+      OASISPackage_intern.generator data sections
   in
 
   (* Fix build depends to reflect internal dependencies *)
@@ -420,6 +394,6 @@ let to_package conf st =
   let pkg =
     {pkg with sections = OASISBuildSection.build_order pkg}
   in
-    OASISCheck.check_package ~ctxt:default_ctxt.ctxt pkg;
+    OASISCheck.check_package ~ctxt:ctxt.ctxt pkg;
     pkg
 

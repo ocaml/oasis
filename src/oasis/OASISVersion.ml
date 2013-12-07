@@ -209,10 +209,6 @@ let rec varname_of_comparator =
           (varname_of_comparator c1)^"_and_"^(varname_of_comparator c2)
 
 
-let version_0_3_or_after t =
-  comparator_apply t (VGreaterEqual (string_of_version "0.3"))
-
-
 let rec comparator_ge v' =
   let cmp v = version_compare v v' >= 0 in
   function

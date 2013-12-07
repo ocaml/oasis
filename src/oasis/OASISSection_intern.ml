@@ -29,7 +29,7 @@ let section_fields
       hlp
       (schm: 'a OASISSchema_intern.t)
       (sync: 'a -> common_section) =
-  fun (oasis_version: OASISVersion.t) nm data ->
+  fun (features_data: OASISFeatures.Data.t) nm data ->
     {
       cs_name = nm;
       cs_plugin_data = []; (* TODO *)

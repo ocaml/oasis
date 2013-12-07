@@ -291,38 +291,6 @@ let gen_tests ~is_native () =
          (* Try the result. *)
          try_installed_library test_ctxt t "pimlib" ["Pim_intf"; "Pim_impl"]);
 
-    (* Library with a pure interface module in top source directory. *)
-    "examples/with-interface-module/src" >::
-    (fun test_ctxt ->
-       let () = skip_long_test test_ctxt in
-       let t =
-         setup_test_directories test_ctxt
-           (* TODO: why is it in src ? *)
-           in_example_dir ["with-interface-module"; "src"]
-       in
-         oasis_setup test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t
-           (oasis_ocamlbuild_files @
-            [
-              "META";
-              "pimlib.mllib";
-            ]);
-         register_installed_files test_ctxt t
-           [
-             InstalledOCamlLibrary
-               ("pimlib",
-                ["META";
-                 "pimlib.cma"; "pimlib.cmxa"; "pimlib.a"; "pimlib.cmxs";
-                 "pim_impl.mli"; "pim_impl.cmi"; "pim_impl.cmx";
-                 "pim_intf.mli"; "pim_intf.cmi";
-                 "pim_types.mli"; "pim_types.cmi"]);
-           ];
-         (* Run standard test. *)
-         standard_test test_ctxt t;
-         (* Try the result. *)
-         try_installed_library test_ctxt t "pimlib" ["Pim_intf"; "Pim_impl"]);
-
     (* Test executable *)
     "examples/with-test" >::
     (fun test_ctxt ->

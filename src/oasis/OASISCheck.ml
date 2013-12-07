@@ -32,7 +32,7 @@ open OASISTypes
 open PropList
 
 
-let check_schema ~ctxt where schm oasis_version data =
+let check_schema ~ctxt where schm plugins features_data data =
 
   let check_is_default schm data fld =
     let fake_data =
@@ -53,26 +53,10 @@ let check_schema ~ctxt where schm oasis_version data =
       List.mem fld field_set
   in
 
-  let check_get schm data fld msgfld =
-    try
-      let _ =
-        Schema.get schm data fld
-      in
-        msgfld
-    with
-      | Not_set _ ->
-          fld :: msgfld
-      | No_printer _ ->
-          msgfld
-      | OASISValues.Not_printable ->
-          msgfld
-  in
-
-  (** Check all mandatory fields are set. *)
-
-  let plugins, msgfld =
+  (* Collect plugins and their version. *)
+  let plugins =
     Schema.fold
-      (fun ((plugins, msgfld) as acc) fld extra hlp ->
+      (fun plugins fld extra hlp ->
          match extra.kind with
            | DefinePlugin knd ->
                begin
@@ -80,11 +64,9 @@ let check_schema ~ctxt where schm oasis_version data =
                    let id =
                      plugin_of_string knd (Schema.get schm data fld)
                    in
-                     SetPlugin.add id plugins,
-                     msgfld
+                     SetPlugin.add id plugins
                  with _ ->
-                   plugins,
-                   check_get schm data fld msgfld
+                   plugins
                end
 
 
@@ -96,60 +78,55 @@ let check_schema ~ctxt where schm oasis_version data =
                    in
                      List.fold_left
                        (fun acc id -> SetPlugin.add id acc)
-                       plugins lst,
-                     msgfld
-
+                       plugins lst
                  with _ ->
-                   plugins,
-                   check_get schm data fld msgfld
+                   plugins
                end
 
-           | StandardField
-           | FieldFromPlugin _ ->
-               acc)
-      (SetPlugin.empty, [])
-      schm
+           | StandardField | FieldFromPlugin _ ->
+               plugins)
+      plugins schm
   in
 
+  (* Inject plugin data in features data. *)
+  let features_data =
+    SetPlugin.fold
+      (fun plg_id features_data ->
+         OASISFeatures.Data.add_plugin plg_id features_data)
+      plugins features_data
+  in
+
+  (* Check all mandatory fields are set. *)
   let msgfld =
+    let check_get schm data fld msgfld =
+      try
+        let _ = Schema.get schm data fld in msgfld
+      with
+        | Not_set _ -> fld :: msgfld
+        | No_printer _ -> msgfld
+        | OASISValues.Not_printable -> msgfld
+    in
+
     Schema.fold
       (fun acc fld extra hlp ->
          match extra.kind with
-           | DefinePlugin _ | DefinePlugins _ ->
-               begin
-                 (* Already checked before *)
-                 acc
-               end
-
-           | StandardField ->
-               begin
-                 check_get schm data fld acc
-               end
+           | DefinePlugin _ | DefinePlugins _ | StandardField ->
+               check_get schm data fld acc
 
            | FieldFromPlugin plg_id ->
-               begin
-                 if SetPlugin.mem plg_id plugins then
-                   begin
-                     check_get schm data fld acc
-                   end
-
-                 else if check_is_set schm data fld &&
-                         not (check_is_default schm data fld) then
-                   begin
-                     OASISMessage.warning ~ctxt
-                       (f_ "Field %s is set but matching plugin is not \
-                            enabled.")
-                       fld;
-                     acc
-                   end
-
-                 else
-                   begin
-                     acc
-                   end
+               if SetPlugin.mem plg_id plugins then begin
+                 check_get schm data fld acc
+               end else if check_is_set schm data fld &&
+                       not (check_is_default schm data fld) then begin
+                 OASISMessage.warning ~ctxt
+                   (f_ "Field %s is set but matching plugin is not \
+                        enabled.")
+                   fld;
+                 acc
+               end else begin
+                 acc
                end)
-      msgfld
-      schm
+      [] schm
   in
 
   let () =
@@ -157,81 +134,43 @@ let check_schema ~ctxt where schm oasis_version data =
       failwithf (f_ "Missing field in %s: %s")
         where
         (String.concat (s_ ", ") msgfld)
-
   in
 
   (** Check that all fields set are ok with OASISFormat. *)
 
   let () =
-    let sov = OASISVersion.string_of_version in
     Schema.fold
       (fun () fld extra _ ->
          if check_is_set schm data fld then
-           match extra.since_version with
-             | Some ver ->
-                 begin
-                   match extra.kind with
-                     | DefinePlugin _ | DefinePlugins _
-                     | StandardField ->
-                         if not (OASISVersion.comparator_apply
-                                   oasis_version
-                                   (OASISVersion.VGreaterEqual ver)) then
-                           failwithf
-                             (f_ "Field '%s' in %s is only valid since \
-                                OASIS v%s, update OASISFormat field from '%s' \
-                                to '%s' after checking OASIS changelog.")
-                             fld where
-                             (sov ver)
-                             (sov oasis_version)
-                             (sov ver)
-
-                     | FieldFromPlugin plg_id ->
-                         let plugin_name, plugin_version =
-                           match plg_id with
-                             | _, nm, Some ver ->
-                                 nm, ver
-                             | _, plugin_name, None ->
-                                 failwithf
-                                   (f_ "Field '%s' in %s is only valid for
-                                      the OASIS plugin %s since v%s, \
-                                      but no plugin version is defined in \
-                                      the _oasis file, change '%s' to \
-                                      '%s (%s)' in your _oasis file.")
-                                   fld where plugin_name (sov ver)
-                                   plugin_name
-                                   plugin_name (sov ver)
-                         in
-                           if not (OASISVersion.comparator_apply
-                                     plugin_version
-                                     (OASISVersion.VGreaterEqual ver)) then
-                             failwithf
-                               (f_ "Field '%s' in %s is only valid for \
-                                  the OASIS plugin %s since v%s, \
-                                  update your plugin from \
-                                  '%s (%s)' to '%s (%s)' after \
-                                  checking the plugin's changelog.")
-                               fld where plugin_name (sov ver)
-                               plugin_name (sov plugin_version)
-                               plugin_name (sov ver)
-                 end
-
+           match extra.feature with
+             | Some feature ->
+                 OASISFeatures.data_assert feature features_data
+                   (OASISFeatures.Field (fld, where))
              | None ->
                  ())
       ()
       schm
   in
-    ()
+
+    plugins
 
 
 let check_package ~ctxt pkg =
 
   let standard_vars =
-    if OASISVersion.version_0_3_or_after pkg.oasis_version then
-      set_string_of_list
-        ["tests";
-         "docs"]
-    else
-      SetString.empty
+    set_string_of_list
+      (List.flatten
+         [
+           if OASISFeatures.package_test OASISFeatures.flag_docs pkg then
+             ["tests"]
+           else
+             [];
+
+           if OASISFeatures.package_test OASISFeatures.flag_tests pkg then
+             ["docs"]
+           else
+             [];
+         ])
   in
 
   (** Check that there is no overlap in variable name. *)
@@ -261,6 +200,3 @@ let check_package ~ctxt pkg =
   in
 
     ()
-
-
-

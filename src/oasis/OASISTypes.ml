@@ -255,6 +255,8 @@ type package =
       oasis_version:    OASISVersion.t;
       ocaml_version:    OASISVersion.comparator option;
       findlib_version:  OASISVersion.comparator option;
+      alpha_features:   string list;
+      beta_features:    string list;
       name:             package_name;
       version:          OASISVersion.t;
       license:          OASISLicense.t;

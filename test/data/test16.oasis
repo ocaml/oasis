@@ -1,5 +1,5 @@
-#								-*-conf-*-
-OASISFormat: 0.3
+OASISFormat: 0.4
+BetaFeatures: section_object
 Name:        archimedes
 Version:     0.4.12
 Synopsis:    Extensible 2D plotting library.

@@ -82,9 +82,9 @@ let schema, generator =
       (fun (_, _, exec) -> exec.exec_custom)
   in
     schm,
-    (fun oasis_version nm data ->
+    (fun features_data nm data ->
        Executable
-         (cmn_section_gen oasis_version nm data,
+         (cmn_section_gen features_data nm data,
           build_section_gen nm data,
           {
             exec_main_is = main_is data;

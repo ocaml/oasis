@@ -58,6 +58,13 @@ let self_id, all_id =
   Extra.create plugin
 
 
+let feature_extra_lines =
+  OASISFeatures.create "extra_lines" ~plugin
+    (OASISFeatures.since_version "0.3")
+    (fun () ->
+       s_ "Allow to add extra lines to the generated META.")
+
+
 let pivot_data =
   data_new_property plugin
 
@@ -107,7 +114,7 @@ let generator =
     new_field
       "ExtraLines"
       ~default:[]
-      ~since_version:"0.3"
+      ~feature:feature_extra_lines
       (newline_separated string_not_empty)
       (fun () ->
          s_ "Extra lines to add to the META")

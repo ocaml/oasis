@@ -274,6 +274,14 @@ let self_id, all_id =
   Build.create plugin
 
 
+let pure_interface_test =
+  OASISFeatures.package_test
+    (OASISFeatures.create "pure_interface" ~plugin
+       OASISFeatures.alpha
+       (fun () ->
+          s_ "Allow to have module with only .mli file."))
+
+
 let pivot_data =
   data_new_property plugin
 
@@ -738,6 +746,7 @@ let is_pure_interface (base_fn, fn_lst) =
   in
     is_pure_interface_aux fn_lst
 
+
 let add_ocamlbuild_files ctxt pkg =
 
   let map_dirs =
@@ -788,17 +797,15 @@ let add_ocamlbuild_files ctxt pkg =
                  in
 
                  let intf_module_list, impl_module_list =
+                   let to_module (base_fn, _) =
+                     String.capitalize (Filename.basename base_fn)
+                   in
                    let intf_module_list =
-                     (* TODO: activate. *)
-(*                      if OASISFeature.pure_interface pkg then *)
-                       List.rev_map
-                         (fun (base_fn, _) ->
-                            String.capitalize (Filename.basename base_fn))
+                     if pure_interface_test pkg then
+                       List.map to_module
                          (List.filter is_pure_interface sources)
-(*
                      else
                        []
- *)
                    in
                      List.partition
                        (fun modul -> List.mem modul intf_module_list)

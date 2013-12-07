@@ -570,7 +570,11 @@ let ask_package ~ctxt lvl intrf =
       OASISPlugin.SetPlugin.empty
   in
 
-  let oasis_version = OASISConf.version_short in
+  let features_data =
+    OASISFeatures.Data.create
+      OASISConf.version_short
+      [] []
+  in
 
   let mk_t nm hlp q =
     {
@@ -603,7 +607,7 @@ let ask_package ~ctxt lvl intrf =
       let data, _ =
         ask_schema ~ctxt schema lvl intrf plugins
       in
-        gen oasis_version nm data
+        gen features_data nm data
     in
 
     let sections =

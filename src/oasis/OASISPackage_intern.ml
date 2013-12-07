@@ -103,7 +103,7 @@ let oasis_version =
   let extra_supported_versions =
     List.map
       OASISVersion.version_of_string
-      ["0.2"; "0.1"]
+      ["0.3"; "0.2"; "0.1"]
   in
     new_field schema "OASISFormat"
       ~quickstart_level:(NoChoice current_version)
@@ -127,6 +127,53 @@ let oasis_version =
       (fun () ->
          s_ "OASIS format version used to write file `_oasis`.")
       (fun pkg -> pkg.oasis_version)
+
+
+let alpha_features, beta_features =
+  let value_feature stage =
+      {
+        parse =
+          (fun ~ctxt feature_name ->
+             match OASISFeatures.get_stage feature_name with
+               | OASISFeatures.InDev feature_stage ->
+                   if feature_stage <> stage then
+                     failwithf (f_ "Feature %s is in stage %s and not %s.")
+                       feature_name
+                       (OASISFeatures.string_of_stage feature_stage)
+                       (OASISFeatures.string_of_stage stage)
+                   else
+                     feature_name
+               | OASISFeatures.SinceVersion min_version ->
+                   failwithf
+                     (f_ "Features %s has been published in OASISVersion %s.")
+                     feature_name (OASISVersion.string_of_version min_version));
+        update = update_fail;
+        print = (fun s -> s)
+      }
+  in
+  let alpha_features =
+    new_field schema
+      (OASISFeatures.field_of_stage OASISFeatures.Alpha)
+      ~default:[]
+      ~feature:OASISFeatures.features
+      (comma_separated (value_feature OASISFeatures.Alpha))
+      (fun () ->
+         s_ "Experimental features in alpha stage \
+             (frequent change, may never been shipped).")
+      (fun pkg -> pkg.alpha_features)
+  in
+  let beta_features =
+    new_field schema
+      (OASISFeatures.field_of_stage OASISFeatures.Beta)
+      ~default:[]
+      ~feature:OASISFeatures.features
+      (comma_separated (value_feature OASISFeatures.Beta))
+      (fun () ->
+         s_ "Experimental features in beta stage \
+             (will ship, under review).")
+      (fun pkg -> pkg.beta_features)
+  in
+    alpha_features, beta_features
 
 
 let generator =
@@ -395,6 +442,21 @@ let generator =
            sections
        in
 
+       let oasis_version = oasis_version data in
+       let alpha_features = alpha_features data in
+       let beta_features = beta_features data in
+         if (alpha_features <> [] || beta_features <> []) &&
+            (OASISVersion.version_compare
+               oasis_version OASISConf.version_short) <> 0 then
+           failwithf
+             (f_ "You need to use the latest OASISFormat to be able to use \
+                  fields %s and %s. Change 'OASISFormat: %s' to \
+                  'OASISFormat: %s'")
+             (OASISFeatures.field_of_stage OASISFeatures.Alpha)
+             (OASISFeatures.field_of_stage OASISFeatures.Beta)
+             (OASISVersion.string_of_version oasis_version)
+             (OASISVersion.string_of_version OASISConf.version_short);
+
          List.fold_right
            add_build_depend
            (build_depends data)
@@ -402,9 +464,11 @@ let generator =
               add_build_tool
               (build_tools data)
               {
-                oasis_version    = oasis_version data;
+                oasis_version    = oasis_version;
                 ocaml_version    = ocaml_version data;
                 findlib_version  = findlib_version data;
+                alpha_features   = alpha_features;
+                beta_features    = beta_features;
                 name             = name data;
                 version          = version data;
                 license          = license data;

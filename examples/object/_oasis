@@ -1,6 +1,7 @@
+OASISFormat: 0.4
+BetaFeatures: section_object
 Name: object
 Version: 0.0.1
-OASISFormat: 0.3
 Authors: Philippe Veber
 Homepage: http://example.com
 License: LGPL with OCaml linking exception

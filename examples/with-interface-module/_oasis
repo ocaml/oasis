@@ -1,10 +1,11 @@
-OASISFormat: 0.3
+OASISFormat: 0.4
 Name:        pimlib
 Version:     0.1
 Synopsis:    Library with pure interface modules in subdirectory
 Authors:     Petter A. Urkedal
 License:     GPL
 Plugins:     META (0.3)
+AlphaFeatures: pure_interface
 
 Library pimlib
   Path:       src

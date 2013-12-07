@@ -432,7 +432,7 @@ let tests =
         (fun test_ctxt ->
            assert_raises
              ~msg:"Pack is supported only in 0.3"
-             (Failure "Field 'Pack' in Library test1 is only valid since \
+             (Failure "Field Pack in Library test1 is only valid since \
                        OASIS v0.3, update OASISFormat field from \
                        '0.2' to '0.3' after checking OASIS changelog.")
              (fun () ->

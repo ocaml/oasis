@@ -81,6 +81,8 @@ let tests =
            \nPlugins\
            \nBuildDepends\
            \nBuildTools\
+           \nAlphaFeatures\
+           \nBetaFeatures\
            \nXDevFilesMakefileNoTargets\
            \nXDevFilesEnableMakefile\
            \nXDevFilesEnableConfigure\

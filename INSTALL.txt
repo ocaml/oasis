@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 694acc7468a04b1cdb4199716a65bd12) *)
+(* DO NOT EDIT (digest: b5cffca4a586535c788a2a35dfe4ed7b) *)
 This is the INSTALL file for the oasis distribution.
 
 This package uses OASIS to generate its build system. See section OASIS for
@@ -11,8 +11,8 @@ Dependencies
 In order to compile this package, you will need:
 * ocaml (>= 3.11.0) for all, test main, test main_loader, test main_userconf,
   doc api-oasis, doc manual
-* findlib (>= 1.2.6)
-* odn (>= 0.0.3) for library oasis
+* findlib (>= 1.3.1)
+* odn (>= 0.0.11) for library oasis
 * make for all, test main, test main_loader, test main_userconf,
   doc api-oasis, doc manual
 * ocamlmod for library base, library oasis
@@ -21,7 +21,7 @@ In order to compile this package, you will need:
 * oUnit (>= 2.0.0) for executable test, executable test_loader,
   executable test_userconf
 * fileutils (>= 0.4.2) for executable test, executable test_loader
-* expect (>= 0.0.2) for executable test
+* expect (>= 0.0.4) for executable test
 
 Installing
 ==========
@@ -34,7 +34,7 @@ Installing
 Uninstalling
 ============
 
-1. Go to the root of the package 
+1. Go to the root of the package
 2. Run 'ocaml setup.ml -uninstall'
 
 OASIS
