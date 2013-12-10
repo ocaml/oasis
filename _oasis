@@ -297,7 +297,7 @@ Executable "test_loader"
 
 Test main_loader
   Type:      custom (0.3)
-  Command:   $test_loader --pluginloader $pluginloader
+  Command:   $test_loader -pluginloader $pluginloader
   TestTools: test_loader, pluginloader
 
 # Third party: user-conf
