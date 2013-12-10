@@ -50,4 +50,5 @@ let () =
          TestQuickstart.tests;
          TestDevFiles.tests;
          TestOCamlbuild.tests;
+         TestSelfCompile.tests;
        ])
