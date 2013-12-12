@@ -1,4 +1,66 @@
-2012-06-28 Sylvain Le Gall <sylvain AT le-gall.net>
+2013-11-13  Sylvain Le Gall <sylvain AT le-gall.net>
+
+  * Version 0.4.0
+
+  * Major changes:
+
+     * Migrate the source repository to https://github.com/ocaml/oasis
+     * Fix a lot of code style issues (e.g. blank at the end of the line) and
+       create a test to check that the style of generated files is correct. Some
+       related tools has been fixed asi well, for the best formatting use
+       ocamlmod >= 0.0.7 and ocaml-data-notation >= 0.0.10.
+     * Port all tests to OUnit 2.0, which allows to run all tests faster.
+     * Run some tests with a fake bytecode only setup, so that we can always
+       check that bytecode and nativecode tests are passing.  (Closes: #1306)
+     * Fix a missing dependency on ocamlbuild package and inclusion of
+       ocambuildlib.cma in builtin-plugins.cma.
+     * Introduce a framework to create features. 
+       * Add fields AlphaFeatures and BetaFeatures to list the experimental
+         features you want to use in your _oasis
+       * Using AlphaFeatures and BetaFeatures is only allowed if OASISFormat is
+         set to the latest OASIS version. There is no backward compatiblity for
+         experimental features. For example, if you are using OASIS 0.4.X,
+         OASISFormat must be set to 0.4.
+       * AlphaFeatures represents features not fully completed that maybe very
+         unstable, quickly evolving and even removed in future release.
+       * BetaFeatures represents features almost finished that needs to mature
+         a bit before being published.
+       * See 'Features' section in this changelog to have a list of what
+         features are available.
+
+  * Minor changes:
+     * Self compile during tests.
+     * Apply patches found in vouillon/opam-android-repository.
+     * Fix bug when a directory with the right name appears in the PATH.
+     * Fix OASISPath_intern.fn_reader on Cygwin.
+     * Fix suffix_program on Cygwin.
+     * Fix the META generation when XMETAType: syntax.
+     * Fix for installing .cmx files with packed libraries as required for
+       cross-module inlining.
+     * Fix bad location of .cmx generated along .cmxs.
+     * Add GNU Affero GPL license
+     * Add the wtfpl license
+     * Fix typos, thanks to Hendrik Tews.
+     * Locate "topfind" when using opam "system" compiler.
+     * Fix issue (Closes: #1239)
+     * Assume camlp4o when packages end in .syntax.
+     * Make sure the right Findlib version is used with OCaml 4.0.0.
+     * Fix strange split function in myocamlbuild (Closes: #1186)
+
+  * Features:
+
+     * section_object (beta):
+        * Implement 'Object' section, thanks to Philippe Veber
+
+     * pure_interface (alpha):
+        * Support pure interface modules in libraries.
+
+     * ocamlbuild_more_args (alpha):
+        * Add field XOCamlbuildPluginTags to pass -plugin-tags to OCamlbuild
+        * Add field XOCamlbuildExtraArgs to pass more args to OCamlbuild
+
+
+2012-06-28  Sylvain Le Gall <sylvain AT le-gall.net>
 
   * Version 0.3.0
 
@@ -169,7 +231,7 @@
     was a long work and each time a tester has downloaded oasis has helped me
     to know that I was working for someone.
 
-2010-10-16 Sylvain Le Gall <sylvain.le-gall AT ocamlcore.com>
+2010-10-16  Sylvain Le Gall <sylvain.le-gall AT ocamlcore.com>
 
   * Version 0.2.0
 
@@ -263,7 +325,7 @@
     * Add an exists_if field to generated META file (Closes: #694)
 
 
-2010-04-08 Sylvain Le Gall <sylvain.le-gall AT ocamlcore.com>
+2010-04-08  Sylvain Le Gall <sylvain.le-gall AT ocamlcore.com>
 
  * Initial version 0.1.0
 
