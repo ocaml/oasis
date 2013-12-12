@@ -211,9 +211,9 @@ Executable test
 
 Test main
   Type: custom (0.3)
-  Command: $test -oasis $oasis -is-native $is_native -native-dynlink $native_dynlink
+  Command: $test -oasis $oasis -is-native $is_native -native-dynlink $native_dynlink -ocamlmod $ocamlmod
   WorkingDirectory: test
-  TestTools: oasis, test
+  TestTools: oasis, test, ocamlmod
 
 Document manual
   Type: custom (0.3)

@@ -128,9 +128,25 @@ let check_file_style test_ctxt fn =
 
 (* Find and test the style of all files in a directory. *)
 let check_all_files_style test_ctxt dn =
-  FileUtil.find Is_file dn
-    (fun () fn -> check_file_style test_ctxt fn)
-    ()
+  let ocamlmod_version =
+    try
+      let buff = Buffer.create 10 in
+      OUnit2.assert_command ~ctxt:test_ctxt 
+        ~foutput:(fun strm -> Stream.iter (Buffer.add_char buff) strm)
+        (TestCommon.ocamlmod_exec test_ctxt) ["-version"];
+      Buffer.contents buff
+    with _ ->
+      "0.0.6"
+  in
+    logf test_ctxt `Info "Using ocamlmod version %s." ocamlmod_version;
+    if OASISVersion.version_compare_string ocamlmod_version "0.0.7" >= 0 then
+      FileUtil.find Is_file dn
+        (fun () fn -> check_file_style test_ctxt fn)
+        ()
+    else
+      logf test_ctxt `Warning
+        "Skipping style check because using ocamlmod version %s (< 0.0.7)."
+        ocamlmod_version
 
 
 type t =
