@@ -1,6 +1,7 @@
 Name: object
 Version: 0.0.1
-OASISFormat: 0.3
+OASISFormat: 0.4
+AlphaFeatures: ocamlbuild_more_args
 Authors: Jacques-Pascal Deplaix
 License: LGPL with OCaml linking exception
 Synopsis: Example for ocamlbuild fields

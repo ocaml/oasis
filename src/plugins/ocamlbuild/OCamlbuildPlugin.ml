@@ -282,6 +282,13 @@ let pure_interface_test =
           s_ "Allow to have module with only .mli file."))
 
 
+let ocamlbuild_more_args =
+  OASISFeatures.create "ocamlbuild_more_args" ~plugin
+    OASISFeatures.alpha
+    (fun () ->
+       s_ "Allow to pass arguments to ocamlbuild.")
+
+
 let pivot_data =
   data_new_property plugin
 
@@ -1170,6 +1177,7 @@ let generator =
     new_field
       "PluginTags"
       ~default:None
+      ~feature:ocamlbuild_more_args
       (opt string_not_empty)
       (fun () -> s_ "Gives the plugin tags to ocambuild through \
                      '-plugin-tags' (OCaml >= 4.01 only)")
@@ -1179,6 +1187,7 @@ let generator =
     new_field
       "ExtraArgs"
       ~default:[]
+      ~feature:ocamlbuild_more_args
       command_line_options
       (fun () -> s_ "Gives extra arguments to ocamlbuild")
       pivot_data (fun _ t -> t.extra_args)
