@@ -1,7 +1,8 @@
 ################################################################################
 #  OASIS: architecture for building OCaml libraries and applications           #
 #                                                                              #
-#  Copyright (C) 2008-2010, OCamlCore SARL                                     #
+#  Copyright (C) 2011-2013, Sylvain Le Gall                                    #
+#  Copyright (C) 2008-2011, OCamlCore SARL                                     #
 #                                                                              #
 #  This library is free software; you can redistribute it and/or modify it     #
 #  under the terms of the GNU Lesser General Public License as published by    #
@@ -195,13 +196,12 @@ test: precommit
 #  Deploy/release the software.
 
 # TODO: check that this can work.
-deploy: headache
+deploy: headache doc-dist
 	# TODO: create a plugin to create documentation.
 	# oasis doc-dist
 	admin-gallu-deploy --verbose \
-	  --forge_upload --forge_group oasis --forge_user gildor-admin
-	# TODO: when oasis doc-dist will work, re-add.
-	#  --forge_extra_file "dist/oasis-doc-$(shell oasis query version).tar.gz"
+	  --forge_upload --forge_group oasis --forge_user gildor-admin \
+	  --forge_extra_file "dist/oasis-doc-$(shell oasis query version).tar.gz"
 	# TODO: create a plugin to send announcement.
 	# oasis announce
 	admin-gallu-oasis-increment --setup_run --use_vcs

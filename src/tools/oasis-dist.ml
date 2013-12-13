@@ -1,10 +1,9 @@
 #!/usr/bin/ocamlrun ocaml
-
-
 (******************************************************************************)
 (* OASIS: architecture for building OCaml libraries and applications          *)
 (*                                                                            *)
-(* Copyright (C) 2008-2010, OCamlCore SARL                                    *)
+(* Copyright (C) 2011-2013, Sylvain Le Gall                                   *)
+(* Copyright (C) 2008-2011, OCamlCore SARL                                    *)
 (*                                                                            *)
 (* This library is free software; you can redistribute it and/or modify it    *)
 (* under the terms of the GNU Lesser General Public License as published by   *)
@@ -21,7 +20,6 @@
 (* along with this library; if not, write to the Free Software Foundation,    *)
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
-
 
 let () =
   try Topdirs.dir_directory (Sys.getenv "OCAML_TOPLEVEL_PATH")
