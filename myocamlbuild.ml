@@ -114,9 +114,9 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: d2651b4d679a345e14f43e0f8b4755b3) *)
+(* DO NOT EDIT (digest: 97112f1b0932c152e56db0847845bd1c) *)
 module OASISGettext = struct
-# 21 "src/oasis/OASISGettext.ml"
+# 22 "src/oasis/OASISGettext.ml"
 
 
   let ns_ str =
@@ -145,7 +145,7 @@ module OASISGettext = struct
 end
 
 module OASISExpr = struct
-# 21 "src/oasis/OASISExpr.ml"
+# 22 "src/oasis/OASISExpr.ml"
 
 
 
@@ -246,7 +246,7 @@ end
 
 # 132 "myocamlbuild.ml"
 module BaseEnvLight = struct
-# 21 "src/base/BaseEnvLight.ml"
+# 22 "src/base/BaseEnvLight.ml"
 
 
   module MapString = Map.Make(String)
@@ -350,7 +350,7 @@ end
 
 # 236 "myocamlbuild.ml"
 module MyOCamlbuildFindlib = struct
-# 21 "src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml"
+# 22 "src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml"
 
 
   (** OCamlbuild extension, copied from
@@ -490,7 +490,7 @@ module MyOCamlbuildFindlib = struct
 end
 
 module MyOCamlbuildBase = struct
-# 21 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml"
+# 22 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml"
 
 
   (** Base functions for writing myocamlbuild.ml
@@ -511,7 +511,7 @@ module MyOCamlbuildBase = struct
   type tag = string
 
 
-# 61 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml"
+# 62 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml"
 
 
   type t =
