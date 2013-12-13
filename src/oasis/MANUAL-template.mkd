@@ -166,6 +166,30 @@ is equivalent to:
 
         Build\$: os_type(Win32)
 
+### Features
+
+OASIS allows to experiment with non-official, experimental features. These
+features are included in the code but are not activated by default. In order to
+activate them. You need to list them in `AlphaFeatures` or `BetaFeatures` of
+your `_oasis`.
+
+Alpha features are under development and may only be used for testing. They are
+not yet well defined, they are evolving quickly and may be removed in future
+release of OASIS.
+
+Beta features are features almost ready to be shipped, they mostly need to be
+polished before release. You may use them as they will probably be ready for
+the next version of OASIS.
+
+Once you have activated a features, you get access to more fields and some
+parts of the code maybe be activated as well.
+
+Features allow the OASIS development team to release experiment early and
+should avoid long delay between release.
+
+Available features:
+
+$ListAllFeatures
 
 Package
 -------
@@ -186,6 +210,7 @@ There are 6 possible sections:
 
  * `Flag`: a command line flag.
  * `Library`: an OCaml library.
+ * `Object`: a .cmo/.cmx object (__require BetaFeatures: section\_object__).
  * `Executable`: an OCaml executable.
  * `Document`: a document.
  * `Test`: a test.
@@ -224,6 +249,19 @@ Define an OCaml library. OCaml API is generated using `ocamldoc` applied to
 Fields:
 
 $ListOASISLibraryFields
+ * Include all common fields.
+
+### Object
+
+__require BetaFeatures: section\_object__
+
+Define an OCaml object file. It is very close to a library except that an
+object when linked will evaluate all its toplevel statement. This may be ideal
+if you want to call for example an initialisation function.
+
+Fields:
+
+$ListOASISObjectFields
  * Include all common fields.
 
 ### Executable

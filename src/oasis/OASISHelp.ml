@@ -33,8 +33,23 @@ open OASISTypes
 open OASISSchema_intern
 open OASISGettext
 open OASISUtils
+open OASISFeatures
 open Format
 open FormatExt
+
+
+let escape_markdown str =
+  let buff = Buffer.create (String.length str) in
+    String.iter
+      (function
+         | '*' -> Buffer.add_string buff "\\*"
+         | '_' -> Buffer.add_string buff "\\_"
+         | c -> Buffer.add_char buff c) str;
+    Buffer.contents buff
+
+
+let pp_print_escaped fmt str =
+  pp_print_string_spaced fmt (escape_markdown str)
 
 
 let fields_of_section ?plugin schm =
@@ -45,10 +60,10 @@ let fields_of_section ?plugin schm =
             | StandardField, None
             | DefinePlugin _, None
             | DefinePlugins _, None ->
-                (key, help) :: acc
+                (key, (help, extra)) :: acc
             | FieldFromPlugin plg, Some plg'  ->
                 if OASISPlugin.plugin_compare plg' plg = 0 then
-                  (key, help) :: acc
+                  (key, (help, extra)) :: acc
                 else
                   acc
             | FieldFromPlugin _, None
@@ -165,28 +180,51 @@ let pp_section_fields ?plugin ?allowed_fields schm nm =
         pp_set_margin fmt 80;
         pp_open_vbox fmt 0;
         pp_print_list
-          (fun fmt (key, help) ->
-             let help =
-               (match help with
-                  | Some h -> h ()
-                  | None -> "<No help>")^
-               (
+          (fun fmt (key, (help, extra)) ->
+             let extra_info = [] in
+             let extra_info =
                  try
-                   let _s: string =
-                     PropList.Schema.get schm fake_data key
-                   in
-                     ""
+                   let _s: string = PropList.Schema.get schm fake_data key in
+                     extra_info
                  with
                    | PropList.Not_set _ ->
-                       s_ " (__mandatory__)"
+                       s_ "__mandatory__" :: extra_info
                    | PropList.No_printer _ | OASISValues.Not_printable ->
-                       ""
-               )
+                       extra_info
              in
-               fprintf fmt
-                 (f_ " * @[`%s`: %a@]")
-                 key
-                 pp_print_string_spaced help)
+             let extra_info =
+               match extra.feature with
+                 | Some feature ->
+                     let requirement =
+                       match feature.publication with
+                         | InDev stage ->
+                             Printf.sprintf
+                               (f_ "__require %s: %s__")
+                               (field_of_stage stage)
+                               (escape_markdown feature.name)
+                         | SinceVersion ver ->
+                             Printf.sprintf
+                               (f_ "__since OASISFormat: %s__")
+                               (OASISVersion.string_of_version ver)
+                     in
+                       requirement :: extra_info
+                 | None ->
+                     extra_info
+             in
+
+               match help, extra_info with
+                 | Some h, [] ->
+                     fprintf fmt (f_ " * @[`%s`: %a@]")
+                       key pp_print_escaped (h ())
+                 | Some h, lst ->
+                     fprintf fmt (f_ " * @[`%s`: %a (%s)@]")
+                       key pp_print_escaped (h ())
+                      (String.concat ", " extra_info)
+                 | None, [] ->
+                     fprintf fmt (f_ " * @[`%s`: <No help>@]") key
+                 | None, lst ->
+                     fprintf fmt (f_ " * @[`%s`: <No help> (%s)@]")
+                       key (String.concat ", " extra_info))
             "@,"
             fmt
             fields;
@@ -206,7 +244,7 @@ let pp_short_licenses () =
             string_of_license license
          in
          let long_name fmt =
-            pp_print_string_spaced fmt data.long_name
+            pp_print_escaped fmt data.long_name
          in
          let vers =
            List.map OASISVersion.string_of_version data.versions
@@ -220,7 +258,7 @@ let pp_short_licenses () =
                fprintf fmt
                  (f_ " * @[`%s`: %t. %a@]")
                  str_license long_name
-                 pp_print_string_spaced txt
+                 pp_print_escaped txt
            | lst, None ->
                fprintf fmt
                  (fn_
@@ -236,7 +274,7 @@ let pp_short_licenses () =
                     " * @[`%s`: %t. %a (versions@ %a)@]"
                     (List.length vers))
                  str_license long_name
-                 pp_print_string_spaced txt
+                 pp_print_escaped txt
                  (pp_print_list pp_print_string ",@, ") lst)
         "@,"
         fmt
@@ -257,7 +295,7 @@ let pp_license_exceptions () =
           string_of_license_exception excpt
          in
          let explanation fmt =
-           pp_print_string_spaced fmt data.explanation
+           pp_print_escaped fmt data.explanation
          in
          let licenses =
            List.map string_of_license data.licenses
@@ -319,7 +357,7 @@ let pp_standard_variables display schm =
            | name, Some descr, _ ->
                fprintf fmt (f_ " * @[`%s`: %a@]")
                  name
-                 pp_print_string_spaced descr)
+                 pp_print_escaped descr)
         "@,"
         fmt
         vars;
@@ -378,6 +416,9 @@ let mk_std_vars ?plugin ?(filter=(fun _ -> true)) acc =
         "List", "LibraryFields",
         add_if_valid OASISLibrary.schema;
 
+        "List", "ObjectFields",
+        add_if_valid OASISObject.schema;
+
         "List", "ExecutableFields",
         add_if_valid OASISExecutable.schema;
 
@@ -390,6 +431,36 @@ let mk_std_vars ?plugin ?(filter=(fun _ -> true)) acc =
         "List", "SourceRepositoryFields",
         add_if_valid OASISSourceRepository.schema;
       ]
+
+
+let pp_list_all_features () =
+  let fmt =
+    str_formatter
+  in
+  let features =
+    List.fold_left
+      (fun acc feature ->
+         match feature with
+           | {publication = InDev stage}  ->
+               (feature.name, stage, feature.description ()) :: acc
+           | _ ->
+               acc)
+      [] (OASISFeatures.list ())
+  in
+    pp_set_margin fmt 80;
+    pp_open_vbox fmt 0;
+    pp_print_list
+      (* TODO: add plugin after description. *)
+      (fun fmt (name, stage, description) ->
+         fprintf fmt (f_ " * @[`%s`: %a (%s)@]")
+           name
+           pp_print_escaped description
+           (string_of_stage stage))
+        "@,"
+        fmt
+        features;
+    pp_close_box fmt ();
+    flush_str_formatter ()
 
 
 let pp_help_replace vars fmt str =
@@ -411,23 +482,21 @@ let pp_help_replace vars fmt str =
 
 
 let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
-  let build_section_fields, library_fields, executable_fields =
+  let build_section_fields, library_fields, object_fields, executable_fields =
     let set_fields_of_section schm =
       set_string_of_list
         (List.rev_map fst
            (fields_of_section ?plugin schm.schm))
     in
-    let lib_flds =
-      set_fields_of_section OASISLibrary.schema
-    in
-    let exec_flds =
-      set_fields_of_section OASISExecutable.schema
-    in
+    let lib_flds = set_fields_of_section OASISLibrary.schema in
+    let obj_flds = set_fields_of_section OASISObject.schema in
+    let exec_flds = set_fields_of_section OASISExecutable.schema in
     let common_flds =
-      SetString.inter lib_flds exec_flds
+      SetString.inter (SetString.inter lib_flds obj_flds) exec_flds
     in
       common_flds,
       SetString.diff lib_flds common_flds,
+      SetString.diff obj_flds common_flds,
       SetString.diff exec_flds common_flds
   in
 
@@ -512,6 +581,10 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
   let vars =
     Var.of_list
       [
+
+        "ListAllFeatures",
+        pp_list_all_features;
+
         "ListShortLicenses",
         pp_short_licenses;
 
@@ -539,6 +612,12 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
           ?plugin
           OASISLibrary.schema
           "ListOASISLibraryFields";
+
+        pp_section_fields
+          ~allowed_fields:object_fields
+          ?plugin
+          OASISObject.schema
+          "ListOASISObjectFields";
 
         pp_section_fields
           ~allowed_fields:executable_fields
@@ -589,10 +668,11 @@ let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
   let vars =
     mk_std_vars
       ~filter:(fun (nm, _) ->
-                 (* These two variables are handled directly, to make
+                 (* These three variables are handled directly, to make
                   * a difference with common build fields.
                   *)
                  nm <> "ListOASISLibraryFields" &&
+                 nm <> "ListOASISObjectFields" &&
                  nm <> "ListOASISExecutableFields")
       vars
   in

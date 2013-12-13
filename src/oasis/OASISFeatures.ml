@@ -269,6 +269,10 @@ let get_stage name =
   with Not_found ->
     failwithf (f_ "Feature %s doesn't exist.") name
 
+
+let list () =
+  Hashtbl.fold (fun _ v acc -> v :: acc) all_features []
+
 (*
  * Real flags.
  *)
