@@ -21,9 +21,11 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 50d3a189d7e6256264a84b5ba2a3d58c)
+# DO NOT EDIT (digest: e785ae8207fdda621fd462ea793946c7)
 SubCommand
 ArgExt
+ArgCommon
 Pager
 CLIData
+PluginsLoaded
 # OASIS_STOP

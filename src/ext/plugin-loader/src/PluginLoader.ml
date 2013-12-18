@@ -93,8 +93,13 @@ let findlib_packages_loaded = ref SetString.empty
 let add_findlib_package e =
   findlib_packages_loaded := SetString.add e !findlib_packages_loaded
 
+(* Fake object, to keep in the generated program a reference to CamlinternalOO.
+ *)
+class foo = object end
+
 
 let init findlib_packages_loaded =
+  (* TODO: only_once *)
   List.iter add_findlib_package findlib_packages_loaded;
   Findlib.init ()
 
@@ -266,6 +271,7 @@ let list t =
 
 
 let load t nm =
+  (* TODO: critical section. *)
   let entry =
     try
       List.find (fun e -> e.name = nm) (list t)

@@ -25,7 +25,7 @@
   *)
 
 
-open MainGettext
+open OASISGettext
 
 
 let default_oasis_fn =

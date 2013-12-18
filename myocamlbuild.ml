@@ -114,7 +114,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 97112f1b0932c152e56db0847845bd1c) *)
+(* DO NOT EDIT (digest: ffa1719fc0ba61a075ec3ad3c849e281) *)
 module OASISGettext = struct
 # 22 "src/oasis/OASISGettext.ml"
 
@@ -682,9 +682,9 @@ let package_default =
                "src/plugins/ocamlbuild"
             ],
             []);
-          ("cli", ["src/cli"], []);
           ("dynrun", ["src/dynrun"], []);
           ("plugin-loader", ["src/ext/plugin-loader/src"], []);
+          ("cli", ["src/cli"], []);
           ("pluginloaderLib",
             ["src/ext/plugin-loader/test/data/findlib/pluginloaderLib"],
             []);

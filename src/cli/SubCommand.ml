@@ -21,8 +21,17 @@
 (******************************************************************************)
 
 
+open OASISTypes
 open OASISUtils
 open OASISGettext
+
+(** Plugin for the command line. *)
+let plugin_cli_t () =
+  {
+    PluginLoader.
+    system = "oasis-cli";
+    msg    = !BaseContext.default.OASISContext.printf
+  }
 
 
 type t =
@@ -36,6 +45,8 @@ type t =
       scmd_main:      unit -> unit;
     }
 
+type registered_t = Builtin of t | Plugin of (PluginLoader.entry * t option)
+
 
 let make ?(std_usage=false) nm snps hlp main =
   {
@@ -44,45 +55,107 @@ let make ?(std_usage=false) nm snps hlp main =
     scmd_help      = hlp;
     scmd_specs     = [];
     scmd_usage     = if std_usage then s_ "[options*]" else "";
-    scmd_anon      = (failwithf (f_ "Don't know what to do with '%s'"));
+    scmd_anon      = (failwithf (f_ "Don't know what to do with '%s'."));
     scmd_main      = main;
   }
 
 
-module Set = Set.Make (
-struct
-  type t' = t
-  type t = t'
-  let compare t1 t2 = String.compare t1.scmd_name t2.scmd_name
-end)
+(* TODO: protect with mutex. *)
+let all_frozen = ref false
+let all = Hashtbl.create 20
 
 
-let all =
-  ref Set.empty
+let init () =
+  (* TODO: only_once *)
+  PluginLoader.init PluginsLoaded.exec_oasis_build_depends_rec;
+  List.iter
+    (fun e ->
+       Hashtbl.add all e.PluginLoader.name (Plugin(e, None)))
+    (PluginLoader.list (plugin_cli_t ()))
 
 
-let register t =
-  all := Set.add t !all
+let freeze () =
+  all_frozen := true
 
 
-let fold f acc =
-  Set.fold f !all acc
+let register_builtin t =
+  (* Check that we are replacing. *)
+  if !all_frozen then
+    failwithf
+      (f_ "Trying to register builtin subcommand %s after initialization.")
+      t.scmd_name;
+  Hashtbl.add all t.scmd_name (Builtin t)
+
+
+let register_plugin t =
+  let merge_option opt txt =
+    match opt with
+      | Some txt -> txt
+      | None -> txt
+  in
+
+  try
+    match Hashtbl.find all t.scmd_name with
+      | Builtin _ ->
+          failwithf
+            (f_ "Trying to replace the builtin subcommand %s with \
+                 an external plugin.")
+            t.scmd_name
+      | Plugin (e, _) ->
+          let t' =
+            {t with
+              scmd_synopsis = merge_option
+                                e.PluginLoader.synopsis
+                                t.scmd_synopsis}
+          in
+            Hashtbl.replace all t.scmd_name (Plugin(e, Some t'))
+  with Not_found ->
+    let fake_entry =
+      {
+        PluginLoader.
+        findlib_name = "<none>";
+        name = t.scmd_name;
+        synopsis = Some t.scmd_synopsis;
+        description = None;
+        version = None
+      }
+    in
+      Hashtbl.add all t.scmd_name (Plugin(fake_entry, Some t))
 
 
 let find nm =
-  let res =
-    fold
-      (fun c acc ->
-         if acc = None && c.scmd_name = nm then
-           Some c
-         else
-           acc)
-      None
+  let rec find' retry =
+    try
+      match Hashtbl.find all nm with
+        | Builtin t
+        | Plugin(_, Some t) -> t
+        | Plugin(e, None) ->
+            if retry then
+              failwithf
+                (f_ "Loading findlib %s should register subcommand %s, but the \
+                     loading didn't registered it.")
+                e.PluginLoader.findlib_name nm;
+            PluginLoader.load (plugin_cli_t ()) nm;
+            find' true
+    with Not_found ->
+      failwithf (f_ "Subcommand '%s' doesn't exist") nm
   in
-    match res with
-      | Some c ->
-          c
-      | None ->
-          failwithf
-            (f_ "Subcommand '%s' doesn't exist")
-            nm
+    find' false
+
+
+let list_plugin () =
+  Hashtbl.fold
+    (fun _ v acc ->
+       match v with
+         | Builtin _ -> acc
+         | Plugin(e, _) -> e :: acc)
+    all []
+
+
+let list_builtin () =
+  Hashtbl.fold
+    (fun _ v acc ->
+       match v with
+         | Builtin t -> t :: acc
+         | Plugin(e, _) -> acc)
+    all []

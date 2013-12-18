@@ -65,16 +65,32 @@ val make:
   t
 
 
-(** Register a subcommand.
-  *)
-val register: t -> unit
+(** Initialize. *)
+val init: unit -> unit
 
 
-(** Iterate through subcommands.
+(** Don't register builtin plugin past this point. *)
+val freeze: unit -> unit
+
+(** Register a builtin subcommand. This can only be done by builtin plugin and
+    before freezing.
   *)
-val fold: (t -> 'a -> 'a) -> 'a -> 'a
+val register_builtin: t -> unit
+
+
+(** Register a plugin subcommand. Synopsis is overriden by the plugin_synopsis
+  * present in findlib if there is some defined.
+  *)
+val register_plugin: t -> unit
 
 
 (** Find a subcommand.
   *)
 val find: name -> t
+
+
+(** List all PluginLoader entries registered. *)
+val list_plugin: unit -> PluginLoader.entry list
+
+(** List all builtin plugin registered. *)
+val list_builtin: unit -> t list

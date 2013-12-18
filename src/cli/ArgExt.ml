@@ -42,25 +42,27 @@ let add_global_options lst =
   global_options := lst @ !global_options
 
 
-let specs, usage_msg =
+let usage_msg =
+  "OASIS v" ^ OASISVersion.string_of_version OASISConf.version_full
+  ^ " (C) 2009-2010 OCamlCore SARL\n"
+  ^ s_ "\n\
+     oasis [global-options*] subcommand [subcommand-options*]\n\
+     \n\
+     Environment variables: \n\
+     \n\
+     OASIS_PAGER: pager to use to display long textual output.\n\
+     \n\
+     Global command line options:"
+
+
+let specs () =
   [
     "-C",
     Arg.String (fun str -> Sys.chdir str),
     (s_ "dir Change directory before running.");
   ]
   @ (BaseContext.args ())
-  @ !global_options,
-
-  ("OASIS v" ^ OASISVersion.string_of_version OASISConf.version_full
-   ^ " (C) 2009-2010 OCamlCore SARL\n"
-   ^ s_ "\n\
-      oasis [global-options*] subcommand [subcommand-options*]\n\
-      \n\
-      Environment variables: \n\
-      \n\
-      OASIS_PAGER: pager to use to display long textual output.\n\
-      \n\
-      Global command line options:")
+  @ !global_options
 
 
 type help_extent =
@@ -154,17 +156,17 @@ let pp_print_help hext hsty fmt () =
   in
 
   let pp_print_scmds fmt () =
-
+    let scmds = SubCommand.list_builtin () in
     let sz =
-      SubCommand.fold
-        (fun c sz ->
+      List.fold_left
+        (fun sz c ->
            max sz (String.length c.scmd_name))
-        0
+        0 scmds
     in
       pp_print_para fmt (s_ "Available subcommands:");
 
-      SubCommand.fold
-        (fun c () ->
+      List.iter
+        (fun c ->
            match hsty with
              | Markdown ->
                  pp_print_def fmt ("`"^c.scmd_name^"`")
@@ -172,7 +174,7 @@ let pp_print_help hext hsty fmt () =
              | Output ->
                  pp_print_output_def
                    sz fmt (c.scmd_name, c.scmd_synopsis))
-        ();
+        scmds;
       if hsty = Output then
         pp_print_newline fmt ()
   in
@@ -195,7 +197,7 @@ let pp_print_help hext hsty fmt () =
       begin
         pp_print_para fmt (s_ "Global options: ");
 
-        pp_print_specs true fmt specs
+        pp_print_specs true fmt (specs ())
       end;
 
     if scmd.scmd_specs <> [] then
@@ -218,7 +220,7 @@ let pp_print_help hext hsty fmt () =
                 ~check_last_char:CLIData.main_mkd
                 fmt ();
 
-              pp_print_specs true fmt specs;
+              pp_print_specs true fmt (specs ());
 
               pp_print_scmds fmt ();
             end
@@ -238,10 +240,10 @@ let pp_print_help hext hsty fmt () =
               (SubCommand.find nm)
 
         | AllSubCommand ->
-            SubCommand.fold
-              (fun scmd () ->
+            List.iter
+              (fun scmd ->
                  pp_print_scmd fmt ~global_options:false scmd)
-              ()
+              (SubCommand.list_builtin ())
     end
 
 
@@ -304,7 +306,7 @@ let parse () =
         Arg.parse_argv
           ~current:pos
           Sys.argv
-          (Arg.align specs)
+          (Arg.align (specs ()))
           set_scmd
           usage_msg
       with e ->

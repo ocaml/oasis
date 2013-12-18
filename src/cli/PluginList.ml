@@ -31,32 +31,13 @@ open SubCommand
 open PluginLoader
 
 
-(** Plugin for the command line. *)
-let plugin_cli_t () =
-  {
-    PluginLoader.
-    system = "oasis-cli";
-    msg    = !BaseContext.default.OASISContext.printf
-  }
-
-
 (** Plugin for handling _oasis. *)
 let plugin_pkg_t () =
-  {(plugin_cli_t ()) with system = "oasis"}
-
-
-(** Initialization and general command-line argument. *)
-let () =
-  PluginLoader.init
-    PluginsLoaded.exec_oasis_build_depends_rec;
-  ArgExt.add_global_options
-    [
-      "--plugin-cli",
-      Arg.String
-        (fun str ->
-           PluginLoader.load (plugin_cli_t ()) str),
-      (s_ "nm Load a plugin.")
-    ]
+  {
+    PluginLoader.
+    system = "oasis";
+    msg    = !BaseContext.default.OASISContext.printf
+  }
 
 
 (** Display long help. *)
@@ -102,7 +83,7 @@ let main () =
     print_endline
       (s_ "Command-line plugins, use --plugin-cli command \
            line option to load:");
-    print (PluginLoader.list (plugin_cli_t ()));
+    print (SubCommand.list_plugin ());
     print_newline ();
     print_endline
       (s_ "_oasis plugins, loaded if present in _oasis:");
@@ -125,5 +106,6 @@ let scmd =
 
 
 let () =
-  SubCommand.register scmd
+  (* Register the list command. *)
+  SubCommand.register_builtin scmd
 

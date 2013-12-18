@@ -42,4 +42,4 @@ let scmd =
 
 
 let () =
-  SubCommand.register scmd
+  SubCommand.register_builtin scmd

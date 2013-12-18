@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 2ec50fd5ae8117ddde2c06be76db1070)
+# DO NOT EDIT (digest: 049e53f1facf45c2a940d850b8cd6a5a)
 oasis/FormatExt
 oasis/FormatMarkdown
 oasis/ODNFunc
@@ -78,5 +78,6 @@ base/BaseMessage
 base/BaseContext
 cli/SubCommand
 cli/ArgExt
+cli/ArgCommon
 cli/Pager
 # OASIS_STOP

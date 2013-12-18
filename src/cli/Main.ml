@@ -45,11 +45,7 @@ open Manual
 open Check
 open Query
 open Version
-open PluginDB
-open PluginInstall
-open PluginVCS
-open PluginBundle
-open Plugins
+open PluginList
 open Help
 
 
@@ -57,7 +53,9 @@ let () =
   (* Run subcommand *)
   try
     let () =
-      OASISBuiltinPlugins.init ()
+      OASISBuiltinPlugins.init ();
+      SubCommand.init ();
+      SubCommand.freeze ()
     in
     let main =
       ArgExt.parse ()
