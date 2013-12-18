@@ -824,6 +824,22 @@ let gen_tests ~is_native () =
            "doc not done."
            (not (Sys.file_exists doc_done_fn));
          run_ocaml_setup_ml test_ctxt t ["-distclean"]);
+
+    "bug1358">::
+    (fun test_ctxt ->
+       let t =
+         setup_test_directories test_ctxt in_testdata_dir ["bug1358"]
+       in
+       let () =
+         skip_if
+           (OASISVersion.version_compare_string t.ocaml_version "4.00" < 0)
+           "OCaml >= 4.00 needed."
+       in
+         oasis_setup test_ctxt t;
+         (* Setup expectation. *)
+         register_generated_files t oasis_ocamlbuild_files;
+         (* Run standard test. *)
+         standard_test test_ctxt t);
   ]
 
 

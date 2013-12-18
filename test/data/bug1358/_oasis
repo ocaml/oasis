@@ -1,0 +1,14 @@
+OASISFormat:   0.4
+Name:          foo
+Version:       1.0
+Synopsis:      Foo
+Authors:       Markus
+OCamlVersion:  >= 4.00
+License:       GPL-3.0
+
+Executable foo
+  Path:           .
+  BuildTools:     ocamlbuild
+  MainIs:         foo.ml
+  BuildDepends:   threads
+  Install:        false
