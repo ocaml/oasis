@@ -38,6 +38,9 @@ open OASISTypes
 module MapPlugin: Map.S with type key = plugin_kind plugin
 module SetPlugin: Set.S with type elt = plugin_kind plugin
 
+(* Check that plugin exist even with a different version. *)
+val mem_no_version: plugin_kind plugin -> SetPlugin.t -> bool
+
 
 type 'a setter = plugin_data ref -> 'a -> unit
 type 'a getter = plugin_data ref -> 'a

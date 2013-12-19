@@ -114,15 +114,15 @@ let check_schema ~ctxt where schm plugins features_data data =
            | DefinePlugin _ | DefinePlugins _ | StandardField ->
                check_get schm data fld acc
 
-           | FieldFromPlugin plg_id ->
-               if SetPlugin.mem plg_id plugins then begin
+           | FieldFromPlugin ((_, nm, ver) as plg_id) ->
+               if mem_no_version plg_id plugins then begin
                  check_get schm data fld acc
                end else if check_is_set schm data fld &&
-                       not (check_is_default schm data fld) then begin
+                           not (check_is_default schm data fld) then begin
                  OASISMessage.warning ~ctxt
-                   (f_ "Field %s is set but matching plugin is not \
+                   (f_ "Field %s is set but matching plugin %s is not \
                         enabled.")
-                   fld;
+                   fld nm;
                  acc
                end else begin
                  acc

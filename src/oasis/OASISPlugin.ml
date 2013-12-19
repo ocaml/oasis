@@ -172,12 +172,22 @@ struct
 end)
 
 
-module SetPlugin = Set.Make (
-struct
-  type t = plugin_kind plugin
-  let compare = plugin_compare
-end)
+module SetPlugin =
+  Set.Make
+    (struct
+       type t = plugin_kind plugin
+       let compare = plugin_compare
+     end)
 
+
+let mem_no_version (knd, nm, _) plugins =
+  SetPlugin.fold
+    (fun (knd', nm', ver) found ->
+       if not found then
+         knd = knd' && nm = nm'
+       else
+         found)
+    plugins false
 
 module HashPlugin =
   Hashtbl.Make
