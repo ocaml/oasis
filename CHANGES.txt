@@ -1,4 +1,36 @@
-2013-11-13  Sylvain Le Gall <sylvain AT le-gall.net>
+2013-12-19  Sylvain Le Gall <sylvain AT le-gall.net>
+
+  * Version 0.4.1
+
+  * Major changes:
+
+     * Fix broken compilation with threads and OCaml >= 4.01 (Closes: #1358)
+
+  * Minor changes:
+
+    * Refactor plugins for command line interface.
+    * Get rid of message 'field is set but no matching plugin' (Closes: #795, #1043).
+
+  * Features:
+
+    * dynrun_for_release (alpha):
+       * The goal of this plugin is to allow creating release with a minimal
+         setup.ml that uses '-setup-update dynamic'.
+       * Refactor setup.ml to perform early checks. like looking for findlib
+         and oasis.dynrun library and warns the user in case they cannot be
+         found (early configure script).
+       * Along setup.ml, Makefile and configure, also keep INSTALL.txt if
+         StdFiles plugins is used to provide a readable list of package to 
+         install.
+
+  * Addendum to 0.4.0 release:
+       * Since 0.4.0 OASIS has a limited support to syntax extension. If in the
+         list of BuildDepends, one of the library ends with ".syntax", OASIS will 
+         add the tag "syntax_camlp4o" to all files of this library. This new
+         feature already covers some common case of using syntax extensions.
+      
+
+2013-12-13  Sylvain Le Gall <sylvain AT le-gall.net>
 
   * Version 0.4.0
 
