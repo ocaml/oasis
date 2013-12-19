@@ -1,9 +1,9 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: c3ab2a789fef574fac5cbb2b9ce4b25c) *)
+(* DO NOT EDIT (digest: 519d42fbf62231880feae484af027619) *)
 This is the INSTALL file for the oasis distribution.
 
 This package uses OASIS to generate its build system. See section OASIS for
-full information.
+full information. 
 
 Dependencies
 ============
