@@ -101,6 +101,7 @@ type template =
       body: body;
       footer: line list;
       perm: int;
+      important: bool; (** Determine if should be kept in dynamic mode. *)
     }
 
 

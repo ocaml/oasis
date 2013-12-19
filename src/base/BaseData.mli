@@ -44,3 +44,11 @@ val basesysenvironment_ml: string
 (** Set of modules to load for the 'bundle' subcommand
   *)
 val basesysbundle_ml: string
+
+
+(** Toploop for dynrun. *)
+val dynrun_ml: string
+
+
+(** Toploop for dynrun (alternative). *)
+val dynrun_for_release_ml: string

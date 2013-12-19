@@ -50,12 +50,13 @@ type body =
 
 type template =
     {
-      fn:      host_filename;
-      comment: comment;
-      header:  line list;
-      body:    body;
-      footer:  line list;
-      perm:    int;
+      fn:        host_filename;
+      comment:   comment;
+      header:    line list;
+      body:      body;
+      footer:    line list;
+      perm:      int;
+      important: bool;
     }
 
 
@@ -121,12 +122,13 @@ let comment_meta =
 
 let template_make fn comment header body footer =
   {
-    fn      = fn;
-    comment = comment;
-    header  = header;
-    body    = Body body;
-    footer  = footer;
-    perm    = 0o644;
+    fn        = fn;
+    comment   = comment;
+    header    = header;
+    body      = Body body;
+    footer    = footer;
+    perm      = 0o644;
+    important = false;
   }
 
 

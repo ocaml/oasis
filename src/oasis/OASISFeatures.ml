@@ -331,3 +331,9 @@ let section_object =
   create "section_object" beta
     (fun () ->
        s_ "Implement an object section.")
+
+
+let dynrun_for_release =
+  create "dynrun_for_release" alpha
+    (fun () ->
+       s_ "Make '-setup-update dynamic' suitable for releasing project.")

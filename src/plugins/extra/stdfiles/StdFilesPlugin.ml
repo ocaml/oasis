@@ -462,12 +462,24 @@ let main ctxt pkg =
                  lst)
 
         (* Basic dependencies *)
-        [
+        ([
           LFindlibPackage ("findlib", pkg.findlib_version),
-                           all_build_sections_set;
+          all_build_sections_set;
+
           LFindlibPackage ("ocaml", pkg.ocaml_version),
-                           all_build_sections_set;
-        ]
+          all_build_sections_set]
+        @
+         (if OASISFeatures.package_test
+               OASISFeatures.dynrun_for_release pkg then
+            [
+              LFindlibPackage ("oasis",
+                               Some (OASISVersion.VGreaterEqual
+                                       pkg.oasis_version)),
+              all_build_sections_set
+            ]
+          else
+            []))
+
 
         (* Go through all sections *)
         pkg.sections
@@ -480,7 +492,7 @@ let main ctxt pkg =
         split_package_section
   in
 
-  let add_file ctxt (fn_opt, ppf) =
+  let add_file ctxt (fn_opt, important, ppf) =
     match fn_opt with
       | Some unix_fn ->
           begin
@@ -489,12 +501,8 @@ let main ctxt pkg =
               flush_str_formatter ()
             in
               add_file
-                (template_make
-                   unix_fn
-                   comment_ml
-                   []
-                   [content]
-                   [])
+                {(template_make unix_fn comment_ml [] [content] []) with
+                     important = important}
                 ctxt
           end
 
@@ -512,6 +520,7 @@ let main ctxt pkg =
       [
         (* Generate README.txt *)
         t.readme,
+        false,
         (fun fmt ->
            pp_open_vbox fmt 0;
            fprintf fmt
@@ -566,6 +575,7 @@ let main ctxt pkg =
 
       (* Generate INSTALL.txt *)
       t.install,
+      (OASISFeatures.package_test OASISFeatures.dynrun_for_release pkg),
       (fun fmt ->
          pp_open_vbox fmt 0;
          fprintf fmt
@@ -574,7 +584,7 @@ let main ctxt pkg =
 
          pp_print_para fmt
            "This package uses OASIS to generate its build system. \
-            See section OASIS for full information. ";
+            See section OASIS for full information.";
 
          pp_print_title fmt "Dependencies";
          fprintf fmt "@[In order to compile this package, you will need:@]@,";
@@ -605,6 +615,7 @@ let main ctxt pkg =
 
       (* Generate AUTHORS.txt *)
       t.authors,
+      false,
       (fun fmt ->
          pp_open_vbox fmt 0;
          fprintf fmt "@[Authors of %s@]@," pkg.name;

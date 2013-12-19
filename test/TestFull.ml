@@ -840,6 +840,18 @@ let gen_tests ~is_native () =
          register_generated_files t oasis_ocamlbuild_files;
          (* Run standard test. *)
          standard_test test_ctxt t);
+
+    "dynrun_for_release">::
+    (fun test_ctxt ->
+       let t =
+         setup_test_directories test_ctxt in_testdata_dir ["dynrun_for_release"]
+       in
+         oasis_setup ~dev:true ~dynamic:true test_ctxt t;
+         (* Setup expectation. *)
+         register_generated_files t ["INSTALL.txt"];
+         (* Run standard test. *)
+         standard_test test_ctxt t;
+         dbug_file_content test_ctxt (in_src_dir t "INSTALL.txt"));
   ]
 
 

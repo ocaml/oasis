@@ -168,13 +168,10 @@ let main ctxt pkg =
           Buffer.add_string buff (".PHONY: "^(String.concat " " targets)^"\n");
 
           OASISPlugin.add_file
-            (template_make
-               "Makefile"
-               comment_sh
-               []
-               (OASISUtils.split_newline ~trim:false
-                  (Buffer.contents buff))
-               [])
+            {(template_make "Makefile" comment_sh []
+                (OASISUtils.split_newline ~trim:false
+                   (Buffer.contents buff)) []) with
+                       important = true}
             ctxt
       end
     else
@@ -194,7 +191,7 @@ let main ctxt pkg =
             DevFilesData.configure
         in
           OASISPlugin.add_file
-            {tmpl with perm = 0o755}
+            {tmpl with perm = 0o755; important = true}
             ctxt
       end
     else

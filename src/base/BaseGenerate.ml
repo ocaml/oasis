@@ -169,16 +169,14 @@ let generate ?msg
                    {tmpl with body =
                       Body
                         [
-                          "let () =\n  \
-                           try Topdirs.dir_directory \
-                             (Sys.getenv \"OCAML_TOPLEVEL_PATH\")\n  \
-                           with Not_found -> ();;";
-                          "#use \"topfind\";;";
-                          "#require \"oasis.dynrun\";;";
-                          "open OASISDynRun;;";
+                          if OASISFeatures.package_test
+                               OASISFeatures.dynrun_for_release pkg then
+                            BaseData.dynrun_for_release_ml
+                          else
+                            BaseData.dynrun_ml
                         ]}
                    acc
-               else if tmpl.fn = "Makefile" || tmpl.fn = "configure" then
+               else if tmpl.important then
                  OASISFileTemplate.add tmpl acc
                else
                  acc)

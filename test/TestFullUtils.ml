@@ -731,7 +731,12 @@ let oasis_setup ?(dev=false) ?(dynamic=false) test_ctxt t =
                     load ["builtin-plugins.cma"];
                     load ["dynrun"; "dynrun.cma"];
                   ] fixed_lst
-              | line -> line :: fixed_lst)
+            | "    let _str : string = Findlib.package_directory \
+                \"oasis.dynrun\" in" ->
+                (* For dynrun_for_release. *)
+                "    let _str : string = Findlib.package_directory \
+                \"unix\" in" :: fixed_lst
+            | line -> line :: fixed_lst)
          [] orig_lst
      in
      let chn = open_out (in_src_dir t setup_ml) in

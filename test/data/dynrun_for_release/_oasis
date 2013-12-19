@@ -1,0 +1,15 @@
+OASISFormat:   0.4
+AlphaFeatures:  dynrun_for_release
+Name:          foo
+Version:       1.0
+Synopsis:      Foo
+Authors:       Sylvain
+License:       GPL-3.0
+Plugins:       StdFiles (0.4)
+
+Executable foo
+  Path:           .
+  BuildTools:     ocamlbuild
+  MainIs:         foo.ml
+  BuildDepends:   threads
+  Install:        false

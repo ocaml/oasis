@@ -1,3 +1,5 @@
 VarString basesys_ml            "BaseSys.ml"
 VarString basesysenvironment_ml "BaseSysEnvironment.ml"
 VarString basesysbundle_ml      "BaseSysBundle.ml"
+VarString dynrun_ml             "dynrun.ml"
+VarString dynrun_for_release_ml "dynrun_for_release.ml"
