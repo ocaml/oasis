@@ -169,12 +169,14 @@ let bsd2 =
 let bsd3 =
   mk_license
     "BSD-3-clause"
+    (* TODO: old name was BSD3, create a bridge to be backward compatible. *)
     (ns_ "Berkeley software distribution license (3 clauses)")
 
 
 let bsd4 =
   mk_license
     "BSD-4-clause"
+    (* TODO: old name was BSD4, create a bridge to be backward compatible. *)
     (ns_ "Berkeley software distribution license (4 clauses)")
 
 
