@@ -152,6 +152,7 @@ val odn_of_t: t -> ODN.t
 val proprietary: license
 val apache: license
 val artistic: license
+val bsd2: license
 val bsd3: license
 val bsd4: license
 val cecill: license
