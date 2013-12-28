@@ -160,15 +160,21 @@ let artistic =
     (ns_ "Artistic license")
 
 
+let bsd2 =
+  mk_license
+    "BSD-2-clause"
+    (ns_ "Berkeley software distribution license (2 clauses)")
+
+
 let bsd3 =
   mk_license
-    "BSD3"
+    "BSD-3-clause"
     (ns_ "Berkeley software distribution license (3 clauses)")
 
 
 let bsd4 =
   mk_license
-    "BSD4"
+    "BSD-4-clause"
     (ns_ "Berkeley software distribution license (4 clauses)")
 
 
