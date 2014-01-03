@@ -748,12 +748,12 @@ let gen_tests ~is_native () =
          standard_checks test_ctxt t;
          (* Run test. *)
          assert_bool
-           "setup.ml is smaller than 2kB"
+           "setup.ml is smaller than 3kB"
            (let chn = open_in (in_src_dir t setup_ml) in
               try
                 let size = in_channel_length chn in
                   close_in chn;
-                  size < 2048 (* 2kB *)
+                  size < 3072 (* 3kB *)
               with e ->
                 close_in chn;
                 raise e);
