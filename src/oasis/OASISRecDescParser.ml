@@ -572,7 +572,9 @@ let parse_stream conf st =
         "SourceRepository"; "Test";
         "Document";
         (* Expression *)
-        "!"; "&&"; "||"; "("; ")"; "true"; "false"
+        "!"; "&&"; "||"; "("; ")";
+        (* Boolean *)
+        "true"; "True"; "TRUE"; "false"; "False"; "FALSE"
       ]
   in
 
@@ -581,7 +583,15 @@ let parse_stream conf st =
     parser
       | [< 'Kwd "true" >] ->
           EBool true
+      | [< 'Kwd "True" >] ->
+          EBool true
+      | [< 'Kwd "TRUE" >] ->
+          EBool true
       | [< 'Kwd "false" >] ->
+          EBool false
+      | [< 'Kwd "False" >] ->
+          EBool false
+      | [< 'Kwd "FALSE" >] ->
           EBool false
       | [< 'Kwd "!"; e = parse_factor >] ->
           ENot e
