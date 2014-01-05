@@ -584,15 +584,15 @@ let parse_stream conf st =
       | [< 'Kwd "true" >] ->
           EBool true
       | [< 'Kwd "True" >] ->
-          EBool true
+          raise (Failure "Boolean values must be lowercase.")
       | [< 'Kwd "TRUE" >] ->
-          EBool true
+          raise (Failure "Boolean values must be lowercase.")
       | [< 'Kwd "false" >] ->
           EBool false
       | [< 'Kwd "False" >] ->
-          EBool false
+          raise (Failure "Boolean values must be lowercase.")
       | [< 'Kwd "FALSE" >] ->
-          EBool false
+          raise (Failure "Boolean values must be lowercase.")
       | [< 'Kwd "!"; e = parse_factor >] ->
           ENot e
       | [< 'Kwd "("; e = parse_expr; 'Kwd ")" >] ->
