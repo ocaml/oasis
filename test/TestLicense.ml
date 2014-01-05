@@ -71,13 +71,13 @@ let tests =
                      ()))
 
        [
-         "BSD4",
+         "BSD-4-clause",
          mk bsd4;
 
-         "BSD4-1.0+",
+         "BSD-4-clause-1.0+",
          mk ~v:(VersionOrLater (ver "1.0")) bsd4;
 
-         "BSD3",
+         "BSD-3-clause",
          mk bsd3;
 
          "GPL",
@@ -122,7 +122,7 @@ let tests =
                   mk_base artistic;
                 ]));
 
-         "GPL-2+ and BSD3",
+         "GPL-2+ and BSD-3-clause",
          Some
            (DEP5License
              (DEP5And
@@ -131,7 +131,7 @@ let tests =
                   mk_base bsd3;
                 ]));
 
-         "GPL-2+ or Artistic-2.0, and BSD3",
+         "GPL-2+ or Artistic-2.0, and BSD-3-clause",
          Some
            (DEP5License
              (DEP5And
