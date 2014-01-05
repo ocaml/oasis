@@ -316,9 +316,12 @@ let rec precompile_setup_ml test_ctxt t =
 (* Run setup.ml *)
 let run_ocaml_setup_ml ?exit_code ?(extra_env=[]) test_ctxt t args =
   (* Speed up for testing, compile setup.ml *)
+  let toplevel_path = try Sys.getenv "OCAML_TOPLEVEL_PATH"
+                      with Not_found -> "" in
   let extra_env =
     ("OCAMLFIND_DESTDIR", t.ocaml_lib_dir)
     :: ("OCAMLFIND_LDCONF", "ignore")
+    :: ("OCAML_TOPLEVEL_PATH", toplevel_path)
     :: extra_env
   in
     match precompile_setup_ml test_ctxt t with
