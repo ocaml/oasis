@@ -572,7 +572,9 @@ let parse_stream conf st =
         "SourceRepository"; "Test";
         "Document";
         (* Expression *)
-        "!"; "&&"; "||"; "("; ")"; "true"; "false"
+        "!"; "&&"; "||"; "("; ")";
+        (* Boolean *)
+        "true"; "True"; "TRUE"; "false"; "False"; "FALSE"
       ]
   in
 
@@ -581,8 +583,16 @@ let parse_stream conf st =
     parser
       | [< 'Kwd "true" >] ->
           EBool true
+      | [< 'Kwd "True" >] ->
+          raise (Failure "Boolean values must be lowercase.")
+      | [< 'Kwd "TRUE" >] ->
+          raise (Failure "Boolean values must be lowercase.")
       | [< 'Kwd "false" >] ->
           EBool false
+      | [< 'Kwd "False" >] ->
+          raise (Failure "Boolean values must be lowercase.")
+      | [< 'Kwd "FALSE" >] ->
+          raise (Failure "Boolean values must be lowercase.")
       | [< 'Kwd "!"; e = parse_factor >] ->
           ENot e
       | [< 'Kwd "("; e = parse_expr; 'Kwd ")" >] ->
