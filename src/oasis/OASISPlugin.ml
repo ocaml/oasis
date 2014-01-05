@@ -184,7 +184,7 @@ let mem_no_version (knd, nm, _) plugins =
   SetPlugin.fold
     (fun (knd', nm', ver) found ->
        if not found then
-         knd = knd' && nm = nm'
+         knd = knd' && (OASISUtils.compare_csl nm nm' = 0)
        else
          found)
     plugins false
