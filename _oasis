@@ -228,7 +228,7 @@ Document manual
 
 Document "api-oasis"
   Title:                API reference for OASIS
-  Type:                 ocamlbuild (0.3)
+  Type:                 OCamlbuild (0.3)
   InstallDir:           $htmldir/oasis
   BuildTools+:          ocamldoc
   XOCamlbuildPath:      src/
