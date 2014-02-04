@@ -206,5 +206,8 @@ let file_content fn =
 
 
 let dbug_file_content test_ctxt fn =
+  (* TODO: re-enable when OUnit will discard it for JUnit.xml.
   logf test_ctxt `Info "Content of %S:" fn;
   logf test_ctxt `Info "%s" (file_content fn)
+   *)
+  ()
