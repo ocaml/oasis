@@ -57,7 +57,6 @@ type license_dep_5 =
   | DEP5And of license_dep_5 list
   with odn
 
-
 type t =
   | DEP5License of license_dep_5
   | OtherLicense of string (* URL *)
@@ -78,19 +77,41 @@ let string_of_license s = s
 let string_of_license_exception s = s
 
 
+let string_of_license_dep_5 license_dep_5 =
+  let ver =
+    match license_dep_5.version with
+      | Version v ->
+          "-"^(OASISVersion.string_of_version v)
+      | VersionOrLater v ->
+          "-"^(OASISVersion.string_of_version v)^"+"
+      | NoVersion ->
+          ""
+  in
+  let exceptions =
+    match license_dep_5.excption with
+      | None ->
+          ""
+      | Some str ->
+          " with "^str^" exception"
+  in
+    license_dep_5.license^ver^exceptions
+
+
 type license_data =
     {
       long_name: string;
-      versions:  OASISVersion.t list;
-      note:      string option;
+      versions: OASISVersion.t list;
+      note: string option;
+      deprecated: string option;
     }
 
 
-let all_licenses =
-  HashStringCsl.create 13
+let all_full_licenses = HashStringCsl.create 64
+let deprecated_full_licenses = ref SetStringCsl.empty
+let all_licenses = ref []
 
 
-let mk_license nm ?(versions=[]) ?note long_name =
+let mk_license nm ?(versions=[]) ?deprecated ?note long_name =
   let rec expand_version =
     function
       | hd :: tl ->
@@ -106,25 +127,60 @@ let mk_license nm ?(versions=[]) ?note long_name =
       | [] ->
           []
   in
-  if HashStringCsl.mem all_licenses nm then
-    failwithf
-      (f_ "Duplicate license '%s'")
-      nm;
-  HashStringCsl.add all_licenses nm
+  let t =
     {
       long_name = long_name;
-      versions  = List.map
-                    OASISVersion.version_of_string
-                    (expand_version versions);
-      note      = note;
-    };
-  nm
+      versions =
+        List.map
+          OASISVersion.version_of_string
+          (expand_version versions);
+      note = note;
+      deprecated = deprecated;
+    }
+  in
+  let license_dep_5 =
+    {
+      license = nm;
+      excption = None;
+      version = NoVersion;
+    }
+  in
+  let add_full_license (full_nm, license_dep_5) =
+    if HashStringCsl.mem all_full_licenses full_nm then
+      failwithf (f_ "Duplicate license '%s'") full_nm;
+    HashStringCsl.add all_full_licenses full_nm license_dep_5
+  in
+    (* Add all expansion of license + version to the hashtable for easy
+     * retrieval.
+     *)
+    add_full_license (nm, license_dep_5);
+    List.iter
+      (fun ver ->
+         let make_nm license_dep_5 =
+           (string_of_license_dep_5 license_dep_5), license_dep_5
+         in
+           add_full_license
+             (make_nm {license_dep_5 with version = Version ver});
+           add_full_license
+             (make_nm {license_dep_5 with version = VersionOrLater ver}))
+      t.versions;
+    begin
+      match deprecated with
+        | Some str ->
+            add_full_license (str, license_dep_5);
+            deprecated_full_licenses :=
+              SetStringCsl.add str !deprecated_full_licenses
+        | None -> ()
+    end;
+    (* Append the license to all other licenses. *)
+    all_licenses := (nm, t) :: !all_licenses;
+    nm
 
 
 let license_data () =
   let lst =
-    HashStringCsl.fold
-      (fun license data acc ->
+    List.map
+      (fun (license, data) ->
          (license,
           {data with
                (* Really translate strings *)
@@ -132,10 +188,8 @@ let license_data () =
                note =
                  match data.note with
                    | Some str -> Some (s_ str)
-                   | None -> None})
-         :: acc)
-      all_licenses
-      []
+                   | None -> None}))
+      !all_licenses
   in
     List.sort (fun (nm1, _) (nm2, _) -> compare_csl nm1 nm2) lst
 
@@ -169,14 +223,14 @@ let bsd2 =
 let bsd3 =
   mk_license
     "BSD-3-clause"
-    (* TODO: old name was BSD3, create a bridge to be backward compatible. *)
+    ~deprecated:"BSD3"
     (ns_ "Berkeley software distribution license (3 clauses)")
 
 
 let bsd4 =
   mk_license
     "BSD-4-clause"
-    (* TODO: old name was BSD4, create a bridge to be backward compatible. *)
+    ~deprecated:"BSD4"
     (ns_ "Berkeley software distribution license (4 clauses)")
 
 
@@ -449,92 +503,17 @@ let parse_dep5 ~ctxt str =
           DEP5Unit {(decode_license lcs) with excption = decode_exception exc}
       | OASISLicense_types.License (lcs, None) ->
           DEP5Unit (decode_license lcs)
+
   and decode_license str =
-    if HashStringCsl.mem all_licenses str then
-      begin
-        {
-          license = str;
-          excption = None;
-          version = NoVersion;
-        }
-      end
-    else
-      begin
-        (* Try to find a version *)
-        let str', plus_present =
-          try
-            OASISString.strip_ends_with ~what:"+" str, true
-          with Not_found ->
-            str, false
-        in
-        let license, version =
-          let to_string lst =
-            let buf = Buffer.create (List.length lst) in
-              List.iter (Buffer.add_char buf) lst;
-              Buffer.contents buf
-          in
-          let ver = ref [] in
-          let nm = ref [] in
-          let in_ver = ref true in
-            for i = String.length str' - 1 downto 0 do
-              if !in_ver then
-                begin
-                  match str'.[i] with
-                    | '-' ->
-                        in_ver := false
-                    | '0'..'9' | '.' as c ->
-                        ver := c :: !ver
-                    | c ->
-                        nm := c :: !nm;
-                        in_ver := false
-                end
-              else
-                nm := str'.[i] :: !nm
-            done;
-            (* We don't want an empty name for license *)
-            if !nm = [] then
-              begin
-                nm := !ver;
-                ver := []
-              end;
-            if !ver = [] && plus_present then
-              begin
-                nm := !nm @ ['+']
-              end;
-            to_string !nm,
-            if !ver = [] then
-              NoVersion
-            else if plus_present then
-              VersionOrLater (OASISVersion.version_of_string (to_string !ver))
-            else
-              Version (OASISVersion.version_of_string (to_string !ver))
-        in
-          if not (HashStringCsl.mem all_licenses license) then
-            OASISMessage.warning ~ctxt
-              (f_ "Unknown license '%s' in '%s'")
-              license str
-          else
-            begin
-              match version with
-                | VersionOrLater ver | Version ver ->
-                    let license_data =
-                      HashStringCsl.find all_licenses license
-                    in
-                      if not (List.mem ver license_data.versions) then
-                        OASISMessage.warning ~ctxt
-                          (f_ "Version '%s' is not known for \
-                               license '%s' in '%s'")
-                          (OASISVersion.string_of_version ver)
-                          license str
-                | NoVersion ->
-                    ()
-            end;
-              {
-                license  = license;
-                excption = None;
-                version  = version;
-              }
-      end
+    try
+      let license_dep5  = HashStringCsl.find all_full_licenses str in
+        if SetStringCsl.mem str !deprecated_full_licenses then
+          OASISMessage.warning ~ctxt
+            (f_ "Deprecated license %s, use %s instead.")
+            str (string_of_license_dep_5 license_dep5);
+        license_dep5
+    with Not_found ->
+      failwithf (f_ "Unknown license '%s'") str
 
   and decode_exception str =
       if not (HashStringCsl.mem all_exceptions str) then
@@ -601,25 +580,7 @@ let parse ~ctxt str =
 let rec string_of_dep5 =
   function
     | DEP5Unit t  ->
-        begin
-          let ver =
-            match t.version with
-              | Version v ->
-                  "-"^(OASISVersion.string_of_version v)
-              | VersionOrLater v ->
-                  "-"^(OASISVersion.string_of_version v)^"+"
-              | NoVersion ->
-                  ""
-          in
-          let exceptions =
-            match t.excption with
-              | None ->
-                  ""
-              | Some str ->
-                  " with "^str^" exception"
-          in
-            t.license^ver^exceptions
-        end
+        string_of_license_dep_5 t
 
     | DEP5Or lst ->
         begin
@@ -712,8 +673,8 @@ let choices () =
   in
 
   let all =
-    HashStringCsl.fold
-      (fun license extra acc ->
+    List.fold_left
+      (fun acc (license, data) ->
          let dflt =
            {license = license; version = NoVersion; excption = None}
          in
@@ -730,9 +691,9 @@ let choices () =
                     (exception_find license exceptions_map))
              (* only license *)
              (dflt :: acc)
-             extra.versions)
-      all_licenses
+             data.versions)
       []
+      !all_licenses
   in
 
   let all =

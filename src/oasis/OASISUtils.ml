@@ -65,6 +65,13 @@ module HashStringCsl =
          Hashtbl.hash (String.lowercase s)
      end)
 
+module SetStringCsl =
+  Set.Make
+    (struct
+       type t = string
+       let compare = compare_csl
+     end)
+
 
 let varname_of_string ?(hyphen='_') s =
   if String.length s = 0 then

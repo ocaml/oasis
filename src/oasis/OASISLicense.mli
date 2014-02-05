@@ -85,6 +85,9 @@ type license_data =
 
       note:      string option;
       (** Extra information about the license. *)
+
+      deprecated: string option;
+      (** Deprecated alternative. *)
     }
 
 

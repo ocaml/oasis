@@ -75,12 +75,15 @@ let tests =
          mk bsd4;
 
          "BSD-4-clause-1.0+",
-         mk ~v:(VersionOrLater (ver "1.0")) bsd4;
+         None;
         
          (* TODO: Test also BSD3 because it was a deprecated synonym BSD-3-clause, same for 
             BSD2. *)
 
          "BSD-3-clause",
+         mk bsd3;
+
+         "BSD3",
          mk bsd3;
 
          "GPL",

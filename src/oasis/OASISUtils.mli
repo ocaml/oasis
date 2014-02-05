@@ -39,9 +39,12 @@ val map_string_of_assoc: (string * 'a) list -> 'a MapString.t
 (** {2 Set} *)
 
 
-(** Set for String.
-  *)
+(** Set for String. *)
 module SetString: Set.S with type elt = String.t
+
+
+(** Set for String. *)
+module SetStringCsl: Set.S with type elt = String.t
 
 
 (** Add a string list to an existing Set. *)
