@@ -211,3 +211,13 @@ let dbug_file_content test_ctxt fn =
   logf test_ctxt `Info "%s" (file_content fn)
    *)
   ()
+
+
+(* Start a timer for [str]. *)
+let timer_start str =
+  Unix.gettimeofday (), str
+
+(* Stop a timer and output its data in the log. *)
+let timer_stop test_ctxt (time_start, str) =
+  logf test_ctxt `Info "Time spent in '%s': %fs"
+    str ((Unix.gettimeofday ()) -. time_start)

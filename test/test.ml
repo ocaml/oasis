@@ -30,11 +30,57 @@ open OUnit2
 open TestCommon
 
 
+let extract_timings () =
+  let log_fn j =
+    Filename.concat OUnitUtils.buildir
+      (Printf.sprintf "oUnit-OASIS-%s.log" (OUnitUtils.shardf j))
+  in
+  let () = prerr_endline (log_fn 0) in
+  let j = ref 0 in
+  let timings = Hashtbl.create 13 in
+  let () = ignore "(*(*" in
+  let rex = Pcre.regexp "Time spent in '(.*)': (.*)s" in
+  let total_time = ref 0.0 in
+  while Sys.file_exists (log_fn !j) do
+    let chn = open_in (log_fn !j) in
+      incr j;
+      try
+        while true do
+          let ln = input_line chn in
+            try
+              let substr = Pcre.exec ~rex ln in
+              let name = Pcre.get_substring substr 1 in
+              let time = float_of_string (Pcre.get_substring substr 2) in
+              let count', time' =
+                try
+                  Hashtbl.find timings name
+                with Not_found ->
+                  0, 0.0
+              in
+                total_time := !total_time +. time;
+                Hashtbl.replace timings name (count' + 1, time' +. time)
+            with Not_found ->
+              ()
+        done
+      with End_of_file ->
+        close_in chn
+  done;
+  Hashtbl.iter
+    (fun name (count, time) ->
+       Printf.printf
+         "Time spent in '%s':\n  % 7.2fs (% 3d time, % 6.2f%%, %5.2fs/call)\n"
+         name time count ((time /. !total_time) *. 100.0)
+         (time /. (float_of_int count)))
+
+    timings;
+  Printf.printf "Total time accounted: %fs\n" !total_time
+
 let () =
   let () =
     OASISBuiltinPlugins.init ()
   in
     run_test_tt_main
+      ~exit
       ("OASIS">:::
        [
          TestPropList.tests;
@@ -52,4 +98,5 @@ let () =
          TestDevFiles.tests;
          TestOCamlbuild.tests;
          TestSelfCompile.tests;
-       ])
+       ]);
+      extract_timings ()

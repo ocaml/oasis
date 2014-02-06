@@ -277,11 +277,13 @@ let rec precompile_setup_ml test_ctxt t =
   in
 
   let compile () =
+    let timer = timer_start "precompile_setup_ml" in
     let exit_code =
       FileUtil.cp ~force:FileUtil.Force [full_setup_ml] t.precompile_dir;
       Sys.command ("ocamlfind ocamlc -o "^setup_exe^" "
                    ^(Filename.concat t.precompile_dir setup_ml))
     in
+    timer_stop test_ctxt timer;
     if exit_code = 0 then begin
       (* Compilation succeed, update the digest *)
       logf test_ctxt `Info "Compilation of setup.ml succeeds.";
@@ -316,6 +318,7 @@ let rec precompile_setup_ml test_ctxt t =
 (* Run setup.ml *)
 let run_ocaml_setup_ml ?exit_code ?(extra_env=[]) test_ctxt t args =
   (* Speed up for testing, compile setup.ml *)
+  let timer = timer_start ("run_ocaml_setup_ml "^(List.hd args)) in
   let toplevel_path = try Sys.getenv "OCAML_TOPLEVEL_PATH"
                       with Not_found -> "" in
   let extra_env =
@@ -324,6 +327,7 @@ let run_ocaml_setup_ml ?exit_code ?(extra_env=[]) test_ctxt t args =
     :: ("OCAML_TOPLEVEL_PATH", toplevel_path)
     :: extra_env
   in
+  let () =
     match precompile_setup_ml test_ctxt t with
       | Some setup_exe ->
           assert_command ~ctxt:test_ctxt ?exit_code ~extra_env ~chdir:t.src_dir
@@ -331,6 +335,8 @@ let run_ocaml_setup_ml ?exit_code ?(extra_env=[]) test_ctxt t args =
       | None ->
           assert_command ~ctxt:test_ctxt ?exit_code ~extra_env ~chdir:t.src_dir
             "ocaml" ((in_src_dir t setup_ml) :: "-info" :: "-debug" :: args)
+  in
+    timer_stop test_ctxt timer
 
 
 (* Run a command after setting everything to run using binaries and libraries
@@ -595,6 +601,7 @@ let check_nothing_installed test_ctxt t id =
 (* Extract ocamlbuild flags and check that they are correct. *)
 let check_myocamlbuild_ml test_ctxt t =
   if Sys.file_exists (in_src_dir t "myocamlbuild.ml") then begin
+    let timer = timer_start "check_myocamlbuild_ml" in
     let () = dbug_file_content test_ctxt (in_src_dir t "myocamlbuild.ml") in
     let documentation_output =
       let buf = Buffer.create 16000 in
@@ -641,7 +648,8 @@ let check_myocamlbuild_ml test_ctxt t =
                          "flag %S contains %C which is illegal."
                          flag c))
              flag)
-        !rst
+        !rst;
+      timer_stop test_ctxt timer
   end
 
 
@@ -689,75 +697,79 @@ let check_tags test_ctxt t =
 
 (* Run oasis setup and fix generated files accordingly. *)
 let oasis_setup ?(dev=false) ?(dynamic=false) test_ctxt t =
-   (* Create build system using OASIS *)
-   assert_oasis_cli
-     ~ctxt:test_ctxt
-     ~chdir:t.src_dir
-     ("setup" ::
-      (if dev then
-         ["-real-oasis"; "-setup-update";
-          if dynamic then "dynamic" else "weak"]
-       else
-         []));
+  let timer = timer_start "oasis_setup" in
+    (* Create build system using OASIS *)
+    assert_oasis_cli
+      ~ctxt:test_ctxt
+      ~chdir:t.src_dir
+      ("setup" ::
+       (if dev then
+          ["-real-oasis"; "-setup-update";
+           if dynamic then "dynamic" else "weak"]
+        else
+          []));
+    timer_stop test_ctxt timer;
 
-   register_generated_files t [setup_ml];
+    register_generated_files t [setup_ml];
 
-   (* Fix #require in dynamic *)
-   if dynamic then begin
-     let load lst =
-       let cma =
-         FilePath.make_filename
-           ([FileUtil.pwd (); ".."; "_build"; "src"] @ lst)
-       in
-       Printf.sprintf "#load %S;;\n#directory %S;;" cma (Filename.dirname cma)
-     in
-     let orig_lst =
-       OASISString.nsplit
-         (file_content (in_src_dir t setup_ml))
-         '\n'
-     in
-     let fixed_lst =
-       List.fold_left
-         (fun fixed_lst line ->
-            match line with
-            | "#require \"oasis.dynrun\";;" ->
-                List.rev_append
-                  [
-                    "#require \"unix\";;";
-                    "#require \"odn\";;";
-                    "#require \"ocamlbuild\";;";
-                    (* TODO: problem with gettext when using --enable-gettext.
-                     *)
-                    "#require \"gettext.base\";;";
-                    load ["oasis"; "oasis.cma"];
-                    load ["base"; "base.cma"];
-                    load ["builtin-plugins.cma"];
-                    load ["dynrun"; "dynrun.cma"];
-                  ] fixed_lst
-            | "    let _str : string = Findlib.package_directory \
-                \"oasis.dynrun\" in" ->
-                (* For dynrun_for_release. *)
-                "    let _str : string = Findlib.package_directory \
-                \"unix\" in" :: fixed_lst
-            | line -> line :: fixed_lst)
-         [] orig_lst
-     in
-     let chn = open_out (in_src_dir t setup_ml) in
-       List.iter
-         (fun line ->
-            output_string chn line;
-            output_char chn '\n')
-         (List.rev fixed_lst);
-       close_out chn;
-       dbug_file_content test_ctxt (in_src_dir t setup_ml)
-   end;
+    (* Fix #require in dynamic *)
+    if dynamic then begin
+      let load lst =
+        let cma =
+          FilePath.make_filename
+            ([FileUtil.pwd (); ".."; "_build"; "src"] @ lst)
+        in
+        Printf.sprintf "#load %S;;\n#directory %S;;" cma (Filename.dirname cma)
+      in
+      let orig_lst =
+        OASISString.nsplit
+          (file_content (in_src_dir t setup_ml))
+          '\n'
+      in
+      let fixed_lst =
+        List.fold_left
+          (fun fixed_lst line ->
+             match line with
+             | "#require \"oasis.dynrun\";;" ->
+                 List.rev_append
+                   [
+                     "#require \"unix\";;";
+                     "#require \"odn\";;";
+                     "#require \"ocamlbuild\";;";
+                     (* TODO: problem with gettext when using --enable-gettext.
+                      *)
+                     "#require \"gettext.base\";;";
+                     load ["oasis"; "oasis.cma"];
+                     load ["base"; "base.cma"];
+                     load ["builtin-plugins.cma"];
+                     load ["dynrun"; "dynrun.cma"];
+                   ] fixed_lst
+             | "    let _str : string = Findlib.package_directory \
+                 \"oasis.dynrun\" in" ->
+                 (* For dynrun_for_release. *)
+                 "    let _str : string = Findlib.package_directory \
+                 \"unix\" in" :: fixed_lst
+             | line -> line :: fixed_lst)
+          [] orig_lst
+      in
+      let chn = open_out (in_src_dir t setup_ml) in
+        List.iter
+          (fun line ->
+             output_string chn line;
+             output_char chn '\n')
+          (List.rev fixed_lst);
+        close_out chn;
+        dbug_file_content test_ctxt (in_src_dir t setup_ml)
+    end;
 
-   check_all_files_style test_ctxt t.src_dir
+    check_all_files_style test_ctxt t.src_dir
 
 
 let standard_checks test_ctxt t =
-  check_generated_files t;
-  check_tags test_ctxt t
+  let timer = timer_start "standard_checks" in
+    check_generated_files t;
+    check_tags test_ctxt t;
+    timer_stop test_ctxt timer
 
 
 let standard_test test_ctxt t =
