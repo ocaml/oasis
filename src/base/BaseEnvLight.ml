@@ -91,26 +91,27 @@ let load ?(allow_empty=false) ?(filename=default_filename) () =
     end
 
 
-let var_get name env =
-  let rec var_expand str =
-    let buff =
-      Buffer.create ((String.length str) * 2)
-    in
-      Buffer.add_substitute
-        buff
-        (fun var ->
-           try
-             var_expand (MapString.find var env)
-           with Not_found ->
-             failwith
-               (Printf.sprintf
-                  "No variable %s defined when trying to expand %S."
-                  var
-                  str))
-        str;
-      Buffer.contents buff
+let rec var_expand str env =
+  let buff =
+    Buffer.create ((String.length str) * 2)
   in
-    var_expand (MapString.find name env)
+    Buffer.add_substitute
+      buff
+      (fun var ->
+         try
+           var_expand (MapString.find var env) env
+         with Not_found ->
+           failwith
+             (Printf.sprintf
+                "No variable %s defined when trying to expand %S."
+                var
+                str))
+      str;
+    Buffer.contents buff
+
+
+let var_get name env =
+  var_expand (MapString.find name env) env
 
 
 let var_choose lst env =

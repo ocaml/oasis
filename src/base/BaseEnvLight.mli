@@ -46,6 +46,9 @@ val default_filename: string
   *)
 val load: ?allow_empty:bool -> ?filename:string -> unit -> t
 
+(** Expand a variable, replacing $(X) by variable X recursively.
+  *)
+val var_expand: string -> t -> string
 
 (** Get a variable that evaluate expression that can be found in it (see
     [Buffer.add_substitute]).

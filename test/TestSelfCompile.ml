@@ -48,7 +48,12 @@ let tests =
          try 
            while true do 
              let fn = in_src_dir (input_line chn) in
-             let test fn' = OASISString.starts_with ~what:fn fn' in
+             let test fn' =
+               if Sys.file_exists fn && Sys.is_directory fn then
+                 OASISString.starts_with ~what:fn fn'
+               else
+                 fn = fn'
+             in
              rlst := test :: !rlst
            done;
          with End_of_file ->
@@ -76,10 +81,10 @@ let tests =
          files
      in
        (* Regenerate setup.ml and try to compile. *)
-       assert_oasis_cli ~ctxt:test_ctxt ~chdir:src_dir ["setup"];
-       assert_command ~ctxt:test_ctxt ~chdir:src_dir
+       assert_oasis_cli ~ctxt:test_ctxt ~chdir:tmpdir ["setup"];
+       assert_command ~ctxt:test_ctxt ~chdir:tmpdir
          "ocaml" ["setup.ml"; "-configure";
                   "--override"; "is_native"; string_of_bool (is_native test_ctxt);
                   "--override"; "native_dynlink"; string_of_bool (native_dynlink test_ctxt)];
-       assert_command ~ctxt:test_ctxt ~chdir:src_dir
+       assert_command ~ctxt:test_ctxt ~chdir:tmpdir
          "ocaml" ["setup.ml"; "-build"])

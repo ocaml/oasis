@@ -189,10 +189,14 @@ let dispatch t e =
             (* Add flags *)
             List.iter
             (fun (tags, cond_specs) ->
-               let spec =
-                 BaseEnvLight.var_choose cond_specs env
+               let spec = BaseEnvLight.var_choose cond_specs env in
+               let rec eval_specs =
+                 function
+                   | S lst -> S (List.map eval_specs lst)
+                   | A str -> A (BaseEnvLight.var_expand str env)
+                   | spec -> spec
                in
-                 flag tags & spec)
+                 flag tags & (eval_specs spec))
             t.flags
       | _ ->
           ()
