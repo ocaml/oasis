@@ -36,7 +36,7 @@ let tests =
   let test_of_vector (fn, content_lst, comment_fmt) =
     fn >::
     (fun test_ctxt ->
-       let real_fn = in_testdata_dir test_ctxt [fn] in
+       let real_fn = in_testdata_dir test_ctxt ["TestFileTemplate"; fn] in
        let tmpdir = bracket_tmpdir test_ctxt in
        let expected_fn = real_fn ^ "-exp" in
 

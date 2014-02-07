@@ -29,7 +29,7 @@ open OASISFileTemplate
 let tests =
   "Plugin OCamlbuild" >::
   (fun test_ctxt ->
-     let dn = in_testdata_dir test_ctxt ["ocamlbuild"; "missing-source"] in
+     let dn = in_testdata_dir test_ctxt ["TestOCamlbuild"; "missing-source"] in
      let fn = Filename.concat dn "_oasis" in
      let pkg = OASISParse.from_file ~ctxt:oasis_ctxt fn in
      let ctxt, _ =

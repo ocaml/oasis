@@ -91,7 +91,7 @@ let tests =
   let test_file_of_vector (fn, test) =
     fn >::
     (fun test_ctxt ->
-       check_one (in_testdata_dir test_ctxt [fn], test))
+       check_one (in_testdata_dir test_ctxt ["TestOASIS"; fn], test))
   in
 
   let test_value_parser_of_vector (str, value_parse, fail) =
@@ -291,7 +291,7 @@ let tests =
            "comment-in-field.oasis",
            ignore;
 
-           "bug571/_oasis",
+           "bug571.oasis",
            ignore;
 
            "test-freeform.oasis",
@@ -355,7 +355,7 @@ let tests =
            "test16.oasis",
            ignore;
 
-           "bug1239/_oasis",
+           "bug1239.oasis",
            (fun pkg ->
               let template_by_fn l fn =
                 try
@@ -442,7 +442,7 @@ let tests =
                     (* TODO: introduce oasis_ignore_plugin_ctxt *)
                     ~ctxt:{oasis_ctxt with
                                OASISContext.ignore_plugins = true}
-                    (in_testdata_dir test_ctxt ["test13.oasis"])
+                    (in_testdata_dir test_ctxt ["TestOASIS"; "test13.oasis"])
                 in
                   ()));
 
@@ -454,7 +454,7 @@ let tests =
                   (* TODO: introduce oasis_ignore_plugin_ctxt *)
                   ~ctxt:{oasis_ctxt with
                              OASISContext.ignore_plugins = true}
-                  (in_testdata_dir test_ctxt ["test13.oasis"])
+                  (in_testdata_dir test_ctxt ["TestOASIS"; "test13.oasis"])
               in
                assert_string "test15.oasis should fail to parse"
           with Failure _ ->

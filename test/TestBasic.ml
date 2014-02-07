@@ -38,7 +38,8 @@ let tests =
     (fun test_ctxt ->
        (* TODO: lock *)
        BaseEnv.unload ();
-       BaseEnv.load ~filename:(in_testdata_dir test_ctxt ["dir.data"]) ();
+       BaseEnv.load ~filename:(in_testdata_dir test_ctxt
+                                 ["TestBasic"; "dir.data"]) ();
        (* Reset lazy values ? *)
        assert_equal
          ~printer:(fun s -> s)

@@ -36,7 +36,7 @@ let tests =
   (fun test_ctxt ->
      let tmpdir = bracket_tmpdir test_ctxt in
      FileUtil.cp
-       [in_testdata_dir test_ctxt ["test-devfiles1.oasis"]]
+       [in_testdata_dir test_ctxt ["TestDevFiles"; "test-devfiles1.oasis"]]
        (Filename.concat tmpdir "_oasis");
      assert_oasis_cli ~ctxt:test_ctxt ["-C"; tmpdir; "setup"];
      if Sys.os_type <> "Win32" then

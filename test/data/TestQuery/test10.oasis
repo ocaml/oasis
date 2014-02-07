@@ -1,0 +1,18 @@
+Name:         oasis
+Version:      0.0.1
+OASISFormat:  0.1
+Synopsis:     Just a test
+Synopsis+:    with extra text
+License:      GPL
+LicenseFile:  LICENSE
+Authors:      Sylvain Le Gall
+Authors+:     Another one
+
+Flag "test"
+  Description: this is a test
+  Default$: os_type(win32)
+
+Test main
+  Command: main
+  if flag(test)
+    Command+: -test

@@ -46,7 +46,8 @@ let tests =
            ~ctxt:test_ctxt
            ~output:((String.concat "\n" a)^"\n")
            ~unorder:true
-           (["-quiet"; "query"; "-oasis"; in_testdata_dir test_ctxt [fn]] @ q))
+           (["-quiet"; "query"; "-oasis";
+             in_testdata_dir test_ctxt ["TestQuery"; fn]] @ q))
   in
 
     "query" >:::

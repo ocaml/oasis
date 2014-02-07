@@ -1,0 +1,24 @@
+OASISFormat: 0.1
+Name:        test
+Version:     0
+Synopsis:    test
+Authors:     me
+License:     GPL
+BuildTools:  ocamlbuild
+
+Executable test
+  Path:    ./
+  MainIs: A.ml
+  ByteOpt: -package num
+  BuildDepends: oUnit
+  CompiledObject: byte
+  Install: false
+
+Executable "test-opt"
+  Path: ./
+  Build$: flag(is_native)
+  MainIs: A.ml
+  NativeOpt: -package num
+  BuildDepends: oUnit
+  CompiledObject: native
+  Install: false

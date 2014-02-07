@@ -1,0 +1,62 @@
+Name:         oasis
+Version:      0.0.1
+OASISFormat:  0.1
+Synopsis:     Just a test
+License:      GPL
+LicenseFile:  LICENSE
+Authors:      Sylvain Le Gall
+BuildType:    None (0.2)
+BuildDepends: oUnit (>= 0.1.2), benchmark (>= 0.6)
+Description:
+ This is a test to check that everything is working great
+ with this kind of parser.
+ .
+ Coucou.
+
+Flag devmod
+  Description: build for developper
+  Default: false
+
+# Only available on i386
+Flag ostest
+  Description: Test on OS
+  Default: false
+  if system(hurd) && architecture(i386)
+    Default: true
+
+Flag linuxtest64
+  Description: Linux 64bits only
+  Default: false
+  if system(linux) && architecture(amd64)
+    Default: true
+  else
+    Default: false
+
+Flag linuxtest32
+  Description: Linux 32bits only
+  Default: false
+  if system(linux_elf) && architecture(i386)
+    Default: true
+
+Library toto
+  Path: src/stuff
+  if architecture(amd64)
+    Build: true
+
+  if architecture(amd64)
+    Build: false
+  else
+    Build: true
+
+  if flag(linuxtest32) || flag(linuxtest64) || flag(ostest)
+    Build: false
+  else
+    Build: true
+
+Library stuff
+  Path: src/stuff
+  Modules: A, B, C
+
+Executable toto
+  Path: src
+  MainIs: toto.ml

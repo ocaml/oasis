@@ -430,7 +430,7 @@ let gen_tests ~is_native () =
     (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["1level"]
+         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "1level"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -463,7 +463,8 @@ let gen_tests ~is_native () =
        (* TODO: check custom install as well. *)
        let () = skip_long_test test_ctxt in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["customdoc"]
+         setup_test_directories test_ctxt in_testdata_dir
+           ["TestFull"; "customdoc"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -488,7 +489,8 @@ let gen_tests ~is_native () =
            "Cannot find 'stringprep.h'"
        in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["with-cclib"]
+         setup_test_directories test_ctxt in_testdata_dir
+           ["TestFull"; "with-cclib"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -509,7 +511,8 @@ let gen_tests ~is_native () =
     (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["no-install-doc"]
+         setup_test_directories test_ctxt in_testdata_dir
+           ["TestFull"; "no-install-doc"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -522,7 +525,8 @@ let gen_tests ~is_native () =
     (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["create-parent-dir"]
+         setup_test_directories test_ctxt in_testdata_dir
+           ["TestFull"; "create-parent-dir"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -550,7 +554,7 @@ let gen_tests ~is_native () =
              "Cannot find package bitstring"
        in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["bug588"]
+         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug588"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -564,7 +568,7 @@ let gen_tests ~is_native () =
     (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["bug619"]
+         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug619"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -576,7 +580,7 @@ let gen_tests ~is_native () =
     (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["bug571"]
+         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug571"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -593,7 +597,8 @@ let gen_tests ~is_native () =
            "zlib not installed"
        in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["flag-ccopt"]
+         setup_test_directories test_ctxt in_testdata_dir
+           ["TestFull"; "flag-ccopt"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -606,7 +611,7 @@ let gen_tests ~is_native () =
     (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["bug738"]
+         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug738"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -624,7 +629,7 @@ let gen_tests ~is_native () =
          skip_if (Sys.os_type = "Win32") "UNIX only test"
        in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["bug982"]
+         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug982"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -639,7 +644,7 @@ let gen_tests ~is_native () =
          skip_if (Sys.os_type = "Win32") "UNIX only test"
        in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["bug823"]
+         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug823"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -651,7 +656,8 @@ let gen_tests ~is_native () =
     (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["bugClib"]
+         setup_test_directories test_ctxt in_testdata_dir
+           ["TestFull"; "bugClib"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -676,7 +682,7 @@ let gen_tests ~is_native () =
     (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["bug791"]
+         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug791"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -717,7 +723,7 @@ let gen_tests ~is_native () =
          skip_if (Sys.os_type = "Win32") "UNIX test"
        in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["bug938"]
+         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug938"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -732,7 +738,7 @@ let gen_tests ~is_native () =
     "TEMP=a b" >::
     (fun test_ctxt ->
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["bug571"]
+         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug571"]
        in
        let tmpdir = bracket_tmpdir test_ctxt in
        let dn = Filename.concat tmpdir "a b" in
@@ -757,7 +763,7 @@ let gen_tests ~is_native () =
          skip_if (Sys.os_type = "Win32") "UNIX test"
        in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["dev"]
+         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "dev"]
        in
          (* Copy initial version of the _oasis. *)
          cp [in_src_dir t "_oasis.v1"] (in_src_dir t "_oasis");
@@ -780,7 +786,7 @@ let gen_tests ~is_native () =
     "setup with dev mode (light)">::
     (fun test_ctxt ->
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["dev"]
+         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "dev"]
        in
          (* Copy initial version of the _oasis. *)
          cp [in_src_dir t "_oasis.v2"] (in_src_dir t "_oasis");
@@ -809,7 +815,7 @@ let gen_tests ~is_native () =
     (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["dev"]
+         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "dev"]
        in
          (* Copy initial version of the _oasis. *)
          cp [in_src_dir t "_oasis.v1"] (in_src_dir t "_oasis");
@@ -833,7 +839,7 @@ let gen_tests ~is_native () =
     (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["ver0.3"]
+         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "ver0.3"]
        in
        let doc_done_fn = in_src_dir t "doc-done" in
        let test_done_fn = in_src_dir t "test-done" in
@@ -871,7 +877,8 @@ let gen_tests ~is_native () =
     "bug1358">::
     (fun test_ctxt ->
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["bug1358"]
+         setup_test_directories test_ctxt in_testdata_dir
+           ["TestFull"; "bug1358"]
        in
        let () =
          skip_if
@@ -887,7 +894,8 @@ let gen_tests ~is_native () =
     "dynrun_for_release">::
     (fun test_ctxt ->
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["dynrun_for_release"]
+         setup_test_directories test_ctxt in_testdata_dir
+           ["TestFull"; "dynrun_for_release"]
        in
          oasis_setup ~dev:true ~dynamic:true test_ctxt t;
          (* Setup expectation. *)
