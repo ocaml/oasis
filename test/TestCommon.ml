@@ -212,7 +212,6 @@ let dbug_file_content test_ctxt fn =
    *)
   ()
 
-
 (* Start a timer for [str]. *)
 let timer_start str =
   Unix.gettimeofday (), str
