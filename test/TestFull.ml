@@ -382,6 +382,32 @@ let gen_tests ~is_native () =
          (* Run standard test. *)
          standard_test test_ctxt t);
 
+    "examples/syntax-camlp4" >::
+    (fun test_ctxt ->
+(*        let () = skip_long_test test_ctxt in *)
+       let t =
+         setup_test_directories test_ctxt in_example_dir ["syntax-camlp4"]
+       in
+         oasis_setup test_ctxt t;
+         (* Setup expectation. *)
+         register_generated_files t
+           (oasis_ocamlbuild_files @
+            [
+              "src/META";
+              "src/pi.mllib";
+            ]);
+         register_installed_files test_ctxt t
+           [
+             InstalledOCamlLibrary
+               ("syntax-camlp4",
+                ["META"; "pi.ml"; "pi.cmi"; "pi.cma";
+                 "pi.cmx"; "pi.cmxa"; "pi.cmxs";
+                 "pi.a"]);
+           ];
+         (* Run standard test. *)
+         standard_test test_ctxt t);
+
+
     (* Single level package *)
     "1level" >::
     (fun test_ctxt ->

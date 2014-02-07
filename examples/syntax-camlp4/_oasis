@@ -1,0 +1,16 @@
+OASISFormat: 0.4
+Name:        syntax-camlp4
+Version:     0.1
+Synopsis:    Camlp4 syntax extension example.
+Authors:     Sylvain Le Gall
+License:     LGPL-2.1 with OCaml linking exception
+Plugins:     META (0.4)
+
+Library pi
+  Path:       src
+  BuildTools: ocamlbuild
+  Modules:    Pi
+  XMETAType: syntax
+  FindlibContainers: syntax-camlp4
+  FindlibName: syntax
+  BuildDepends: camlp4.extend, camlp4.quotations.o

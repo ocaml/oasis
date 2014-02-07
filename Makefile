@@ -28,7 +28,6 @@ CONFIGUREFLAGS += --override ocamlbuildflags -classic-display --enable-tests
 default: test
 
 #TESTFLAGS=-only-test "OASIS:1:OASIS:1:File:18:Examples"
-#TESTFLAGS=-chooser failfirst
 
 # OASIS_START
 # DO NOT EDIT (digest: 7b2408909643717852b95f994b273fee)

@@ -29,6 +29,7 @@ let tests =
   "SelfCompile" >:
   (test_case ~length:OUnitTest.Long
     (fun test_ctxt ->
+       let () = skip_long_test test_ctxt in
        let pwd = FileUtil.pwd () in
        let src_dir = Filename.dirname pwd in
        let in_src_dir fn = Filename.concat src_dir fn in

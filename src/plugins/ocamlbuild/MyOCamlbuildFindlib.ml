@@ -89,6 +89,22 @@ let find_packages () =
 let find_syntaxes () = ["camlp4o"; "camlp4r"]
 
 
+let well_known_syntax = [
+  "camlp4.quotations.o";
+  "camlp4.quotations.r";
+  "camlp4.exceptiontracer";
+  "camlp4.extend";
+  "camlp4.foldgenerator";
+  "camlp4.listcomprehension";
+  "camlp4.locationstripper";
+  "camlp4.macro";
+  "camlp4.mapgenerator";
+  "camlp4.metagenerator";
+  "camlp4.profiler";
+  "camlp4.tracer"
+]
+
+
 let dispatch =
   function
     | Before_options ->
@@ -114,13 +130,17 @@ let dispatch =
         List.iter
           begin fun pkg ->
             let base_args = [A"-package"; A pkg] in
+            (* TODO: consider how to really choose camlp4o or camlp4r. *)
             let syn_args = [A"-syntax"; A "camlp4o"] in
             let args =
-        (* Heuristic to identify syntax extensions: whether they end in
-         * ".syntax"; some might not *)
-              if Filename.check_suffix pkg "syntax"
-              then syn_args @ base_args
-              else base_args
+            (* Heuristic to identify syntax extensions: whether they end in
+               ".syntax"; some might not.
+             *)
+              if Filename.check_suffix pkg "syntax" ||
+                 List.mem pkg well_known_syntax then
+                syn_args @ base_args
+              else
+                base_args
             in
             flag ["ocaml"; "compile";  "pkg_"^pkg] & S args;
             flag ["ocaml"; "ocamldep"; "pkg_"^pkg] & S args;
