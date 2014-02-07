@@ -257,21 +257,14 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
                 ("archive", ["syntax"; "preprocessor"], archive_byte);
               pp_print_field fmt
                 ("archive", ["syntax"; "toploop"], archive_byte);
-              pp_print_field fmt
-                ("archive", ["syntax"; "byte"], archive_byte);
-              may
-                (fun x ->
-                   pp_print_field fmt
-                     ("archive", ["syntax"; "byte"; "plugin"], x))
-                archive_byte_plugin;
               begin match bs.bs_compiled_object with
               | Best | Native ->
                   pp_print_field fmt
-                    ("archive", ["syntax"; "native"], archive_native);
+                    ("archive", ["syntax"; "preprocessor"; "native"], archive_native);
                   may
                     (fun x ->
                        pp_print_field fmt
-                         ("archive", ["syntax"; "native"; "plugin"], x))
+                         ("archive", ["syntax"; "preprocessor"; "native"; "plugin"], x))
                     archive_native_plugin;
               | Byte ->
                     ()
