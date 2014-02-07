@@ -407,12 +407,16 @@ let assert_command_with_ocaml_env  ?exit_code test_ctxt t cmd args =
 let try_installed_exec ?exit_code test_ctxt t cmd args =
   assert_command_with_ocaml_env test_ctxt ?exit_code t cmd args
 
+(* Compile with the given package. *)
+let assert_compile test_ctxt t pkg cmd args =
+  assert_command_with_ocaml_env test_ctxt t
+    "ocamlfind" (cmd :: "-package" :: pkg :: args)
 
 (* Try to run an installed library. *)
 let try_installed_library test_ctxt t pkg modules =
   (* Create a file that contains every modules *)
   let srcdir = bracket_tmpdir test_ctxt in
-  let fn = FilePath.concat srcdir ("testZZZ.ml") in
+  let fn = FilePath.concat srcdir "testZZZ.ml" in
   let () =
     (* Fill the file with open statement *)
     let chn_out =
@@ -424,27 +428,38 @@ let try_installed_library test_ctxt t pkg modules =
       close_out chn_out
   in
 
-  let assert_compile cmd args =
-    assert_command_with_ocaml_env test_ctxt t
-      "ocamlfind" (cmd :: "-package" :: pkg :: args)
-  in
+  let exec_byte = FilePath.replace_extension fn "byte" in
+  let exec_native = FilePath.replace_extension fn "native" in
     (* Library + bytecode compilation *)
-    assert_compile
+    assert_compile test_ctxt t pkg
       "ocamlc" ["-a"; "-o"; FilePath.replace_extension fn "cma"; fn];
 
     (* Program + bytecode compilation *)
-    assert_compile
-      "ocamlc" ["-o"; FilePath.replace_extension fn "byte"; fn];
+    assert_compile test_ctxt t pkg
+      "ocamlc" ["-o"; exec_byte; "-linkpkg"; fn];
 
     if t.is_native then begin
       (* Library + native compilation *)
-      assert_compile
+      assert_compile test_ctxt t pkg
         "ocamlopt" ["-a"; "-o"; FilePath.replace_extension fn "cmxa"; fn];
 
       (* Program + native compilation *)
-      assert_compile
-        "ocamlopt" ["-o"; FilePath.replace_extension fn "native"; fn];
+      assert_compile test_ctxt t pkg
+        "ocamlopt" ["-o"; exec_native; "-linkpkg"; fn];
     end
+
+
+let contains_string fn str =
+  let rex = Pcre.regexp (Pcre.quote str) in
+  let has_string = ref false in
+  let chn = open_in fn in
+    Pcre.foreach_line
+      ~ic:chn
+      (fun l ->
+         if not !has_string then
+           has_string := Pcre.pmatch ~rex l);
+    close_in chn;
+    !has_string
 
 
 (* Files generated when ocamlbuild buildsys is used *)

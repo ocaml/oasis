@@ -384,10 +384,11 @@ let gen_tests ~is_native () =
 
     "examples/syntax-camlp4" >::
     (fun test_ctxt ->
-(*        let () = skip_long_test test_ctxt in *)
+       let () = skip_long_test test_ctxt in
        let t =
          setup_test_directories test_ctxt in_example_dir ["syntax-camlp4"]
        in
+       let () =
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
          register_generated_files t
@@ -405,7 +406,23 @@ let gen_tests ~is_native () =
                  "pi.a"]);
            ];
          (* Run standard test. *)
-         standard_test test_ctxt t);
+         standard_test test_ctxt t;
+         try_installed_library test_ctxt t "syntax-camlp4.syntax" []
+       in
+       (* Check what happens when link all is set. *)
+       let srcdir = bracket_tmpdir test_ctxt in
+       let fn = FilePath.concat srcdir "foo.ml" in
+       let exec_byte = FilePath.replace_extension fn "byte" in
+         FileUtil.cp
+           [in_example_dir test_ctxt
+              ["syntax-camlp4"; "test"; "data"; "foo.ml"]]
+           fn;
+         assert_compile test_ctxt t "syntax-camlp4.syntax"
+           "ocamlc" ["-o"; exec_byte;
+                     "-linkall"; "-linkpkg"; "-syntax"; "camlp4o"; fn];
+         assert_bool
+           ("Executable is not linked with camlp4")
+           (not (contains_string fn "Camlp4")));
 
 
     (* Single level package *)
