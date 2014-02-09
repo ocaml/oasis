@@ -96,71 +96,8 @@ headache:
 
 .PHONY: headache
 
-# Binary distribution
-# TODO: delegate this to a jenkins builder.
-
-BINDIST_DEBUG=false
-
-bindist:
-	if ! $(BINDIST_DEBUG); then $(SETUP) -distclean; fi
-	$(SETUP) -configure
-	$(MAKE) bindist-step2 BINDIST_CUSTOM=true
-
--include setup.data
-BINDISTDIR=$(CURDIR)/bindist
-BINDIR=$(BINDISTDIR)/bin-$(system)-$(architecture)
-
-
-ifeq ($(os_type),"Win32")
-tr_path = cygpath -w
-else
-tr_path = echo
-endif
-
-BINDISTGZ=$(pkg_name)-$(pkg_version)-bindist.tar.gz
-
-bindist-step2:
-	if ! $(BINDIST_DEBUG); then $(SETUP) -distclean; fi
-	if test -d $(BINDISTDIR); then $(RM) -r $(BINDISTDIR); fi
-	if test -e $(BINDISTGZ); then tar xzf $(BINDISTGZ); fi
-	mkdir -p "$(BINDISTDIR)"
-	mkdir -p "$(BINDISTDIR)/share/doc"
-	mkdir -p "$(BINDIR)"
-	$(SETUP) -configure \
-	  --prefix "$$($(tr_path) $(BINDISTDIR))" \
-	  --bindir "$$($(tr_path) $(BINDIR))" \
-	  --docdir "$$($(tr_path) $(BINDISTDIR)/share/doc)" \
-	  --disable-libraries \
-	  --override ocamlbuildflags "-classic-display -tag custom" \
-	  $(CONFIGUREFLAGS)
-	$(SETUP) -build
-	if ! $(BINDIST_DEBUG); then $(SETUP) -test; fi
-	if ! [ "$(os_type)" = "Win32" ]; then $(SETUP) -doc; fi
-	$(SETUP) -install
-	tar czf $(BINDISTGZ) bindist
-	-$(RM) -r $(BINDISTDIR)
-
-.PHONY: bindist bindist-step2
-
-# Source distribution
-# TODO: consider removing in favor of deploy
-
-dist:
-#	Check consistency of versions
-	OASIS_CMD_VER=$$(oasis version); \
-	OASIS_DIST_VER=$$(oasis query version); \
-	OASIS_SETUP_VER=$$($(SETUP) -version); \
-	if [ "x$$OASIS_CMD_VER" != "x$$OASIS_DIST_VER" ]; then \
-		echo "Must be running the same version of oasis as the one being built" >&2; \
-		exit 1; \
-	fi; \
-	if [ "x$$OASIS_SETUP_VER" != "x$$OASIS_DIST_VER" ]; then \
-		echo "Must be running the have used the same version for setup.ml  as the one being built" >&2; \
-		exit 1; \
-	fi
-	./src/tools/oasis-dist.ml
-
-.PHONY: dist
+# Doc targets
+#  Build documentation and pack them in a tarball.
 
 doc-dist: doc
 	./doc-dist.sh
