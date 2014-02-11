@@ -35,7 +35,6 @@ let extract_timings () =
     Filename.concat OUnitUtils.buildir
       (Printf.sprintf "oUnit-OASIS-%s.log" (OUnitUtils.shardf j))
   in
-  let () = prerr_endline (log_fn 0) in
   let j = ref 0 in
   let timings = Hashtbl.create 13 in
   let () = ignore "(*(*" in
