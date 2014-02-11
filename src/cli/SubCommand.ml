@@ -30,7 +30,9 @@ let plugin_cli_t () =
   {
     PluginLoader.
     system = "oasis-cli";
-    msg    = !BaseContext.default.OASISContext.printf
+    msg =
+      (fun lvl str ->
+         OASISMessage.generic_message ~ctxt:!BaseContext.default lvl "%s" str)
   }
 
 
@@ -116,7 +118,6 @@ let register_plugin t =
         findlib_name = "<none>";
         name = t.scmd_name;
         synopsis = Some t.scmd_synopsis;
-        description = None;
         version = None
       }
     in
@@ -153,9 +154,14 @@ let list_plugin () =
 
 
 let list_builtin () =
-  Hashtbl.fold
-    (fun _ v acc ->
-       match v with
-         | Builtin t -> t :: acc
-         | Plugin(e, _) -> acc)
-    all []
+  let lst =
+    Hashtbl.fold
+      (fun _ v acc ->
+         match v with
+           | Builtin t -> t :: acc
+           | Plugin(e, _) -> acc)
+      all []
+  in
+    List.sort
+      (fun scmd1 scmd2 -> String.compare scmd1.scmd_name scmd2.scmd_name)
+      lst

@@ -76,7 +76,7 @@ type help_style =
   | Output
 
 
-let pp_print_help hext hsty fmt () =
+let pp_print_help ignore_plugins hext hsty fmt () =
 
   (* Print with a precise length *)
   let pp_print_justified sz fmt str =
@@ -156,25 +156,75 @@ let pp_print_help hext hsty fmt () =
   in
 
   let pp_print_scmds fmt () =
-    let scmds = SubCommand.list_builtin () in
+    let scmds =
+      List.map
+        (fun scmd -> scmd.scmd_name, `Subcommand scmd)
+        (SubCommand.list_builtin ())
+    in
+    let plugin_scmds =
+      if not ignore_plugins then
+        List.map
+          (fun plugin -> plugin.PluginLoader.name, `Plugin plugin)
+          (SubCommand.list_plugin ())
+      else
+        []
+    in
+    let all_scmds =
+      List.sort
+        (fun (nm1, _) (nm2, _) -> String.compare nm1 nm2)
+        (List.rev_append scmds plugin_scmds)
+    in
     let sz =
+      (* Compute max size of the name. *)
       List.fold_left
-        (fun sz c ->
-           max sz (String.length c.scmd_name))
-        0 scmds
+        (fun sz (nm, c) ->
+           max sz (String.length nm))
+        0 all_scmds
+    in
+    let plugin_synopsis plg =
+      match plg.PluginLoader.synopsis with
+        | Some e -> e
+        | None -> "No synopsis"
+    in
+    let plugin_markdown_data plg =
+      let lst =
+        match plg.PluginLoader.version with
+          | Some v -> ["Version: "^v]
+          | None -> []
+      in
+        (plugin_synopsis plg) ::
+        ("Findlib: "^plg.PluginLoader.findlib_name) ::
+        lst
+    in
+    let plugin_output_data plg =
+      let findlib_name = plg.PluginLoader.findlib_name in
+      let synopsis = plugin_synopsis plg in
+      match plg.PluginLoader.version with
+        | Some ver_str ->
+            Printf.sprintf "%s (%s v%s)" synopsis findlib_name ver_str
+        | None ->
+            Printf.sprintf "%s (%s)" synopsis findlib_name
     in
       pp_print_para fmt (s_ "Available subcommands:");
-
       List.iter
-        (fun c ->
-           match hsty with
-             | Markdown ->
-                 pp_print_def fmt ("`"^c.scmd_name^"`")
-                   [pp_print_string_spaced, c.scmd_synopsis]
-             | Output ->
+        (fun (name, e) ->
+           match hsty, e with
+             | Markdown, `Subcommand scmd  ->
+                 pp_print_def fmt ("`"^name^"`")
+                   [pp_print_string_spaced, scmd.scmd_synopsis]
+             | Markdown, `Plugin plg ->
+                 pp_print_def fmt ("`"^name^"`")
+                   (List.map
+                      (fun s -> pp_print_string_spaced, s)
+                      (plugin_markdown_data plg))
+             | Output, `Subcommand scmd ->
                  pp_print_output_def
-                   sz fmt (c.scmd_name, c.scmd_synopsis))
-        scmds;
+                   sz fmt (name, scmd.scmd_synopsis)
+             | Output, `Plugin plg ->
+                 pp_print_output_def
+                   sz fmt
+                   (name, plugin_output_data plg))
+        all_scmds;
       if hsty = Output then
         pp_print_newline fmt ()
   in
@@ -208,6 +258,7 @@ let pp_print_help hext hsty fmt () =
       end
   in
 
+    (* Write general introduction. *)
     begin
       match hext with
         | NoSubCommand | AllSubCommand ->
@@ -229,6 +280,7 @@ let pp_print_help hext hsty fmt () =
             ()
     end;
 
+    (* Write body, focusing on specific command selected. *)
     begin
       match hext with
         | NoSubCommand ->
@@ -259,7 +311,8 @@ let parse () =
          ""
          ""
          (fun () ->
-            pp_print_help NoSubCommand Output err_formatter ();
+            pp_print_help
+              !ArgCommon.ignore_plugins NoSubCommand Output err_formatter ();
             failwith
               (s_ "No subcommand defined, call 'oasis help' for help")))
   in
@@ -289,12 +342,14 @@ let parse () =
     in
       match exc with
         | Arg.Bad txt ->
-            pp_print_help hext Output err_formatter ();
+            pp_print_help
+              !ArgCommon.ignore_plugins hext Output err_formatter ();
             prerr_newline ();
             prerr_endline (get_bad txt);
             exit 2
         | Arg.Help txt ->
-            pp_print_help hext Output std_formatter ();
+            pp_print_help
+              !ArgCommon.ignore_plugins hext Output std_formatter ();
             exit 0
         | e ->
             raise e

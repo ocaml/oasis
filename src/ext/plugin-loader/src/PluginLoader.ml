@@ -116,7 +116,6 @@ type entry =
       findlib_name: string;
       name: string;
       synopsis: string option;
-      description: string option;
       version: string option;
     }
 
@@ -246,7 +245,6 @@ let list t =
                      findlib_name = pkg_str;
                      name = default_lookup_str "plugin_name" pkg_str;
                      synopsis = default_lookup "plugin_synopsis";
-                     description = default_lookup "plugin_description";
                      version = default_lookup "version";
                    }
                  in

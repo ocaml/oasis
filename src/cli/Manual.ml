@@ -56,7 +56,8 @@ let main () =
       fmt
 
       (* CLI help *)
-      (ArgExt.pp_print_help ArgExt.AllSubCommand ArgExt.Markdown)
+      (ArgExt.pp_print_help
+         !ArgCommon.ignore_plugins ArgExt.AllSubCommand ArgExt.Markdown)
 
       (* Fields from schema *)
       BaseEnv.schema

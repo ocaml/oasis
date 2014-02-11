@@ -69,14 +69,7 @@ let main () =
                            e.name synopsis
                  end;
                  if !long then
-                   begin
-                     Printf.printf (f_ "Findlib name: %s\n") e.findlib_name;
-                     match e.description with
-                       | Some str ->
-                           Printf.printf (f_ "Description:\n%s\n") str
-                       | None ->
-                           ()
-                   end;
+                   Printf.printf (f_ "Findlib name: %s\n") e.findlib_name;
                  Printf.printf "%!")
             lst
   in

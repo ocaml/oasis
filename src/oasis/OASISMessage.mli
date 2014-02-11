@@ -31,6 +31,13 @@
     @author Sylvain Le Gall
   *)
 
+(** Generic message.
+  *)
+val generic_message:
+  ctxt:OASISContext.t ->
+  [`Debug|`Info|`Warning|`Error] ->
+  ('a, unit, string, unit) format4 -> 'a
+
 
 (** Print a debug message.
   *)

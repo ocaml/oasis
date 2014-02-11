@@ -38,11 +38,11 @@ let main () =
   let pp_print_help =
     match !scmd_name with
       | None ->
-          pp_print_help NoSubCommand
+          pp_print_help !ArgCommon.ignore_plugins NoSubCommand
       | Some "all" ->
-          pp_print_help AllSubCommand
+          pp_print_help !ArgCommon.ignore_plugins AllSubCommand
       | Some nm ->
-          pp_print_help (SubCommand nm)
+          pp_print_help !ArgCommon.ignore_plugins (SubCommand nm)
   in
   let pager, fmt =
     Pager.open_out ()

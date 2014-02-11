@@ -33,6 +33,7 @@ type level =
 
 type t =
   {
+    (* TODO: replace this by a proplist. *)
     quiet:                 bool;
     info:                  bool;
     debug:                 bool;
