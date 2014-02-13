@@ -27,7 +27,7 @@
 
 open OASISGettext
 open BaseMessage
-open SubCommand
+open CLISubCommand
 open OASISUtils
 open Format
 open FormatExt
@@ -159,13 +159,13 @@ let pp_print_help ignore_plugins hext hsty fmt () =
     let scmds =
       List.map
         (fun scmd -> scmd.scmd_name, `Subcommand scmd)
-        (SubCommand.list_builtin ())
+        (CLISubCommand.list_builtin ())
     in
     let plugin_scmds =
       if not ignore_plugins then
         List.map
           (fun plugin -> plugin.PluginLoader.name, `Plugin plugin)
-          (SubCommand.list_plugin ())
+          (CLISubCommand.list_plugin ())
       else
         []
     in
@@ -289,13 +289,13 @@ let pp_print_help ignore_plugins hext hsty fmt () =
         | SubCommand nm ->
             pp_print_scmd fmt
               ~global_options:true
-              (SubCommand.find nm)
+              (CLISubCommand.find nm)
 
         | AllSubCommand ->
             List.iter
               (fun scmd ->
                  pp_print_scmd fmt ~global_options:false scmd)
-              (SubCommand.list_builtin ())
+              (CLISubCommand.list_builtin ())
     end
 
 
@@ -306,13 +306,13 @@ let parse () =
 
   let scmd =
     ref
-      (SubCommand.make
+      (CLISubCommand.make
          (s_ "none")
          ""
          ""
          (fun () ->
             pp_print_help
-              !ArgCommon.ignore_plugins NoSubCommand Output err_formatter ();
+              !CLICommon.ignore_plugins NoSubCommand Output err_formatter ();
             failwith
               (s_ "No subcommand defined, call 'oasis help' for help")))
   in
@@ -322,7 +322,7 @@ let parse () =
   in
 
   let set_scmd s =
-    scmd := SubCommand.find s;
+    scmd := CLISubCommand.find s;
 
     (* Get the rest of arguments *)
     scmd_args :=
@@ -343,13 +343,13 @@ let parse () =
       match exc with
         | Arg.Bad txt ->
             pp_print_help
-              !ArgCommon.ignore_plugins hext Output err_formatter ();
+              !CLICommon.ignore_plugins hext Output err_formatter ();
             prerr_newline ();
             prerr_endline (get_bad txt);
             exit 2
         | Arg.Help txt ->
             pp_print_help
-              !ArgCommon.ignore_plugins hext Output std_formatter ();
+              !CLICommon.ignore_plugins hext Output std_formatter ();
             exit 0
         | e ->
             raise e

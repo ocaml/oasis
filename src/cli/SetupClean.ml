@@ -26,7 +26,7 @@
   *)
 
 
-open SubCommand
+open CLISubCommand
 open OASISGettext
 open OASISFileTemplate
 open OASISPlugin
@@ -42,11 +42,11 @@ let main () =
     begin
       let ctxt, _ =
         BaseSetup.of_package
-          ~oasis_fn:!ArgCommon.oasis_fn
+          ~oasis_fn:!CLICommon.oasis_fn
           ~setup_update:false
           (OASISParse.from_file
              ~ctxt:!BaseContext.default
-             !ArgCommon.oasis_fn)
+             !CLICommon.oasis_fn)
       in
         OASISFileTemplate.fold
           (fun tmpl () ->
@@ -70,7 +70,7 @@ let main () =
 
 
 let scmd =
-  {(SubCommand.make
+  {(CLISubCommand.make
       ~std_usage:true
       "setup-clean"
       (s_ "Clean all template files from their content")
@@ -87,5 +87,5 @@ let scmd =
 
 
 let () =
-  SubCommand.register_builtin scmd
+  CLISubCommand.register_builtin scmd
 

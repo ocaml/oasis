@@ -32,7 +32,7 @@ open OASISUtils
 open OASISPlugin
 open OASISBuiltinPlugins
 open BaseMessage
-open SubCommand
+open CLISubCommand
 open Format
 open FormatExt
 
@@ -54,11 +54,11 @@ let () =
   try
     let () =
       OASISBuiltinPlugins.init ();
-      SubCommand.init ();
-      SubCommand.freeze ()
+      CLISubCommand.init ();
+      CLISubCommand.freeze ()
     in
     let main =
-      ArgExt.parse ()
+      CLIArgExt.parse ()
     in
       main ()
   with e ->

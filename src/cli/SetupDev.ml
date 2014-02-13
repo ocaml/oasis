@@ -26,7 +26,7 @@
   *)
 
 
-open SubCommand
+open CLISubCommand
 open OASISGettext
 
 
@@ -35,7 +35,7 @@ let main () =
 
 
 let scmd =
-  {(SubCommand.make
+  {(CLISubCommand.make
       ~std_usage:true
       "setup-dev"
       (s_ "Translate _oasis into a build system that auto-update (deprecated).")
@@ -58,8 +58,8 @@ let scmd =
              Arg.Set (ref false),
              s_ " When generating the build system, keep only setup.ml and \
                   delete other generated files.";
-           ] @ ArgCommon.oasis_fn_specs)}
+           ] @ CLICommon.oasis_fn_specs)}
 
 
 let () =
-  SubCommand.register_builtin scmd
+  CLISubCommand.register_builtin scmd

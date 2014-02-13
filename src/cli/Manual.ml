@@ -26,7 +26,7 @@
   *)
 
 
-open SubCommand
+open CLISubCommand
 open OASISGettext
 
 
@@ -46,18 +46,18 @@ let main () =
 
       | None ->
           let pager, fmt =
-            Pager.open_out ()
+            CLIPager.open_out ()
           in
             fmt,
-            (fun () -> Pager.close_out pager)
+            (fun () -> CLIPager.close_out pager)
   in
 
     OASISHelp.pp_print_help
       fmt
 
       (* CLI help *)
-      (ArgExt.pp_print_help
-         !ArgCommon.ignore_plugins ArgExt.AllSubCommand ArgExt.Markdown)
+      (CLIArgExt.pp_print_help
+         !CLICommon.ignore_plugins CLIArgExt.AllSubCommand CLIArgExt.Markdown)
 
       (* Fields from schema *)
       BaseEnv.schema
@@ -73,7 +73,7 @@ let main () =
 
 
 let scmd =
-  {(SubCommand.make
+  {(CLISubCommand.make
       "manual"
       (s_ "Display user manual")
       CLIData.manual_mkd
@@ -85,4 +85,4 @@ let scmd =
 
 
 let () =
-  SubCommand.register_builtin scmd
+  CLISubCommand.register_builtin scmd

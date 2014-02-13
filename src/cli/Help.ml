@@ -25,8 +25,8 @@
   *)
 
 
-open SubCommand
-open ArgExt
+open CLISubCommand
+open CLIArgExt
 open OASISGettext
 
 
@@ -38,25 +38,25 @@ let main () =
   let pp_print_help =
     match !scmd_name with
       | None ->
-          pp_print_help !ArgCommon.ignore_plugins NoSubCommand
+          pp_print_help !CLICommon.ignore_plugins NoSubCommand
       | Some "all" ->
-          pp_print_help !ArgCommon.ignore_plugins AllSubCommand
+          pp_print_help !CLICommon.ignore_plugins AllSubCommand
       | Some nm ->
-          pp_print_help !ArgCommon.ignore_plugins (SubCommand nm)
+          pp_print_help !CLICommon.ignore_plugins (SubCommand nm)
   in
   let pager, fmt =
-    Pager.open_out ()
+    CLIPager.open_out ()
   in
     try
       pp_print_help Output fmt ();
-      Pager.close_out pager
+      CLIPager.close_out pager
     with e ->
-      Pager.close_out pager;
+      CLIPager.close_out pager;
       raise e
 
 
 let scmd =
-  {(SubCommand.make
+  {(CLISubCommand.make
       "help"
       (s_ "Display help for a subcommand")
       CLIData.help_mkd
@@ -67,5 +67,5 @@ let scmd =
 
 
 let () =
-  SubCommand.register_builtin scmd
+  CLISubCommand.register_builtin scmd
 

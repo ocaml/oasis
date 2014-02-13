@@ -69,7 +69,7 @@ let all = Hashtbl.create 20
 
 let init () =
   (* TODO: only_once *)
-  PluginLoader.init PluginsLoaded.exec_oasis_build_depends_rec;
+  PluginLoader.init CLIPluginsLoaded.exec_oasis_build_depends_rec;
   List.iter
     (fun e ->
        Hashtbl.add all e.PluginLoader.name (Plugin(e, None)))

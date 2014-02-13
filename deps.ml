@@ -29,7 +29,7 @@ open OASISTypes
 open BaseEnv
 
 
-let generated_fn = OASISHostPath.of_unix "src/cli/PluginsLoaded.ml"
+let generated_fn = OASISHostPath.of_unix "src/cli/CLIPluginsLoaded.ml"
 
 
 let post_configure pkg =

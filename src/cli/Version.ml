@@ -25,7 +25,7 @@
   *)
 
 
-open SubCommand
+open CLISubCommand
 open OASISGettext
 
 
@@ -34,7 +34,7 @@ let main () =
 
 
 let scmd =
-  SubCommand.make
+  CLISubCommand.make
     "version"
     (s_ "Display the version of the OASIS program running")
     CLIData.version_mkd
@@ -42,4 +42,4 @@ let scmd =
 
 
 let () =
-  SubCommand.register_builtin scmd
+  CLISubCommand.register_builtin scmd

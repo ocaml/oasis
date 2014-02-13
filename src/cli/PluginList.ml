@@ -27,7 +27,7 @@
 
 
 open OASISGettext
-open SubCommand
+open CLISubCommand
 open PluginLoader
 
 
@@ -76,7 +76,7 @@ let main () =
     print_endline
       (s_ "Command-line plugins, use --plugin-cli command \
            line option to load:");
-    print (SubCommand.list_plugin ());
+    print (CLISubCommand.list_plugin ());
     print_newline ();
     print_endline
       (s_ "_oasis plugins, loaded if present in _oasis:");
@@ -84,7 +84,7 @@ let main () =
 
 
 let scmd =
-  {(SubCommand.make
+  {(CLISubCommand.make
       ~std_usage:true
       "plugin-list"
       (s_ "List available plugin")
@@ -100,5 +100,5 @@ let scmd =
 
 let () =
   (* Register the list command. *)
-  SubCommand.register_builtin scmd
+  CLISubCommand.register_builtin scmd
 

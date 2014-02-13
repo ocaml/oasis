@@ -26,7 +26,7 @@
   *)
 
 
-open SubCommand
+open CLISubCommand
 open BaseMessage
 open Genlex
 open OASISGettext
@@ -194,8 +194,8 @@ let main () =
   let pkg =
     OASISParse.from_file
       ~ctxt:{!BaseContext.default with
-                 OASISContext.ignore_plugins = !ArgCommon.ignore_plugins}
-      !ArgCommon.oasis_fn
+                 OASISContext.ignore_plugins = !CLICommon.ignore_plugins}
+      !CLICommon.oasis_fn
   in
   let answers =
     List.rev_map (query pkg) !queries
@@ -204,7 +204,7 @@ let main () =
 
 
 let scmd =
-  {(SubCommand.make
+  {(CLISubCommand.make
       ~std_usage:false
       "query"
       (s_ "Query an _oasis file")
@@ -221,8 +221,8 @@ let scmd =
              Arg.Set_string separator,
              s_ "str String to add between answers."
            ]
-           @ ArgCommon.oasis_fn_specs @ ArgCommon.ignore_plugins_specs)}
+           @ CLICommon.oasis_fn_specs @ CLICommon.ignore_plugins_specs)}
 
 
 let () =
-  SubCommand.register_builtin scmd
+  CLISubCommand.register_builtin scmd

@@ -28,7 +28,7 @@
 
 open OASISGettext
 open OASISUtils
-open SubCommand
+open CLISubCommand
 open BaseGenerate
 
 
@@ -48,12 +48,12 @@ let main () =
           ["-real-oasis"]
         else
           [];
-        if !ArgCommon.ignore_plugins then
+        if !CLICommon.ignore_plugins then
           ["-ignore-plugins"]
         else
           [];
-        if !ArgCommon.oasis_fn <> ArgCommon.default_oasis_fn then
-          ["-oasis"; !ArgCommon.oasis_fn]
+        if !CLICommon.oasis_fn <> CLICommon.default_oasis_fn then
+          ["-oasis"; !CLICommon.oasis_fn]
         else
           [];
         if !rupdate = Weak then
@@ -69,19 +69,19 @@ let main () =
       ~backup:false
       ~setup_fn:BaseSetup.default_filename
       ~restore:false
-      ~oasis_fn:!ArgCommon.oasis_fn
+      ~oasis_fn:!CLICommon.oasis_fn
       ?oasis_exec:!roasis_exec
       ~oasis_setup_args
       !rupdate
       (OASISParse.from_file
          ~ctxt:!BaseContext.default
-         !ArgCommon.oasis_fn)
+         !CLICommon.oasis_fn)
   in
     ()
 
 
 let scmd =
-  {(SubCommand.make
+  {(CLISubCommand.make
       "setup"
       (s_ "Translate _oasis into a build system")
       CLIData.setup_mkd
@@ -112,9 +112,9 @@ let scmd =
                  'weak' mode. If you want to have very avoid VCS history \
                  pollution, use the 'dynamic' mode. Always distribute tarball
                  with mode 'none'."
-           ] @ ArgCommon.oasis_fn_specs}
+           ] @ CLICommon.oasis_fn_specs}
 
 
 let () =
-  SubCommand.register_builtin scmd
+  CLISubCommand.register_builtin scmd
 

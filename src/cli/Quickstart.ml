@@ -29,7 +29,7 @@
 open OASISGettext
 open OASISQuickstart
 open OASISTypes
-open SubCommand
+open CLISubCommand
 
 
 let qckstrt_lvl =
@@ -43,7 +43,7 @@ let interf =
 let main () =
   OASISQuickstart.to_file
     ~ctxt:!BaseContext.default
-    !ArgCommon.oasis_fn
+    !CLICommon.oasis_fn
     !qckstrt_lvl
     !interf
     Setup.main
@@ -57,7 +57,7 @@ let scmd =
       s_ "expert", Expert;
     ]
   in
-    {(SubCommand.make
+    {(CLISubCommand.make
         ~std_usage:true
         "quickstart"
         (s_ "Launch an helper to write `_oasis` file")
@@ -82,4 +82,4 @@ let scmd =
 
 
 let () =
-  SubCommand.register_builtin scmd
+  CLISubCommand.register_builtin scmd

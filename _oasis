@@ -178,11 +178,11 @@ Library "builtin-plugins"
 
 Library cli
   Path:             src/cli
-  Modules:          SubCommand,
-                    ArgExt,
-                    ArgCommon,
-                    Pager
-  InternalModules:  CLIData, PluginsLoaded
+  Modules:          CLISubCommand,
+                    CLIArgExt,
+                    CLICommon,
+                    CLIPager
+  InternalModules:  CLIData, CLIPluginsLoaded
   CompiledObject:   byte
   BuildDepends:     oasis, oasis.base, plugin-loader
   FindlibParent:    oasis

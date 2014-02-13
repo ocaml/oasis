@@ -27,21 +27,21 @@
 
 
 open OASISGettext
-open SubCommand
+open CLISubCommand
 
 
 let main () =
   let _pkg: OASISTypes.package =
     OASISParse.from_file
       ~ctxt:{!BaseContext.default with
-                 OASISContext.ignore_plugins = !ArgCommon.ignore_plugins}
-      !ArgCommon.oasis_fn
+                 OASISContext.ignore_plugins = !CLICommon.ignore_plugins}
+      !CLICommon.oasis_fn
   in
     ()
 
 
 let scmd =
-  {(SubCommand.make
+  {(CLISubCommand.make
       ~std_usage:true
       "check"
       (s_ "Check an _oasis file")
@@ -49,10 +49,10 @@ let scmd =
       main)
      with
          scmd_specs =
-           (ArgCommon.ignore_plugins_specs
+           (CLICommon.ignore_plugins_specs
             @
-            ArgCommon.oasis_fn_specs)}
+            CLICommon.oasis_fn_specs)}
 
 
 let () =
-  SubCommand.register_builtin scmd
+  CLISubCommand.register_builtin scmd
