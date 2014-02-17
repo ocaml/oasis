@@ -58,8 +58,9 @@ type t =
 (** Default context *)
 val default: t ref
 
-(** Command line arguments to change {!default}. *)
-val args: unit -> (string * Arg.spec * string) list
+
+(** Command line arguments to create {!t}. *)
+val fspecs: unit -> ((string * Arg.spec * string) list * (unit -> t))
 
 
 (** Quiet context. *)

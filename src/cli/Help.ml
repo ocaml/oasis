@@ -30,42 +30,33 @@ open CLIArgExt
 open OASISGettext
 
 
-let scmd_name =
-  ref None
-
-
-let main () =
-  let pp_print_help =
-    match !scmd_name with
-      | None ->
-          pp_print_help !CLICommon.ignore_plugins NoSubCommand
-      | Some "all" ->
-          pp_print_help !CLICommon.ignore_plugins AllSubCommand
-      | Some nm ->
-          pp_print_help !CLICommon.ignore_plugins (SubCommand nm)
+let main ~ctxt scmd_name =
+  let hext =
+    match scmd_name with
+      | None -> NoSubCommand
+      | Some "all" -> AllSubCommand
+      | Some nm -> (SubCommand nm)
   in
   let pager, fmt =
     CLIPager.open_out ()
   in
     try
-      pp_print_help Output fmt ();
+      pp_print_help ~ctxt hext Output fmt ();
       CLIPager.close_out pager
     with e ->
       CLIPager.close_out pager;
       raise e
 
 
-let scmd =
-  {(CLISubCommand.make
-      "help"
-      (s_ "Display help for a subcommand")
-      CLIData.help_mkd
-      main)
-     with
-         scmd_usage = s_ "[subcommand|all]";
-         scmd_anon  = (fun s -> scmd_name := Some s)}
-
-
 let () =
-  CLISubCommand.register_builtin scmd
+  CLISubCommand.register "help"
+    (ns_ "Display help for a subcommand")
+    CLIData.help_mkd
+    ~usage:(ns_ "[subcommand|all]")
+    (CLISubCommand.make_run
+       (fun () ->
+          let scmd_name = ref None in
+            ([], (fun s -> scmd_name := Some s)),
+            (fun () -> !scmd_name))
+       main)
 

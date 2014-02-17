@@ -355,11 +355,14 @@ let update_setup_ml, no_update_setup_ml_cli =
      s_ " Don't try to update setup.ml, even if _oasis has changed.")
 
 
+let default_oasis_fn = "_oasis"
+
+
 let update_setup_ml t =
   let oasis_fn =
     match t.oasis_fn with
       | Some fn -> fn
-      | None -> "_oasis"
+      | None -> default_oasis_fn
   in
   let oasis_exec =
     match t.oasis_exec with
@@ -457,7 +460,8 @@ let update_setup_ml t =
       try
         match t.oasis_digest with
           | Some dgst ->
-            if Sys.file_exists oasis_fn && dgst <> Digest.file "_oasis" then
+            if Sys.file_exists oasis_fn &&
+               dgst <> Digest.file default_oasis_fn then
               begin
                 do_update ();
                 true

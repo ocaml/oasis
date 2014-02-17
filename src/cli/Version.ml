@@ -29,17 +29,14 @@ open CLISubCommand
 open OASISGettext
 
 
-let main () =
+let main ~ctxt () =
   print_endline (OASISVersion.string_of_version OASISConf.version_full)
 
 
-let scmd =
-  CLISubCommand.make
-    "version"
+let () =
+  CLISubCommand.register "version"
     (s_ "Display the version of the OASIS program running")
     CLIData.version_mkd
-    main
-
-
-let () =
-  CLISubCommand.register_builtin scmd
+    (CLISubCommand.make_run
+       CLISubCommand.default_fspecs
+       main)

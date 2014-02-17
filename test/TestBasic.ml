@@ -73,5 +73,12 @@ let tests =
          close_out chn;
          assert_command ~ctxt:test_ctxt
            "ocamlc" ["-o"; (Filename.concat dn "bundle");
-                     (Filename.concat dn "bundle.ml")])
+                     (Filename.concat dn "bundle.ml")]);
+
+    "Sync OASISParse/BaseSetup.default_oasis_fn" >::
+    (fun test_ctxt ->
+       assert_equal
+         ~printer:(fun s -> s)
+         OASISParse.default_oasis_fn
+         BaseSetup.default_oasis_fn);
   ]

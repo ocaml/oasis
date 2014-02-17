@@ -44,7 +44,7 @@ let () =
   let pkg =
     OASISParse.from_file
       ~ctxt
-      "_oasis"
+      OASISParse.default_oasis_fn
   in
   let version =
     OASISVersion.string_of_version

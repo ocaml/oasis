@@ -30,29 +30,16 @@ open OASISGettext
 open CLISubCommand
 
 
-let main () =
-  let _pkg: OASISTypes.package =
-    OASISParse.from_file
-      ~ctxt:{!BaseContext.default with
-                 OASISContext.ignore_plugins = !CLICommon.ignore_plugins}
-      !CLICommon.oasis_fn
-  in
-    ()
-
-
-let scmd =
-  {(CLISubCommand.make
-      ~std_usage:true
-      "check"
-      (s_ "Check an _oasis file")
-      CLIData.check_mkd
-      main)
-     with
-         scmd_specs =
-           (CLICommon.ignore_plugins_specs
-            @
-            CLICommon.oasis_fn_specs)}
+let main ~ctxt () oasis_fn pkg =
+  (* Side effect of parsing pkg, it is already checked. *)
+  ()
 
 
 let () =
-  CLISubCommand.register_builtin scmd
+  CLISubCommand.register "check"
+    (ns_ "Check an _oasis file")
+    CLIData.check_mkd
+    (CLICommon.parse_oasis_fn
+       (CLISubCommand.make_run
+          CLISubCommand.default_fspecs
+          main))

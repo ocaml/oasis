@@ -29,37 +29,18 @@
 open CLISubCommand
 open OASISGettext
 
-
-let main () =
-  failwith (s_ "The SetupDev subcommand is deprecated, use Setup")
-
-
-let scmd =
-  {(CLISubCommand.make
-      ~std_usage:true
-      "setup-dev"
-      (s_ "Translate _oasis into a build system that auto-update (deprecated).")
-      CLIData.setup_dev_mkd
-      main)
-     with
-         scmd_specs =
-           ([
-             "-real-oasis",
-             Arg.Unit ignore,
-             s_ " Use the real 'oasis' executable filename when generating \
-                  developper mode setup.ml.";
-
-             "-run",
-             Arg.Rest ignore,
-             s_ " Run a command after generating files, this is the mode used \
-                  by setup.ml in developper mode. Don't use it directly.";
-
-             "-only-setup",
-             Arg.Set (ref false),
-             s_ " When generating the build system, keep only setup.ml and \
-                  delete other generated files.";
-           ] @ CLICommon.oasis_fn_specs)}
-
-
 let () =
-  CLISubCommand.register_builtin scmd
+  CLISubCommand.register "setup-dev"
+    (ns_ "Deprecated.")
+    CLIData.setup_dev_mkd
+    (CLICommon.define_oasis_fn
+       (CLISubCommand.make_run
+          (fun () ->
+             (["-real-oasis", Arg.Unit ignore, s_ " Deprecated";
+               "-run", Arg.Rest ignore, s_ " Deprecated.";
+               "-only-setup", Arg.Set (ref false), s_ " Deprecated."],
+              CLISubCommand.default_anon),
+             ignore)
+          (fun ~ctxt () oasis_fn ->
+             failwith
+               (s_ "The SetupDev subcommand is deprecated, use Setup"))))

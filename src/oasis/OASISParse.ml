@@ -24,6 +24,9 @@
 open OASISRecDescParser
 
 
+let default_oasis_fn = "_oasis"
+
+
 let from_stream ~ctxt ?fn st =
   OASISAst.to_package {oasisfn = fn; ctxt = ctxt} st
 

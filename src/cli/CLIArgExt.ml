@@ -34,37 +34,6 @@ open FormatExt
 open FormatMarkdown
 
 
-let global_options =
-  ref []
-
-
-let add_global_options lst =
-  global_options := lst @ !global_options
-
-
-let usage_msg =
-  "OASIS v" ^ OASISVersion.string_of_version OASISConf.version_full
-  ^ " (C) 2009-2010 OCamlCore SARL\n"
-  ^ s_ "\n\
-     oasis [global-options*] subcommand [subcommand-options*]\n\
-     \n\
-     Environment variables: \n\
-     \n\
-     OASIS_PAGER: pager to use to display long textual output.\n\
-     \n\
-     Global command line options:"
-
-
-let specs () =
-  [
-    "-C",
-    Arg.String (fun str -> Sys.chdir str),
-    (s_ "dir Change directory before running.");
-  ]
-  @ (BaseContext.args ())
-  @ !global_options
-
-
 type help_extent =
   | NoSubCommand
   | SubCommand of string
@@ -76,7 +45,24 @@ type help_style =
   | Output
 
 
-let pp_print_help ignore_plugins hext hsty fmt () =
+let usage_msg =
+  Printf.sprintf (f_ "\
+OASIS v%s (C) 2009-2014 OCamlCore SARL, Sylvain Le Gall
+
+oasis [global-options*] subcommand [subcommand-options*]
+
+Environment variables:
+
+OASIS_PAGER: pager to use to display long textual output.
+
+Global command line options:")
+    (OASISVersion.string_of_version OASISConf.version_full)
+
+
+let fspecs = OASISContext.fspecs
+
+
+let pp_print_help ~ctxt hext hsty fmt () =
 
   (* Print with a precise length *)
   let pp_print_justified sz fmt str =
@@ -162,7 +148,7 @@ let pp_print_help ignore_plugins hext hsty fmt () =
         (CLISubCommand.list_builtin ())
     in
     let plugin_scmds =
-      if not ignore_plugins then
+      if not ctxt.OASISContext.ignore_plugins then
         List.map
           (fun plugin -> plugin.PluginLoader.name, `Plugin plugin)
           (CLISubCommand.list_plugin ())
@@ -230,6 +216,7 @@ let pp_print_help ignore_plugins hext hsty fmt () =
   in
 
   let pp_print_scmd fmt ~global_options scmd =
+    let (scmd_specs, _), _  = scmd.scmd_run () in
     pp_print_title 2 fmt
       (Printf.sprintf (f_ "Subcommand %s") scmd.scmd_name);
 
@@ -240,21 +227,21 @@ let pp_print_help ignore_plugins hext hsty fmt () =
 
     fprintf fmt
       (f_ "Usage: oasis [global-options*] %s %s")
-      scmd.scmd_name scmd.scmd_usage;
+      scmd.scmd_name (s_ scmd.scmd_usage);
     pp_print_endblock fmt ();
 
     if global_options then
       begin
         pp_print_para fmt (s_ "Global options: ");
 
-        pp_print_specs true fmt (specs ())
+        pp_print_specs true fmt (fst (fspecs ()))
       end;
 
-    if scmd.scmd_specs <> [] then
+    if scmd_specs <> [] then
       begin
         pp_print_para fmt (s_ "Options: ");
 
-        pp_print_specs false fmt scmd.scmd_specs
+        pp_print_specs false fmt scmd_specs
       end
   in
 
@@ -271,7 +258,7 @@ let pp_print_help ignore_plugins hext hsty fmt () =
                 ~check_last_char:CLIData.main_mkd
                 fmt ();
 
-              pp_print_specs true fmt (specs ());
+              pp_print_specs true fmt (fst (fspecs ()));
 
               pp_print_scmds fmt ();
             end
@@ -299,34 +286,19 @@ let pp_print_help ignore_plugins hext hsty fmt () =
     end
 
 
-let parse () =
-  let pos =
-    ref 0
-  in
+let parse_and_run () =
+  let pos = ref 0 in
 
-  let scmd =
-    ref
-      (CLISubCommand.make
-         (s_ "none")
-         ""
-         ""
-         (fun () ->
-            pp_print_help
-              !CLICommon.ignore_plugins NoSubCommand Output err_formatter ();
-            failwith
-              (s_ "No subcommand defined, call 'oasis help' for help")))
-  in
-
-  let scmd_args =
-    ref [||]
-  in
-
+  (* Common args. *)
+  let ctxt_specs, ctxt_gen = fspecs () in
+  (* Choose a command. *)
+  let scmd = ref None in
+  let scmd_args = ref [||] in
   let set_scmd s =
-    scmd := CLISubCommand.find s;
+    scmd := Some (CLISubCommand.find s);
 
     (* Get the rest of arguments *)
-    scmd_args :=
-    Array.sub Sys.argv !pos ((Array.length Sys.argv) - !pos);
+    scmd_args := Array.sub Sys.argv !pos ((Array.length Sys.argv) - !pos);
 
     (* Skip arguments *)
     pos := !pos + Array.length !scmd_args
@@ -342,45 +314,49 @@ let parse () =
     in
       match exc with
         | Arg.Bad txt ->
-            pp_print_help
-              !CLICommon.ignore_plugins hext Output err_formatter ();
+            pp_print_help ~ctxt:(ctxt_gen ()) hext Output err_formatter ();
             prerr_newline ();
             prerr_endline (get_bad txt);
             exit 2
         | Arg.Help txt ->
-            pp_print_help
-              !CLICommon.ignore_plugins hext Output std_formatter ();
+            pp_print_help ~ctxt:(ctxt_gen ()) hext Output std_formatter ();
             exit 0
         | e ->
             raise e
   in
+  (* Parse global options and set scmd *)
+  let () =
+    try
+      Arg.parse_argv
+        ~current:pos
+        Sys.argv
+        (Arg.align ctxt_specs)
+        set_scmd
+        usage_msg
+    with e ->
+      handle_error e NoSubCommand
+  in
 
-    (* Parse global options and set scmd *)
-    begin
-      try
-        Arg.parse_argv
-          ~current:pos
-          Sys.argv
-          (Arg.align (specs ()))
-          set_scmd
-          usage_msg
-      with e ->
-        handle_error e NoSubCommand
-    end;
-
-    (* Parse subcommand options *)
-    begin
-      try
-        Arg.parse_argv
-          ~current:(ref 0)
-          !scmd_args
-          (Arg.align !scmd.scmd_specs)
-          !scmd.scmd_anon
-          (Printf.sprintf
-             (f_ "Subcommand %s options:\n")
-             !scmd.scmd_name)
-      with e ->
-        handle_error e (SubCommand !scmd.scmd_name)
-    end;
-
-    !scmd.scmd_main
+  (* Parse subcommand options *)
+  let scmd =
+    match !scmd with
+      | Some scmd ->
+          scmd
+      | None ->
+          failwith (s_ "No subcommand defined, call 'oasis help' for help")
+  in
+  let (scmd_specs, scmd_anon), main = scmd.scmd_run () in
+  let () =
+    try
+      Arg.parse_argv
+        ~current:(ref 0)
+        !scmd_args
+        (Arg.align scmd_specs)
+        scmd_anon
+        (Printf.sprintf
+           (f_ "Subcommand %s options:\n")
+           scmd.scmd_name)
+    with e ->
+      handle_error e (SubCommand scmd.scmd_name)
+  in
+    main ~ctxt:(ctxt_gen ())

@@ -28,15 +28,12 @@
 
 open CLISubCommand
 open OASISGettext
+open CLIArgExt
 
 
-let output =
-  ref None
-
-
-let main () =
+let main ~ctxt output =
   let fmt, fclose =
-    match !output with
+    match output with
       | Some fn ->
           let chn =
             open_out fn
@@ -56,8 +53,7 @@ let main () =
       fmt
 
       (* CLI help *)
-      (CLIArgExt.pp_print_help
-         !CLICommon.ignore_plugins CLIArgExt.AllSubCommand CLIArgExt.Markdown)
+      (pp_print_help ~ctxt AllSubCommand Markdown)
 
       (* Fields from schema *)
       BaseEnv.schema
@@ -72,17 +68,16 @@ let main () =
     fclose ()
 
 
-let scmd =
-  {(CLISubCommand.make
-      "manual"
-      (s_ "Display user manual")
-      CLIData.manual_mkd
-      main)
-     with
-         scmd_specs = ["-o",
-                       Arg.String (fun s -> output := Some s),
-                       "fn Output manual to filename."]}
-
-
 let () =
-  CLISubCommand.register_builtin scmd
+  CLISubCommand.register "manual"
+    (ns_ "Display user manual")
+    CLIData.manual_mkd
+    (CLISubCommand.make_run
+       (fun () ->
+          let output = ref None in
+            (["-o",
+              Arg.String (fun s -> output := Some s),
+              "fn Output manual to filename."],
+             CLISubCommand.default_anon),
+            (fun () -> !output))
+       main)

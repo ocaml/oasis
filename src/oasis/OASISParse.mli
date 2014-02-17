@@ -31,6 +31,8 @@
 
 open OASISTypes
 
+(** Default name of _oasis. *)
+val default_oasis_fn: host_filename
 
 (** [from_stream ~ctxt ~ignore_plugins ~fn st] Parse the OASIS file [~fn] and
     check it. If [~ignore_plugins] is set, ignore unknown plugin's fields in the

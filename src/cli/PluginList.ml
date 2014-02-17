@@ -40,11 +40,7 @@ let plugin_pkg_t () =
   }
 
 
-(** Display long help. *)
-let long = ref false
-
-
-let main () =
+let main ~ctxt long =
   let print =
     function
       | [] ->
@@ -68,7 +64,7 @@ let main () =
                            (f_ "%s: %s\n")
                            e.name synopsis
                  end;
-                 if !long then
+                 if long then
                    Printf.printf (f_ "Findlib name: %s\n") e.findlib_name;
                  Printf.printf "%!")
             lst
@@ -83,22 +79,17 @@ let main () =
     print (PluginLoader.list (plugin_pkg_t ()))
 
 
-let scmd =
-  {(CLISubCommand.make
-      ~std_usage:true
-      "plugin-list"
-      (s_ "List available plugin")
-      CLIData.plugin_mkd
-      main) with
-          scmd_specs =
-            [
+let () =
+  CLISubCommand.register "plugin-list"
+    (ns_ "List available plugin")
+    CLIData.plugin_mkd
+    (CLISubCommand.make_run
+       (fun () ->
+          let long = ref false in
+            ([
               "--long",
               Arg.Set long,
-              " Display a long description for plugin."
-            ]}
-
-
-let () =
-  (* Register the list command. *)
-  CLISubCommand.register_builtin scmd
-
+              " Display a long description for plugin."],
+             CLISubCommand.default_anon),
+            (fun () -> !long))
+       main)

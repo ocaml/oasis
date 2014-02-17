@@ -35,11 +35,10 @@ open OASISTypes
 open BaseSetup
 
 
-let oasis_fn = "_oasis"
-
-
 let setup_t =
-  let pkg = OASISParse.from_file ~ctxt:!BaseContext.default oasis_fn in
+  let pkg =
+    OASISParse.from_file ~ctxt:!BaseContext.default OASISParse.default_oasis_fn
+  in
   let _, setup_t = BaseSetup.of_package ~setup_update:false pkg in
     setup_t
 
@@ -69,7 +68,7 @@ module BaseSetup = struct
           ~restore:true
           BaseGenerate.NoUpdate
           (OASISParse.from_file
-             ~ctxt:!BaseContext.default oasis_fn)
+             ~ctxt:!BaseContext.default OASISParse.default_oasis_fn)
       in
       at_exit cleanup;
       let setup_t =

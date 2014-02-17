@@ -70,16 +70,28 @@ let quiet =
   {!default with quiet = true}
 
 
-let args () =
+let fspecs () =
+  (* TODO: don't act on default. *)
+  let ignore_plugins = ref false in
   ["-quiet",
    Arg.Unit (fun () -> default := {!default with quiet = true}),
-   (s_ " Run quietly");
+   s_ " Run quietly";
 
    "-info",
    Arg.Unit (fun () -> default := {!default with info = true}),
-   (s_ " Display information message");
+   s_ " Display information message";
 
 
    "-debug",
    Arg.Unit (fun () -> default := {!default with debug = true}),
-   (s_ " Output debug message")]
+   s_ " Output debug message";
+
+   "-ignore-plugins",
+   Arg.Set ignore_plugins,
+   s_ " Ignore plugin's field.";
+
+   "-C",
+   (* TODO: remove this chdir. *)
+   Arg.String (fun str -> Sys.chdir str),
+   s_ "dir Change directory before running."],
+  fun () -> {!default with ignore_plugins = !ignore_plugins}

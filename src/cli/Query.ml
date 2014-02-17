@@ -35,20 +35,12 @@ open OASISSection
 open OASISUtils
 
 
-let queries =
-  ref []
-
-
-let separator =
-  ref "\n"
-
-
 let lexer =
   make_lexer
     ["ListSections"; "ListFields"; "("; ")"; "."]
 
 
-let query pkg str =
+let query pkg separator str =
   let proplist_schema schm =
     (* TODO: oops access to unpublished module _intern *)
     schm.OASISSchema_intern.schm
@@ -145,7 +137,7 @@ let query pkg str =
       | [< 'Kwd "ListSections" >] ->
           begin
             String.concat
-              !separator
+              separator
               (List.map
                  (fun sct -> fst (mk_section sct))
                  pkg.sections)
@@ -181,48 +173,34 @@ let query pkg str =
                 pkg.sections
             in
 
-              String.concat
-                !separator
-                (List.rev lst)
+              String.concat separator (List.rev lst)
           end
 
   in
     parse (lexer (Stream.of_string str))
 
 
-let main () =
-  let pkg =
-    OASISParse.from_file
-      ~ctxt:{!BaseContext.default with
-                 OASISContext.ignore_plugins = !CLICommon.ignore_plugins}
-      !CLICommon.oasis_fn
-  in
+let main ~ctxt (queries, separator) _ pkg =
   let answers =
-    List.rev_map (query pkg) !queries
+    List.rev_map (query pkg separator) queries
   in
-    print_endline (String.concat !separator answers)
-
-
-let scmd =
-  {(CLISubCommand.make
-      ~std_usage:false
-      "query"
-      (s_ "Query an _oasis file")
-      CLIData.query_mkd
-      main)
-     with
-         scmd_usage =
-           s_ "[options*] query*";
-         scmd_anon =
-           (fun e -> queries := e :: !queries);
-         scmd_specs =
-           ([
-             "-separator",
-             Arg.Set_string separator,
-             s_ "str String to add between answers."
-           ]
-           @ CLICommon.oasis_fn_specs @ CLICommon.ignore_plugins_specs)}
+    print_endline (String.concat separator answers)
 
 
 let () =
-  CLISubCommand.register_builtin scmd
+  CLISubCommand.register "query"
+    ~usage:(ns_ "[options*] query*")
+    (ns_ "Query an _oasis file")
+    CLIData.query_mkd
+    (CLICommon.parse_oasis_fn
+       (CLISubCommand.make_run
+          (fun () ->
+             let separator = ref "\n" in
+             let queries = ref [] in
+               (["-separator",
+                 Arg.Set_string separator,
+                 s_ "str String to add between answers."],
+                (fun e -> queries := e :: !queries)),
+               (fun () -> !queries, !separator))
+          main))
+

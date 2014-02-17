@@ -32,60 +32,44 @@ open OASISFileTemplate
 open OASISPlugin
 
 
-let replace_sections =
-  ref false
-
-
-let main () =
+let main ~ctxt replace_sections oasis_fn pkg =
   BaseGenerate.restore ();
-  if !replace_sections then
-    begin
-      let ctxt, _ =
-        BaseSetup.of_package
-          ~oasis_fn:!CLICommon.oasis_fn
-          ~setup_update:false
-          (OASISParse.from_file
-             ~ctxt:!BaseContext.default
-             !CLICommon.oasis_fn)
-      in
-        OASISFileTemplate.fold
-          (fun tmpl () ->
-             match tmpl.body with
-             | Body _
-             | BodyWithDigest _ ->
-                 begin
-                   let _chng: file_generate_change =
-                     file_generate
-                       ~ctxt:!BaseContext.default
-                       ~backup:false
-                       {tmpl with body = Body []}
-                   in
-                     ()
-                 end
-             | NoBody ->
-                 ())
-          ctxt.files
-          ()
-    end
-
-
-let scmd =
-  {(CLISubCommand.make
-      ~std_usage:true
-      "setup-clean"
-      (s_ "Clean all template files from their content")
-      CLIData.setup_clean_mkd
-      main)
-     with
-         scmd_specs =
-           [
-             "-replace-sections",
-             Arg.Set replace_sections,
-             s_ "Empty replace section in generated files (i.e. remove content \
-                 between OASIS_START and OASIS_STOP).";
-           ]}
+  if replace_sections then begin
+    let ctxt, _ = BaseSetup.of_package ~oasis_fn ~setup_update:false pkg in
+    OASISFileTemplate.fold
+      (fun tmpl () ->
+         match tmpl.body with
+         | Body _
+         | BodyWithDigest _ ->
+             begin
+               let _chng: file_generate_change =
+                 file_generate
+                   ~ctxt:!BaseContext.default
+                   ~backup:false
+                   {tmpl with body = Body []}
+               in
+                 ()
+             end
+         | NoBody ->
+             ())
+      ctxt.files
+      ()
+  end
 
 
 let () =
-  CLISubCommand.register_builtin scmd
+  CLISubCommand.register "setup-clean"
+    (ns_ "Clean all template files from their content")
+    CLIData.setup_clean_mkd
+    (CLICommon.parse_oasis_fn
+       (CLISubCommand.make_run
+          (fun () ->
+             let replace_sections = ref false in
+             (["-replace-sections",
+               Arg.Set replace_sections,
+               s_ "Empty replace section in generated files (i.e. remove \
+                   content between OASIS_START and OASIS_STOP)."],
+              CLISubCommand.default_anon),
+             (fun () -> !replace_sections))
+          main))
 

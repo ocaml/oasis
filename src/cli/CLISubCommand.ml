@@ -35,40 +35,57 @@ let plugin_cli_t () =
          OASISMessage.generic_message ~ctxt:!BaseContext.default lvl "%s" str)
   }
 
+type cli_parsing_t = (Arg.key * Arg.spec * Arg.doc) list * Arg.anon_fun
+type 'a cli_parsing_post_t = unit -> 'a
+type 'a main_t = ctxt:OASISContext.t -> 'a
+type 'a run_t = unit -> cli_parsing_t * 'a main_t
 
 type t =
     {
       scmd_name:      string;
       scmd_synopsis:  string;
       scmd_help:      string;
-      scmd_specs:     (Arg.key * Arg.spec * Arg.doc) list;
       scmd_usage:     string;
-      scmd_anon:      string -> unit;
-      scmd_main:      unit -> unit;
+      scmd_run:       unit run_t;
     }
 
 type registered_t = Builtin of t | Plugin of (PluginLoader.entry * t option)
 
 
-let make ?(std_usage=false) nm snps hlp main =
+(** Default values for anon and specs. *)
+let default_usage = ns_ "[options*]"
+let default_anon = failwithf (f_ "Don't know what to do with '%s'.")
+let default_fspecs () = ([], default_anon), (fun () -> ())
+
+
+let make ?(usage=default_usage) nm snps hlp run =
   {
-    scmd_name      = nm;
-    scmd_synopsis  = snps;
-    scmd_help      = hlp;
-    scmd_specs     = [];
-    scmd_usage     = if std_usage then s_ "[options*]" else "";
-    scmd_anon      = (failwithf (f_ "Don't know what to do with '%s'."));
-    scmd_main      = main;
+    scmd_name     = nm;
+    scmd_synopsis = snps;
+    scmd_help     = hlp;
+    scmd_usage    = usage;
+    scmd_run      = run;
   }
 
 
+let make_run
+      (fspecs: unit -> cli_parsing_t * 'a cli_parsing_post_t)
+      (main: ('a -> 'b) main_t) () =
+  let cli_parsing, cli_parsing_post = fspecs () in
+  let main' ~ctxt =
+    let a = cli_parsing_post () in
+      main ~ctxt a
+  in
+    cli_parsing, main'
+
+
 (* TODO: protect with mutex. *)
-let all_frozen = ref false
 let all = Hashtbl.create 20
+(* TODO: protect with synchronisation. *)
+let loading_plugin = ref None
 
 
-let init () =
-  (* TODO: only_once *)
+let () =
   PluginLoader.init CLIPluginsLoaded.exec_oasis_build_depends_rec;
   List.iter
     (fun e ->
@@ -76,34 +93,24 @@ let init () =
     (PluginLoader.list (plugin_cli_t ()))
 
 
-let freeze () =
-  all_frozen := true
-
-
-let register_builtin t =
-  (* Check that we are replacing. *)
-  if !all_frozen then
-    failwithf
-      (f_ "Trying to register builtin subcommand %s after initialization.")
-      t.scmd_name;
-  Hashtbl.add all t.scmd_name (Builtin t)
-
-
-let register_plugin t =
+let register ?(usage=default_usage) nm synopsis help run =
   let merge_option opt txt =
     match opt with
       | Some txt -> txt
       | None -> txt
   in
-
+  let t =
+    {
+      scmd_name = nm;
+      scmd_synopsis = synopsis;
+      scmd_help = help;
+      scmd_usage = usage;
+      scmd_run = run;
+    }
+  in
   try
     match Hashtbl.find all t.scmd_name with
-      | Builtin _ ->
-          failwithf
-            (f_ "Trying to replace the builtin subcommand %s with \
-                 an external plugin.")
-            t.scmd_name
-      | Plugin (e, _) ->
+      | Plugin (e, None) ->
           let t' =
             {t with
               scmd_synopsis = merge_option
@@ -111,20 +118,38 @@ let register_plugin t =
                                 t.scmd_synopsis}
           in
             Hashtbl.replace all t.scmd_name (Plugin(e, Some t'))
+      | Builtin _ ->
+          failwithf
+            (f_ "Trying to double-register the builtin subcommand %s.")
+            t.scmd_name
+      | Plugin (e, Some _) ->
+          failwithf
+            (f_ "Trying to double-register the plugin subcommand %s (%s).")
+            nm (e.PluginLoader.findlib_name)
+
   with Not_found ->
-    let fake_entry =
-      {
-        PluginLoader.
-        findlib_name = "<none>";
-        name = t.scmd_name;
-        synopsis = Some t.scmd_synopsis;
-        version = None
-      }
-    in
-      Hashtbl.add all t.scmd_name (Plugin(fake_entry, Some t))
+    match !loading_plugin with
+      | None ->
+          Hashtbl.add all t.scmd_name (Builtin t)
+      | Some findlib_name ->
+          failwithf
+            (f_ "Trying to register unknown plugin subcommand %s within loading
+                 of %s.")
+            nm findlib_name
 
 
 let find nm =
+  let load_plugin nm =
+    match !loading_plugin with
+      | Some nm' ->
+          failwithf
+            (f_ "Recursive loading of plugins (%s and %s).")
+            nm nm'
+      | None ->
+          loading_plugin := Some nm;
+          PluginLoader.load (plugin_cli_t ()) nm;
+          loading_plugin := None
+  in
   let rec find' retry =
     try
       match Hashtbl.find all nm with
@@ -136,7 +161,7 @@ let find nm =
                 (f_ "Loading findlib %s should register subcommand %s, but the \
                      loading didn't registered it.")
                 e.PluginLoader.findlib_name nm;
-            PluginLoader.load (plugin_cli_t ()) nm;
+            load_plugin nm;
             find' true
     with Not_found ->
       failwithf (f_ "Subcommand '%s' doesn't exist") nm

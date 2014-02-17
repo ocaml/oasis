@@ -32,54 +32,43 @@ open OASISTypes
 open CLISubCommand
 
 
-let qckstrt_lvl =
-  ref Beginner
+let main ~ctxt (qckstrt_lvl, interf, setup_data) oasis_fn =
+  let post_run () =
+    let pkg = OASISParse.from_file ~ctxt oasis_fn in
+    Setup.main ~ctxt setup_data oasis_fn pkg
+  in
+  OASISQuickstart.to_file ~ctxt oasis_fn qckstrt_lvl interf post_run
 
 
-let interf =
-  ref Human
-
-
-let main () =
-  OASISQuickstart.to_file
-    ~ctxt:!BaseContext.default
-    !CLICommon.oasis_fn
-    !qckstrt_lvl
-    !interf
-    Setup.main
-
-
-let scmd =
+let fspecs () =
+  let (specs, anon), gen = Setup.fspecs () in
   let lvls =
     [
-      s_ "beginner", Beginner;
-      s_ "intermediate", Intermediate;
-      s_ "expert", Expert;
+      "beginner", Beginner;
+      "intermediate", Intermediate;
+      "expert", Expert;
     ]
   in
-    {(CLISubCommand.make
-        ~std_usage:true
-        "quickstart"
-        (s_ "Launch an helper to write `_oasis` file")
-        CLIData.quickstart_mkd
-        main)
-       with
-           scmd_specs =
-             (
-               "-level",
-               Arg.Symbol
-                 ((List.map fst lvls),
-                  (fun s -> qckstrt_lvl := List.assoc s lvls)),
-               (s_ " Quickstart level, skip questions according to this level.")
-             )
-             ::
-             (
-               "-machine",
-               Arg.Unit (fun () -> interf := Machine),
-               (s_ " Computer readable questions for automatic completion.")
-             )
-             :: SetupDev.scmd.scmd_specs}
+  let qckstrt_lvl = ref Beginner in
+  let interf = ref Human in
+  let specs' =
+    ["-level",
+     Arg.Symbol
+       ((List.map fst lvls),
+        (fun s -> qckstrt_lvl := List.assoc s lvls)),
+     (s_ " Quickstart level, skip questions according to this \
+           level.");
+     "-machine",
+     Arg.Unit (fun () -> interf := Machine),
+     (s_ " Computer readable questions for automatic completion.")] @ specs
+  in
+  let gen' () = !qckstrt_lvl, !interf, gen () in
+  (specs', anon), gen'
 
 
 let () =
-  CLISubCommand.register_builtin scmd
+  CLISubCommand.register "quickstart"
+    (ns_ "Launch an helper to write `_oasis` file")
+    CLIData.quickstart_mkd
+    (CLICommon.define_oasis_fn
+       (CLISubCommand.make_run fspecs main))

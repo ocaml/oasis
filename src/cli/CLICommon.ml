@@ -28,29 +28,26 @@
 open OASISGettext
 
 
-let default_oasis_fn =
-  "_oasis"
-
-
-let oasis_fn =
-  ref default_oasis_fn
-
-
-let oasis_fn_specs =
-  [
+let define_oasis_fn f () =
+  let oasis_fn = ref OASISParse.default_oasis_fn in
+  let specs' =
     "-oasis",
     Arg.Set_string oasis_fn,
     s_ "fn _oasis file to use.";
-  ]
+  in
+  let wrap g ~ctxt =
+    g ~ctxt !oasis_fn
+  in
+  let (specs, anon), run = f () in
+    (specs' :: specs, anon), wrap run
 
 
-let ignore_plugins =
-  ref false
-
-
-let ignore_plugins_specs =
-  [
-    "-ignore-plugins",
-    Arg.Set ignore_plugins,
-    s_ " Ignore plugin's field.";
-  ]
+let parse_oasis_fn f =
+  define_oasis_fn
+    (fun () ->
+       let wrap g ~ctxt fn =
+         let pkg = OASISParse.from_file ~ctxt fn in
+           g ~ctxt fn pkg
+       in
+       let (specs, anon), run = f () in
+         (specs, anon), wrap run)

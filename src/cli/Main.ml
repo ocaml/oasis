@@ -52,15 +52,8 @@ open Help
 let () =
   (* Run subcommand *)
   try
-    let () =
-      OASISBuiltinPlugins.init ();
-      CLISubCommand.init ();
-      CLISubCommand.freeze ()
-    in
-    let main =
-      CLIArgExt.parse ()
-    in
-      main ()
+    OASISBuiltinPlugins.init ();
+    CLIArgExt.parse_and_run ()
   with e ->
     begin
       if Printexc.backtrace_status () then

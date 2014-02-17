@@ -134,6 +134,10 @@ val version: t -> arg array -> unit
 val setup: t -> unit
 
 
+(** Default filename for '_oasis'.
+  *)
+val default_oasis_fn: host_filename
+
 (** Default filename for 'setup.ml'. {b Not exported}
   *)
 val default_filename: host_filename

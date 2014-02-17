@@ -29,63 +29,72 @@
 open OASISTypes
 
 
+(** Define the command line arguments required for a subcommand. *)
+type cli_parsing_t = (Arg.key * Arg.spec * Arg.doc) list * Arg.anon_fun
+
+(** Function to run after parsing command line arguments. *)
+type 'a cli_parsing_post_t = unit -> 'a
+
+(** The main function to run the subcommand. *)
+type 'a main_t = ctxt:OASISContext.t -> 'a
+
+(** Generate command line arguments and the function to run the main of the
+    subcommand.
+  *)
+type 'a run_t = unit -> cli_parsing_t * 'a main_t
+
 type t =
     {
-      scmd_name:     name;   (** Name of the subcommand, used to call it *)
-      scmd_synopsis: string; (** Short description of the subcommnad,
-                                 displayed when doing a summary of the
-                                 available subcommands
-                               *)
-      scmd_help:     string; (** Long description of the subcommand,
-                                 displayed when showing help of the
-                                 subcommand.
+      scmd_name: name;
+      (** Name of the subcommand, used to call it *)
 
-                                 It can contains variable substitution as
-                                 defined in [Buffer.add_substitute].
-                               *)
-      scmd_specs:    (Arg.key * Arg.spec * Arg.doc) list;
-                                     (** [Arg] spec list *)
-      scmd_usage:    string;         (** [Arg] usage text *)
-      scmd_anon:     string -> unit; (** [Arg] anon function *)
-      scmd_main:     unit -> unit; (** Real action of the subcommand *)
+      scmd_synopsis: string;
+      (** Short description of the subcommnad, displayed when doing a summary
+          of the available subcommands
+       *)
+
+      scmd_help: string;
+      (** Long description of the subcommand, displayed when showing help of the
+          subcommand.
+
+          It can contains variable substitution as defined in
+          [Buffer.add_substitute].
+        *)
+
+      scmd_usage: string;
+      (** [Arg] usage text *)
+
+      scmd_run: unit run_t;
+      (** Generate the specs and a main function. *)
     }
 
+val default_anon: Arg.anon_fun
+val default_fspecs: (unit -> cli_parsing_t * unit cli_parsing_post_t)
 
-(** [make ~std_usage name synopsis help main] Create a subcommand using
-    provided data, see {!t} for their meanings. If [~std_usage] is set
-    use ["[options*]"] for it. Fields that are not defined by make use
-    a sane default.
+(** [make_run fspecs main] Create a [run_t] by combining argument parsing with
+    the main function. The goal is to make [main] not use global variable and
+    create what is need to store them in fspecs. This allow to make the whole
+    subcommand invocation thread safe.
+ *)
+val make_run:
+  (unit -> cli_parsing_t * 'a cli_parsing_post_t) ->
+  ('a -> 'b) main_t ->
+  'b run_t
+
+(** [register ~usage name synopsis help run] Create a subcommand using
+    provided data, see {!t} for their meanings. See {!make_run} to define a run
+    function. You can also see {!CLICommon} for useful functions to wrap your
+    [run].
   *)
-val make:
-  ?std_usage:bool ->
+val register:
+  ?usage:string ->
   name ->
   string ->
   string ->
-  (unit -> unit) ->
-  t
+  unit run_t ->
+  unit
 
-
-(** Initialize. *)
-val init: unit -> unit
-
-
-(** Don't register builtin plugin past this point. *)
-val freeze: unit -> unit
-
-(** Register a builtin subcommand. This can only be done by builtin plugin and
-    before freezing.
-  *)
-val register_builtin: t -> unit
-
-
-(** Register a plugin subcommand. Synopsis is overriden by the plugin_synopsis
-  * present in findlib if there is some defined.
-  *)
-val register_plugin: t -> unit
-
-
-(** Find a subcommand.
-  *)
+(** Find a subcommand. *)
 val find: name -> t
 
 
