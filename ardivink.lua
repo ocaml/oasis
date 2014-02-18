@@ -16,3 +16,5 @@ oasis.std_process("--enable-tests")
 
 -- Create documentation package.
 ci.exec("make", "doc-dist")
+-- Create dev tarball.
+ci.exec("make", "dist-dev")

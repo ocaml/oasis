@@ -133,15 +133,20 @@ test: precommit
 # Deploy target
 #  Deploy/release the software.
 
-# TODO: check that this can work.
 deploy: headache doc-dist
 	# TODO: create a plugin to create documentation.
 	# oasis doc-dist
 	admin-gallu-deploy --verbose \
-	  --forge_upload --forge_group oasis --forge_user gildor-admin \
+	  --forge_upload --forge_group oasis \
 	  --forge_extra_file "dist/oasis-doc-$(shell oasis query version).tar.gz"
 	# TODO: create a plugin to send announcement.
 	# oasis announce
 	admin-gallu-oasis-increment --setup_run --use_vcs
 
 .PHONY: deploy
+
+
+# Create a tarball for rebuilding the current version
+dist-dev:
+	ocaml dist.ml -dev
+
