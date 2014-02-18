@@ -144,7 +144,7 @@ let pp_print_help ~ctxt hext hsty fmt () =
   let pp_print_scmds fmt () =
     let scmds =
       List.map
-        (fun scmd -> scmd.scmd_name, `Subcommand scmd)
+        (fun scmd -> scmd.scmd_name, `Builtin scmd)
         (CLISubCommand.list_builtin ())
     in
     let plugin_scmds =
@@ -195,7 +195,7 @@ let pp_print_help ~ctxt hext hsty fmt () =
       List.iter
         (fun (name, e) ->
            match hsty, e with
-             | Markdown, `Subcommand scmd  ->
+             | Markdown, `Builtin scmd  ->
                  pp_print_def fmt ("`"^name^"`")
                    [pp_print_string_spaced, scmd.scmd_synopsis]
              | Markdown, `Plugin plg ->
@@ -203,7 +203,7 @@ let pp_print_help ~ctxt hext hsty fmt () =
                    (List.map
                       (fun s -> pp_print_string_spaced, s)
                       (plugin_markdown_data plg))
-             | Output, `Subcommand scmd ->
+             | Output, `Builtin scmd ->
                  pp_print_output_def
                    sz fmt (name, scmd.scmd_synopsis)
              | Output, `Plugin plg ->
@@ -215,10 +215,23 @@ let pp_print_help ~ctxt hext hsty fmt () =
         pp_print_newline fmt ()
   in
 
-  let pp_print_scmd fmt ~global_options scmd =
+  let pp_print_scmd fmt ~global_options ?origin scmd =
     let (scmd_specs, _), _  = scmd.scmd_run () in
     pp_print_title 2 fmt
       (Printf.sprintf (f_ "Subcommand %s") scmd.scmd_name);
+
+    begin
+      match origin with
+        | Some (`Plugin plg) ->
+            fprintf fmt
+              "@[<v>__Version__: %s<br/>@,__Findlib__: %s<br/>@]"
+              (match plg.PluginLoader.version with
+                 | Some ver_str -> ver_str
+                 | None -> "undefined")
+              plg.PluginLoader.findlib_name;
+        | Some `Builtin | None ->
+            ()
+    end;
 
     pp_print_string fmt scmd.scmd_help;
     pp_print_endblock
@@ -274,15 +287,31 @@ let pp_print_help ~ctxt hext hsty fmt () =
             ()
 
         | SubCommand nm ->
-            pp_print_scmd fmt
-              ~global_options:true
-              (CLISubCommand.find nm)
+            pp_print_scmd fmt ~global_options:true (CLISubCommand.find nm)
 
         | AllSubCommand ->
+            let scmds =
+              List.rev_map
+                (fun scmd -> scmd, `Builtin)
+                (CLISubCommand.list_builtin ())
+            in
+            let plugin_scmds =
+              if not ctxt.OASISContext.ignore_plugins then
+                List.rev_map
+                  (fun plugin ->
+                     CLISubCommand.find plugin.PluginLoader.name,
+                     `Plugin plugin)
+                  (CLISubCommand.list_plugin ())
+              else
+                []
+            in
             List.iter
-              (fun scmd ->
-                 pp_print_scmd fmt ~global_options:false scmd)
-              (CLISubCommand.list_builtin ())
+              (fun (scmd, origin) ->
+                 pp_print_scmd fmt ~global_options:false ~origin scmd)
+              (List.sort
+                 (fun (scmd1, _) (scmd2, _) ->
+                    String.compare scmd1.scmd_name scmd2.scmd_name)
+                 (List.rev_append plugin_scmds scmds))
     end
 
 
