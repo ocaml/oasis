@@ -42,11 +42,12 @@ type 'a run_t = unit -> cli_parsing_t * 'a main_t
 
 type t =
     {
-      scmd_name:      string;
-      scmd_synopsis:  string;
-      scmd_help:      string;
-      scmd_usage:     string;
-      scmd_run:       unit run_t;
+      scmd_name: string;
+      scmd_synopsis: string;
+      scmd_help: string;
+      scmd_usage: string;
+      scmd_deprecated: bool;
+      scmd_run: unit run_t;
     }
 
 type registered_t = Builtin of t | Plugin of (PluginLoader.entry * t option)
@@ -56,16 +57,6 @@ type registered_t = Builtin of t | Plugin of (PluginLoader.entry * t option)
 let default_usage = ns_ "[options*]"
 let default_anon = failwithf (f_ "Don't know what to do with '%s'.")
 let default_fspecs () = ([], default_anon), (fun () -> ())
-
-
-let make ?(usage=default_usage) nm snps hlp run =
-  {
-    scmd_name     = nm;
-    scmd_synopsis = snps;
-    scmd_help     = hlp;
-    scmd_usage    = usage;
-    scmd_run      = run;
-  }
 
 
 let make_run
@@ -93,7 +84,7 @@ let () =
     (PluginLoader.list (plugin_cli_t ()))
 
 
-let register ?(usage=default_usage) nm synopsis help run =
+let register ?(usage=default_usage) ?(deprecated=false) nm synopsis help run =
   let merge_option opt txt =
     match opt with
       | Some txt -> txt
@@ -105,6 +96,7 @@ let register ?(usage=default_usage) nm synopsis help run =
       scmd_synopsis = synopsis;
       scmd_help = help;
       scmd_usage = usage;
+      scmd_deprecated = deprecated;
       scmd_run = run;
     }
   in
@@ -115,7 +107,8 @@ let register ?(usage=default_usage) nm synopsis help run =
             {t with
               scmd_synopsis = merge_option
                                 e.PluginLoader.synopsis
-                                t.scmd_synopsis}
+                                t.scmd_synopsis;
+              scmd_deprecated = e.PluginLoader.deprecated || t.scmd_deprecated}
           in
             Hashtbl.replace all t.scmd_name (Plugin(e, Some t'))
       | Builtin _ ->
@@ -169,24 +162,30 @@ let find nm =
     find' false
 
 
-let list_plugin () =
+let list_plugin ?(deprecated=true) () =
   Hashtbl.fold
     (fun _ v acc ->
        match v with
          | Builtin _ -> acc
-         | Plugin(e, _) -> e :: acc)
+         | Plugin(e, _) ->
+             if deprecated || not e.PluginLoader.deprecated then
+               e :: acc
+             else
+               acc)
     all []
 
 
-let list_builtin () =
+let list_builtin ?(deprecated=true) () =
   let lst =
     Hashtbl.fold
       (fun _ v acc ->
          match v with
-           | Builtin t -> t :: acc
+           | Builtin t ->
+               if deprecated || not t.scmd_deprecated then
+                 t :: acc
+               else
+                 acc
            | Plugin(e, _) -> acc)
       all []
   in
-    List.sort
-      (fun scmd1 scmd2 -> String.compare scmd1.scmd_name scmd2.scmd_name)
-      lst
+    lst

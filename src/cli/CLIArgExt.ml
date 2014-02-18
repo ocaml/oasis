@@ -26,7 +26,7 @@
 
 
 open OASISGettext
-open BaseMessage
+open OASISMessage
 open CLISubCommand
 open OASISUtils
 open Format
@@ -143,15 +143,15 @@ let pp_print_help ~ctxt hext hsty fmt () =
 
   let pp_print_scmds fmt () =
     let scmds =
-      List.map
+      List.rev_map
         (fun scmd -> scmd.scmd_name, `Builtin scmd)
-        (CLISubCommand.list_builtin ())
+        (CLISubCommand.list_builtin ~deprecated:false ())
     in
     let plugin_scmds =
       if not ctxt.OASISContext.ignore_plugins then
-        List.map
+        List.rev_map
           (fun plugin -> plugin.PluginLoader.name, `Plugin plugin)
-          (CLISubCommand.list_plugin ())
+          (CLISubCommand.list_plugin ~deprecated:false ())
       else
         []
     in
@@ -217,8 +217,12 @@ let pp_print_help ~ctxt hext hsty fmt () =
 
   let pp_print_scmd fmt ~global_options ?origin scmd =
     let (scmd_specs, _), _  = scmd.scmd_run () in
-    pp_print_title 2 fmt
-      (Printf.sprintf (f_ "Subcommand %s") scmd.scmd_name);
+    if not scmd.scmd_deprecated then
+      pp_print_title 2 fmt
+        (Printf.sprintf (f_ "Subcommand %s") scmd.scmd_name)
+    else
+      pp_print_title 2 fmt
+        (Printf.sprintf (f_ "Subcommand %s (deprecated)") scmd.scmd_name);
 
     begin
       match origin with
@@ -293,7 +297,7 @@ let pp_print_help ~ctxt hext hsty fmt () =
             let scmds =
               List.rev_map
                 (fun scmd -> scmd, `Builtin)
-                (CLISubCommand.list_builtin ())
+                (CLISubCommand.list_builtin ~deprecated:false ())
             in
             let plugin_scmds =
               if not ctxt.OASISContext.ignore_plugins then
@@ -301,7 +305,7 @@ let pp_print_help ~ctxt hext hsty fmt () =
                   (fun plugin ->
                      CLISubCommand.find plugin.PluginLoader.name,
                      `Plugin plugin)
-                  (CLISubCommand.list_plugin ())
+                  (CLISubCommand.list_plugin ~deprecated:false ())
               else
                 []
             in
@@ -388,4 +392,7 @@ let parse_and_run () =
     with e ->
       handle_error e (SubCommand scmd.scmd_name)
   in
-    main ~ctxt:(ctxt_gen ())
+  let ctxt = ctxt_gen () in
+    if scmd.scmd_deprecated then
+      warning ~ctxt "Subcommand %s is deprecated." scmd.scmd_name;
+    main ~ctxt

@@ -117,6 +117,7 @@ type entry =
       name: string;
       synopsis: string option;
       version: string option;
+      deprecated: bool;
     }
 
 
@@ -233,33 +234,46 @@ let list t =
              with Not_found ->
                None
            in
-           let default_lookup_str var dflt =
+           let default_lookup_val var dflt =
              match default_lookup var with
                | Some str -> str
                | None -> dflt
            in
-             if plugin_system = t.system then
-               begin
-                 let entry =
-                   {
-                     findlib_name = pkg_str;
-                     name = default_lookup_str "plugin_name" pkg_str;
-                     synopsis = default_lookup "plugin_synopsis";
-                     version = default_lookup "version";
-                   }
+             if plugin_system = t.system then begin
+               let deprecated =
+                 let str =
+                   default_lookup_val "plugin_deprecated" "false"
                  in
-                   if SetEntry.mem entry acc then
-                     t.msg `Warning
-                       (sprintf
-                          (f_ "Plugin '%s' already defined \
-                               (findlib name: %s; directory: '%s').")
-                          entry.name
-                          pkg_str
-                          pkg.Fl_package_base.package_dir);
-                   SetEntry.add entry acc
-               end
-             else
+                 try
+                   bool_of_string str
+                 with Invalid_argument _ ->
+                   t.msg `Warning
+                     (sprintf "Field plugin_deprecated of plugin '%s' \
+                               should be true or false, got %s."
+                        pkg_str str);
+                   false
+               in
+               let entry =
+                 {
+                   findlib_name = pkg_str;
+                   name = default_lookup_val "plugin_name" pkg_str;
+                   synopsis = default_lookup "plugin_synopsis";
+                   version = default_lookup "version";
+                   deprecated = deprecated;
+                 }
+               in
+                 if SetEntry.mem entry acc then
+                   t.msg `Warning
+                     (sprintf
+                        (f_ "Plugin '%s' already defined \
+                             (findlib name: %s; directory: '%s').")
+                        entry.name
+                        pkg_str
+                        pkg.Fl_package_base.package_dir);
+                 SetEntry.add entry acc
+             end else begin
                acc
+             end
          with e ->
            acc)
       SetEntry.empty

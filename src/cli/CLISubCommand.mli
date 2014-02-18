@@ -64,6 +64,9 @@ type t =
       scmd_usage: string;
       (** [Arg] usage text *)
 
+      scmd_deprecated: bool;
+      (** Is this subcommand deprecated. *)
+
       scmd_run: unit run_t;
       (** Generate the specs and a main function. *)
     }
@@ -88,6 +91,7 @@ val make_run:
   *)
 val register:
   ?usage:string ->
+  ?deprecated:bool ->
   name ->
   string ->
   string ->
@@ -98,8 +102,12 @@ val register:
 val find: name -> t
 
 
-(** List all PluginLoader entries registered. *)
-val list_plugin: unit -> PluginLoader.entry list
+(** List all PluginLoader entries registered. Set [deprecated] to false to
+    filter out deprecated plugin
+ *)
+val list_plugin: ?deprecated:bool -> unit -> PluginLoader.entry list
 
-(** List all builtin plugin registered. *)
-val list_builtin: unit -> t list
+(** List all builtin plugin registered. Set [deprecated] to false to filter
+    out deprecated builtin.
+  *)
+val list_builtin: ?deprecated:bool -> unit -> t list
