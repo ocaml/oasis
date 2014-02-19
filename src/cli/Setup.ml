@@ -49,17 +49,7 @@ let fspecs () =
             | "dynamic" -> rupdate := Dynamic
             | str ->
                 failwithf (f_ "Unknown setup-update mode %S") str)),
-       s_ "mod Different ways to allow setup.ml to auto-update. \
-           The 'weak' is only triggered to regenerate setup.ml and all \
-           files when something change in `_oasis`. It has a weak \
-           dependency on the executable oasis, because it only needs it \
-           when `_oasis` is changed. The 'dynamic' mode has a strong \
-           dependency on the library oasis but it generates a very \
-           small `setup.ml`. If you want contributor to checkout your \
-           VCS and be able to work without oasis installed, prefer the \
-           'weak' mode. If you want to have very avoid VCS history \
-           pollution, use the 'dynamic' mode. Always distribute tarball
-           with mode 'none'."
+       s_ " Define the way `setup.ml` should update when `_oasis` change."
      ]
   in
     (specs, CLISubCommand.default_anon),
