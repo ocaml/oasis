@@ -45,7 +45,6 @@ open Manual
 open Check
 open Query
 open Version
-open PluginList
 open Help
 
 
