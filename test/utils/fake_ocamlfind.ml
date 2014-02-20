@@ -1,8 +1,7 @@
 
 (* Fake ocamlfind program. *)
-
-let () = 
-  let real_ocamlfind = 
+let () =
+  let real_ocamlfind =
     try
       Sys.getenv "REAL_OCAMLFIND"
     with Not_found ->
