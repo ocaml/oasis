@@ -201,20 +201,31 @@ Executable oasis
   MainIs: Main.ml
   BuildDepends: oasis, oasis.base, oasis.cli, oasis.builtin-plugins
 
+Executable fake_ocamlfind
+  Path: test/utils
+  MainIs: fake_ocamlfind.ml
+  Install: false
+  CompiledObject: byte
+  Build$: flag(tests)
+  BuildDepends: unix
+
 Executable test
   Path: test
   MainIs: test.ml
   Install: false
   CompiledObject: byte
   Build$: flag(tests)
-  BuildDepends: oUnit (>= 2.0.0), findlib, fileutils (>= 0.4.2), expect.pcre (>= 0.0.4),
-                oasis, oasis.base, oasis.builtin-plugins, pcre
+  BuildDepends: oUnit (>= 2.0.0), findlib, fileutils (>= 0.4.2),
+                expect.pcre (>= 0.0.4), oasis, oasis.base,
+                oasis.builtin-plugins, pcre
 
 Test main
   Type: custom (0.3)
-  Command: $test -oasis $oasis -is-native $is_native -native-dynlink $native_dynlink -ocamlmod $ocamlmod
+  Command: $test -oasis $oasis -is-native $is_native \
+                 -native-dynlink $native_dynlink \
+                 -ocamlmod $ocamlmod -fake-ocamlfind $fake_ocamlfind
   WorkingDirectory: test
-  TestTools: oasis, test, ocamlmod
+  TestTools: oasis, test, ocamlmod, fake-ocamlfind
 
 Document manual
   Type: custom (0.3)

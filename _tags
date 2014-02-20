@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: a3ee2b5c679265f07ac14166ea24c6e2)
+# DO NOT EDIT (digest: 49c83e35a58bceaaa5acab5f8d1df5d0)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -48,52 +48,55 @@
 "src/builtin-plugins.cmxs": use_builtin-plugins
 <src/*.ml{,i}>: use_base
 <src/*.ml{,i}>: use_oasis
-<src/*.ml{,i}>: pkg_ocamlbuild
 <src/*.ml{,i}>: pkg_unix
+<src/*.ml{,i}>: pkg_ocamlbuild
 <src/*.ml{,i}>: pkg_odn
 <src/plugins/custom/*.ml{,i}>: use_base
 <src/plugins/custom/*.ml{,i}>: use_oasis
-<src/plugins/custom/*.ml{,i}>: pkg_ocamlbuild
 <src/plugins/custom/*.ml{,i}>: pkg_unix
+<src/plugins/custom/*.ml{,i}>: pkg_ocamlbuild
 <src/plugins/custom/*.ml{,i}>: pkg_odn
 <src/plugins/extra/META/*.ml{,i}>: use_base
 <src/plugins/extra/META/*.ml{,i}>: use_oasis
-<src/plugins/extra/META/*.ml{,i}>: pkg_ocamlbuild
 <src/plugins/extra/META/*.ml{,i}>: pkg_unix
+<src/plugins/extra/META/*.ml{,i}>: pkg_ocamlbuild
 <src/plugins/extra/META/*.ml{,i}>: pkg_odn
 <src/plugins/extra/devfiles/*.ml{,i}>: use_base
 <src/plugins/extra/devfiles/*.ml{,i}>: use_oasis
-<src/plugins/extra/devfiles/*.ml{,i}>: pkg_ocamlbuild
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_unix
+<src/plugins/extra/devfiles/*.ml{,i}>: pkg_ocamlbuild
 <src/plugins/extra/devfiles/*.ml{,i}>: pkg_odn
 <src/plugins/extra/stdfiles/*.ml{,i}>: use_base
 <src/plugins/extra/stdfiles/*.ml{,i}>: use_oasis
-<src/plugins/extra/stdfiles/*.ml{,i}>: pkg_ocamlbuild
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_unix
+<src/plugins/extra/stdfiles/*.ml{,i}>: pkg_ocamlbuild
 <src/plugins/extra/stdfiles/*.ml{,i}>: pkg_odn
 <src/plugins/internal/*.ml{,i}>: use_base
 <src/plugins/internal/*.ml{,i}>: use_oasis
-<src/plugins/internal/*.ml{,i}>: pkg_ocamlbuild
 <src/plugins/internal/*.ml{,i}>: pkg_unix
+<src/plugins/internal/*.ml{,i}>: pkg_ocamlbuild
 <src/plugins/internal/*.ml{,i}>: pkg_odn
 <src/plugins/none/*.ml{,i}>: use_base
 <src/plugins/none/*.ml{,i}>: use_oasis
-<src/plugins/none/*.ml{,i}>: pkg_ocamlbuild
 <src/plugins/none/*.ml{,i}>: pkg_unix
+<src/plugins/none/*.ml{,i}>: pkg_ocamlbuild
 <src/plugins/none/*.ml{,i}>: pkg_odn
 <src/plugins/ocamlbuild/*.ml{,i}>: use_base
 <src/plugins/ocamlbuild/*.ml{,i}>: use_oasis
-<src/plugins/ocamlbuild/*.ml{,i}>: pkg_ocamlbuild
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_unix
+<src/plugins/ocamlbuild/*.ml{,i}>: pkg_ocamlbuild
 <src/plugins/ocamlbuild/*.ml{,i}>: pkg_odn
 # Library dynrun
 "src/dynrun/dynrun.cmxs": use_dynrun
 <src/dynrun/*.ml{,i}>: use_builtin-plugins
 <src/dynrun/*.ml{,i}>: use_base
 <src/dynrun/*.ml{,i}>: use_oasis
-<src/dynrun/*.ml{,i}>: pkg_ocamlbuild
 <src/dynrun/*.ml{,i}>: pkg_unix
+<src/dynrun/*.ml{,i}>: pkg_ocamlbuild
 <src/dynrun/*.ml{,i}>: pkg_odn
+# Executable fake_ocamlfind
+"test/utils/fake_ocamlfind.byte": pkg_unix
+<test/utils/*.ml{,i}>: pkg_unix
 # Executable test
 "test/test.byte": use_builtin-plugins
 "test/test.byte": use_base
@@ -103,8 +106,8 @@
 "test/test.byte": pkg_findlib
 "test/test.byte": pkg_expect.pcre
 "test/test.byte": pkg_pcre
-"test/test.byte": pkg_ocamlbuild
 "test/test.byte": pkg_unix
+"test/test.byte": pkg_ocamlbuild
 "test/test.byte": pkg_odn
 <test/*.ml{,i}>: use_builtin-plugins
 <test/*.ml{,i}>: use_base
@@ -114,8 +117,8 @@
 <test/*.ml{,i}>: pkg_findlib
 <test/*.ml{,i}>: pkg_expect.pcre
 <test/*.ml{,i}>: pkg_pcre
-<test/*.ml{,i}>: pkg_ocamlbuild
 <test/*.ml{,i}>: pkg_unix
+<test/*.ml{,i}>: pkg_ocamlbuild
 <test/*.ml{,i}>: pkg_odn
 # Library plugin-loader
 "src/ext/plugin-loader/src/plugin-loader.cmxs": use_plugin-loader
@@ -131,8 +134,8 @@
 "src/cli/Main.byte": use_plugin-loader
 "src/cli/Main.byte": pkg_dynlink
 "src/cli/Main.byte": pkg_findlib
-"src/cli/Main.byte": pkg_ocamlbuild
 "src/cli/Main.byte": pkg_unix
+"src/cli/Main.byte": pkg_ocamlbuild
 "src/cli/Main.byte": pkg_odn
 <src/cli/*.ml{,i}>: use_cli
 <src/cli/*.ml{,i}>: use_builtin-plugins
@@ -141,8 +144,8 @@
 <src/cli/*.ml{,i}>: use_plugin-loader
 <src/cli/*.ml{,i}>: pkg_dynlink
 <src/cli/*.ml{,i}>: pkg_findlib
-<src/cli/*.ml{,i}>: pkg_ocamlbuild
 <src/cli/*.ml{,i}>: pkg_unix
+<src/cli/*.ml{,i}>: pkg_ocamlbuild
 <src/cli/*.ml{,i}>: pkg_odn
 # Library pluginloaderLib
 "src/ext/plugin-loader/test/data/findlib/pluginloaderLib/pluginloaderLib.cmxs": use_pluginloaderLib

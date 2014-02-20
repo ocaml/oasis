@@ -239,3 +239,20 @@ let fold_left f acc str =
       racc := f !racc str.[i]
     done;
     !racc
+
+
+let contains ~what str =
+  (* Implementation is naive. *)
+  let len_what = String.length what in
+  let len_str = String.length str in
+  let rec check idx_what idx_str =
+    if idx_what >= len_what then
+      true
+    else if idx_str >= len_str then
+      false
+    else if str.[idx_str] = what.[idx_what] then
+      check (idx_what + 1) (idx_str + 1)
+    else
+      check 0 (idx_str + 1)
+  in
+    check 0 0

@@ -66,16 +66,10 @@ let native_dynlink =
 
 
 let oasis_exec = Conf.make_exec "oasis"
-
-
 let ocamlmod_exec = Conf.make_exec "ocamlmod"
-
-
-let oasis_args ctxt =
-  (* TODO: add make_string_list to OUnit2. *)
-  []
-
-
+let fake_ocamlfind_exec = Conf.make_exec "fake_ocamlfind"
+(* TODO: add make_string_list to OUnit2. *)
+let oasis_args ctxt = []
 let oasis_ctxt = OASISContext.quiet
 
 

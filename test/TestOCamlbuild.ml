@@ -24,30 +24,82 @@ open OUnit2
 open TestCommon
 open OASISPlugin
 open OASISFileTemplate
+open TestFullUtils
 
 
 let tests =
-  "Plugin OCamlbuild" >::
-  (fun test_ctxt ->
-     let dn = in_testdata_dir test_ctxt ["TestOCamlbuild"; "missing-source"] in
-     let fn = Filename.concat dn "_oasis" in
-     let pkg = OASISParse.from_file ~ctxt:oasis_ctxt fn in
-     let ctxt, _ =
-       with_bracket_chdir test_ctxt dn
-         (fun test_ctxt ->
-            BaseSetup.of_package ~setup_update:false pkg)
-     in
-     let () =
-       assert_bool "No error during generation." (not ctxt.error)
-     in
-     let tmpl = find "test.mllib" ctxt.files in
-       match tmpl.body with
-         | Body lst | BodyWithDigest (_, lst) ->
-             assert_equal
-               ~printer:(fun lst ->
-                           String.concat ", "
-                             (List.map (Printf.sprintf "%S") lst))
-               ["A"; "B"; "C"]
-               (List.sort String.compare lst);
-         | NoBody ->
-             assert_failure "No content for test.mllib.")
+  "Plugin OCamlbuild" >:::
+  [
+    "missing-source" >::
+    (fun test_ctxt ->
+       let dn =
+         in_testdata_dir test_ctxt ["TestOCamlbuild"; "missing-source"]
+       in
+       let fn = Filename.concat dn "_oasis" in
+       let pkg = OASISParse.from_file ~ctxt:oasis_ctxt fn in
+       let ctxt, _ =
+         with_bracket_chdir test_ctxt dn
+           (fun test_ctxt ->
+              BaseSetup.of_package ~setup_update:false pkg)
+       in
+       let () =
+         assert_bool "No error during generation." (not ctxt.error)
+       in
+       let tmpl = find "test.mllib" ctxt.files in
+         match tmpl.body with
+           | Body lst | BodyWithDigest (_, lst) ->
+               assert_equal
+                 ~printer:(fun lst ->
+                             String.concat ", "
+                               (List.map (Printf.sprintf "%S") lst))
+                 ["A"; "B"; "C"]
+                 (List.sort String.compare lst);
+           | NoBody ->
+               assert_failure "No content for test.mllib.");
+
+    "set-ocamlfind" >::
+    (fun test_ctxt ->
+       let t =
+         setup_test_directories test_ctxt
+           ~is_native:(is_native test_ctxt)
+           ~native_dynlink:(native_dynlink test_ctxt)
+           (in_testdata_dir test_ctxt ["TestOCamlbuild"; "set-ocamlfind"])
+       in
+       let real_ocamlfind = FileUtil.which "ocamlfind" in
+       let fake_ocamlfind =
+         Filename.concat t.bin_dir (Filename.basename real_ocamlfind)
+       in
+       let extra_env = ["REAL_OCAMLFIND", real_ocamlfind] in
+       let () =
+         oasis_setup test_ctxt t;
+         FileUtil.cp [fake_ocamlfind_exec test_ctxt] fake_ocamlfind;
+         Unix.chmod fake_ocamlfind 0o755;
+         run_ocaml_setup_ml ~with_ocaml_env:true ~extra_env test_ctxt t
+           ["-configure"]
+       in
+       let env = BaseEnvLight.load ~filename:(in_src_dir t "setup.data") () in
+       let () =
+         assert_equal ~printer:(Printf.sprintf "%S")
+           fake_ocamlfind
+           (BaseEnvLight.var_get "ocamlfind" env);
+         run_ocaml_setup_ml ~with_ocaml_env:true ~extra_env test_ctxt t
+           ["-build"]
+       in
+       let build_log =
+         file_content (in_src_dir t (Filename.concat "_build" "_log"))
+       in
+         logf test_ctxt `Info "%s" build_log;
+         List.iter
+           (fun line ->
+              if OASISString.contains ~what:"ocamlfind" line then
+                assert_bool
+                  (Printf.sprintf
+                     "line %S should starts with %S"
+                     line fake_ocamlfind)
+                  (OASISString.starts_with ~what:fake_ocamlfind line))
+           (OASISString.nsplit build_log '\n'));
+  ]
+
+
+
+
