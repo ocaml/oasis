@@ -225,7 +225,7 @@ Test main
                  -native-dynlink $native_dynlink \
                  -ocamlmod $ocamlmod -fake-ocamlfind $fake_ocamlfind
   WorkingDirectory: test
-  TestTools: oasis, test, ocamlmod, fake-ocamlfind
+  TestTools: oasis, test, ocamlmod, fake_ocamlfind
 
 Document manual
   Type: custom (0.3)
