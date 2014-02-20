@@ -558,20 +558,21 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t
            link_tgt :: src_tgts
          else
            src_tgts)
-        (List.fold_left
-           (fun acc ->
-              function
-                | FindlibPackage (findlib_pkg, _) ->
-                    (if supports_ocamlfind then
-                       ("package("^findlib_pkg^")")
-                     else
-                       ("pkg_"^findlib_pkg)
-                    )
-                    :: acc
-                | InternalLibrary nm ->
-                    ("use_"^nm) :: acc)
-           []
-           (OASISSection.MapSection.find sct mp))
+        (List.sort String.compare
+          (List.fold_left
+             (fun acc ->
+                function
+                  | FindlibPackage (findlib_pkg, _) ->
+                      (if supports_ocamlfind then
+                         ("package("^findlib_pkg^")")
+                       else
+                         ("pkg_"^findlib_pkg)
+                      )
+                      :: acc
+                  | InternalLibrary nm ->
+                      ("use_"^nm) :: acc)
+             []
+             (OASISSection.MapSection.find sct mp)))
   in
 
   let ctxt =
