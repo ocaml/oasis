@@ -57,8 +57,10 @@ let gen_tests ~is_native () =
            (oasis_ocamlbuild_files @
             [
               "src/simplelib/simplelib.mllib";
+              "src/simplelib/simplelib.mldylib";
               "src/simplelib/simplelib.odocl";
               "src/simplelibext/simplelibext.mllib";
+              "src/simplelibext/simplelibext.mldylib";
               "src/simplelibext/simplelibext.odocl";
             ]);
          register_installed_files test_ctxt t
@@ -102,6 +104,7 @@ let gen_tests ~is_native () =
            (oasis_ocamlbuild_files @
             [
               "src/simplelib.mllib";
+              "src/simplelib.mldylib";
               "src/simplelib.odocl";
             ]);
          register_installed_files test_ctxt t
@@ -132,7 +135,10 @@ let gen_tests ~is_native () =
          (* Setup expectation. *)
          register_generated_files t
            (oasis_ocamlbuild_files @
-            ["src/packedlib.mlpack"; "src/packedlib.mllib"; "src/META"]);
+            ["src/packedlib.mlpack";
+             "src/packedlib.mllib";
+             "src/packedlib.mldylib";
+             "src/META"]);
          register_installed_files test_ctxt t
            [
              InstalledOCamlLibrary
@@ -198,6 +204,7 @@ let gen_tests ~is_native () =
               "src/libtest-with-c_stubs.clib";
               "src/libwith-c_stubs.clib";
               "src/with-c.mllib";
+              "src/with-c.mldylib";
               "src/with-c.odocl";
             ]);
         if is_native then
@@ -240,6 +247,7 @@ let gen_tests ~is_native () =
             [
               "src/META";
               "src/test.mllib";
+              "src/test.mldylib";
               "src/test.odocl";
             ]);
          register_installed_files test_ctxt t
@@ -276,6 +284,7 @@ let gen_tests ~is_native () =
             [
               "src/META";
               "src/pimlib.mllib";
+              "src/pimlib.mldylib";
             ]);
          register_installed_files test_ctxt t
            [
@@ -319,8 +328,10 @@ let gen_tests ~is_native () =
             [
               "src/META";
               "src/test.mllib";
+              "src/test.mldylib";
               "src/test.odocl";
               "src/syntax/pa_test.mllib";
+              "src/syntax/pa_test.mldylib";
             ]);
          register_installed_files test_ctxt t
            [
@@ -354,10 +365,15 @@ let gen_tests ~is_native () =
             [
               "src/interdepend.odocl";
               "src/liba/liba.mllib";
+              "src/liba/liba.mldylib";
               "src/libb/libb.mllib";
+              "src/libb/libb.mldylib";
               "src/libc/libc.mllib";
+              "src/libc/libc.mldylib";
               "src/libd/libd.mllib";
+              "src/libd/libd.mldylib";
               "src/libe/libe.mllib";
+              "src/libe/libe.mldylib";
             ]);
          (* Run standard test. *)
          standard_test test_ctxt t);
@@ -376,8 +392,11 @@ let gen_tests ~is_native () =
             [
               "src/order-matter.odocl";
               "src/foo/foo.mllib";
+              "src/foo/foo.mldylib";
               "src/bar/bar.mllib";
+              "src/bar/bar.mldylib";
               "src/baz/baz.mllib";
+              "src/baz/baz.mldylib";
             ]);
          (* Run standard test. *)
          standard_test test_ctxt t);
@@ -396,6 +415,7 @@ let gen_tests ~is_native () =
             [
               "src/META";
               "src/pi.mllib";
+              "src/pi.mldylib";
             ]);
          register_installed_files test_ctxt t
            [
@@ -439,6 +459,7 @@ let gen_tests ~is_native () =
             [
               "META";
               "with-a.mllib";
+              "with-a.mldylib";
               "with-a.odocl";
             ]);
          register_installed_files test_ctxt t
@@ -469,7 +490,8 @@ let gen_tests ~is_native () =
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
          register_generated_files t
-           (oasis_ocamlbuild_files @ ["META"; "with-a.mllib"]);
+           (oasis_ocamlbuild_files @
+            ["META"; "with-a.mllib"; "with-a.mldylib"]);
          register_installed_files test_ctxt t
            [
              InstalledOCamlLibrary
@@ -502,6 +524,7 @@ let gen_tests ~is_native () =
               "configure";
               "src/libtest_oasis_c_dependency_stubs.clib";
               "src/test_oasis_c_dependency.mllib";
+              "src/test_oasis_c_dependency.mldylib";
             ]);
          (* Run standard test. *)
          standard_test test_ctxt t);
@@ -560,7 +583,7 @@ let gen_tests ~is_native () =
          (* Setup expectation. *)
          register_generated_files t
            ((List.filter (( <> ) "_tags") oasis_ocamlbuild_files) @
-            ["libtest.mllib"; "libtest.odocl"]);
+            ["libtest.mllib"; "libtest.mldylib"; "libtest.odocl"]);
          (* Run standard test. *)
          standard_test test_ctxt t);
 
@@ -603,7 +626,8 @@ let gen_tests ~is_native () =
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
          register_generated_files t
-           (oasis_ocamlbuild_files @ ["cryptokit.mllib"]);
+           (oasis_ocamlbuild_files @
+            ["cryptokit.mllib"; "cryptokit.mldylib"]);
          (* Run standard test. *)
          standard_test test_ctxt t);
 
@@ -616,7 +640,8 @@ let gen_tests ~is_native () =
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
          register_generated_files t
-           (oasis_ocamlbuild_files @ ["src/test.mllib"; "src/META"]);
+           (oasis_ocamlbuild_files @
+            ["src/test.mllib"; "src/test.mldylib"; "src/META"]);
          register_installed_files test_ctxt t
            [InstalledOCamlLibrary ("test", ["META"; "foo.cmi"; "test.cma"])];
          (* Run standard test. *)
@@ -663,7 +688,8 @@ let gen_tests ~is_native () =
          (* Setup expectation. *)
          register_generated_files t
            (oasis_ocamlbuild_files @
-            ["META"; "mylib.mlpack"; "mylib.mllib"; "libmylib_stubs.clib"]);
+            ["META"; "mylib.mlpack"; "mylib.mllib"; "mylib.mldylib";
+             "libmylib_stubs.clib"]);
          register_installed_files test_ctxt t
            [
              InstalledOCamlLibrary
@@ -682,12 +708,13 @@ let gen_tests ~is_native () =
     (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
        let t =
-         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug791"]
+         setup_test_directories test_ctxt in_testdata_dir
+           ["TestFull"; "bug791"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
          register_generated_files t
-           (oasis_ocamlbuild_files @ ["src/testA.mllib"]);
+           (oasis_ocamlbuild_files @ ["src/testA.mllib"; "src/testA.mldylib"]);
          (* Run standard test. *)
          standard_test test_ctxt t);
 
@@ -903,6 +930,54 @@ let gen_tests ~is_native () =
          (* Run standard test. *)
          standard_test test_ctxt t;
          dbug_file_content test_ctxt (in_src_dir t "INSTALL.txt"));
+
+    "dynlink">::
+    (fun test_ctxt ->
+       let t =
+         setup_test_directories test_ctxt in_testdata_dir
+           ["TestFull"; "dynlink"]
+       in
+       let has_native = is_native && (native_dynlink test_ctxt) in
+         oasis_setup test_ctxt t;
+         (* Setup expectation. *)
+         register_generated_files t
+           (oasis_ocamlbuild_files @
+            ["META"; "entry_point.mllib"; "entry_point.mldylib";
+             "dyn_loaded.mllib"; "dyn_loaded.mldylib"]);
+         register_installed_files test_ctxt t
+           [
+             InstalledOCamlLibrary
+               ("entry_point",
+                ["META";
+                 "entry_point.cma"; "entry_point.cmi";
+                 "entry_point.cmxa"; "entry_point.cmxs";
+                 "entry_point.cmx"; "entry_point.a";
+                 "entry_point.ml";
+                 "dyn_loaded.cma"; "dyn_loaded.cmxa";
+                 "dyn_loaded.cmxs"; "dyn_loaded.a";
+                 "dyn_loaded.cmx"; "dyn_loaded.cmi";
+                 "dyn_loaded.ml";
+                 "dyn_loaded_ext.cmx"; "dyn_loaded_ext.cmi";
+                 "dyn_loaded_ext.ml";
+                ]);
+             InstalledBin ["dynlink-test-byte"];
+           ];
+         if has_native then
+           register_installed_files test_ctxt t
+             [InstalledBin ["dynlink-test-native"]];
+         (* Run standard test. *)
+         standard_test test_ctxt t;
+         (* Try the result. *)
+         try_installed_exec test_ctxt t "dynlink-test-byte"
+           ["-load";
+            FilePath.make_filename
+              [t.ocaml_lib_dir; "entry_point"; "dyn_loaded.cma"]];
+         if has_native then
+           try_installed_exec test_ctxt t "dynlink-test-native"
+             ["-load";
+              FilePath.make_filename
+                [t.ocaml_lib_dir; "entry_point"; "dyn_loaded.cmxs"]];
+         ());
   ]
 
 

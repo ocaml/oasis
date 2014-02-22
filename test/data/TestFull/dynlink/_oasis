@@ -1,0 +1,32 @@
+OASISFormat: 0.4
+Name:        dynlink
+Version:     0
+Synopsis:    Test dynlink-ing.
+Authors:     Sylvain Le Gall
+License:     LGPL-2.1 with OCaml linking exception
+Plugins:     META (0.4)
+BuildTools:  ocamlbuild
+
+Library entry_point
+  Path:       .
+  Modules:    Entry_point
+
+Library dyn_loaded
+  Path:       .
+  Modules:    Dyn_loaded, Dyn_loaded_ext
+  BuildDepends: entry_point
+  FindlibParent: entry_point
+
+Executable "dynlink-test-byte"
+  Path:       .
+  MainIs:     main.ml
+  CompiledObject: byte
+  BuildDepends: entry_point, dynlink
+
+Executable "dynlink-test-native"
+  Path:       .
+  MainIs:     main.ml
+  CompiledObject: native
+  Build$: flag(native_dynlink) && flag(is_native)
+  BuildDepends: entry_point, dynlink
+

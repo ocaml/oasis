@@ -831,6 +831,9 @@ let add_ocamlbuild_files ctxt pkg =
                    (* Generate .mllib *)
                    let fn_base = prepend_bs_path bs cs.cs_name in
                    let mllib = OASISHostPath.add_extension fn_base "mllib" in
+                   let mldylib =
+                     OASISHostPath.add_extension fn_base "mldylib"
+                   in
                    let mlpack = OASISHostPath.add_extension fn_base "mlpack" in
                    let mllib_template_lines =
                      (* mllib contains either the name of the pack or the list
@@ -842,8 +845,16 @@ let add_ocamlbuild_files ctxt pkg =
                    in
                    let ctxt =
                      add_file
-                       (template_make
-                          mllib
+                       (template_make mllib
+                          comment_ocamlbuild
+                          []
+                          mllib_template_lines
+                          [])
+                       ctxt
+                   in
+                   let ctxt =
+                     add_file
+                       (template_make mldylib
                           comment_ocamlbuild
                           []
                           mllib_template_lines
@@ -853,8 +864,7 @@ let add_ocamlbuild_files ctxt pkg =
                    if lib.lib_pack then begin
                      (* generate .mlpack for packed libraries *)
                      add_file
-                       (template_make
-                          mlpack
+                       (template_make mlpack
                           comment_ocamlbuild
                           []
                           impl_module_list
