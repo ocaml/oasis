@@ -1,0 +1,21 @@
+OASISFormat: 0.4
+OCamlVersion: >= 3.12.1
+Name:        use-ocamlfind
+Version:     0.0.1
+Authors:     Sylvain Le Gall
+LicenseFile: LICENSE
+License:     LGPL with OCaml linking exception
+Synopsis:    Minimal project.
+BuildTools:  ocamlbuild
+
+Library foo
+  Path: .
+  Modules: A
+  BuildDepends: oUnit
+
+Document api
+  Title:                API reference for foo
+  Type:                 ocamlbuild (0.4)
+  BuildTools+:          ocamldoc
+  XOCamlbuildPath:      .
+  XOCamlbuildLibraries: foo

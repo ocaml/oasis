@@ -1,11 +1,10 @@
-OASISFormat: 0.1
-Name:        dev
+OASISFormat: 0.4
+Name:        set-ocamlfind
 Version:     0.0.1
 Authors:     Sylvain Le Gall
 LicenseFile: LICENSE
 License:     LGPL with OCaml linking exception
-Synopsis:    Minimal project for dev support.
-Plugins:     META
+Synopsis:    Minimal project.
 BuildTools:  ocamlbuild
 
 Executable "myexec"

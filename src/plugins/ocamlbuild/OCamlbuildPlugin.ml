@@ -43,27 +43,7 @@ let cond_targets_hook =
   ref (fun lst -> lst)
 
 
-type ocamlbuild_plugin =
-  {
-    plugin_tags: string option;
-    extra_args: string list;
-  } with odn
-
-
-let check_ocaml_version version pkg =
-  match pkg.ocaml_version with
-    | Some ocaml_version ->
-        let min_ocaml_version = OASISVersion.version_of_string version in
-        OASISVersion.comparator_ge min_ocaml_version ocaml_version
-    | None ->
-        false
-
-
-let ocamlbuild_supports_ocamlfind = check_ocaml_version "3.12.1"
-let ocamlbuild_supports_plugin_tags = check_ocaml_version "4.01"
-
-
-let build t pkg argv =
+let build extra_args pkg argv =
   (* Return the filename in build directory *)
   let in_build_dir fn =
     Filename.concat
@@ -207,33 +187,13 @@ let build t pkg argv =
       (BaseBuilt.register bt bnm lst)
   in
 
-  let cond_targets =
-    (* Run the hook *)
-    !cond_targets_hook cond_targets
-  in
+  (* Run the hook *)
+  let cond_targets = !cond_targets_hook cond_targets in
 
-  let extra_args =
-    match t.plugin_tags with
-      | Some tags -> "-plugin-tags" :: ("'" ^ tags ^ "'") :: t.extra_args
-      | None -> t.extra_args
-  in
-  let extra_args =
-    if ocamlbuild_supports_ocamlfind pkg then
-      "-use-ocamlfind" :: extra_args
-    else
-      extra_args
-  in
-
-    (* Run a list of target... *)
-    run_ocamlbuild
-      (List.flatten
-         (List.map snd cond_targets)
-       @ extra_args)
-      argv;
-    (* ... and register events *)
-    List.iter
-      check_and_register
-      (List.flatten (List.map fst cond_targets))
+  (* Run a list of target... *)
+  run_ocamlbuild (List.flatten (List.map snd cond_targets) @ extra_args) argv;
+  (* ... and register events *)
+  List.iter check_and_register (List.flatten (List.map fst cond_targets))
 
 
 let clean pkg extra_args  =
@@ -260,7 +220,6 @@ open OASISGettext
 open ODN
 open OASISPlugin
 open OASISTypes
-open OASISValues
 open OASISSchema
 open MyOCamlbuildBase
 open Ocamlbuild_plugin
@@ -281,13 +240,6 @@ let pure_interface_test =
        OASISFeatures.alpha
        (fun () ->
           s_ "Allow to have module with only .mli file."))
-
-
-let ocamlbuild_more_args =
-  OASISFeatures.create "ocamlbuild_more_args" ~plugin
-    OASISFeatures.alpha
-    (fun () ->
-       s_ "Allow to pass arguments to ocamlbuild.")
 
 
 let pivot_data =
@@ -898,7 +850,7 @@ let add_ocamlbuild_files ctxt pkg =
                           [])
                        ctxt
                    in
-                   if lib.lib_pack then
+                   if lib.lib_pack then begin
                      (* generate .mlpack for packed libraries *)
                      add_file
                        (template_make
@@ -908,9 +860,9 @@ let add_ocamlbuild_files ctxt pkg =
                           impl_module_list
                           [])
                        ctxt
-                   else {
+                   end else begin
                      (* make sure there is no conflicting mlpack file *)
-                     ctxt with
+                     {ctxt with
                           other_actions =
                             (fun ()->
                               if OASISFileUtil.file_exists_case mlpack then
@@ -918,8 +870,8 @@ let add_ocamlbuild_files ctxt pkg =
                                   (f_ "Conflicting file '%s' and '%s' \
                                       exists, remove '%s'.")
                                   mllib mlpack mlpack)
-                          :: ctxt.other_actions
-                   }
+                          :: ctxt.other_actions}
+                   end
                  in
                  ctxt, tag_t, myocamlbuild_t
                end
@@ -1174,48 +1126,20 @@ let add_ocamlbuild_files ctxt pkg =
 
 
 let generator =
-  let new_field nm = new_field OASISPackage.schema all_id nm in
-  let plugin_tags =
-    new_field
-      "PluginTags"
-      ~default:None
-      ~feature:ocamlbuild_more_args
-      (opt string_not_empty)
-      (fun () -> s_ "Gives the plugin tags to ocambuild through \
-                     '-plugin-tags' (OCaml >= 4.01 only)")
-      pivot_data (fun _ t -> t.plugin_tags)
-  in
-  let extra_args =
-    new_field
-      "ExtraArgs"
-      ~default:[]
-      ~feature:ocamlbuild_more_args
-      command_line_options
-      (fun () -> s_ "Gives extra arguments to ocamlbuild")
-      pivot_data (fun _ t -> t.extra_args)
-  in
-    fun data  ->
-      {
-        extra_args = extra_args data;
-        plugin_tags = plugin_tags data;
-      }
-
+  ocamlbuild_common_generator pivot_data OASISPackage.schema all_id
 
 let doit ctxt pkg =
-  let t = generator pkg.schema_data in
+  let extra_args =
+    extra_args_ocamlbuild_common ~ctxt:ctxt.ctxt pkg
+      (generator pkg.schema_data)
+  in
   let ctxt = add_ocamlbuild_files ctxt pkg in
-
-  if t.plugin_tags <> None && not (ocamlbuild_supports_plugin_tags pkg) then
-    OASISMessage.warning
-      ~ctxt:ctxt.ctxt
-      (f_ "'XOCamlbuildPluginTags' in only available for OCaml >= 4.01. \
-           Please restrict your requirements with 'OCamlVersion: >= 4.01'");
-
     ctxt,
     {
       chng_moduls       = [OCamlbuildData.ocamlbuildsys_ml];
       chng_main         = ODNFunc.func_with_arg build
-                            "OCamlbuildPlugin.build" t odn_of_ocamlbuild_plugin;
+                            "OCamlbuildPlugin.build"
+                            extra_args odn_of_extra_args;
       chng_clean        = Some (ODNFunc.func clean "OCamlbuildPlugin.clean");
       chng_distclean    = None;
     }

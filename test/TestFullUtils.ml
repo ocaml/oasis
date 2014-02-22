@@ -322,6 +322,7 @@ let assert_command_with_ocaml_env
       ?(extra_env=[])
       ?exit_code
       ?chdir
+      ?check_output
       test_ctxt t cmd args =
   (* Libraries located inside the test directory *)
   let local_lib_paths =
@@ -374,6 +375,7 @@ let assert_command_with_ocaml_env
       ~ctxt:test_ctxt
       ?exit_code
       ?chdir
+      ?check_output
       ~extra_env:((add_path "OCAMLPATH" t.ocaml_lib_dir)
                   ::
                   (List.map
@@ -388,6 +390,7 @@ let assert_command_with_ocaml_env
 let run_ocaml_setup_ml
       ?(with_ocaml_env=false)
       ?exit_code
+      ?check_output
       ?(extra_env=[])
       test_ctxt t args =
   (* Speed up for testing, compile setup.ml *)
@@ -408,11 +411,11 @@ let run_ocaml_setup_ml
           "ocaml", ((in_src_dir t setup_ml) :: "-info" :: "-debug" :: args)
   in
     if with_ocaml_env then
-      assert_command_with_ocaml_env ?exit_code ~extra_env ~chdir:t.src_dir
-        test_ctxt t cmd args
+      assert_command_with_ocaml_env ?exit_code ?check_output ~extra_env
+        ~chdir:t.src_dir test_ctxt t cmd args
     else
-      assert_command ~ctxt:test_ctxt ?exit_code ~extra_env ~chdir:t.src_dir
-        cmd args;
+      assert_command ~ctxt:test_ctxt ?exit_code ?check_output ~extra_env
+        ~chdir:t.src_dir cmd args;
     timer_stop test_ctxt timer
 
 
@@ -725,6 +728,25 @@ let check_tags test_ctxt t =
 
 (* Run oasis setup and fix generated files accordingly. *)
 let oasis_setup ?(dev=false) ?(dynamic=false) test_ctxt t =
+  let () =
+    let pkg =
+      OASISParse.from_file
+        ~ctxt:oasis_ctxt
+        (in_src_dir t OASISParse.default_oasis_fn)
+    in
+    match pkg.OASISTypes.ocaml_version with
+      | Some ver_cmp ->
+          skip_if
+            (not
+               (OASISVersion.comparator_apply
+                  (OASISVersion.version_of_string t.ocaml_version)
+                  ver_cmp))
+            (Printf.sprintf
+               "Need ocaml version %s."
+               (OASISVersion.string_of_comparator ver_cmp))
+      | None ->
+          ()
+  in
   let timer = timer_start "oasis_setup" in
     (* Create build system using OASIS *)
     assert_oasis_cli

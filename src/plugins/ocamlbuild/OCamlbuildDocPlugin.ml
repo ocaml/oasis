@@ -35,12 +35,18 @@ open BaseStandardVar
 
 TYPE_CONV_PATH "OCamlbuildDocPlugin"
 
+type run_t =
+  {
+    extra_args: string list;
+    run_path: unix_filename;
+  } with odn
 
-let doc_build path pkg (cs, doc) argv =
+
+let doc_build run pkg (cs, doc) argv =
   let index_html =
     OASISUnixPath.make
       [
-        path;
+        run.run_path;
         cs.cs_name^".docdir";
         "index.html";
       ]
@@ -49,11 +55,11 @@ let doc_build path pkg (cs, doc) argv =
     OASISHostPath.make
       [
         build_dir argv;
-        OASISHostPath.of_unix path;
+        OASISHostPath.of_unix run.run_path;
         cs.cs_name^".docdir";
       ]
   in
-    run_ocamlbuild [index_html] argv;
+    run_ocamlbuild (index_html :: run.extra_args) argv;
     List.iter
       (fun glb ->
          BaseBuilt.register
@@ -64,7 +70,7 @@ let doc_build path pkg (cs, doc) argv =
       ["*.html"; "*.css"]
 
 
-let doc_clean t pkg (cs, doc) argv =
+let doc_clean run pkg (cs, doc) argv =
   run_clean argv;
   BaseBuilt.unregister BaseBuilt.BDoc cs.cs_name
 
@@ -92,11 +98,12 @@ type t =
       libraries: findlib_full list;
       intro:     unix_filename option;
       flags:     string list;
+      common:    ocamlbuild_common;
     }
 
 
-let pivot_data =
-  data_new_property plugin
+let pivot_data = data_new_property plugin
+let pivot_sub_data = data_new_property plugin
 
 
 let self_id, all_id =
@@ -167,75 +174,89 @@ let flags =
 (* TODO: use -t for title *)
 
 
-let doit ctxt pkg (cs, doc) =
-
-  let path =
-    path cs.cs_data
+let generator =
+  let generator_common =
+    (* Register fields. *)
+    ocamlbuild_common_generator pivot_sub_data OASISDocument.schema all_id
   in
+    fun data pkg ->
+      let path = path data in
 
-  let modules_from_libraries =
-    (* Convert findlib name to internal library and compute
-     * the module they shipped.
-     *)
-    let lib_of_findlib =
-      let _, _, library_name_of_findlib_name =
-        OASISFindlib.findlib_mapping pkg
-      in
-      let lib_of_name =
-        List.fold_left
-          (fun mp ->
-             function
-               | Library ({cs_name = name}, bs, lib) ->
-                   MapString.add name (bs, lib) mp
-               | _ ->
-                   mp)
-          MapString.empty
-          pkg.sections
-      in
-        fun fndlb_nm ->
-          let nm =
-            library_name_of_findlib_name fndlb_nm
+      let modules_from_libraries =
+        (* Convert findlib name to internal library and compute
+         * the module they shipped.
+         *)
+        let lib_of_findlib =
+          let _, _, library_name_of_findlib_name =
+            OASISFindlib.findlib_mapping pkg
           in
-            MapString.find nm lib_of_name
-    in
-
-      (* Fetch modules from internal libraries *)
-      List.flatten
-        (List.map
-           (fun fndlb_nm ->
-              let bs, lib =
-                lib_of_findlib fndlb_nm
+          let lib_of_name =
+            List.fold_left
+              (fun mp ->
+                 function
+                   | Library ({cs_name = name}, bs, lib) ->
+                       MapString.add name (bs, lib) mp
+                   | _ ->
+                       mp)
+              MapString.empty
+              pkg.sections
+          in
+            fun fndlb_nm ->
+              let nm =
+                library_name_of_findlib_name fndlb_nm
               in
-                (* Rebase modules in the doc path *)
-                List.map
-                  (fun modul ->
-                     OASISUnixPath.make_relative
-                       path
-                       (OASISUnixPath.concat bs.bs_path modul))
-                  lib.lib_modules)
+                MapString.find nm lib_of_name
+        in
 
-           (libraries cs.cs_data))
-  in
+          (* Fetch modules from internal libraries *)
+          List.flatten
+            (List.map
+               (fun fndlb_nm ->
+                  let bs, lib =
+                    lib_of_findlib fndlb_nm
+                  in
+                    (* Rebase modules in the doc path *)
+                    List.map
+                      (fun modul ->
+                         OASISUnixPath.make_relative
+                           path
+                           (OASISUnixPath.concat bs.bs_path modul))
+                      lib.lib_modules)
 
-  let modules_from_doc =
-    (* Fetch modules defined directly *)
-    modules cs.cs_data
-  in
+               (libraries data))
+      in
 
-  let modules =
-    modules_from_libraries @ modules_from_doc
-  in
+      let modules_from_doc =
+        (* Fetch modules defined directly *)
+        modules data
+      in
+
+      let modules =
+        modules_from_libraries @ modules_from_doc
+      in
+      {
+        path = path;
+        modules = modules;
+        libraries = libraries data;
+        intro = None;
+        flags = [];
+        common = generator_common data;
+      }
+
+
+let doit ctxt pkg (cs, doc) =
+  let t = generator cs.cs_data pkg in
 
   let ctxt =
     (* Create .odocl file *)
     add_file
       (template_make
          (OASISHostPath.add_extension
-            (Filename.concat path cs.cs_name)
+            (Filename.concat t.path cs.cs_name)
             "odocl")
          comment_ocamlbuild
          []
-         modules
+         t.modules
          [])
       ctxt
   in
@@ -260,32 +281,38 @@ let doit ctxt pkg (cs, doc) =
              cs.cs_name);
 
         set_error
-          (modules = [])
+          (t.modules = [])
           (Printf.sprintf
              (f_ "No module defined for document %s.")
              cs.cs_name);
       ]
   in
 
-    ctxt,
+  let run =
     {
-      chng_moduls =
-        [OCamlbuildData.ocamlbuildsys_ml];
-
-      chng_main =
-        ODNFunc.func_with_arg
-          doc_build "OCamlbuildDocPlugin.doc_build"
-          path ODN.of_string;
-
-      chng_clean =
-        Some
-          (ODNFunc.func_with_arg
-             doc_clean "OCamlbuildDocPlugin.doc_clean"
-             path ODN.of_string);
-
-      chng_distclean =
-        None;
+      run_path = t.path;
+      extra_args = extra_args_ocamlbuild_common ~ctxt:ctxt.ctxt pkg t.common;
     }
+  in
+  ctxt,
+  {
+    chng_moduls =
+      [OCamlbuildData.ocamlbuildsys_ml];
+
+    chng_main =
+      ODNFunc.func_with_arg
+        doc_build "OCamlbuildDocPlugin.doc_build"
+        run odn_of_run_t;
+
+    chng_clean =
+      Some
+        (ODNFunc.func_with_arg
+           doc_clean "OCamlbuildDocPlugin.doc_clean"
+           run odn_of_run_t);
+
+    chng_distclean =
+      None;
+  }
 
 
 let qstrt_completion pkg =

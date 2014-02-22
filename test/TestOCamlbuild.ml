@@ -98,6 +98,22 @@ let tests =
                      line fake_ocamlfind)
                   (OASISString.starts_with ~what:fake_ocamlfind line))
            (OASISString.nsplit build_log '\n'));
+
+    "use-ocamlfind" >::
+    (fun test_ctxt ->
+       let t =
+         setup_test_directories test_ctxt
+           ~is_native:(is_native test_ctxt)
+           ~native_dynlink:(native_dynlink test_ctxt)
+           (in_testdata_dir test_ctxt ["TestOCamlbuild"; "use-ocamlfind"])
+       in
+       oasis_setup test_ctxt t;
+       run_ocaml_setup_ml ~check_output:true test_ctxt t
+         ["-configure"; "--enable-docs"];
+       run_ocaml_setup_ml ~check_output:true test_ctxt t
+         ["-build"];
+       run_ocaml_setup_ml ~check_output:true test_ctxt t
+         ["-doc"]);
   ]
 
 

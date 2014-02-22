@@ -222,6 +222,7 @@
 "src/plugins/ocamlbuild/OCamlbuildPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
 "src/plugins/ocamlbuild/OCamlbuildPlugin.ml": use_ocamlbuild
 "src/plugins/ocamlbuild/OCamlbuildDocPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/plugins/ocamlbuild/OCamlbuildCommon.ml": syntax_camlp4o, pkg_odn.with.syntax
 
 # TODO: The fact that we need to remove these tags is maybe a bug
 <test/test.byte>: -use_base

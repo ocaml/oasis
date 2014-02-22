@@ -117,21 +117,46 @@ module DiffListOutput = OUnitDiff.ListSimpleMake (Output)
 
 
 (* Assert checking that command run well *)
-let assert_command ~ctxt ?chdir ?exit_code ?output ?extra_env ?(unorder=false)
+let assert_command ~ctxt
+      ?chdir
+      ?exit_code
+      ?output
+      ?extra_env
+      ?(unorder=false)
+      (* TODO: this should be true, but too many errors: fix this. *)
+      ?(check_output=false)
       cmd args =
   let foutput =
+    let read_check_output strm =
+      let output =
+        let buff =
+          Buffer.create 13
+        in
+          Stream.iter (Buffer.add_char buff) strm;
+          Buffer.contents buff
+      in
+      let lines = OASISString.nsplit output '\n' in
+      (* Check for warnings/errors. *)
+      if check_output then
+        List.iter
+          (fun line ->
+             non_fatal ctxt
+               (fun test_ctxt ->
+                  List.iter
+                    (fun (what, fmt) ->
+                       if OASISString.starts_with ~what line then
+                         assert_failure (Printf.sprintf fmt line))
+                    ["E:", ""^^"Error in line %S";
+                     "W:", ""^^"Warning in line %S";
+                     "Warning", ""^^"Warning in line %S"]))
+          lines;
+      lines
+    in
     match output with
       | Some exp_output ->
           let foutput strm =
-            let output =
-              let buff =
-                Buffer.create 13
-              in
-                Stream.iter (Buffer.add_char buff) strm;
-                Buffer.contents buff
-            in
+            let rel_output = read_check_output strm in
             let exp_output = OASISString.nsplit exp_output '\n' in
-            let rel_output = OASISString.nsplit output '\n' in
 
             let assert_equal_diff ~msg t1 t2 =
               if unorder then
@@ -154,7 +179,10 @@ let assert_command ~ctxt ?chdir ?exit_code ?output ?extra_env ?(unorder=false)
             Some foutput
 
       | None ->
-          None
+          Some
+            (fun strm ->
+               let _lst: string list = read_check_output strm in
+                 ())
   in
   let env =
     let readd lst nm =
