@@ -16,7 +16,7 @@
       of a .mldylib fix that problem and the .cmxs really contains all modules
       of the library.
 
-    * Refactor oasis.cli to be able to create subcommand plugins. 
+    * Refactor oasis.cli to be able to create subcommand plugins.
       * Exported modules starts now with CLI.
       * Display plugins in the manual.
       * Design so that it is possible to be thread-safe.
@@ -50,7 +50,7 @@
       This patch helps to enable variable susbtitution for flags. This allow to
       write a PostConfCommand script to insert this data in setup.data and have
       them back when running OCamlbuild.
-    
+
     * Raise error when "true" or "false" are not spelled correctly.
 
     * Fix some warnings about "Field X is set but matcing plugin Z is not enabled."
@@ -81,15 +81,15 @@
         and oasis.dynrun library and warns the user in case they cannot be
         found (early configure script).
       * Along setup.ml, Makefile and configure, also keep INSTALL.txt if
-        StdFiles plugins is used to provide a readable list of package to 
+        StdFiles plugins is used to provide a readable list of package to
         install.
 
   * Addendum to 0.4.0 release:
     * Since 0.4.0 OASIS has a limited support to syntax extension. If in the
-      list of BuildDepends, one of the library ends with ".syntax", OASIS will 
+      list of BuildDepends, one of the library ends with ".syntax", OASIS will
       add the tag "syntax_camlp4o" to all files of this library. This new
        feature already covers some common case of using syntax extensions.
-      
+
 
 2013-12-13  Sylvain Le Gall <sylvain AT le-gall.net>
 
@@ -107,7 +107,7 @@
        check that bytecode and nativecode tests are passing.  (Closes: #1306)
      * Fix a missing dependency on ocamlbuild package and inclusion of
        ocambuildlib.cma in builtin-plugins.cma.
-     * Introduce a framework to create features. 
+     * Introduce a framework to create features.
        * Add fields AlphaFeatures and BetaFeatures to list the experimental
          features you want to use in your _oasis
        * Using AlphaFeatures and BetaFeatures is only allowed if OASISFormat is
