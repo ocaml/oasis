@@ -38,7 +38,7 @@ open OASISUtils
 open OASISTypes
 
 
-let debug_self = false
+let debug_self = true
 
 
 let exec nm =
@@ -81,7 +81,7 @@ let with_tmpdir f =
   let pwd = Sys.getcwd () in
   let clean () =
     Sys.chdir pwd;
-    OASISFileUtil.rmdir ~ctxt res
+    FileUtil.rm ~recurse:true [res]
   in
     Sys.remove res;
     OASISFileUtil.mkdir ~ctxt res;

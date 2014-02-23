@@ -170,14 +170,17 @@ let rec mkdir_parent ~ctxt f tgt =
 
 
 let rmdir ~ctxt tgt =
-  if Sys.readdir tgt = [||] then
-    begin
-      match Sys.os_type with
-        | "Win32" ->
-            OASISExec.run ~ctxt "rd" [q tgt]
-        | _ ->
-            OASISExec.run ~ctxt "rm" ["-r"; q tgt]
-    end
+  if Sys.readdir tgt = [||] then begin
+    match Sys.os_type with
+      | "Win32" ->
+          OASISExec.run ~ctxt "rd" [q tgt]
+      | _ ->
+          OASISExec.run ~ctxt "rm" ["-r"; q tgt]
+  end else begin
+    OASISMessage.error ~ctxt
+      (f_ "Cannot remove directory '%s': not empty.")
+      tgt
+  end
 
 
 let glob ~ctxt fn =
