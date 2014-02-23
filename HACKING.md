@@ -47,18 +47,28 @@ Plugins are loaded as needed. You can ignore plugins with the command line optio
 Cut a release
 =============
 
- * Check status on Jenkins.
+ * Check status on [Jenkins][jenkins].
  * Update CHANGES.txt:
   * Date, first entry must be "Version X.Y.Z".
   * Major/Minor changes.
   * Thanks section.
- * Create blog post.
+ * Create [blog post][blog-post].
  * `make deploy`
- * Add new version to trackers (Bugs/Patches/Features Request).
- * Close all bugs in the CHANGES.txt on trackers.
+ * Update Change Log in the Files section of forge:
+  * Copy-paste last entry of CHANGES.txt.
+  * Don''t Merge lines of para.
+  * Check 'Preserve my pre-formatted text.'
+  * Check the result.
+ * Add new version to trackers ([Bugs][bugs-version]/[Patches][patches-version]).
+ * Close all bugs in the CHANGES.txt on trackers ([1][bugs], [2][patches]).
  * Publish blog post with updated download links.
  * G+ announce as OASIS.
- * Resharei G+ post on OCaml community.
+ * Reshare G+ post on OCaml community.
  * Send mail to caml-list.
 
-
+ [jenkins]: http://deci.ovh.le-gall.net:8080/job/ocaml-oasis/
+ [blog-post]: http://le-gall.net/sylvain+violaine/blog/admin/posts.php
+ [bugs-version]: https://forge.ocamlcore.org/tracker/admin/index.php?add_opt=1&boxid=995&group_id=54&atid=291
+ [patches-version]: https://forge.ocamlcore.org/tracker/admin/index.php?add_opt=1&boxid=1007&group_id=54&atid=293
+ [bugs]: https://forge.ocamlcore.org/tracker/?atid=291&group_id=54&func=browse
+ [patches]: https://forge.ocamlcore.org/tracker/?atid=293&group_id=54&func=browse
