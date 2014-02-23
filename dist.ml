@@ -43,7 +43,7 @@ let () =
     [
       "-dev",
       Arg.Set dev,
-      " Don't sign the result.";
+      " Generate a dev tarball.";
     ]
     (failwithf "Don't know what to do with %S")
     "dist.ml: build tarball for oasis."
@@ -122,7 +122,7 @@ let () =
   end
 
 
-let topdir = pkg.name^"-"^ver_str
+let topdir = pkg.name^"-"^tag
 let tarball = Filename.concat distdir (topdir^".tar.gz")
 
 
