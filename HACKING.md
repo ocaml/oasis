@@ -23,6 +23,8 @@ darcs).
 Creating plugins
 ================
 
+TODO: complete
+
 There are two kind of plugin:
 
  * command line plugins: they create subcommand for the command line interface
@@ -30,7 +32,7 @@ There are two kind of plugin:
    by the plugin `install`.
  * plugin that are used in `_oasis`: these plugins help to process the content
    of an `_oasis` file. They generate additional content in `setup.ml` and so on.
-   You don't have to load them, they will be automatically loaded when they are
+   You don''t have to load them, they will be automatically loaded when they are
    found in the `_oasis` file. For example `Plugins: AutoGenerate (0.1)` in the
    `_oasis` file will trigger the load of the plugin `autogenerate`.
 
@@ -41,3 +43,22 @@ their META file.
 
 Plugins are loaded as needed. You can ignore plugins with the command line options
 `-ignore-plugins`.
+
+Cut a release
+=============
+
+ * Check status on Jenkins.
+ * Update CHANGES.txt:
+  * Date, first entry must be "Version X.Y.Z".
+  * Major/Minor changes.
+  * Thanks section.
+ * Create blog post.
+ * `make deploy`
+ * Add new version to trackers (Bugs/Patches/Features Request).
+ * Close all bugs in the CHANGES.txt on trackers.
+ * Publish blog post with updated download links.
+ * G+ announce as OASIS.
+ * Resharei G+ post on OCaml community.
+ * Send mail to caml-list.
+
+
