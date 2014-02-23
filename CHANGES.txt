@@ -1,3 +1,64 @@
+2014-02-23  Sylvain Le Gall <sylvain AT le-gall.net>
+
+  * Version 0.4.2
+
+  * Major changes:
+
+    * Change BSD3 and BSD4 to BSD-3-clause and BSD-4-clause to comply with
+      DEP5, add BSD-2-clause. BSD3 and BSD4 are still valid but marked as
+      deprecated.
+      More information:
+      http://dep.debian.net/deps/dep5/#license-specification
+
+    * Enhance .cmxs supports through the generation of .mldylib files.
+      When one of the modules of a library has the name of the library,
+      ocamlbuild tends to just transform this module into a .cmxs. Now, the use
+      of a .mldylib fix that problem and the .cmxs really contains all modules
+      of the library.
+
+    * Refactor oasis.cli to be able to create subcommand plugins. 
+      * Exported modules starts now with CLI.
+      * Display plugins in the manual.
+      * Design so that it is possible to be thread-safe.
+      * Try to minimize the number of functions.
+      * Make better choice of name and API.
+      * A subcommand plugin 'dist' to create tarball is in preparation, as a
+        separate project.
+
+    * Remove plugin-list subcommand, this command was limited and probably not
+      used. A better alternative will appear in next version.
+
+    * Sub-command setup-dev is now hidden and will soon be removed.
+
+  * Minor changes:
+
+    * Refactor ocamlbuild build plugin to have some features in doc plugin.
+      XOCamlbuilExtraArgs and XOCamlbuildPluginTags are now available for
+      Document. The flag '-use-ocamlfind' is set for doc and build plugin.
+
+    * Reorganize the test/data directory, each toplevel test has now its
+      dedicated subdirectory in test/data.
+
+    * Start to work on better support of syntax extension:
+      * Remove archive(syntax,{byte,native}) from the META, this was causing
+        an issue when trying to compile.
+      * Add an example that creates a syntax extension.
+      * Add support for auto-guessing syntax_camlp4o when one of the syntax
+        extension shipped with camlp4 is in a build depends.
+
+    * Allow to include $(X) in CCOpt/CClib.
+      This patch helps to enable variable susbtitution for flags. This allow to
+      write a PostConfCommand script to insert this data in setup.data and have
+      them back when running OCamlbuild.
+    
+    * Raise error when "true" or "false" are not spelled correctly.
+
+    * Fix some warnings about "Field X is set but matcing plugin Z is not enabled."
+
+  Thanks to Andrew Ferguson, Florent Monnier and Jacques-Pascal Deplaix for their
+  pull requests and to help release this version.
+
+
 2013-12-19  Sylvain Le Gall <sylvain AT le-gall.net>
 
   * Version 0.4.1
@@ -14,20 +75,20 @@
   * Features:
 
     * dynrun_for_release (alpha):
-       * The goal of this plugin is to allow creating release with a minimal
-         setup.ml that uses '-setup-update dynamic'.
-       * Refactor setup.ml to perform early checks. like looking for findlib
-         and oasis.dynrun library and warns the user in case they cannot be
-         found (early configure script).
-       * Along setup.ml, Makefile and configure, also keep INSTALL.txt if
-         StdFiles plugins is used to provide a readable list of package to 
-         install.
+      * The goal of this plugin is to allow creating release with a minimal
+        setup.ml that uses '-setup-update dynamic'.
+      * Refactor setup.ml to perform early checks. like looking for findlib
+        and oasis.dynrun library and warns the user in case they cannot be
+        found (early configure script).
+      * Along setup.ml, Makefile and configure, also keep INSTALL.txt if
+        StdFiles plugins is used to provide a readable list of package to 
+        install.
 
   * Addendum to 0.4.0 release:
-       * Since 0.4.0 OASIS has a limited support to syntax extension. If in the
-         list of BuildDepends, one of the library ends with ".syntax", OASIS will 
-         add the tag "syntax_camlp4o" to all files of this library. This new
-         feature already covers some common case of using syntax extensions.
+    * Since 0.4.0 OASIS has a limited support to syntax extension. If in the
+      list of BuildDepends, one of the library ends with ".syntax", OASIS will 
+      add the tag "syntax_camlp4o" to all files of this library. This new
+       feature already covers some common case of using syntax extensions.
       
 
 2013-12-13  Sylvain Le Gall <sylvain AT le-gall.net>
