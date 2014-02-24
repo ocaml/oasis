@@ -107,7 +107,7 @@ let well_known_syntax = [
 
 let dispatch =
   function
-    | Before_options ->
+    | After_options ->
         (* By using Before_options one let command line options have an higher
          * priority on the contrary using After_options will guarantee to have
          * the higher priority override default commands by ocamlfind ones *)

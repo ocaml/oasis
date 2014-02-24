@@ -65,6 +65,11 @@ let tests =
            ~native_dynlink:(native_dynlink test_ctxt)
            (in_testdata_dir test_ctxt ["TestOCamlbuild"; "set-ocamlfind"])
        in
+       let () =
+         skip_if
+           (OASISVersion.version_compare_string t.ocaml_version "3.12.1" < 0)
+           "OCaml >= 3.12.1 needed."
+       in
        let real_ocamlfind = FileUtil.which "ocamlfind" in
        let fake_ocamlfind =
          Filename.concat t.bin_dir (Filename.basename real_ocamlfind)
@@ -82,8 +87,7 @@ let tests =
          assert_equal ~printer:(Printf.sprintf "%S")
            fake_ocamlfind
            (BaseEnvLight.var_get "ocamlfind" env);
-         run_ocaml_setup_ml ~with_ocaml_env:true ~extra_env test_ctxt t
-           ["-build"]
+         run_ocaml_setup_ml ~extra_env test_ctxt t ["-build"]
        in
        let build_log =
          file_content (in_src_dir t (Filename.concat "_build" "_log"))
