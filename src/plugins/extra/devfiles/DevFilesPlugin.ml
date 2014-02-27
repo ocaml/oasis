@@ -134,11 +134,12 @@ let main ctxt pkg =
               (fun t -> not (OASISUtils.SetString.mem t excludes))
               all_targets
         in
+        let is_dyncomp = OASISFeatures.package_test OASISFeatures.dyncomp pkg in
         let add_one_target ?(need_configure=true) ?(other_depends=[]) nm =
           let deps =
             String.concat " "
               ((if need_configure then
-                  (fun l -> "setup.data" :: l)
+                  (fun l -> "setup.data" :: (if is_dyncomp then "setup.exe" :: l else l))
                 else
                   (fun l -> l))
                  other_depends)
@@ -151,7 +152,19 @@ let main ctxt pkg =
             deps
             nm (String.uppercase nm)
         in
-          Buffer.add_string buff "\nSETUP = ocaml setup.ml\n\n";
+          if is_dyncomp then begin
+            Buffer.add_string buff "\nSETUP = ./setup.exe\n\n";
+            Buffer.add_string
+              buff
+              "default: build\n\
+               \n\
+               setup.exe: _oasis setup.ml\n\
+               \tocamlfind ocamlopt -o $@ -linkpkg -package ocamlbuild,oasis.dynrun setup.ml || \\\n\
+               \tocamlfind ocamlc -o $@ -linkpkg -package ocamlbuild,oasis.dynrun setup.ml || true\n\
+               \trm -f setup.o setup.cmi setup.cmx setup.cmo\n\n";
+          end else begin
+            Buffer.add_string buff "\nSETUP = ocaml setup.ml\n\n";
+          end;
           List.iter
             (function
                | "all" | "clean" | "distclean" as nm ->
