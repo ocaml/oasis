@@ -75,7 +75,7 @@ let ocamlfind x =
     try
       BaseEnvLight.var_get "ocamlfind" env
     with Not_found ->
-      Printf.eprintf "W: Cannot get variable ocamlfind";
+      Printf.eprintf "W: Cannot get variable ocamlfind\n";
       "ocamlfind"
   in
     S[Sh ocamlfind_prog; x]
