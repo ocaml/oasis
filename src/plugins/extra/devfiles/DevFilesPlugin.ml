@@ -119,6 +119,12 @@ let main ctxt pkg =
   let t =
     generator pkg.schema_data
   in
+  let is_dyncomp = OASISFeatures.package_test OASISFeatures.dyncomp pkg in
+  if is_dyncomp && not t.enable_makefile then
+    OASISMessage.error
+      ~ctxt:ctxt.ctxt
+      "The alpha feature dyncomp doesn't work without a Makefile if \
+       DevFiles in enabled";
   let ctxt =
     (* Generate Makefile (for standard dev. env.) *)
     if t.enable_makefile then
@@ -134,12 +140,11 @@ let main ctxt pkg =
               (fun t -> not (OASISUtils.SetString.mem t excludes))
               all_targets
         in
-        let is_dyncomp = OASISFeatures.package_test OASISFeatures.dyncomp pkg in
         let add_one_target ?(need_configure=true) ?(other_depends=[]) nm =
           let deps =
             String.concat " "
               ((if need_configure then
-                  (fun l -> "setup.data" :: (if is_dyncomp then "setup.exe" :: l else l))
+                  (fun l -> "setup.data" :: (if is_dyncomp then "$(SETUP)" :: l else l))
                 else
                   (fun l -> l))
                  other_depends)
@@ -174,7 +179,11 @@ let main ctxt pkg =
                | "configure" ->
                    Printf.bprintf buff
                      "setup.data:\n\
-                      \t$(SETUP) -configure $(CONFIGUREFLAGS)\n\n"
+                      \t$(SETUP) -configure $(CONFIGUREFLAGS)\n\n";
+                   if is_dyncomp then
+                     Printf.bprintf buff
+                       "configure: $(SETUP)\n\
+                        \t$(SETUP) -configure $(CONFIGUREFLAGS)\n\n";
                | nm ->
                    add_one_target nm)
             targets;
@@ -194,6 +203,15 @@ let main ctxt pkg =
   let ctxt =
     (* Generate configure (for standard dev. env.) *)
     if t.enable_configure then
+      let end_of_configure =
+        let cmd =
+          if is_dyncomp then
+            "make configure CONFIGUREFLAGS=\"$@\""
+          else
+            "ocaml setup.ml -configure \"$@\""
+        in
+        [""; cmd; "# OASIS_STOP"]
+      in
       begin
         let tmpl =
           template_of_string_list
@@ -201,7 +219,7 @@ let main ctxt pkg =
             ~template:true
             "configure"
             comment_sh
-            DevFilesData.configure
+            (DevFilesData.configure @ end_of_configure)
         in
           OASISPlugin.add_file
             {tmpl with perm = 0o755; important = true}
