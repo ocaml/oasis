@@ -192,7 +192,7 @@ let main ctxt pkg =
               buff
               "setup.exe: setup.ml\n\
                \t-ocamlfind ocamlc -o $@ -linkpkg -package ocamlbuild,oasis.dynrun $<\n\
-               \trm -f setup.o setup.cmi setup.cmx setup.cmo\n\n";
+               \trm -f setup.cmi setup.cmo\n\n";
           Buffer.add_string buff (".PHONY: "^(String.concat " " targets)^"\n");
 
           OASISPlugin.add_file
