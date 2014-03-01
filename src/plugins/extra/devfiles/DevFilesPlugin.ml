@@ -141,12 +141,13 @@ let main ctxt pkg =
               all_targets
         in
         let add_one_target ?(need_configure=true) ?(other_depends=[]) nm =
+          let setup_deps l = if is_dyncomp then "$(SETUP)" :: l else l in
           let deps =
             String.concat " "
               ((if need_configure then
-                  (fun l -> "setup.data" :: (if is_dyncomp then "$(SETUP)" :: l else l))
+                  (fun l -> "setup.data" :: setup_deps l)
                 else
-                  (fun l -> l))
+                  (fun l -> setup_deps l))
                  other_depends)
           in
           let deps = if deps <> "" then " " ^ deps else deps in
@@ -163,7 +164,7 @@ let main ctxt pkg =
               buff
               "default: build\n\
                \n\
-               setup.exe: setup.ml _oasis\n\
+               setup.exe: setup.ml\n\
                \t-ocamlfind ocamlc -o $@ -linkpkg -package ocamlbuild,oasis.dynrun $<\n\
                \trm -f setup.o setup.cmi setup.cmx setup.cmo\n\n";
           end else begin
@@ -176,13 +177,15 @@ let main ctxt pkg =
                | "test" | "doc" as nm ->
                    add_one_target ~other_depends:["build"] nm
                | "configure" ->
-                   Printf.bprintf buff
-                     "setup.data:\n\
-                      \t$(SETUP) -configure $(CONFIGUREFLAGS)\n\n";
-                   if is_dyncomp then
+                   let add_configure_target nm =
                      Printf.bprintf buff
-                       "configure: $(SETUP)\n\
-                        \t$(SETUP) -configure $(CONFIGUREFLAGS)\n\n";
+                       "%s:%s\n\
+                        \t$(SETUP) -configure $(CONFIGUREFLAGS)\n\n"
+                       nm
+                       (if is_dyncomp then " $(SETUP)" else "");
+                   in
+                   add_configure_target "setup.data";
+                   add_configure_target "configure";
                | nm ->
                    add_one_target nm)
             targets;
