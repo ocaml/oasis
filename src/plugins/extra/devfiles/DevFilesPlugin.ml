@@ -165,6 +165,11 @@ let main ctxt pkg =
           );
           List.iter
             (function
+               | "distclean" when is_dyncomp ->
+                   Printf.bprintf buff
+                     "distclean: $(SETUP)\n\
+                      \t$(SETUP) -distclean $(DISTCLEANFLAGS)\n\
+                      \trm -f $(SETUP)\n\n";
                | "all" | "clean" | "distclean" as nm ->
                    add_one_target ~need_configure:false nm
                | "test" | "doc" as nm ->
