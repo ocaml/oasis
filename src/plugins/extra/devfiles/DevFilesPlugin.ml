@@ -163,9 +163,8 @@ let main ctxt pkg =
               buff
               "default: build\n\
                \n\
-               setup.exe: _oasis setup.ml\n\
-               \tocamlfind ocamlopt -o $@ -linkpkg -package ocamlbuild,oasis.dynrun setup.ml || \\\n\
-               \tocamlfind ocamlc -o $@ -linkpkg -package ocamlbuild,oasis.dynrun setup.ml || true\n\
+               setup.exe: setup.ml _oasis\n\
+               \t-ocamlfind ocamlc -o $@ -linkpkg -package ocamlbuild,oasis.dynrun $<\n\
                \trm -f setup.o setup.cmi setup.cmx setup.cmo\n\n";
           end else begin
             Buffer.add_string buff "\nSETUP = ocaml setup.ml\n\n";
