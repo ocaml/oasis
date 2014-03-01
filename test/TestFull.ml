@@ -931,24 +931,6 @@ let gen_tests ~is_native () =
          standard_test test_ctxt t;
          dbug_file_content test_ctxt (in_src_dir t "INSTALL.txt"));
 
-    "dyncomp">::
-    (fun test_ctxt ->
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir
-           ["TestFull"; "dyncomp"]
-       in
-         oasis_setup ~dynamic:true test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t oasis_ocamlbuild_files;
-         register_generated_files t ["configure"; "Makefile"; "setup.exe"];
-         (* Run standard test. *)
-         standard_test_compiled test_ctxt t;
-         let makefile_content = file_content (t.src_dir ^ "/Makefile") in
-         assert_bool
-           "Test the SETUP variable in the Makefile for dyncomp."
-           (OASISString.contains ~what:"SETUP = ./setup.exe" makefile_content)
-    );
-
     "dynlink">::
     (fun test_ctxt ->
        let t =
@@ -1000,22 +982,6 @@ let gen_tests ~is_native () =
 
 
 let tests =
-  let skip_test_on_non_native_arch lst =
-    let skip_non_native =
-      OUnitTest.test_decorate
-        (fun f ->
-           fun test_ctxt ->
-             skip_if
-               (* Use the real is_native function and skip if on non native
-                * arch.
-                *)
-               (not (is_native test_ctxt))
-               "only run on native arch";
-             f test_ctxt)
-    in
-      List.map skip_non_native lst
-  in
-
   "TestFull" >:::
   [
     "best=native" >:::
