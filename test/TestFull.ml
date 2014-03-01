@@ -931,6 +931,26 @@ let gen_tests ~is_native () =
          standard_test test_ctxt t;
          dbug_file_content test_ctxt (in_src_dir t "INSTALL.txt"));
 
+    "dyncomp">::
+    (fun test_ctxt ->
+       let t =
+         setup_test_directories test_ctxt in_testdata_dir
+           ["TestFull"; "dyncomp"]
+       in
+         oasis_setup ~dynamic:true test_ctxt t;
+         (* Setup expectation. *)
+         register_generated_files t oasis_ocamlbuild_files;
+         register_generated_files t ["configure"; "Makefile"; "setup.exe"];
+         (* Run standard test. *)
+         standard_test_compiled test_ctxt t;
+         assert_command
+           ~output:"SETUP = ./setup.exe\n"
+           ~check_output:true
+           ~ctxt:test_ctxt
+           ~chdir:t.src_dir
+           "grep" ["SETUP = ./setup.exe"; "Makefile"];
+    );
+
     "dynlink">::
     (fun test_ctxt ->
        let t =
