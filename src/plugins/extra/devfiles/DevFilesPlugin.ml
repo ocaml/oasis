@@ -158,18 +158,11 @@ let main ctxt pkg =
             deps
             nm (String.uppercase nm)
         in
-          if is_dyncomp then begin
-            Buffer.add_string buff "\nSETUP = ./setup.exe\n\n";
-            Buffer.add_string
-              buff
-              "default: build\n\
-               \n\
-               setup.exe: setup.ml\n\
-               \t-ocamlfind ocamlc -o $@ -linkpkg -package ocamlbuild,oasis.dynrun $<\n\
-               \trm -f setup.o setup.cmi setup.cmx setup.cmo\n\n";
-          end else begin
-            Buffer.add_string buff "\nSETUP = ocaml setup.ml\n\n";
-          end;
+          (if is_dyncomp then
+             Buffer.add_string buff "\nSETUP = ./setup.exe\n\n"
+           else
+             Buffer.add_string buff "\nSETUP = ocaml setup.ml\n\n"
+          );
           List.iter
             (function
                | "all" | "clean" | "distclean" as nm ->
@@ -189,6 +182,12 @@ let main ctxt pkg =
                | nm ->
                    add_one_target nm)
             targets;
+          if is_dyncomp then
+            Buffer.add_string
+              buff
+              "setup.exe: setup.ml\n\
+               \t-ocamlfind ocamlc -o $@ -linkpkg -package ocamlbuild,oasis.dynrun $<\n\
+               \trm -f setup.o setup.cmi setup.cmx setup.cmo\n\n";
           Buffer.add_string buff (".PHONY: "^(String.concat " " targets)^"\n");
 
           OASISPlugin.add_file
