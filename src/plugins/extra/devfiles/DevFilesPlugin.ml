@@ -205,7 +205,7 @@ let main ctxt pkg =
   let ctxt =
     (* Generate configure (for standard dev. env.) *)
     if t.enable_configure then
-      let end_of_configure =
+      let ocaml_setup_configure =
         let cmd =
           if is_dyncomp then
             "make configure CONFIGUREFLAGS=\"$@\""
@@ -221,7 +221,7 @@ let main ctxt pkg =
             ~template:true
             "configure"
             comment_sh
-            (DevFilesData.configure @ end_of_configure)
+            (DevFilesData.configure @ ocaml_setup_configure)
         in
           OASISPlugin.add_file
             {tmpl with perm = 0o755; important = true}
