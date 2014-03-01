@@ -943,12 +943,10 @@ let gen_tests ~is_native () =
          register_generated_files t ["configure"; "Makefile"; "setup.exe"];
          (* Run standard test. *)
          standard_test_compiled test_ctxt t;
-         assert_command
-           ~output:"SETUP = ./setup.exe\n"
-           ~check_output:true
-           ~ctxt:test_ctxt
-           ~chdir:t.src_dir
-           "grep" ["SETUP = ./setup.exe"; "Makefile"];
+         let makefile_content = file_content (t.src_dir ^ "/Makefile") in
+         assert_bool
+           "Test the SETUP variable in the Makefile for dyncomp."
+           (OASISString.contains ~what:"SETUP = ./setup.exe" makefile_content)
     );
 
     "dynlink">::
