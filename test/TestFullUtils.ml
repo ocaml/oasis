@@ -822,7 +822,7 @@ let standard_checks test_ctxt t =
     timer_stop test_ctxt timer
 
 
-let standard_test ?(run_ocaml_setup_ml=run_ocaml_setup_ml) test_ctxt t =
+let standard_test test_ctxt t =
   (* Standard checks. *)
   standard_checks test_ctxt t;
 
@@ -907,23 +907,3 @@ let standard_test ?(run_ocaml_setup_ml=run_ocaml_setup_ml) test_ctxt t =
   run_ocaml_setup_ml test_ctxt t ["-reinstall"];
   check_installed_files test_ctxt t "3rd install"
   (* TODO: auto-test installed libraries. *)
-
-
-let standard_test_compiled test_ctxt t =
-  let run_ocaml_setup_ml
-        ?(with_ocaml_env=false)
-        ?exit_code
-        ?check_output
-        ?(extra_env=[])
-        test_ctxt t args =
-    (* Speed up for testing, compile setup.ml *)
-    let timer = timer_start ("run_ocaml_setup_ml_compiled "^(List.hd args)) in
-    let cmd, args =
-      "./setup.exe", ("-info" :: "-debug" :: args)
-    in
-    assert_command ~ctxt:test_ctxt ?exit_code ?check_output ~extra_env
-      ~chdir:t.src_dir cmd args;
-    timer_stop test_ctxt timer
-  in
-  assert_command ~ctxt:test_ctxt ~chdir:t.src_dir "make" ["setup.exe"];
-  standard_test ~run_ocaml_setup_ml test_ctxt t
