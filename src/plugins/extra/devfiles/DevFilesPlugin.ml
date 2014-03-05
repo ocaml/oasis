@@ -189,12 +189,19 @@ let main ctxt pkg =
                | nm ->
                    add_one_target nm)
             targets;
-          if compiled_setup_ml then
-            Buffer.add_string
-              buff
+          if compiled_setup_ml then begin
+            let packages =
+              if ctxt.update = OASISSetupUpdate.Dynamic then
+                " -linkpkg -package oasis.dynrun"
+              else
+                ""
+            in
+            Printf.bprintf buff
               "setup.exe: setup.ml\n\
-               \t-ocamlfind ocamlc -o $@ -linkpkg -package ocamlbuild,oasis.dynrun $<\n\
-               \t$(RM) setup.cmi setup.cmo\n\n";
+               \t-ocamlfind ocamlc -o $@%s $<\n\
+               \t$(RM) setup.cmi setup.cmo\n\n"
+              packages;
+          end;
           Buffer.add_string buff (".PHONY: "^(String.concat " " targets)^"\n");
 
           OASISPlugin.add_file
