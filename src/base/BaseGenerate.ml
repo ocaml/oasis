@@ -28,9 +28,7 @@ open ODN
 open OASISPlugin
 open BaseMessage
 open OASISGettext
-
-
-type update = NoUpdate | Weak | Dynamic
+open OASISSetupUpdate
 
 
 let required_modules =
@@ -117,7 +115,7 @@ let generate ?msg
   let ctxt, _ =
     BaseSetup.of_package
       ?oasis_fn ?oasis_exec ?oasis_setup_args
-      ~setup_update:(update = Weak) pkg
+      ~setup_update:(update = Weak) update pkg
   in
 
   let msg =

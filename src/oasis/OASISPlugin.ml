@@ -136,6 +136,7 @@ type ('a, 'b) setup_changes =
 type context_act =
     {
       ctxt: OASISContext.t;
+      update: OASISSetupUpdate.t;
       error: bool;
       files: OASISFileTemplate.templates;
       other_actions: (unit -> unit) list;
@@ -656,4 +657,3 @@ let set_error tst s ctxt =
     end
   else
     ctxt
-
