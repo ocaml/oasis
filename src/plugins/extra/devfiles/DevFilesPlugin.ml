@@ -198,7 +198,7 @@ let main ctxt pkg =
             in
             Printf.bprintf buff
               "setup.exe: setup.ml\n\
-               \tocamlfind ocamlc -o $@%s $< || ocamlfind ocamlopt -o $@%s $< || true\n\
+               \tocamlfind ocamlopt -o $@%s $< || ocamlfind ocamlc -o $@%s $< || true\n\
                \t$(RM) setup.cmi setup.cmo setup.cmx setup.o\n\n"
               packages packages;
           end;
