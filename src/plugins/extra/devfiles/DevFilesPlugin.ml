@@ -198,9 +198,9 @@ let main ctxt pkg =
             in
             Printf.bprintf buff
               "setup.exe: setup.ml\n\
-               \t-ocamlfind ocamlc -o $@%s $<\n\
-               \t$(RM) setup.cmi setup.cmo\n\n"
-              packages;
+               \tocamlfind ocamlc -o $@%s $< || ocamlfind ocamlopt -o $@%s $< || true\n\
+               \t$(RM) setup.cmi setup.cmo setup.cmx setup.o\n\n"
+              packages packages;
           end;
           Buffer.add_string buff (".PHONY: "^(String.concat " " targets)^"\n");
 
