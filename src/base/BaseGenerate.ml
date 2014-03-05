@@ -172,6 +172,9 @@ let generate ?msg
                           if OASISFeatures.package_test
                                OASISFeatures.dynrun_for_release pkg then
                             BaseData.dynrun_for_release_ml
+                          else if OASISFeatures.package_test
+                                    OASISFeatures.dyncomp pkg then
+                            BaseData.dyncomp_ml
                           else
                             BaseData.dynrun_ml
                         ]}
@@ -249,4 +252,3 @@ let generate ?msg
 
     else
         chngs
-

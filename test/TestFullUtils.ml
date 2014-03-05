@@ -152,7 +152,7 @@ let check_all_files_style test_ctxt dn =
   let ocamlmod_version =
     try
       let buff = Buffer.create 10 in
-      OUnit2.assert_command ~ctxt:test_ctxt 
+      OUnit2.assert_command ~ctxt:test_ctxt
         ~foutput:(fun strm -> Stream.iter (Buffer.add_char buff) strm)
         (TestCommon.ocamlmod_exec test_ctxt) ["-version"];
       Buffer.contents buff

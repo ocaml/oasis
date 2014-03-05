@@ -982,22 +982,6 @@ let gen_tests ~is_native () =
 
 
 let tests =
-  let skip_test_on_non_native_arch lst =
-    let skip_non_native =
-      OUnitTest.test_decorate
-        (fun f ->
-           fun test_ctxt ->
-             skip_if
-               (* Use the real is_native function and skip if on non native
-                * arch.
-                *)
-               (not (is_native test_ctxt))
-               "only run on native arch";
-             f test_ctxt)
-    in
-      List.map skip_non_native lst
-  in
-
   "TestFull" >:::
   [
     "best=native" >:::

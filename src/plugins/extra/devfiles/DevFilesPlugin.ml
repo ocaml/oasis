@@ -119,6 +119,12 @@ let main ctxt pkg =
   let t =
     generator pkg.schema_data
   in
+  let is_dyncomp = OASISFeatures.package_test OASISFeatures.dyncomp pkg in
+  if is_dyncomp && not t.enable_makefile then
+    OASISMessage.error
+      ~ctxt:ctxt.ctxt
+      "The alpha feature dyncomp doesn't work without a Makefile if \
+       DevFiles in enabled";
   let ctxt =
     (* Generate Makefile (for standard dev. env.) *)
     if t.enable_makefile then
@@ -135,12 +141,13 @@ let main ctxt pkg =
               all_targets
         in
         let add_one_target ?(need_configure=true) ?(other_depends=[]) nm =
+          let setup_deps l = if is_dyncomp then "$(SETUP)" :: l else l in
           let deps =
             String.concat " "
               ((if need_configure then
-                  (fun l -> "setup.data" :: l)
+                  (fun l -> "setup.data" :: setup_deps l)
                 else
-                  (fun l -> l))
+                  (fun l -> setup_deps l))
                  other_depends)
           in
           let deps = if deps <> "" then " " ^ deps else deps in
@@ -151,20 +158,43 @@ let main ctxt pkg =
             deps
             nm (String.uppercase nm)
         in
-          Buffer.add_string buff "\nSETUP = ocaml setup.ml\n\n";
+          Buffer.add_string
+            buff
+            (if is_dyncomp then
+               "\nSETUP = ./setup.exe\n\n"
+             else
+               "\nSETUP = ocaml setup.ml\n\n"
+            );
           List.iter
             (function
+               | "distclean" when is_dyncomp ->
+                   Printf.bprintf buff
+                     "distclean: $(SETUP)\n\
+                      \t$(SETUP) -distclean $(DISTCLEANFLAGS)\n\
+                      \t$(RM) $(SETUP)\n\n";
                | "all" | "clean" | "distclean" as nm ->
                    add_one_target ~need_configure:false nm
                | "test" | "doc" as nm ->
                    add_one_target ~other_depends:["build"] nm
                | "configure" ->
-                   Printf.bprintf buff
-                     "setup.data:\n\
-                      \t$(SETUP) -configure $(CONFIGUREFLAGS)\n\n"
+                   let add_configure_target nm =
+                     Printf.bprintf buff
+                       "%s:%s\n\
+                        \t$(SETUP) -configure $(CONFIGUREFLAGS)\n\n"
+                       nm
+                       (if is_dyncomp then " $(SETUP)" else "");
+                   in
+                   add_configure_target "setup.data";
+                   add_configure_target "configure";
                | nm ->
                    add_one_target nm)
             targets;
+          if is_dyncomp then
+            Buffer.add_string
+              buff
+              "setup.exe: setup.ml\n\
+               \t-ocamlfind ocamlc -o $@ -linkpkg -package ocamlbuild,oasis.dynrun $<\n\
+               \t$(RM) setup.cmi setup.cmo\n\n";
           Buffer.add_string buff (".PHONY: "^(String.concat " " targets)^"\n");
 
           OASISPlugin.add_file
@@ -181,6 +211,15 @@ let main ctxt pkg =
   let ctxt =
     (* Generate configure (for standard dev. env.) *)
     if t.enable_configure then
+      let ocaml_setup_configure =
+        let cmd =
+          if is_dyncomp then
+            "make configure CONFIGUREFLAGS=\"$@\""
+          else
+            "ocaml setup.ml -configure \"$@\""
+        in
+        [""; cmd; "# OASIS_STOP"]
+      in
       begin
         let tmpl =
           template_of_string_list
@@ -188,7 +227,7 @@ let main ctxt pkg =
             ~template:true
             "configure"
             comment_sh
-            DevFilesData.configure
+            (DevFilesData.configure @ ocaml_setup_configure)
         in
           OASISPlugin.add_file
             {tmpl with perm = 0o755; important = true}
