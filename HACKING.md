@@ -64,7 +64,7 @@ Cut a release
  * Publish blog post with updated download links.
  * G+ announce as OASIS.
  * Reshare G+ post on OCaml community.
- * Send mail to caml-list.
+ * Send mail to caml-list, oasis-devel.
 
  [jenkins]: http://deci.ovh.le-gall.net:8080/job/ocaml-oasis/
  [blog-post]: http://le-gall.net/sylvain+violaine/blog/admin/posts.php
@@ -72,3 +72,52 @@ Cut a release
  [patches-version]: https://forge.ocamlcore.org/tracker/admin/index.php?add_opt=1&boxid=1007&group_id=54&atid=293
  [bugs]: https://forge.ocamlcore.org/tracker/?atid=291&group_id=54&func=browse
  [patches]: https://forge.ocamlcore.org/tracker/?atid=293&group_id=54&func=browse
+
+
+Versions support policy
+=======================
+
+Since OASIS should allow to compile projects in most environment, it should not
+set constraint on dependencies too high. Here are some policies, to determine
+what version of a dependencies we should support:
+
+ * For generated setup.ml:
+  * No deps (standalone) except OCaml
+  * OCaml version must be at least the one in Debian stable.
+ * For generated files (e.g. myocamlbuild.ml):
+  * Version of the target in Debian stable or that matches the constraint
+    express in _oasis. E.g. if OCamlVersion: >= 4.01, we can generate
+    myocamlbuild.ml for this specific version because the constraint will be
+    checked at configure time.
+ * For the OASIS sources:
+  * OCaml version in Debian stable.
+  * All deps must be in Debian stable.
+  * Exception for related projects: ocamlmod, ocamlify, ocaml-data-notation
+ * For the OASIS tests:
+  * Version published, no strong requirement since tests can be disabled.
+
+
+OASIS backward compatibility
+============================
+
+OASIS supports former version of OASISFormat. Most of the important things are
+automatically backported to former version. However on the long term we might
+decide to drop support of old OASISFormat.
+
+We will support as long as possible an OASISFormat version but for any version
+below the OASIS version present in Debian stable, we may drop the support.
+
+For example:
+ * Debian stable is released with OASIS 0.2.0
+ * We may support OASISFormat: 0.1 as long as possible but, at one point we may
+   enforce at least OASISFormat: 0.2.
+
+A list of supported OASISFormat can be found in OASISPackage_intern.ml.
+
+Debian relationship
+===================
+
+We often use Debian, especially for version reference. OCaml support in Debian
+has a long history and we need to pick one reference. Since one of the upstream
+author is related to Debian, we made the decision to synchronize on Debian
+stable release.
