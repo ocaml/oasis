@@ -173,8 +173,8 @@ let generate ?msg
                                OASISFeatures.dynrun_for_release pkg then
                             BaseData.dynrun_for_release_ml
                           else if OASISFeatures.package_test
-                                    OASISFeatures.dyncomp pkg then
-                            BaseData.dyncomp_ml
+                                    OASISFeatures.compiled_setup_ml pkg then
+                            BaseData.compiled_setup_ml
                           else
                             BaseData.dynrun_ml
                         ]}

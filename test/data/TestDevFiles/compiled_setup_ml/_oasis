@@ -1,5 +1,5 @@
 OASISFormat:   0.4
-AlphaFeatures:  dyncomp
+AlphaFeatures: compiled_setup_ml
 Name:          foo
 Version:       1.0
 Synopsis:      Foo

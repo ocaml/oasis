@@ -55,4 +55,4 @@ val dynrun_for_release_ml: string
 
 
 (** Toploop for dynrun (yet another alternative). *)
-val dyncomp_ml: string
+val compiled_setup_ml: string
