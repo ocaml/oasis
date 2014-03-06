@@ -144,7 +144,7 @@ let generated_unix_files
             "cmx"
         else
           find_modules
-            (lib.lib_modules @ lib.lib_internal_modules)
+            lib.lib_modules
             "cmx"
       else
         []
@@ -211,4 +211,3 @@ let generated_unix_files
 
 
 let schema = OASISLibrary_intern.schema
-
