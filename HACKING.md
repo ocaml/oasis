@@ -65,6 +65,7 @@ Cut a release
  * G+ announce as OASIS.
  * Reshare G+ post on OCaml community.
  * Send mail to caml-list, oasis-devel.
+ * Run 'oasis setup' with the new version, inside oasis/ and commit the changes.
 
  [jenkins]: http://deci.ovh.le-gall.net:8080/job/ocaml-oasis/
  [blog-post]: http://le-gall.net/sylvain+violaine/blog/admin/posts.php
