@@ -978,6 +978,15 @@ let gen_tests ~is_native () =
               FilePath.make_filename
                 [t.ocaml_lib_dir; "entry_point"; "dyn_loaded.cmxs"]];
          ());
+
+    "recurselib">::
+    (fun test_ctxt ->
+       let t =
+         setup_test_directories test_ctxt in_testdata_dir
+           ["TestFull"; "recurselib"]
+       in
+         (* The test is that 'oasis setup' should not fail. *)
+         oasis_setup test_ctxt t);
   ]
 
 

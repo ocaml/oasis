@@ -1,0 +1,11 @@
+OASISFormat: 0.3
+Name: recursivelib
+Version: 0.1
+License: GPL-3
+Authors: Sylvain Le Gall
+Synopsis: recursivelib
+
+Library binary
+  Path: src
+  BuildDepends: binary, num
+  Modules: Binary
