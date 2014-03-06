@@ -29,9 +29,6 @@
 open OASISTypes
 
 
-type update = NoUpdate | Weak | Dynamic
-
-
 (** Restore generated files, when [generate] has been called with
     [~restore:true]. {b Not exported}.
   *)
@@ -49,6 +46,6 @@ val generate:
   ?oasis_exec:host_filename ->
   ?oasis_fn:host_filename ->
   ?oasis_setup_args:string list ->
-  update ->
+  OASISSetupUpdate.t ->
   package ->
   OASISFileTemplate.file_generate_change list

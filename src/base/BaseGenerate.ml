@@ -28,9 +28,7 @@ open ODN
 open OASISPlugin
 open BaseMessage
 open OASISGettext
-
-
-type update = NoUpdate | Weak | Dynamic
+open OASISSetupUpdate
 
 
 let required_modules =
@@ -117,7 +115,7 @@ let generate ?msg
   let ctxt, _ =
     BaseSetup.of_package
       ?oasis_fn ?oasis_exec ?oasis_setup_args
-      ~setup_update:(update = Weak) pkg
+      ~setup_update:(update = Weak) update pkg
   in
 
   let msg =
@@ -172,6 +170,9 @@ let generate ?msg
                           if OASISFeatures.package_test
                                OASISFeatures.dynrun_for_release pkg then
                             BaseData.dynrun_for_release_ml
+                          else if OASISFeatures.package_test
+                                    OASISFeatures.compiled_setup_ml pkg then
+                            BaseData.compiled_setup_ml
                           else
                             BaseData.dynrun_ml
                         ]}
@@ -249,4 +250,3 @@ let generate ?msg
 
     else
         chngs
-

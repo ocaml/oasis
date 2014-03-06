@@ -157,5 +157,6 @@ val of_package:
   ?oasis_exec:host_filename ->
   ?oasis_setup_args:string list ->
   setup_update:bool ->
+  OASISSetupUpdate.t ->
   package ->
   OASISPlugin.context_act * t

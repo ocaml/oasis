@@ -1,0 +1,14 @@
+OASISFormat:   0.4
+AlphaFeatures: compiled_setup_ml
+Name:          foo
+Version:       1.0
+Synopsis:      Foo
+Authors:       Jacques-Pascal Deplaix
+License:       GPL-3.0
+Plugins:       DevFiles (0.4)
+
+Executable foo
+  Path:           .
+  BuildTools:     ocamlbuild
+  MainIs:         foo.ml
+  Install:        false

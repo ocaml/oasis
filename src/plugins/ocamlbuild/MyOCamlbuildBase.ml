@@ -113,7 +113,7 @@ let dispatch t e =
                  try
                    opt := no_trailing_dot (BaseEnvLight.var_get var env)
                  with Not_found ->
-                   Printf.eprintf "W: Cannot get variable %s" var)
+                   Printf.eprintf "W: Cannot get variable %s\n" var)
               [
                 Options.ext_obj, "ext_obj";
                 Options.ext_lib, "ext_lib";

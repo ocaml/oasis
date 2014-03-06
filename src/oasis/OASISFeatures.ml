@@ -337,3 +337,9 @@ let dynrun_for_release =
   create "dynrun_for_release" alpha
     (fun () ->
        s_ "Make '-setup-update dynamic' suitable for releasing project.")
+
+
+let compiled_setup_ml =
+  create "compiled_setup_ml" alpha
+    (fun () ->
+       s_ "It compiles the setup.ml and speed-up actions done with it.")

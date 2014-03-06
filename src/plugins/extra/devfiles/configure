@@ -21,6 +21,3 @@ for i in "$@"; do
       ;;
   esac
 done
-
-ocaml setup.ml -configure "$@"
-# OASIS_STOP

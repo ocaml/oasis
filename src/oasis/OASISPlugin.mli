@@ -79,6 +79,9 @@ type context_act =
       ctxt: OASISContext.t;
       (** Global context. *)
 
+      update: OASISSetupUpdate.t;
+      (** What is the value given to -setup-update ? *)
+
       error: bool;
       (** Are there errors? *)
 

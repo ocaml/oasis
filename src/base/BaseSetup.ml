@@ -642,7 +642,7 @@ let find ctxt =
       default_filename
 
 
-let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update pkg =
+let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update pkg =
 
   let ctxt =
     (* Initial context *)
@@ -650,6 +650,7 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update pkg =
       error         = false;
       files         = OASISFileTemplate.empty;
       other_actions = [];
+      update;
       ctxt          = !BaseContext.default;
     }
   in

@@ -371,6 +371,7 @@ let tests =
               in
               let initial_ctxt = {
                 OASISPlugin.ctxt = OASISContext.quiet ;
+                update = OASISSetupUpdate.NoUpdate;
                 error = false ;
                 files = OASISFileTemplate.empty ;
                 other_actions = []
