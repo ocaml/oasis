@@ -147,24 +147,21 @@ let transitive_closure t =
   let visited = Array.make size false in
 
   let rec visit set v =
-    if not visited.(v) then
-      begin
-        (* The set of outgoing edges is not complete *)
-        let current_set = snd t.vertexes.(v) in
-        let set' =
-          SetInt.fold
-            (fun v set' -> visit set' v)
-            !current_set !current_set
-        in
-          visited.(v) <- true;
-          current_set := set';
-          SetInt.union set set'
-      end
-    else
-      begin
-        (* The set is complete *)
-        SetInt.union set !(snd t.vertexes.(v))
-      end
+    if not visited.(v) then begin
+      let () = visited.(v) <- true in
+      (* The set of outgoing edges is not complete *)
+      let current_set = snd t.vertexes.(v) in
+      let set' =
+        SetInt.fold
+          (fun v set' -> visit set' v)
+          !current_set !current_set
+      in
+      current_set := set';
+      SetInt.union set set'
+    end else begin
+      (* The set is complete *)
+      SetInt.union set !(snd t.vertexes.(v))
+    end
   in
 
     for v = 0 to size - 1 do

@@ -8,4 +8,5 @@ Synopsis: recursivelib
 Library binary
   Path: src
   BuildDepends: binary, num
+  BuildTools: ocamlbuild
   Modules: Binary
