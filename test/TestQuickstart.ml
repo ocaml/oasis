@@ -70,7 +70,7 @@ let tests =
         with_spawn
           ~verbose:true
           ~verbose_output:(logf test_ctxt `Info "expect: %s")
-          ~timeout:(Some 5.0)
+          ~timeout:None
           (oasis_exec test_ctxt)
           (Array.of_list args)
           (fun t () -> f t)
