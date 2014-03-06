@@ -39,7 +39,7 @@ let setup_t =
   let pkg =
     OASISParse.from_file ~ctxt:!BaseContext.default OASISParse.default_oasis_fn
   in
-  let _, setup_t = BaseSetup.of_package ~setup_update:false pkg in
+  let _, setup_t = BaseSetup.of_package ~setup_update:false OASISSetupUpdate.Dynamic pkg in
     setup_t
 
 
@@ -66,7 +66,7 @@ module BaseSetup = struct
           ~backup:true
           ~setup_fn:tmp_setup_fn
           ~restore:true
-          BaseGenerate.NoUpdate
+          OASISSetupUpdate.NoUpdate
           (OASISParse.from_file
              ~ctxt:!BaseContext.default OASISParse.default_oasis_fn)
       in

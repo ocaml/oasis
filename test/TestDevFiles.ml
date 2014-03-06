@@ -169,11 +169,11 @@ let gen_tests ~is_native =
                           "--sysconfdir=/etc"; "--localstatedir=/var/lib"];
        ());
 
-    "dyncomp">::
+    "compiled_setup_ml">::
     (fun test_ctxt ->
        let t =
          setup_test_directories test_ctxt in_testdata_dir
-           ["TestDevFiles"; "dyncomp"]
+           ["TestDevFiles"; "compiled_setup_ml"]
        in
        oasis_setup ~dynamic:true test_ctxt t;
        (* Setup expectation. *)
@@ -183,7 +183,7 @@ let gen_tests ~is_native =
        standard_test_compiled test_ctxt t;
        let makefile_content = file_content (t.src_dir ^ "/Makefile") in
        assert_bool
-         "Test the SETUP variable in the Makefile for dyncomp."
+         "Test the SETUP variable in the Makefile for compiled_setup_ml."
          (OASISString.contains ~what:"SETUP = ./setup.exe" makefile_content)
     );
   ]

@@ -71,6 +71,7 @@ Library oasis
            OASISDocument,
            OASISExecutable,
            OASISFlag,
+           OASISSetupUpdate,
            OASISLibrary,
            OASISObject,
            OASISPackage,

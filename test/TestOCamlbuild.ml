@@ -40,7 +40,7 @@ let tests =
        let ctxt, _ =
          with_bracket_chdir test_ctxt dn
            (fun test_ctxt ->
-              BaseSetup.of_package ~setup_update:false pkg)
+              BaseSetup.of_package ~setup_update:false OASISSetupUpdate.NoUpdate pkg)
        in
        let () =
          assert_bool "No error during generation." (not ctxt.error)
@@ -119,7 +119,3 @@ let tests =
        run_ocaml_setup_ml ~check_output:true test_ctxt t
          ["-doc"]);
   ]
-
-
-
-

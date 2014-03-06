@@ -35,7 +35,7 @@ open OASISPlugin
 let main ~ctxt replace_sections oasis_fn pkg =
   BaseGenerate.restore ();
   if replace_sections then begin
-    let ctxt, _ = BaseSetup.of_package ~oasis_fn ~setup_update:false pkg in
+    let ctxt, _ = BaseSetup.of_package ~oasis_fn ~setup_update:false OASISSetupUpdate.NoUpdate pkg in
     OASISFileTemplate.fold
       (fun tmpl () ->
          match tmpl.body with
@@ -72,4 +72,3 @@ let () =
               CLISubCommand.default_anon),
              (fun () -> !replace_sections))
           main))
-

@@ -29,7 +29,7 @@
 open OASISGettext
 open OASISUtils
 open CLISubCommand
-open BaseGenerate
+open OASISSetupUpdate
 
 
 let fspecs () =
@@ -100,5 +100,3 @@ let () =
     CLIData.setup_mkd
     (CLICommon.parse_oasis_fn
        (CLISubCommand.make_run fspecs main))
-
-
