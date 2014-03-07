@@ -32,7 +32,7 @@ open OASISFileTemplate
 open OASISPlugin
 
 
-let main ~ctxt replace_sections oasis_fn pkg =
+let main ~ctxt (replace_sections, remove) oasis_fn pkg =
   BaseGenerate.restore ();
   if replace_sections then begin
     let ctxt, _ = BaseSetup.of_package ~oasis_fn ~setup_update:false OASISSetupUpdate.NoUpdate pkg in
@@ -45,6 +45,7 @@ let main ~ctxt replace_sections oasis_fn pkg =
                let _chng: file_generate_change =
                  file_generate
                    ~ctxt:!BaseContext.default
+                   ~remove
                    ~backup:false
                    {tmpl with body = Body []}
                in
@@ -65,10 +66,14 @@ let () =
        (CLISubCommand.make_run
           (fun () ->
              let replace_sections = ref false in
+             let remove = ref false in
              (["-replace-sections",
                Arg.Set replace_sections,
                s_ "Empty replace section in generated files (i.e. remove \
-                   content between OASIS_START and OASIS_STOP)."],
+                   content between OASIS_START and OASIS_STOP).";
+               "-remove",
+               Arg.Set remove,
+               s_ "Empty remove files which have unaltered header and footer."],
               CLISubCommand.default_anon),
-             (fun () -> !replace_sections))
+             (fun () -> !remove || !replace_sections, !remove))
           main))

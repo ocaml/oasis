@@ -152,10 +152,13 @@ val file_rollback: ctxt:OASISContext.t -> file_generate_change -> unit
 
 (** Generate a file using a template. Only the part between OASIS_START and
     OASIS_STOP will be really replaced if the file exists. If the file doesn't
-    exist use the whole template.
+    exist use the whole template. If [~remove] is [true], then an existing file
+    will be deleted iff the template body is [[]] and the header and footer of
+    the file match the template's (used by the -remove option for setup-clean).
  *)
 val file_generate:
-  ctxt:OASISContext.t -> backup:bool -> template -> file_generate_change
+  ctxt:OASISContext.t ->
+  ?remove:bool -> backup:bool -> template -> file_generate_change
 
 
 (** {2 Multiple templates management } *)
