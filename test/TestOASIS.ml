@@ -409,7 +409,7 @@ let tests =
                                    (List.map (Printf.sprintf "%S") x)))
                   [ "Bar" ]
                   (template_body mllib)
-           )
+           );
          ])
       @
       [
@@ -440,9 +440,7 @@ let tests =
              (fun () ->
                 let _pkg =
                   from_file
-                    (* TODO: introduce oasis_ignore_plugin_ctxt *)
-                    ~ctxt:{oasis_ctxt with
-                               OASISContext.ignore_plugins = true}
+                    ~ctxt:oasis_ignore_plugin_ctxt
                     (in_testdata_dir test_ctxt ["TestOASIS"; "test13.oasis"])
                 in
                   ()));
@@ -452,13 +450,24 @@ let tests =
            try
              let _pkg: OASISTypes.package =
                 from_file
-                  (* TODO: introduce oasis_ignore_plugin_ctxt *)
-                  ~ctxt:{oasis_ctxt with
-                             OASISContext.ignore_plugins = true}
+                  ~ctxt:oasis_ignore_plugin_ctxt
                   (in_testdata_dir test_ctxt ["TestOASIS"; "test13.oasis"])
               in
                assert_string "test15.oasis should fail to parse"
           with Failure _ ->
             ());
+
+       "bug1236.oasis" >::
+       (fun test_ctxt ->
+          assert_raises
+            ~msg:"Not allowed to use lowercase module name."
+            (Failure "Module name 'lib', must be capitalized ('Lib').")
+            (fun () ->
+              let _pkg =
+                from_file
+                  ~ctxt:oasis_ignore_plugin_ctxt
+                  (in_testdata_dir test_ctxt ["TestOASIS"; "bug1236.oasis"])
+              in
+                ()));
       ]
     ]

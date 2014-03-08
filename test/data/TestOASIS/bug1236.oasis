@@ -1,0 +1,18 @@
+OASISFormat: 0.3
+Name:        foo
+Version:     1.0
+Synopsis:    test roject
+Authors:     gs
+License:     LGPL
+Plugins:     META (0.3)
+
+Executable hello
+  Path:       .
+  BuildTools: ocamlbuild
+  MainIs:     hello.ml
+
+Library lib
+  Path:		.
+  Modules:	lib
+  FindlibName:  lib
+  BuildTools: ocamlbuild

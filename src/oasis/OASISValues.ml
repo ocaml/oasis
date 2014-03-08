@@ -61,7 +61,7 @@ struct
 end
 
 
-let lexer lxr nm =
+let lexer ?(fail=(fun ~ctxt _ _ -> ())) lxr nm =
   {
     parse =
       (fun ~ctxt str ->
@@ -76,11 +76,12 @@ let lexer lxr nm =
                  str_matched
                  str
                  (nm ())
-         with Not_found ->
+         with e ->
+           fail ~ctxt str e;
+           (* Catch all if the previous ignore error. *)
            failwithf
-             (f_ "String '%s' is not a %s")
-             str
-             (nm ()));
+             (f_ "String '%s' is not a %s: %s.")
+             str (nm ()) (Printexc.to_string e));
     update = update_fail;
     print = (fun s -> s);
   }
@@ -257,6 +258,15 @@ let modules =
   let base_value =
     lexer
       StdLexer.modul
+      ~fail:(fun ~ctxt str e ->
+               match e with
+                 | Failure "lexing: empty token" ->
+                     if String.capitalize str <> str then
+                       failwithf
+                         (f_ "Module name '%s', must be capitalized ('%s').")
+                         str (String.capitalize str)
+                 | _ ->
+                     ())
       (fun () -> s_ "module")
   in
     comma_separated

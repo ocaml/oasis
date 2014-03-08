@@ -71,6 +71,8 @@ let fake_ocamlfind_exec = Conf.make_exec "fake_ocamlfind"
 (* TODO: add make_string_list to OUnit2. *)
 let oasis_args ctxt = []
 let oasis_ctxt = OASISContext.quiet
+let oasis_ignore_plugin_ctxt =
+  {oasis_ctxt with OASISContext.ignore_plugins = true}
 
 
 let long =
