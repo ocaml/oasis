@@ -79,13 +79,8 @@ let tests =
   in
 
   let check_one (fn, test) =
-     let pkg =
-       from_file
-         ~ctxt:{oasis_ctxt with
-                    OASISContext.ignore_plugins = true}
-         fn
-     in
-       test pkg
+     let pkg = from_file ~ctxt:oasis_ignore_plugin_ctxt fn in
+     test pkg
   in
 
   let test_file_of_vector (fn, test) =
