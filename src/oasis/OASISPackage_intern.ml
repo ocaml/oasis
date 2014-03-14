@@ -378,6 +378,15 @@ let generator =
            s_ "Extra plugins to use.")
         (fun pkg -> pkg.plugins)
   in
+  let disable_oasis_section =
+    new_field "DisableOASISSection"
+      ~default:[]
+      ~feature:OASISFeatures.disable_oasis_section
+      (comma_separated (expandable file))
+      (fun () -> s_ "Files to generate without OASIS section comments or \
+                     digest.")
+      (fun pkg -> pkg.untracked_files)
+  in
   let build_depends =
     OASISBuildSection_intern.build_depends_field schm
       (fun pkg -> [])
@@ -492,6 +501,7 @@ let generator =
                 distclean_custom = distclean_custom data;
                 files_ab         = files_ab data;
                 plugins          = plugins;
+                untracked_files  = disable_oasis_section data;
                 sections         = sections;
                 schema_data      = data;
                 plugin_data      = plugin_data;

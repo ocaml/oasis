@@ -102,25 +102,27 @@ type template =
       footer: line list;
       perm: int;
       important: bool; (** Determine if should be kept in dynamic mode. *)
+      untracked: bool;
+      (** Determine if OASIS section comments and digest should be omitted. *)
     }
 
 
 (** [template_make fn cmt header body footer] Create a template for which
-    target file is [fn].
+    target file is [fn]. If [untracked], then edits to the file cannot be
+    detected as the OASIS section comment blocks and digest are excluded.
   *)
 val template_make:
-  host_filename ->
+  host_filename -> ?untracked:bool ->
   comment -> line list -> line list -> line list -> template
 
 
-(** [template_of_string_list ~ctxt ~template fn cmt lst] Split a the
-    list [lst] of into an header, a body and a footer, using comment
-    [cmt] to determine each part. Set [~template] if this is an
-    embedded template (i.e. not a file loaded from disk). See
-    {!template_make} for other options.  *)
+(** [template_of_string_list ~ctxt ~template ~pure fn cmt lst] Split the list
+    [lst] into a header, body and footer, using comment [cmt] to determine each
+    part. Set [~template] if this is an embedded template (i.e. not a file
+    loaded from disk). See {!template_make} for other options.  *)
 val template_of_string_list:
-  ctxt:OASISContext.t ->
-  template:bool -> host_filename -> comment -> line list -> template
+  ctxt:OASISContext.t -> template:bool ->
+  ?untracked:bool -> host_filename -> comment -> line list -> template
 
 
 (** [template_of_ml_file fn] Create an OCaml file template taking into account

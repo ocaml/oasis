@@ -927,6 +927,23 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update
      ["let () = setup ();;"]
   in
 
+  let untracked =
+    let f = fun s file -> SetString.add (var_expand file) s in
+      List.fold_left f SetString.empty pkg.untracked_files
+  in
+
+  let set_untracked t files =
+    let t =
+      if SetString.mem t.OASISFileTemplate.fn untracked then begin
+        {t with OASISFileTemplate.untracked = true} end
+      else
+        t
+    in
+      OASISFileTemplate.replace t files
+  in
+
     {ctxt with
-         files = OASISFileTemplate.replace setup_tmpl ctxt.files},
+         files = OASISFileTemplate.fold set_untracked
+                  (OASISFileTemplate.replace setup_tmpl ctxt.files)
+                  OASISFileTemplate.empty},
     t

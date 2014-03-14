@@ -57,6 +57,7 @@ type template =
       footer:    line list;
       perm:      int;
       important: bool;
+      untracked: bool;
     }
 
 
@@ -120,7 +121,7 @@ let comment_meta =
   comment_sh
 
 
-let template_make fn comment header body footer =
+let template_make fn ?(untracked=false) comment header body footer =
   {
     fn        = fn;
     comment   = comment;
@@ -129,10 +130,11 @@ let template_make fn comment header body footer =
     footer    = footer;
     perm      = 0o644;
     important = false;
+    untracked = untracked;
   }
 
 
-let template_of_string_list ~ctxt ~template fn comment lst =
+let template_of_string_list ~ctxt ~template ?(untracked=false) fn comment lst =
 
   (* Convert a Digest.to_hex string back into Digest.t *)
   let digest_of_hex s =
@@ -195,14 +197,14 @@ let template_of_string_list ~ctxt ~template fn comment lst =
         try
           let lst_header, tl =
             split_cond
-              (fun str ->
-                if not (is_start str) then
-                  begin
+              (if untracked then
+                fun _ -> false
+              else
+                fun str ->
+                  if not (is_start str) then begin
                     debug ~ctxt "Not start: %s" str;
                     true
-                  end
-                else
-                  begin
+                  end else begin
                     debug ~ctxt "Start: %s" str;
                     false
                   end)
@@ -237,7 +239,10 @@ let template_of_string_list ~ctxt ~template fn comment lst =
                   lst_header, Body lst_body, lst_footer
 
         with Not_found ->
-          lst, NoBody, []
+          if untracked then
+            [], Body [], []
+          else
+            lst, NoBody, []
 
   in
 
@@ -260,7 +265,7 @@ let template_of_string_list ~ctxt ~template fn comment lst =
     {res with body = body}
 
 
-let template_of_file ~template fn comment =
+let template_of_file ~template untracked fn comment =
  let lst =
    let chn_in =
      open_in_bin fn
@@ -279,7 +284,7 @@ let template_of_file ~template fn comment =
      close_in chn_in;
      List.rev !lst
  in
-   template_of_string_list ~template fn comment lst
+   template_of_string_list ~template ~untracked fn comment lst
 
 
 let template_of_mlfile fn header body footer  =
@@ -461,19 +466,21 @@ let to_file t =
             ()
 
         | BodyWithDigest (d, lst) ->
-            output_line t.comment.start;
-            output_line
-              (t.comment.of_string
-                 (Printf.sprintf
-                    "DO NOT EDIT (digest: %s)"
-                    (Digest.to_hex d)));
+            if not t.untracked then begin
+              output_line t.comment.start;
+              output_line
+                (t.comment.of_string
+                   (Printf.sprintf
+                      "DO NOT EDIT (digest: %s)"
+                      (Digest.to_hex d)));
+            end;
             output_lst   lst;
-            output_line  t.comment.stop
+            if not t.untracked then output_line  t.comment.stop
 
         | Body lst ->
-            output_line  t.comment.start;
+            if not t.untracked then output_line  t.comment.start;
             output_lst   lst;
-            output_line  t.comment.stop
+            if not t.untracked then output_line  t.comment.stop
     end;
     output_lst t.footer;
     close_out chn_out;
@@ -584,7 +591,7 @@ let file_generate ~ctxt ?(remove=false) ~backup t =
     if Sys.file_exists t.fn then
       begin
         let t_org =
-          template_of_file ~ctxt ~template:false t.fn t.comment
+          template_of_file ~ctxt ~template:false t.untracked t.fn t.comment
         in
           (* If remove = true then backup is ignored. *)
           if remove && t_org.header = t.header && t_org.footer = t.footer &&

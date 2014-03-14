@@ -286,6 +286,7 @@ type package =
       files_ab:         unix_filename list;
       sections:         section list;
       plugins:          [`Extra] plugin list;
+      untracked_files:  unix_filename list;
       schema_data:      PropList.Data.t;
       plugin_data:      plugin_data;
     } with odn

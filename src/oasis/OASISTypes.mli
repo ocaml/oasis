@@ -437,6 +437,9 @@ type package =
       plugins:          [`Extra] plugin list;
       (** Extra plugins applied. *)
 
+      untracked_files:  unix_filename list;
+      (** Files which should not have OASIS Section comments and digests *)
+
       (* TODO: get rid of schema_data and cs_data *)
       schema_data:      PropList.Data.t;
       plugin_data:      plugin_data;
