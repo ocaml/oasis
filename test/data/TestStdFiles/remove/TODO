@@ -1,0 +1,18 @@
+Test steps:
+
+1. Copy files to test directory:
+    _oasis
+    AUTHORS.txt.fst -> AUTHORS.txt
+    INSTALL.txt.fst -> INSTALL.txt
+    README.txt.fst -> README.txt
+2. From the test directory, execute oasis setup-clean -remove
+3. Expected results
+On StdOut (Windows only?!):
+        1 file(s) copied.
+On StdErr:
+W: File INSTALL.txt has changed, doing a backup in INSTALL.txt.bak
+File system state in test directory:
+  INSTALL.txt.bak matching INSTALL.txt.fst (i.e. unchanged)
+  README.txt matching README.txt.snd (OASIS section emptied)
+  _oasis
+There should be no other files - in particular, AUTHORS.txt should have been deleted.

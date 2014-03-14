@@ -521,7 +521,7 @@ let file_rollback ~ctxt =
         ()
 
 
-let file_generate ~ctxt ~backup t =
+let file_generate ~ctxt ?(remove=false) ~backup t =
 
   (* Check that the files differ
    *)
@@ -586,55 +586,65 @@ let file_generate ~ctxt ~backup t =
         let t_org =
           template_of_file ~ctxt ~template:false t.fn t.comment
         in
+          (* If remove = true then backup is ignored. *)
+          if remove && t_org.header = t.header && t_org.footer = t.footer &&
+             t.body = Body [] then
+            begin
+              info ~ctxt (f_ "%s is empty - removing") t.fn;
+              if not (digest_check t_org) then
+                 warning ~ctxt (f_ "File %s has changed, doing a backup in %s")
+                   t.fn (do_backup t.fn);
+              Sys.remove t.fn;
+              NoChange
+            end
+          else
+            match t_org.body, body_has_changed t_org t with
+              | NoBody, _ -> (* No body, nothing to do *)
+                  begin
+                    NoChange
+                  end
 
-          match t_org.body, body_has_changed t_org t with
-            | NoBody, _ -> (* No body, nothing to do *)
-                begin
-                  NoChange
-                end
+              | _, true      (* Body has changed -> regenerate *)
+              | Body _, _ -> (* Missing digest -> regenerate *)
+                  begin
+                    (* Regenerate *)
+                    let () =
+                      info ~ctxt (f_ "Regenerating file %s") t.fn
+                    in
 
-            | _, true      (* Body has changed -> regenerate *)
-            | Body _, _ -> (* Missing digest -> regenerate *)
-                begin
-                  (* Regenerate *)
-                  let () =
-                    info ~ctxt (f_ "Regenerating file %s") t.fn
-                  in
-
-                  let fn_backup =
-                    (* Create a backup if required *)
-                    if not (digest_check t_org) then
-                      begin
-                        let fn_bak =
-                          do_backup t.fn
-                        in
+                    let fn_backup =
+                      (* Create a backup if required *)
+                      if not (digest_check t_org) then begin
+                        let fn_bak = do_backup t.fn in
                           warning ~ctxt
                             (f_ "File %s has changed, doing a backup in %s")
                             t.fn fn_bak;
                           Some fn_bak
-                      end
-                    else if backup then
-                      begin
+                      end else if backup then begin
                         Some (do_backup t.fn)
-                      end
-                    else
-                      None
-                  in
-                    to_file (merge t_org t);
-                    Change (t.fn, fn_backup)
-                end
+                      end else
+                        None
+                    in
+                      to_file (merge t_org t);
+                      Change (t.fn, fn_backup)
+                  end
 
-            | _, false -> (* No change *)
-              begin
-                info ~ctxt (f_ "File %s has not changed, skipping") t.fn;
-                NoChange
-              end
+              | _, false -> (* No change *)
+                begin
+                  info ~ctxt (f_ "File %s has not changed, skipping") t.fn;
+                  NoChange
+                end
       end
     else
       begin
-        info ~ctxt (f_ "File %s doesn't exist, creating it.") t.fn;
-        to_file t;
-        Create t.fn
+        if remove then begin
+          info ~ctxt (f_ "File %s doesn't exist, deletion unnecessary.") t.fn;
+          NoChange
+        end else begin
+          info ~ctxt (f_ "File %s doesn't exist, creating it.") t.fn;
+          to_file t;
+          Create t.fn
+        end
       end
 
 
