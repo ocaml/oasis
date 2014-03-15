@@ -50,14 +50,14 @@ type body =
 
 type template =
     {
-      fn:        host_filename;
-      comment:   comment;
-      header:    line list;
-      body:      body;
-      footer:    line list;
-      perm:      int;
-      important: bool;
-      untracked: bool;
+      fn:                    host_filename;
+      comment:               comment;
+      header:                line list;
+      body:                  body;
+      footer:                line list;
+      perm:                  int;
+      important:             bool;
+      disable_oasis_section: bool;
     }
 
 
@@ -121,20 +121,20 @@ let comment_meta =
   comment_sh
 
 
-let template_make fn ?(untracked=false) comment header body footer =
+let template_make fn comment header body footer =
   {
-    fn        = fn;
-    comment   = comment;
-    header    = header;
-    body      = Body body;
-    footer    = footer;
-    perm      = 0o644;
-    important = false;
-    untracked = untracked;
+    fn                    = fn;
+    comment               = comment;
+    header                = header;
+    body                  = Body body;
+    footer                = footer;
+    perm                  = 0o644;
+    important             = false;
+    disable_oasis_section = false;
   }
 
 
-let template_of_string_list ~ctxt ~template ?(untracked=false) fn comment lst =
+let template_of_string_list ~ctxt ~template ?(disable_oasis_section=false) fn comment lst =
 
   (* Convert a Digest.to_hex string back into Digest.t *)
   let digest_of_hex s =
@@ -197,7 +197,7 @@ let template_of_string_list ~ctxt ~template ?(untracked=false) fn comment lst =
         try
           let lst_header, tl =
             split_cond
-              (if untracked then
+              (if disable_oasis_section then
                 fun _ -> false
               else
                 fun str ->
@@ -239,7 +239,7 @@ let template_of_string_list ~ctxt ~template ?(untracked=false) fn comment lst =
                   lst_header, Body lst_body, lst_footer
 
         with Not_found ->
-          if untracked then
+          if disable_oasis_section then
             [], Body [], []
           else
             lst, NoBody, []
@@ -265,7 +265,7 @@ let template_of_string_list ~ctxt ~template ?(untracked=false) fn comment lst =
     {res with body = body}
 
 
-let template_of_file ~template untracked fn comment =
+let template_of_file ~template disable_oasis_section fn comment =
  let lst =
    let chn_in =
      open_in_bin fn
@@ -284,7 +284,7 @@ let template_of_file ~template untracked fn comment =
      close_in chn_in;
      List.rev !lst
  in
-   template_of_string_list ~template ~untracked fn comment lst
+   template_of_string_list ~template ~disable_oasis_section fn comment lst
 
 
 let template_of_mlfile fn header body footer  =
@@ -466,7 +466,7 @@ let to_file t =
             ()
 
         | BodyWithDigest (d, lst) ->
-            if not t.untracked then begin
+            if not t.disable_oasis_section then begin
               output_line t.comment.start;
               output_line
                 (t.comment.of_string
@@ -475,12 +475,12 @@ let to_file t =
                       (Digest.to_hex d)));
             end;
             output_lst   lst;
-            if not t.untracked then output_line  t.comment.stop
+            if not t.disable_oasis_section then output_line  t.comment.stop
 
         | Body lst ->
-            if not t.untracked then output_line  t.comment.start;
+            if not t.disable_oasis_section then output_line  t.comment.start;
             output_lst   lst;
-            if not t.untracked then output_line  t.comment.stop
+            if not t.disable_oasis_section then output_line  t.comment.stop
     end;
     output_lst t.footer;
     close_out chn_out;
@@ -591,7 +591,7 @@ let file_generate ~ctxt ?(remove=false) ~backup t =
     if Sys.file_exists t.fn then
       begin
         let t_org =
-          template_of_file ~ctxt ~template:false t.untracked t.fn t.comment
+          template_of_file ~ctxt ~template:false t.disable_oasis_section t.fn t.comment
         in
           (* If remove = true then backup is ignored. *)
           if remove && t_org.header = t.header && t_org.footer = t.footer &&
@@ -668,35 +668,43 @@ end)
 exception AlreadyExists of host_filename
 
 
-type templates = template S.t
+type templates = {files: template S.t;
+                  disable_oasis_section: SetString.t}
 
 
-let empty =
-  S.empty
+let empty disable_oasis_section =
+  {files = S.empty;
+   disable_oasis_section}
 
 
-let find =
-  S.find
-
-
-let add e t =
-  if S.mem e.fn t then
-    raise (AlreadyExists e.fn)
-  else
-    S.add e.fn e t
-
-
-let remove fn t =
-  S.remove fn t
+let find e t =
+  S.find e t.files
 
 
 let replace e t =
-  S.add e.fn e t
+  let e =
+    if SetString.mem e.fn t.disable_oasis_section then
+      {e with disable_oasis_section = true}
+    else
+      e
+  in
+    {t with files = S.add e.fn e t.files}
+
+
+let add e t =
+  if S.mem e.fn t.files then
+    raise (AlreadyExists e.fn)
+  else
+    replace e t
+
+
+let remove fn t =
+  {t with files = S.remove fn t.files}
 
 
 let fold f t acc =
   S.fold
     (fun k e acc ->
        f e acc)
-    t
+    t.files
     acc

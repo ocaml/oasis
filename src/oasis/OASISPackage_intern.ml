@@ -385,7 +385,7 @@ let generator =
       (comma_separated (expandable file))
       (fun () -> s_ "Files to generate without OASIS section comments or \
                      digest.")
-      (fun pkg -> pkg.untracked_files)
+      (fun pkg -> pkg.disable_oasis_section)
   in
   let build_depends =
     OASISBuildSection_intern.build_depends_field schm
@@ -474,35 +474,35 @@ let generator =
               add_build_tool
               (build_tools data)
               {
-                oasis_version    = oasis_version;
-                ocaml_version    = ocaml_version data;
-                findlib_version  = findlib_version data;
-                alpha_features   = alpha_features;
-                beta_features    = beta_features;
-                name             = name data;
-                version          = version data;
-                license          = license data;
-                license_file     = license_file data;
-                copyrights       = copyrights data;
-                maintainers      = maintainers data;
-                authors          = authors data;
-                homepage         = homepage data;
-                synopsis         = synopsis data;
-                description      = description data;
-                categories       = categories data;
-                conf_type        = conf;
-                conf_custom      = conf_custom data;
-                build_type       = build;
-                build_custom     = build_custom data;
-                install_type     = install;
-                install_custom   = install_custom data;
-                uninstall_custom = uninstall_custom data;
-                clean_custom     = clean_custom data;
-                distclean_custom = distclean_custom data;
-                files_ab         = files_ab data;
-                plugins          = plugins;
-                untracked_files  = disable_oasis_section data;
-                sections         = sections;
-                schema_data      = data;
-                plugin_data      = plugin_data;
+                oasis_version          = oasis_version;
+                ocaml_version          = ocaml_version data;
+                findlib_version        = findlib_version data;
+                alpha_features         = alpha_features;
+                beta_features          = beta_features;
+                name                   = name data;
+                version                = version data;
+                license                = license data;
+                license_file           = license_file data;
+                copyrights             = copyrights data;
+                maintainers            = maintainers data;
+                authors                = authors data;
+                homepage               = homepage data;
+                synopsis               = synopsis data;
+                description            = description data;
+                categories             = categories data;
+                conf_type              = conf;
+                conf_custom            = conf_custom data;
+                build_type             = build;
+                build_custom           = build_custom data;
+                install_type           = install;
+                install_custom         = install_custom data;
+                uninstall_custom       = uninstall_custom data;
+                clean_custom           = clean_custom data;
+                distclean_custom       = distclean_custom data;
+                files_ab               = files_ab data;
+                plugins                = plugins;
+                disable_oasis_section  = disable_oasis_section data;
+                sections               = sections;
+                schema_data            = data;
+                plugin_data            = plugin_data;
               }))

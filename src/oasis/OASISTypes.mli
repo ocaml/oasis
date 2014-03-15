@@ -373,76 +373,76 @@ type section_kind =
   *)
 type package =
     {
-      oasis_version:    OASISVersion.t;
+      oasis_version:          OASISVersion.t;
       (** OASIS version used to write this package. *)
-      ocaml_version:    OASISVersion.comparator option;
+      ocaml_version:          OASISVersion.comparator option;
       (** OCaml version required for this package. *)
-      findlib_version:  OASISVersion.comparator option;
+      findlib_version:        OASISVersion.comparator option;
       (** Findlib version required for this package. *)
-      alpha_features:   string list;
+      alpha_features:         string list;
       (** Alpha features enabled for this package. *)
-      beta_features:    string list;
+      beta_features:          string list;
       (** Beta features enabled for this package. *)
-      name:             package_name;
+      name:                   package_name;
       (** Name of this package. *)
-      version:          OASISVersion.t;
+      version:                OASISVersion.t;
       (** Version of this package. *)
-      license:          OASISLicense.t;
+      license:                OASISLicense.t;
       (** License of this package. *)
-      license_file:     unix_filename option;
+      license_file:           unix_filename option;
       (** File containing the license of this package. *)
-      copyrights:       string list;
+      copyrights:             string list;
       (** Copyright holders (e.g. companies or people). *)
-      maintainers:      string list;
+      maintainers:            string list;
       (** People actually taking care of this package (e.g. subset of copyright
           holders)
         *)
-      authors:          string list;
+      authors:                string list;
       (** Real people who wrote this package, not their companies. *)
-      homepage:         url option;
+      homepage:               url option;
       (** Location of the package homepage. *)
-      synopsis:         string;
+      synopsis:               string;
       (** Short description of the package. *)
-      description:      string option;
+      description:            string option;
       (** Long description of the package. *)
-      categories:       url list;
+      categories:             url list;
       (** List of categories that the package belong to. *)
 
-      conf_type:        [`Configure] plugin;
+      conf_type:              [`Configure] plugin;
       (** Plugin to configure, default internal. *)
-      conf_custom:      custom;
+      conf_custom:            custom;
       (** Actions around configure step. *)
 
-      build_type:       [`Build] plugin;
+      build_type:             [`Build] plugin;
       (** Plugin to build, default ocamlbuild. *)
-      build_custom:     custom;
+      build_custom:           custom;
       (** Actions around build step. *)
 
-      install_type:     [`Install] plugin;
+      install_type:           [`Install] plugin;
       (** Plugin to install/uninstall, default internal. *)
-      install_custom:   custom;
+      install_custom:         custom;
       (** Actions around install step. *)
-      uninstall_custom: custom;
+      uninstall_custom:       custom;
       (** Actions around uninstall step. *)
 
-      clean_custom:     custom;
+      clean_custom:           custom;
       (** Actions around clean step. *)
-      distclean_custom: custom;
+      distclean_custom:       custom;
       (** Actions aroudn distclean step. *)
 
-      files_ab:         unix_filename list;
+      files_ab:               unix_filename list;
       (** Files to generate by replacing token in it after configure step. *)
-      sections:         section list;
+      sections:               section list;
       (** All sections (libraries, executables, tests...). *)
-      plugins:          [`Extra] plugin list;
+      plugins:                [`Extra] plugin list;
       (** Extra plugins applied. *)
 
-      untracked_files:  unix_filename list;
+      disable_oasis_section:  unix_filename list;
       (** Files which should not have OASIS Section comments and digests *)
 
       (* TODO: get rid of schema_data and cs_data *)
-      schema_data:      PropList.Data.t;
-      plugin_data:      plugin_data;
+      schema_data:            PropList.Data.t;
+      plugin_data:            plugin_data;
       (** Property list attached to this package. *)
     }
 
