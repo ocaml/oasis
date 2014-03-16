@@ -644,11 +644,15 @@ let find ctxt =
 
 let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update pkg =
 
+  let disable_oasis_section =
+    set_string_add_list SetString.empty pkg.disable_oasis_section
+  in
+
   let ctxt =
     (* Initial context *)
     {
       error         = false;
-      files         = OASISFileTemplate.empty;
+      files         = OASISFileTemplate.empty disable_oasis_section;
       other_actions = [];
       update;
       ctxt          = !BaseContext.default;
@@ -926,6 +930,7 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update
      (* Footer *)
      ["let () = setup ();;"]
   in
+
 
     {ctxt with
          files = OASISFileTemplate.replace setup_tmpl ctxt.files},

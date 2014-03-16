@@ -253,41 +253,42 @@ type section_kind =
 
 type package =
     {
-      oasis_version:    OASISVersion.t;
-      ocaml_version:    OASISVersion.comparator option;
-      findlib_version:  OASISVersion.comparator option;
-      alpha_features:   string list;
-      beta_features:    string list;
-      name:             package_name;
-      version:          OASISVersion.t;
-      license:          OASISLicense.t;
-      license_file:     unix_filename option;
-      copyrights:       string list;
-      maintainers:      string list;
-      authors:          string list;
-      homepage:         url option;
-      synopsis:         string;
-      description:      string option;
-      categories:       url list;
+      oasis_version:          OASISVersion.t;
+      ocaml_version:          OASISVersion.comparator option;
+      findlib_version:        OASISVersion.comparator option;
+      alpha_features:         string list;
+      beta_features:          string list;
+      name:                   package_name;
+      version:                OASISVersion.t;
+      license:                OASISLicense.t;
+      license_file:           unix_filename option;
+      copyrights:             string list;
+      maintainers:            string list;
+      authors:                string list;
+      homepage:               url option;
+      synopsis:               string;
+      description:            string option;
+      categories:             url list;
 
-      conf_type:        [`Configure] plugin;
-      conf_custom:      custom;
+      conf_type:              [`Configure] plugin;
+      conf_custom:            custom;
 
-      build_type:       [`Build] plugin;
-      build_custom:     custom;
+      build_type:             [`Build] plugin;
+      build_custom:           custom;
 
-      install_type:     [`Install] plugin;
-      install_custom:   custom;
-      uninstall_custom: custom;
+      install_type:           [`Install] plugin;
+      install_custom:         custom;
+      uninstall_custom:       custom;
 
-      clean_custom:     custom;
-      distclean_custom: custom;
+      clean_custom:           custom;
+      distclean_custom:       custom;
 
-      files_ab:         unix_filename list;
-      sections:         section list;
-      plugins:          [`Extra] plugin list;
-      schema_data:      PropList.Data.t;
-      plugin_data:      plugin_data;
+      files_ab:               unix_filename list;
+      sections:               section list;
+      plugins:                [`Extra] plugin list;
+      disable_oasis_section:  unix_filename list;
+      schema_data:            PropList.Data.t;
+      plugin_data:            plugin_data;
     } with odn
 
 
