@@ -343,3 +343,9 @@ let compiled_setup_ml =
   create "compiled_setup_ml" alpha
     (fun () ->
        s_ "It compiles the setup.ml and speed-up actions done with it.")
+
+let disable_oasis_section =
+  create "disable_oasis_section" alpha
+    (fun () ->
+      s_ "Allows the OASIS section comments and digest to be omitted in \
+          generated files.")

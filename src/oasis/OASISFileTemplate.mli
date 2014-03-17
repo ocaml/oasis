@@ -102,25 +102,27 @@ type template =
       footer: line list;
       perm: int;
       important: bool; (** Determine if should be kept in dynamic mode. *)
+      disable_oasis_section: bool;
+      (** Determine if OASIS section comments and digest should be omitted. *)
     }
 
 
 (** [template_make fn cmt header body footer] Create a template for which
-    target file is [fn].
-  *)
+    target file is [fn].  *)
 val template_make:
   host_filename ->
   comment -> line list -> line list -> line list -> template
 
 
-(** [template_of_string_list ~ctxt ~template fn cmt lst] Split a the
-    list [lst] of into an header, a body and a footer, using comment
-    [cmt] to determine each part. Set [~template] if this is an
-    embedded template (i.e. not a file loaded from disk). See
+(** [template_of_string_list ~ctxt ~template ~pure fn cmt lst] Split the list
+    [lst] into a header, body and footer, using comment [cmt] to determine each
+    part. Set [~template] if this is an embedded template (i.e. not a file
+    loaded from disk). If [~disable_oasis_section] is set, then the list is
+    processed on the assumption that there is no header and footer. See
     {!template_make} for other options.  *)
 val template_of_string_list:
-  ctxt:OASISContext.t ->
-  template:bool -> host_filename -> comment -> line list -> template
+  ctxt:OASISContext.t -> template:bool ->
+  ?disable_oasis_section:bool -> host_filename -> comment -> line list -> template
 
 
 (** [template_of_ml_file fn] Create an OCaml file template taking into account
@@ -152,10 +154,13 @@ val file_rollback: ctxt:OASISContext.t -> file_generate_change -> unit
 
 (** Generate a file using a template. Only the part between OASIS_START and
     OASIS_STOP will be really replaced if the file exists. If the file doesn't
-    exist use the whole template.
+    exist use the whole template. If [~remove] is [true], then an existing file
+    will be deleted iff the template body is [[]] and the header and footer of
+    the file match the template's (used by the -remove option for setup-clean).
  *)
 val file_generate:
-  ctxt:OASISContext.t -> backup:bool -> template -> file_generate_change
+  ctxt:OASISContext.t ->
+  ?remove:bool -> backup:bool -> template -> file_generate_change
 
 
 (** {2 Multiple templates management } *)
@@ -171,9 +176,9 @@ exception AlreadyExists of host_filename
 type templates
 
 
-(** No generated template files.
-  *)
-val empty: templates
+(** No generated template files with the given set of files with the OASIS
+    section disabled. *)
+val empty: OASISUtils.SetString.t -> templates
 
 
 (** Find a generated template file.

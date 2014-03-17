@@ -1,0 +1,8 @@
+OASISFormat: 0.4
+Name: remove
+Version: 1.0
+Synopsis: Test case for oasis setup-clean -remove
+Authors: David Allsopp
+License: GPL-3.0
+Plugins: StdFiles (0.4)
+
