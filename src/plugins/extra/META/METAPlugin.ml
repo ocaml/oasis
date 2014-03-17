@@ -359,7 +359,7 @@ let main ctxt pkg =
                       ~template:true
                       meta_fn
                       comment_meta
-                      (OASISUtils.split_newline ~trim:false
+                      (OASISString.split_newline ~do_trim:false
                          (Buffer.contents buff)))
                    ctxt
              end

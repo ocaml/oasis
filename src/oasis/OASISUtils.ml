@@ -164,26 +164,10 @@ let failwithf fmt = Printf.ksprintf failwith fmt
 (* END EXPORT *)
 
 
-let split_comma str =
-  List.map OASISString.trim (OASISString.nsplit str ',')
-
-
-let split_newline ?(trim=true) str =
-  let lst = OASISString.nsplit str '\n' in
-    if trim then
-      List.map OASISString.trim lst
-    else
-      lst
-
-
-let split_optional_parentheses str =
-  try
-    let beg_str, end_str = OASISString.split (OASISString.trim str) '(' in
-    let content_str = OASISString.strip_ends_with ~what:")" end_str in
-      OASISString.trim beg_str,
-      Some (OASISString.trim content_str)
-  with Not_found ->
-    OASISString.trim str, None
+let may f =
+  function
+    | Some x -> f x
+    | None -> ()
 
 
 module POSIXShell =

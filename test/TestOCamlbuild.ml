@@ -35,7 +35,7 @@ let tests =
        let dn =
          in_testdata_dir test_ctxt ["TestOCamlbuild"; "missing-source"]
        in
-       let fn = Filename.concat dn "_oasis" in
+       let fn = Filename.concat dn OASISParse.default_oasis_fn in
        let pkg = OASISParse.from_file ~ctxt:oasis_ctxt fn in
        let ctxt, _ =
          with_bracket_chdir test_ctxt dn

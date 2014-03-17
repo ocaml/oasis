@@ -24,10 +24,10 @@ Description:
   between various subsystems that do the job. It should support the following
   tools:
   .
-  - OCamlbuild
-  - OMake (todo)
-  - OCamlMakefile (todo),
-  - ocaml-autoconf (todo)
+   * OCamlbuild
+   * OMake (todo)
+   * OCamlMakefile (todo),
+   * ocaml-autoconf (todo)
   .
   It also features a do-it-yourself command line invocation and an internal
   configure/install scheme. Libraries are managed through findlib. It has been
@@ -52,7 +52,6 @@ if flag(gettext)
 Library oasis
   Path: src/oasis
   Modules: FormatExt,
-           FormatMarkdown,
            ODNFunc,
            PropList,
            OASISUtils,

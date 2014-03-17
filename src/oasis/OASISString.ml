@@ -256,3 +256,29 @@ let contains ~what str =
       check 0 (idx_str + 1)
   in
     check 0 0
+
+
+(** Split a list using ',' as separator. {b Not exported} *)
+let split_comma str =
+  List.map trim (nsplit str ',')
+
+
+(** Split a list using '\n' as separator. {b Not exported} *)
+let split_newline ?(do_trim=true) str =
+  let lst = nsplit str '\n' in
+    if do_trim then
+      List.map trim lst
+    else
+      lst
+
+
+(** Split a string containing '(...)' optionally. {b Not exported} *)
+let split_optional_parentheses str =
+  try
+    let beg_str, end_str = split (trim str) '(' in
+    let content_str = strip_ends_with ~what:")" end_str in
+      trim beg_str,
+      Some (trim content_str)
+  with Not_found ->
+    trim str, None
+

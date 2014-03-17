@@ -175,7 +175,7 @@ let comma_separated value =
       (fun ~ctxt s ->
          List.map
            (fun s -> value.parse ~ctxt s)
-           (split_comma s));
+           (OASISString.split_comma s));
     update =
       List.append;
     print =
@@ -193,7 +193,7 @@ let newline_separated value =
       (fun ~ctxt s ->
          List.map
            (fun s -> value.parse ~ctxt s)
-           (split_newline s));
+           (OASISString.split_newline s));
     update =
       List.append;
     print =
@@ -224,7 +224,7 @@ let with_optional_parentheses main_value optional_value =
   {
     parse =
       (fun ~ctxt str ->
-         match split_optional_parentheses str with
+         match OASISString.split_optional_parentheses str with
            | e1, Some e2 ->
                main_value.parse ~ctxt e1,
                Some (optional_value.parse ~ctxt e2)

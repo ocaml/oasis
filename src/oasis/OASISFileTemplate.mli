@@ -51,34 +51,32 @@ open OASISUnixPath
 type comment
 
 
-(** .ml comments.
-  *)
+(** .ml comments.  *)
 val comment_ml: comment
 
 
-(** Shell comments.
-  *)
+(** Shell comments.  *)
 val comment_sh: comment
 
 
-(** Makefile comments.
-  *)
+(** Makefile comments.  *)
 val comment_makefile: comment
 
 
-(** OCamlbuild comments.
-  *)
+(** OCamlbuild comments.  *)
 val comment_ocamlbuild: comment
 
 
-(** .bat file comments.
-  *)
+(** .bat file comments.  *)
 val comment_bat: comment
 
 
-(** META file comments.
-  *)
+(** META file comments.  *)
 val comment_meta: comment
+
+
+(** Markdown comments. *)
+val comment_markdown: comment
 
 
 (** {2 Template} *)
@@ -134,6 +132,8 @@ val template_of_mlfile:
 
 (** {2 File generation} *)
 
+(** Create a list representation of the file. *)
+val to_string_list: template -> line list
 
 (** Describe what has been done to generate a file out of a template.
   *)

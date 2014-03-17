@@ -229,7 +229,7 @@ let string_of_plugin (_, nm, vo) =
 
 
 let plugin_of_string knd str =
-  match split_optional_parentheses str with
+  match OASISString.split_optional_parentheses str with
     | plg, Some ver ->
         knd, plg, Some (OASISVersion.version_of_string ver)
     | plg, None ->
@@ -239,7 +239,7 @@ let plugin_of_string knd str =
 let plugins_of_string knd str =
   List.map
     (plugin_of_string knd)
-    (split_comma str)
+    (OASISString.split_comma str)
 
 
 (* General data for plugin *)

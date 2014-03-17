@@ -643,7 +643,7 @@ let check_myocamlbuild_ml test_ctxt t =
         "ocamlbuild" ["-documentation"];
       Buffer.contents buf
     in
-    let lst = OASISUtils.split_newline documentation_output in
+    let lst = OASISString.split_newline documentation_output in
     let rst = ref SetString.empty in
     let () =
       List.iter

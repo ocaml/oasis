@@ -107,10 +107,10 @@ let in_example_dir test_ctxt lst =
 
 module Output =
 struct
- type t = string
- let compare = String.compare
- let pp_printer = Format.pp_print_string
- let pp_print_sep = OUnitDiff.pp_comma_separator
+  type t = string
+  let compare = String.compare
+  let pp_printer = Format.pp_print_string
+  let pp_print_sep = OUnitDiff.pp_comma_separator
 end
 
 

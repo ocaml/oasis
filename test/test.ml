@@ -113,5 +113,6 @@ let () =
          TestDevFiles.tests;
          TestOCamlbuild.tests;
          TestSelfCompile.tests;
+         TestStdFiles.tests;
        ]);
       extract_timings ()

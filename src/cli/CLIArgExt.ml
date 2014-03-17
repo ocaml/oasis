@@ -31,7 +31,6 @@ open CLISubCommand
 open OASISUtils
 open Format
 open FormatExt
-open FormatMarkdown
 
 
 type help_extent =
@@ -218,10 +217,10 @@ let pp_print_help ~ctxt hext hsty fmt () =
   let pp_print_scmd fmt ~global_options ?origin scmd =
     let (scmd_specs, _), _  = scmd.scmd_run () in
     if not scmd.scmd_deprecated then
-      pp_print_title 2 fmt
+      pp_print_title fmt 2
         (Printf.sprintf (f_ "Subcommand %s") scmd.scmd_name)
     else
-      pp_print_title 2 fmt
+      pp_print_title fmt 2
         (Printf.sprintf (f_ "Subcommand %s (deprecated)") scmd.scmd_name);
 
     begin
@@ -339,7 +338,7 @@ let parse_and_run () =
 
   let handle_error exc hext =
     let get_bad str =
-      match split_newline ~trim:false str with
+      match OASISString.split_newline ~do_trim:false str with
         | fst :: _ ->
             fst
         | [] ->

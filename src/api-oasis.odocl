@@ -21,9 +21,8 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 9fad3f8c67f0fcab0c07878c094a8220)
+# DO NOT EDIT (digest: ae64685632b0a899ffa6d28f75e4b9c7)
 oasis/FormatExt
-oasis/FormatMarkdown
 oasis/ODNFunc
 oasis/PropList
 oasis/OASISUtils

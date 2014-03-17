@@ -71,6 +71,20 @@ open OASISUtils
 open OASISGettext
 
 
+type license_data =
+    {
+      long_name: string;
+      versions: OASISVersion.t list;
+      note: string option;
+      deprecated: string option;
+    }
+
+
+let all_full_licenses = HashStringCsl.create 64
+let deprecated_full_licenses = ref SetStringCsl.empty
+let all_licenses = ref []
+
+
 let string_of_license s = s
 
 
@@ -97,18 +111,30 @@ let string_of_license_dep_5 license_dep_5 =
     license_dep_5.license^ver^exceptions
 
 
-type license_data =
-    {
-      long_name: string;
-      versions: OASISVersion.t list;
-      note: string option;
-      deprecated: string option;
-    }
-
-
-let all_full_licenses = HashStringCsl.create 64
-let deprecated_full_licenses = ref SetStringCsl.empty
-let all_licenses = ref []
+let long_name_of_license_dep_5 license_dep_5 =
+  try
+    let long_name =
+      (List.assoc license_dep_5.license !all_licenses).long_name
+    in
+    let ver =
+      match license_dep_5.version with
+        | Version v ->
+            " version "^(OASISVersion.string_of_version v)
+        | VersionOrLater v ->
+            " version "^(OASISVersion.string_of_version v)^" or later"
+        | NoVersion ->
+            ""
+    in
+    let exceptions =
+      match license_dep_5.excption with
+        | None ->
+            ""
+        | Some str ->
+            " with "^str^" exception"
+    in
+      long_name^ver^exceptions
+  with Not_found ->
+    string_of_license_dep_5 license_dep_5
 
 
 let mk_license nm ?(versions=[]) ?deprecated ?note long_name =
@@ -492,7 +518,7 @@ let ocaml_linking_exception =
     [lgpl]
 
 
-let parse_dep5 ~ctxt str =
+let parse_dep_5 ~ctxt str =
   let rec solve_token =
     function
       | OASISLicense_types.Or (t1', t2') ->
@@ -506,12 +532,12 @@ let parse_dep5 ~ctxt str =
 
   and decode_license str =
     try
-      let license_dep5  = HashStringCsl.find all_full_licenses str in
+      let license_dep_5  = HashStringCsl.find all_full_licenses str in
         if SetStringCsl.mem str !deprecated_full_licenses then
           OASISMessage.warning ~ctxt
             (f_ "Deprecated license %s, use %s instead.")
-            str (string_of_license_dep_5 license_dep5);
-        license_dep5
+            str (string_of_license_dep_5 license_dep_5);
+        license_dep_5
     with Not_found ->
       failwithf (f_ "Unknown license '%s'") str
 
@@ -568,7 +594,7 @@ let parse ~ctxt str =
         (OASISValues.url.parse ~ctxt str)
     with Failure _ ->
       try
-        DEP5License (parse_dep5 ~ctxt str)
+        DEP5License (parse_dep_5 ~ctxt str)
       with e ->
         begin
           failwithf
@@ -577,38 +603,50 @@ let parse ~ctxt str =
         end
 
 
-let rec string_of_dep5 =
-  function
-    | DEP5Unit t  ->
-        string_of_license_dep_5 t
+let rec string_of_dep_5_generic f dep_5 =
+  let rec dep_5_str =
+    function
+      | DEP5Unit t  ->
+          f t
 
-    | DEP5Or lst ->
-        begin
-          String.concat " or " (List.map string_of_dep5 lst)
-        end
+      | DEP5Or lst ->
+          String.concat " or " (List.map dep_5_str lst)
 
-    | DEP5And [DEP5Or _ as t1; DEP5Unit _ as t2] ->
-        (string_of_dep5 t1)^", and "^(string_of_dep5 t2)
+      | DEP5And [DEP5Or _ as t1; DEP5Unit _ as t2] ->
+          (dep_5_str t1)^", and "^(dep_5_str t2)
 
-    | DEP5And lst ->
-        begin
+      | DEP5And lst ->
           String.concat " and "
             (List.map
                (fun t ->
-                  let str = string_of_dep5 t in
+                  let str = dep_5_str t in
                     match t with
                       | DEP5Or _ ->
                           "("^str^")"
                       | _ ->
                           str)
                lst)
-        end
+  in
+    dep_5_str dep_5
 
 
 let to_string =
   function
-    | DEP5License dep5 -> string_of_dep5 dep5
+    | DEP5License dep_5 ->
+        string_of_dep_5_generic string_of_license_dep_5 dep_5
     | OtherLicense url -> url
+
+
+let legal_disclaimer nm =
+  function
+    | DEP5License dep_5 ->
+        Printf.sprintf
+          "%s is distributed under the terms of the %s."
+          nm (string_of_dep_5_generic long_name_of_license_dep_5 dep_5)
+    | OtherLicense url ->
+        Printf.sprintf
+          "%s is distributed using the license describe at this [URL](%s)."
+          nm url
 
 
 let value =

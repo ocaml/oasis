@@ -97,29 +97,13 @@ let comment cmt_beg cmt_end =
     }
 
 
-let comment_ml =
-  comment "(*" (Some "*)")
-
-
-let comment_sh =
-  comment "#" None
-
-
-let comment_makefile =
-  comment_sh
-
-
-let comment_ocamlbuild =
-  comment_sh
-
-
-let comment_bat =
-  comment "rem" None
-
-
-let comment_meta =
-  comment_sh
-
+let comment_ml = comment "(*" (Some "*)")
+let comment_sh = comment "#" None
+let comment_makefile = comment_sh
+let comment_ocamlbuild = comment_sh
+let comment_bat = comment "rem" None
+let comment_meta = comment_sh
+let comment_markdown = comment "<!---" (Some "--->")
 
 let template_make fn comment header body footer =
   {
@@ -344,7 +328,7 @@ let template_of_mlfile fn header body footer  =
 
            with Not_found ->
              line)
-        (split_newline ~trim:false str)
+        (split_newline ~do_trim:false str)
     in
       !found, (String.concat "\n" lst)
   in
@@ -436,53 +420,57 @@ let merge t_org t_new =
        footer = t_org.footer}
 
 
-let to_file t =
+let to_string_list t =
   (* Be sure that digest match body content *)
-  let t =
-    digest_update t
-  in
-
-  (* Write body, header and footer to output file. Separate
+  let t = digest_update t in
+  (* Create header, body and footer in a list. Separate
    * each part by appropriate comment and digest.
    *)
+  let split_further lst =
+    List.rev
+      (List.fold_left
+         (fun lst str ->
+            let lst' = OASISString.split_newline ~do_trim:false str in
+              List.rev_append lst' lst)
+         [] lst)
+  in
+  let oasis_section =
+    match t.body with
+      | NoBody ->
+        []
+
+      | BodyWithDigest (d, lst) ->
+          (t.comment.of_string
+             (Printf.sprintf
+                "DO NOT EDIT (digest: %s)"
+                (Digest.to_hex d)))
+          :: (split_further lst)
+      | Body lst ->
+        split_further lst
+  in
+    List.flatten
+      [
+        t.header;
+        if t.disable_oasis_section then
+          oasis_section
+        else
+          t.comment.start :: oasis_section @ [t.comment.stop];
+        t.footer;
+      ]
+
+
+let to_file t =
   let chn_out =
     open_out_gen
       [Open_wronly; Open_creat; Open_trunc; Open_binary]
       t.perm
       t.fn
   in
-  let output_line str =
-    output_string chn_out str;
-    output_char   chn_out '\n'
-  in
-  let output_lst =
-    List.iter output_line
-  in
-
-    output_lst t.header;
-    begin
-      match t.body with
-        | NoBody ->
-            ()
-
-        | BodyWithDigest (d, lst) ->
-            if not t.disable_oasis_section then begin
-              output_line t.comment.start;
-              output_line
-                (t.comment.of_string
-                   (Printf.sprintf
-                      "DO NOT EDIT (digest: %s)"
-                      (Digest.to_hex d)));
-            end;
-            output_lst   lst;
-            if not t.disable_oasis_section then output_line  t.comment.stop
-
-        | Body lst ->
-            if not t.disable_oasis_section then output_line  t.comment.start;
-            output_lst   lst;
-            if not t.disable_oasis_section then output_line  t.comment.stop
-    end;
-    output_lst t.footer;
+    List.iter
+      (fun str ->
+         output_string chn_out str;
+         output_char chn_out '\n')
+      (to_string_list t);
     close_out chn_out;
     Unix.chmod t.fn t.perm
 

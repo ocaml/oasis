@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: a319542397f6b38d6e3c3e8d3428c081) *)
+(* DO NOT EDIT (digest: 2b4a5449e7c77c51fe4df5736bd5f1c8) *)
 This is the README file for the oasis distribution.
 
 (C) 2008-2010 OCamlCore SARL
@@ -14,7 +14,8 @@ It uses external tools like OCamlbuild and it can be considered as the glue
 between various subsystems that do the job. It should support the following
 tools:
 
-- OCamlbuild - OMake (todo) - OCamlMakefile (todo), - ocaml-autoconf (todo)
+ * OCamlbuild  * OMake (todo)  * OCamlMakefile (todo),  * ocaml-autoconf
+(todo)
 
 It also features a do-it-yourself command line invocation and an internal
 configure/install scheme. Libraries are managed through findlib. It has been

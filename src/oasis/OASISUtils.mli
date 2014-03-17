@@ -129,20 +129,10 @@ val failwithf: ('a, unit, string, 'b) format4 -> 'a
 val compare_csl: string -> string -> int
 
 
-(** Split a list using ',' as separator. {b Not exported}
-  *)
-val split_comma: string -> string list
+(** {2 Options} *)
 
-
-(** Split a list using '\n' as separator. {b Not exported}
-  *)
-val split_newline: ?trim:bool -> string -> string list
-
-
-(** Split a string containing '(...)' optionally. {b Not exported}
-  *)
-val split_optional_parentheses: string -> string * (string option)
-
+(** [may f (Some x)] calls [f x] or do nothing. *)
+val may: ('a -> unit) -> 'a option -> unit
 
 module POSIXShell:
 sig

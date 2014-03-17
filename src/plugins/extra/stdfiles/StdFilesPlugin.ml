@@ -241,56 +241,6 @@ let main ctxt pkg =
     pkg.schema_data
   in
 
-  let pp_print_cut2 fmt () =
-    pp_print_cut fmt ();
-    pp_print_cut fmt ()
-  in
-
-  let pp_print_para fmt str =
-    let str_len =
-      String.length str
-    in
-    let rec decode_string i =
-      if i < str_len then
-        begin
-          match str.[i] with
-            | ' ' ->
-                pp_print_space fmt ();
-                decode_string (i + 1)
-
-            | '\n' ->
-                if i + 1 < str_len && str.[i + 1] = '\n' then
-                  begin
-                    pp_close_box fmt ();
-                    pp_print_cut2 fmt ();
-                    pp_open_box fmt 0;
-                    decode_string (i + 2)
-                  end
-                else
-                  begin
-                    pp_print_space fmt ();
-                    decode_string (i + 1)
-                  end
-
-            | c ->
-                pp_print_char fmt c;
-                decode_string (i + 1)
-        end;
-    in
-      pp_open_vbox fmt 0;
-      pp_open_box fmt 0;
-      decode_string 0;
-      pp_close_box fmt ();
-      pp_print_cut2 fmt ();
-      pp_close_box fmt ()
-  in
-
-  let pp_print_title fmt str =
-    (* TODO: use Markdown formatting *)
-    fprintf fmt "@[%s@]@," str;
-    fprintf fmt "@[%s@]@,@," (String.make (String.length str) '=')
-  in
-
   (** All sections that contains a build_section *)
   let all_build_sections_set =
     let all_build_sections =
@@ -340,14 +290,12 @@ let main ctxt pkg =
   in
 
   let pp_print_ver_opt fmt =
-    function
-      | Some ver_cmp ->
-          fprintf fmt " (%a)"
-            pp_print_string
-            (OASISVersion.string_of_comparator
-               (OASISVersion.comparator_reduce ver_cmp))
-      | None ->
-          ()
+    may
+      (fun ver_cmp ->
+         fprintf fmt " (%a)"
+           pp_print_string
+           (OASISVersion.string_of_comparator
+              (OASISVersion.comparator_reduce ver_cmp)))
   in
 
   let depends =
@@ -494,12 +442,33 @@ let main ctxt pkg =
     match fn_opt with
       | Some unix_fn ->
           begin
+            let rec remove_eol_eof str =
+              List.fold_left
+                (fun str eol ->
+                   try
+                     remove_eol_eof (OASISString.strip_ends_with ~what:eol str)
+                   with Not_found ->
+                     str)
+                str ["\n"; "\r"]
+            in
             let content =
               ppf str_formatter;
-              flush_str_formatter ()
+              (* Trim problematic 2x newline at end of last para, because we
+               * don't know if there will a following para.
+               *)
+              remove_eol_eof (flush_str_formatter ())
             in
               add_file
-                {(template_make unix_fn comment_ml [] [content] []) with
+                {(template_make unix_fn comment_markdown
+                    []
+                    [
+                      (* One line before, one line after to avoid mixing content
+                       * with comment formatting (it causes e.g. pandoc to think
+                       * this is a paragraph.
+                       *)
+                      "\n"^content^"\n"
+                    ]
+                    []) with
                      important = important}
                 ctxt
           end
@@ -521,121 +490,143 @@ let main ctxt pkg =
         false,
         (fun fmt ->
            pp_open_vbox fmt 0;
-           fprintf fmt
-             "@[This is the README file for the %s distribution.@]@,@,"
-             pkg.name;
+           pp_print_titlef fmt 1 "%s - %s" pkg.name pkg.synopsis;
+
+           may
+             (fun str ->
+                (* TODO: move this in OASISPackage. *)
+                let buff = Buffer.create 12 in
+                let flush () =
+                  if Buffer.length buff > 0 then
+                    pp_print_para fmt (Buffer.contents buff);
+                  Buffer.clear buff
+                in
+                let add line =
+                  if Buffer.length buff > 0 then
+                    Buffer.add_char buff ' ';
+                  Buffer.add_string buff line
+                in
+                let prev_verbatim = ref false in
+                List.iter
+                  (fun line ->
+                     (* Blank line -> end of para. *)
+                     if OASISString.trim line = "" then begin
+                       flush ();
+                       if !prev_verbatim then
+                         pp_print_cut fmt ();
+                       prev_verbatim := false
+                     (* " " -> print verbatim. *)
+                     end else if OASISString.starts_with ~what:" " line
+                     then begin
+                       flush ();
+                       pp_print_string fmt line;
+                       pp_print_newline fmt ();
+                       prev_verbatim := true
+                     (* merge as para. *)
+                     end else begin
+                       add line;
+                       prev_verbatim := false
+                     end)
+                  (OASISString.split_newline ~do_trim:false str);
+                if Buffer.length buff > 0 then
+                  flush ())
+             pkg.description;
+
+           may
+             (fun fn ->
+                pp_print_paraf fmt
+                  "See the file [%s](%s) for building and installation \
+                   instructions." fn fn)
+             t.install;
+
+           may (pp_print_paraf fmt "[Home page](%s)") pkg.homepage;
+
+           pp_print_title fmt 2 "Copyright and license";
 
            List.iter
-             (pp_print_para fmt)
+             (fun str ->
+                pp_print_string fmt str;
+                pp_print_newline fmt ())
              pkg.copyrights;
+           if pkg.copyrights <> [] then
+             pp_print_newline fmt ();
 
-           pp_print_para fmt pkg.synopsis;
+           pp_print_para fmt
+             (OASISLicense.legal_disclaimer pkg.name pkg.license);
 
-           begin
-             match pkg.description with
-               | Some str ->
-                   pp_print_para fmt str
-               | None ->
-                   ()
-           end;
+           may
+             (fun fn ->
+                pp_print_paraf fmt "See [%s](%s) for more information." fn fn)
+             pkg.license_file;
 
-           pp_open_box fmt 0;
-           begin
-             match t.install with
-               | Some fn ->
-                   fprintf fmt
-                     "See@ the@ files@ %s@ for@ building@ and@ installation@ \
-                      instructions.@ " fn
-               | None ->
-                   ()
-           end;
-           begin
-             match pkg.license_file with
-               | Some fn ->
-                   fprintf fmt
-                     "See@ the@ file@ %s@ for@ copying@ conditions.@ " fn
-               | None ->
-                   ()
-           end;
            pp_close_box fmt ();
-           pp_print_cut2 fmt ();
+        );
 
-           begin
-             match pkg.homepage with
-               | Some url ->
-                   fprintf fmt
-                     "@[<hv2>Home page: %s@]@,@," url;
-               | None ->
-                   ()
-           end;
+        (* Generate INSTALL.txt *)
+        t.install,
+        (OASISFeatures.package_test OASISFeatures.dynrun_for_release pkg),
+        (fun fmt ->
+           pp_open_vbox fmt 0;
+           fprintf fmt
+             "@[This is the INSTALL file for the %s distribution.@]@,@,"
+             pkg.name;
 
+           pp_print_para fmt
+             "This package uses OASIS to generate its build system. \
+              See section OASIS for full information.";
+
+           pp_print_title fmt 1 "Dependencies";
+           fprintf fmt "@[In order to compile this package, you will need:@]@,";
+           pp_open_vbox fmt 0;
+           pp_print_cut fmt ();
+           pp_print_list
+             (fun fmt (pkg, sections) ->
+                fprintf fmt "* @[%a%a@]"
+                  (fun fmt ->
+                     function
+                       | LTool s ->
+                           pp_print_string fmt s
+                       | LFindlibPackage (nm, ver_opt) ->
+                           fprintf fmt "%s%a"
+                             nm
+                             pp_print_ver_opt ver_opt)
+                  pkg
+                  pp_print_sections sections)
+             "@,"
+             fmt
+             depends;
+
+           pp_close_box fmt ();
+           pp_print_cut fmt ();
+
+           pp_print_string fmt StdFilesData.install;
            pp_close_box fmt ());
 
-      (* Generate INSTALL.txt *)
-      t.install,
-      (OASISFeatures.package_test OASISFeatures.dynrun_for_release pkg),
-      (fun fmt ->
-         pp_open_vbox fmt 0;
-         fprintf fmt
-           "@[This is the INSTALL file for the %s distribution.@]@,@,"
-           pkg.name;
+        (* Generate AUTHORS.txt *)
+        t.authors,
+        false,
+        (fun fmt ->
+           pp_open_vbox fmt 0;
+           fprintf fmt "@[Authors of %s:@]@," pkg.name;
+           pp_print_cut fmt ();
+           pp_print_list
+             (fun fmt str -> pp_print_string fmt ("* "^str))
+             "@,"
+             fmt
+             pkg.OASISTypes.authors;
 
-         pp_print_para fmt
-           "This package uses OASIS to generate its build system. \
-            See section OASIS for full information.";
-
-         pp_print_title fmt "Dependencies";
-         fprintf fmt "@[In order to compile this package, you will need:@]@,";
-         pp_open_vbox fmt 0;
-
-         pp_print_list
-           (fun fmt (pkg, sections) ->
-              fprintf fmt "* @[%a%a@]"
-                (fun fmt ->
-                   function
-                     | LTool s ->
-                         pp_print_string fmt s
-                     | LFindlibPackage (nm, ver_opt) ->
-                         fprintf fmt "%s%a"
-                           nm
-                           pp_print_ver_opt ver_opt)
-                pkg
-                pp_print_sections sections)
-           "@,"
-           fmt
-           depends;
-
-         pp_close_box fmt ();
-         pp_print_cut fmt ();
-
-         pp_print_string fmt StdFilesData.install;
-         pp_close_box fmt ());
-
-      (* Generate AUTHORS.txt *)
-      t.authors,
-      false,
-      (fun fmt ->
-         pp_open_vbox fmt 0;
-         fprintf fmt "@[Authors of %s@]@," pkg.name;
-
-         pp_print_list
-           pp_print_string
-           "@,"
-           fmt
-           pkg.OASISTypes.authors;
-
-         if pkg.maintainers <> [] then
-           begin
+           if pkg.maintainers <> [] then begin
              pp_print_cut2 fmt ();
-             fprintf fmt "@[Current maintainers of %s@]@," pkg.name;
+             fprintf fmt "@[Current maintainers of %s:@]@," pkg.name;
+             pp_print_cut fmt ();
              pp_print_list
-               pp_print_string
+               (fun fmt str -> pp_print_string fmt ("* "^str))
                "@,"
                fmt
                pkg.maintainers
            end;
 
-         pp_close_box fmt ());
+           pp_close_box fmt ());
       ]
 
 

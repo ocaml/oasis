@@ -108,6 +108,12 @@ type license_exception_data =
 val to_string: t -> string
 
 
+(** Convert a DEP-5 license to a legal disclaimer for the product.
+    {b Not exported}.
+  *)
+val legal_disclaimer: string -> t -> string
+
+
 (** Convert a license to string. {b Not exported}.
   *)
 val string_of_license: license -> string

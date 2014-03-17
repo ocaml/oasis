@@ -23,6 +23,8 @@
 
 (** Extra functions for Format
 
+   Format functions that uses markdown syntax.
+
    @author Sylvain Le Gall
   *)
 
@@ -38,3 +40,35 @@ val pp_print_string_spaced: Format.formatter -> string -> unit
 val pp_print_list:
   (Format.formatter -> 'a -> unit) ->
   ('b, Format.formatter, unit) format -> Format.formatter -> 'a list -> unit
+
+
+(** [pp_print_para fmt str] Print a paragraph. '\n\n' mark the end of a
+    paragraph.
+  *)
+val pp_print_para: Format.formatter -> string -> unit
+
+
+(** See {! pp_print_para}. *)
+val pp_print_paraf: Format.formatter -> ('a, unit, string, unit) format4 -> 'a
+
+
+(** [pp_print_title fmt lvl str] Print a title using markdown formatting. *)
+val pp_print_title: Format.formatter -> int -> string -> unit
+
+
+(** See {! pp_print_title}. *)
+val pp_print_titlef:
+  Format.formatter -> int -> ('a, unit, string, unit) format4 -> 'a
+
+
+(** Print two cut in a row. *)
+val pp_print_cut2: Format.formatter -> unit -> unit
+
+(** Print 1 or 2 newlines depending on the previous char. *)
+val pp_print_endblock:
+  ?check_last_char:string -> Format.formatter -> unit -> unit
+
+
+(** Print a definition, as defined by pandoc (ext. of markdown)> *)
+val pp_print_def: Format.formatter -> string ->
+  ((Format.formatter -> 'a -> unit) * 'a) list -> unit

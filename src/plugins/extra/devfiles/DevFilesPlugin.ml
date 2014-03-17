@@ -206,7 +206,7 @@ let main ctxt pkg =
 
           OASISPlugin.add_file
             {(template_make "Makefile" comment_sh []
-                (OASISUtils.split_newline ~trim:false
+                (OASISString.split_newline ~do_trim:false
                    (Buffer.contents buff)) []) with
                        important = true}
             ctxt
