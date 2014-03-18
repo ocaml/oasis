@@ -118,3 +118,9 @@ val make_relative: unix_filename -> unix_filename -> unix_filename
     {b Not exported}
   *)
 val is_current: unix_filename -> bool
+
+
+(** Set for Unix path.
+    {b Not exported}
+  *)
+module Set: OASISUtils.SetExt.S with type elt = unix_filename

@@ -54,15 +54,15 @@ let of_unix ufn =
 (* END EXPORT *)
 
 
+let fn_norm fn =
+  match OASISPath_intern.fn_reduce []
+          (OASISPath_intern.fn_reader fn) with
+    | (`RootRelative str) :: tl ->
+        (`Root str) :: `CurrentDir :: tl
+    | lst ->
+        lst
+
 let compare fn1 fn2 =
-  let fn_norm fn =
-    match OASISPath_intern.fn_reduce []
-            (OASISPath_intern.fn_reader fn) with
-      | (`RootRelative str) :: tl ->
-          (`Root str) :: `CurrentDir :: tl
-      | lst ->
-          lst
-  in
   let fn_string =
     function
       | `Root str
@@ -91,5 +91,36 @@ let compare fn1 fn2 =
     compare' (fn_norm fn1, fn_norm fn2)
 
 
+let to_unix hfn =
+  if Sys.os_type = "Unix" then
+    hfn
+  else
+  let rec to_unix_aux =
+    function
+      | `Root str :: _
+      | `RootRelative str :: _ ->
+          OASISUtils.failwithf
+            "Cannot translate %S to unix filename, it contains a root \
+             reference (%S)." hfn str
+      | `Component str :: tl ->
+          str :: (to_unix_aux tl)
+      | `CurrentDir :: tl ->
+          "." :: (to_unix_aux tl)
+      | `ParentDir :: tl ->
+          ".." :: (to_unix_aux tl)
+      | [] ->
+          []
+  in
+    OASISUnixPath.make (to_unix_aux (fn_norm hfn))
+
+
 let add_extension fn ext =
   fn^"."^ext
+
+
+module Map = OASISUtils.MapExt.Make (
+struct
+       type t = Unix.host_filename
+
+       let compare = compare
+end)

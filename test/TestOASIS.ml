@@ -368,7 +368,7 @@ let tests =
                 OASISPlugin.ctxt = OASISContext.quiet ;
                 update = OASISSetupUpdate.NoUpdate;
                 error = false ;
-                files = OASISFileTemplate.empty ;
+                files = OASISFileTemplate.create ~disable_oasis_section:[] ();
                 other_actions = []
               }
               in

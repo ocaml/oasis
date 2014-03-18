@@ -28,31 +28,56 @@
 
 (** {2 Map} *)
 
+module MapExt:
+sig
+  module type S =
+  sig
+    include Map.S
 
-module MapString: Map.S with type key = String.t
+    (** Extends a map with an association list. *)
+    val add_list: 'a t -> (key * 'a) list -> 'a t
 
+    (** Convert an association list to a map. *)
+    val of_list: (key * 'a) list -> 'a t
 
-(** Convert a string association list to a map. *)
-val map_string_of_assoc: (string * 'a) list -> 'a MapString.t
+    (** Convert a map to an association list. *)
+    val to_list: 'a t -> (key * 'a) list
+  end
+
+  module Make: functor (Ord: Map.OrderedType) -> S with type key = Ord.t
+end
+
+module MapString: MapExt.S with type key = String.t
 
 
 (** {2 Set} *)
 
+module SetExt:
+sig
+  module type S =
+  sig
+    include Set.S
+
+    (** Extends a set with a list. *)
+    val add_list: t -> elt list -> t
+
+    (** Convert a list to a set. *)
+    val of_list: elt list -> t
+
+    (** Shortcut for [Set.elements]. *)
+    val to_list: t -> elt list
+  end
+
+  module Make: functor (Ord: Set.OrderedType) -> S with type elt = Ord.t
+end
+
 
 (** Set for String. *)
-module SetString: Set.S with type elt = String.t
+module SetString: SetExt.S with type elt = String.t
 
 
 (** Set for String. *)
-module SetStringCsl: Set.S with type elt = String.t
-
-
-(** Add a string list to an existing Set. *)
-val set_string_add_list: SetString.t -> SetString.elt list -> SetString.t
-
-
-(** Convert a string list to a Set. *)
-val set_string_of_list: SetString.elt list -> SetString.t
+module SetStringCsl: SetExt.S with type elt = String.t
 
 
 (** {2 Hashtable} *)

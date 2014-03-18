@@ -39,6 +39,12 @@ val make: host_filename list -> host_filename
 val of_unix: unix_filename -> host_filename
 
 
+(** Convert a host filename into a unix filename.
+    {b Not exported}
+  *)
+val to_unix: host_filename -> unix_filename
+
+
 (** Compare host filename.
     {b Not exported}
   *)
@@ -49,3 +55,7 @@ val compare: host_filename -> host_filename -> int
     {b Not exported}
   *)
 val add_extension: host_filename -> string -> host_filename
+
+
+(** Map for host filename. {b Not exported.} *)
+module Map: OASISUtils.MapExt.S with type key = host_filename

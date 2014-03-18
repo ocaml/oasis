@@ -159,7 +159,7 @@ let check_schema ~ctxt where schm plugins features_data data =
 let check_package ~ctxt pkg =
 
   let standard_vars =
-    set_string_of_list
+    SetString.of_list
       (List.flatten
          [
            if OASISFeatures.package_test OASISFeatures.flag_docs pkg then

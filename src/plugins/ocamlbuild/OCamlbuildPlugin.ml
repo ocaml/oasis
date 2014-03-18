@@ -294,7 +294,7 @@ let bs_paths bs files =
   in
     (* Unique elements *)
     SetString.elements
-      (set_string_of_list
+      (SetString.of_list
          (List.rev_map OASISUnixPath.reduce (bs.bs_path :: subdirs)))
 
 
@@ -569,7 +569,7 @@ let compute_map_dirs pkg =
       with Not_found ->
         SetString.empty, SetString.empty
     in
-    let add_dirs st dirs = SetString.union st (set_string_of_list dirs) in
+    let add_dirs st dirs = SetString.add_list st dirs in
       MapDirs.add k
         (add_dirs src_dirs dirs,
          add_dirs src_internal_dirs internal_dirs)
@@ -637,7 +637,7 @@ let compute_includes map_dirs pkg =
                    try MapDirs.find (`Library nm) map_dirs
                    with Not_found -> MapDirs.find (`Object nm) map_dirs
                  in
-                   SetString.union set (set_string_of_list src_dirs)
+                   SetString.add_list set src_dirs
 
              | FindlibPackage _ ->
                  set)
@@ -647,9 +647,7 @@ let compute_includes map_dirs pkg =
     let self_dirs =
       (* Source dirs *)
       let src_dirs, src_internal_dirs = MapDirs.find k map_dirs in
-        SetString.union
-          (set_string_of_list src_dirs)
-          (set_string_of_list src_internal_dirs)
+        SetString.add_list (SetString.of_list src_dirs) src_internal_dirs
     in
     let all_dirs = SetString.union dep_dirs self_dirs in
     let all_dirs =

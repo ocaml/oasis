@@ -160,7 +160,7 @@ let filename_of_list lst =
 let fn_norm fn = fn_reduce [] (fn_reader ~os_type:"Unix" fn)
 
 
-let reduce fn = filename_of_list  (fn_norm fn)
+let reduce fn = filename_of_list (fn_norm fn)
 
 
 let make_relative fn_root fn =
@@ -240,3 +240,11 @@ let is_current fn =
     true
   else
     (fn_norm fn) = [`CurrentDir]
+
+
+module Set = SetExt.Make(
+struct
+  type t = unix_filename
+
+  let compare t1 t2 = String.compare (reduce t1) (reduce t2)
+end)

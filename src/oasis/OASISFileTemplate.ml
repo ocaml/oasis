@@ -655,55 +655,56 @@ let file_generate ~ctxt ?(remove=false) ~backup t =
       end
 
 
-module S =
-  Map.Make (
-struct
-  type t = host_filename
-
-  let compare =
-    OASISHostPath.compare
-end)
-
 
 exception AlreadyExists of host_filename
 
 
-type templates = {files: template S.t;
-                  disable_oasis_section: SetString.t}
+module M = OASISHostPath.Map
+
+type templates =
+    {
+      files: template M.t;
+      disable_oasis_section_files: OASISUnixPath.Set.t
+    }
 
 
-let empty disable_oasis_section =
-  {files = S.empty;
-   disable_oasis_section}
+let create ~disable_oasis_section () =
+  {
+    files = M.empty;
+    disable_oasis_section_files =
+      OASISUnixPath.Set.of_list disable_oasis_section;
+  }
 
 
 let find e t =
-  S.find e t.files
+  M.find e t.files
 
 
 let replace e t =
   let e =
-    if SetString.mem e.fn t.disable_oasis_section then
+    if OASISUnixPath.Set.mem
+         (OASISHostPath.to_unix e.fn)
+         t.disable_oasis_section_files then
       {e with disable_oasis_section = true}
     else
       e
   in
-    {t with files = S.add e.fn e t.files}
+    {t with files = M.add e.fn e t.files}
 
 
 let add e t =
-  if S.mem e.fn t.files then
+  if M.mem e.fn t.files then
     raise (AlreadyExists e.fn)
   else
     replace e t
 
 
 let remove fn t =
-  {t with files = S.remove fn t.files}
+  {t with files = M.remove fn t.files}
 
 
 let fold f t acc =
-  S.fold
+  M.fold
     (fun k e acc ->
        f e acc)
     t.files

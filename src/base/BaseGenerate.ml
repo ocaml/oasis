@@ -160,32 +160,31 @@ let generate ?msg
       begin
         (* We just keep setup.ml, Makefile and configure. *)
         let files =
-          let disable_oasis_section =
-            set_string_add_list SetString.empty pkg.disable_oasis_section
-          in
-            OASISFileTemplate.fold
-              (fun tmpl acc ->
-                 if tmpl.fn = setup_fn then
-                   OASISFileTemplate.add
-                     {tmpl with body =
-                        Body
-                          [
-                            if OASISFeatures.package_test
-                                 OASISFeatures.dynrun_for_release pkg then
-                              BaseData.dynrun_for_release_ml
-                            else if OASISFeatures.package_test
-                                      OASISFeatures.compiled_setup_ml pkg then
-                              BaseData.compiled_setup_ml
-                            else
-                              BaseData.dynrun_ml
-                          ]}
-                     acc
-                 else if tmpl.important then
-                   OASISFileTemplate.add tmpl acc
-                 else
-                   acc)
-              ctxt.files
-              (OASISFileTemplate.empty disable_oasis_section)
+          OASISFileTemplate.fold
+            (fun tmpl acc ->
+               if tmpl.fn = setup_fn then
+                 OASISFileTemplate.add
+                   {tmpl with body =
+                      Body
+                        [
+                          if OASISFeatures.package_test
+                               OASISFeatures.dynrun_for_release pkg then
+                            BaseData.dynrun_for_release_ml
+                          else if OASISFeatures.package_test
+                                    OASISFeatures.compiled_setup_ml pkg then
+                            BaseData.compiled_setup_ml
+                          else
+                            BaseData.dynrun_ml
+                        ]}
+                   acc
+               else if tmpl.important then
+                 OASISFileTemplate.add tmpl acc
+               else
+                 acc)
+            ctxt.files
+            (OASISFileTemplate.create
+               ~disable_oasis_section:pkg.OASISTypes.disable_oasis_section
+               ())
         in
           {ctxt with files = files}
       end

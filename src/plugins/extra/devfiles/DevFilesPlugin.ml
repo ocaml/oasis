@@ -134,7 +134,7 @@ let main ctxt pkg =
         in
         let targets =
           let excludes =
-            OASISUtils.set_string_of_list t.makefile_notargets
+            OASISUtils.SetString.of_list t.makefile_notargets
           in
             List.filter
               (fun t -> not (OASISUtils.SetString.mem t excludes))

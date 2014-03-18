@@ -178,7 +178,7 @@ type templates
 
 (** No generated template files with the given set of files with the OASIS
     section disabled. *)
-val empty: OASISUtils.SetString.t -> templates
+val create: disable_oasis_section:unix_filename list -> unit -> templates
 
 
 (** Find a generated template file.

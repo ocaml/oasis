@@ -24,29 +24,62 @@
 open OASISGettext
 
 
-module MapString = Map.Make(String)
+module MapExt =
+struct
+  module type S =
+  sig
+    include Map.S
+    val add_list: 'a t -> (key * 'a) list -> 'a t
+    val of_list: (key * 'a) list -> 'a t
+    val to_list: 'a t -> (key * 'a) list
+  end
+
+  module Make (Ord: Map.OrderedType) =
+  struct
+    include Map.Make(Ord)
+
+    let rec add_list t =
+      function
+        | (k, v) :: tl -> add_list (add k v t) tl
+        | [] -> t
+
+    let of_list lst = add_list empty lst
+
+    let to_list t = fold (fun k v acc -> (k, v) :: acc) t []
+  end
+end
 
 
-let map_string_of_assoc assoc =
-  List.fold_left
-    (fun acc (k, v) -> MapString.add k v acc)
-    MapString.empty
-    assoc
+module MapString = MapExt.Make(String)
 
 
-module SetString = Set.Make(String)
+module SetExt  =
+struct
+  module type S =
+  sig
+    include Set.S
+    val add_list: t -> elt list -> t
+    val of_list: elt list -> t
+    val to_list: t -> elt list
+  end
+
+  module Make (Ord: Set.OrderedType) =
+  struct
+    include Set.Make(Ord)
+
+    let rec add_list t =
+      function
+        | e :: tl -> add_list (add e t) tl
+        | [] -> t
+
+    let of_list lst = add_list empty lst
+
+    let to_list = elements
+  end
+end
 
 
-let set_string_add_list st lst =
-  List.fold_left
-    (fun acc e -> SetString.add e acc)
-    st
-    lst
-
-
-let set_string_of_list =
-  set_string_add_list
-    SetString.empty
+module SetString = SetExt.Make(String)
 
 
 let compare_csl s1 s2 =
@@ -66,7 +99,7 @@ module HashStringCsl =
      end)
 
 module SetStringCsl =
-  Set.Make
+  SetExt.Make
     (struct
        type t = string
        let compare = compare_csl

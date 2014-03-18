@@ -147,12 +147,18 @@ let query pkg separator str =
           begin
             let fold_schm prefix schm data acc =
               PropList.Schema.fold
-                (fun acc nm _ _ ->
+                (fun acc nm extra _ ->
                    try
                      let _v: string =
                        PropList.Schema.get schm data nm
                      in
-                       (prefix^nm) :: acc
+                       match extra.OASISSchema_intern.feature with
+                         | Some ftr ->
+                            if OASISFeatures.package_test ftr pkg then
+                              (prefix^nm) :: acc
+                            else
+                              acc
+                         | None -> (prefix^nm) :: acc
                    with e ->
                      acc)
                 acc

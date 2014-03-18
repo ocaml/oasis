@@ -166,7 +166,8 @@ type 'a t = 'a plugin
 type all_t = plugin_kind plugin
 
 
-module MapPlugin = Map.Make (
+module MapPlugin =
+  MapExt.Make(
 struct
   type t = plugin_kind plugin
   let compare = plugin_compare
@@ -174,11 +175,11 @@ end)
 
 
 module SetPlugin =
-  Set.Make
-    (struct
-       type t = plugin_kind plugin
-       let compare = plugin_compare
-     end)
+  SetExt.Make(
+struct
+  type t = plugin_kind plugin
+  let compare = plugin_compare
+end)
 
 
 let mem_no_version (knd, nm, _) plugins =

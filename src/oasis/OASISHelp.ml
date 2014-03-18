@@ -485,7 +485,7 @@ let pp_help_replace vars fmt str =
 let pp_print_help ?plugin fmt pp_print_cli_help env_schm env_display =
   let build_section_fields, library_fields, object_fields, executable_fields =
     let set_fields_of_section schm =
-      set_string_of_list
+      SetString.of_list
         (List.rev_map fst
            (fields_of_section ?plugin schm.schm))
     in

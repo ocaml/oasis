@@ -128,15 +128,14 @@ let merge_version_opt ver_opt1 ver_opt2 =
 (** Associate a tool to a findlib package or a tool *)
 let package_of_tool =
   let mp =
-    map_string_of_assoc
+    MapString.of_list
       (List.fold_left
          (fun acc (pkg, tools, _) ->
             List.fold_left
               (fun acc tool -> (tool, pkg) :: acc)
               acc
               tools)
-         []
-         facts)
+         [] facts)
   in
     fun tool ->
       try
@@ -148,15 +147,14 @@ let package_of_tool =
 (** Associate a library to a findlib package raw data *)
 let package_of_library =
   let mp =
-    map_string_of_assoc
+    MapString.of_list
       (List.fold_left
          (fun acc (pkg, _, libs) ->
             List.fold_left
               (fun acc lib -> (lib, pkg) :: acc)
               acc
               libs)
-         []
-         facts)
+         [] facts)
   in
     fun lib ver_opt ->
       try

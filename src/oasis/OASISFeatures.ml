@@ -65,6 +65,24 @@ struct
 
   let plugin_version plugin_kind plugin_name t =
     MapPlugin.find (plugin_kind, plugin_name) t.plugin_versions
+
+  let to_string t =
+    Printf.sprintf
+      "oasis_version: %s; alpha_features: %s; beta_features: %s; \
+       plugins_version: %s"
+      (OASISVersion.string_of_version t.oasis_version)
+      (String.concat ", " t.alpha_features)
+      (String.concat ", " t.beta_features)
+      (String.concat ", "
+         (MapPlugin.fold
+            (fun (_, plg) ver_opt acc ->
+               (plg^
+                (match ver_opt with
+                   | Some v ->
+                       " "^(OASISVersion.string_of_version v)
+                   | None -> ""))
+               :: acc)
+            t.plugin_versions []))
 end
 
 type origin =
@@ -104,6 +122,17 @@ let since_version ver_str = SinceVersion (version_of_string ver_str)
 let alpha = InDev Alpha
 let beta = InDev Beta
 
+
+let to_string t =
+  Printf.sprintf
+    "feature: %s; plugin: %s; publication: %s"
+    t.name
+    (match t.plugin with
+       | None -> "<none>"
+       | Some (_, nm, _) -> nm)
+    (match t.publication with
+       | InDev stage -> string_of_stage stage
+       | SinceVersion ver -> ">= "^(OASISVersion.string_of_version ver))
 
 let data_check t data origin =
   let no_message = "no message" in

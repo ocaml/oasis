@@ -35,8 +35,8 @@
 open OASISTypes
 
 
-module MapPlugin: Map.S with type key = plugin_kind plugin
-module SetPlugin: Set.S with type elt = plugin_kind plugin
+module MapPlugin: OASISUtils.MapExt.S with type key = plugin_kind plugin
+module SetPlugin: OASISUtils.SetExt.S with type elt = plugin_kind plugin
 
 (* Check that plugin exist even with a different version. *)
 val mem_no_version: plugin_kind plugin -> SetPlugin.t -> bool

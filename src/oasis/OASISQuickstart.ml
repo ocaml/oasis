@@ -356,7 +356,8 @@ let mk_yes_no t =
 
 
 (** Ask questions for a schema (Package, Library, Executable...) *)
-let ask_schema ~ctxt schema lvl interface plugins =
+let ask_schema ~ctxt
+      fields proplist_data features_data schema lvl interface plugins =
   let fake_context =
     {
       OASISAstTypes.cond = None;
@@ -482,12 +483,7 @@ let ask_schema ~ctxt schema lvl interface plugins =
     let data =
       ask_field data key extra help
     in
-    let str =
-      PropList.Schema.get
-        schm
-        data
-        key
-    in
+    let str = PropList.Schema.get schm data key in
       data, str
   in
 
@@ -511,70 +507,125 @@ let ask_schema ~ctxt schema lvl interface plugins =
       schm
   in
 
+  let ask (data, new_plugins) key extra help =
+    match extra.kind with
+      | StandardField ->
+          begin
+            ask_field data key extra help,
+            new_plugins
+          end
+
+      | DefinePlugin knd ->
+          begin
+            let data, plg_str =
+              ask_field_and_get_answer data key extra help
+            in
+            let plg =
+              OASISPlugin.plugin_of_string knd plg_str
+            in
+            let data =
+              ask_plugin_fields plg data
+            in
+              data, (OASISPlugin.SetPlugin.add plg new_plugins)
+          end
+
+      | DefinePlugins knd ->
+          begin
+            let data, plg_str =
+              ask_field_and_get_answer data key extra help
+            in
+              List.fold_left
+                (fun (data, new_plugins) plg ->
+                   ask_plugin_fields plg data,
+                   OASISPlugin.SetPlugin.add plg new_plugins)
+                (data, new_plugins)
+                (OASISPlugin.plugins_of_string knd plg_str)
+          end
+
+      | FieldFromPlugin plg ->
+          begin
+            (* We process only fields that have been defined
+             * out of this loop, since plugins define in the
+             * loop are processed after the plugin definition
+             *)
+            if OASISPlugin.SetPlugin.mem plg plugins then
+              ask_field data key extra help, new_plugins
+            else
+              data, new_plugins
+          end
+  in
+
+  let all_fields =
     PropList.Schema.fold
-      (fun (data, new_plugins) key extra help ->
-         match extra.kind with
-           | StandardField ->
-               begin
-                 ask_field data key extra help,
-                 new_plugins
-               end
-
-           | DefinePlugin knd ->
-               begin
-                 let data, plg_str =
-                   ask_field_and_get_answer data key extra help
-                 in
-                 let plg =
-                   OASISPlugin.plugin_of_string knd plg_str
-                 in
-                 let data =
-                   ask_plugin_fields plg data
-                 in
-                   data, (OASISPlugin.SetPlugin.add plg new_plugins)
-               end
-
-           | DefinePlugins knd ->
-               begin
-                 let data, plg_str =
-                   ask_field_and_get_answer data key extra help
-                 in
-                   List.fold_left
-                     (fun (data, new_plugins) plg ->
-                        ask_plugin_fields plg data,
-                        OASISPlugin.SetPlugin.add plg new_plugins)
-                     (data, new_plugins)
-                     (OASISPlugin.plugins_of_string knd plg_str)
-               end
-
-           | FieldFromPlugin plg ->
-               begin
-                 (* We process only fields that have been defined
-                  * out of this loop, since plugins define in the
-                  * loop are processed after the plugin definition
-                  *)
-                 if OASISPlugin.SetPlugin.mem plg plugins then
-                   ask_field data key extra help, new_plugins
-                 else
-                   data, new_plugins
-               end)
-
-      (PropList.Data.create (), plugins)
-      schm
+      (fun mp key extra help -> MapString.add key (extra, help) mp)
+      MapString.empty schm
+  in
+    List.fold_left
+      (fun (data, new_plugins) fld ->
+         try
+           let extra, help = MapString.find fld all_fields in
+             match extra.feature with
+               | Some ftr ->
+                   let features_data =
+                     OASISPlugin.SetPlugin.fold
+                       (fun plg d -> OASISFeatures.Data.add_plugin plg d)
+                       new_plugins features_data
+                   in
+                   if OASISFeatures.data_test ftr features_data then
+                     ask (data, new_plugins) fld extra help
+                   else
+                     data, new_plugins
+               | None ->
+                   ask (data, new_plugins) fld extra help
+         with Not_found ->
+           failwithf
+             (f_ "Unable to find field %s in schema %s.")
+             fld (PropList.Schema.name schm))
+      (proplist_data, plugins) fields
 
 
 (** Ask questions for a package and its sections *)
 let ask_package ~ctxt lvl intrf =
-  let pkg_data, plugins =
-    ask_schema ~ctxt
-      OASISPackage.schema lvl intrf
-      OASISPlugin.SetPlugin.empty
-  in
-
-  let features_data =
-    OASISFeatures.Data.create
-      OASISConf.version_short
-      [] []
+  let pkg_data, plugins, features_data =
+    let first_fields =
+      ["Name"; "Version"; "AlphaFeatures"; "BetaFeatures"]
+    in
+    let oasis_format = OASISConf.version_short in
+    let other_fields =
+      let first_fields_set = SetString.of_list first_fields in
+      PropList.Schema.fold
+        (fun acc key _ _ ->
+           if SetString.mem key first_fields_set then
+             acc
+           else
+             key :: acc)
+        [] OASISPackage.schema.OASISSchema_intern.schm
+    in
+    let pkg_data_first, plugins_first =
+      ask_schema ~ctxt first_fields
+        (PropList.Data.create ())
+        (OASISFeatures.Data.create oasis_format [] [])
+        OASISPackage.schema lvl intrf
+        OASISPlugin.SetPlugin.empty
+    in
+    let features_data_first =
+      OASISFeatures.Data.create
+        oasis_format
+        (OASISPackage_intern.alpha_features pkg_data_first)
+        (OASISPackage_intern.beta_features pkg_data_first)
+    in
+    let pkg_data, plugins =
+      ask_schema ~ctxt other_fields
+        pkg_data_first features_data_first
+        OASISPackage.schema lvl intrf
+        plugins_first
+    in
+    let features_data =
+      OASISPlugin.SetPlugin.fold
+        (fun plg d -> OASISFeatures.Data.add_plugin plg d)
+        plugins features_data_first
+    in
+      pkg_data, plugins, features_data
   in
 
   let mk_t nm hlp q =
@@ -604,9 +655,15 @@ let ask_package ~ctxt lvl intrf =
       let nm =
         ask_until_correct (mk_t "name" "" q_name)
       in
-      (* Plugin define in section don't propagate *)
+      let fields =
+        PropList.Schema.fold (fun acc key _ _ -> key :: acc) []
+          schema.schm
+      in
+      (* Plugin defined in sections don't propagate *)
       let data, _ =
-        ask_schema ~ctxt schema lvl intrf plugins
+        ask_schema ~ctxt fields
+          (PropList.Data.create ()) features_data
+          schema lvl intrf plugins
       in
         gen features_data nm data
     in
