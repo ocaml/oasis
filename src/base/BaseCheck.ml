@@ -118,9 +118,11 @@ let package ?version_comparator pkg () =
   in
   let findlib_dir pkg =
     let dir =
-      OASISExec.run_read_one_line ~ctxt:!BaseContext.default
-        (ocamlfind ())
-        ["query"; "-format"; "%d"; pkg]
+      OASISHostPath.of_unix (
+        OASISHostPath.ocamlfind_unquote (
+          OASISExec.run_read_one_line ~ctxt:!BaseContext.default
+            (ocamlfind ())
+            ["query"; "-format"; "%d"; pkg] ) )
     in
       if Sys.file_exists dir && Sys.is_directory dir then
         dir

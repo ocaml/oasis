@@ -56,7 +56,7 @@ let fix_args args extra_argv =
           "-no-log";
           "-no-links";
           "-install-lib-dir";
-          (Filename.concat (standard_library ()) "ocamlbuild")
+          (OASISHostPath.quote (OASISHostPath.of_unix (Filename.concat (standard_library ()) "ocamlbuild")))
         ]
       else
         [];

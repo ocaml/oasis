@@ -116,6 +116,9 @@ let var_define nm =
     match nm with
       | "ocaml_version" ->
           "version", chop_version_suffix
+      | "standard_library"
+      | "standard_library_default" ->
+          nm, ( fun x -> OASISHostPath.of_unix x)
       | _ -> nm, (fun x -> x)
   in
     var_redefine

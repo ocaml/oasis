@@ -1,0 +1,24 @@
+OASISFormat: 0.4
+Name:        spacetest
+Version:     0.0.1
+Synopsis:    test folders with space
+Authors:     andreas@ml.ignorelist.com
+License:     GPL-3
+Plugins:     META (0.4)
+
+Library argv
+  Path:       src
+  BuildTools: ocamlbuild
+  Modules: Argv
+
+Executable "test_main"
+  Path:         tests
+  Build$:       flag(tests)
+  MainIs:       main.ml
+  BuildDepends: argv
+  BuildTools:   ocamlbuild
+  Install:      false
+
+Test main
+  Type: Custom (0.2)
+  Command: $test_main 3 2 1

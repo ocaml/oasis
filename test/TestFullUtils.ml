@@ -193,9 +193,14 @@ type t =
 
 
 (* Create tree structure for a test project and copy it there. *)
-let setup_test_directories test_ctxt ~is_native ~native_dynlink dn =
+let setup_test_directories ?tmpdir_prefix test_ctxt ~is_native ~native_dynlink dn =
   (* Create a temporary directory. *)
-  let tmpdir = bracket_tmpdir test_ctxt in
+  let prefix =
+    match tmpdir_prefix with
+      | None -> "ounit-"
+      | Some x -> x
+  in
+  let tmpdir = bracket_tmpdir ~prefix test_ctxt in
 
   (* Copy sources in this temporary directory. *)
   let src_dir =
@@ -256,7 +261,8 @@ let in_src_dir t fn = Filename.concat t.src_dir fn
 (* Precompile setup.ml to speedup the tests, if possible. *)
 let rec precompile_setup_ml test_ctxt t =
   let setup_exe =
-    Filename.concat t.precompile_dir (Filename.chop_extension setup_ml)
+    exec (Filename.concat t.precompile_dir
+            (Filename.chop_extension setup_ml))
   in
   let full_setup_ml = in_src_dir t setup_ml in
 
@@ -280,16 +286,17 @@ let rec precompile_setup_ml test_ctxt t =
     let timer = timer_start "precompile_setup_ml" in
     let exit_code =
       FileUtil.cp ~force:FileUtil.Force [full_setup_ml] t.precompile_dir;
-      Sys.command ("ocamlfind ocamlc -o "^setup_exe^" "
-                   ^(Filename.concat t.precompile_dir setup_ml))
+      let f1 = Filename.quote setup_exe in
+      let f2 = Filename.quote (Filename.concat t.precompile_dir setup_ml) in
+        Sys.command ("ocamlfind ocamlc -o "^f1^" "^f2)
     in
     timer_stop test_ctxt timer;
     if exit_code = 0 then begin
       (* Compilation succeed, update the digest *)
-      logf test_ctxt `Info "Compilation of setup.ml succeeds.";
+      logf test_ctxt `Info "Compilation of setup.ml (%S) succeeds." setup_exe;
       `Done_for (Digest.file full_setup_ml)
     end else begin
-      logf test_ctxt `Warning "Compilation of setup.ml doesn't succeed.";
+      logf test_ctxt `Warning "Compilation of setup.ml (%S) doesn't succeed." setup_exe;
       `Not_possible
     end
   in
@@ -308,7 +315,7 @@ let rec precompile_setup_ml test_ctxt t =
 
       | `Done_for digest ->
           if (Digest.file full_setup_ml) = digest then begin
-            Some (exec setup_exe)
+            Some setup_exe
           end else begin
             t.setup_ml_precompiled <- compile ();
             precompile_setup_ml test_ctxt t
@@ -526,6 +533,10 @@ type installed_files =
   | InstalledBin of filename list
 
 
+
+let system =
+  (BaseOCamlcConfig.var_define "system") ()
+
 (* Register a set of files expected to be built. *)
 let register_installed_files test_ctxt t installed_files_lst =
   let rec file_list =
@@ -586,7 +597,12 @@ let register_installed_files test_ctxt t installed_files_lst =
                acc
            | "a" ->
                let fn =
-                 if is_win32 then FilePath.replace_extension fn "lib" else fn
+                 if not is_win32 then
+                   fn
+                 else
+                   match system with
+                     | "mingw" | "mingw64" -> fn
+                     | _ -> FilePath.replace_extension fn "lib"
                in
                  if (* library matching the .cmxa *)
                    t.is_native ||
@@ -598,7 +614,7 @@ let register_installed_files test_ctxt t installed_files_lst =
                    (* no .a matching bytecode only library. *)
                    acc
            | "so" when is_win32 ->
-               (FilePath.replace_extension fn ".dll") :: acc
+               (FilePath.replace_extension fn "dll") :: acc
            | _ ->
                fn :: acc)
       [] lst

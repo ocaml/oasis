@@ -73,7 +73,17 @@ let ocamlfind x =
     let env_filename = Pathname.basename BaseEnvLight.default_filename in
     let env = BaseEnvLight.load ~filename:env_filename ~allow_empty:true () in
     try
-      BaseEnvLight.var_get "ocamlfind" env
+      let x = BaseEnvLight.var_get "ocamlfind" env in
+      if Sys.os_type = "Win32" then
+        begin
+          (* backslashes are not supported, even if quoted *)
+          for i = 0 to String.length x - 1 do
+            match x.[i] with
+              |  '\\' -> x.[i] <- '/'
+              |  _ -> ()
+          done;
+        end;
+      Ocamlbuild_pack.Shell.quote_filename_if_needed x
     with Not_found ->
       Printf.eprintf "W: Cannot get variable ocamlfind\n";
       "ocamlfind"

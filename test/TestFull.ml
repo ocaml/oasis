@@ -39,8 +39,8 @@ let gen_tests ~is_native () =
     else
       false
   in
-  let setup_test_directories test_ctxt fpath path =
-    setup_test_directories test_ctxt ~is_native
+  let setup_test_directories ?tmpdir_prefix test_ctxt fpath path =
+    setup_test_directories ?tmpdir_prefix test_ctxt ~is_native
       ~native_dynlink:(native_dynlink test_ctxt)
       (fpath test_ctxt path)
   in
@@ -313,6 +313,24 @@ let gen_tests ~is_native () =
          register_generated_files t oasis_ocamlbuild_files;
          (* Run standard test. *)
          standard_test test_ctxt t);
+
+    "examples/with test space" >::
+    (fun test_ctxt ->
+       let () =
+         skip_long_test test_ctxt;
+         skip_if (Sys.os_type <> "Win32") "Win32 only test"
+       in
+       let t =
+         setup_test_directories ~tmpdir_prefix:"s p a c e" test_ctxt 
+           in_example_dir ["with test space"]
+       in
+         oasis_setup test_ctxt t;
+         run_ocaml_setup_ml test_ctxt t
+           ["-configure"; "--enable-tests"];
+         run_ocaml_setup_ml test_ctxt t
+           ["-build"];
+         run_ocaml_setup_ml test_ctxt t
+           ["-test"]; );
 
     (* Use sub-packages *)
     "examples/with-subpackage" >::

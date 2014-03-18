@@ -38,14 +38,14 @@ let add_fields schm nm hlp_pre hlp_post sync =
   let pre_command =
     new_field_conditional schm ("Pre"^nm^"Command")
       ~default:None
-      (opt command_line)
+      (opt command_line_warn)
       hlp_pre
       (fun pkg -> (sync pkg).pre_command)
   in
   let post_command =
     new_field_conditional schm ("Post"^nm^"Command")
       ~default:None
-      (opt command_line)
+      (opt command_line_warn)
       hlp_post
       (fun pkg -> (sync pkg).post_command)
   in

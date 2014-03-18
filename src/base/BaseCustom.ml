@@ -31,7 +31,7 @@ let run cmd args extra_args =
   OASISExec.run ~ctxt:!BaseContext.default ~quote:false
     (var_expand cmd)
     (List.map
-       var_expand
+       (var_expand ~quoted:true)
        (args @ (Array.to_list extra_args)))
 
 

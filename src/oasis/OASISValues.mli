@@ -183,6 +183,9 @@ val internal_library: string t
 val command_line: (string * string list) t
 
 
+(** As above, but emmit warnings by dubious constructs *)
+val command_line_warn : (string * string list) t
+
 (** Arguments of command line programs.  See {!OASISUtils.POSIX.split}
     for more information. *)
 val command_line_options: string list t

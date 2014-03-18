@@ -136,14 +136,26 @@ let p name hlp dflt =
 
 
 let (/) a b =
-  if os_type () = Sys.os_type then
-    Filename.concat a b
-  else if os_type () = "Unix" then
-    OASISUnixPath.concat a b
-  else
-    OASISUtils.failwithf (f_ "Cannot handle os_type %s filename concat")
-      (os_type ())
+  let os = os_type () in
+    if os = Sys.os_type then
+      if Sys.os_type = "Win32" && OASISHostPath.use_bash () then
+        OASISUnixPath.concat a b
+      else
+        Filename.concat a b
+    else if os = "Unix" then
+      OASISUnixPath.concat a b
+    else
+      OASISUtils.failwithf (f_ "Cannot handle os_type %s filename concat")
+        (os_type ())
 (**/**)
+
+let bash_cmd =
+  var_define
+    ~short_desc:(fun () -> s_ "Enforced bash shell:")
+    ~cli:CLIAuto
+    ~arg_help:"program"
+    "use_bash"
+    (fun () -> "")
 
 
 let prefix =
@@ -152,10 +164,30 @@ let prefix =
     (fun () ->
        match os_type () with
          | "Win32" ->
-             let program_files =
-               Sys.getenv "PROGRAMFILES"
+             let getenv w =
+               try
+                 Some(Sys.getenv w)
+               with
+                 | Not_found -> None
              in
-               program_files/(pkg_name ())
+             let s =
+               if Sys.word_size = 64 then
+                 getenv "ProgramW6432"
+               else
+                 None
+             in
+             let s =
+               if s = None then
+                 getenv "PROGRAMFILES"
+               else
+                 s
+             in
+             let program_files =
+               match s with
+                 | None -> "C:\\Program Files"
+                 | Some x -> x
+             in
+               OASISHostPath.of_unix (program_files/(pkg_name ()))
          | _ ->
              "/usr/local")
 
@@ -241,7 +273,15 @@ let mandir =
 let docdir =
   p "docdir"
     (fun () -> s_ "Documentation root")
-    (fun () -> "$datarootdir"/"doc"/"$pkg_name")
+    (fun () ->
+      (* TODO: (Windows only?) "$pkg_name" is not always substituted
+       * (at least if datarootdir contains spaces or other garbage)
+       * I haven't looked up why.
+       *)
+      match os_type () with
+        | "Win32" -> "$datarootdir"/"doc"/ ( pkg_name () )
+        | _ -> "$datarootdir"/"doc"/"$pkg_name"
+    )
 
 
 let htmldir =
@@ -315,9 +355,10 @@ let rm =
     ~short_desc:(fun () -> s_ "Remove a file.")
     "rm"
     (fun () ->
-       match os_type () with
-         | "Win32" -> "del"
-         | _ -> "rm -f")
+       if not (OASISHostPath.use_bash ()) && os_type () = "Win32" then
+         "del"
+       else
+         "rm -f" )
 
 
 let rmdir =
@@ -325,9 +366,10 @@ let rmdir =
     ~short_desc:(fun () -> s_ "Remove a directory.")
     "rmdir"
     (fun () ->
-       match os_type () with
-         | "Win32" -> "rd"
-         | _ -> "rm -rf")
+       if not (OASISHostPath.use_bash ()) && os_type () = "Win32" then
+         "rd"
+       else
+         "rm -rf")
 
 
 let debug =
@@ -391,14 +433,29 @@ let native_dynlink =
          let has_native_dynlink =
            let ocamlfind = ocamlfind () in
              try
-               let fn =
-                 OASISExec.run_read_one_line
-                   ~ctxt:!BaseContext.default
-                   ocamlfind
-                   ["query"; "-predicates"; "native"; "dynlink";
-                    "-format"; "%d/%a"]
+               (* -format %d/%a doesn't work, because ocamlfind quotes %d
+                * and %a separatly *)
+               let fn1 =
+                 OASISHostPath.ocamlfind_unquote (
+                   OASISExec.run_read_one_line
+                     ~ctxt:!BaseContext.default
+                     ocamlfind
+                     ["query"; "-predicates"; "native"; "dynlink";
+                      "-format"; "%d"] )
                in
-                 Sys.file_exists fn
+               let fn2 =
+                 OASISHostPath.ocamlfind_unquote (
+                   OASISExec.run_read_one_line
+                     ~ctxt:!BaseContext.default
+                     ocamlfind
+                     ["query"; "-predicates"; "native"; "dynlink";
+                      "-format"; "%a"] )
+               in
+                 if fn1 <> "" && fn2 <> "" &&
+                   Sys.file_exists (Filename.concat fn1 fn2) then
+                   true
+                 else
+                   false
              with _ ->
                false
          in
@@ -425,3 +482,5 @@ let init pkg =
   rpkg := Some pkg;
   List.iter (fun f -> f pkg.oasis_version) !var_cond
 
+let () =
+  OASISHostPath.bash_cmd := bash_cmd

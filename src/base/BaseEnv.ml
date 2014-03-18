@@ -72,7 +72,7 @@ let var_lxr =
   Genlex.make_lexer []
 
 
-let rec var_expand str =
+let rec var_expand ?(quoted=false) str =
   let buff =
     Buffer.create ((String.length str) * 2)
   in
@@ -100,7 +100,11 @@ let rec var_expand str =
                | [Genlex.Ident "ocaml_escaped"; Genlex.String s] ->
                    String.escaped s
                | [Genlex.Ident nm] ->
-                   var_get nm
+                   let s = var_get nm in
+                   if quoted then
+                     OASISHostPath.quote s
+                   else
+                     s
                | _ ->
                    failwithf
                      (f_ "Unknown expression '%s' in variable expansion of %s.")

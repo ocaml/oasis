@@ -484,6 +484,38 @@ let command_line =
            space_separated.print (cmd :: args))
     }
 
+let command_line_warn =
+  let c = command_line in
+  let is_unix_centric_operator = function
+    | "&&" | ";" | "||" -> true
+    | _ -> false
+  in
+
+  let parse = ( fun ~ctxt s ->
+                let (cmd,args) as cmd_args = c.parse ~ctxt s in
+                  if String.length cmd > 0 && cmd.[0] <> '$' then
+                    begin
+                      OASISMessage.warning
+                        ~ctxt
+                        "External commands may differ from platform to platform (%s)"
+                        cmd
+                    end;
+                  if List.exists is_unix_centric_operator args then
+                    begin
+                      OASISMessage.warning
+                        ~ctxt
+                        "Command line '%s' seems to be *nix specific"
+                        (String.concat "" (cmd::args))
+                    end;
+                  cmd_args )
+  in
+    {
+      parse ;
+      update = c.update;
+      print = c.print;
+    }
+
+
 
 let command_line_options =
   { parse = (fun ~ctxt s -> POSIXShell.split s);

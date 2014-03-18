@@ -217,7 +217,7 @@ let add_fields
       schema
       id
       nm
-      command_line
+      command_line_warn
       (* TODO: remove when fun () -> s_ be replaced *)
       (fun () -> s_ hlp)
       data (fun _ t -> t.cmd_main)
@@ -228,7 +228,7 @@ let add_fields
       id
       (nm^"Clean")
       ~default:None
-      (opt command_line)
+      (opt command_line_warn)
       (* TODO: remove when fun () -> s_ be replaced *)
       (fun () -> s_ hlp_clean)
       data (fun _ t -> t.cmd_clean)
@@ -239,7 +239,7 @@ let add_fields
       id
       (nm^"Distclean")
       ~default:None
-      (opt command_line)
+      (opt command_line_warn)
       (* TODO: remove when fun () -> s_ be replaced *)
       (fun () -> s_ hlp_distclean)
       data (fun _ t -> t.cmd_distclean)
@@ -441,7 +441,7 @@ let test_init () =
       id
       "Clean"
       ~default:None
-      (opt command_line)
+      (opt command_line_warn)
       (fun () ->
          s_ "Run command to clean test step.")
       test_data (fun _ t -> t.cmd_clean)
@@ -452,7 +452,7 @@ let test_init () =
       id
       "Distclean"
       ~default:None
-      (opt command_line)
+      (opt command_line_warn)
       (fun () ->
          s_ "Run command to distclean test step.")
       test_data (fun _ t -> t.cmd_distclean)

@@ -45,12 +45,10 @@ type comparator =
 
 
 (* Range of allowed characters *)
-let is_digit c =
-  '0' <= c && c <= '9'
+let is_digit = OASISString.is_digit
 
 
-let is_alpha c =
-  ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')
+let is_alpha = OASISString.is_alpha
 
 
 let is_special =

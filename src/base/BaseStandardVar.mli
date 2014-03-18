@@ -73,6 +73,9 @@ val default_executable_name:  unit -> string
 val systhread_supported:      unit -> string
 
 
+
+val bash_cmd:                 unit -> string
+
 (** {2 Paths}
 
     See {{:http://www.gnu.org/prep/standards/html_node/Directory-Variables.html} GNU standards}.

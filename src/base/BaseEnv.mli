@@ -78,9 +78,9 @@ val env: PropList.Data.t
 
 (** Expand variable that can be found in string. Variable follow definition of
   * variable for [Buffer.add_substitute].
+  * quoted is false by default
   *)
-val var_expand: string -> string
-
+val var_expand: ?quoted:bool -> string -> string
 
 (** Get variable.
   *)

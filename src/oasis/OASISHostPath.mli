@@ -29,6 +29,27 @@
 open OASISTypes
 
 
+(**
+    The function should return an unix like shell,
+    that will be used to execute external commands.
+
+    The default function returns an empty string.
+    (system default will be used)
+*)
+val bash_cmd : (unit -> host_filename) ref
+
+(** True, if bash_cmd_program will return a non-empty
+    host_filename *)
+val use_bash: unit -> bool
+
+
+(**
+   On windows, the Unix quote function
+   will be used, if use_base () is true.
+   Otherwise identic to Filename.quote
+*)
+val quote: string -> string
+
 (** Create a filename out of its components.
   *)
 val make: host_filename list -> host_filename
@@ -49,3 +70,8 @@ val compare: host_filename -> host_filename -> int
     {b Not exported}
   *)
 val add_extension: host_filename -> string -> host_filename
+
+
+(** Unquote functions for filenames from 'ocamlfind query ...' *)
+
+val ocamlfind_unquote: string -> string

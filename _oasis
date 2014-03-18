@@ -222,9 +222,7 @@ Executable test
 
 Test main
   Type: custom (0.3)
-  Command: $test -oasis $oasis -is-native $is_native \
-                 -native-dynlink $native_dynlink \
-                 -ocamlmod $ocamlmod -fake-ocamlfind $fake_ocamlfind
+  Command: $test -oasis $oasis -is-native $is_native -native-dynlink $native_dynlink -ocamlmod $ocamlmod -fake-ocamlfind $fake_ocamlfind
   WorkingDirectory: test
   TestTools: oasis, test, ocamlmod, fake_ocamlfind
 

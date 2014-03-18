@@ -100,7 +100,10 @@ let which ~ctxt prg =
       | _ ->
           [""]
   in
+  let p =
     find_file ~case_sensitive:false [path_lst; [prg]] exec_ext
+  in
+    OASISHostPath.of_unix p
 
 
 (**/**)
@@ -117,32 +120,55 @@ let rec fix_dir dn =
       dn
 
 
-let q = Filename.quote
+let q s = OASISHostPath.quote (OASISHostPath.of_unix s)
 (**/**)
 
 
 let cp ~ctxt ?(recurse=false) src tgt =
   if recurse then
-    match Sys.os_type with
-      | "Win32" ->
-          OASISExec.run ~ctxt
-            "xcopy" [q src; q tgt; "/E"]
-      | _ ->
-          OASISExec.run ~ctxt
-            "cp" ["-r"; q src; q tgt]
+    (*
+      'xcopy /E' and 'cp -r' don't have the same semantic!
+      -dir2 does exist:
+        xcopy dir dir2 /E -> copys content of dir into dir2 (dir2/dir doesn't exist!)
+        cp -r dir dir2    -> copys dir to dir2 (dir2/dir does exist!)
+      -dir2 doesn't exist:
+        xcopy dir dir2 /E -> request on command line, if dir2 is an directory or file.
+        cp -r dir dir2    -> dir and dir2 have the same content (dir2/dir doesn't exist)
+      Probably, there are even more differences,....
+    *)
+    if Sys.os_type = "Win32" && OASISHostPath.use_bash () = false then
+      let tgt_real =
+        if Sys.file_exists tgt = false then
+          begin
+            OASISExec.run ~ctxt "md" [q tgt];
+            tgt
+          end
+        else
+          let base = Filename.basename src in
+          if base = "." then
+            tgt
+          else
+            let tgt_real = Filename.concat tgt base in
+              if Sys.file_exists tgt_real = false then
+                OASISExec.run ~ctxt "md" [q tgt_real];
+            tgt_real
+      in
+      OASISExec.run ~ctxt "xcopy" [q src; q tgt_real; "/E" ; "/Q" ; "/Y"]
+    else
+      OASISExec.run ~ctxt "cp" ["-r"; q src; q tgt]
   else
-    OASISExec.run ~ctxt
-      (match Sys.os_type with
-       | "Win32" -> "copy"
-       | _ -> "cp")
-      [q src; q tgt]
+    if Sys.os_type = "Win32" && OASISHostPath.use_bash () = false then
+      OASISExec.run ~ctxt "copy" [q src; q tgt ; "/Y"]
+    else
+      OASISExec.run ~ctxt "cp" [q src; q tgt]
 
 
 let mkdir ~ctxt tgt =
   OASISExec.run ~ctxt
-    (match Sys.os_type with
-       | "Win32" -> "md"
-       | _ -> "mkdir")
+    ( if Sys.os_type = "Win32" && not (OASISHostPath.use_bash ()) then
+        "md"
+      else
+        "mkdir" )
     [q tgt]
 
 
@@ -171,11 +197,10 @@ let rec mkdir_parent ~ctxt f tgt =
 
 let rmdir ~ctxt tgt =
   if Sys.readdir tgt = [||] then begin
-    match Sys.os_type with
-      | "Win32" ->
-          OASISExec.run ~ctxt "rd" [q tgt]
-      | _ ->
-          OASISExec.run ~ctxt "rm" ["-r"; q tgt]
+    if Sys.os_type = "Win32" && OASISHostPath.use_bash () = false then
+      OASISExec.run ~ctxt "rd" [q tgt]
+    else
+      OASISExec.run ~ctxt "rm" ["-r"; q tgt]
   end else begin
     OASISMessage.error ~ctxt
       (f_ "Cannot remove directory '%s': not empty.")
