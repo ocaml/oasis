@@ -119,7 +119,9 @@ let main ctxt pkg =
   let t =
     generator pkg.schema_data
   in
-  let compiled_setup_ml = OASISFeatures.package_test OASISFeatures.compiled_setup_ml pkg in
+  let compiled_setup_ml =
+    OASISFeatures.package_test OASISFeatures.compiled_setup_ml pkg
+  in
   if compiled_setup_ml && not t.enable_makefile then
     OASISMessage.error
       ~ctxt:ctxt.ctxt

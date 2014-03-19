@@ -47,6 +47,12 @@ let self_id, all_id =
   Extra.create plugin
 
 
+let markdown_ext =
+  OASISFeatures.create "stdfiles_markdown_ext" ~plugin
+    OASISFeatures.alpha
+    (fun () ->
+       s_ "Replace .txt extensions of standard files by .md.")
+
 type package =
     (* Standalone executable *)
   | LTool of prog
@@ -175,6 +181,18 @@ let pivot_data =
   data_new_property plugin
 
 
+let default_filenames =
+  let mp =
+    MapString.of_list(["README", "README.txt";
+                       "INSTALL", "INSTALL.txt";
+                       "AUTHORS", "AUTHORS.txt"])
+  in
+    fun fn ->
+      try
+        MapString.find fn mp
+      with Not_found ->
+        failwithf (f_ "No default filename for file %s.") fn
+
 let generator =
   let fn_enable fn sync =
     let enable =
@@ -194,7 +212,7 @@ let generator =
         OASISPackage.schema
         all_id
         (fn^"Filename")
-        ~default:(fn^".txt")
+        ~default:(default_filenames fn)
         string_not_empty
         (fun () ->
            Printf.sprintf (f_ "Real filename to use for file %s.") fn)
@@ -237,9 +255,7 @@ module SetSection =
 
 
 let main ctxt pkg =
-  let data =
-    pkg.schema_data
-  in
+  let data = pkg.schema_data in
 
   (** All sections that contains a build_section *)
   let all_build_sections_set =
@@ -477,8 +493,25 @@ let main ctxt pkg =
           ctxt
   in
 
+  let t = generator data in
+
+  let fix_ext fn real_fn_opt =
+    match real_fn_opt with
+      | Some real_fn ->
+          if OASISFeatures.package_test markdown_ext pkg &&
+             real_fn = default_filenames fn then
+            Some (fn^".md")
+          else
+            Some real_fn
+      | None -> None
+  in
+
   let t =
-    generator data
+    {
+      readme = fix_ext "README" t.readme;
+      install = fix_ext "INSTALL" t.install;
+      authors = fix_ext "AUTHORS" t.authors;
+    }
   in
 
     List.fold_left

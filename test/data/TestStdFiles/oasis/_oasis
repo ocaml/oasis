@@ -1,11 +1,9 @@
 OASISFormat:  0.4
 OCamlVersion: >= 3.11.2
 FindlibVersion: >= 1.3.1
+AlphaFeatures: stdfiles_markdown_ext
 Name:         oasis
 Version:      0.4.3
-XStdFilesREADMEFilename: README.md
-XStdFilesINSTALLFilename: INSTALL.md
-XStdFilesAUTHORSFilename: AUTHORS.md
 LicenseFile:  COPYING.txt
 License:      LGPL-2.1 with OCaml linking exception
 BuildType:    ocamlbuild (0.4)
