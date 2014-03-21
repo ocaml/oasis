@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 6328554582d0445150327d9e3116e111)
+# DO NOT EDIT (digest: 2f2e363a0a79c9d3786900691c785d64)
 FormatExt
 ODNFunc
 PropList
@@ -8,6 +8,7 @@ OASISUnixPath
 OASISContext
 OASISGettext
 OASISMessage
+OASISText
 OASISTypes
 OASISParse
 OASISValues

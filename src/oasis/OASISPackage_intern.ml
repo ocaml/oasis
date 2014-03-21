@@ -207,7 +207,7 @@ let generator =
   let description =
     new_field "Description"
       ~default:None
-      (opt string_not_empty)
+      (opt OASISText.value)
       (fun () ->
          s_ "Long description of the package purpose.")
       (fun pkg -> pkg.description)

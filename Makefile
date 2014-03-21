@@ -27,7 +27,7 @@ CONFIGUREFLAGS += --override ocamlbuildflags -classic-display --enable-tests
 
 default: test
 
-#TESTFLAGS=-only-test "OASIS:15:TestStdFiles:0:markdown"
+#TESTFLAGS=-only-test "OASIS:16:OASISText" -only-test "OASIS:17:OASISString"
 TIMINGS=1
 #export TIMINGS
 

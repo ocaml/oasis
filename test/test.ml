@@ -114,5 +114,7 @@ let () =
          TestOCamlbuild.tests;
          TestSelfCompile.tests;
          TestStdFiles.tests;
+         TestOASISText.tests;
+         TestOASISString.tests;
        ]);
       extract_timings ()

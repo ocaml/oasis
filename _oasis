@@ -59,6 +59,7 @@ Library oasis
            OASISContext,
            OASISGettext,
            OASISMessage,
+           OASISText,
            OASISTypes,
            OASISParse,
            OASISValues,

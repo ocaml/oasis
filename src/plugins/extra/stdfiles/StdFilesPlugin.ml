@@ -526,43 +526,10 @@ let main ctxt pkg =
            pp_print_titlef fmt 1 "%s - %s" pkg.name pkg.synopsis;
 
            may
-             (fun str ->
-                (* TODO: move this in OASISPackage. *)
-                let buff = Buffer.create 12 in
-                let flush () =
-                  if Buffer.length buff > 0 then
-                    pp_print_para fmt (Buffer.contents buff);
-                  Buffer.clear buff
-                in
-                let add line =
-                  if Buffer.length buff > 0 then
-                    Buffer.add_char buff ' ';
-                  Buffer.add_string buff line
-                in
-                let prev_verbatim = ref false in
-                List.iter
-                  (fun line ->
-                     (* Blank line -> end of para. *)
-                     if OASISString.trim line = "" then begin
-                       flush ();
-                       if !prev_verbatim then
-                         pp_print_cut fmt ();
-                       prev_verbatim := false
-                     (* " " -> print verbatim. *)
-                     end else if OASISString.starts_with ~what:" " line
-                     then begin
-                       flush ();
-                       pp_print_string fmt line;
-                       pp_print_newline fmt ();
-                       prev_verbatim := true
-                     (* merge as para. *)
-                     end else begin
-                       add line;
-                       prev_verbatim := false
-                     end)
-                  (OASISString.split_newline ~do_trim:false str);
-                if Buffer.length buff > 0 then
-                  flush ())
+             (fun descr ->
+                OASISText.pp_print fmt descr;
+                pp_print_newline fmt ();
+                pp_print_newline fmt ())
              pkg.description;
 
            may

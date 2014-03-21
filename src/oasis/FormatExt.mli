@@ -45,11 +45,12 @@ val pp_print_list:
 (** [pp_print_para fmt str] Print a paragraph. '\n\n' mark the end of a
     paragraph.
   *)
-val pp_print_para: Format.formatter -> string -> unit
+val pp_print_para: Format.formatter -> ?end_para:bool -> string -> unit
 
 
 (** See {! pp_print_para}. *)
-val pp_print_paraf: Format.formatter -> ('a, unit, string, unit) format4 -> 'a
+val pp_print_paraf:
+  Format.formatter -> ?end_para:bool -> ('a, unit, string, unit) format4 -> 'a
 
 
 (** [pp_print_title fmt lvl str] Print a title using markdown formatting. *)

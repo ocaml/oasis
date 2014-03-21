@@ -267,7 +267,7 @@ type package =
       authors:                string list;
       homepage:               url option;
       synopsis:               string;
-      description:            string option;
+      description:            OASISText.t option;
       categories:             url list;
 
       conf_type:              [`Configure] plugin;

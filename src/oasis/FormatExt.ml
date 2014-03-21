@@ -60,7 +60,7 @@ let pp_print_endblock ?(check_last_char="") fmt () =
     end
 
 
-let pp_print_para fmt str =
+let pp_print_para fmt ?(end_para=true) str =
   let str_len =
     String.length str
   in
@@ -95,12 +95,13 @@ let pp_print_para fmt str =
     pp_open_box fmt 0;
     decode_string 0;
     pp_close_box fmt ();
-    pp_print_cut2 fmt ();
+    if end_para then
+      pp_print_cut2 fmt ();
     pp_close_box fmt ()
 
 
-let pp_print_paraf fmt fmt' =
-  Printf.ksprintf (pp_print_para fmt) fmt'
+let pp_print_paraf fmt ?end_para fmt' =
+  Printf.ksprintf (pp_print_para fmt ?end_para) fmt'
 
 
 let pp_print_title fmt lvl str =

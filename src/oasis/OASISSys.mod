@@ -7,6 +7,7 @@ OASISMessage.ml
 OASISVersion.ml
 OASISLicense.ml
 OASISExpr.ml
+OASISText.ml
 OASISTypes.ml
 OASISFeatures.ml
 OASISUnixPath.ml

@@ -111,10 +111,14 @@ let tests =
 
   let printer_optional_string =
     function
-      | Some str ->
-          Printf.sprintf "%S" str
-      | None ->
-          "<none>"
+      | Some str -> Printf.sprintf "%S" str
+      | None -> "<none>"
+  in
+
+  let printer_description =
+    function
+      | Some txt -> OASISText.to_string txt
+      | None -> "<none>"
   in
 
     "OASIS" >:::
@@ -292,8 +296,8 @@ let tests =
            "test-freeform.oasis",
            (fun pkg ->
               assert_equal
-                ~printer:printer_optional_string
-                (Some "a\nb\n\nc")
+                ~printer:printer_description
+                (Some (OASISText.of_string "a\nb\n\nc"))
                 pkg.description);
 
            "test11.oasis",
@@ -302,16 +306,17 @@ let tests =
            "test12.oasis",
            (fun pkg ->
               assert_equal
-                ~printer:printer_optional_string
+                ~printer:printer_description
                 (Some
-                   "Thin bindings to various low-level system APIs \
-                    (often non-portable)\n\
-                    which are not covered by Unix module.\n\
-                    \n\
-                    Example functions:\n\
-                    \ * uname\n\
-                    \ * statvfs\n\
-                    \ * fsync")
+                   (OASISText.of_string
+                      "Thin bindings to various low-level system APIs \
+                       (often non-portable)\n\
+                       which are not covered by Unix module.\n\
+                       \n\
+                       Example functions:\n\
+                       \ * uname\n\
+                       \ * statvfs\n\
+                       \ * fsync"))
                 pkg.description;
               assert_equal
                 ~printer:printer_optional_string

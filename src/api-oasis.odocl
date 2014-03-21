@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: ae64685632b0a899ffa6d28f75e4b9c7)
+# DO NOT EDIT (digest: 1f72f17551ed9241b5c309db1dbad600)
 oasis/FormatExt
 oasis/ODNFunc
 oasis/PropList
@@ -30,6 +30,7 @@ oasis/OASISUnixPath
 oasis/OASISContext
 oasis/OASISGettext
 oasis/OASISMessage
+oasis/OASISText
 oasis/OASISTypes
 oasis/OASISParse
 oasis/OASISValues

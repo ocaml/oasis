@@ -207,6 +207,7 @@
 "src/oasis/OASISVersion.ml": syntax_camlp4o, pkg_odn.with.syntax
 "src/oasis/OASISLicense.ml": syntax_camlp4o, pkg_odn.with.syntax
 "src/oasis/OASISExpr.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/oasis/OASISText.ml": syntax_camlp4o, pkg_odn.with.syntax
 
 "src/base/BaseDev.ml": syntax_camlp4o, pkg_odn.with.syntax
 

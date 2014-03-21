@@ -403,7 +403,7 @@ type package =
       (** Location of the package homepage. *)
       synopsis:               string;
       (** Short description of the package. *)
-      description:            string option;
+      description:            OASISText.t option;
       (** Long description of the package. *)
       categories:             url list;
       (** List of categories that the package belong to. *)
