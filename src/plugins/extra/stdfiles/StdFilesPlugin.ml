@@ -47,11 +47,12 @@ let self_id, all_id =
   Extra.create plugin
 
 
-let markdown_ext =
-  OASISFeatures.create "stdfiles_markdown_ext" ~plugin
+let markdown =
+  OASISFeatures.create "stdfiles_markdown" ~plugin
     OASISFeatures.alpha
     (fun () ->
-       s_ "Replace .txt extensions of standard files by .md.")
+       s_ "Use markdown comment and replace .txt extensions of standard files by
+           .md.")
 
 type package =
     (* Standalone executable *)
@@ -474,8 +475,14 @@ let main ctxt pkg =
                *)
               remove_eol_eof (flush_str_formatter ())
             in
+            let comment =
+              if OASISFeatures.package_test markdown pkg then
+                comment_markdown
+              else
+                comment_ml
+            in
               add_file
-                {(template_make unix_fn comment_markdown
+                {(template_make unix_fn comment
                     []
                     [
                       (* One line before, one line after to avoid mixing content
@@ -498,7 +505,7 @@ let main ctxt pkg =
   let fix_ext fn real_fn_opt =
     match real_fn_opt with
       | Some real_fn ->
-          if OASISFeatures.package_test markdown_ext pkg &&
+          if OASISFeatures.package_test markdown pkg &&
              real_fn = default_filenames fn then
             Some (fn^".md")
           else

@@ -5,6 +5,7 @@
 
 open OUnit2
 open TestCommon
+open TestFullUtils
 open OASISPlugin
 open OASISFileTemplate
 
@@ -62,5 +63,41 @@ let tests =
        in
          file_match_expectation test_ctxt ctxt dn "README.md";
          file_match_expectation test_ctxt ctxt dn "INSTALL.md";
-         file_match_expectation test_ctxt ctxt dn "AUTHORS.md")
+         file_match_expectation test_ctxt ctxt dn "AUTHORS.md");
+
+    "remove-section" >::
+    (fun test_ctxt ->
+       let t =
+         setup_test_directories test_ctxt
+           ~is_native:(is_native test_ctxt)
+           ~native_dynlink:(native_dynlink test_ctxt)
+           (in_testdata_dir test_ctxt ["TestStdFiles"; "remove"])
+       in
+       let pristine_files = all_files t.src_dir in
+       let expected_files =
+         SetFile.remove
+           (in_src_dir t "AUTHORS.txt")
+           (SetFile.add_list
+              pristine_files
+              (List.rev_map (in_src_dir t) ["README.txt"; "INSTALL.txt.bak"]))
+       in
+         FileUtil.cp [in_src_dir t "README.txt.fst"]
+           (in_src_dir t "README.txt");
+         FileUtil.cp [in_src_dir t "INSTALL.txt.fst"]
+           (in_src_dir t "INSTALL.txt");
+         FileUtil.cp [in_src_dir t "AUTHORS.txt.fst"]
+           (in_src_dir t "AUTHORS.txt");
+         assert_oasis_cli ~ctxt:test_ctxt ~chdir:t.src_dir
+           ["setup-clean"; "-remove"];
+         DiffFileContent.assert_equal
+           ~msg:"INSTALL.txt.bak = INSTALL.txt.fst"
+           (DiffFileContent.of_file (in_src_dir t "INSTALL.txt.bak"))
+           (DiffFileContent.of_file (in_src_dir t "INSTALL.txt.fst"));
+         DiffFileContent.assert_equal
+           ~msg:"README.txt = README.txt.snd"
+           (DiffFileContent.of_file (in_src_dir t "README.txt"))
+           (DiffFileContent.of_file (in_src_dir t "README.txt.snd"));
+         SetFile.assert_equal ~root:t.src_dir
+           expected_files
+           (all_files t.src_dir));
   ]

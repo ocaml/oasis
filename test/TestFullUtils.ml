@@ -66,7 +66,7 @@ end
 
 module SetFile =
 struct
-  include Set.Make(SetFileElement)
+  include OASISUtils.SetExt.Make(SetFileElement)
   module Diff = OUnitDiff.SetMake(SetFileElement)
 
   let assert_equal ?msg ~root exp act =
@@ -94,7 +94,7 @@ end
 
 module SetFileDigest =
 struct
-  include Set.Make(SetFileDigestElement)
+  include OASISUtils.SetExt.Make(SetFileDigestElement)
   module Diff = OUnitDiff.SetMake(SetFileDigestElement)
 
   let assert_equal ?msg ~root exp act =
