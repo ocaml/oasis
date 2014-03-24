@@ -41,6 +41,31 @@ let blank_sep_strings =
   Ocamlbuild_pack.Lexers.blank_sep_strings
 
 
+let exec_from_conf exec =
+  let exec =
+    let env_filename = Pathname.basename BaseEnvLight.default_filename in
+    let env = BaseEnvLight.load ~filename:env_filename ~allow_empty:true () in
+    try
+      BaseEnvLight.var_get exec env
+    with Not_found ->
+      Printf.eprintf "W: Cannot get variable %s\n" exec;
+      exec
+  in
+  let fix_win32 str =
+    if Sys.os_type = "Win32" then begin
+      let buff = Buffer.create (String.length str) in
+      (* Adapt for windowsi, ocamlbuild + win32 has a hard time to handle '\\'.
+       *)
+      String.iter
+        (fun c -> Buffer.add_char buff (if c = '\\' then '/' else c))
+        str;
+      Buffer.contents buff
+    end else begin
+      str
+    end
+  in
+    fix_win32 exec
+
 let split s ch =
   let buf = Buffer.create 13 in
   let x = ref [] in
@@ -68,17 +93,7 @@ let before_space s =
   with Not_found -> s
 
 (* ocamlfind command *)
-let ocamlfind x =
-  let ocamlfind_prog =
-    let env_filename = Pathname.basename BaseEnvLight.default_filename in
-    let env = BaseEnvLight.load ~filename:env_filename ~allow_empty:true () in
-    try
-      BaseEnvLight.var_get "ocamlfind" env
-    with Not_found ->
-      Printf.eprintf "W: Cannot get variable ocamlfind\n";
-      "ocamlfind"
-  in
-    S[Sh ocamlfind_prog; x]
+let ocamlfind x = S[Sh (exec_from_conf "ocamlfind"); x]
 
 (* This lists all supported packages. *)
 let find_packages () =
