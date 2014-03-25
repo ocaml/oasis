@@ -49,6 +49,7 @@ Cut a release
 
  * Check status on [Jenkins][jenkins].
  * Update CHANGES.txt:
+  * git log 0.4.2..HEAD >> CHANGES.txt
   * Date, first entry must be "Version X.Y.Z".
   * Major/Minor changes.
   * Thanks section.

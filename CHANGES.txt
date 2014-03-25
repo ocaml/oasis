@@ -1,3 +1,49 @@
+2014-03-25  Sylvain Le Gall <sylvain AT le-gall.net>
+
+  * Version 0.4.3
+
+  * Major changes:
+
+    * Added -remove switch to the setup-clean subcommand designed to remove
+      unaltered generated files completely, rather than simply emptying their
+      OASIS section.
+    * Translate path of ocamlfind on Windows to be bash/win32 friendly.
+    * Description is now parsed in a more structured text (para/verbatim).
+
+  * Minor changes:
+
+    * Give a more precise message when module name are wrong (Closes: #1236).
+    * Prevent loop in transitive_closure computation (Closes: #1253).
+    * Update HACKING.md to define how to do a release and add some version
+      and backward compatibility requirements.
+    * No timeout for ocaml-expect, to prevent flaky tests on slow architecture.
+    * Prevent warnings from confusing the terminal, add some extra \n.
+    * Force to use the ocamlfind define in configure. (Closes: #1360)
+    * Add more descriptive message when indentation is wrong (Closes: #1295)
+
+  * Features:
+
+    * stdfiles_markdown (alpha): set default extension of StdFiles (AUTHORS, INSTALL,
+      README) tp be '.md'. Use markdown syntax for standard files. Use comments
+      that hides OASIS section and digest. This feature should help direct
+      publishing on GitHub.
+
+    * disable_oasis_section (alpha): it allows DisableOASISSection to be
+      specified in the package with a list of expandable filenames given. Any
+      generated file specified in this list doesn't get an OASIS section digest
+      or comment headers and footers and is therefore regenerated each time
+      oasis setup is run (and any changes made are lost).
+      This feature is mainly intended for use with StdFiles so that, for
+      example, INSTALL.txt and AUTHORS.txt (which often won't be modified) can
+      have the extra comment lines removed.
+
+    * compiled_setup_ml (alpha): allow to precompile setup.ml to speedup.
+
+
+  Thanks to David Allsopp, Martin Keegan and Jacques-Pascal Deplaix for their
+  pull requests and to help release this version.
+
+
 2014-02-23  Sylvain Le Gall <sylvain AT le-gall.net>
 
   * Version 0.4.2
