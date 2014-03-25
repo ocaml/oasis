@@ -1,0 +1,27 @@
+OASISFormat:  0.1
+Name:         lightspeed
+Version:      0.0.0
+#LicenseFile:  ?
+License:      GPL-3+ with OCaml linking exception
+Authors:      Goswin von Brederlow <goswin-v-b@web.de>
+Copyrights:
+              (C) 2012 Goswin von Brederlow
+#Homepage:     http://???/
+BuildTools:   ocamlbuild
+Plugins:      DevFiles (0.2), META (0.2)
+
+Synopsis: Turn based strategy game in a galaxy with lightspeed limit
+Description:
+  Game in the style of the Master of Orion but with the speed of light
+  introducing a time lag for distant star systems.
+  
+Flag strict
+  Description: Strict compile-time checks
+  Default: true
+
+Executable server
+  Path: .
+  Install: true
+  CompiledObject: best
+  MainIs: server.ml
+  BuildDepends: bigarray, extunix, unix

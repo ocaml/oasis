@@ -469,5 +469,18 @@ let tests =
                   (in_testdata_dir test_ctxt ["TestOASIS"; "bug1236.oasis"])
               in
                 ()));
+
+       "bug1295.oasis" >::
+       (fun test_ctxt ->
+          assert_raises
+            ~msg:"Unexpected indentation line 17."
+            (Failure "Unexpected indentation line 17.")
+            (fun () ->
+              let _pkg =
+                from_file
+                  ~ctxt:oasis_ignore_plugin_ctxt
+                  (in_testdata_dir test_ctxt ["TestOASIS"; "bug1295.oasis"])
+              in
+                ()));
       ]
     ]

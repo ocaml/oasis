@@ -408,6 +408,10 @@ let parse_stream conf st =
                      let diff =
                        lvl - lvl_ref
                      in
+                       if diff < 0 then
+                         failwithf
+                           (f_ "Unexpected indentation line %d.")
+                           lineno;
                        fetch_multiline_nxt
                          (RealLine
                             (lineno,
