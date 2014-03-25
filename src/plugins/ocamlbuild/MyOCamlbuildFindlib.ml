@@ -126,18 +126,9 @@ let dispatch =
         (* By using Before_options one let command line options have an higher
          * priority on the contrary using After_options will guarantee to have
          * the higher priority override default commands by ocamlfind ones *)
-        Options.ocamlc     := ocamlfind & A"ocamlc";
-        Options.ocamlopt   := ocamlfind & A"ocamlopt";
-        Options.ocamldep   := ocamlfind & A"ocamldep";
-        Options.ocamldoc   := ocamlfind & A"ocamldoc";
-        Options.ocamlmktop := ocamlfind & A"ocamlmktop";
         Options.ocamlmklib := ocamlfind & A"ocamlmklib"
 
     | After_rules ->
-
-        (* When one link an OCaml library/binary/package, one should use
-         * -linkpkg *)
-        flag ["ocaml"; "link"; "program"] & A"-linkpkg";
 
         (* For each ocamlfind package one inject the -package option when
          * compiling, computing dependencies, generating documentation and
