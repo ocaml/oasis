@@ -21,8 +21,8 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 050043f65990987fd8dfb36bbab063f3)
-version = "0.4.4"
+# DO NOT EDIT (digest: f321b6a05b14d6d53aa42a7cc0134654)
+version = "0.4.5"
 description = "_oasis file functions"
 requires = "unix odn"
 archive(byte) = "oasis.cma"
@@ -31,7 +31,7 @@ archive(native) = "oasis.cmxa"
 archive(native, plugin) = "oasis.cmxs"
 exists_if = "oasis.cma"
 package "dynrun" (
- version = "0.4.4"
+ version = "0.4.5"
  description = "_oasis file functions"
  requires = "oasis.base oasis.builtin-plugins"
  archive(byte) = "dynrun.cma"
@@ -40,18 +40,16 @@ package "dynrun" (
  archive(native, plugin) = "dynrun.cmxs"
  exists_if = "dynrun.cma"
 )
-
 package "cli" (
- version = "0.4.4"
+ version = "0.4.5"
  description = "'setup.ml' modules for OASIS"
  requires = "oasis oasis.base plugin-loader"
  archive(byte) = "cli.cma"
  archive(byte, plugin) = "cli.cma"
  exists_if = "cli.cma"
 )
-
 package "builtin-plugins" (
- version = "0.4.4"
+ version = "0.4.5"
  description = "_oasis file functions"
  requires = "oasis oasis.base ocamlbuild"
  archive(byte) = "builtin-plugins.cma"
@@ -60,9 +58,8 @@ package "builtin-plugins" (
  archive(native, plugin) = "builtin-plugins.cmxs"
  exists_if = "builtin-plugins.cma"
 )
-
 package "base" (
- version = "0.4.4"
+ version = "0.4.5"
  description = "'setup.ml' modules for OASIS"
  requires = "oasis"
  archive(byte) = "base.cma"
