@@ -40,6 +40,7 @@ package "dynrun" (
  archive(native, plugin) = "dynrun.cmxs"
  exists_if = "dynrun.cma"
 )
+
 package "cli" (
  version = "0.4.5"
  description = "'setup.ml' modules for OASIS"
@@ -48,6 +49,7 @@ package "cli" (
  archive(byte, plugin) = "cli.cma"
  exists_if = "cli.cma"
 )
+
 package "builtin-plugins" (
  version = "0.4.5"
  description = "_oasis file functions"
@@ -58,6 +60,7 @@ package "builtin-plugins" (
  archive(native, plugin) = "builtin-plugins.cmxs"
  exists_if = "builtin-plugins.cma"
 )
+
 package "base" (
  version = "0.4.5"
  description = "'setup.ml' modules for OASIS"
