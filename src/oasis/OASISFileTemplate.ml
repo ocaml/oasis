@@ -28,6 +28,12 @@ open OASISTypes
 open OASISString
 
 
+(* TODO: logic of this file is brittle, we update digest frequently and not
+ * always with the same content.
+ * Proposal: create functions add_string [`Header|`Body|`Footer] t str (side
+ * effect) and update digest into a single place.
+ *)
+
 type comment =
     {
       (** Return the string as a comment. *)
@@ -395,9 +401,8 @@ let digest_update t =
            | NoBody -> NoBody
            | BodyWithDigest (_, lst)
            | Body lst ->
-               BodyWithDigest
-                 (Digest.string (String.concat "\n" lst),
-                  lst)}
+               let d = Digest.string (String.concat "\n" lst) in
+                 BodyWithDigest(d, lst)}
 
 
 let digest_check t =
@@ -410,14 +415,15 @@ let digest_check t =
 
 
 let merge t_org t_new =
-  {t_new with
-       header = t_org.header;
-       body   =
-         (if t_org.body = NoBody then
-            t_org.body
-          else
-            t_new.body);
-       footer = t_org.footer}
+  digest_update
+    {t_new with
+         header = t_org.header;
+         body   =
+           (if t_org.body = NoBody then
+              t_org.body
+            else
+              t_new.body);
+         footer = t_org.footer}
 
 
 let to_string_list t =
@@ -427,12 +433,7 @@ let to_string_list t =
    * each part by appropriate comment and digest.
    *)
   let split_further lst =
-    List.rev
-      (List.fold_left
-         (fun lst str ->
-            let lst' = OASISString.split_newline ~do_trim:false str in
-              List.rev_append lst' lst)
-         [] lst)
+    split_newline ~do_trim:false (String.concat "\n" lst)
   in
   let oasis_section =
     match t.body with
@@ -491,20 +492,15 @@ let file_rollback ~ctxt =
         (try Sys.remove fn with _ -> ())
 
     | Change (fn, Some bak) ->
-        begin
-          if Sys.file_exists bak then
-            begin
-              info ~ctxt (f_ "Restore file '%s' with backup file '%s'.")
-                fn bak;
-              Sys.rename bak fn
-            end
-          else
-            begin
-              warning ~ctxt
-                (f_ "Backup file '%s' disappear, cannot restore \
-                     file '%s'.")
-                bak fn
-            end
+        if Sys.file_exists bak then begin
+          info ~ctxt (f_ "Restore file '%s' with backup file '%s'.")
+            fn bak;
+          Sys.rename bak fn
+        end else begin
+          warning ~ctxt
+            (f_ "Backup file '%s' disappear, cannot restore \
+                 file '%s'.")
+            bak fn
         end
 
     | Change (fn, None) ->
@@ -547,20 +543,14 @@ let file_generate ~ctxt ?(remove=false) ~backup t =
     let rec backup_aux =
       function
         | ext :: tl ->
-            begin
-              let fn_backup =
-                fn ^ "." ^ ext
-              in
-                if not (Sys.file_exists fn_backup) then
-                  begin
-                    Sys.rename fn fn_backup;
-                    OASISFileUtil.cp ~ctxt fn_backup fn;
-                    fn_backup
-                  end
-                else
-                  begin
-                    backup_aux tl
-                  end
+            let fn_backup = fn ^ "." ^ ext in
+            if not (Sys.file_exists fn_backup) then begin
+              info ~ctxt (f_ "Rename '%s' to '%s'.") fn fn_backup;
+              Sys.rename fn fn_backup;
+              OASISFileUtil.cp ~ctxt fn_backup fn;
+              fn_backup
+            end else begin
+              backup_aux tl
             end
 
         | [] ->

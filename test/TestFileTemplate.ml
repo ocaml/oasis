@@ -31,6 +31,16 @@ open TestCommon
 open OASISFileTemplate
 
 
+let printer_change =
+  function
+    | Create fn -> Printf.sprintf "Create %S" fn
+    | Change (fn, Some fn') ->
+        Printf.sprintf "Change (%S, Some %s)" fn fn'
+    | Change (fn, None) ->
+        Printf.sprintf "Change (%S, None)" fn
+    | NoChange ->
+        "NoChange"
+
 let tests =
 
   let test_of_vector (fn, content_lst, comment_fmt) =
@@ -134,8 +144,9 @@ let tests =
        let () =
          skip_if (Sys.os_type = "Win32") "UNIX only test"
        in
-       (* TODO: temporary directory and ensure to keep the same right. *)
-       let fn, chn = bracket_tmpfile test_ctxt in
+       let dn = bracket_tmpdir test_ctxt in
+       let fn = Filename.concat dn "foo.sh" in
+       let chn = open_out fn in
        let () =
          output_string
            chn
@@ -169,7 +180,6 @@ let tests =
        let chng =
          file_generate
            ~ctxt:oasis_ctxt
-           (* TODO: in a temporary directory. *)
            ~backup:true
            (template_make
               fn
@@ -183,5 +193,22 @@ let tests =
            ~msg:"File chgrp"
            ~printer:string_of_int
            grp
-           ((Unix.stat fn).Unix.st_gid))
+           ((Unix.stat fn).Unix.st_gid));
+
+    "bug1382-keep all eol" >::
+    (fun test_ctxt ->
+       let dn = bracket_tmpdir test_ctxt in
+       let fn = Filename.concat dn "foo.txt" in
+       let ghost_meta_template =
+         template_make fn comment_meta [] ["nothing"; ""; "bar"] []
+       in
+         assert_equal
+           ~printer:printer_change
+           (Create fn)
+           (file_generate ~ctxt:oasis_ctxt ~backup:false ghost_meta_template);
+         assert_equal
+           ~printer:printer_change
+           NoChange
+           (file_generate ~ctxt:oasis_ctxt ~backup:false ghost_meta_template);
+         ());
   ]

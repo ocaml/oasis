@@ -1,3 +1,13 @@
+2014-03-26  Sylvain Le Gall <sylvain AT le-gall.net>
+
+  * Version 0.4.3
+
+  * Quick bug fix release:
+
+    * Don't skip some "\n\n" in Makefile/META/myocamlbuild.ml/setup.ml. This
+      bug makes `oasis setup` think that these files have changed even if they
+      have just been regenerated. (Closes: #1382).
+
 2014-03-25  Sylvain Le Gall <sylvain AT le-gall.net>
 
   * Version 0.4.3

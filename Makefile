@@ -27,12 +27,12 @@ CONFIGUREFLAGS += --override ocamlbuildflags -classic-display --enable-tests
 
 default: test
 
-#TESTFLAGS=-only-test "OASIS:16:OASISText" -only-test "OASIS:17:OASISString"
+#TESTFLAGS=-only-test "OASIS:3:FileTemplate:6:META.cohttp"
 TIMINGS=1
 #export TIMINGS
 
 # OASIS_START
-# DO NOT EDIT (digest: 7b2408909643717852b95f994b273fee)
+# DO NOT EDIT (digest: a3c674b4239234cbbe53afe090018954)
 
 SETUP = ocaml setup.ml
 
@@ -64,6 +64,9 @@ distclean:
 	$(SETUP) -distclean $(DISTCLEANFLAGS)
 
 setup.data:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+configure:
 	$(SETUP) -configure $(CONFIGUREFLAGS)
 
 .PHONY: build doc test all install uninstall reinstall clean distclean configure
