@@ -163,6 +163,7 @@ let dispatch =
             flag ["ocaml"; "link";     "pkg_"^pkg] & S base_args;
             flag ["ocaml"; "infer_interface"; "pkg_"^pkg] & S args;
 
+            (* TODO: Check if this is allowed for OCaml < 3.12.1 *)
             flag ["ocaml"; "compile";  "package("^pkg^")"] & S pargs;
             flag ["ocaml"; "ocamldep"; "package("^pkg^")"] & S pargs;
             flag ["ocaml"; "doc";      "package("^pkg^")"] & S pargs;
