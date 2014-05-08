@@ -378,3 +378,10 @@ let disable_oasis_section =
     (fun () ->
       s_ "Allows the OASIS section comments and digest to be omitted in \
           generated files.")
+
+let no_automatic_syntax =
+  create "no_automatic_syntax" alpha
+    (fun () ->
+       s_ "Disable the automatic inclusion of -syntax camlp4o for packages \
+           that matches the internal heuristic (if a dependency ends with \
+           a .syntax or is a well known syntax).")
