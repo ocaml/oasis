@@ -1116,8 +1116,12 @@ let add_ocamlbuild_files ctxt pkg =
               Format.flush_str_formatter ()
             );
             "";
+            Printf.sprintf
+              "let conf = {MyOCamlbuildFindlib.no_automatic_syntax = %b}"
+              (OASISFeatures.package_test OASISFeatures.no_automatic_syntax pkg);
+            "";
             "let dispatch_default = \
-                   MyOCamlbuildBase.dispatch_default package_default;;";
+                   MyOCamlbuildBase.dispatch_default conf package_default;;";
             "";
           ]
           ["Ocamlbuild_plugin.dispatch dispatch_default;;"];

@@ -202,11 +202,11 @@ let dispatch t e =
           ()
 
 
-let dispatch_default t =
+let dispatch_default conf t =
   dispatch_combine
     [
       dispatch t;
-      MyOCamlbuildFindlib.dispatch;
+      MyOCamlbuildFindlib.dispatch conf;
     ]
 
 

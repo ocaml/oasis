@@ -31,6 +31,11 @@
   *)
 open Ocamlbuild_plugin
 
+type conf =
+  { no_automatic_syntax: bool;
+  }
+
+
 let exec_from_conf exec =
   let exec =
     let env_filename = Pathname.basename BaseEnvLight.default_filename in
@@ -76,7 +81,7 @@ let well_known_syntax = [
 ]
 
 
-let dispatch =
+let dispatch conf =
   function
     | After_options ->
         (* By using Before_options one let command line options have an higher
@@ -86,25 +91,27 @@ let dispatch =
 
     | After_rules ->
 
-        (* For each ocamlfind package one inject the -package option when
-         * compiling, computing dependencies, generating documentation and
-         * linking. *)
-        (* TODO: consider how to really choose camlp4o or camlp4r. *)
-        let syn_args = [A"-syntax"; A "camlp4o"] in
-        let get_syn_args pkg =
-          (* Heuristic to identify syntax extensions: whether they end in
-             ".syntax"; some might not.
-          *)
-          if Filename.check_suffix pkg "syntax" ||
-             List.mem pkg well_known_syntax then
-            S syn_args
-          else
-            N
-        in
-        pflag ["ocaml"; "compile"] "package" get_syn_args;
-        pflag ["ocaml"; "ocamldep"] "package" get_syn_args;
-        pflag ["ocaml"; "doc"] "package" get_syn_args;
-        pflag ["ocaml"; "infer_interface"] "package" get_syn_args;
+        if not (conf.no_automatic_syntax) then begin
+          (* For each ocamlfind package one inject the -package option when
+           * compiling, computing dependencies, generating documentation and
+           * linking. *)
+          (* TODO: consider how to really choose camlp4o or camlp4r. *)
+          let syn_args = [A"-syntax"; A "camlp4o"] in
+          let get_syn_args pkg =
+            (* Heuristic to identify syntax extensions: whether they end in
+               ".syntax"; some might not.
+            *)
+            if Filename.check_suffix pkg "syntax" ||
+               List.mem pkg well_known_syntax then
+              S syn_args
+            else
+              N
+          in
+          pflag ["ocaml"; "compile"] "package" get_syn_args;
+          pflag ["ocaml"; "ocamldep"] "package" get_syn_args;
+          pflag ["ocaml"; "doc"] "package" get_syn_args;
+          pflag ["ocaml"; "infer_interface"] "package" get_syn_args;
+        end;
 
         (* The default "thread" tag is not compatible with ocamlfind.
          * Indeed, the default rules add the "threads.cma" or "threads.cmxa"
