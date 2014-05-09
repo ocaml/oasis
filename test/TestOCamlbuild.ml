@@ -121,7 +121,9 @@ let tests =
 
     (* this test changes a c-source file and asserts that an executable
        depending on a library which uses this c-file is re-linked 
-       properly *)
+       properly 
+       TODO: reassert that this test fails without the fix in cb96135a
+     *)
     "external source rebuild" >::
     (fun test_ctxt ->
        let t =
