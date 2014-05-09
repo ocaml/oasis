@@ -1,0 +1,23 @@
+OASISFormat: 0.4
+Name: missing-source
+Version: 0
+BuildType: OCamlbuild (0.3)
+License: GPL-3
+Authors: foo
+Synopsis: foo
+Plugins:     META (0.4), StdFiles (0.4), DevFiles (0.4)
+
+Library a_test
+  Path: .
+  BuildTools: ocamlbuild
+  CompiledObject: best
+  CSources: c_source.c
+  CCOpt: -I..
+  Modules: A
+
+Executable b_test
+  Path: .
+  BuildTools: ocamlbuild
+  CompiledObject: best
+  BuildDepends: a_test
+  MainIs: B.ml

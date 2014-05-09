@@ -118,4 +118,54 @@ let tests =
          ["-build"];
        run_ocaml_setup_ml ~check_output:true test_ctxt t
          ["-doc"]);
+
+    (* this test changes a c-source file and asserts that an executable
+       depending on a library which uses this c-file is re-linked 
+       properly *)
+    "external source rebuild" >::
+    (fun test_ctxt ->
+       let t =
+         setup_test_directories test_ctxt
+           ~is_native:(is_native test_ctxt)
+           ~native_dynlink:(native_dynlink test_ctxt)
+           (in_testdata_dir test_ctxt ["TestOCamlbuild"; "external-c-rebuild"])
+	   
+       (* contain c-source code here to avoid any problems with
+          aborted evaluation *) 
+       and code_a = "#include \"header.h\"
+                     CAMLprim value oasis_c_build_test_foo(value x) {
+                       CAMLparam1(x);
+                       CAMLreturn(Val_int(42));
+                     }"
+
+       and code_b = "#include \"header.h\"
+                     CAMLprim value oasis_c_build_test_foo(value x) {
+                       CAMLparam1(x);
+                       CAMLreturn(Val_int(23));
+                     }"
+       in
+       let c_source = (in_src_dir t "c_source.c") in
+
+       oasis_setup test_ctxt t;
+
+       ( let c = open_out c_source in Printf.fprintf c "%s\n" code_a ; close_out c );
+				    
+       run_ocaml_setup_ml ~check_output:true test_ctxt t ["-configure" ];
+       run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"];
+
+       (* first, compile and assert everything worked *)
+       assert_bool "File 'B.native' has been created"
+		   (Sys.file_exists (in_src_dir t "B.native"));
+
+       assert_command ~ctxt:test_ctxt ~chdir:t.src_dir ~exit_code:(Unix.WEXITED 42) (in_src_dir t "B.native") [];
+    
+       (* change c-file, rebuild and assert result-code *)
+       ( let c = open_out c_source in Printf.fprintf c "%s\n" code_b ; close_out c ) ;
+
+       (* uncomment to make this test succeed *)
+       (* run_ocaml_setup_ml ~check_output:true test_ctxt t ["-clean"]; *)
+       run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"];
+
+       assert_command ~ctxt:test_ctxt ~chdir:t.src_dir ~exit_code:(Unix.WEXITED 23) (in_src_dir t "B.native") []     
+    )
   ]
