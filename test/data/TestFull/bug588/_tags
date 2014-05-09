@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 5b1ccfe1efab257ed52320784ce5b5da)
+# DO NOT EDIT (digest: a0f0d1b5acc5eb474c8201a61ca092e3)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -38,11 +38,11 @@
 # Library libtest
 "libtest.cmxs": use_libtest
 # Executable test
+"test.byte": package(bitstring)
+"test.byte": package(bitstring.syntax)
 "test.byte": use_libtest
-"test.byte": pkg_bitstring.syntax
-"test.byte": pkg_bitstring
+<*.ml{,i}>: package(bitstring)
+<*.ml{,i}>: package(bitstring.syntax)
 <*.ml{,i}>: use_libtest
-<*.ml{,i}>: pkg_bitstring.syntax
-<*.ml{,i}>: pkg_bitstring
 # OASIS_STOP
-"libtest.ml": syntax_camlp4o
+"libtest.ml": syntax(camlp4o)

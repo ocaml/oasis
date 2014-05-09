@@ -193,37 +193,37 @@
 <test/test.byte>: use_ocamlbuild
 <src/cli/Main.byte>: use_ocamlbuild
 
-"src/oasis/OASISGettext.ml": syntax_camlp4o, pkg_camlp4.macro
+"src/oasis/OASISGettext.ml": package(camlp4.macro)
 "src/oasis/OASISGettext.ml": cond_pkg_gettext.base
-"src/cli/MainGettext.ml": syntax_camlp4o, pkg_camlp4.macro
+"src/cli/MainGettext.ml": package(camlp4.macro)
 "src/cli/MainGettext.ml": cond_pkg_gettext-stub, use_oasis
 "src/cli/Main.byte": cond_pkg_gettext-stub, use_oasis
-"test/TestCommon.ml": syntax_camlp4o, pkg_camlp4.macro
+"test/TestCommon.ml": package(camlp4.macro)
 "test/TestCommon.ml": cond_pkg_gettext-stub
 "test/test.byte": cond_pkg_gettext-stub
 
-"src/oasis/OASISTypes.ml": syntax_camlp4o, pkg_odn.with.syntax
-"src/oasis/OASISRecDescParser.ml": syntax_camlp4o, pkg_camlp4
-"src/oasis/OASISVersion.ml": syntax_camlp4o, pkg_odn.with.syntax
-"src/oasis/OASISLicense.ml": syntax_camlp4o, pkg_odn.with.syntax
-"src/oasis/OASISExpr.ml": syntax_camlp4o, pkg_odn.with.syntax
-"src/oasis/OASISText.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/oasis/OASISTypes.ml": package(odn.with.syntax)
+"src/oasis/OASISRecDescParser.ml": syntax(camlp4o), package(camlp4)
+"src/oasis/OASISVersion.ml": package(odn.with.syntax)
+"src/oasis/OASISLicense.ml": package(odn.with.syntax)
+"src/oasis/OASISExpr.ml": package(odn.with.syntax)
+"src/oasis/OASISText.ml": package(odn.with.syntax)
 
-"src/base/BaseDev.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/base/BaseDev.ml": package(odn.with.syntax)
 
-"src/cli/Query.ml": syntax_camlp4o, pkg_camlp4
+"src/cli/Query.ml": syntax(camlp4o), package(camlp4)
 
 # Plugins
 
-"src/plugins/custom/CustomPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/plugins/custom/CustomPlugin.ml": package(odn.with.syntax)
 
-"src/plugins/ocamlbuild/MyOCamlbuildBase.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/plugins/ocamlbuild/MyOCamlbuildBase.ml": package(odn.with.syntax)
 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml": use_ocamlbuild
 "src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml": use_ocamlbuild
-"src/plugins/ocamlbuild/OCamlbuildPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/plugins/ocamlbuild/OCamlbuildPlugin.ml": package(odn.with.syntax)
 "src/plugins/ocamlbuild/OCamlbuildPlugin.ml": use_ocamlbuild
-"src/plugins/ocamlbuild/OCamlbuildDocPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
-"src/plugins/ocamlbuild/OCamlbuildCommon.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/plugins/ocamlbuild/OCamlbuildDocPlugin.ml": package(odn.with.syntax)
+"src/plugins/ocamlbuild/OCamlbuildCommon.ml": package(odn.with.syntax)
 
 # TODO: The fact that we need to remove these tags is maybe a bug
 <test/test.byte>: -use_base
