@@ -22,4 +22,4 @@
 
 # OASIS_START
 # OASIS_STOP
-"libtest.ml": syntax_camlp4o
+"libtest.ml": syntax(camlp4o)

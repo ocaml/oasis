@@ -24,4 +24,4 @@
 # OASIS_START
 # OASIS_STOP
 
-"A.ml": pkg_oUnit
+"A.ml": package(oUnit)

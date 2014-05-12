@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: ba905c04424b96d55f58854850a00499)
+# DO NOT EDIT (digest: 8e15e86492c044724a6cb123ec1bfaa5)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -37,111 +37,111 @@
 "_darcs": not_hygienic
 # Library oasis
 "src/oasis/oasis.cmxs": use_oasis
-<src/oasis/*.ml{,i}>: pkg_odn
-<src/oasis/*.ml{,i}>: pkg_unix
+<src/oasis/*.ml{,i}>: package(odn)
+<src/oasis/*.ml{,i}>: package(unix)
 # Library base
 "src/base/base.cmxs": use_base
-<src/base/*.ml{,i}>: pkg_odn
-<src/base/*.ml{,i}>: pkg_unix
+<src/base/*.ml{,i}>: package(odn)
+<src/base/*.ml{,i}>: package(unix)
 <src/base/*.ml{,i}>: use_oasis
 # Library builtin-plugins
 "src/builtin-plugins.cmxs": use_builtin-plugins
-<src/*.ml{,i}>: pkg_ocamlbuild
-<src/*.ml{,i}>: pkg_odn
-<src/*.ml{,i}>: pkg_unix
+<src/*.ml{,i}>: package(ocamlbuild)
+<src/*.ml{,i}>: package(odn)
+<src/*.ml{,i}>: package(unix)
 <src/*.ml{,i}>: use_base
 <src/*.ml{,i}>: use_oasis
-<src/plugins/custom/*.ml{,i}>: pkg_ocamlbuild
-<src/plugins/custom/*.ml{,i}>: pkg_odn
-<src/plugins/custom/*.ml{,i}>: pkg_unix
+<src/plugins/custom/*.ml{,i}>: package(ocamlbuild)
+<src/plugins/custom/*.ml{,i}>: package(odn)
+<src/plugins/custom/*.ml{,i}>: package(unix)
 <src/plugins/custom/*.ml{,i}>: use_base
 <src/plugins/custom/*.ml{,i}>: use_oasis
-<src/plugins/extra/META/*.ml{,i}>: pkg_ocamlbuild
-<src/plugins/extra/META/*.ml{,i}>: pkg_odn
-<src/plugins/extra/META/*.ml{,i}>: pkg_unix
+<src/plugins/extra/META/*.ml{,i}>: package(ocamlbuild)
+<src/plugins/extra/META/*.ml{,i}>: package(odn)
+<src/plugins/extra/META/*.ml{,i}>: package(unix)
 <src/plugins/extra/META/*.ml{,i}>: use_base
 <src/plugins/extra/META/*.ml{,i}>: use_oasis
-<src/plugins/extra/devfiles/*.ml{,i}>: pkg_ocamlbuild
-<src/plugins/extra/devfiles/*.ml{,i}>: pkg_odn
-<src/plugins/extra/devfiles/*.ml{,i}>: pkg_unix
+<src/plugins/extra/devfiles/*.ml{,i}>: package(ocamlbuild)
+<src/plugins/extra/devfiles/*.ml{,i}>: package(odn)
+<src/plugins/extra/devfiles/*.ml{,i}>: package(unix)
 <src/plugins/extra/devfiles/*.ml{,i}>: use_base
 <src/plugins/extra/devfiles/*.ml{,i}>: use_oasis
-<src/plugins/extra/stdfiles/*.ml{,i}>: pkg_ocamlbuild
-<src/plugins/extra/stdfiles/*.ml{,i}>: pkg_odn
-<src/plugins/extra/stdfiles/*.ml{,i}>: pkg_unix
+<src/plugins/extra/stdfiles/*.ml{,i}>: package(ocamlbuild)
+<src/plugins/extra/stdfiles/*.ml{,i}>: package(odn)
+<src/plugins/extra/stdfiles/*.ml{,i}>: package(unix)
 <src/plugins/extra/stdfiles/*.ml{,i}>: use_base
 <src/plugins/extra/stdfiles/*.ml{,i}>: use_oasis
-<src/plugins/internal/*.ml{,i}>: pkg_ocamlbuild
-<src/plugins/internal/*.ml{,i}>: pkg_odn
-<src/plugins/internal/*.ml{,i}>: pkg_unix
+<src/plugins/internal/*.ml{,i}>: package(ocamlbuild)
+<src/plugins/internal/*.ml{,i}>: package(odn)
+<src/plugins/internal/*.ml{,i}>: package(unix)
 <src/plugins/internal/*.ml{,i}>: use_base
 <src/plugins/internal/*.ml{,i}>: use_oasis
-<src/plugins/none/*.ml{,i}>: pkg_ocamlbuild
-<src/plugins/none/*.ml{,i}>: pkg_odn
-<src/plugins/none/*.ml{,i}>: pkg_unix
+<src/plugins/none/*.ml{,i}>: package(ocamlbuild)
+<src/plugins/none/*.ml{,i}>: package(odn)
+<src/plugins/none/*.ml{,i}>: package(unix)
 <src/plugins/none/*.ml{,i}>: use_base
 <src/plugins/none/*.ml{,i}>: use_oasis
-<src/plugins/ocamlbuild/*.ml{,i}>: pkg_ocamlbuild
-<src/plugins/ocamlbuild/*.ml{,i}>: pkg_odn
-<src/plugins/ocamlbuild/*.ml{,i}>: pkg_unix
+<src/plugins/ocamlbuild/*.ml{,i}>: package(ocamlbuild)
+<src/plugins/ocamlbuild/*.ml{,i}>: package(odn)
+<src/plugins/ocamlbuild/*.ml{,i}>: package(unix)
 <src/plugins/ocamlbuild/*.ml{,i}>: use_base
 <src/plugins/ocamlbuild/*.ml{,i}>: use_oasis
 # Library dynrun
 "src/dynrun/dynrun.cmxs": use_dynrun
-<src/dynrun/*.ml{,i}>: pkg_ocamlbuild
-<src/dynrun/*.ml{,i}>: pkg_odn
-<src/dynrun/*.ml{,i}>: pkg_unix
+<src/dynrun/*.ml{,i}>: package(ocamlbuild)
+<src/dynrun/*.ml{,i}>: package(odn)
+<src/dynrun/*.ml{,i}>: package(unix)
 <src/dynrun/*.ml{,i}>: use_base
 <src/dynrun/*.ml{,i}>: use_builtin-plugins
 <src/dynrun/*.ml{,i}>: use_oasis
 # Executable fake_ocamlfind
-"test/utils/fake_ocamlfind.byte": pkg_unix
-<test/utils/*.ml{,i}>: pkg_unix
+"test/utils/fake_ocamlfind.byte": package(unix)
+<test/utils/*.ml{,i}>: package(unix)
 # Executable test
-"test/test.byte": pkg_expect.pcre
-"test/test.byte": pkg_fileutils
-"test/test.byte": pkg_findlib
-"test/test.byte": pkg_oUnit
-"test/test.byte": pkg_ocamlbuild
-"test/test.byte": pkg_odn
-"test/test.byte": pkg_pcre
-"test/test.byte": pkg_unix
+"test/test.byte": package(expect.pcre)
+"test/test.byte": package(fileutils)
+"test/test.byte": package(findlib)
+"test/test.byte": package(oUnit)
+"test/test.byte": package(ocamlbuild)
+"test/test.byte": package(odn)
+"test/test.byte": package(pcre)
+"test/test.byte": package(unix)
 "test/test.byte": use_base
 "test/test.byte": use_builtin-plugins
 "test/test.byte": use_oasis
-<test/*.ml{,i}>: pkg_expect.pcre
-<test/*.ml{,i}>: pkg_fileutils
-<test/*.ml{,i}>: pkg_findlib
-<test/*.ml{,i}>: pkg_oUnit
-<test/*.ml{,i}>: pkg_ocamlbuild
-<test/*.ml{,i}>: pkg_odn
-<test/*.ml{,i}>: pkg_pcre
-<test/*.ml{,i}>: pkg_unix
+<test/*.ml{,i}>: package(expect.pcre)
+<test/*.ml{,i}>: package(fileutils)
+<test/*.ml{,i}>: package(findlib)
+<test/*.ml{,i}>: package(oUnit)
+<test/*.ml{,i}>: package(ocamlbuild)
+<test/*.ml{,i}>: package(odn)
+<test/*.ml{,i}>: package(pcre)
+<test/*.ml{,i}>: package(unix)
 <test/*.ml{,i}>: use_base
 <test/*.ml{,i}>: use_builtin-plugins
 <test/*.ml{,i}>: use_oasis
 # Library plugin-loader
 "src/ext/plugin-loader/src/plugin-loader.cmxs": use_plugin-loader
-<src/ext/plugin-loader/src/*.ml{,i}>: pkg_dynlink
-<src/ext/plugin-loader/src/*.ml{,i}>: pkg_findlib
+<src/ext/plugin-loader/src/*.ml{,i}>: package(dynlink)
+<src/ext/plugin-loader/src/*.ml{,i}>: package(findlib)
 # Library cli
 "src/cli/cli.cmxs": use_cli
 # Executable oasis
-"src/cli/Main.byte": pkg_dynlink
-"src/cli/Main.byte": pkg_findlib
-"src/cli/Main.byte": pkg_ocamlbuild
-"src/cli/Main.byte": pkg_odn
-"src/cli/Main.byte": pkg_unix
+"src/cli/Main.byte": package(dynlink)
+"src/cli/Main.byte": package(findlib)
+"src/cli/Main.byte": package(ocamlbuild)
+"src/cli/Main.byte": package(odn)
+"src/cli/Main.byte": package(unix)
 "src/cli/Main.byte": use_base
 "src/cli/Main.byte": use_builtin-plugins
 "src/cli/Main.byte": use_cli
 "src/cli/Main.byte": use_oasis
 "src/cli/Main.byte": use_plugin-loader
-<src/cli/*.ml{,i}>: pkg_dynlink
-<src/cli/*.ml{,i}>: pkg_findlib
-<src/cli/*.ml{,i}>: pkg_ocamlbuild
-<src/cli/*.ml{,i}>: pkg_odn
-<src/cli/*.ml{,i}>: pkg_unix
+<src/cli/*.ml{,i}>: package(dynlink)
+<src/cli/*.ml{,i}>: package(findlib)
+<src/cli/*.ml{,i}>: package(ocamlbuild)
+<src/cli/*.ml{,i}>: package(odn)
+<src/cli/*.ml{,i}>: package(unix)
 <src/cli/*.ml{,i}>: use_base
 <src/cli/*.ml{,i}>: use_builtin-plugins
 <src/cli/*.ml{,i}>: use_cli
@@ -160,31 +160,31 @@
 "src/ext/plugin-loader/test/data/findlib/plugin3/plugin3.cmxs": use_plugin3
 <src/ext/plugin-loader/test/data/findlib/plugin3/*.ml{,i}>: use_pluginloaderLib
 # Executable pluginloader
-"src/ext/plugin-loader/test/data/pluginloader.byte": pkg_dynlink
-"src/ext/plugin-loader/test/data/pluginloader.byte": pkg_findlib
+"src/ext/plugin-loader/test/data/pluginloader.byte": package(dynlink)
+"src/ext/plugin-loader/test/data/pluginloader.byte": package(findlib)
 "src/ext/plugin-loader/test/data/pluginloader.byte": use_plugin-loader
 "src/ext/plugin-loader/test/data/pluginloader.byte": use_pluginloaderLib
-<src/ext/plugin-loader/test/data/*.ml{,i}>: pkg_dynlink
-<src/ext/plugin-loader/test/data/*.ml{,i}>: pkg_findlib
+<src/ext/plugin-loader/test/data/*.ml{,i}>: package(dynlink)
+<src/ext/plugin-loader/test/data/*.ml{,i}>: package(findlib)
 <src/ext/plugin-loader/test/data/*.ml{,i}>: use_plugin-loader
 <src/ext/plugin-loader/test/data/*.ml{,i}>: use_pluginloaderLib
 # Executable test_loader
-"src/ext/plugin-loader/test/TestLoader.byte": pkg_dynlink
-"src/ext/plugin-loader/test/TestLoader.byte": pkg_fileutils
-"src/ext/plugin-loader/test/TestLoader.byte": pkg_findlib
-"src/ext/plugin-loader/test/TestLoader.byte": pkg_oUnit
+"src/ext/plugin-loader/test/TestLoader.byte": package(dynlink)
+"src/ext/plugin-loader/test/TestLoader.byte": package(fileutils)
+"src/ext/plugin-loader/test/TestLoader.byte": package(findlib)
+"src/ext/plugin-loader/test/TestLoader.byte": package(oUnit)
 "src/ext/plugin-loader/test/TestLoader.byte": use_plugin-loader
-<src/ext/plugin-loader/test/*.ml{,i}>: pkg_dynlink
-<src/ext/plugin-loader/test/*.ml{,i}>: pkg_fileutils
-<src/ext/plugin-loader/test/*.ml{,i}>: pkg_findlib
-<src/ext/plugin-loader/test/*.ml{,i}>: pkg_oUnit
+<src/ext/plugin-loader/test/*.ml{,i}>: package(dynlink)
+<src/ext/plugin-loader/test/*.ml{,i}>: package(fileutils)
+<src/ext/plugin-loader/test/*.ml{,i}>: package(findlib)
+<src/ext/plugin-loader/test/*.ml{,i}>: package(oUnit)
 <src/ext/plugin-loader/test/*.ml{,i}>: use_plugin-loader
 # Library userconf
 "src/ext/userconf/src/userconf.cmxs": use_userconf
 # Executable test_userconf
-"src/ext/userconf/test/TestUserConf.byte": pkg_oUnit
+"src/ext/userconf/test/TestUserConf.byte": package(oUnit)
 "src/ext/userconf/test/TestUserConf.byte": use_userconf
-<src/ext/userconf/test/*.ml{,i}>: pkg_oUnit
+<src/ext/userconf/test/*.ml{,i}>: package(oUnit)
 <src/ext/userconf/test/*.ml{,i}>: use_userconf
 # OASIS_STOP
 
@@ -193,37 +193,37 @@
 <test/test.byte>: use_ocamlbuild
 <src/cli/Main.byte>: use_ocamlbuild
 
-"src/oasis/OASISGettext.ml": syntax_camlp4o, pkg_camlp4.macro
+"src/oasis/OASISGettext.ml": package(camlp4.macro)
 "src/oasis/OASISGettext.ml": cond_pkg_gettext.base
-"src/cli/MainGettext.ml": syntax_camlp4o, pkg_camlp4.macro
+"src/cli/MainGettext.ml": package(camlp4.macro)
 "src/cli/MainGettext.ml": cond_pkg_gettext-stub, use_oasis
 "src/cli/Main.byte": cond_pkg_gettext-stub, use_oasis
-"test/TestCommon.ml": syntax_camlp4o, pkg_camlp4.macro
+"test/TestCommon.ml": package(camlp4.macro)
 "test/TestCommon.ml": cond_pkg_gettext-stub
 "test/test.byte": cond_pkg_gettext-stub
 
-"src/oasis/OASISTypes.ml": syntax_camlp4o, pkg_odn.with.syntax
-"src/oasis/OASISRecDescParser.ml": syntax_camlp4o, pkg_camlp4
-"src/oasis/OASISVersion.ml": syntax_camlp4o, pkg_odn.with.syntax
-"src/oasis/OASISLicense.ml": syntax_camlp4o, pkg_odn.with.syntax
-"src/oasis/OASISExpr.ml": syntax_camlp4o, pkg_odn.with.syntax
-"src/oasis/OASISText.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/oasis/OASISTypes.ml": package(odn.with.syntax)
+"src/oasis/OASISRecDescParser.ml": syntax(camlp4o), package(camlp4)
+"src/oasis/OASISVersion.ml": package(odn.with.syntax)
+"src/oasis/OASISLicense.ml": package(odn.with.syntax)
+"src/oasis/OASISExpr.ml": package(odn.with.syntax)
+"src/oasis/OASISText.ml": package(odn.with.syntax)
 
-"src/base/BaseDev.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/base/BaseDev.ml": package(odn.with.syntax)
 
-"src/cli/Query.ml": syntax_camlp4o, pkg_camlp4
+"src/cli/Query.ml": syntax(camlp4o), package(camlp4)
 
 # Plugins
 
-"src/plugins/custom/CustomPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/plugins/custom/CustomPlugin.ml": package(odn.with.syntax)
 
-"src/plugins/ocamlbuild/MyOCamlbuildBase.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/plugins/ocamlbuild/MyOCamlbuildBase.ml": package(odn.with.syntax)
 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml": use_ocamlbuild
 "src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml": use_ocamlbuild
-"src/plugins/ocamlbuild/OCamlbuildPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/plugins/ocamlbuild/OCamlbuildPlugin.ml": package(odn.with.syntax)
 "src/plugins/ocamlbuild/OCamlbuildPlugin.ml": use_ocamlbuild
-"src/plugins/ocamlbuild/OCamlbuildDocPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
-"src/plugins/ocamlbuild/OCamlbuildCommon.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/plugins/ocamlbuild/OCamlbuildDocPlugin.ml": package(odn.with.syntax)
+"src/plugins/ocamlbuild/OCamlbuildCommon.ml": package(odn.with.syntax)
 
 # TODO: The fact that we need to remove these tags is maybe a bug
 <test/test.byte>: -use_base

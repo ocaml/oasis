@@ -50,6 +50,8 @@ let ocamlbuildflags =
 let fix_args args extra_argv =
   List.flatten
     [
+      ["-use-ocamlfind"];
+
       if (os_type ()) = "Win32" then
         [
           "-classic-display";
@@ -196,7 +198,6 @@ let ocamlbuild_more_args =
        s_ "Allow to pass arguments to ocamlbuild.")
 
 
-let ocamlbuild_supports_ocamlfind = check_ocaml_version "3.12.1"
 let ocamlbuild_supports_plugin_tags = check_ocaml_version "4.01"
 
 
@@ -249,11 +250,5 @@ let extra_args_ocamlbuild_common ~ctxt pkg t =
         | Some tags -> "-plugin-tags" :: ("'" ^ tags ^ "'") :: t.extra_args
         | None -> t.extra_args
     end
-  in
-  let extra_args =
-    if ocamlbuild_supports_ocamlfind pkg then
-      "-use-ocamlfind" :: extra_args
-    else
-      extra_args
   in
   extra_args
