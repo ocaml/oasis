@@ -223,7 +223,7 @@ let main ctxt pkg =
       let ocaml_setup_configure =
         let cmd =
           if compiled_setup_ml then
-            "make configure CONFIGUREFLAGS=\"$@\""
+            "make configure CONFIGUREFLAGS=\"$*\""
           else
             "ocaml setup.ml -configure \"$@\""
         in
