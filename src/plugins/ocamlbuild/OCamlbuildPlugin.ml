@@ -312,7 +312,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t
     List.rev_append
       (* .ml files *)
       (List.rev_map
-         (fun dn -> Tag.filename_concat dn "*.ml{,i}")
+         (fun dn -> Tag.filename_concat dn "*.ml{,i,y}")
          (src_dirs @ src_internal_dirs))
       (* .c files *)
       (List.map
