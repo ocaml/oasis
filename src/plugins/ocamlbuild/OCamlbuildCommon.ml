@@ -74,6 +74,11 @@ let fix_args args extra_argv =
       else
         [];
 
+      if bool_of_string (tests ()) then
+        ["-tag"; "tests"]
+      else
+        [];
+
       if bool_of_string (profile ()) then
         ["-tag"; "profile"]
       else
