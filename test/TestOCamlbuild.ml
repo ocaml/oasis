@@ -20,6 +20,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+open FileUtil
 open OUnit2
 open TestCommon
 open OASISPlugin
@@ -169,5 +170,29 @@ let tests =
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"];
 
        assert_command ~ctxt:test_ctxt ~chdir:t.src_dir ~exit_code:(Unix.WEXITED 23) (in_src_dir t "B.native") []     
-    )
+    );
+
+    "env-tags" >::
+    (fun test_ctxt ->
+       let t =
+         setup_test_directories test_ctxt
+           ~is_native:(is_native test_ctxt)
+           ~native_dynlink:(native_dynlink test_ctxt)
+           (in_testdata_dir test_ctxt ["TestOCamlbuild"; "env-tags"])
+       in
+       let tests_tag_detected_fn = in_src_dir t "tests-tag-detected" in
+       oasis_setup test_ctxt t;
+
+       run_ocaml_setup_ml ~check_output:true test_ctxt t ["-configure"; "--enable-tests"];
+       run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"];
+       assert_bool
+         "tests-tag-detected should be existed."
+         (Sys.file_exists tests_tag_detected_fn);
+
+       rm [tests_tag_detected_fn];
+       run_ocaml_setup_ml ~check_output:true test_ctxt t ["-configure"; "--disable-tests"];
+       run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"];
+       assert_bool
+         "tests-tag-detected should not be existed."
+         (not (Sys.file_exists tests_tag_detected_fn)))
   ]

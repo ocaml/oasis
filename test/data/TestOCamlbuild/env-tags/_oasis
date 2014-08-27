@@ -1,0 +1,13 @@
+OASISFormat: 0.4
+OCamlVersion: >= 3.12.1
+Name:        env-tags
+Version:     0.0.1
+Authors:     Tomohiro Matsuyama
+LicenseFile: LICENSE
+License:     LGPL with OCaml linking exception
+Synopsis:    Minimal project.
+BuildTools:  ocamlbuild
+
+Library foo
+  Path: .
+  Modules: A
