@@ -259,13 +259,13 @@ let findlib_mapping pkg =
   in
 
   let library_name_of_findlib_name =
-    Lazy.lazy_from_fun
-      (fun () ->
-         (* Revert findlib_name_of_library_name. *)
-         MapString.fold
-           (fun k v mp -> MapString.add v k mp)
-           fndlb_name_of_lib_name
-           MapString.empty)
+    lazy begin
+      (* Revert findlib_name_of_library_name. *)
+      MapString.fold
+        (fun k v mp -> MapString.add v k mp)
+        fndlb_name_of_lib_name
+        MapString.empty
+    end
   in
   let library_name_of_findlib_name fndlb_nm =
     try

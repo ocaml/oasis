@@ -143,11 +143,9 @@ let strip_ends_with ~what str =
 
 
 let replace_chars f s =
-  let buf = String.make (String.length s) 'X' in
-    for i = 0 to String.length s - 1 do
-      buf.[i] <- f s.[i]
-    done;
-    buf
+  let buf = Buffer.create (String.length s) in
+  String.iter (fun c -> Buffer.add_char buf (f c)) s;
+  Buffer.contents buf
 
 
 (* END EXPORT *)
@@ -281,4 +279,3 @@ let split_optional_parentheses str =
       Some (trim content_str)
   with Not_found ->
     trim str, None
-

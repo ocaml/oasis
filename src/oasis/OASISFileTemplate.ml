@@ -128,14 +128,15 @@ let template_of_string_list ~ctxt ~template ?(disable_oasis_section=false) fn co
 
   (* Convert a Digest.to_hex string back into Digest.t *)
   let digest_of_hex s =
-    let d       = String.make 16 '\000' in
-    let hex_str = "0x00" in
-      for i = 0 to (String.length d) - 1 do
-        hex_str.[2] <- s.[2 * i];
-        hex_str.[3] <- s.[2 * i + 1];
-        d.[i] <- Char.chr (int_of_string hex_str)
+    let size = 16 in
+    let d = Buffer.create size in
+      for i = 0 to size - 1 do
+        let hex_str =
+          "0x" ^ String.make 1 s.[2 * i] ^ String.make 1 s.[2 * i + 1]
+        in
+        Buffer.add_char d (Char.chr (int_of_string hex_str))
       done;
-      d
+      Buffer.contents d
   in
 
   (* Match start and stop comment *)
