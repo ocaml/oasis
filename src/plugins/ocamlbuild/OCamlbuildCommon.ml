@@ -202,6 +202,7 @@ let ocamlbuild_more_args =
 
 
 let ocamlbuild_supports_ocamlfind = check_ocaml_version "3.12.1"
+let ocamlbuild_supports_cmt = check_ocaml_version "4.00"
 let ocamlbuild_supports_plugin_tags = check_ocaml_version "4.01"
 
 

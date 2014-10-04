@@ -119,16 +119,6 @@ let generated_unix_files
       lst
   in
 
-  (* The headers that should be compiled along *)
-  let headers =
-    if lib.lib_pack then
-      []
-    else
-      find_modules
-        lib.lib_modules
-        "cmi"
-  in
-
   (* The .cmx that be compiled along *)
   let cmxs =
     let should_be_built =
@@ -154,12 +144,32 @@ let generated_unix_files
     []
   in
 
+  (* The headers and annot/cmt files that should be compiled along *)
+  let headers =
+    let sufx =
+      if lib.lib_pack
+      then [".cmti"; ".cmt"; ".annot"]
+      else [".cmi"; ".cmti"; ".cmt"; ".annot"]
+    in
+    List.map
+      begin
+        List.fold_left
+          begin fun accu s ->
+            let dot = String.rindex s '.' in
+            let base = String.sub s 0 dot in
+            List.map ((^) base) sufx @ accu
+          end
+          []
+      end
+      (find_modules lib.lib_modules "cmi")
+  in
+
   (* Compute what libraries should be built *)
   let acc_nopath =
     (* Add the packed header file if required *)
     let add_pack_header acc =
       if lib.lib_pack then
-        [cs.cs_name^".cmi"] :: acc
+        [cs.cs_name^".cmi"; cs.cs_name^".cmti"; cs.cs_name^".cmt"] :: acc
       else
         acc
     in

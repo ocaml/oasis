@@ -393,7 +393,31 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t
 
       (ctxt, tag_t, myocamlbuild_t)
 
-      ([
+      (
+      let annot_flags =
+        if ocamlbuild_supports_cmt pkg
+        then ["-annot"; "-bin-annot"]
+        else ["-annot"]
+      in
+      [
+        "annot",
+        src_tgts, ["compile"],
+        None,
+        atom,
+        [OASISExpr.EBool true, annot_flags];
+
+        "annot",
+        [link_tgt], ["pack"],
+        None,
+        atom,
+        [OASISExpr.EBool true, annot_flags];
+
+        "annot",
+        [link_tgt], ["library"],
+        None,
+        atom,
+        [OASISExpr.EBool true, annot_flags];
+
         "ccopt",
         src_tgts, ["compile"],
         Some (A"-ccopt"),
@@ -730,11 +754,11 @@ let add_ocamlbuild_files ctxt pkg =
                    let ext =
                      match bs.bs_compiled_object with
                        | Best ->
-                           "{cma,cmxa}"
+                           "{cmo,cma,cmx,cmxa}"
                        | Byte ->
-                           "cma"
+                           "{cmo,cma}"
                        | Native ->
-                           "cmxa"
+                           "{cmx,cmxa}"
                    in
                      prepend_bs_path bs
                        (OASISUnixPath.add_extension cs.cs_name ext)
