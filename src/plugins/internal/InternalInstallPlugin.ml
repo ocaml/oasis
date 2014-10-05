@@ -324,7 +324,7 @@ let install pkg argv =
                       OASISFileUtil.file_exists_case
                       (List.map
                          (Filename.concat path)
-                         (make_fnames modul [".annot";"cmti";".cmt"]))
+                         (make_fnames modul [".annot";".cmti";".cmt"]))
                     @ acc
                   end
                   acc
