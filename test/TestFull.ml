@@ -146,7 +146,10 @@ let gen_tests ~is_native () =
                 ["packedlib.cma"; "packedlib.cmi"; "packedlib.cmx";
                  "foo.mli"; "bar.mli"; "Baz.ml"; "META";
                  "packedlib.cmxa"; "packedlib.cmxs";
-                 "packedlib.a"])
+                 "packedlib.a";
+                 "Baz.annot"; "Baz.cmt"; "bar.annot"; "bar.cmt";
+                 "bar.cmti"; "foo.annot"; "foo.cmt"; "foo.cmti";
+                 "packedlib.cmt"])
            ];
          (* Run standard test. *)
          standard_test test_ctxt t;
@@ -218,7 +221,8 @@ let gen_tests ~is_native () =
               ("with-c",
                ["A.cmi"; "A.ml"; "META"; "with-c.cma";
                 "libwith-c_stubs.a"; "dllwith-c_stubs.so";
-                "with-c.a"; "A.cmx"; "with-c.cmxa"; "with-c.cmxs"]);
+                "with-c.a"; "A.cmx"; "with-c.cmxa"; "with-c.cmxs";
+                "A.annot"; "A.cmt"]);
             InstalledAPIRef("with-c", ["A"]);
           ];
         if OASISVersion.version_compare_string t.ocaml_version "4.00" < 0 then
@@ -257,6 +261,7 @@ let gen_tests ~is_native () =
                ("test",
                 [
                   "test.ml"; "test.cmi"; "META"; "test.cma";
+                  "test.annot"; "test.cmt"
                 ]);
              InstalledData
                ["with-data/test.txt";
@@ -294,7 +299,9 @@ let gen_tests ~is_native () =
                  "pimlib.cma"; "pimlib.cmxa"; "pimlib.a"; "pimlib.cmxs";
                  "pim_impl.mli"; "pim_impl.cmi"; "pim_impl.cmx";
                  "pim_intf.mli"; "pim_intf.cmi";
-                 "pim_types.mli"; "pim_types.cmi"]);
+                 "pim_types.mli"; "pim_types.cmi";
+                 "pim_impl.annot"; "pim_impl.cmt"; "pim_impl.cmti";
+                 "pim_intf.cmti"; "pim_types.cmti"]);
            ];
          (* Run standard test. *)
          standard_test test_ctxt t;
@@ -341,7 +348,9 @@ let gen_tests ~is_native () =
                  "A.ml"; "A.cmi"; "B.ml"; "B.cmi";
                  "pa_test.ml"; "pa_test.cmi";
                  "test.cmxa"; "test.cmxs"; "A.cmx"; "B.cmx";
-                 "test.a"]);
+                 "test.a";
+                 "A.annot"; "A.cmt"; "B.annot"; "B.cmt";
+                 "pa_test.annot"; "pa_test.cmt"]);
              InstalledAPIRef
                ("test", ["A"; "B"]);
            ];
@@ -423,7 +432,8 @@ let gen_tests ~is_native () =
                ("syntax-camlp4",
                 ["META"; "pi.ml"; "pi.cmi"; "pi.cma";
                  "pi.cmx"; "pi.cmxa"; "pi.cmxs";
-                 "pi.a"]);
+                 "pi.a";
+                 "pi.annot"; "pi.cmt"]);
            ];
          (* Run standard test. *)
          standard_test test_ctxt t;
@@ -468,7 +478,8 @@ let gen_tests ~is_native () =
                ("with-a",
                 ["META"; "A.ml"; "A.cmi"; "with-a.cma";
                  "A.cmx"; "with-a.cmxa"; "with-a.cmxs";
-                 "with-a.a"]);
+                 "with-a.a";
+                 "A.annot"; "A.cmt"]);
              InstalledBin ["test-with-a"];
              InstalledAPIRef("with-a", ["A"]);
            ];
@@ -643,7 +654,8 @@ let gen_tests ~is_native () =
            (oasis_ocamlbuild_files @
             ["src/test.mllib"; "src/test.mldylib"; "src/META"]);
          register_installed_files test_ctxt t
-           [InstalledOCamlLibrary ("test", ["META"; "foo.cmi"; "test.cma"])];
+           [InstalledOCamlLibrary ("test", ["META"; "foo.cmi"; "test.cma";
+                                   "foo.annot"; "foo.cmt"])];
          (* Run standard test. *)
          standard_test test_ctxt t);
 
@@ -959,6 +971,9 @@ let gen_tests ~is_native () =
                  "dyn_loaded.ml";
                  "dyn_loaded_ext.cmx"; "dyn_loaded_ext.cmi";
                  "dyn_loaded_ext.ml";
+                 "dyn_loaded.annot"; "dyn_loaded.cmt";
+                 "dyn_loaded_ext.annot"; "dyn_loaded_ext.cmt";
+                 "entry_point.annot"; "entry_point.cmt";
                 ]);
              InstalledBin ["dynlink-test-byte"];
            ];
