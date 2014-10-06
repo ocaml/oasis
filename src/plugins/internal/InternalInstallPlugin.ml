@@ -208,10 +208,10 @@ let install pkg argv =
       begin fun sufx accu ->
         (String.capitalize modul ^ sufx) ::
         (String.uncapitalize modul ^ sufx) ::
-        accu 
-      end  
-      sufx 
-      []   
+        accu
+      end
+      sufx
+      []
   in
 
   (** Install all libraries *)
