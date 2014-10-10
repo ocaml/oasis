@@ -203,6 +203,17 @@ let install pkg argv =
         lst
   in
 
+  let make_fnames modul sufx =
+    List.fold_right
+      begin fun sufx accu ->
+        (String.capitalize modul ^ sufx) ::
+        (String.uncapitalize modul ^ sufx) ::
+        accu
+      end
+      sufx
+      []
+  in
+
   (** Install all libraries *)
   let install_libs pkg =
 
@@ -223,27 +234,29 @@ let install pkg argv =
                 OASISHostPath.of_unix bs.bs_path
               in
                 List.fold_left
-                  (fun acc modul ->
-                     try
-                       List.find
-                         OASISFileUtil.file_exists_case
-                         (List.map
-                            (Filename.concat path)
-                            [modul^".mli";
-                             modul^".ml";
-                             String.uncapitalize modul^".mli";
-                             String.capitalize   modul^".mli";
-                             String.uncapitalize modul^".ml";
-                             String.capitalize   modul^".ml"])
-                       :: acc
-                     with Not_found ->
-                       begin
-                         warning
-                           (f_ "Cannot find source header for module %s \
-                                in library %s")
-                           modul cs.cs_name;
-                         acc
-                       end)
+                  begin fun acc modul ->
+                    begin
+                      try
+                        [List.find
+                          OASISFileUtil.file_exists_case
+                          (List.map
+                             (Filename.concat path)
+                             (make_fnames modul [".mli"; ".ml"]))]
+                      with Not_found ->
+                        warning
+                          (f_ "Cannot find source header for module %s \
+                               in library %s")
+                          modul cs.cs_name;
+                        []
+                    end
+                    @
+                    List.filter
+                      OASISFileUtil.file_exists_case
+                      (List.map
+                         (Filename.concat path)
+                         (make_fnames modul [".annot";".cmti";".cmt"]))
+                    @ acc
+                  end
                   acc
                   lib.lib_modules
             in
@@ -291,27 +304,29 @@ let install pkg argv =
                 OASISHostPath.of_unix bs.bs_path
               in
                 List.fold_left
-                  (fun acc modul ->
-                     try
-                       List.find
-                         OASISFileUtil.file_exists_case
-                         (List.map
-                            (Filename.concat path)
-                            [modul^".mli";
-                             modul^".ml";
-                             String.uncapitalize modul^".mli";
-                             String.capitalize   modul^".mli";
-                             String.uncapitalize modul^".ml";
-                             String.capitalize   modul^".ml"])
-                       :: acc
-                     with Not_found ->
-                       begin
-                         warning
-                           (f_ "Cannot find source header for module %s \
-                                in object %s")
-                           modul cs.cs_name;
-                         acc
-                       end)
+                  begin fun acc modul ->
+                    begin
+                      try
+                        [List.find
+                           OASISFileUtil.file_exists_case
+                           (List.map
+                              (Filename.concat path)
+                              (make_fnames modul [".mli"; ".ml"]))]
+                      with Not_found ->
+                        warning
+                          (f_ "Cannot find source header for module %s \
+                               in object %s")
+                          modul cs.cs_name;
+                        []
+                    end
+                    @
+                    List.filter
+                      OASISFileUtil.file_exists_case
+                      (List.map
+                         (Filename.concat path)
+                         (make_fnames modul [".annot";".cmti";".cmt"]))
+                    @ acc
+                  end
                   acc
                   obj.obj_modules
             in

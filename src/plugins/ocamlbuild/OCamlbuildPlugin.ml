@@ -1085,6 +1085,8 @@ let add_ocamlbuild_files ctxt pkg =
     ::
     "# useless stuff for the build process"
     ::
+    "true: annot, bin_annot"
+    ::
     add_tags
       tag_t
       ["_darcs"; ".git"; ".hg"; ".bzr"; "**/.svn"]
