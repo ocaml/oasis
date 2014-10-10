@@ -100,7 +100,7 @@ let ocamlfind x = S[Sh (exec_from_conf "ocamlfind"); x]
 
 (* This lists all supported packages. *)
 let find_packages () =
-  List.map before_space (split_nl & run_and_read "ocamlfind list")
+  List.map before_space (split_nl & run_and_read (exec_from_conf "ocamlfind" ^ " list"))
 
 
 (* Mock to list available syntaxes. *)
