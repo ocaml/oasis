@@ -68,8 +68,8 @@ let gen_tests ~is_native () =
              InstalledOCamlLibrary
                ("simplelib",
                 ["simplelib.cma";
-                 "Foo.cmi"; "Foo.ml";
-                 "Bar.cmi"; "Bar.ml";
+                 "Foo.cmi"; "Foo.ml"; "Foo.annot"; "Foo.cmti"; "Foo.cmt";
+                 "Bar.cmi"; "Bar.ml"; "Bar.annot"; "Bar.cmti"; "Bar.cmt";
                  "META";
                  "simplelib.cmxa";
                  "simplelib.cmxs";
@@ -78,8 +78,10 @@ let gen_tests ~is_native () =
              InstalledOCamlLibrary
                ("simplelibext",
                 ["simplelibext.cma";
-                 "FooExt.cmi"; "FooExt.ml";
-                 "BarExt.cmi"; "BarExt.ml";
+                 "FooExt.cmi"; "FooExt.ml"; "FooExt.annot"; "FooExt.cmti";
+                 "FooExt.cmt";
+                 "BarExt.cmi"; "BarExt.ml"; "BarExt.annot"; "BarExt.cmti";
+                 "BarExt.cmt";
                  "META";
                  "simplelibext.cmxa";
                  "simplelibext.cmxs";
@@ -112,8 +114,8 @@ let gen_tests ~is_native () =
              InstalledOCamlLibrary
                ("simplelib" ,
                 ["simplelib.cma";
-                 "foo.cmi"; "foo.mli";
-                 "bar.cmi"; "bar.mli";
+                 "foo.cmi"; "foo.mli"; "foo.annot"; "foo.cmt"; "foo.cmti";
+                 "bar.cmi"; "bar.mli"; "bar.annot"; "bar.cmt"; "bar.cmti";
                  "META";
                  "simplelib.cmxa";
                  "simplelib.cmxs";
@@ -147,8 +149,8 @@ let gen_tests ~is_native () =
                  "foo.mli"; "bar.mli"; "Baz.ml"; "META";
                  "packedlib.cmxa"; "packedlib.cmxs";
                  "packedlib.a";
-                 "Baz.annot"; "Baz.cmt"; "bar.annot"; "bar.cmt";
-                 "bar.cmti"; "foo.annot"; "foo.cmt"; "foo.cmti";
+                 "Baz.annot"; "Baz.cmt"; "bar.annot"; "bar.cmt"; "bar.cmti";
+                 "foo.annot"; "foo.cmt"; "foo.cmti";
                  "packedlib.cmt"])
            ];
          (* Run standard test. *)
@@ -507,7 +509,7 @@ let gen_tests ~is_native () =
            [
              InstalledOCamlLibrary
                ("with-a",
-                ["META"; "A.ml"; "A.cmi"; "with-a.cma"]);
+                ["META"; "A.ml"; "A.cmi"; "A.annot"; "A.cmti"; "with-a.cma"]);
            ];
          (* Run standard test. *)
          standard_test test_ctxt t);
@@ -708,6 +710,8 @@ let gen_tests ~is_native () =
                ("mylib",
                 ["META"; "dllmylib_stubs.so";
                  "foo.ml"; "mylib.cma"; "mylib.cmi";
+                 "foo.annot"; "foo.cmt"; "foo.cmti";
+                 "bar.annot"; "bar.cmt"; "bar.cmti";
                  "mylib.cmxa"; "mylib.cmxs"; "mylib.cmx";
                  "mylib.a"; "libmylib_stubs.a"])
            ];
