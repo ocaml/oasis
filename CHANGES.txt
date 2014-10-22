@@ -1,6 +1,47 @@
+2014-10-22  Jacques-Pascal Deplaix <jp.deplaix AT gmail.com>
+
+  * Version 0.4.5
+
+  * Major changes:
+
+    * Build and install annotation files.
+    * Use builtin bin_annot and annot tags.
+    * Tag .mly files on the same basis as .ml and .mli files
+      (required by menhir).
+    * Remove 'program' constraint from C-dependencies.
+      Currently, when a library has C-sources and e.g. an executable
+      depends on that library, then changing the C-sources and running
+      '-build' does not yield a rebuild of the library.
+      By adding these dependencies (rather removing the constraint),
+      it seems to work fine.
+
+
+  * Minor changes:
+
+    * Add tests tag if --enable-tests.
+    * Remove ocaml 4.02 warnings.
+    * Fix the automatic use of -syntax for OCamlVersion >= 3.12.1.
+    * Use the right ocamlfind binary to get all supported packages.
+      The name of the ocamlfind binary should be read from the configuration.
+      This is especially useful when cross-compiling.
+
+  * Features:
+
+    * no_automatic_syntax (alpha): Disable the automatic inclusion
+      of -syntax camlp4o for packages that matches the internal heuristic
+      (if a dependency ends with a .syntax or is a well known syntax).
+
+    * compiled_setup_ml (alpha): Fix a bug using multiple arguments
+      to the configure script.
+
+
+  Thanks to Christopher Zimmermann, Jerome Vouillon, Tomohiro Matsuyama
+  and Christoph Höger for their pull requests and to help release this version.
+
+
 2014-03-26  Sylvain Le Gall <sylvain AT le-gall.net>
 
-  * Version 0.4.3
+  * Version 0.4.4
 
   * Quick bug fix release:
 
