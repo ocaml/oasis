@@ -139,6 +139,7 @@ test: precommit
 deploy: headache doc-dist
 	# TODO: create a plugin to create documentation.
 	# oasis doc-dist
+	mkdir dist || true
 	admin-gallu-deploy --verbose \
 	  --forge_upload --forge_group oasis \
 	  --forge_extra_file "dist/oasis-doc-$(shell oasis query version).tar.gz"
