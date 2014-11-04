@@ -119,6 +119,12 @@ let main ctxt pkg =
   let t =
     generator pkg.schema_data
   in
+  let (makefile_setup_deps, packages) =
+    match ctxt.update with
+    | OASISSetupUpdate.Dynamic -> (" _oasis", " -linkpkg -package oasis.dynrun")
+    | OASISSetupUpdate.Weak -> (" _oasis", "")
+    | OASISSetupUpdate.NoUpdate -> ("", "")
+  in
   let compiled_setup_ml =
     OASISFeatures.package_test OASISFeatures.compiled_setup_ml pkg
   in
@@ -192,17 +198,11 @@ let main ctxt pkg =
                    add_one_target nm)
             targets;
           if compiled_setup_ml then begin
-            let packages =
-              if ctxt.update = OASISSetupUpdate.Dynamic then
-                " -linkpkg -package oasis.dynrun"
-              else
-                ""
-            in
             Printf.bprintf buff
-              "setup.exe: setup.ml\n\
+              "setup.exe: setup.ml%s\n\
                \tocamlfind ocamlopt -o $@%s $< || ocamlfind ocamlc -o $@%s $< || true\n\
                \t$(RM) setup.cmi setup.cmo setup.cmx setup.o\n\n"
-              packages packages;
+              makefile_setup_deps packages packages;
           end;
           Buffer.add_string buff (".PHONY: "^(String.concat " " targets)^"\n");
 
@@ -223,7 +223,11 @@ let main ctxt pkg =
       let ocaml_setup_configure =
         let cmd =
           if compiled_setup_ml then
-            "make configure CONFIGUREFLAGS=\"$*\""
+            Printf.sprintf
+              "ocamlfind ocamlopt -o setup.exe%s setup.ml || ocamlfind ocamlc -o setup.exe%s setup.ml || exit 1\n\
+               rm -f setup.cmi setup.cmo setup.cmx setup.o\n\
+               ./setup.exe -configure \"$@\""
+              packages packages
           else
             "ocaml setup.ml -configure \"$@\""
         in
