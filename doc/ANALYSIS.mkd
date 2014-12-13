@@ -127,8 +127,5 @@ Debian
 Fedora
 ------
 
-Developper
+Developer
 ----------
-
-
-
