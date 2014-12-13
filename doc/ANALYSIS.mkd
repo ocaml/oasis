@@ -18,21 +18,21 @@ configure
 ---------
 
 The configure phase provides a way to set various options of the build system
-depending of software/hardware configurations and user choices.  A project has
-requirements regarding third party softwares, this is its "build dependencies".
-The user's choices can also change the build scheme: don't build a module, use
-an alternate implementation for another. We call it the "user choices". The
-configure step try to auto detect various parameters and see if they match with
-"build dependencies" and "user choices". At the endi, the configure scheme
-should create files which summarize choices made.  Files are created through
-replacement of variable in files (%.ab -> %).
+depending on software/hardware configurations and user choices.  A project has
+requirements regarding third party software; these are its "build dependencies".
+The user's choices can also change the build scheme: don't build one module, use
+an alternate implementation for another. We call these the "user choices". The
+configure step tries to auto detect various parameters and see if they match
+with the "build dependencies" and "user choices". At the end, the configure
+scheme should create files which summarize the choices that were made.  Files
+are created through replacement of variable in files `(%.ab -> %)`.
 
 We rely on `_oasis` file to describe "user choices" (Flag) and "build
 dependencies" (BuildDepends and BuildTools).
 
 OASIS should provide 2 choices for configure:
 - internal (default): an OCaml module is embedded in the project that perform
-  all this checks, use translated `_oasis` in setup.ml structure.
+  all these checks, use translated `_oasis` in setup.ml structure.
 - ocaml-autoconf: use translated `_oasis` in configure.ac, output setup.data.
 
 build
