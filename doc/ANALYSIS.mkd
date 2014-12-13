@@ -66,14 +66,16 @@ TODO
 install
 -------
 
-The install phase install all generated objects into the target system.
+The install phase installs all generated objects into the target system.
 
 OASIS provides 1 choice for install:
-- internal (default): use ocamlfind to install library FileUtils to install
-  data and executable.
 
-install phase use configure phase result through a generated file that list
-important variable regarding build process.
+- internal (default):
+  - use ocamlfind to install library
+  - use FileUtils to install data and executable.
+
+The install phase uses the result of the configure phase by reading a generated
+file that lists important variables regarding the build process.
 
 OASIS files
 -----------
