@@ -1,11 +1,10 @@
-
 Architecture
 ============
 
 The first goal is to be able to generate most of the required files for
 ocamlbuild. The default build tool for OASIS will be ocamlbuild.  Other build
-tools like OCamlMakefile and OMake should also be used, but these are secondary
-goals.
+tools like OCamlMakefile and OMake should also be usable, but supporting these
+tools is a secondary goal.
 
 The minimum requirements for using OASIS are `findlib` and `ocaml`. They are
 used to detect available packages and install packages. If there are no external
