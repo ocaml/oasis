@@ -39,7 +39,7 @@ build
 -----
 
 The build phase should build all the project objects. It should take care of
-building native and bytecode object depending on the target system.
+building native or bytecode objects depending on the target system.
 
 OASIS provides 3 choices for build:
 - ocamlbuild (default): use translated `_oasis` files (.mllib, .itarget...) and
@@ -48,8 +48,8 @@ OASIS provides 3 choices for build:
   shipped externally, add OCamlMakefile user choice and detection
 - OMake: use translated `_oasis` files (TODO)
 
-build phase use configure phase result through a generated file that list
-important variable regarding build process.
+The build phase uses the result of the configure phase by reading a generated
+file that lists important variables regarding the build process.
 
 test
 ----
