@@ -100,20 +100,21 @@ determine what version of a dependency we should require:
   * Version published, no strong requirement since tests can be disabled.
 
 
-OASIS backward compatibility
-============================
+Backwards compatibility
+=======================
 
-OASIS supports former version of OASISFormat. Most of the important things are
-automatically backported to former version. However on the long term we might
-decide to drop support of old OASISFormat.
+OASIS supports the former version of OASISFormat. Most of the important things
+have been backported to former version. However in the long term we might decide
+to drop support of old OASISFormat.
 
-We will support as long as possible an OASISFormat version but for any version
-below the OASIS version present in Debian stable, we may drop the support.
+We will support a version of OASISFormat for as long as possible.  However, we
+may drop support for any OASISFormat version older than the version of OASIS in
+Debian stable.
 
 For example:
- * Debian stable is released with OASIS 0.2.0
- * We may support OASISFormat: 0.1 as long as possible but, at one point we may
-   enforce at least OASISFormat: 0.2.
+ * Debian stable is released with OASIS `0.2.0`
+ * We will continue to support OASISFormat: `0.1` as long as possible but, at some
+   point we will enforce using at least OASISFormat: `0.2`.
 
 A list of supported OASISFormat can be found in OASISPackage_intern.ml.
 
