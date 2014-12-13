@@ -14,15 +14,16 @@ Plugins:      DevFiles (0.3), StdFiles (0.3), META (0.3)
 FilesAB:      src/oasis/OASISConf.ml.ab
 BuildTools:   ocamlbuild, make
 
-Synopsis: Architecture for building OCaml libraries and applications
+Synopsis: Tooling for building OCaml libraries and applications
 Description:
   OASIS generates a full configure, build and install system for your
   application. It starts with a simple `_oasis` file at the toplevel of your
   project and creates everything required.
   .
-  It uses external tools like OCamlbuild and it can be considered as the glue
-  between various subsystems that do the job. It should support the following
-  tools:
+  Oasis leverages existing OCaml tooling to perform most of it's work. In fact,
+  it might be more appropriate to think of it as simply the glue that binds
+  these other subsystems together and coordinates the work that they do. It
+  should support the following tools:
   .
    * OCamlbuild
    * OMake (todo)
