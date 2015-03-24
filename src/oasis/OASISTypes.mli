@@ -401,6 +401,8 @@ type package =
       (** Real people who wrote this package, not their companies. *)
       homepage:               url option;
       (** Location of the package homepage. *)
+      bugreports:             url option;
+      (** Location of the page to report bugs. *)
       synopsis:               string;
       (** Short description of the package. *)
       description:            OASISText.t option;
