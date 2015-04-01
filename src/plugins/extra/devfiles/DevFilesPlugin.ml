@@ -224,8 +224,10 @@ let main ctxt pkg =
         let cmd =
           if compiled_setup_ml then
             Printf.sprintf
-              "ocamlfind ocamlopt -o setup.exe%s setup.ml || ocamlfind ocamlc -o setup.exe%s setup.ml || exit 1\n\
-               rm -f setup.cmi setup.cmo setup.cmx setup.o\n\
+              "if [ ! -e setup.exe ] || [ _oasis -nt setup.exe ] || [ setup.ml -nt setup.exe ] || [ configure -nt setup.exe ]; then\n  \
+                 ocamlfind ocamlopt -o setup.exe%s setup.ml || ocamlfind ocamlc -o setup.exe%s setup.ml || exit 1\n  \
+                 rm -f setup.cmi setup.cmo setup.cmx setup.o\n\
+               fi\n\
                ./setup.exe -configure \"$@\""
               packages packages
           else
