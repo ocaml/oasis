@@ -1,0 +1,15 @@
+OASISFormat: 0.4
+Name: test
+Version: 0
+Synopsis: test
+Authors: foo
+License: MIT
+BuildTools: ocamlbuild, camlp4
+AlphaFeatures: no_automatic_syntax
+
+Executable test
+  Path: ./
+  MainIs: A.ml
+  BuildDepends: camlp4
+  CompiledObject: byte
+  Install: false
