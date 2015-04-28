@@ -32,7 +32,8 @@
 open Ocamlbuild_plugin
 
 type conf =
-  { no_automatic_syntax: bool;
+  { no_automatic_syntax: bool
+  ; disable_deprecated_tags_syntax: bool
   }
 
 (* these functions are not really officially exported *)
@@ -145,48 +146,59 @@ let dispatch conf =
          * -linkpkg *)
         flag ["ocaml"; "link"; "program"] & A"-linkpkg";
 
-        (* For each ocamlfind package one inject the -package option when
-         * compiling, computing dependencies, generating documentation and
-         * linking. *)
-        List.iter
-          begin fun pkg ->
-            let base_args = [A"-package"; A pkg] in
-            (* TODO: consider how to really choose camlp4o or camlp4r. *)
-            let syn_args = [A"-syntax"; A "camlp4o"] in
-            let (args, pargs) =
-              (* Heuristic to identify syntax extensions: whether they end in
-                 ".syntax"; some might not.
-              *)
-              if not (conf.no_automatic_syntax) &&
-                 (Filename.check_suffix pkg "syntax" ||
-                  List.mem pkg well_known_syntax) then
-                (syn_args @ base_args, syn_args)
-              else
-                (base_args, [])
-            in
-            flag ["ocaml"; "compile";  "pkg_"^pkg] & S args;
-            flag ["ocaml"; "ocamldep"; "pkg_"^pkg] & S args;
-            flag ["ocaml"; "doc";      "pkg_"^pkg] & S args;
-            flag ["ocaml"; "link";     "pkg_"^pkg] & S base_args;
-            flag ["ocaml"; "infer_interface"; "pkg_"^pkg] & S args;
+        begin
+          let is_syntax pkg =
+            Filename.check_suffix pkg "syntax" || List.mem pkg well_known_syntax
+          in
+          (* TODO: consider how to really choose camlp4o or camlp4r. *)
+          let syn_args = [A"-syntax"; A "camlp4o"] in
+          if not (conf.disable_deprecated_tags_syntax) then begin
+            (* For each ocamlfind package one inject the -package option when
+             * compiling, computing dependencies, generating documentation and
+             * linking. *)
+            List.iter
+              begin fun pkg ->
+                let base_args = [A"-package"; A pkg] in
+                let (args, pargs) =
+                  (* Heuristic to identify syntax extensions: whether they end in
+                     ".syntax"; some might not.
+                  *)
+                  if not (conf.no_automatic_syntax) && is_syntax pkg then
+                    (syn_args @ base_args, syn_args)
+                  else
+                    (base_args, [])
+                in
+                flag ["ocaml"; "compile";  "pkg_"^pkg] & S args;
+                flag ["ocaml"; "ocamldep"; "pkg_"^pkg] & S args;
+                flag ["ocaml"; "doc";      "pkg_"^pkg] & S args;
+                flag ["ocaml"; "link";     "pkg_"^pkg] & S base_args;
+                flag ["ocaml"; "infer_interface"; "pkg_"^pkg] & S args;
 
-            (* TODO: Check if this is allowed for OCaml < 3.12.1 *)
-            flag ["ocaml"; "compile";  "package("^pkg^")"] & S pargs;
-            flag ["ocaml"; "ocamldep"; "package("^pkg^")"] & S pargs;
-            flag ["ocaml"; "doc";      "package("^pkg^")"] & S pargs;
-            flag ["ocaml"; "infer_interface"; "package("^pkg^")"] & S pargs;
-          end
-          (find_packages ());
+                (* TODO: Check if this is allowed for OCaml < 3.12.1 *)
+                flag ["ocaml"; "compile";  "package("^pkg^")"] & S pargs;
+                flag ["ocaml"; "ocamldep"; "package("^pkg^")"] & S pargs;
+                flag ["ocaml"; "doc";      "package("^pkg^")"] & S pargs;
+                flag ["ocaml"; "infer_interface"; "package("^pkg^")"] & S pargs;
+              end
+              (find_packages ());
 
-        (* Like -package but for extensions syntax. Morover -syntax is useless
-         * when linking. *)
-        List.iter begin fun syntax ->
-        flag ["ocaml"; "compile";  "syntax_"^syntax] & S[A"-syntax"; A syntax];
-        flag ["ocaml"; "ocamldep"; "syntax_"^syntax] & S[A"-syntax"; A syntax];
-        flag ["ocaml"; "doc";      "syntax_"^syntax] & S[A"-syntax"; A syntax];
-        flag ["ocaml"; "infer_interface"; "syntax_"^syntax] &
+            (* Like -package but for extensions syntax. Morover -syntax is useless
+             * when linking. *)
+            List.iter begin fun syntax ->
+              flag ["ocaml"; "compile";  "syntax_"^syntax] & S[A"-syntax"; A syntax];
+              flag ["ocaml"; "ocamldep"; "syntax_"^syntax] & S[A"-syntax"; A syntax];
+              flag ["ocaml"; "doc";      "syntax_"^syntax] & S[A"-syntax"; A syntax];
+              flag ["ocaml"; "infer_interface"; "syntax_"^syntax] &
               S[A"-syntax"; A syntax];
-        end (find_syntaxes ());
+            end (find_syntaxes ());
+          end else if not (conf.no_automatic_syntax) then begin
+            let add_syntax pkg = if is_syntax pkg then S syn_args else N in
+            pflag ["ocaml"; "compile"] "package" add_syntax;
+            pflag ["ocaml"; "ocamldep"] "package" add_syntax;
+            pflag ["ocaml"; "doc"] "package" add_syntax;
+            pflag ["ocaml"; "infer_interface"] "package" add_syntax;
+          end
+        end;
 
         (* The default "thread" tag is not compatible with ocamlfind.
          * Indeed, the default rules add the "threads.cma" or "threads.cmxa"

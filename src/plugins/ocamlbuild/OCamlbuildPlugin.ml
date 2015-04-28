@@ -1125,8 +1125,12 @@ let add_ocamlbuild_files ctxt pkg =
             );
             "";
             Printf.sprintf
-              "let conf = {MyOCamlbuildFindlib.no_automatic_syntax = %b}"
-              (OASISFeatures.package_test OASISFeatures.no_automatic_syntax pkg);
+              "let conf =\n  \
+                 {MyOCamlbuildFindlib.no_automatic_syntax = %b\n  \
+                 ; disable_deprecated_tags_syntax = %b\n  \
+                 }"
+              (OASISFeatures.package_test OASISFeatures.no_automatic_syntax pkg)
+              (OASISFeatures.package_test OASISFeatures.disable_deprecated_tags_syntax pkg);
             "";
             "let dispatch_default = \
                    MyOCamlbuildBase.dispatch_default conf package_default;;";
