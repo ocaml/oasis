@@ -130,21 +130,12 @@ let dispatch conf =
         (* By using Before_options one let command line options have an higher
          * priority on the contrary using After_options will guarantee to have
          * the higher priority override default commands by ocamlfind ones *)
-        Options.ocamlc     := ocamlfind & A"ocamlc";
-        Options.ocamlopt   := ocamlfind & A"ocamlopt";
-        Options.ocamldep   := ocamlfind & A"ocamldep";
-        Options.ocamldoc   := ocamlfind & A"ocamldoc";
-        Options.ocamlmktop := ocamlfind & A"ocamlmktop";
         Options.ocamlmklib := ocamlfind & A"ocamlmklib"
 
     | After_rules ->
 
         (* Avoid warnings for unused tag *)
         flag ["tests"] N;
-
-        (* When one link an OCaml library/binary/package, one should use
-         * -linkpkg *)
-        flag ["ocaml"; "link"; "program"] & A"-linkpkg";
 
         begin
           let is_syntax pkg =
@@ -208,10 +199,12 @@ let dispatch conf =
          * To solve this, one approach is to add the "-thread" option when using
          * the "threads" package using the previous plugin.
          *)
-        flag ["ocaml"; "pkg_threads"; "compile"] (S[A "-thread"]);
-        flag ["ocaml"; "pkg_threads"; "doc"] (S[A "-I"; A "+threads"]);
-        flag ["ocaml"; "pkg_threads"; "link"] (S[A "-thread"]);
-        flag ["ocaml"; "pkg_threads"; "infer_interface"] (S[A "-thread"]);
+        if not (conf.disable_deprecated_tags_syntax) then begin
+          flag ["ocaml"; "pkg_threads"; "compile"] (S[A "-thread"]);
+          flag ["ocaml"; "pkg_threads"; "doc"] (S[A "-I"; A "+threads"]);
+          flag ["ocaml"; "pkg_threads"; "link"] (S[A "-thread"]);
+          flag ["ocaml"; "pkg_threads"; "infer_interface"] (S[A "-thread"]);
+        end;
         flag ["ocaml"; "package(threads)"; "compile"] (S[A "-thread"]);
         flag ["ocaml"; "package(threads)"; "doc"] (S[A "-I"; A "+threads"]);
         flag ["ocaml"; "package(threads)"; "link"] (S[A "-thread"]);
