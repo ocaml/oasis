@@ -66,11 +66,6 @@ let tests =
            ~native_dynlink:(native_dynlink test_ctxt)
            (in_testdata_dir test_ctxt ["TestOCamlbuild"; "set-ocamlfind"])
        in
-       let () =
-         skip_if
-           (OASISVersion.version_compare_string t.ocaml_version "3.12.1" < 0)
-           "OCaml >= 3.12.1 needed."
-       in
        let real_ocamlfind = FileUtil.which "ocamlfind" in
        let fake_ocamlfind =
          Filename.concat t.bin_dir (Filename.basename real_ocamlfind)

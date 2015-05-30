@@ -376,12 +376,6 @@ let native_dynlink =
     "native_dynlink"
     (fun () ->
        let res =
-         let ocaml_lt_312 () =
-           OASISVersion.comparator_apply
-             (OASISVersion.version_of_string (ocaml_version ()))
-             (OASISVersion.VLesser
-                (OASISVersion.version_of_string "3.12.0"))
-         in
          let flexdll_lt_030 () =
            OASISVersion.comparator_apply
              (OASISVersion.version_of_string (flexdll_version ()))
@@ -404,8 +398,6 @@ let native_dynlink =
          in
            if not has_native_dynlink then
              false
-           else if ocaml_lt_312 () then
-             false
            else if (os_type () = "Win32" || os_type () = "Cygwin")
                    && flexdll_lt_030 () then
              begin
@@ -424,4 +416,3 @@ let native_dynlink =
 let init pkg =
   rpkg := Some pkg;
   List.iter (fun f -> f pkg.oasis_version) !var_cond
-
