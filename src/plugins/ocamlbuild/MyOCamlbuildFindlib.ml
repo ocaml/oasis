@@ -138,6 +138,9 @@ let dispatch conf =
 
     | After_rules ->
 
+        (* Avoid warnings for unused tag *)
+        flag ["tests"] N;
+
         (* When one link an OCaml library/binary/package, one should use
          * -linkpkg *)
         flag ["ocaml"; "link"; "program"] & A"-linkpkg";
