@@ -343,6 +343,14 @@ let generator =
          s_ "URL of the package homepage.")
       (fun pkg -> pkg.homepage)
   in
+  let bugreports =
+    new_field "BugReports"
+      ~default:None
+      (opt url)
+      (fun () ->
+         s_ "URL of the page to report bugs about the package.")
+      (fun pkg -> pkg.bugreports)
+  in
   let categories =
     new_field "Categories"
       ~default:[]
@@ -487,6 +495,7 @@ let generator =
                 maintainers            = maintainers data;
                 authors                = authors data;
                 homepage               = homepage data;
+                bugreports             = bugreports data;
                 synopsis               = synopsis data;
                 description            = description data;
                 categories             = categories data;

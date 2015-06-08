@@ -261,6 +261,7 @@ let tests =
            "predistcleancommand", "";
            "postdistcleancommand", "";
            "homepage", "";
+           "bugreports", "";
            "categories", "";
            "filesab", "";
            "plugins", "stdfiles, devfiles, meta";
@@ -322,6 +323,7 @@ let tests =
            "predistcleancommand", "";
            "postdistcleancommand", "";
            "homepage", "";
+           "bugreports", "";
            "categories", "";
            "filesab", "";
            "plugins", "stdfiles, meta";

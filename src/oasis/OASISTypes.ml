@@ -266,6 +266,7 @@ type package =
       maintainers:            string list;
       authors:                string list;
       homepage:               url option;
+      bugreports:             url option;
       synopsis:               string;
       description:            OASISText.t option;
       categories:             url list;
