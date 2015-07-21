@@ -232,6 +232,7 @@
 <src/cli/Main.byte>: -use_oasis
 
 <**/*.ml>: annot
+true: safe_string
 
 "build": -traverse
 "build": not_hygienic
