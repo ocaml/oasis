@@ -146,7 +146,7 @@ val var_all: unit -> name list
 
 (** Environment default file.
   *)
-val default_filename: host_filename
+val default_filename: host_filename Lazy.t
 
 
 (** Initialize environment.

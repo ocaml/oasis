@@ -91,7 +91,6 @@ let fspecs () =
    s_ " Ignore plugin's field.";
 
    "-C",
-   (* TODO: remove this chdir. *)
    Arg.String (fun str -> Sys.chdir str),
-   s_ "dir Change directory before running."],
+   s_ "dir Change directory before running (affects setup.{data,log})."],
   fun () -> {!default with ignore_plugins = !ignore_plugins}
