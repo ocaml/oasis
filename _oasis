@@ -185,7 +185,7 @@ Library cli
                     CLIPager
   InternalModules:  CLIData, CLIPluginsLoaded
   CompiledObject:   byte
-  BuildDepends:     oasis, oasis.base, plugin-loader, bytes
+  BuildDepends:     oasis, oasis.base, plugin-loader
   FindlibParent:    oasis
   XMETADescription: 'setup.ml' modules for OASIS
   Install$:         flag(libraries)
@@ -200,7 +200,7 @@ Library dynrun
 Executable oasis
   Path:   src/cli
   MainIs: Main.ml
-  BuildDepends: oasis, oasis.base, oasis.cli, oasis.builtin-plugins, bytes
+  BuildDepends: oasis, oasis.base, oasis.cli, oasis.builtin-plugins
   CompiledObject: best
 
 Executable fake_ocamlfind

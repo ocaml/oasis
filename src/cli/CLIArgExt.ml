@@ -65,11 +65,8 @@ let pp_print_help ~ctxt hext hsty fmt () =
 
   (* Print with a precise length *)
   let pp_print_justified sz fmt str =
-    let ns =
-      Bytes.make sz ' '
-    in
-      Bytes.blit_string str 0 ns 0 (String.length str);
-      pp_print_string fmt (Bytes.unsafe_to_string ns)
+    let padding = String.make (sz - String.length str) ' ' in
+    pp_print_string fmt (str ^ padding)
   in
 
   (* Print definition for the output style *)

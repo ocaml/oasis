@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 4960edcf8d1cbef59eb36c6052738523)
+# DO NOT EDIT (digest: 363e92bf1512a5f72aa67e68c6e1fce7)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -128,7 +128,6 @@ true: annot, bin_annot
 # Library cli
 "src/cli/cli.cmxs": use_cli
 # Executable oasis
-<src/cli/Main.{native,byte}>: pkg_bytes
 <src/cli/Main.{native,byte}>: pkg_dynlink
 <src/cli/Main.{native,byte}>: pkg_findlib
 <src/cli/Main.{native,byte}>: pkg_ocamlbuild
@@ -139,7 +138,6 @@ true: annot, bin_annot
 <src/cli/Main.{native,byte}>: use_cli
 <src/cli/Main.{native,byte}>: use_oasis
 <src/cli/Main.{native,byte}>: use_plugin-loader
-<src/cli/*.ml{,i,y}>: pkg_bytes
 <src/cli/*.ml{,i,y}>: pkg_dynlink
 <src/cli/*.ml{,i,y}>: pkg_findlib
 <src/cli/*.ml{,i,y}>: pkg_ocamlbuild

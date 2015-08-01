@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 30fba2be38ade4451e28ffe040396cdd)
+# DO NOT EDIT (digest: c8ec96e46898eb76b05e345368fff4b5)
 version = "0.4.6"
 description = "_oasis file functions"
 requires = "unix odn"
@@ -44,7 +44,7 @@ package "dynrun" (
 package "cli" (
  version = "0.4.6"
  description = "'setup.ml' modules for OASIS"
- requires = "oasis oasis.base plugin-loader bytes"
+ requires = "oasis oasis.base plugin-loader"
  archive(byte) = "cli.cma"
  archive(byte, plugin) = "cli.cma"
  exists_if = "cli.cma"
