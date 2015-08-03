@@ -385,3 +385,10 @@ let no_automatic_syntax =
        s_ "Disable the automatic inclusion of -syntax camlp4o for packages \
            that matches the internal heuristic (if a dependency ends with \
            a .syntax or is a well known syntax).")
+
+let disable_deprecated_tags_syntax =
+  create "disable_deprecated_tags_syntax" alpha
+    (fun () ->
+       s_ "Disable the old syntax support for ocamlfind packages in _tags \
+           (pkg_foo). The new syntax (available with OCaml >= 3.12.1) should \
+           be used instead: package(foo).")

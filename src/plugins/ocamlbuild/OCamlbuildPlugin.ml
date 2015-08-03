@@ -503,7 +503,6 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t
     let mp =
       OASISBuildSection.transitive_build_depends pkg
     in
-    let supports_ocamlfind = ocamlbuild_supports_ocamlfind pkg in
       add_tags
         tag_t
         (if link_pkg then
@@ -515,12 +514,7 @@ let bs_tags pkg sct cs bs src_dirs src_internal_dirs link_tgt ctxt tag_t
              (fun acc ->
                 function
                   | FindlibPackage (findlib_pkg, _) ->
-                      (if supports_ocamlfind then
-                         ("package("^findlib_pkg^")")
-                       else
-                         ("pkg_"^findlib_pkg)
-                      )
-                      :: acc
+                      ("package("^findlib_pkg^")") :: acc
                   | InternalLibrary nm ->
                       ("use_"^nm) :: acc)
              []
@@ -1125,8 +1119,12 @@ let add_ocamlbuild_files ctxt pkg =
             );
             "";
             Printf.sprintf
-              "let conf = {MyOCamlbuildFindlib.no_automatic_syntax = %b}"
-              (OASISFeatures.package_test OASISFeatures.no_automatic_syntax pkg);
+              "let conf =\n  \
+                 {MyOCamlbuildFindlib.no_automatic_syntax = %b\n  \
+                 ; disable_deprecated_tags_syntax = %b\n  \
+                 }"
+              (OASISFeatures.package_test OASISFeatures.no_automatic_syntax pkg)
+              (OASISFeatures.package_test OASISFeatures.disable_deprecated_tags_syntax pkg);
             "";
             "let dispatch_default = \
                    MyOCamlbuildBase.dispatch_default conf package_default;;";
