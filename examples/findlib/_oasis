@@ -5,6 +5,7 @@ Authors: Sylvain Le Gall
 Copyrights: (C) 2008 Sylvain Le Gall
 Homepage: http://example.com
 BugReports: http://example.com/issues
+Tags: build, org:ocamlforge
 LicenseFile: LICENSE
 License: LGPL with OCaml linking exception
 Synopsis: Minimal ADT just to illustrate how libs work.

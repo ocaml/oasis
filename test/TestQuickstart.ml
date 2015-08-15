@@ -262,6 +262,7 @@ let tests =
            "postdistcleancommand", "";
            "homepage", "";
            "bugreports", "";
+           "tags", "";
            "categories", "";
            "filesab", "";
            "plugins", "stdfiles, devfiles, meta";
@@ -324,6 +325,7 @@ let tests =
            "postdistcleancommand", "";
            "homepage", "";
            "bugreports", "";
+           "tags", "";
            "categories", "";
            "filesab", "";
            "plugins", "stdfiles, meta";
