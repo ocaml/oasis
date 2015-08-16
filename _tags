@@ -21,10 +21,11 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: ba905c04424b96d55f58854850a00499)
+# DO NOT EDIT (digest: 363e92bf1512a5f72aa67e68c6e1fce7)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
+true: annot, bin_annot
 <**/.svn>: -traverse
 <**/.svn>: not_hygienic
 ".bzr": -traverse
@@ -37,155 +38,155 @@
 "_darcs": not_hygienic
 # Library oasis
 "src/oasis/oasis.cmxs": use_oasis
-<src/oasis/*.ml{,i}>: pkg_odn
-<src/oasis/*.ml{,i}>: pkg_unix
+<src/oasis/*.ml{,i,y}>: pkg_odn
+<src/oasis/*.ml{,i,y}>: pkg_unix
 # Library base
 "src/base/base.cmxs": use_base
-<src/base/*.ml{,i}>: pkg_odn
-<src/base/*.ml{,i}>: pkg_unix
-<src/base/*.ml{,i}>: use_oasis
+<src/base/*.ml{,i,y}>: pkg_odn
+<src/base/*.ml{,i,y}>: pkg_unix
+<src/base/*.ml{,i,y}>: use_oasis
 # Library builtin-plugins
 "src/builtin-plugins.cmxs": use_builtin-plugins
-<src/*.ml{,i}>: pkg_ocamlbuild
-<src/*.ml{,i}>: pkg_odn
-<src/*.ml{,i}>: pkg_unix
-<src/*.ml{,i}>: use_base
-<src/*.ml{,i}>: use_oasis
-<src/plugins/custom/*.ml{,i}>: pkg_ocamlbuild
-<src/plugins/custom/*.ml{,i}>: pkg_odn
-<src/plugins/custom/*.ml{,i}>: pkg_unix
-<src/plugins/custom/*.ml{,i}>: use_base
-<src/plugins/custom/*.ml{,i}>: use_oasis
-<src/plugins/extra/META/*.ml{,i}>: pkg_ocamlbuild
-<src/plugins/extra/META/*.ml{,i}>: pkg_odn
-<src/plugins/extra/META/*.ml{,i}>: pkg_unix
-<src/plugins/extra/META/*.ml{,i}>: use_base
-<src/plugins/extra/META/*.ml{,i}>: use_oasis
-<src/plugins/extra/devfiles/*.ml{,i}>: pkg_ocamlbuild
-<src/plugins/extra/devfiles/*.ml{,i}>: pkg_odn
-<src/plugins/extra/devfiles/*.ml{,i}>: pkg_unix
-<src/plugins/extra/devfiles/*.ml{,i}>: use_base
-<src/plugins/extra/devfiles/*.ml{,i}>: use_oasis
-<src/plugins/extra/stdfiles/*.ml{,i}>: pkg_ocamlbuild
-<src/plugins/extra/stdfiles/*.ml{,i}>: pkg_odn
-<src/plugins/extra/stdfiles/*.ml{,i}>: pkg_unix
-<src/plugins/extra/stdfiles/*.ml{,i}>: use_base
-<src/plugins/extra/stdfiles/*.ml{,i}>: use_oasis
-<src/plugins/internal/*.ml{,i}>: pkg_ocamlbuild
-<src/plugins/internal/*.ml{,i}>: pkg_odn
-<src/plugins/internal/*.ml{,i}>: pkg_unix
-<src/plugins/internal/*.ml{,i}>: use_base
-<src/plugins/internal/*.ml{,i}>: use_oasis
-<src/plugins/none/*.ml{,i}>: pkg_ocamlbuild
-<src/plugins/none/*.ml{,i}>: pkg_odn
-<src/plugins/none/*.ml{,i}>: pkg_unix
-<src/plugins/none/*.ml{,i}>: use_base
-<src/plugins/none/*.ml{,i}>: use_oasis
-<src/plugins/ocamlbuild/*.ml{,i}>: pkg_ocamlbuild
-<src/plugins/ocamlbuild/*.ml{,i}>: pkg_odn
-<src/plugins/ocamlbuild/*.ml{,i}>: pkg_unix
-<src/plugins/ocamlbuild/*.ml{,i}>: use_base
-<src/plugins/ocamlbuild/*.ml{,i}>: use_oasis
+<src/*.ml{,i,y}>: pkg_ocamlbuild
+<src/*.ml{,i,y}>: pkg_odn
+<src/*.ml{,i,y}>: pkg_unix
+<src/*.ml{,i,y}>: use_base
+<src/*.ml{,i,y}>: use_oasis
+<src/plugins/custom/*.ml{,i,y}>: pkg_ocamlbuild
+<src/plugins/custom/*.ml{,i,y}>: pkg_odn
+<src/plugins/custom/*.ml{,i,y}>: pkg_unix
+<src/plugins/custom/*.ml{,i,y}>: use_base
+<src/plugins/custom/*.ml{,i,y}>: use_oasis
+<src/plugins/extra/META/*.ml{,i,y}>: pkg_ocamlbuild
+<src/plugins/extra/META/*.ml{,i,y}>: pkg_odn
+<src/plugins/extra/META/*.ml{,i,y}>: pkg_unix
+<src/plugins/extra/META/*.ml{,i,y}>: use_base
+<src/plugins/extra/META/*.ml{,i,y}>: use_oasis
+<src/plugins/extra/devfiles/*.ml{,i,y}>: pkg_ocamlbuild
+<src/plugins/extra/devfiles/*.ml{,i,y}>: pkg_odn
+<src/plugins/extra/devfiles/*.ml{,i,y}>: pkg_unix
+<src/plugins/extra/devfiles/*.ml{,i,y}>: use_base
+<src/plugins/extra/devfiles/*.ml{,i,y}>: use_oasis
+<src/plugins/extra/stdfiles/*.ml{,i,y}>: pkg_ocamlbuild
+<src/plugins/extra/stdfiles/*.ml{,i,y}>: pkg_odn
+<src/plugins/extra/stdfiles/*.ml{,i,y}>: pkg_unix
+<src/plugins/extra/stdfiles/*.ml{,i,y}>: use_base
+<src/plugins/extra/stdfiles/*.ml{,i,y}>: use_oasis
+<src/plugins/internal/*.ml{,i,y}>: pkg_ocamlbuild
+<src/plugins/internal/*.ml{,i,y}>: pkg_odn
+<src/plugins/internal/*.ml{,i,y}>: pkg_unix
+<src/plugins/internal/*.ml{,i,y}>: use_base
+<src/plugins/internal/*.ml{,i,y}>: use_oasis
+<src/plugins/none/*.ml{,i,y}>: pkg_ocamlbuild
+<src/plugins/none/*.ml{,i,y}>: pkg_odn
+<src/plugins/none/*.ml{,i,y}>: pkg_unix
+<src/plugins/none/*.ml{,i,y}>: use_base
+<src/plugins/none/*.ml{,i,y}>: use_oasis
+<src/plugins/ocamlbuild/*.ml{,i,y}>: pkg_ocamlbuild
+<src/plugins/ocamlbuild/*.ml{,i,y}>: pkg_odn
+<src/plugins/ocamlbuild/*.ml{,i,y}>: pkg_unix
+<src/plugins/ocamlbuild/*.ml{,i,y}>: use_base
+<src/plugins/ocamlbuild/*.ml{,i,y}>: use_oasis
 # Library dynrun
 "src/dynrun/dynrun.cmxs": use_dynrun
-<src/dynrun/*.ml{,i}>: pkg_ocamlbuild
-<src/dynrun/*.ml{,i}>: pkg_odn
-<src/dynrun/*.ml{,i}>: pkg_unix
-<src/dynrun/*.ml{,i}>: use_base
-<src/dynrun/*.ml{,i}>: use_builtin-plugins
-<src/dynrun/*.ml{,i}>: use_oasis
+<src/dynrun/*.ml{,i,y}>: pkg_ocamlbuild
+<src/dynrun/*.ml{,i,y}>: pkg_odn
+<src/dynrun/*.ml{,i,y}>: pkg_unix
+<src/dynrun/*.ml{,i,y}>: use_base
+<src/dynrun/*.ml{,i,y}>: use_builtin-plugins
+<src/dynrun/*.ml{,i,y}>: use_oasis
 # Executable fake_ocamlfind
-"test/utils/fake_ocamlfind.byte": pkg_unix
-<test/utils/*.ml{,i}>: pkg_unix
+<test/utils/fake_ocamlfind.{native,byte}>: pkg_unix
+<test/utils/*.ml{,i,y}>: pkg_unix
 # Executable test
-"test/test.byte": pkg_expect.pcre
-"test/test.byte": pkg_fileutils
-"test/test.byte": pkg_findlib
-"test/test.byte": pkg_oUnit
-"test/test.byte": pkg_ocamlbuild
-"test/test.byte": pkg_odn
-"test/test.byte": pkg_pcre
-"test/test.byte": pkg_unix
-"test/test.byte": use_base
-"test/test.byte": use_builtin-plugins
-"test/test.byte": use_oasis
-<test/*.ml{,i}>: pkg_expect.pcre
-<test/*.ml{,i}>: pkg_fileutils
-<test/*.ml{,i}>: pkg_findlib
-<test/*.ml{,i}>: pkg_oUnit
-<test/*.ml{,i}>: pkg_ocamlbuild
-<test/*.ml{,i}>: pkg_odn
-<test/*.ml{,i}>: pkg_pcre
-<test/*.ml{,i}>: pkg_unix
-<test/*.ml{,i}>: use_base
-<test/*.ml{,i}>: use_builtin-plugins
-<test/*.ml{,i}>: use_oasis
+<test/test.{native,byte}>: pkg_expect.pcre
+<test/test.{native,byte}>: pkg_fileutils
+<test/test.{native,byte}>: pkg_findlib
+<test/test.{native,byte}>: pkg_oUnit
+<test/test.{native,byte}>: pkg_ocamlbuild
+<test/test.{native,byte}>: pkg_odn
+<test/test.{native,byte}>: pkg_pcre
+<test/test.{native,byte}>: pkg_unix
+<test/test.{native,byte}>: use_base
+<test/test.{native,byte}>: use_builtin-plugins
+<test/test.{native,byte}>: use_oasis
+<test/*.ml{,i,y}>: pkg_expect.pcre
+<test/*.ml{,i,y}>: pkg_fileutils
+<test/*.ml{,i,y}>: pkg_findlib
+<test/*.ml{,i,y}>: pkg_oUnit
+<test/*.ml{,i,y}>: pkg_ocamlbuild
+<test/*.ml{,i,y}>: pkg_odn
+<test/*.ml{,i,y}>: pkg_pcre
+<test/*.ml{,i,y}>: pkg_unix
+<test/*.ml{,i,y}>: use_base
+<test/*.ml{,i,y}>: use_builtin-plugins
+<test/*.ml{,i,y}>: use_oasis
 # Library plugin-loader
 "src/ext/plugin-loader/src/plugin-loader.cmxs": use_plugin-loader
-<src/ext/plugin-loader/src/*.ml{,i}>: pkg_dynlink
-<src/ext/plugin-loader/src/*.ml{,i}>: pkg_findlib
+<src/ext/plugin-loader/src/*.ml{,i,y}>: pkg_dynlink
+<src/ext/plugin-loader/src/*.ml{,i,y}>: pkg_findlib
 # Library cli
 "src/cli/cli.cmxs": use_cli
 # Executable oasis
-"src/cli/Main.byte": pkg_dynlink
-"src/cli/Main.byte": pkg_findlib
-"src/cli/Main.byte": pkg_ocamlbuild
-"src/cli/Main.byte": pkg_odn
-"src/cli/Main.byte": pkg_unix
-"src/cli/Main.byte": use_base
-"src/cli/Main.byte": use_builtin-plugins
-"src/cli/Main.byte": use_cli
-"src/cli/Main.byte": use_oasis
-"src/cli/Main.byte": use_plugin-loader
-<src/cli/*.ml{,i}>: pkg_dynlink
-<src/cli/*.ml{,i}>: pkg_findlib
-<src/cli/*.ml{,i}>: pkg_ocamlbuild
-<src/cli/*.ml{,i}>: pkg_odn
-<src/cli/*.ml{,i}>: pkg_unix
-<src/cli/*.ml{,i}>: use_base
-<src/cli/*.ml{,i}>: use_builtin-plugins
-<src/cli/*.ml{,i}>: use_cli
-<src/cli/*.ml{,i}>: use_oasis
-<src/cli/*.ml{,i}>: use_plugin-loader
+<src/cli/Main.{native,byte}>: pkg_dynlink
+<src/cli/Main.{native,byte}>: pkg_findlib
+<src/cli/Main.{native,byte}>: pkg_ocamlbuild
+<src/cli/Main.{native,byte}>: pkg_odn
+<src/cli/Main.{native,byte}>: pkg_unix
+<src/cli/Main.{native,byte}>: use_base
+<src/cli/Main.{native,byte}>: use_builtin-plugins
+<src/cli/Main.{native,byte}>: use_cli
+<src/cli/Main.{native,byte}>: use_oasis
+<src/cli/Main.{native,byte}>: use_plugin-loader
+<src/cli/*.ml{,i,y}>: pkg_dynlink
+<src/cli/*.ml{,i,y}>: pkg_findlib
+<src/cli/*.ml{,i,y}>: pkg_ocamlbuild
+<src/cli/*.ml{,i,y}>: pkg_odn
+<src/cli/*.ml{,i,y}>: pkg_unix
+<src/cli/*.ml{,i,y}>: use_base
+<src/cli/*.ml{,i,y}>: use_builtin-plugins
+<src/cli/*.ml{,i,y}>: use_cli
+<src/cli/*.ml{,i,y}>: use_oasis
+<src/cli/*.ml{,i,y}>: use_plugin-loader
 # Library pluginloaderLib
 "src/ext/plugin-loader/test/data/findlib/pluginloaderLib/pluginloaderLib.cmxs": use_pluginloaderLib
 # Library plugin1
 "src/ext/plugin-loader/test/data/findlib/plugin1/plugin1.cmxs": use_plugin1
-<src/ext/plugin-loader/test/data/findlib/plugin1/*.ml{,i}>: use_pluginloaderLib
+<src/ext/plugin-loader/test/data/findlib/plugin1/*.ml{,i,y}>: use_pluginloaderLib
 # Library plugin2
 "src/ext/plugin-loader/test/data/findlib/plugin2/plugin2.cmxs": use_plugin2
-<src/ext/plugin-loader/test/data/findlib/plugin2/*.ml{,i}>: use_plugin1
-<src/ext/plugin-loader/test/data/findlib/plugin2/*.ml{,i}>: use_pluginloaderLib
+<src/ext/plugin-loader/test/data/findlib/plugin2/*.ml{,i,y}>: use_plugin1
+<src/ext/plugin-loader/test/data/findlib/plugin2/*.ml{,i,y}>: use_pluginloaderLib
 # Library plugin3
 "src/ext/plugin-loader/test/data/findlib/plugin3/plugin3.cmxs": use_plugin3
-<src/ext/plugin-loader/test/data/findlib/plugin3/*.ml{,i}>: use_pluginloaderLib
+<src/ext/plugin-loader/test/data/findlib/plugin3/*.ml{,i,y}>: use_pluginloaderLib
 # Executable pluginloader
 "src/ext/plugin-loader/test/data/pluginloader.byte": pkg_dynlink
 "src/ext/plugin-loader/test/data/pluginloader.byte": pkg_findlib
 "src/ext/plugin-loader/test/data/pluginloader.byte": use_plugin-loader
 "src/ext/plugin-loader/test/data/pluginloader.byte": use_pluginloaderLib
-<src/ext/plugin-loader/test/data/*.ml{,i}>: pkg_dynlink
-<src/ext/plugin-loader/test/data/*.ml{,i}>: pkg_findlib
-<src/ext/plugin-loader/test/data/*.ml{,i}>: use_plugin-loader
-<src/ext/plugin-loader/test/data/*.ml{,i}>: use_pluginloaderLib
+<src/ext/plugin-loader/test/data/*.ml{,i,y}>: pkg_dynlink
+<src/ext/plugin-loader/test/data/*.ml{,i,y}>: pkg_findlib
+<src/ext/plugin-loader/test/data/*.ml{,i,y}>: use_plugin-loader
+<src/ext/plugin-loader/test/data/*.ml{,i,y}>: use_pluginloaderLib
 # Executable test_loader
 "src/ext/plugin-loader/test/TestLoader.byte": pkg_dynlink
 "src/ext/plugin-loader/test/TestLoader.byte": pkg_fileutils
 "src/ext/plugin-loader/test/TestLoader.byte": pkg_findlib
 "src/ext/plugin-loader/test/TestLoader.byte": pkg_oUnit
 "src/ext/plugin-loader/test/TestLoader.byte": use_plugin-loader
-<src/ext/plugin-loader/test/*.ml{,i}>: pkg_dynlink
-<src/ext/plugin-loader/test/*.ml{,i}>: pkg_fileutils
-<src/ext/plugin-loader/test/*.ml{,i}>: pkg_findlib
-<src/ext/plugin-loader/test/*.ml{,i}>: pkg_oUnit
-<src/ext/plugin-loader/test/*.ml{,i}>: use_plugin-loader
+<src/ext/plugin-loader/test/*.ml{,i,y}>: pkg_dynlink
+<src/ext/plugin-loader/test/*.ml{,i,y}>: pkg_fileutils
+<src/ext/plugin-loader/test/*.ml{,i,y}>: pkg_findlib
+<src/ext/plugin-loader/test/*.ml{,i,y}>: pkg_oUnit
+<src/ext/plugin-loader/test/*.ml{,i,y}>: use_plugin-loader
 # Library userconf
 "src/ext/userconf/src/userconf.cmxs": use_userconf
 # Executable test_userconf
 "src/ext/userconf/test/TestUserConf.byte": pkg_oUnit
 "src/ext/userconf/test/TestUserConf.byte": use_userconf
-<src/ext/userconf/test/*.ml{,i}>: pkg_oUnit
-<src/ext/userconf/test/*.ml{,i}>: use_userconf
+<src/ext/userconf/test/*.ml{,i,y}>: pkg_oUnit
+<src/ext/userconf/test/*.ml{,i,y}>: use_userconf
 # OASIS_STOP
 
 # Base system and OASIS library 
@@ -232,6 +233,7 @@
 <src/cli/Main.byte>: -use_oasis
 
 <**/*.ml>: annot
+true: safe_string
 
 "build": -traverse
 "build": not_hygienic

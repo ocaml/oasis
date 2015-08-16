@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 2f2e363a0a79c9d3786900691c785d64)
+# DO NOT EDIT (digest: 956bbf8934f72275c29c20c43c69ebdc)
 FormatExt
 ODNFunc
 PropList
@@ -66,9 +66,9 @@ OASISLicense_types
 OASISLicense_lexer
 OASISLicense_parser
 OASISValues_lexer
-OASISSchema
 OASISConf
 OASISAst
+OASISAstTypes
 OASISCheck
 OASISRecDescParser
 OASISCustom

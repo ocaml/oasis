@@ -39,7 +39,7 @@ type t = string MapString.t
 
 (** Environment default file
   *)
-val default_filename: string
+val default_filename: string Lazy.t
 
 
 (** Load environment.

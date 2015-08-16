@@ -25,9 +25,9 @@ open OASISUtils
 
 
 let default_filename =
-  Filename.concat
-    (Filename.dirname BaseEnv.default_filename)
-    "setup.log"
+  lazy (Filename.concat
+          (Filename.dirname (Lazy.force BaseEnv.default_filename))
+          "setup.log")
 
 
 module SetTupleString =
@@ -42,6 +42,7 @@ module SetTupleString =
 
 
 let load () =
+  let default_filename = Lazy.force default_filename in
   if Sys.file_exists default_filename then
     begin
       let chn =
@@ -93,13 +94,15 @@ let load () =
 
 let register event data =
   let chn_out =
-    open_out_gen [Open_append; Open_creat; Open_text] 0o644 default_filename
+    open_out_gen [Open_append; Open_creat; Open_text] 0o644
+                 (Lazy.force default_filename)
   in
     Printf.fprintf chn_out "%S %S\n" event data;
     close_out chn_out
 
 
 let unregister event data =
+  let default_filename = Lazy.force default_filename in
   if Sys.file_exists default_filename then
     begin
       let lst =

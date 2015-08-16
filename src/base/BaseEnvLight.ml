@@ -28,12 +28,10 @@ type t = string MapString.t
 
 
 let default_filename =
-  Filename.concat
-    (Sys.getcwd ())
-    "setup.data"
+  lazy (Filename.concat (Sys.getcwd ()) "setup.data")
 
 
-let load ?(allow_empty=false) ?(filename=default_filename) () =
+let load ?(allow_empty=false) ?(filename=Lazy.force default_filename) () =
   if Sys.file_exists filename then
     begin
       let chn =

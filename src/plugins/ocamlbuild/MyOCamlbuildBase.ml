@@ -74,8 +74,7 @@ type t =
 
 
 let env_filename =
-  Pathname.basename
-    BaseEnvLight.default_filename
+  lazy (Pathname.basename (Lazy.force BaseEnvLight.default_filename))
 
 
 let dispatch_combine lst =
@@ -96,7 +95,7 @@ let nm_libstubs nm =
 let dispatch t e =
   let env =
     BaseEnvLight.load
-      ~filename:env_filename
+      ~filename:(Lazy.force env_filename)
       ~allow_empty:true
       ()
   in

@@ -46,7 +46,8 @@ let blank_sep_strings =
 
 let exec_from_conf exec =
   let exec =
-    let env_filename = Pathname.basename BaseEnvLight.default_filename in
+    let env_filename =
+      Pathname.basename (Lazy.force BaseEnvLight.default_filename) in
     let env = BaseEnvLight.load ~filename:env_filename ~allow_empty:true () in
     try
       BaseEnvLight.var_get exec env

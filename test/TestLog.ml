@@ -39,7 +39,7 @@ let tests =
        let () = bracket
                   ignore
                   (fun () test_ctxt ->
-                     FileUtil.rm [BaseLog.default_filename])
+                     FileUtil.rm [Lazy.force BaseLog.default_filename])
                   test_ctxt
        in
          f ())

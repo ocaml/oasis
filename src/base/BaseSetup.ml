@@ -333,9 +333,8 @@ let clean, distclean =
              info (f_ "Remove '%s'") fn;
              Sys.remove fn
            end)
-      (BaseEnv.default_filename
-       ::
-       BaseLog.default_filename
+      (Lazy.force BaseEnv.default_filename
+       :: Lazy.force BaseLog.default_filename
        ::
        (List.rev_map BaseFileAB.to_filename t.package.files_ab))
   in
