@@ -269,6 +269,7 @@ type package =
       bugreports:             url option;
       synopsis:               string;
       description:            OASISText.t option;
+      tags:                   string list;
       categories:             url list;
 
       conf_type:              [`Configure] plugin;

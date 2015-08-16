@@ -351,6 +351,14 @@ let generator =
          s_ "URL of the page to report bugs about the package.")
       (fun pkg -> pkg.bugreports)
   in
+  let tags =
+    new_field "Tags"
+      ~default:[]
+      (comma_separated string_not_empty)
+      (fun () ->
+         s_ "List of semantic tags to classify the package.")
+      (fun pkg -> pkg.tags)
+  in
   let categories =
     new_field "Categories"
       ~default:[]
@@ -498,6 +506,7 @@ let generator =
                 bugreports             = bugreports data;
                 synopsis               = synopsis data;
                 description            = description data;
+                tags                   = tags data;
                 categories             = categories data;
                 conf_type              = conf;
                 conf_custom            = conf_custom data;
