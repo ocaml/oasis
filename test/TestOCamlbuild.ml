@@ -121,8 +121,8 @@ let tests =
          ["-doc"]);
 
     (* this test changes a c-source file and asserts that an executable
-       depending on a library which uses this c-file is re-linked 
-       properly 
+       depending on a library which uses this c-file is re-linked
+       properly
        TODO: reassert that this test fails without the fix in cb96135a
      *)
     "external source rebuild" >::
@@ -132,9 +132,9 @@ let tests =
            ~is_native:(is_native test_ctxt)
            ~native_dynlink:(native_dynlink test_ctxt)
            (in_testdata_dir test_ctxt ["TestOCamlbuild"; "external-c-rebuild"])
-	   
+
        (* contain c-source code here to avoid any problems with
-          aborted evaluation *) 
+          aborted evaluation *)
        and code_a = "#include \"header.h\"
                      CAMLprim value oasis_c_build_test_foo(value x) {
                        CAMLparam1(x);
@@ -152,7 +152,7 @@ let tests =
        oasis_setup test_ctxt t;
 
        ( let c = open_out c_source in Printf.fprintf c "%s\n" code_a ; close_out c );
-				    
+
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-configure" ];
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"];
 
@@ -161,7 +161,7 @@ let tests =
 		   (Sys.file_exists (in_src_dir t "B.native"));
 
        assert_command ~ctxt:test_ctxt ~chdir:t.src_dir ~exit_code:(Unix.WEXITED 42) (in_src_dir t "B.native") [];
-    
+
        (* change c-file, rebuild and assert result-code *)
        ( let c = open_out c_source in Printf.fprintf c "%s\n" code_b ; close_out c ) ;
 
@@ -169,7 +169,7 @@ let tests =
        (* run_ocaml_setup_ml ~check_output:true test_ctxt t ["-clean"]; *)
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"];
 
-       assert_command ~ctxt:test_ctxt ~chdir:t.src_dir ~exit_code:(Unix.WEXITED 23) (in_src_dir t "B.native") []     
+       assert_command ~ctxt:test_ctxt ~chdir:t.src_dir ~exit_code:(Unix.WEXITED 23) (in_src_dir t "B.native") []
     );
 
     "env-tags" >::
@@ -194,5 +194,19 @@ let tests =
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"];
        assert_bool
          "tests-tag-detected should not be existed."
-         (not (Sys.file_exists tests_tag_detected_fn)))
+         (not (Sys.file_exists tests_tag_detected_fn)));
+
+    (* This test checks that the "no_automatic_syntax" AlphaFeature doesn't
+       disable the pkg_* flag injection that is necessary for OCaml < 3.12.1 *)
+    "pr63-no-automatic-syntax" >::
+    (fun test_ctxt ->
+       let t =
+         setup_test_directories test_ctxt
+           ~is_native:(is_native test_ctxt)
+           ~native_dynlink:(native_dynlink test_ctxt)
+           (in_testdata_dir test_ctxt ["TestOCamlbuild"; "pr63-no-automatic-syntax"])
+       in
+       oasis_setup test_ctxt t;
+       run_ocaml_setup_ml ~check_output:true test_ctxt t ["-configure"];
+       run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"]);
   ]

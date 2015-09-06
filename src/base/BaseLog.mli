@@ -31,7 +31,7 @@ open OASISTypes
 
 (** Default file for registering log.
   *)
-val default_filename: host_filename
+val default_filename: host_filename Lazy.t
 
 
 (** Load the log file.

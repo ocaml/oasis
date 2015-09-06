@@ -95,9 +95,9 @@ Library oasis
                    OASISLicense_lexer,
                    OASISLicense_parser,
                    OASISValues_lexer,
-                   OASISSchema,
                    OASISConf,
                    OASISAst,
+                   OASISAstTypes,
                    OASISCheck,
                    OASISRecDescParser,
                    OASISCustom,
@@ -201,12 +201,13 @@ Executable oasis
   Path:   src/cli
   MainIs: Main.ml
   BuildDepends: oasis, oasis.base, oasis.cli, oasis.builtin-plugins
+  CompiledObject: best
 
 Executable fake_ocamlfind
   Path: test/utils
   MainIs: fake_ocamlfind.ml
   Install: false
-  CompiledObject: byte
+  CompiledObject: best
   Build$: flag(tests)
   BuildDepends: unix
 
@@ -214,7 +215,7 @@ Executable test
   Path: test
   MainIs: test.ml
   Install: false
-  CompiledObject: byte
+  CompiledObject: best
   Build$: flag(tests)
   BuildDepends: oUnit (>= 2.0.0), findlib, fileutils (>= 0.4.2),
                 expect.pcre (>= 0.0.4), oasis, oasis.base,

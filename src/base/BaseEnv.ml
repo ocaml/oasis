@@ -311,7 +311,7 @@ let unload () =
   Data.clear env
 
 
-let dump ?(filename=default_filename) () =
+let dump ?(filename=Lazy.force default_filename) () =
   let chn =
     open_out_bin filename
   in
