@@ -1,0 +1,2 @@
+VarString     omakesys_ml        "OMakeSys.ml"
+VarStringList readme_template_mkd "MANUAL-template.mkd"

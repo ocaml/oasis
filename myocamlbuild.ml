@@ -114,9 +114,9 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: c0ae498354f6736674499caf221fdc53) *)
+(* DO NOT EDIT (digest: d9f7cbe35cbfd6c5089ff88ab651cd60) *)
 module OASISGettext = struct
-# 22 "src/oasis/OASISGettext.ml"
+(* # 22 "/data/netsoft/debian7_amd64/godi-4.01/build/apps/apps-oasis/work/oasis-0.4.5/src/oasis/OASISGettext.ml" *)
 
 
   let ns_ str =
@@ -145,7 +145,7 @@ module OASISGettext = struct
 end
 
 module OASISExpr = struct
-# 22 "src/oasis/OASISExpr.ml"
+(* # 22 "/data/netsoft/debian7_amd64/godi-4.01/build/apps/apps-oasis/work/oasis-0.4.5/src/oasis/OASISExpr.ml" *)
 
 
 
@@ -154,10 +154,10 @@ module OASISExpr = struct
   open OASISGettext
 
 
-  type test = string
+  type test = string 
 
 
-  type flag = string
+  type flag = string 
 
 
   type t =
@@ -167,10 +167,10 @@ module OASISExpr = struct
     | EOr of t * t
     | EFlag of flag
     | ETest of test * string
+    
 
 
-
-  type 'a choices = (t * 'a) list
+  type 'a choices = (t * 'a) list 
 
 
   let eval var_get t =
@@ -246,7 +246,7 @@ end
 
 # 132 "myocamlbuild.ml"
 module BaseEnvLight = struct
-# 22 "src/base/BaseEnvLight.ml"
+(* # 22 "/data/netsoft/debian7_amd64/godi-4.01/build/apps/apps-oasis/work/oasis-0.4.5/src/base/BaseEnvLight.ml" *)
 
 
   module MapString = Map.Make(String)
@@ -351,7 +351,7 @@ end
 
 # 237 "myocamlbuild.ml"
 module MyOCamlbuildFindlib = struct
-# 22 "src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml"
+(* # 22 "/data/netsoft/debian7_amd64/godi-4.01/build/apps/apps-oasis/work/oasis-0.4.5/src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml" *)
 
 
   (** OCamlbuild extension, copied from
@@ -471,45 +471,43 @@ module MyOCamlbuildFindlib = struct
 
       | After_rules ->
 
-          (* Avoid warnings for unused tag *)
-          flag ["tests"] N;
-
           (* When one link an OCaml library/binary/package, one should use
            * -linkpkg *)
           flag ["ocaml"; "link"; "program"] & A"-linkpkg";
 
-          (* For each ocamlfind package one inject the -package option when
-           * compiling, computing dependencies, generating documentation and
-           * linking. *)
-          List.iter
-            begin fun pkg ->
-              let base_args = [A"-package"; A pkg] in
-              (* TODO: consider how to really choose camlp4o or camlp4r. *)
-              let syn_args = [A"-syntax"; A "camlp4o"] in
-              let (args, pargs) =
-                (* Heuristic to identify syntax extensions: whether they end in
-                   ".syntax"; some might not.
-                *)
-                if not (conf.no_automatic_syntax) &&
-                   (Filename.check_suffix pkg "syntax" ||
-                    List.mem pkg well_known_syntax) then
-                  (syn_args @ base_args, syn_args)
-                else
-                  (base_args, [])
-              in
-              flag ["ocaml"; "compile";  "pkg_"^pkg] & S args;
-              flag ["ocaml"; "ocamldep"; "pkg_"^pkg] & S args;
-              flag ["ocaml"; "doc";      "pkg_"^pkg] & S args;
-              flag ["ocaml"; "link";     "pkg_"^pkg] & S base_args;
-              flag ["ocaml"; "infer_interface"; "pkg_"^pkg] & S args;
+          if not (conf.no_automatic_syntax) then begin
+            (* For each ocamlfind package one inject the -package option when
+             * compiling, computing dependencies, generating documentation and
+             * linking. *)
+            List.iter
+              begin fun pkg ->
+                let base_args = [A"-package"; A pkg] in
+                (* TODO: consider how to really choose camlp4o or camlp4r. *)
+                let syn_args = [A"-syntax"; A "camlp4o"] in
+                let (args, pargs) =
+                  (* Heuristic to identify syntax extensions: whether they end in
+                     ".syntax"; some might not.
+                  *)
+                  if Filename.check_suffix pkg "syntax" ||
+                     List.mem pkg well_known_syntax then
+                    (syn_args @ base_args, syn_args)
+                  else
+                    (base_args, [])
+                in
+                flag ["ocaml"; "compile";  "pkg_"^pkg] & S args;
+                flag ["ocaml"; "ocamldep"; "pkg_"^pkg] & S args;
+                flag ["ocaml"; "doc";      "pkg_"^pkg] & S args;
+                flag ["ocaml"; "link";     "pkg_"^pkg] & S base_args;
+                flag ["ocaml"; "infer_interface"; "pkg_"^pkg] & S args;
 
-              (* TODO: Check if this is allowed for OCaml < 3.12.1 *)
-              flag ["ocaml"; "compile";  "package("^pkg^")"] & S pargs;
-              flag ["ocaml"; "ocamldep"; "package("^pkg^")"] & S pargs;
-              flag ["ocaml"; "doc";      "package("^pkg^")"] & S pargs;
-              flag ["ocaml"; "infer_interface"; "package("^pkg^")"] & S pargs;
-            end
-            (find_packages ());
+                (* TODO: Check if this is allowed for OCaml < 3.12.1 *)
+                flag ["ocaml"; "compile";  "package("^pkg^")"] & S pargs;
+                flag ["ocaml"; "ocamldep"; "package("^pkg^")"] & S pargs;
+                flag ["ocaml"; "doc";      "package("^pkg^")"] & S pargs;
+                flag ["ocaml"; "infer_interface"; "package("^pkg^")"] & S pargs;
+              end
+              (find_packages ());
+          end;
 
           (* Like -package but for extensions syntax. Morover -syntax is useless
            * when linking. *)
@@ -543,7 +541,7 @@ module MyOCamlbuildFindlib = struct
 end
 
 module MyOCamlbuildBase = struct
-# 22 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml"
+(* # 22 "/data/netsoft/debian7_amd64/godi-4.01/build/apps/apps-oasis/work/oasis-0.4.5/src/plugins/ocamlbuild/MyOCamlbuildBase.ml" *)
 
 
   (** Base functions for writing myocamlbuild.ml
@@ -558,13 +556,13 @@ module MyOCamlbuildBase = struct
   module OC = Ocamlbuild_pack.Ocaml_compiler
 
 
-  type dir = string
-  type file = string
-  type name = string
-  type tag = string
+  type dir = string 
+  type file = string 
+  type name = string 
+  type tag = string 
 
 
-# 62 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml"
+(* # 62 "/data/netsoft/debian7_amd64/godi-4.01/build/apps/apps-oasis/work/oasis-0.4.5/src/plugins/ocamlbuild/MyOCamlbuildBase.ml" *)
 
 
   type t =
@@ -576,7 +574,7 @@ module MyOCamlbuildBase = struct
          * directory.
          *)
         includes:  (dir * dir list) list;
-      }
+      } 
 
 
   let env_filename =
@@ -720,7 +718,7 @@ module MyOCamlbuildBase = struct
 end
 
 
-# 608 "myocamlbuild.ml"
+# 606 "myocamlbuild.ml"
 open Ocamlbuild_plugin;;
 let package_default =
   {
@@ -737,7 +735,8 @@ let package_default =
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ],
             []);
           ("dynrun", ["src/dynrun"], []);
@@ -772,6 +771,20 @@ let package_default =
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
                "src/plugins/none";
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
+            ]);
+          ("src/plugins/omake",
+            [
+               "src";
+               "src/base";
+               "src/oasis";
+               "src/plugins/custom";
+               "src/plugins/extra/META";
+               "src/plugins/extra/devfiles";
+               "src/plugins/extra/stdfiles";
+               "src/plugins/internal";
+               "src/plugins/none";
                "src/plugins/ocamlbuild"
             ]);
           ("src/plugins/ocamlbuild",
@@ -784,7 +797,8 @@ let package_default =
                "src/plugins/extra/devfiles";
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
-               "src/plugins/none"
+               "src/plugins/none";
+               "src/plugins/omake"
             ]);
           ("src/plugins/none",
             [
@@ -796,7 +810,8 @@ let package_default =
                "src/plugins/extra/devfiles";
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ]);
           ("src/plugins/internal",
             [
@@ -808,7 +823,8 @@ let package_default =
                "src/plugins/extra/devfiles";
                "src/plugins/extra/stdfiles";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ]);
           ("src/plugins/extra/stdfiles",
             [
@@ -820,7 +836,8 @@ let package_default =
                "src/plugins/extra/devfiles";
                "src/plugins/internal";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ]);
           ("src/plugins/extra/devfiles",
             [
@@ -832,7 +849,8 @@ let package_default =
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ]);
           ("src/plugins/extra/META",
             [
@@ -844,7 +862,8 @@ let package_default =
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ]);
           ("src/plugins/custom",
             [
@@ -856,7 +875,8 @@ let package_default =
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ]);
           ("src/ext/userconf/test", ["src/ext/userconf/src"]);
           ("src/ext/plugin-loader/test/data/findlib/plugin3",
@@ -884,7 +904,8 @@ let package_default =
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ]);
           ("src/cli",
             [
@@ -898,7 +919,8 @@ let package_default =
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ]);
           ("src/base", ["src/oasis"]);
           ("src",
@@ -911,7 +933,8 @@ let package_default =
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ])
        ]
   }
@@ -921,7 +944,7 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 810 "myocamlbuild.ml"
+# 833 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 open Ocamlbuild_plugin;;

@@ -32,6 +32,7 @@ let init () =
   OCamlbuildPlugin.init ();
   OCamlbuildDocPlugin.init ();
   CustomPlugin.init ();
+  OMakePlugin.init ();
   METAPlugin.init ();
   DevFilesPlugin.init ();
   StdFilesPlugin.init ()

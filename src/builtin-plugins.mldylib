@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: b76a68b267a842b59e42cef93099bca4)
+# DO NOT EDIT (digest: 4496650640dc49523ffa373eaf8aee89)
 OASISBuiltinPlugins
 plugins/extra/META/METAPlugin
 plugins/internal/InternalConfigurePlugin
@@ -33,6 +33,7 @@ plugins/ocamlbuild/OCamlbuildCommon
 plugins/custom/CustomPlugin
 plugins/extra/devfiles/DevFilesPlugin
 plugins/extra/stdfiles/StdFilesPlugin
+plugins/omake/OMakePlugin
 plugins/none/NoneData
 plugins/internal/InternalData
 plugins/internal/InternalId
@@ -44,4 +45,5 @@ plugins/custom/CustomData
 plugins/extra/META/METAData
 plugins/extra/devfiles/DevFilesData
 plugins/extra/stdfiles/StdFilesData
+plugins/omake/OMakeData
 # OASIS_STOP
