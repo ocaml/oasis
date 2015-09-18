@@ -941,7 +941,7 @@ dispatch
                         "gettext" 
                         (BaseEnvLight.load
                            ~allow_empty:true
-                           ~filename:(Lazy.force MyOCamlbuildBase.env_filename)
+                           ~filename:(MyOCamlbuildBase.env_filename)
                            ())
                     in
                       if gettext = "true" then
