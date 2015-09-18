@@ -138,10 +138,11 @@ let check_file_style test_ctxt fn =
         (fun test_ctxt ->
            let strlen = String.length line in
            if strlen > 0 && line.[strlen - 1] = ' ' then
-             assert_failure
-               (Printf.sprintf
-                  "Found a blank at the end of line in file '%s' line %d: %S"
-                  (Filename.basename fn) !line_number line));
+             if strlen = 1 || strlen > 1 && line.[strlen - 2] != '\\' then
+               assert_failure
+                 (Printf.sprintf
+                    "Found a blank at the end of line in file '%s' line %d: %S"
+                    (Filename.basename fn) !line_number line));
     done
   with End_of_file ->
     close_in chn
@@ -402,6 +403,7 @@ let run_ocaml_setup_ml
     ("OCAMLFIND_DESTDIR", t.ocaml_lib_dir)
     :: ("OCAMLFIND_LDCONF", "ignore")
     :: ("OCAML_TOPLEVEL_PATH", toplevel_path)
+    :: ("HOME", t.build_dir)
     :: extra_env
   in
   let cmd, args =
@@ -491,7 +493,7 @@ let register_generated_files t lst =
 
 
 (* Check presence of generated files. *)
-let check_generated_files t =
+let check_generated_files location t =
   let expected_files =
     SetFileDigest.fold
       (fun (fn, _) st -> SetFile.add fn st)
@@ -499,7 +501,7 @@ let check_generated_files t =
   in
   (* Check generated files *)
   SetFile.assert_equal
-    ~msg:"Generated files"
+    ~msg:("Generated files ("^location^")")
     ~root:t.src_dir
     expected_files
     (all_files t.src_dir)
@@ -828,7 +830,7 @@ let oasis_setup ?(dev=false) ?(dynamic=false) test_ctxt t =
 
 let standard_checks test_ctxt t =
   let timer = timer_start "standard_checks" in
-    check_generated_files t;
+    check_generated_files "standard_checks" t;
     check_tags test_ctxt t;
     timer_stop test_ctxt timer
 
@@ -844,7 +846,7 @@ let standard_test test_ctxt t =
 
   (* Distclean. *)
   run_ocaml_setup_ml test_ctxt t ["-distclean"];
-  check_generated_files t;
+  check_generated_files "after distclean" t;
 
   (* Run configure target *)
   run_ocaml_setup_ml test_ctxt t

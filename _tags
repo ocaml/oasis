@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 363e92bf1512a5f72aa67e68c6e1fce7)
+# DO NOT EDIT (digest: 3fec349a5712b77d85c3beb201a344cb)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -87,6 +87,11 @@ true: annot, bin_annot
 <src/plugins/ocamlbuild/*.ml{,i,y}>: pkg_unix
 <src/plugins/ocamlbuild/*.ml{,i,y}>: use_base
 <src/plugins/ocamlbuild/*.ml{,i,y}>: use_oasis
+<src/plugins/omake/*.ml{,i,y}>: pkg_ocamlbuild
+<src/plugins/omake/*.ml{,i,y}>: pkg_odn
+<src/plugins/omake/*.ml{,i,y}>: pkg_unix
+<src/plugins/omake/*.ml{,i,y}>: use_base
+<src/plugins/omake/*.ml{,i,y}>: use_oasis
 # Library dynrun
 "src/dynrun/dynrun.cmxs": use_dynrun
 <src/dynrun/*.ml{,i,y}>: pkg_ocamlbuild
@@ -180,13 +185,6 @@ true: annot, bin_annot
 <src/ext/plugin-loader/test/*.ml{,i,y}>: pkg_findlib
 <src/ext/plugin-loader/test/*.ml{,i,y}>: pkg_oUnit
 <src/ext/plugin-loader/test/*.ml{,i,y}>: use_plugin-loader
-# Library userconf
-"src/ext/userconf/src/userconf.cmxs": use_userconf
-# Executable test_userconf
-"src/ext/userconf/test/TestUserConf.byte": pkg_oUnit
-"src/ext/userconf/test/TestUserConf.byte": use_userconf
-<src/ext/userconf/test/*.ml{,i,y}>: pkg_oUnit
-<src/ext/userconf/test/*.ml{,i,y}>: use_userconf
 # OASIS_STOP
 
 # Base system and OASIS library 
@@ -225,6 +223,7 @@ true: annot, bin_annot
 "src/plugins/ocamlbuild/OCamlbuildPlugin.ml": use_ocamlbuild
 "src/plugins/ocamlbuild/OCamlbuildDocPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
 "src/plugins/ocamlbuild/OCamlbuildCommon.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/plugins/omake/OMakeFields.ml": syntax_camlp4o, pkg_odn.with.syntax
 
 # TODO: The fact that we need to remove these tags is maybe a bug
 <test/test.byte>: -use_base

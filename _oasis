@@ -20,7 +20,7 @@ Description:
   application. It starts with a simple `_oasis` file at the toplevel of your
   project and creates everything required.
   .
-  Oasis leverages existing OCaml tooling to perform most of it's work. In fact,
+  OASIS leverages existing OCaml tooling to perform most of it's work. In fact,
   it might be more appropriate to think of it as simply the glue that binds
   these other subsystems together and coordinates the work that they do. It
   should support the following tools:
@@ -38,7 +38,7 @@ Description:
   integrates your libraries and software with third parties tools like GODI.
 
 Flag libraries
-  Description: Install oasis and base libraries, for plugins development
+  Description: Install OASIS and base libraries, for plugins development
 
 Flag gettext
   Description: Use ocaml-gettext for i18n
@@ -162,7 +162,8 @@ Library "builtin-plugins"
            plugins/ocamlbuild/OCamlbuildCommon,
            plugins/custom/CustomPlugin,
            plugins/extra/devfiles/DevFilesPlugin,
-           plugins/extra/stdfiles/StdFilesPlugin
+           plugins/extra/stdfiles/StdFilesPlugin,
+           plugins/omake/OMakePlugin
   InternalModules: plugins/none/NoneData,
                    plugins/internal/InternalData,
                    plugins/internal/InternalId,
@@ -173,7 +174,11 @@ Library "builtin-plugins"
                    plugins/custom/CustomData,
                    plugins/extra/META/METAData,
                    plugins/extra/devfiles/DevFilesData,
-                   plugins/extra/stdfiles/StdFilesData
+                   plugins/extra/stdfiles/StdFilesData,
+                   plugins/omake/OMakeData,
+                   plugins/omake/OMakeFields,
+                   plugins/omake/OMakeEquip,
+                   plugins/omake/OMakeFormat
   CompiledObject: Best
   BuildDepends: oasis, oasis.base, ocamlbuild
   FindlibParent: oasis
@@ -226,7 +231,7 @@ Test main
   Type: custom (0.3)
   Command: $test -oasis $oasis -is-native $is_native -native-dynlink $native_dynlink -ocamlmod $ocamlmod -fake-ocamlfind $fake_ocamlfind
   WorkingDirectory: test
-  TestTools: oasis, test, ocamlmod, fake_ocamlfind
+  TestTools: oasis, test, ocamlmod, fake_ocamlfind, omake, ocamlbuild
 
 Document manual
   Type: custom (0.3)
@@ -257,12 +262,14 @@ Library "plugin-loader"
   Path:         src/ext/plugin-loader/src
   Modules:      PluginLoader
   BuildDepends: dynlink, findlib
+  XMETADescription: OCaml plugin management using findlib
 
 Library "pluginloaderLib"
   Path:    src/ext/plugin-loader/test/data/findlib/pluginloaderLib
   Modules: PluginloaderLib
   Build$: flag(tests)
   Install: false
+  XMETADescription: test library loader
 
 Library "plugin1"
   Path:    src/ext/plugin-loader/test/data/findlib/plugin1
@@ -270,6 +277,7 @@ Library "plugin1"
   Install: false
   Build$: flag(tests)
   BuildDepends: pluginloaderLib
+  XMETADescription: test library number 1
   XMETAExtraLines: plugin_system = "pluginloader"
                    plugin_name = "plugin1"
                    plugin_synopsis = "first plugin"
@@ -280,6 +288,7 @@ Library "plugin2"
   Install: false
   Build$: flag(tests)
   BuildDepends: pluginloaderLib, plugin1
+  XMETADescription: test library number 2
   XMETAExtraLines: plugin_system = "pluginloader"
                    plugin_name = "plugin2"
                    plugin_synopsis = "second plugin"
@@ -290,6 +299,7 @@ Library "plugin3"
   Install: false
   Build$: flag(tests)
   BuildDepends: pluginloaderLib
+  XMETADescription: test library number 3
   XMETAExtraLines: plugin_system = "pluginloader"
                    plugin_name = "plugin3"
                    plugin_synopsis = "third plugin"
@@ -312,21 +322,3 @@ Test main_loader
   Type:      custom (0.3)
   Command:   $test_loader -pluginloader $pluginloader
   TestTools: test_loader, pluginloader
-
-# Third party: user-conf
-
-Library "userconf"
-  Path:     src/ext/userconf/src
-  Modules:  UserConf
-
-Executable "test_userconf"
-  Path:         src/ext/userconf/test
-  MainIs:       TestUserConf.ml
-  BuildDepends: userconf, oUnit
-  Build$:       flag(tests)
-  Install:      false
-
-Test main_userconf
-  Type:       custom (0.3)
-  Command:    $test_userconf
-  TestTools:  test_userconf

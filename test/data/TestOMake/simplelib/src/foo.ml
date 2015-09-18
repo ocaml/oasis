@@ -21,18 +21,8 @@
 (******************************************************************************)
 
 
-(** Load builtin plugins
-  *)
+type t = int
 
 
-let init () =
-  NonePlugin.init ();
-  InternalInstallPlugin.init ();
-  InternalConfigurePlugin.init ();
-  OCamlbuildPlugin.init ();
-  OCamlbuildDocPlugin.init ();
-  CustomPlugin.init ();
-  OMakePlugin.init ();
-  METAPlugin.init ();
-  DevFilesPlugin.init ();
-  StdFilesPlugin.init ()
+let create n = int_of_float (Unix.time())
+let value n = n

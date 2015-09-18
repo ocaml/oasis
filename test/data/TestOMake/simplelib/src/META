@@ -20,7 +20,6 @@
 #  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               #
 ################################################################################
 
-# OASIS_START
-# DO NOT EDIT (digest: 789c8d67a5037deef77ae24368386fa7)
-UserConf
-# OASIS_STOP
+requires = "unix"
+archive(byte) = "simplelib.cma"
+archive(native) = "simplelib.cmxa"

@@ -1,0 +1,29 @@
+OASISFormat:  0.4
+Name:         simplelib
+Version:      0.0.1
+Authors:      Mauricio Fernandez <mfp@acm.org>
+Maintainers:  Mauricio Fernandez <mfp@acm.org>
+Copyrights:   (C) 2008 Mauricio Fernandez
+LicenseFile:  LICENSE
+License:      LGPL with OCaml linking exception
+BuildTools:   omake
+BuildType:    omake (0.4)
+BuildDepends: unix
+
+Synopsis: Minimal ADT just to illustrate how libs work.
+Description:
+  Minimal ADT just to illustrate how libs work.
+  .
+  Not much more to say
+
+Library simplelib
+  Path:    src
+  Modules: Foo, Bar
+
+Document simplelib
+  Title:           API reference for simplelib
+  Type:            omake (0.4)
+  InstallDir:      $htmldir/simplelib
+  BuildTools+:     ocamldoc
+  XOMakePath:      src
+  XOMakeLibraries: simplelib
