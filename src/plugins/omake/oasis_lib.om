@@ -31,3 +31,257 @@ OASIS_build_OCamlLibrary(name,modules) =
 
 OASIS_build_OCamlExecutable(name,modules) =
     OCamlProgram($(name),$(modules))
+
+
+# Reading in setup.data
+
+private.to_hex_digit(n) =
+    if $(eq $(n), 10)
+        return a
+    elseif $(eq $(n), 11)
+        return b
+    elseif $(eq $(n), 12)
+        return c
+    elseif $(eq $(n), 13)
+        return d
+    elseif $(eq $(n), 14)
+        return e
+    elseif $(eq $(n), 15)
+        return f
+    else
+        return $(string $(n))
+
+private.char(code) =
+    d1 = $(div $(code) 16)
+    d2 = $(mod $(code) 16)
+    return $(unhexify $(string $(to_hex_digit $(d1))$(to_hex_digit $(d2))))
+
+private.string_lexer() =
+    lexer. =
+        extends $(Lexer)
+
+        declare lex
+        declare rule
+
+        buffer[] =
+
+        other: .
+            buffer[] += $0
+            lex()
+
+        eof: $"\'"
+            err. =
+                extends $(Exception)
+                message = $"Unterminated string, location: $(string-of-location $(parse-loc))"
+            raise $(err)
+
+        chars: $'[^\\"]+'
+            buffer[] += $0
+            lex()
+
+        string-end: $'"'
+            Token.pair(string, $(concat $(string), $(buffer)))
+
+        esc1: $'\\\\'
+            buffer[] += \\
+            lex()
+
+        esc2: $"\\'"
+            buffer[] += \'
+            lex()
+
+        esc3: $'\\"'
+            buffer[] += \"
+            lex()
+
+        esc4: $'\\n'
+            buffer[] += $(unhexify 0a)
+            lex()
+
+        esc5: $'\\t'
+            buffer[] += $(unhexify 09)
+            lex()
+
+        esc6: $'\\b'
+            buffer[] += $(unhexify 07)
+            lex()
+
+        esc7: $'\\r'
+            buffer[] += $(unhexify 0d)
+            lex()
+
+        esc8: $'\\ '
+            buffer[] += \ 
+            lex()
+
+        esc9: $'\\\([0-7]\)\([0-7]\)\([0-7]\)'
+            # Work around an omake-0.9.8.6 bug
+            if $(defined 4)
+                d1 = $2
+                d2 = $3
+                d3 = $4
+                export d1 d2 d3
+            else
+                d1 = $1
+                d2 = $2
+                d3 = $3
+                export d1 d2 d3
+            code = $(add $(add $(mul $(int $(d1)) 64) $(mul $(int $(d2)) 8)) $(int $(d3)))
+            buffer[] += $(char $(code))
+            lex()
+
+        esc10: $'\\x\([0-9a-fA-F][0-9a-fA-F]\)'
+            buffer[] += $(unhexify $1)
+            lex()
+
+        newline: $'(\n|\r\n)'
+            buffer[] += $(unhexify 0a)
+            lex()
+
+    return $(lexer)
+        
+
+private.main_lexer() =
+    lexer. =
+        extends $(Lexer)
+
+        declare lex
+        declare rule
+
+        other: .
+            err. =
+                extends $(Exception)
+                message = $"Lexing error, location: $(string-of-location $(parse-loc))"
+            raise $(err)
+
+        white: $'[ \r\n\t]+'
+            lex()
+
+        ident: $"[a-zA-Z0-9_']+"
+            Token.pair(ident, $0)
+
+        equal: =
+            Token.unit(equal)
+
+        string: $'"'
+            slexer = $(string_lexer)
+            slexer.lex-channel($(channel))
+
+        eof: $"\'"
+            Token.unit(eof)
+
+    return $(lexer)
+
+
+param_lexer() =
+    private.dollar = \$
+    lexer. =
+        extends $(Lexer)
+
+        declare lex
+        declare rule
+
+        buffer[] =
+
+        other: .
+            err. =
+                extends $(Exception)
+                message = $"Lexing error, location: $(string-of-location $(parse-loc))"
+            raise $(err)
+
+        dollar1: $"\$(dollar)\([a-zA-Z0-9_]+\)"
+            declare private.ident
+            declare private.varname
+            # omake-0.9.8.6 bug
+            if $(defined 4)
+                ident = $4
+                export ident
+            else
+                ident = $1
+                export ident
+            varname = $"oasis_$(ident)"
+            buffer += $"$(dollar)(apply $(dollar)(getvar $(string-escaped $(varname))))"
+            lex()
+
+        dollar2: $"\$(dollar)[(]\([^)]+\)[)]"
+            declare private.ident
+            declare private.varname
+            # omake-0.9.8.6 bug
+            if $(defined 3)
+                ident = $3
+                export ident
+            else
+                ident = $1
+                export ident
+            varname = $"oasis_$(ident)"
+            buffer += $"$(dollar)(apply $(dollar)(getvar $(string-escaped $(varname))))"
+            lex()
+
+        dollar3: $"\$(dollar)[{]\([^)]+\)[}]"
+            declare private.ident
+            declare private.varname
+            # omake-0.9.8.6 bug
+            if $(defined 2)
+                ident = $2
+                export ident
+            else
+                ident = $1
+                export ident
+            varname = $"oasis_$(ident)"
+            buffer += $"$(dollar)(apply $(dollar)(getvar $(string-escaped $(varname))))"
+            lex()
+
+        esc: $"\\\(.\)"
+            declare private.data
+            data = $1
+            buffer += $(string-escaped $(data))
+            lex()
+
+        regular: $"[^\\$(dollar)]+"
+            declare private.data
+            data = $0
+            buffer += $(string-escaped $(data))
+            lex()
+
+        eof: $"\'"
+            value $(concat $(string), $(buffer))
+
+
+private.parse_error(loc) =
+    err. =
+        extends $(Exception)
+        message = $"Parse error, location: $(string-of-location $(loc))"
+    value $(err)
+
+
+OASIS_convert_env(inchannel,outchannel) =
+    private.lexer = $(main_lexer)
+    # omake-0.9.8.6 bug: "while" condition is not evaluated at all
+    while true
+        private.tok = $(lexer.lex-channel $(inchannel))
+        if $(equal $(tok.name), eof)
+            value $(break)
+        elseif $(equal $(tok.name), ident)
+            private.ident = $(tok.val)
+            tok = $(lexer.lex-channel $(inchannel))
+            if $(not $(equal $(tok.name), equal))
+                raise $(parse_error $(tok.loc))
+            tok = $(lexer.lex-channel $(inchannel))
+            if $(not $(equal $(tok.name), string))
+                raise $(parse_error $(tok.loc))
+            private.val = $(tok.val)
+            private.plexer = $(param_lexer)
+            private.omakecode = $(plexer.lex-channel $(open-in-string $(val)))
+            fprintln($(outchannel), $"oasis_$(string-escaped $(ident))() =")
+            fprintln($(outchannel), $"    value $(omakecode)")
+        else
+            raise $(parse_error $(tok.loc))
+
+
+OASIS_generate_setup() =
+    private.inch = $(fopen setup.data, r)
+    private.outch = $(fopen _oasis_setup.om, w)
+    OASIS_convert_env($(inch), $(outch))
+    close($(inch))
+    flush($(outch))
+    close($(outch))

@@ -9,13 +9,20 @@ if $(not $(file-exists _oasis_lib.om))
         message = $'Not set up. Run first: oasis setup'
     raise $(err)
 
+if $(not $(file-exists setup.data))
+    err. =
+        extends $(Exception)
+        message = $'Not configured. Run first: ocaml setup.ml -configure'
+    raise $(err)
+
 include _oasis_lib.om
 
 # Include generated settings (from setup.data)
 # e.g. BYTE_ENABLED etc.
 # This file only exists when the configure step is succcessful.
 
-include _oasis_setup.om
+.INCLUDE: _oasis_setup.om: setup.data
+    OASIS_generate_setup()
 
 # Until this point we allow to override variables via the command-line
 DefineCommandVars()

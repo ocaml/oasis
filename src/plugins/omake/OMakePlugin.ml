@@ -318,19 +318,19 @@ let build_init () =
       
       chng_main =
         ODNFunc.func_with_arg
-          BuildRuntime.main ("OMakePlugin.Build.main")
+          BuildRuntime.main ("OMakePlugin.BuildRuntime.main")
           t odn_of_t;
       
       chng_clean =
         Some
           (ODNFunc.func_with_arg
-             BuildRuntime.clean ("OMakePlugin.Build.clean")
+             BuildRuntime.clean ("OMakePlugin.BuildRuntime.clean")
              t odn_of_t);
       
       chng_distclean =
         Some
           (ODNFunc.func_with_arg
-             BuildRuntime.distclean ("OMakePlugin.Build.distclean")
+             BuildRuntime.distclean ("OMakePlugin.BuildRuntime.distclean")
              t odn_of_t);
     }
   in

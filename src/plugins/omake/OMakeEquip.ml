@@ -37,6 +37,7 @@ type dir =
     }
 
 module StrMap = Map.Make(String)
+module StrSet = Set.Make(String)
 
 type dir_map = dir StrMap.t
 
@@ -61,7 +62,7 @@ let rec establish map dir =
     let container = OASISUnixPath.dirname dir.dir_path in
     let cont_dir = new_dir container in
     let map1 = establish map cont_dir in
-    let cont_dir1 = StrMap.find container map in
+    let cont_dir1 = StrMap.find container map1 in
     let cont_dir2 =
       { cont_dir1 with dir_sub = dir.dir_path :: cont_dir1.dir_sub } in
     let map2 = StrMap.add container cont_dir2 map1 in
@@ -98,14 +99,21 @@ let fixup_module_case dir name =
         name
 
 
+let strset_flatten l =
+  List.fold_left StrSet.union StrSet.empty l
+
+
 let add_library ctx pkg map cs bs lib =
+  (* CHECK: what if bs.bs_path contains .. path elements? What if module names
+     do so?
+   *)
   let map = establish map (new_dir bs.bs_path) in
-  let ocaml_includes =
+  let lib_includes =
     (* only the direct includes, not the indirect ones *)
-    List.flatten
+    strset_flatten
       (List.map
          (function
-           | FindlibPackage _ -> []
+           | FindlibPackage _ -> StrSet.empty
            | InternalLibrary sect_name ->
                let sect =
                  try OASISSection.section_find (`Library,sect_name) pkg.sections
@@ -113,17 +121,30 @@ let add_library ctx pkg map cs bs lib =
                    failwith (sprintf "Cannot find section: %s" sect_name) in
                ( match sect with
                    | Library(_,sect_bs,_) ->
-                       [ OASISUnixPath.make_relative
-                           bs.bs_path
-                           sect_bs.bs_path
-                       ]
+                       StrSet.singleton
+                         (OASISUnixPath.make_relative
+                            bs.bs_path
+                            sect_bs.bs_path
+                         )
                    | _ ->
-                       []
+                       StrSet.empty
                )
-
          )
          bs.bs_build_depends
       ) in
+  let module_includes =
+    List.fold_left
+      (fun acc m ->
+         let d = OASISUnixPath.dirname m in
+         if OASISUnixPath.is_current_dir d then
+           acc
+         else
+           StrSet.add d acc
+      )
+      StrSet.empty
+      (lib.lib_modules @ lib.lib_internal_modules) in
+  let ocaml_includes =
+    StrSet.union lib_includes module_includes in
   let ocamlpacks =
     List.flatten
       (List.map
@@ -153,7 +174,7 @@ let add_library ctx pkg map cs bs lib =
       Set_array(true, "OCAMLINCLUDES",
                 ( List.map
                     (fun n -> Literal n)
-                    ocaml_includes
+                    (StrSet.elements ocaml_includes)
                   @
                     [gen_getvar "EXTRA_OCAMLINCLUDES"] ));
       Set_array(true, "OCAMLPACKS",
@@ -185,7 +206,15 @@ let add_library ctx pkg map cs bs lib =
 
   let dir = StrMap.find bs.bs_path map in
   let dir = { dir with dir_build = Section section :: dir.dir_build } in
-  StrMap.add bs.bs_path dir map
+  let map = StrMap.add bs.bs_path dir map in
+  (* Also create OMakefile in all directories storing the module files: *)
+  StrSet.fold
+    (fun include_dir acc ->
+       establish map (new_dir (OASISUnixPath.concat bs.bs_path include_dir))
+    )
+    module_includes
+    map
+
 
 let define_build_rules =
   Lines [ "DefineBuildRules() =";
@@ -226,24 +255,25 @@ let finish_definitions map =
     )
     map
 
+let delete_setup() =
+  let p =
+    OASISUnixPath.concat
+      OASISUnixPath.current_dir_name 
+      "_oasis_setup.om" in
+  let hp = 
+    OASISHostPath.of_unix p in
+  if Sys.file_exists hp then
+    Sys.remove hp
+
+
 let write_files map =
+  delete_setup();
   write_const_file
     ~skip_existing:true
     (OASISUnixPath.concat
        OASISUnixPath.current_dir_name 
        "OMakeroot")
     OMakeData.omakeroot;
-  write_omake_file
-    (OASISUnixPath.concat
-       OASISUnixPath.current_dir_name 
-       "_oasis_setup.om")
-    [ Lines [ "section";
-              "    err. =";
-              "        extends $(Exception)";
-              "        message = $'Not configured. Run first: ocaml setup.ml -configure'";
-              "    raise $(err)"
-            ]
-    ];
   write_const_file
     (OASISUnixPath.concat
        OASISUnixPath.current_dir_name 
@@ -268,7 +298,15 @@ let write_files map =
             "_oasis_hier.om") in
        let hier =
          [ Set_array(false, "OASIS_SUBDIRS",
-                     List.map (fun s -> Literal s) dir.dir_sub)
+                     List.map
+                       (fun s ->
+                          Literal
+                            (OASISUnixPath.make_relative
+                               dir.dir_path
+                               s
+                            )
+                         )
+                       dir.dir_sub)
          ] in
        write_omake_file hier_path hier;
 
