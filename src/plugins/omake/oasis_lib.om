@@ -1,0 +1,33 @@
+# Function library for OASIS builds.
+
+# Returns the empty array
+
+OASIS_empty_array[] =
+
+# OASIS_getvar(v) gets the contents of the (array) variable named v, or
+# the empty array if it is not defined. If the variable NAME is defined
+# in the context where this function is called, it is first looked at
+# the variable v_$(NAME), and this variable is taken instead.
+
+OASIS_getvar(name) =
+    if $(and $(defined NAME) $(defined $(name)_$(NAME)))
+        value $(getvar $(name)_$(NAME))
+    else
+        if $(defined $(name))
+            value $(getvar $(name))
+        else
+            value $(OASIS_empty_array)
+
+OASIS_run(list) =
+    run_it(f) =
+        value $(f)
+    foreach($(run_it), $(list))
+
+OASIS_target_OCamlLibrary(name) =
+    value $(array $(if $(NATIVE_ENABLED), $(array $(name).cmxa, $(name).a)), $(if $(BYTE_ENABLED), $(name).cma))
+
+OASIS_build_OCamlLibrary(name,modules) =
+    OCamlLibrary($(name),$(modules))
+
+OASIS_build_OCamlExecutable(name,modules) =
+    OCamlProgram($(name),$(modules))

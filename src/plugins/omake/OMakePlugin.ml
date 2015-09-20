@@ -44,7 +44,7 @@ let run  = BaseCustom.run
 
 
 let main t _ extra_args =
-  run "omake" [] extra_args
+  run "omake" ["build"] extra_args
 
 
 let clean t pkg extra_args =
@@ -54,7 +54,7 @@ let clean t pkg extra_args =
 let distclean t pkg extra_args =
   run "omake" ["distclean"] extra_args
 
-module Build =
+module BuildRuntime =
 struct
   let main t pkg extra_args =
     main t pkg extra_args;
@@ -148,8 +148,6 @@ end
 
 (* END EXPORT *)
 
-
-module BuildRuntime = Build
 
 (*
 module TestRuntime  = Test
@@ -246,6 +244,7 @@ let add_fields
     cmd_main, cmd_clean, cmd_distclean, generator
  *)
 
+(*
 (** Standard custom handling
   *)
 let std id data nm hlp hlp_clean hlp_distclean =
@@ -277,7 +276,7 @@ let std id data nm hlp hlp_clean hlp_distclean =
                  distclean ("OMakePlugin.distclean")
                  t odn_of_t);
         }
-
+ *)
 
 (* Configure plugin *)
 (*
@@ -309,33 +308,34 @@ let build_init () =
   let generator data = { dummy = () } in
   let doit ctxt pkg =
     let t =
-      generator pkg.schema_data
-    in
-      ctxt,
-      {
-        OASISPlugin.chng_moduls =
-          [OMakeData.omakesys_ml];
-
-        chng_main =
-          ODNFunc.func_with_arg
-            BuildRuntime.main ("OMakePlugin.Build.main")
-            t odn_of_t;
-
-        chng_clean =
-          Some
-            (ODNFunc.func_with_arg
-               BuildRuntime.clean ("OMakePlugin.Build.clean")
-               t odn_of_t);
-
-        chng_distclean =
-          Some
-            (ODNFunc.func_with_arg
-               BuildRuntime.distclean ("OMakePlugin.Build.distclean")
-               t odn_of_t);
-      }
+      generator pkg.schema_data in
+    let equip() =
+      OMakeEquip.equip_project ctxt pkg in
+    { ctxt with other_actions = equip :: ctxt.other_actions },
+    {
+      OASISPlugin.chng_moduls =
+        [OMakeData.omakesys_ml];
+      
+      chng_main =
+        ODNFunc.func_with_arg
+          BuildRuntime.main ("OMakePlugin.Build.main")
+          t odn_of_t;
+      
+      chng_clean =
+        Some
+          (ODNFunc.func_with_arg
+             BuildRuntime.clean ("OMakePlugin.Build.clean")
+             t odn_of_t);
+      
+      chng_distclean =
+        Some
+          (ODNFunc.func_with_arg
+             BuildRuntime.distclean ("OMakePlugin.Build.distclean")
+             t odn_of_t);
+    }
   in
-    Build.register_act self_id doit;
-    register_generator_package id build_data generator
+  Build.register_act self_id doit;
+  register_generator_package id build_data generator
 
 
 (* Install plugin *)

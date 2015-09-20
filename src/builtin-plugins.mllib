@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 4496650640dc49523ffa373eaf8aee89)
+# DO NOT EDIT (digest: ad4a43e0d6dc3a0d5614c7bcdd66504c)
 OASISBuiltinPlugins
 plugins/extra/META/METAPlugin
 plugins/internal/InternalConfigurePlugin
@@ -46,4 +46,6 @@ plugins/extra/META/METAData
 plugins/extra/devfiles/DevFilesData
 plugins/extra/stdfiles/StdFilesData
 plugins/omake/OMakeData
+plugins/omake/OMakeEquip
+plugins/omake/OMakeFormat
 # OASIS_STOP

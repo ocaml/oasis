@@ -174,7 +174,9 @@ Library "builtin-plugins"
                    plugins/extra/META/METAData,
                    plugins/extra/devfiles/DevFilesData,
                    plugins/extra/stdfiles/StdFilesData,
-                   plugins/omake/OMakeData
+                   plugins/omake/OMakeData,
+                   plugins/omake/OMakeEquip,
+                   plugins/omake/OMakeFormat
   CompiledObject: Best
   BuildDepends: oasis, oasis.base, ocamlbuild
   FindlibParent: oasis
