@@ -20,10 +20,22 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-
 (** Put OMakeroot, OMakefile etc. in place.
     @author Gerd Stolpmann
   *)
+
+(* TODO:
+
+    - interpret "build" flag
+    - pass down compiler flags
+    - library with -pack
+    - fix-up "omake clean"
+    - "omake install"
+    - support for objects
+    - support for documents
+    - OASIS_modify_XXX
+ *)
+
 open OASISPlugin
 open OASISTypes
 open OMakeFormat
@@ -69,6 +81,16 @@ let rec establish map dir =
     StrMap.add dir.dir_path dir map2
 
 
+let establish_in map bs module_includes =
+  (* Also create OMakefile in all directories storing the module files: *)
+  StrSet.fold
+    (fun include_dir acc ->
+       establish map (new_dir (OASISUnixPath.concat bs.bs_path include_dir))
+    )
+    module_includes
+    map
+
+
 let gen_getvar name =
   Expression (sprintf "$(OASIS_getvar %s)" name)
 
@@ -103,35 +125,129 @@ let strset_flatten l =
   List.fold_left StrSet.union StrSet.empty l
 
 
+let get_lib_includes pkg bs =
+  (* only the direct includes, not the indirect ones *)
+  strset_flatten
+    (List.map
+       (function
+         | FindlibPackage _ -> StrSet.empty
+         | InternalLibrary sect_name ->
+             let sect =
+               try OASISSection.section_find (`Library,sect_name) pkg.sections
+               with Not_found ->
+                 failwith (sprintf "Cannot find section: %s" sect_name) in
+             ( match sect with
+                 | Library(_,sect_bs,_) ->
+                     StrSet.singleton
+                       (OASISUnixPath.make_relative
+                          bs.bs_path
+                          sect_bs.bs_path
+                       )
+                 | _ ->
+                     StrSet.empty
+             )
+       )
+       bs.bs_build_depends
+    )
+
+
+let get_lib_deps ?(transitive=false) pkg bs =
+  (* transitive=false: only the direct dependencies, not the indirect ones.
+     transitive=true: the indirect ones too
+   *)
+  let trans_map =
+    if transitive then
+      OASISBuildSection.transitive_build_depends pkg
+    else
+      OASISSection.MapSection.empty in
+  strset_flatten
+    (List.map
+       (function
+         | FindlibPackage _ -> StrSet.empty
+         | InternalLibrary sect_name ->
+             let sect =
+               try OASISSection.section_find (`Library,sect_name) pkg.sections
+               with Not_found ->
+                 failwith (sprintf "Cannot find section: %s" sect_name) in
+             let deps =
+               if transitive then
+                 [InternalLibrary sect_name] @
+                   OASISSection.MapSection.find sect trans_map
+               else
+                 [InternalLibrary sect_name] in
+             strset_flatten
+               (List.map
+                  (function
+                    | FindlibPackage _ -> StrSet.empty
+                    | InternalLibrary sect_name2 ->
+                        let sect2 =
+                          try OASISSection.section_find
+                                (`Library,sect_name2) pkg.sections
+                          with Not_found ->
+                            failwith
+                              (sprintf "Cannot find section: %s" sect_name2) in
+                        ( match sect2 with
+                            | Library(_,sect_bs,_) ->
+                                StrSet.singleton
+                                  (OASISUnixPath.concat
+                                     (OASISUnixPath.make_relative
+                                        bs.bs_path
+                                        sect_bs.bs_path
+                                     )
+                                     sect_name2
+                                  )
+                            | _ ->
+                                StrSet.empty
+                        )
+                  )
+                  deps
+               )
+       )
+       bs.bs_build_depends
+    )
+
+
+let get_ocamlpacks ?(transitive=false) pkg bs =
+  let trans_map =
+    if transitive then
+      OASISBuildSection.transitive_build_depends pkg
+    else
+      OASISSection.MapSection.empty in
+  List.flatten
+    (List.map
+       (function
+         | FindlibPackage(flib,_) -> [flib]
+         | InternalLibrary sect_name when transitive ->
+             let sect =
+               try OASISSection.section_find (`Library,sect_name) pkg.sections
+               with Not_found ->
+                 failwith (sprintf "Cannot find section: %s" sect_name) in
+             let deps =
+               OASISSection.MapSection.find sect trans_map in
+             List.flatten
+               (List.map
+                  (function
+                    | FindlibPackage(flib,_) -> [flib]
+                    | InternalLibrary _ -> []
+                  )
+                  deps
+               )
+         | InternalLibrary _ -> []
+       )
+       bs.bs_build_depends
+    )
+
+let get_c_object name =
+  OASISUnixPath.chop_extension name ^ ".o"
+
+
 let add_library ctx pkg map cs bs lib =
   (* CHECK: what if bs.bs_path contains .. path elements? What if module names
      do so?
    *)
   let map = establish map (new_dir bs.bs_path) in
-  let lib_includes =
-    (* only the direct includes, not the indirect ones *)
-    strset_flatten
-      (List.map
-         (function
-           | FindlibPackage _ -> StrSet.empty
-           | InternalLibrary sect_name ->
-               let sect =
-                 try OASISSection.section_find (`Library,sect_name) pkg.sections
-                 with Not_found ->
-                   failwith (sprintf "Cannot find section: %s" sect_name) in
-               ( match sect with
-                   | Library(_,sect_bs,_) ->
-                       StrSet.singleton
-                         (OASISUnixPath.make_relative
-                            bs.bs_path
-                            sect_bs.bs_path
-                         )
-                   | _ ->
-                       StrSet.empty
-               )
-         )
-         bs.bs_build_depends
-      ) in
+  let lib_includes = get_lib_includes pkg bs in
+  let lib_deps = get_lib_deps pkg bs in
   let module_includes =
     List.fold_left
       (fun acc m ->
@@ -146,15 +262,7 @@ let add_library ctx pkg map cs bs lib =
   let ocaml_includes =
     StrSet.union lib_includes module_includes in
   let ocamlpacks =
-    List.flatten
-      (List.map
-         (function
-           | FindlibPackage(flib,_) -> [flib]
-           | InternalLibrary _ -> []
-         )
-         bs.bs_build_depends
-      ) in
-
+    get_ocamlpacks pkg bs in
   let section =
     [ Set_string(false, "NAME", Literal cs.cs_name);
       ( match bs.bs_compiled_object with
@@ -171,27 +279,43 @@ let add_library ctx pkg map cs bs lib =
                     (lib.lib_modules @ lib.lib_internal_modules)
                   @
                     [gen_getvar "EXTRA_MODULES"] ));
-      Set_array(true, "OCAMLINCLUDES",
+      Set_array(true, "OCAML_LIBS",
+                ( List.map
+                    (fun n -> Literal n)
+                    (StrSet.elements lib_deps)
+                  @
+                    [gen_getvar "EXTRA_OCAML_LIBS"] ));
+      Set_array(false, "C_SOURCES",
+                ( List.map
+                    (fun n -> Literal (get_c_object n))
+                    (List.filter
+                       (fun n -> OASISUnixPath.check_extension n "c")
+                       bs.bs_c_sources
+                    )
+               ));
+      Lines
+        [ "C_OBJECTS = $(replacesuffixes .c, $(EXT_OBJ), $(C_SOURCES))";
+        ];
+      (* TODO: OCAML_CLIBS *)
+      Lines
+        [ "DefineRules() =";
+          "    OASIS_build_OCamlLibrary($(NAME), $(MODULES), $(C_OBJECTS))";
+        ];
+      Set_array(true, "BUILD_TARGETS",
+                [Expression "$(OASIS_target_OCamlLibrary $(NAME))"]);
+      Set_array(true, "DEFINE_RULES", [Expression "$(DefineRules)"]);
+      Set_array(true, "ACCU_OCAMLINCLUDES",
                 ( List.map
                     (fun n -> Literal n)
                     (StrSet.elements ocaml_includes)
                   @
                     [gen_getvar "EXTRA_OCAMLINCLUDES"] ));
-      Set_array(true, "OCAMLPACKS",
+      Set_array(true, "ACCU_OCAMLPACKS",
                 ( List.map
                     (fun n -> Literal n)
                     ocamlpacks
                   @
                     [gen_getvar "EXTRA_OCAMLPACKS"] ));
-      Lines
-        [ "DefineRules() =";
-          "    OASIS_build_OCamlLibrary($(NAME), $(MODULES))";
-        ];
-      Set_array(true, "BUILD_TARGETS",
-                [Expression "$(OASIS_target_OCamlLibrary $(NAME))"]);
-      Set_array(true, "DEFINE_RULES", [Expression "$(DefineRules)"]);
-      Set_array(true, "ACCU_OCAMLINCLUDES", [Expression "$(OCAMLINCLUDES)"]);
-      Set_array(true, "ACCU_OCAMLPACKS", [Expression "$(OCAMLPACKS)"]);
       Export [ "BUILD_TARGETS";
                "DEFINE_RULES";
                "ACCU_OCAMLINCLUDES";
@@ -207,13 +331,92 @@ let add_library ctx pkg map cs bs lib =
   let dir = StrMap.find bs.bs_path map in
   let dir = { dir with dir_build = Section section :: dir.dir_build } in
   let map = StrMap.add bs.bs_path dir map in
-  (* Also create OMakefile in all directories storing the module files: *)
-  StrSet.fold
-    (fun include_dir acc ->
-       establish map (new_dir (OASISUnixPath.concat bs.bs_path include_dir))
-    )
-    module_includes
-    map
+  establish_in map bs module_includes
+
+let add_executable ctx pkg map cs bs exec =
+  (* CHECK: what if bs.bs_path contains .. path elements? What if module names
+     do so?
+   *)
+  let map = establish map (new_dir bs.bs_path) in
+  let lib_includes = get_lib_includes pkg bs in
+  let trans_lib_deps = get_lib_deps ~transitive:true pkg bs in
+  let module_includes =
+    let d = OASISUnixPath.dirname exec.exec_main_is in
+    if OASISUnixPath.is_current_dir d then
+      StrSet.empty
+    else
+      StrSet.singleton d in
+  let ocaml_includes =
+    StrSet.union lib_includes module_includes in
+  let trans_ocamlpacks = get_ocamlpacks ~transitive:true pkg bs in
+  let main_module = OASISUnixPath.chop_extension exec.exec_main_is in
+
+  let section =
+    [ Set_string(false, "NAME", Literal cs.cs_name);
+      ( match bs.bs_compiled_object with
+          | Best ->
+              Nop
+          | Byte ->
+              Set_string(false, "NATIVE_ENABLED", Literal "false")
+          | Native ->
+              Set_string(false, "BYTE_ENABLED", Literal "false")
+      );
+      Set_string(false, "MAIN_MODULE",
+                 Literal(fixup_module_case bs.bs_path main_module));
+      Set_array(true, "OCAMLPACKS",
+                ( List.map
+                    (fun n -> Literal n)
+                    trans_ocamlpacks
+                  @
+                    [gen_getvar "EXTRA_OCAMLPACKS"] ));
+      Set_array(true, "OCAML_LIBS",
+                ( List.map
+                    (fun n -> Literal n)
+                    (StrSet.elements trans_lib_deps)
+                  @
+                    [gen_getvar "EXTRA_OCAML_LIBS"] ));
+      Set_array(false, "C_SOURCES",
+                ( List.map
+                    (fun n -> Literal (get_c_object n))
+                    (List.filter
+                       (fun n -> OASISUnixPath.check_extension n "c")
+                       bs.bs_c_sources
+                    )
+               ));
+      Lines
+        [ "C_OBJECTS = $(replacesuffixes .c, $(EXT_OBJ), $(C_SOURCES))";
+        ];
+      (* TODO: OCAML_CLIBS *)
+      Lines
+        [ "DefineRules() =";
+          "    OASIS_build_OCamlExecutable($(NAME), $(MAIN_MODULE), $(C_OBJECTS))";
+        ];
+      Set_array(true, "BUILD_TARGETS",
+                [Expression "$(OASIS_target_OCamlExecutable $(NAME))"]);
+      Set_array(true, "DEFINE_RULES", [Expression "$(DefineRules)"]);
+      Set_array(true, "ACCU_OCAMLINCLUDES",
+                ( List.map
+                    (fun n -> Literal n)
+                    (StrSet.elements ocaml_includes)
+                  @
+                    [gen_getvar "EXTRA_OCAMLINCLUDES"] ));
+      Set_array(true, "ACCU_OCAMLPACKS", [Expression "$(OCAMLPACKS)"]);
+      Export [ "BUILD_TARGETS";
+               "DEFINE_RULES";
+               "ACCU_OCAMLINCLUDES";
+               "ACCU_OCAMLPACKS"
+             ];
+      (* TODO: also set OCAML_LINK_FLAGS with the contents of
+         bs_ccopt, bs_cclib, bs_dllib, bs_dllpath *)
+      (* TODO: also set OCAMLCFLAGS from bs_byteopt and OCAMLOPTFLAGS from
+         bs_nativeopt
+       *)
+    ] in
+
+  let dir = StrMap.find bs.bs_path map in
+  let dir = { dir with dir_build = Section section :: dir.dir_build } in
+  let map = StrMap.add bs.bs_path dir map in
+  establish_in map bs module_includes
 
 
 let define_build_rules =
@@ -326,8 +529,8 @@ let equip_project ctxt pkg =
          function
          | Library (cs, bs, lib) ->
              add_library ctxt pkg acc cs bs lib
-         | Executable (cs, bs, lib) ->
-             establish acc (new_dir bs.bs_path)
+         | Executable (cs, bs, exec) ->
+             add_executable ctxt pkg acc cs bs exec
          | Object (cs, bs, lib) ->
              establish acc (new_dir bs.bs_path)
          | _ ->

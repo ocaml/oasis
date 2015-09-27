@@ -1,5 +1,42 @@
 # Function library for OASIS builds.
 
+if $(not $(defined CMXS_ENABLED))
+    CMXS_ENABLED = false
+    export
+
+if $(not $(defined OCAMLMKLIB))
+    OCAMLMKLIB = ocamlmklib
+    export
+
+if $(not $(defined OCAMLMKLIBFLAGS))
+    OCAMLMKLIBFLAGS =
+    export
+
+if $(not $(defined OCAML_BYTE_LIB_FLAGS))
+    OCAML_BYTE_LIB_FLAGS =
+    export
+
+if $(not $(defined OCAML_NATIVE_LIB_FLAGS))
+    OCAML_NATIVE_LIB_FLAGS =
+    export
+
+OASIS_clean_list[] =
+    *.cmi
+    *.cmt
+    *.cmti
+    *.cmo
+    *.cma
+    *.cmx
+    *$(EXT_OBJ)
+    *.cmxa
+    *$(EXT_LIB)
+    *.so
+    *.cmxs
+
+OASIS_distclean_list[] =
+    $(OASIS_clean_list)
+
+
 # Returns the empty array
 
 OASIS_empty_array[] =
@@ -24,13 +61,148 @@ OASIS_run(list) =
     foreach($(run_it), $(list))
 
 OASIS_target_OCamlLibrary(name) =
-    value $(array $(if $(NATIVE_ENABLED), $(array $(name).cmxa, $(name).a)), $(if $(BYTE_ENABLED), $(name).cma))
+    value $(array $(if $(NATIVE_ENABLED), $(array $(name).cmxa, $(name)$(EXT_LIB))), $(if $(and $(NATIVE_ENABLED), $(CMXS_ENABLED)), $(name).cmxs), $(if $(BYTE_ENABLED), $(name).cma))
 
-OASIS_build_OCamlLibrary(name,modules) =
-    OCamlLibrary($(name),$(modules))
+# Extensions compared to OCamlLibrary:
+#  - OCAML_LIBS and OCAML_CLIBS are now dependencies
+#  - creates the cmxs if CMXS_ENABLED
+#  - ignores OCAMLPACKS (no relinking of packages)
+#  - new: OCAML_BYTE_LIB_FLAGS, OCAML_NATIVE_LIB_FLAGS
+#  - can link in c_objects
 
-OASIS_build_OCamlExecutable(name,modules) =
-    OCamlProgram($(name),$(modules))
+OASIS_build_OCamlLibrary(name,modules,c_objects) =
+    private.clibs = $(addsuffix $(EXT_LIB), $(OCAML_CLIBS))
+    if $(BYTE_ENABLED)
+        private.cmafiles = $(addsuffix .cma,  $(OCAML_LIBS))
+        $(name).cma: $(cmafiles) $(clibs)
+    if $(NATIVE_ENABLED)
+        private.cmxafiles = $(addsuffix .cmxa,  $(OCAML_LIBS))
+        private.arfiles = $(addsuffix $(EXT_LIB), $(OCAML_LIBS))
+        $(name).cmxa $(name)$(EXT_LIB): $(cmxafiles) $(arfiles) $(clibs)
+
+    private.name = $(file $(name))
+
+    private.OFILES   = $(addsuffix $(EXT_OBJ), $(modules))
+    private.CMOFILES = $(addsuffix .cmo, $(modules))
+    private.CMXFILES = $(addsuffix .cmx, $(modules))
+
+    private.CLIB      = $(file $(name)$(EXT_LIB))
+    private.BYTELIB   = $(file $(name).cma)
+    private.NATIVELIB = $(file $(name).cmxa)
+    private.LIBNAME   = $(file $(name))
+
+    private.CMXSFILE  = $(file $(name).cmxs)
+    private.C_OBJECTS = $(file $(c_objects))
+    private.STUBS     = $(LIBNAME)_stubs
+
+    #
+    # Link commands
+    #
+    if $(gt $(length $(C_OBJECTS)), 0)
+        $(BYTELIB): $(CMOFILES) $(C_OBJECTS)
+            $(OCAMLMKLIB) $(OCAML_LIB_FLAGS) $(OCAML_BYTE_LIB_FLAGS) \
+                 -ocamlc "$(OCAMLC)" \
+                 -o $(LIBNAME) -oc $(STUBS) \
+                 $(OCamlLinkSort $(CMOFILES)) $(C_OBJECTS)
+
+        $(NATIVELIB) $(CLIB): $(CMXFILES) $(OFILES) $(C_OBJECTS)
+            $(OCAMLMKLIB) $(OCAML_LIB_FLAGS) $(OCAML_NATIVE_LIB_FLAGS) \
+                 -ocamlopt "$(OCAMLOPT)" \
+                 -o $(LIBNAME) -oc $(STUBS) \
+                 $(OCamlLinkSort $(CMXFILES)) $(C_OBJECTS)
+    else
+        $(BYTELIB): $(CMOFILES)
+            $(OCAMLLINK) -a $(OCAML_LIB_FLAGS) $(OCAML_BYTE_LIB_FLAGS) \
+                 -o $(BYTELIB) \
+                 $(OCamlLinkSort $(CMOFILES))
+
+        $(NATIVELIB) $(CLIB): $(CMXFILES) $(OFILES)
+            $(OCAMLOPTLINK) -a $(OCAML_LIB_FLAGS) $(OCAML_NATIVE_LIB_FLAGS) \
+                 -o $(NATIVELIB) \
+                 $(OCamlLinkSort $(CMXFILES))
+
+    $(CMXSFILE): $(NATIVELIB) $(CLIB)
+        $(OCAMLOPTLINK) -shared -cclib -L. -o $(CMXSFILE) $(NATIVELIB)
+
+    return $(array $(if $(NATIVE_ENABLED), $(NATIVELIB)), $(if $(NATIVE_ENABLED), $(CLIB)), $(if $(and $(NATIVE_ENABLED), $(CMXS_ENABLED)), $(CMXSFILE)), $(if $(BYTE_ENABLED), $(BYTELIB)))
+
+
+OASIS_target_OCamlExecutable(name) =
+    value $(name)
+
+# The difference to OCamlProgram is that OASIS_build_OCamlExecutable figures
+# the modules of the program automatically out. You just need to pass in the
+# name of the main module.
+# Also:
+#  - can link in c_objects
+
+OASIS_build_OCamlExecutable(name,mainmodule,c_objects) =
+    private.get_byte_deps(cmofile, cmafiles) =
+        private.all_cmodeps = $(dependencies-all cmofile)
+        private.cmo_cmodeps = $(filter .cmo, $(all_cmodeps))
+        private.all_cmadeps = $(dependencies-all cmafiles)
+        private.cmo_cmadeps = $(filter .cmo, $(all_cmadeps))
+        value $(set $(set-diff $(cmo_cmodeps), $(cmo_cmadeps)))
+
+    private.get_native_deps(cmxfile, cmxafiles) =
+        private.all_cmxdeps = $(dependencies-all cmxfile)
+        private.cmx_cmxdeps = $(filter .cmx, $(all_cmxdeps))
+        private.all_cmxadeps = $(dependencies-all cmxafiles)
+        private.cmx_cmxadeps = $(filter .cmx, $(all_cmxadeps))
+        value $(set $(set-diff $(cmx_cmxdeps), $(cmx_cmxadeps)))
+
+    private.CMOFILE   = $(addsuffix .cmo, $(mainmodule))
+    private.CMXFILE   = $(addsuffix .cmx, $(mainmodule))
+    private.OFILE     = $(addsuffix $(EXT_OBJ), $(mainmodule))
+
+    private.CMAFILES  = $(addsuffix .cma,  $(OCAML_LIBS))
+    private.CMXAFILES = $(addsuffix .cmxa, $(OCAML_LIBS))
+    private.ARFILES   = $(addsuffix $(EXT_LIB), $(OCAML_LIBS))
+    private.CMA_OTHER_FILES = $(addsuffix .cma, $(OCAML_OTHER_LIBS))
+    private.CMXA_OTHER_FILES = $(addsuffix .cmxa, $(OCAML_OTHER_LIBS))
+
+    private.CLIBS = $(addsuffix $(EXT_LIB), $(OCAML_CLIBS))
+    private.C_OBJECTS = $(file $(c_objects))
+
+    private.name = $(file $(name))
+
+    private.PROG     = $(file $(name)$(EXE))
+    private.BYTEPROG = $(file $(name).run)
+    private.OPTPROG  = $(file $(name).opt)
+
+    #
+    # Rules to build byte-code and native targets
+    #
+    $(BYTEPROG): $(CMAFILES) $(CMOFILE) $(CLIBS) $(C_OBJECTS)
+        $(OCAMLFIND) $(OCAMLLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLCFLAGS)\
+                 $(PREFIXED_OCAMLINCLUDES) $(OCAML_BYTE_LINK_FLAGS)\
+                 -o $@ $(CMA_OTHER_FILES) $(CMAFILES) \
+                 $(OCamlLinkSort $(get_byte_deps $(CMOFILE), $(CMAFILES)) $(CMOFILE)) \
+                 $(C_OBJECTS) $(CLIBS) $(OCAML_LINK_FLAGS)
+
+    $(OPTPROG): $(CMXAFILES) $(ARFILES) $(CMXFILE) $(OFILE) $(CLIBS) $(C_OBJECTS)
+         $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLOPTFLAGS)\
+                 $(PREFIXED_OCAMLINCLUDES) $(OCAML_NATIVE_LINK_FLAGS)\
+                 -o $@ $(CMXA_OTHER_FILES) $(CMXAFILES) \
+                 $(OCamlLinkSort $(get_native_deps $(CMXFILE), $(CMXAFILES)) $(CMXFILE)) \
+                 $(C_OBJECTS) $(CLIBS) $(OCAML_LINK_FLAGS)
+
+    #
+    # Link the actual executables.
+    # Always prefer native executables.
+    #
+    if $(NATIVE_ENABLED)
+        $(PROG): $(OPTPROG)
+            ln-or-cp $< $@
+    elseif $(BYTE_ENABLED)
+        $(PROG): $(BYTEPROG)
+            ln-or-cp $< $@
+    else
+        err. =
+            extends $(UnbuildableException)
+            message = $(string $"Cannot build $(PROG) because neither bytecode nor native code is enabled")
+        raise($(err))
+    return $(array $(PROG), $(if $(NATIVE_ENABLED), $(OPTPROG)), $(if $(BYTE_ENABLED), $(BYTEPROG)))
 
 
 # Reading in setup.data
@@ -282,6 +454,15 @@ OASIS_generate_setup() =
     private.inch = $(fopen setup.data, r)
     private.outch = $(fopen _oasis_setup.om, w)
     OASIS_convert_env($(inch), $(outch))
+    fprintln($(outch), $'USE_OCAMLFIND = true')
+    fprintln($(outch), $'BYTE_ENABLED = true')
+    fprintln($(outch), $'NATIVE_ENABLED = $(OCAMLOPT_EXISTS)')
+    fprintln($(outch), $'OCAMLDEP_MODULES_ENABLED = true')
+    fprintln($(outch), $'CMXS_ENABLED = $(oasis_native_dynlink)')
+    fprintln($(outch), $'OCAMLFLAGS = -g')
+    fprintln($(outch), $'INCLUDES = $(oasis_standard_library)')
+    fprintln($(outch), $'CC = $(nth-hd 1, $(split $(oasis_bytecomp_c_compiler)))')
+    fprintln($(outch), $'CFLAGS = $(nth-tl 1, $(split $(oasis_bytecomp_c_compiler)))')
     close($(inch))
     flush($(outch))
     close($(outch))

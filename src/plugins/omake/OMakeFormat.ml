@@ -52,6 +52,8 @@ let write_const_file ?(skip_existing=false) upath data =
 
 let rec string_of_value =
   function
+  | Literal "" ->
+      "$(string)"
   | Literal s ->
       let b = Buffer.create 80 in
       Buffer.add_string b "$\"";
