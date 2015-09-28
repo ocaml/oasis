@@ -58,11 +58,20 @@ include _oasis_hier.om
 
 # At this point you may set any of the EXTRA variables used in the .om files:
 #
-# EXTRA_OCAMLPACKS[] =
-#    foo
-#    bar
-# EXTRA_MODULES[] =
-#    hidden_module
+# EXTRA_OCAMLPACKS                (findlib packages)
+# EXTRA_OCAMLINCLUDES             (include directories)
+# EXTRA_MODULES                   (OCaml modules w/o extension)
+# EXTRA_C_OBJECTS                 (C object files)
+# EXTRA_OCAML_LIBS                (internal OCaml libraries w/o extension)
+# EXTRA_OCAML_LIB_CCLIB           (-L and -l switches to embed into libs)
+# EXTRA_OCAML_LIB_DLLIB           (-L and -l switches to embed into bytecode libs)
+# EXTRA_OCAML_LIB_DLLPATH         (runtime path to embed into libs)
+# EXTRA_OCAML_LIB_FLAGS           (flags for creating libs)
+# EXTRA_OCAML_LINK_CCLIB          (-L and -l switches for linking executables)
+# EXTRA_OCAML_LINK_DLLIB          (-L and -l switches for dynamic bytecode executables)
+# EXTRA_OCAML_LINK_DLLPATH        (runtime path for bytecode executables)
+# EXTRA_OCAML_LINK_FLAGS          (flags for creating executables)
+# EXTRA_OCAMLFINDFLAGS            (flags for ocamlfind call)
 #
 # In order to restrict such a variable to only a single library, executable, or
 # object, append its name separated with an underscore, e.g.
@@ -94,6 +103,8 @@ DefineBuildRules()
 # also append to variables with "+=". If you move the setting before the
 # .SUBDIRS line it is applied to all subdirectories, too.
 #
+# OCAMLPACKS =
+# OCAMLINCLUDES =
 # OCAMLFINDFLAGS =
 # OCAMLFLAGS =
 # OCAMLCFLAGS = 
@@ -105,6 +116,8 @@ DefineBuildRules()
 # the OASIS_modify_* functions to append flags for a single source only.
 # Do not add file extensions like .ml or .c here:
 #
+# OASIS_modify_OCAMLPACKS(module, unix)
+# OASIS_modify_OCAMLINCLUDES(module, /some/path)
 # OASIS_modify_OCAMLFINDFLAGS(module, -syntax camlp4o)
 # OASIS_modify_OCAMLFLAGS(module, -warn-error +a)
 # OASIS_modify_OCAMLOPTFLAGS(module, -p)

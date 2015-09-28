@@ -55,6 +55,7 @@ OASIS_distclean_list[] =
     *.omc
     setup.data
     setup.log
+    _oasis_setup.om
 
 # Returns the empty array
 
@@ -85,6 +86,18 @@ OASIS_run(list) =
     run_it(f) =
         value $(f)
     foreach($(run_it), $(list))
+
+OASIS_modify_OCAMLINCLUDES(module, flags) =
+    OCAMLINCLUDES += $(flags)
+    $(module).cmi:
+    $(module).cmo:
+    $(module).cmx $(module.o):
+
+OASIS_modify_OCAMLPACKS(module, flags) =
+    OCAMLPACKS += $(flags)
+    $(module).cmi:
+    $(module).cmo:
+    $(module).cmx $(module.o):
 
 OASIS_modify_OCAMLFLAGS(module, flags) =
     OCAMLFLAGS += $(flags)

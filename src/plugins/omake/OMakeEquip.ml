@@ -27,7 +27,6 @@
 (* TODO:
 
     - library with -pack
-    - fix-up "omake clean"
     - "omake install"
     - support for objects
     - support for documents
@@ -304,6 +303,20 @@ let have_syntax_camlp4o ocamlpacks =
          List.mem pack well_known_syntax
     )
     ocamlpacks
+
+
+let skippable name l =
+  let skip = "SKIP_" ^ name in
+  [ Lines
+      [ "if $(not $(defined " ^ skip ^ "))";
+        "    " ^ skip ^ " = false";
+        "    export " ^ skip;
+      ];
+    Cond( [ OMNot(OMIsTrue(Variable skip)), l ],
+          []);
+    Export [];
+  ]
+
   
 
 let add_library ctx pkg map cs bs lib =
@@ -344,7 +357,7 @@ let add_library ctx pkg map cs bs lib =
                     (lib.lib_modules @ lib.lib_internal_modules)
                   @
                     [gen_getvar "EXTRA_MODULES"] ));
-      Set_array(true, "OCAML_LIBS",
+      Set_array(false, "OCAML_LIBS",
                 ( List.map
                     (fun n -> Literal n)
                     (StrSet.elements lib_deps)
@@ -362,17 +375,23 @@ let add_library ctx pkg map cs bs lib =
         [ "C_OBJECTS = $(replacesuffixes .c, $(EXT_OBJ), $(C_SOURCES))";
           "C_OBJECTS += $(OASIS_getvar EXTRA_C_OBJECTS)";
         ];
-      set_array_cond false "cflags" bs.bs_ccopt;
       set_array_cond false "OCAML_LIB_CCLIB" bs.bs_cclib;
+      Set_array(true, "OCAML_LIB_CCLIB", [gen_getvar "EXTRA_OCAML_LIB_CCLIB"]);
       set_array_cond false "OCAML_LIB_DLLIB" bs.bs_dlllib;
+      Set_array(true, "OCAML_LIB_DLLIB", [gen_getvar "EXTRA_OCAML_LIB_DLLIB"]);
       set_array_cond false "OCAML_LIB_DLLPATH" bs.bs_dllpath;
+      Set_array(true, "OCAML_LIB_DLLPATH",
+                [gen_getvar "EXTRA_OCAML_LIB_DLLPATH"]);
+      Set_array(false, "OCAML_LIB_FLAGS", [gen_getvar "EXTRA_OCAML_LIB_FLAGS"]);
+      Set_array(false, "OCAMLFINDFLAGS",
+                [ gen_getvar "EXTRA_OCAMLFINDFLAGS" ]);
+      set_array_cond false "cflags" bs.bs_ccopt;
       set_array_cond false "ocamlcflags" bs.bs_byteopt;
       set_array_cond false "ocamloptflags" bs.bs_nativeopt;
       Lines
         [ "OCAMLCFLAGS += $(ocamlcflags)";
           "OCAMLOPTFLAGS += $(ocamloptflags)";
         ];
-      (* TODO: also EXTRA_* variables for these? *)
       Lines
         [ "DefineRules() =";
           "    OASIS_build_OCamlLibrary($(NAME), $(MODULES), $(C_OBJECTS))";
@@ -414,7 +433,8 @@ let add_library ctx pkg map cs bs lib =
                "ACCU_SYNTAX_CAMLP4O";
              ];
     ] in
-
+  let section =
+    skippable cs.cs_name section in
   let dir = StrMap.find bs.bs_path map in
   let dir = { dir with dir_build = Section section :: dir.dir_build } in
   let map = StrMap.add bs.bs_path dir map in
@@ -451,13 +471,13 @@ let add_executable ctx pkg map cs bs exec =
       );
       Set_string(false, "MAIN_MODULE",
                  Literal(fixup_module_case bs.bs_path main_module));
-      Set_array(true, "OCAMLPACKS",
+      Set_array(false, "OCAMLPACKS",
                 ( List.map
                     (fun n -> Literal n)
                     trans_ocamlpacks
                   @
                     [gen_getvar "EXTRA_OCAMLPACKS"] ));
-      Set_array(true, "OCAML_LIBS",
+      Set_array(false, "OCAML_LIBS",
                 ( List.map
                     (fun n -> Literal n)
                     (StrSet.elements trans_lib_deps)
@@ -475,10 +495,21 @@ let add_executable ctx pkg map cs bs exec =
         [ "C_OBJECTS = $(replacesuffixes .c, $(EXT_OBJ), $(C_SOURCES))";
           "C_OBJECTS += $(OASIS_getvar EXTRA_C_OBJECTS)";
         ];
-      set_array_cond false "cflags" bs.bs_ccopt;
       set_array_cond false "OCAML_LINK_CCLIB" bs.bs_cclib;
+      Set_array(true, "OCAML_LINK_CCLIB",
+                [gen_getvar "EXTRA_OCAML_LINK_CCLIB"]);
       set_array_cond false "OCAML_LINK_DLLIB" bs.bs_dlllib;
+      Set_array(true, "OCAML_LINK_DLLIB",
+                [gen_getvar "EXTRA_OCAML_LINK_DLLIB"]);
       set_array_cond false "OCAML_LINK_DLLPATH" bs.bs_dllpath;
+      Set_array(true, "OCAML_LINK_DLLPATH",
+                [gen_getvar "EXTRA_OCAML_LINK_DLLPATH"]);
+      Set_array(false, "OCAML_LINK_FLAGS", 
+                [ Literal "-linkpkg";
+                  gen_getvar "EXTRA_OCAML_LINK_FLAGS" ]);
+      Set_array(false, "OCAMLFINDFLAGS",
+                [ gen_getvar "EXTRA_OCAMLFINDFLAGS" ]);
+      set_array_cond false "cflags" bs.bs_ccopt;
       set_array_cond false "ocamlcflags" bs.bs_byteopt;
       set_array_cond false "ocamloptflags" bs.bs_nativeopt;
       Lines
@@ -527,6 +558,8 @@ let add_executable ctx pkg map cs bs exec =
                "OASIS_clean_list";
              ];
     ] in
+  let section =
+    skippable cs.cs_name section in
 
   let dir = StrMap.find bs.bs_path map in
   let dir = { dir with dir_build = Section section :: dir.dir_build } in
