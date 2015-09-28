@@ -81,17 +81,22 @@ include _oasis_build.om
 DefineBuildRules()
 #DefineInstallRules()
 
-# You may define additional build rules here.
+# You may define additional build rules here, e.g.
+#
+# file.ml: file.mlp
+#     ./mypreprocessor file.mlp
 
-# If you set here one of the following variables, the setting will be taken
-# for compiling modules and C sources, unless more specific settings exist.
-# Note that _oasis_build.om ensures that these variables are already filled
-# with something reasonable derived from _oasis, but you might want to adjust
-# this here. You can also append to variables with "+=".
+# If you set here one of the following variables, the setting will be
+# taken for compiling modules and C sources in this directory, unless
+# more specific settings exist.  Note that _oasis_build.om ensures
+# that these variables are already filled with something reasonable
+# derived from _oasis, but you might want to adjust this here. You can
+# also append to variables with "+=". If you move the setting before the
+# .SUBDIRS line it is applied to all subdirectories, too.
 #
 # OCAMLFINDFLAGS =
 # OCAMLFLAGS =
-# OCAMLCFLAGS =
+# OCAMLCFLAGS = 
 # OCAMLOPTFLAGS =
 # OCAMLLEXFLAGS =
 # OCAMLYACCFLAGS =
