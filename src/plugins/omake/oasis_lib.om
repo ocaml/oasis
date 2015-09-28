@@ -12,13 +12,30 @@ if $(not $(defined OCAMLMKLIBFLAGS))
     OCAMLMKLIBFLAGS =
     export
 
-if $(not $(defined OCAML_BYTE_LIB_FLAGS))
-    OCAML_BYTE_LIB_FLAGS =
+if $(not $(defined OCAML_LIB_CCLIB))
+    OCAML_LIB_CCLIB =
     export
 
-if $(not $(defined OCAML_NATIVE_LIB_FLAGS))
-    OCAML_NATIVE_LIB_FLAGS =
+if $(not $(defined OCAML_LIB_DLLIB))
+    OCAML_LIB_DLLIB =
     export
+
+if $(not $(defined OCAML_LIB_DLLPATH))
+    OCAML_LIB_DLLPATH =
+    export
+
+if $(not $(defined OCAML_LINK_CCLIB))
+    OCAML_LINK_CCLIB =
+    export
+
+if $(not $(defined OCAML_LINK_DLLIB))
+    OCAML_LINK_DLLIB =
+    export
+
+if $(not $(defined OCAML_LINK_DLLPATH))
+    OCAML_LINK_DLLPATH =
+    export
+
 
 OASIS_clean_list[] =
     *.cmi
@@ -47,13 +64,20 @@ OASIS_empty_array[] =
 # the variable v_$(NAME), and this variable is taken instead.
 
 OASIS_getvar(name) =
+    declare private.v
     if $(and $(defined NAME) $(defined $(name)_$(NAME)))
-        value $(getvar $(name)_$(NAME))
+        v = $(getvar $(name)_$(NAME))
+        export v
     else
         if $(defined $(name))
-            value $(getvar $(name))
+            v = $(getvar $(name))
+            export v
         else
-            value $(OASIS_empty_array)
+            v = $(OASIS_empty_array)
+            export v
+        export v
+    value $(apply $(v))
+
 
 OASIS_run(list) =
     run_it(f) =
@@ -67,19 +91,9 @@ OASIS_target_OCamlLibrary(name) =
 #  - OCAML_LIBS and OCAML_CLIBS are now dependencies
 #  - creates the cmxs if CMXS_ENABLED
 #  - ignores OCAMLPACKS (no relinking of packages)
-#  - new: OCAML_BYTE_LIB_FLAGS, OCAML_NATIVE_LIB_FLAGS
 #  - can link in c_objects
 
 OASIS_build_OCamlLibrary(name,modules,c_objects) =
-    private.clibs = $(addsuffix $(EXT_LIB), $(OCAML_CLIBS))
-    if $(BYTE_ENABLED)
-        private.cmafiles = $(addsuffix .cma,  $(OCAML_LIBS))
-        $(name).cma: $(cmafiles) $(clibs)
-    if $(NATIVE_ENABLED)
-        private.cmxafiles = $(addsuffix .cmxa,  $(OCAML_LIBS))
-        private.arfiles = $(addsuffix $(EXT_LIB), $(OCAML_LIBS))
-        $(name).cmxa $(name)$(EXT_LIB): $(cmxafiles) $(arfiles) $(clibs)
-
     private.name = $(file $(name))
 
     private.OFILES   = $(addsuffix $(EXT_OBJ), $(modules))
@@ -95,30 +109,69 @@ OASIS_build_OCamlLibrary(name,modules,c_objects) =
     private.C_OBJECTS = $(file $(c_objects))
     private.STUBS     = $(LIBNAME)_stubs
 
+    private.BYTEDEPS   = $(addsuffix .cma, $(OCAML_LIBS))
+    private.NATIVEDEPS = $(addsuffix .cmxa, $(OCAML_LIBS))
+    private.CLIBDEPS   = $(addsuffix $(EXT_LIB), $(OCAML_LIBS))
+
     #
     # Link commands
     #
     if $(gt $(length $(C_OBJECTS)), 0)
-        $(BYTELIB): $(CMOFILES) $(C_OBJECTS)
-            $(OCAMLMKLIB) $(OCAML_LIB_FLAGS) $(OCAML_BYTE_LIB_FLAGS) \
+        private.flags =
+        private.byteflags =
+        private.natflags =
+        if $(gt $(length $(OCAML_LIB_FLAGS)), 0)
+            flags = -ccopt $(quote $(OCAML_LIB_FLAGS))
+            export flags
+        if $(gt $(length $(OCAMLCFLAGS)), 0)
+            byteflags = -ccopt $(quote $(OCAMLCFLAGS))
+            export byteflags
+        if $(gt $(length $(OCAMLOPTFLAGS)), 0)
+            natflags = -ccopt $(quote $(OCAMLOPTFLAGS))
+            export natflags
+        if $(gt $(length $(OCAML_LIB_DLLIB)), 0)
+            byteflags = -cclib $(quote $(addprefix -dllib, $(OCAML_LIB_DLLIB)))
+            export byteflags
+        if $(gt $(length $(OCAML_LIB_DLLPATH)), 0)
+            byteflags = -dllpath $(OCAML_LIB_DLLPATH)
+            export byteflags
+
+        $(BYTELIB): $(CMOFILES) $(C_OBJECTS) $(BYTEDEPS)
+            $(OCAMLMKLIB) \
+                 $(OCAML_LIB_CCLIB) $(flags) $(byteflags) \
                  -ocamlc "$(OCAMLC)" \
                  -o $(LIBNAME) -oc $(STUBS) \
                  $(OCamlLinkSort $(CMOFILES)) $(C_OBJECTS)
 
-        $(NATIVELIB) $(CLIB): $(CMXFILES) $(OFILES) $(C_OBJECTS)
-            $(OCAMLMKLIB) $(OCAML_LIB_FLAGS) $(OCAML_NATIVE_LIB_FLAGS) \
+        $(NATIVELIB) $(CLIB): $(CMXFILES) $(OFILES) $(C_OBJECTS) $(NATIVEDEPS) $(CLIBDEPS)
+            $(OCAMLMKLIB) \
+                 $(OCAML_LIB_CCLIB) $(flags) $(natflags) \
                  -ocamlopt "$(OCAMLOPT)" \
                  -o $(LIBNAME) -oc $(STUBS) \
                  $(OCamlLinkSort $(CMXFILES)) $(C_OBJECTS)
     else
-        $(BYTELIB): $(CMOFILES)
-            $(OCAMLLINK) -a $(OCAML_LIB_FLAGS) $(OCAML_BYTE_LIB_FLAGS) \
-                 -o $(BYTELIB) \
+        private.flags =
+        private.byteflags =
+        if $(gt $(length $(OCAML_LIB_CCLIB)), 0)
+            flags += -cclib $(quote $(OCAML_LIB_CCLIB))
+            export flags
+        if $(gt $(length $(OCAML_LIB_DLLIB)), 0)
+            byteflags += -dllib $(quote $(OCAML_LIB_DLLIB))
+            export byteflags
+        if $(gt $(length $(OCAML_LIB_DLLPATH)), 0)
+            byteflags += -dllpath $(quote $(OCAML_LIB_DLLPATH))
+            export byteflags
+
+        $(BYTELIB): $(CMOFILES) $(BYTEDEPS)
+            $(OCAMLLINK) -a \
+                 -o $(BYTELIB) $(OCAMLCFLAGS) \
+                 $(flags) $(OCAML_LIB_FLAGS) \
                  $(OCamlLinkSort $(CMOFILES))
 
-        $(NATIVELIB) $(CLIB): $(CMXFILES) $(OFILES)
-            $(OCAMLOPTLINK) -a $(OCAML_LIB_FLAGS) $(OCAML_NATIVE_LIB_FLAGS) \
-                 -o $(NATIVELIB) \
+        $(NATIVELIB) $(CLIB): $(CMXFILES) $(OFILES) $(NATIVEDEPS) $(CLIBDEPS)
+            $(OCAMLOPTLINK) -a \
+                 -o $(NATIVELIB) $(OCAMLOPTFLAGS) \
+                 $(flags) $(OCAML_LIB_FLAGS) \
                  $(OCamlLinkSort $(CMXFILES))
 
     $(CMXSFILE): $(NATIVELIB) $(CLIB)
@@ -170,12 +223,25 @@ OASIS_build_OCamlExecutable(name,mainmodule,c_objects) =
     private.BYTEPROG = $(file $(name).run)
     private.OPTPROG  = $(file $(name).opt)
 
+    private.flags =
+    private.byteflags =
+    if $(gt $(length $(OCAML_LINK_CCLIB)), 0)
+        flags += -cclib $(quote $(OCAML_LINK_CCLIB))
+        export flags
+    if $(gt $(length $(OCAML_LINK_DLLIB)), 0)
+        byteflags += -dllib $(quote $(OCAML_LINK_DLLIB))
+        export byteflags
+    if $(gt $(length $(OCAML_LINK_DLLPATH)), 0)
+        byteflags += -dllpath $(quote $(OCAML_LINK_DLLPATH))
+        export byteflags
+
     #
     # Rules to build byte-code and native targets
     #
     $(BYTEPROG): $(CMAFILES) $(CMOFILE) $(CLIBS) $(C_OBJECTS)
         $(OCAMLFIND) $(OCAMLLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLCFLAGS)\
-                 $(PREFIXED_OCAMLINCLUDES) $(OCAML_BYTE_LINK_FLAGS)\
+                 $(PREFIXED_OCAMLINCLUDES) $(OCAML_BYTE_LINK_FLAGS) \
+                 $(byteflags) $(flags) \
                  -o $@ $(CMA_OTHER_FILES) $(CMAFILES) \
                  $(OCamlLinkSort $(get_byte_deps $(CMOFILE), $(CMAFILES)) $(CMOFILE)) \
                  $(C_OBJECTS) $(CLIBS) $(OCAML_LINK_FLAGS)
@@ -183,6 +249,7 @@ OASIS_build_OCamlExecutable(name,mainmodule,c_objects) =
     $(OPTPROG): $(CMXAFILES) $(ARFILES) $(CMXFILE) $(OFILE) $(CLIBS) $(C_OBJECTS)
          $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLOPTFLAGS)\
                  $(PREFIXED_OCAMLINCLUDES) $(OCAML_NATIVE_LINK_FLAGS)\
+                 $(flags) \
                  -o $@ $(CMXA_OTHER_FILES) $(CMXAFILES) \
                  $(OCamlLinkSort $(get_native_deps $(CMXFILE), $(CMXAFILES)) $(CMXFILE)) \
                  $(C_OBJECTS) $(CLIBS) $(OCAML_LINK_FLAGS)
