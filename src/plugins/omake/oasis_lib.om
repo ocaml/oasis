@@ -52,7 +52,9 @@ OASIS_clean_list[] =
 
 OASIS_distclean_list[] =
     $(OASIS_clean_list)
-
+    *.omc
+    setup.data
+    setup.log
 
 # Returns the empty array
 
@@ -83,6 +85,46 @@ OASIS_run(list) =
     run_it(f) =
         value $(f)
     foreach($(run_it), $(list))
+
+OASIS_modify_OCAMLFLAGS(module, flags) =
+    OCAMLFLAGS += $(flags)
+    $(module).cmi:
+    $(module).cmo:
+    $(module).cmx $(module.o):
+
+OASIS_modify_OCAMLCFLAGS(module, flags) =
+    OCAMLCFLAGS += $(flags)
+    $(module).cmi:
+    $(module).cmo:
+    $(module).cmx $(module.o):
+
+OASIS_modify_OCAMLOPTFLAGS(module, flags) =
+    OCAMLOPTFLAGS += $(flags)
+    $(module).cmi:
+    $(module).cmo:
+    $(module).cmx $(module.o):
+
+OASIS_modify_OCAMLFINDFLAGS(module, flags) =
+    OCAMLFINDFLAGS += $(flags)
+    $(module).cmi:
+    $(module).cmo:
+    $(module).cmx $(module.o):
+
+OASIS_modify_OCAMLLEXFLAGS(module, flags) =
+    OCAMLLEXFLAGS += $(flags)
+    $(module).cmi:
+    $(module).cmo:
+    $(module).cmx $(module.o):
+
+OASIS_modify_OCAMLYACCFLAGS(module, flags) =
+    OCAMLYACCFLAGS += $(flags)
+    $(module).cmi:
+    $(module).cmo:
+    $(module).cmx $(module.o):
+
+OASIS_modify_CFLAGS(module, flags) =
+    CFLAGS += $(flags)
+    $(module)$(EXT_OBJ):
 
 OASIS_target_OCamlLibrary(name) =
     value $(array $(if $(NATIVE_ENABLED), $(array $(name).cmxa, $(name)$(EXT_LIB))), $(if $(and $(NATIVE_ENABLED), $(CMXS_ENABLED)), $(name).cmxs), $(if $(BYTE_ENABLED), $(name).cma))

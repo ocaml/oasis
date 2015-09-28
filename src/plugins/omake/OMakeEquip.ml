@@ -31,7 +31,6 @@
     - "omake install"
     - support for objects
     - support for documents
-    - OASIS_modify_XXX
  *)
 
 open OASISPlugin
@@ -512,6 +511,11 @@ let add_executable ctx pkg map cs bs exec =
       Set_array(true, "ACCU_CFLAGS", [Variable "cflags"]);
       Set_array(true, "ACCU_OCAMLCFLAGS", [Variable "ocamlcflags"]);
       Set_array(true, "ACCU_OCAMLOPTFLAGS", [Variable "ocamloptflags"]);
+      Set_array(true, "OASIS_clean_list",
+                [ Expression "$(NAME)";
+                  Expression "$(NAME).run";
+                  Expression "$(NAME).opt";
+                ]);
       Export [ "BUILD_TARGETS";
                "DEFINE_RULES";
                "ACCU_OCAMLINCLUDES";
@@ -520,6 +524,7 @@ let add_executable ctx pkg map cs bs exec =
                "ACCU_OCAMLOPTFLAGS";
                "ACCU_CFLAGS";
                "ACCU_SYNTAX_CAMLP4O";
+               "OASIS_clean_list";
              ];
     ] in
 
