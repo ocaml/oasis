@@ -42,6 +42,7 @@ type dir =
       dir_top : bool;
       dir_sub : string list;
       dir_build : om_entry list;
+      dir_install : om_entry list;
     }
 
 module StrMap = Map.Make(String)
@@ -54,6 +55,7 @@ let new_dir path =
     dir_top = false;
     dir_sub = [];
     dir_build = [];
+    dir_install = [];
   }
 
 let new_dir_map() =
@@ -440,6 +442,85 @@ let add_library ctx pkg map cs bs lib =
   let map = StrMap.add bs.bs_path dir map in
   establish_in map bs module_includes
 
+
+let inst_library ctx pkg map cs bs lib =
+  let module_files =
+    List.flatten
+      (List.map
+         (fun m0 ->
+            let m = fixup_module_case bs.bs_path m0 in
+            [ Literal (m ^ ".cmi");
+            ]
+         )
+         lib.lib_modules
+      ) in
+  let opt_module_files =
+    List.flatten
+      (List.map
+         (fun m0 ->
+            let m = fixup_module_case bs.bs_path m0 in
+            [ Literal (m ^ ".mli");
+              Literal (m ^ ".cmt");
+              Literal (m ^ ".cmti");
+              Literal (m ^ ".cmx");
+            ]
+         )
+         lib.lib_modules
+      ) in
+  let opt_lib_files =
+    [ Literal (cs.cs_name ^ ".cma");
+      Literal (cs.cs_name ^ ".cmxa");
+      Concat [ Literal cs.cs_name; Variable "EXT_LIB" ];
+      Literal (cs.cs_name ^ ".cmxs");
+      Concat [ Literal ("lib" ^ cs.cs_name ^ "_stubs"); Variable "EXT_LIB" ];
+      Concat [ Literal ("dll" ^ cs.cs_name ^ "_stubs"); Variable "EXT_DLL" ];
+    ] in
+
+  let section =
+    [ Set_string(false, "NAME", Literal cs.cs_name);
+      Set_array(false, "INSTALL_FILES", 
+                [ Literal "META" ] @ module_files @
+                  [ gen_getvar "EXTRA_INSTALL_FILES" ]);
+      Set_array(false, "INSTALL_OPTIONAL_FILES", 
+                opt_module_files @ opt_lib_files @
+                  [ gen_getvar "EXTRA_INSTALL_OPTIONAL_FILES" ]);
+      Lines
+        [ "DefineRules() =";
+          "    OASIS_install_OCamlLibrary($(NAME), $(INSTALL_FILES), $(INSTALL_OPTIONAL_FILES))";
+          "    OASIS_uninstall_OCamlLibrary($(NAME))";
+          "    OASIS_reinstall_OCamlLibrary($(NAME), $(INSTALL_FILES), $(INSTALL_OPTIONAL_FILES))";
+        ];
+      Cond([ om_cond_of_flag bs.bs_install,
+             [ Set_array(true, "INSTALL_TARGETS",
+                         [Expression
+                            "$(OASIS_installtarget_OCamlLibrary $(NAME))"]);
+               Set_array(true, "UNINSTALL_TARGETS",
+                         [Expression
+                            "$(OASIS_uninstalltarget_OCamlLibrary $(NAME))"]);
+               Set_array(true, "REINSTALL_TARGETS",
+                         [Expression
+                            "$(OASIS_reinstalltarget_OCamlLibrary $(NAME))"]);
+               Export [ "INSTALL_TARGETS";
+                        "UNINSTALL_TARGETS";
+                        "REINSTALL_TARGETS";
+                      ];
+             ]
+           ],
+           []);
+      Set_array(true, "DEFINE_RULES", [Expression "$(DefineRules)"]);
+      Export [ "INSTALL_TARGETS";
+               "UNINSTALL_TARGETS";
+               "REINSTALL_TARGETS";
+               "DEFINE_RULES";
+             ];
+    ] in
+  let section =
+    skippable cs.cs_name section in
+  let dir = StrMap.find bs.bs_path map in
+  let dir = { dir with dir_install = Section section :: dir.dir_install } in
+  StrMap.add bs.bs_path dir map
+
+
 let add_executable ctx pkg map cs bs exec =
   (* CHECK: what if bs.bs_path contains .. path elements? What if module names
      do so?
@@ -576,6 +657,15 @@ let define_build_rules_empty =
   Lines [ "DefineBuildRules() =";
         ]
 
+let define_install_rules =
+  Lines [ "DefineInstallRules() =";
+          "    OASIS_run($(DEFINE_RULES))";
+        ]
+
+let define_install_rules_empty =
+  Lines [ "DefineInstallRules() =";
+        ]
+
 let finish_definitions map =
   (* add headers and footers *)
   StrMap.map
@@ -615,8 +705,27 @@ let finish_definitions map =
                ]
            ] in
          header @ dir.dir_build @ footer in
+       let install = 
+         if dir.dir_install = [] then
+           [ Set_array(false, "INSTALL_TARGETS", []);
+             Set_array(false, "UNINSTALL_TARGETS", []);
+             Set_array(false, "REINSTALL_TARGETS", []);
+             define_install_rules_empty
+           ]
+       else
+         let header =
+           [ Set_array(false, "INSTALL_TARGETS", []);
+             Set_array(false, "UNINSTALL_TARGETS", []);
+             Set_array(false, "REINSTALL_TARGETS", []);
+             Set_array(false, "DEFINE_RULES", []);
+           ] in
+         let footer =
+           [ define_install_rules;
+           ] in
+         header @ dir.dir_install @ footer in
        { dir with
          dir_build = build;
+         dir_install = install;
        }
     )
     map
@@ -680,7 +789,12 @@ let write_files map =
          (OASISUnixPath.concat
             dir.dir_path
             "_oasis_build.om") in
-       write_omake_file build_path dir.dir_build
+       let install_path =
+         (OASISUnixPath.concat
+            dir.dir_path
+            "_oasis_install.om") in
+       write_omake_file build_path dir.dir_build;
+       write_omake_file install_path dir.dir_install;
     )
     map
 
@@ -691,7 +805,8 @@ let equip_project ctxt pkg =
       (fun acc ->
          function
          | Library (cs, bs, lib) ->
-             add_library ctxt pkg acc cs bs lib
+             let acc1 = add_library ctxt pkg acc cs bs lib in
+             inst_library ctxt pkg acc1 cs bs lib
          | Executable (cs, bs, exec) ->
              add_executable ctxt pkg acc cs bs exec
          | Object (cs, bs, lib) ->

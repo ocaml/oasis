@@ -36,6 +36,15 @@ if $(not $(defined OCAML_LINK_DLLPATH))
     OCAML_LINK_DLLPATH =
     export
 
+if $(not $(defined OCAMLFINDFLAGS_INSTALL))
+    OCAMLFINDFLAGS_INSTALL =
+    export
+
+if $(not $(defined OCAMLFINDFLAGS_REMOVE))
+    OCAMLFINDFLAGS_REMOVE =
+    export
+
+
 
 OASIS_clean_list[] =
     *.cmi
@@ -326,6 +335,67 @@ OASIS_build_OCamlExecutable(name,mainmodule,c_objects) =
         raise($(err))
     return $(array $(PROG), $(if $(NATIVE_ENABLED), $(OPTPROG)), $(if $(BYTE_ENABLED), $(BYTEPROG)))
 
+
+# install things
+
+OASIS_installtarget_OCamlLibrary(name) =
+    value $"install-lib-$(name)"
+
+OASIS_uninstalltarget_OCamlLibrary(name) =
+    value $"uninstall-lib-$(name)"
+
+OASIS_reinstalltarget_OCamlLibrary(name) =
+    value $"reinstall-lib-$(name)"
+
+private.install_OCamlLibrary(name, files, opt_files) =
+    $(OCAMLFIND) \
+         install $(OCAMLFINDFLAGS_INSTALL) \
+         $(name) $(files) -optional $(opt_files)
+
+private.uninstall_OCamlLibrary(name) =
+    $(OCAMLFIND) \
+         remove $(OCAMLFINDFLAGS_REMOVE) $(name)
+
+OASIS_install_OCamlLibrary(name, files, opt_files) =
+    .PHONY: install-lib-$(name)
+    install-lib-$(name): pre-install-here
+        install_OCamlLibrary($(name), $(files), $(opt_files))
+
+OASIS_uninstall_OCamlLibrary(name) =
+    .PHONY: uninstall-lib-$(name)
+    uninstall-lib-$(name):
+        uninstall_OCamlLibrary($(name))
+
+OASIS_reinstall_OCamlLibrary(name, files, opt_files) =
+    .PHONY: reinstall-lib-$(name)
+    reinstall-lib-$(name):
+        uninstall_OCamlLibrary($(name))
+        install_OCamlLibrary($(name), $(files), $(opt_files))
+
+private.install_Executable(name) =
+    mkdir -p $(oasis_bindir)
+    println($"Installing $(name) into $(oasis_bindir)")
+    cp $(name) $(oasis_bindir)/
+
+private.uninstall_Executable(name) =
+    println($"Uninstalling $(name) from $(oasis_bindir)")
+    rm -f $(oasis_bindir)/$(basename $(name))
+
+OASIS_install_Executable(name) =
+    .PHONY: install-exec-$(name)
+    install-exec-$(name): pre-install-here
+        install_Executable($(name))
+
+OASIS_uninstall_Executable(name) =
+    .PHONY: uninstall-exec-$(name)
+    uninstall-exec-$(name):
+        uninstall_Executable($(name))
+
+OASIS_uninstall_Executable(name) =
+    .PHONY: reinstall-exec-$(name)
+    reinstall-exec-$(name):
+        uninstall_Executable($(name))
+        install_Executable($(name))
 
 # Reading in setup.data
 

@@ -8,17 +8,19 @@ include _oasis_hier.om
 .SUBDIRS: $(OASIS_SUBDIRS)
 
 # local phonies
-.PHONY: build-here install-here pre-install-here clean-here distclean-here
+.PHONY: build-here install-here uninstall-here reinstall-here pre-install-here clean-here distclean-here
 
 include _oasis_build.om
-#include _oasis_install.om
+include _oasis_install.om
 
 DefineBuildRules()
-#DefineInstallRules()
+DefineInstallRules()
 
 build-here: $(BUILD_TARGETS)
-#install-here: $(INSTALL_TARGETS)
-#pre-install-here:
+install-here: $(INSTALL_TARGETS)
+uninstall-here: $(UNINSTALL_TARGETS)
+reinstall-here: $(REINSTALL_TARGETS)
+pre-install-here:
 
 clean-here:
     rm -f $(OASIS_clean_list)
@@ -27,6 +29,8 @@ distclean-here:
     rm -f $(OASIS_distclean_list)
 
 build: build-here
-#install: install-here
+install: install-here
+uninstall: uninstall-here
+reinstall: reinstall-here
 clean: clean-here
 distclean: distclean-here
