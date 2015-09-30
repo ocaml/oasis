@@ -1,5 +1,13 @@
 # Function library for OASIS builds.
 
+scratchpad. =
+    data_files = $(Map)
+
+ROOT = $(dir .)
+OASIS_empty_array[] =
+
+instflags = $(if $(VERBOSE), $(OASIS_empty_array), -s)
+
 if $(not $(defined CMXS_ENABLED))
     CMXS_ENABLED = false
     export
@@ -22,6 +30,55 @@ if $(not $(defined OCAML_LIB_DLLIB))
 
 if $(not $(defined OCAML_LIB_DLLPATH))
     OCAML_LIB_DLLPATH =
+    export
+
+if $(not $(defined OCAML_LIB_MODULE_SUFFIXES))
+    OCAML_LIB_MODULE_SUFFIXES[] =
+        .cmi
+    export
+
+if $(not $(defined OCAML_LIB_MODULE_SUFFIXES_BYTE))
+    OCAML_LIB_MODULE_SUFFIXES_BYTE[] =
+    export
+
+if $(not $(defined OCAML_LIB_MODULE_SUFFIXES_NATIVE))
+    OCAML_LIB_MODULE_SUFFIXES_NATIVE[] =
+    export
+
+if $(not $(defined OCAML_LIB_OPTIONAL_MODULE_SUFFIXES))
+    OCAML_LIB_OPTIONAL_MODULE_SUFFIXES[] =
+        .mli
+        .cmt
+        .cmti
+        .annot
+    export
+
+if $(not $(defined OCAML_LIB_OPTIONAL_MODULE_SUFFIXES_BYTE))
+    OCAML_LIB_OPTIONAL_MODULE_SUFFIXES_BYTE[] =
+    export
+
+if $(not $(defined OCAML_LIB_OPTIONAL_MODULE_SUFFIXES_NATIVE))
+    OCAML_LIB_OPTIONAL_MODULE_SUFFIXES_NATIVE[] =
+        .cmx
+    export
+
+if $(not $(defined OCAML_LIB_LIBRARY_SUFFIXES))
+    OCAML_LIB_LIBRARY_SUFFIXES[] =
+    export
+
+if $(not $(defined OCAML_LIB_LIBRARY_SUFFIXES_BYTE))
+    OCAML_LIB_LIBRARY_SUFFIXES_BYTE[] =
+        .cma
+    export
+
+if $(not $(defined OCAML_LIB_LIBRARY_SUFFIXES_NATIVE))
+    OCAML_LIB_LIBRARY_SUFFIXES_NATIVE[] =
+        .cmxa
+        $(EXT_LIB)
+    if $(CMXS_ENABLED)
+        OCAML_LIB_LIBRARY_SUFFIXES_NATIVE[] +=
+            .cmxs
+        export
     export
 
 if $(not $(defined OCAML_LINK_CCLIB))
@@ -64,11 +121,39 @@ OASIS_distclean_list[] =
     *.omc
     setup.data
     setup.log
+    setup.log.om
     _oasis_setup.om
 
-# Returns the empty array
+OASIS_scratchpad = $(ROOT)/setup.log.om
 
-OASIS_empty_array[] =
+.INCLUDE: $(OASIS_scratchpad)
+    section
+        private.f = $(fopen $(OASIS_scratchpad), wa)
+        close($(f))
+
+OASIS_scratchpad_append_new_data_files(key, files) =
+    private.f = $(fopen $(OASIS_scratchpad), wa)
+    fprintln($(f), $"section")
+    fprintln($(f), $"    private.key = $(string-escaped $(key))")
+    fprintln($(f), $'    private.files = $(OASIS_empty_array)')
+    fprintln($(f), $'    if $(scratchpad.data_files.mem $(key))')
+    fprintln($(f), $'        files = $(scratchpad.data_files.find $(key))')
+    fprintln($(f), $'        export files')
+    foreach(file => ..., $(files))
+        fprintln($(f), $"    files += $(string-escaped $(file))")
+    fprintln($(f), $'    scratchpad.data_files = $(scratchpad.data_files.add $(key), $(files))')
+    fprintln($(f), $'    export')
+    close($(f))
+    Shell.rm(-f $(OASIS_scratchpad)c)
+
+OASIS_scratchpad_append_del_data_files(key) =
+    private.f = $(fopen $(OASIS_scratchpad), wa)
+    fprintln($(f), $"section")
+    fprintln($(f), $"    private.key = $(string-escaped $(key))")
+    fprintln($(f), $'    scratchpad.data_files = $(scratchpad.data_files.remove $(key))')
+    fprintln($(f), $'    export')
+    close($(f))
+    Shell.rm(-f $(OASIS_scratchpad)c)
 
 # OASIS_getvar(v) gets the contents of the (array) variable named v, or
 # the empty array if it is not defined. If the variable NAME is defined
@@ -339,63 +424,171 @@ OASIS_build_OCamlExecutable(name,mainmodule,c_objects) =
 # install things
 
 OASIS_installtarget_OCamlLibrary(name) =
-    value $"install-lib-$(name)"
+    value $".PHONY/install-lib-$(name)"
 
 OASIS_uninstalltarget_OCamlLibrary(name) =
-    value $"uninstall-lib-$(name)"
+    value $".PHONY/uninstall-lib-$(name)"
 
 OASIS_reinstalltarget_OCamlLibrary(name) =
-    value $"reinstall-lib-$(name)"
+    value $".PHONY/reinstall-lib-$(name)"
 
-private.install_OCamlLibrary(name, files, opt_files) =
+OASIS_installtarget_Executable(name) =
+    value $".PHONY/install-exec-$(name)"
+
+OASIS_uninstalltarget_Executable(name) =
+    value $".PHONY/uninstall-exec-$(name)"
+
+OASIS_reinstalltarget_Executable(name) =
+    value $".PHONY/reinstall-exec-$(name)"
+
+OASIS_expand_module_files_OCamlLibrary(modules) =
+    value $(array \
+              $(addsuffixes $(OCAML_LIB_MODULE_SUFFIXES), $(modules)), \
+              $(if $(BYTE_ENABLED), $(addsuffixes $(OCAML_LIB_MODULE_SUFFIXES_BYTE), $(modules))), \
+              $(if $(NATIVE_ENABLED), $(addsuffixes $(OCAML_LIB_MODULE_SUFFIXES_NATIVE), $(modules))))
+
+
+OASIS_expand_optional_module_files_OCamlLibrary(modules) =
+    value $(array \
+              $(addsuffixes $(OCAML_LIB_OPTIONAL_MODULE_SUFFIXES), $(modules)), \
+              $(if $(BYTE_ENABLED), $(addsuffixes $(OCAML_LIB_OPTIONAL_MODULE_SUFFIXES_BYTE), $(modules))), \
+              $(if $(NATIVE_ENABLED), $(addsuffixes $(OCAML_LIB_OPTIONAL_MODULE_SUFFIXES_NATIVE), $(modules))))
+
+
+OASIS_expand_library_files_OCamlLibrary(name) =
+    value $(array \
+              $(addsuffixes $(OCAML_LIB_LIBRARY_SUFFIXES), $(name)), \
+              $(if $(BYTE_ENABLED), $(addsuffixes $(OCAML_LIB_LIBRARY_SUFFIXES_BYTE), $(name))), \
+              $(if $(NATIVE_ENABLED), $(addsuffixes $(OCAML_LIB_LIBRARY_SUFFIXES_NATIVE), $(name))))
+
+
+OASIS_expand_optional_library_files_OCamlLibrary(name) =
+    private.files[] =
+        lib$(name)_stubs$(EXT_LIB)
+        dll$(name)_stubs$(EXT_DLL)
+    value $(files)
+
+
+private.install_OCamlLibrary(flname, add_to, files, opt_files) =
+    private.args = $(if $(equal $(flname), $(add_to)), $(OASIS_empty_array), -add)
     $(OCAMLFIND) \
          install $(OCAMLFINDFLAGS_INSTALL) \
-         $(name) $(files) -optional $(opt_files)
+         $(add_to) $(args) $(files) -optional $(opt_files)
 
-private.uninstall_OCamlLibrary(name) =
+private.uninstall_OCamlLibrary(flname) =
     $(OCAMLFIND) \
-         remove $(OCAMLFINDFLAGS_REMOVE) $(name)
+         remove $(OCAMLFINDFLAGS_REMOVE) $(flname)
 
-OASIS_install_OCamlLibrary(name, files, opt_files) =
-    .PHONY: install-lib-$(name)
-    install-lib-$(name): pre-install-here
-        install_OCamlLibrary($(name), $(files), $(opt_files))
+# note that add_to may be prefixed by a path! e.g. ../../dir/findlibname.subpkg
 
-OASIS_uninstall_OCamlLibrary(name) =
-    .PHONY: uninstall-lib-$(name)
-    uninstall-lib-$(name):
-        uninstall_OCamlLibrary($(name))
+OASIS_install_OCamlLibrary(name, flname, add_to, files, opt_files) =
+    OMakeFlags($(instflags))
+    private.dep = $(if $(equal $(flname), $(add_to)), $(OASIS_empty_array), .PHONY/$(dirname $(add_to))/install-findlib-$(basename $(add_to)))
+    .PHONY/install-lib-$(name): .PHONY/install-findlib-$(flname)
+    .PHONY/install-findlib-$(flname): $(dep) pre-install-here
+        install_OCamlLibrary($(flname), $(basename $(add_to)), $(files), $(opt_files))
 
-OASIS_reinstall_OCamlLibrary(name, files, opt_files) =
-    .PHONY: reinstall-lib-$(name)
-    reinstall-lib-$(name):
-        uninstall_OCamlLibrary($(name))
-        install_OCamlLibrary($(name), $(files), $(opt_files))
+private.install_data(tag, src, dest) =
+    Shell.mkdir(-p $(dest))
+    private.files = $(glob iF, $(src))
+    foreach (file => ..., $(files))
+        Shell.cp($(file) $(dest)/$(basename $(file)))
+        println($"Installed $(dest)/$(basename $(file))")
+    OASIS_scratchpad_append_new_data_files($(tag), $(addprefix $(dest)/, $(basename $(files))))
 
-private.install_Executable(name) =
-    mkdir -p $(oasis_bindir)
-    println($"Installing $(name) into $(oasis_bindir)")
-    cp $(name) $(oasis_bindir)/
+private.uninstall_data(tag) =
+    private.files = $(OASIS_empty_array)
+    if $(scratchpad.data_files.mem $(tag))
+        files = $(scratchpad.data_files.find $(tag))
+        export files
+    foreach(file => ..., $(files))
+        Shell.rm(-f $(file))
+        println($"Removed $(file)")
+    OASIS_scratchpad_append_del_data_files($(tag))
+
+OASIS_uninstall_OCamlLibrary(name, flname, add_to) =
+    OMakeFlags($(instflags))
+    .PHONY/uninstall-lib-$(name): .PHONY/uninstall-findlib-$(flname)
+    if $(equal $(flname), $(add_to))
+        .PHONY/uninstall-findlib-$(flname):
+            uninstall_OCamlLibrary($(flname))
+    else
+        .PHONY/uninstall-findlib-$(flname): .PHONY/$(dirname $(add_to))/uninstall-findlib-$(basename $(add_to))
+
+OASIS_reinstall_OCamlLibrary(name, flname, add_to, files, opt_files) =
+    OMakeFlags($(instflags))
+    .PHONY/reinstall-lib-$(name): .PHONY/reinstall-findlib-$(flname)
+    if $(equal $(flname), $(add_to))
+        .PHONY/reinstall-findlib-$(flname): .PHONY/uninstall-lib-$(name)
+            install_OCamlLibrary($(flname), $(add_to), $(files), $(opt_files))
+    else
+        .PHONY/reinstall-findlib-$(flname): .PHONY/$(dirname $(add_to))/reinstall-findlib-$(basename $(add_to))
+            install_OCamlLibrary($(flname), $(basename $(add_to)), $(files), $(opt_files))
+
+
+OASIS_install_data_OCamlLibrary(name, src, dest) =
+    OMakeFlags($(instflags))
+    .PHONY/install-lib-$(name):
+        install_data($"lib-$(name)", $(src), $(dest))
+
+OASIS_uninstall_data_OCamlLibrary(name) =
+    OMakeFlags($(instflags))
+    .PHONY/uninstall-lib-$(name):
+        uninstall_data($"lib-$(name)")
+
+OASIS_reinstall_data_OCamlLibrary(name, src, dest) =
+    OMakeFlags($(instflags))
+    .PHONY/reinstall-lib-$(name):
+        install_data($"lib-$(name)", $(src), $(dest))
+
+OASIS_expand_file_Executable(name) =
+    if $(NATIVE_ENABLED)
+        return $(name).opt
+    elseif $(BYTE_ENABLED)
+        return $(name).run
+    else
+        return $(name)
+
+private.install_Executable(name,src) =
+    Shell.mkdir(-p $(oasis_bindir))
+    Shell.cp($(src) $(oasis_bindir)/$(basename $(name)))
+    println($"Installed $(oasis_bindir)/$(basename $(name))")
 
 private.uninstall_Executable(name) =
-    println($"Uninstalling $(name) from $(oasis_bindir)")
-    rm -f $(oasis_bindir)/$(basename $(name))
+    if $(file-exists $(oasis_bindir)/$(basename $(name)))
+        Shell.rm(-f $(oasis_bindir)/$(basename $(name)))
+        println($"Removed $(oasis_bindir)/$(basename $(name))")
 
-OASIS_install_Executable(name) =
-    .PHONY: install-exec-$(name)
-    install-exec-$(name): pre-install-here
-        install_Executable($(name))
-
-OASIS_uninstall_Executable(name) =
-    .PHONY: uninstall-exec-$(name)
-    uninstall-exec-$(name):
-        uninstall_Executable($(name))
+OASIS_install_Executable(name,src) =
+    OMakeFlags($(instflags))
+    .PHONY/install-exec-$(name): pre-install-here
+        install_Executable($(name), $(src))
 
 OASIS_uninstall_Executable(name) =
-    .PHONY: reinstall-exec-$(name)
-    reinstall-exec-$(name):
+    OMakeFlags($(instflags))
+    .PHONY/uninstall-exec-$(name):
         uninstall_Executable($(name))
-        install_Executable($(name))
+
+OASIS_reinstall_Executable(name,src) =
+    OMakeFlags($(instflags))
+    .PHONY/reinstall-exec-$(name): .PHONY/uninstall-exec-$(name)
+        install_Executable($(name), $(src))
+
+OASIS_install_data_Executable(name, src, dest) =
+    OMakeFlags($(instflags))
+    .PHONY/install-exec-$(name):
+        install_data($"exec-$(name)", $(src), $(dest))
+
+OASIS_uninstall_data_Executable(name) =
+    OMakeFlags($(instflags))
+    .PHONY/uninstall-exec-$(name):
+        uninstall_data($"exec-$(name)")
+
+OASIS_reinstall_data_Executable(name, src, dest) =
+    OMakeFlags($(instflags))
+    .PHONY/reinstall-exec-$(name):
+        install_data($"exec-$(name)", $(src), $(dest))
+
 
 # Reading in setup.data
 

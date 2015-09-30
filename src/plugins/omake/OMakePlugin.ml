@@ -43,21 +43,10 @@ type t =
 let run  = BaseCustom.run
 
 
-let main t _ extra_args =
-  run "omake" ["build"] extra_args
-
-
-let clean t pkg extra_args =
-  run "omake" ["clean"] extra_args
-
-
-let distclean t pkg extra_args =
-  run "omake" ["distclean"] extra_args
-
 module BuildRuntime =
 struct
   let main t pkg extra_args =
-    main t pkg extra_args;
+    run "omake" ["build"] extra_args;
     List.iter
       (fun sct ->
          let evs =
@@ -89,7 +78,7 @@ struct
       pkg.sections
 
   let clean t pkg extra_args =
-    clean t pkg extra_args;
+    run "omake" ["clean"] extra_args;
     (* TODO: this seems to be pretty generic (at least wrt to ocamlbuild
      * considering moving this to BaseSetup?
      *)
@@ -105,8 +94,18 @@ struct
       pkg.sections
 
   let distclean t pkg extra_args =
-    distclean t pkg extra_args
+    run "omake" ["distclean"] extra_args
 end
+
+
+module InstallRuntime = struct
+  let install t pkg extra_args =
+    run "omake" ["install"] extra_args
+
+  let uninstall t pkg extra_args =
+    run "omake" ["uninstall"] extra_args
+end
+
 
 (*
 module Test =
@@ -175,11 +174,9 @@ let build_plugin = `Build, nm, ver
 let build_data   = data_new_property build_plugin
 
 
-(*
 let install_plugin = `Install, nm, ver
 let install_data   = data_new_property install_plugin
 let uninstall_data = data_new_property ~purpose:`Uninstall install_plugin
- *)
 
 (*
 let test_plugin = `Test, nm, ver
@@ -339,33 +336,37 @@ let build_init () =
 
 
 (* Install plugin *)
-(*
 let install_init () =
   let self_id, id =
     Install.create install_plugin
   in
-  let generate_install, doit_install =
-    std
-      id
-      install_data
-      "Install"
-      (ns_ "Run command to install.")
-      (ns_ "Run command to clean install step.")
-      (ns_ "Run command to distclean install step.")
-  in
-  let generate_uninstall, doit_uninstall =
-    std
-      id
-      uninstall_data
-      "Uninstall"
-      (ns_ "Run command to uninstall.")
-      (ns_ "Run command to clean uninstall step.")
-      (ns_ "Run command to distclean uninstall step.")
-  in
-    Install.register_act self_id (doit_install, doit_uninstall);
-    register_generator_package id install_data generate_install;
-    register_generator_package id uninstall_data generate_uninstall
- *)
+  let generator_inst data = { dummy = () } in
+  let generator_uninst data = { dummy = () } in
+  let doit_install ctxt pkg =
+    let t =
+      generator_inst pkg.schema_data in
+    let equip() =
+      OMakeEquip.equip_project ctxt pkg in
+    { ctxt with other_actions = equip :: ctxt.other_actions },
+    { chng_moduls = [OMakeData.omakesys_ml];
+      chng_main = ODNFunc.func_with_arg InstallRuntime.install "OMakePlugin.InstallRuntime.install" t odn_of_t;
+      chng_clean = None;
+      chng_distclean = None
+    } in
+  let doit_uninstall ctxt pkg =
+    let t =
+      generator_uninst pkg.schema_data in
+    let equip() =
+      OMakeEquip.equip_project ctxt pkg in
+    { ctxt with other_actions = equip :: ctxt.other_actions },
+    { chng_moduls = [OMakeData.omakesys_ml];
+      chng_main = ODNFunc.func_with_arg InstallRuntime.uninstall "OMakePlugin.InstallRuntime.uninstall" t odn_of_t;
+      chng_clean = None;
+      chng_distclean = None
+    } in
+  Install.register_act self_id (doit_install, doit_uninstall);
+  register_generator_package id install_data generator_inst;
+  register_generator_package id uninstall_data generator_uninst
 
 (* Document plugin *)
 (*
@@ -488,8 +489,8 @@ let init () =
   conf_init ();
  *)
   build_init ();
-(*
   install_init ();
+(*
   doc_init ();
   test_init ()
  *)

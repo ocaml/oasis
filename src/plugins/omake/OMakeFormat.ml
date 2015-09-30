@@ -120,7 +120,8 @@ let write_omake_file ?(skip_existing=false) upath entries =
       | Section l ->
           write_indent f indent;
           fprintf f "section\n";
-          List.iter (write f (indent+4)) l
+          List.iter (write f (indent+4)) l;
+          fprintf f "\n";
       | Set_string(append,name,value) ->
           write_indent f indent;
           fprintf f "%s %s= %s\n"

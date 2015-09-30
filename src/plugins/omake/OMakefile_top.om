@@ -29,6 +29,12 @@ include _oasis_lib.om
 .INCLUDE: _oasis_setup.om: setup.data
     OASIS_generate_setup()
 
+# At this point you may fine-tune the configuration, and modify defaults:
+# 
+# OCAML_LIB_MODULE_SUFFIXES += .ml       (install also .ml files with libs)
+# OCAMLFINDFLAGS += -verbose             (be verbose)
+# OCAMLFLAGS += -bin-annot               (create .cmt/.cmti files)
+
 # Until this point we allow to override variables via the command-line.
 # That means all initializations from above can be changed by omake arguments
 # here. E.g. invoke with "omake BYTE_ENABLED=false" to disable bytecode
@@ -58,6 +64,7 @@ include _oasis_hier.om
 
 # At this point you may set any of the EXTRA variables used in the .om files:
 #
+# -- build --
 # EXTRA_OCAMLPACKS                (findlib packages)
 # EXTRA_OCAMLINCLUDES             (include directories)
 # EXTRA_MODULES                   (OCaml modules w/o extension)
@@ -72,6 +79,11 @@ include _oasis_hier.om
 # EXTRA_OCAML_LINK_DLLPATH        (runtime path for bytecode executables)
 # EXTRA_OCAML_LINK_FLAGS          (flags for creating executables)
 # EXTRA_OCAMLFINDFLAGS            (flags for ocamlfind call)
+#
+# -- install --
+# EXTRA_INSTALL_MODULES           (OCaml modules w/o extension)
+# EXTRA_INSTALL_FILES             (files to install with the library)
+# EXTRA_INSTALL_OPTIONAL_FILES    (optional files to install with the library)
 #
 # In order to restrict such a variable to only a single library, executable, or
 # object, append its name separated with an underscore, e.g.
@@ -114,7 +126,8 @@ DefineInstallRules()
 
 # It is also possible to specify variables for a single source file. Use
 # the OASIS_modify_* functions to append flags for a single source only.
-# Do not add file extensions like .ml or .c here:
+# Do not add file extensions like .ml or .c here. These functions must be
+# called from the OMakefile in the directory of the module to modify.
 #
 # OASIS_modify_OCAMLPACKS(module, unix)
 # OASIS_modify_OCAMLINCLUDES(module, /some/path)

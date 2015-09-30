@@ -26,8 +26,8 @@
 
 (* TODO:
 
+    - destdir
     - library with -pack
-    - "omake install"
     - support for objects
     - support for documents
  *)
@@ -136,6 +136,60 @@ let gen_getvar name =
   Expression (sprintf "$(OASIS_getvar %s)" name)
 
 
+exception Ident of string
+
+
+let get_data_destination dir_opt =
+  (* cannot use Buffer.add_substitute because we want to get an omake
+     expression as result *)
+  let dir =
+    match dir_opt with
+      | None -> "$datadir/$pkg_name"
+      | Some dir -> dir in
+  let lim = String.length dir in
+  let get_lit acc =
+    if acc = [] then
+      []
+    else
+      [Literal (String.concat "" (List.rev acc))] in
+  let rec subst acc prev i =
+    if i < lim then (
+      match dir.[i] with
+        | '$' when prev = '\\' ->
+            subst ("$"::acc) ' ' (i+1)
+        | '$' ->
+            (* a gross hack... *)
+            ( try
+                let b = Buffer.create 1 in
+                Buffer.add_substitute
+                  b
+                  (fun ident -> raise(Ident ident))
+                  (String.sub dir i (lim-i));
+                assert false
+              with Ident ident ->
+                let len =
+                  if i+1 < lim && (dir.[i+1] = '(' || dir.[i+1] = '{') then
+                    String.length ident + 3
+                  else
+                    String.length ident + 1 in
+                get_lit acc @
+                  [Variable ("oasis_" ^ ident)] @
+                    subst [] ' ' (i+len)
+            )
+        | cur when prev = '\\' ->
+            let acc = ("\\" ^ String.make 1 cur) :: acc in
+            subst acc ' ' (i+1)
+        | '\\' ->
+            subst acc '\\' (i+1)
+        | cur ->
+            subst (String.make 1 cur :: acc) cur (i+1)
+    ) else
+      let acc =
+        if prev = '\\' then String.make 1 prev :: acc else acc in
+      get_lit acc in
+  subst [] ' ' 0
+
+
 let fixup_module_case dir name =
   let name_cap = OASISUnixPath.capitalize_file name in
   let name_uncap = OASISUnixPath.uncapitalize_file name in
@@ -165,6 +219,19 @@ let fixup_module_case dir name =
 let strset_flatten l =
   List.fold_left StrSet.union StrSet.empty l
 
+
+let get_lib_flname cs lib =
+  String.concat
+    "."
+    ( (match lib.lib_findlib_parent with
+         | None -> []
+         | Some p -> [p]
+      ) @ lib.lib_findlib_containers @
+        match lib.lib_findlib_name with
+          | None -> [cs.cs_name]
+          | Some n -> [n]
+    )
+    
 
 let get_lib_includes pkg bs =
   (* only the direct includes, not the indirect ones *)
@@ -307,8 +374,8 @@ let have_syntax_camlp4o ocamlpacks =
     ocamlpacks
 
 
-let skippable name l =
-  let skip = "SKIP_" ^ name in
+let skippable prefix name l =
+  let skip = prefix ^ "_" ^ name in
   [ Lines
       [ "if $(not $(defined " ^ skip ^ "))";
         "    " ^ skip ^ " = false";
@@ -319,7 +386,17 @@ let skippable name l =
     Export [];
   ]
 
-  
+
+let set_byte_or_native bs =
+  (* the default settings correspond to "best" *)
+  match bs.bs_compiled_object with
+    | Best ->
+        Nop
+    | Byte ->
+        Set_string(false, "NATIVE_ENABLED", Literal "false")
+    | Native ->
+        Set_string(false, "BYTE_ENABLED", Literal "false")
+
 
 let add_library ctx pkg map cs bs lib =
   (* CHECK: what if bs.bs_path contains .. path elements? What if module names
@@ -343,22 +420,24 @@ let add_library ctx pkg map cs bs lib =
     StrSet.union lib_includes module_includes in
   let ocamlpacks =
     get_ocamlpacks pkg bs in
+  let module_impls =
+    (* TODO: at this point we'd like to filter out modules that only consist
+       of a mli file. We cannot know that, though, because there may be a
+       rule to generate the ml file.
+     *)
+    List.flatten
+      (List.map
+         (fun m ->
+            let m = fixup_module_case bs.bs_path m in
+            [ Literal m ]
+         )
+         (lib.lib_modules @ lib.lib_internal_modules)
+      ) in
   let section =
     [ Set_string(false, "NAME", Literal cs.cs_name);
-      ( match bs.bs_compiled_object with
-          | Best ->
-              Nop
-          | Byte ->
-              Set_string(false, "NATIVE_ENABLED", Literal "false")
-          | Native ->
-              Set_string(false, "BYTE_ENABLED", Literal "false")
-      );
-      Set_array(false, "MODULES",
-                ( List.map
-                    (fun n -> Literal (fixup_module_case bs.bs_path n))
-                    (lib.lib_modules @ lib.lib_internal_modules)
-                  @
-                    [gen_getvar "EXTRA_MODULES"] ));
+      set_byte_or_native bs;
+      Set_array(false, "MODULES", module_impls @ 
+                                    [gen_getvar "EXTRA_MODULES"] );
       Set_array(false, "OCAML_LIBS",
                 ( List.map
                     (fun n -> Literal n)
@@ -436,60 +515,100 @@ let add_library ctx pkg map cs bs lib =
              ];
     ] in
   let section =
-    skippable cs.cs_name section in
+    skippable "SKIP_BUILD" cs.cs_name section in
   let dir = StrMap.find bs.bs_path map in
   let dir = { dir with dir_build = Section section :: dir.dir_build } in
   let map = StrMap.add bs.bs_path dir map in
   establish_in map bs module_includes
 
 
-let inst_library ctx pkg map cs bs lib =
-  let module_files =
-    List.flatten
-      (List.map
-         (fun m0 ->
-            let m = fixup_module_case bs.bs_path m0 in
-            [ Literal (m ^ ".cmi");
-            ]
-         )
-         lib.lib_modules
-      ) in
-  let opt_module_files =
-    List.flatten
-      (List.map
-         (fun m0 ->
-            let m = fixup_module_case bs.bs_path m0 in
-            [ Literal (m ^ ".mli");
-              Literal (m ^ ".cmt");
-              Literal (m ^ ".cmti");
-              Literal (m ^ ".cmx");
-            ]
-         )
-         lib.lib_modules
-      ) in
-  let opt_lib_files =
-    [ Literal (cs.cs_name ^ ".cma");
-      Literal (cs.cs_name ^ ".cmxa");
-      Concat [ Literal cs.cs_name; Variable "EXT_LIB" ];
-      Literal (cs.cs_name ^ ".cmxs");
-      Concat [ Literal ("lib" ^ cs.cs_name ^ "_stubs"); Variable "EXT_LIB" ];
-      Concat [ Literal ("dll" ^ cs.cs_name ^ "_stubs"); Variable "EXT_DLL" ];
+let inst_data ?(typ="OCamlLibrary") bs =
+  let lines1 =
+    [ sprintf "    OASIS_uninstall_data_%s($(NAME))" typ;
     ] in
+  let lines2 =
+    List.flatten
+      (List.map
+         (fun (src, dest) ->
+            let dest_val = get_data_destination dest in
+            [ sprintf "    OASIS_install_data_%s($(NAME), %s, %s)"
+                      typ src (string_of_value (Concat dest_val));
+              sprintf "    OASIS_reinstall_data_%s($(NAME), %s, %s)"
+                      typ src (string_of_value (Concat dest_val));
+            ]
+         )
+         bs.bs_data_files
+      ) in
+  Lines (lines1 @ lines2)
 
+
+let inst_library ctx pkg map cs bs lib =
+  let findlib_parent_section =
+    match lib.lib_findlib_parent with
+      | None -> None
+      | Some p ->
+          ( try
+              Some
+                (List.find
+                   (fun sect ->
+                      match sect with
+                        | Library(cs,bs,lib) ->
+                            get_lib_flname cs lib = p
+                        | _ ->
+                            false
+                   )
+                   pkg.sections
+                )
+            with
+              | Not_found ->
+                  failwith ("No section with this findlib name: " ^ p)
+          ) in
+  let findlib_parent_relpath =
+    match findlib_parent_section with
+      | None -> None
+      | Some(Library(_,pbs,_)) ->
+          Some(OASISUnixPath.make_relative bs.bs_path pbs.bs_path)
+      | Some _ ->
+          assert false in
+  let modules =
+    List.map
+      (fun m0 ->
+         let m = fixup_module_case bs.bs_path m0 in
+         Literal m
+      )
+      lib.lib_modules in
+  let maybe_meta =
+    if lib.lib_findlib_parent = None then [Literal "META"] else [] in
   let section =
     [ Set_string(false, "NAME", Literal cs.cs_name);
-      Set_array(false, "INSTALL_FILES", 
-                [ Literal "META" ] @ module_files @
-                  [ gen_getvar "EXTRA_INSTALL_FILES" ]);
+      Set_string(false, "FINDLIB_NAME", Literal (get_lib_flname cs lib));
+      Set_string(false, "FINDLIB_PARENT",
+                 match lib.lib_findlib_parent, findlib_parent_relpath with
+                   | None, None -> Variable "FINDLIB_NAME"
+                   | Some p, Some path -> Literal(OASISUnixPath.concat path p)
+                   | _ -> assert false);
+      set_byte_or_native bs;
+      Set_array(false, "INSTALL_MODULES",
+                modules @
+                  [ gen_getvar "EXTRA_INSTALL_MODULES" ]);
+      Set_array(false, "INSTALL_FILES",
+                maybe_meta @
+                  [ Expression "$(OASIS_expand_module_files_OCamlLibrary $(INSTALL_MODULES))";
+                    Expression "$(OASIS_expand_library_files_OCamlLibrary $(NAME))";
+                    gen_getvar "EXTRA_INSTALL_FILES"
+               ]);
       Set_array(false, "INSTALL_OPTIONAL_FILES", 
-                opt_module_files @ opt_lib_files @
-                  [ gen_getvar "EXTRA_INSTALL_OPTIONAL_FILES" ]);
+                [ Expression "$(OASIS_expand_optional_module_files_OCamlLibrary $(INSTALL_MODULES))";
+                  Expression "$(OASIS_expand_optional_library_files_OCamlLibrary $(NAME))";
+                  gen_getvar "EXTRA_INSTALL_OPTIONAL_FILES"
+               ]);
       Lines
         [ "DefineRules() =";
-          "    OASIS_install_OCamlLibrary($(NAME), $(INSTALL_FILES), $(INSTALL_OPTIONAL_FILES))";
-          "    OASIS_uninstall_OCamlLibrary($(NAME))";
-          "    OASIS_reinstall_OCamlLibrary($(NAME), $(INSTALL_FILES), $(INSTALL_OPTIONAL_FILES))";
+          "    OASIS_install_OCamlLibrary($(NAME), $(FINDLIB_NAME), $(FINDLIB_PARENT), $(INSTALL_FILES), $(INSTALL_OPTIONAL_FILES))";
+          "    OASIS_uninstall_OCamlLibrary($(NAME), $(FINDLIB_NAME), $(FINDLIB_PARENT))";
+          "    OASIS_reinstall_OCamlLibrary($(NAME), $(FINDLIB_NAME), $(FINDLIB_PARENT), $(INSTALL_FILES), $(INSTALL_OPTIONAL_FILES))";
         ];
+      inst_data bs;
       Cond([ om_cond_of_flag bs.bs_install,
              [ Set_array(true, "INSTALL_TARGETS",
                          [Expression
@@ -515,7 +634,7 @@ let inst_library ctx pkg map cs bs lib =
              ];
     ] in
   let section =
-    skippable cs.cs_name section in
+    skippable "SKIP_INSTALL" cs.cs_name section in
   let dir = StrMap.find bs.bs_path map in
   let dir = { dir with dir_install = Section section :: dir.dir_install } in
   StrMap.add bs.bs_path dir map
@@ -542,14 +661,7 @@ let add_executable ctx pkg map cs bs exec =
 
   let section =
     [ Set_string(false, "NAME", Literal cs.cs_name);
-      ( match bs.bs_compiled_object with
-          | Best ->
-              Nop
-          | Byte ->
-              Set_string(false, "NATIVE_ENABLED", Literal "false")
-          | Native ->
-              Set_string(false, "BYTE_ENABLED", Literal "false")
-      );
+      set_byte_or_native bs;
       Set_string(false, "MAIN_MODULE",
                  Literal(fixup_module_case bs.bs_path main_module));
       Set_array(false, "OCAMLPACKS",
@@ -640,12 +752,56 @@ let add_executable ctx pkg map cs bs exec =
              ];
     ] in
   let section =
-    skippable cs.cs_name section in
+    skippable "SKIP_BUILD" cs.cs_name section in
 
   let dir = StrMap.find bs.bs_path map in
   let dir = { dir with dir_build = Section section :: dir.dir_build } in
   let map = StrMap.add bs.bs_path dir map in
   establish_in map bs module_includes
+
+
+let inst_executable ctx pkg map cs bs exec =
+  let section =
+    [ Set_string(false, "NAME", Literal cs.cs_name);
+      set_byte_or_native bs;
+      Set_string(false, "INSTALL_FILE",
+                 Expression "$(OASIS_expand_file_Executable $(NAME))");
+      Lines
+        [ "DefineRules() =";
+          "    OASIS_install_Executable($(NAME), $(INSTALL_FILE))";
+          "    OASIS_uninstall_Executable($(NAME))";
+          "    OASIS_reinstall_Executable($(NAME), $(INSTALL_FILE))";
+        ];
+      inst_data ~typ:"Executable" bs;
+      Cond([ om_cond_of_flag bs.bs_install,
+             [ Set_array(true, "INSTALL_TARGETS",
+                         [Expression
+                            "$(OASIS_installtarget_Executable $(NAME))"]);
+               Set_array(true, "UNINSTALL_TARGETS",
+                         [Expression
+                            "$(OASIS_uninstalltarget_Executable $(NAME))"]);
+               Set_array(true, "REINSTALL_TARGETS",
+                         [Expression
+                            "$(OASIS_reinstalltarget_Executable $(NAME))"]);
+               Export [ "INSTALL_TARGETS";
+                        "UNINSTALL_TARGETS";
+                        "REINSTALL_TARGETS";
+                      ];
+             ]
+           ],
+           []);
+      Set_array(true, "DEFINE_RULES", [Expression "$(DefineRules)"]);
+      Export [ "INSTALL_TARGETS";
+               "UNINSTALL_TARGETS";
+               "REINSTALL_TARGETS";
+               "DEFINE_RULES";
+             ];
+    ] in
+  let section =
+    skippable "SKIP_INSTALL" cs.cs_name section in
+  let dir = StrMap.find bs.bs_path map in
+  let dir = { dir with dir_install = Section section :: dir.dir_install } in
+  StrMap.add bs.bs_path dir map
 
 
 let define_build_rules =
@@ -673,7 +829,8 @@ let finish_definitions map =
        let build = 
          if dir.dir_build = [] then
            [ Set_array(false, "BUILD_TARGETS", []);
-             define_build_rules_empty
+             define_build_rules_empty;
+             Lines [ "" ];
            ]
        else
          let header =
@@ -685,9 +842,11 @@ let finish_definitions map =
              Set_array(false, "ACCU_OCAMLCFLAGS", []);
              Set_array(false, "ACCU_OCAMLOPTFLAGS", []);
              Set_string(false, "ACCU_SYNTAX_CAMLP4O", Literal "false");
+             Lines [ "" ];
            ] in
          let footer =
-           [ define_build_rules;
+           [ Lines [ "" ];
+             define_build_rules;
              Set_string(false, "OCAMLINCLUDES",
                         Expression "$(set $(ACCU_OCAMLINCLUDES))");
              Set_string(false, "OCAMLPACKS",
@@ -702,6 +861,7 @@ let finish_definitions map =
                [ "if $(ACCU_SYNTAX_CAMLP4O)";
                  "    OCAMLFINDFLAGS += -syntax camlp4o";
                  "    export OCAMLFINDFLAGS";
+                 ""
                ]
            ] in
          header @ dir.dir_build @ footer in
@@ -710,7 +870,8 @@ let finish_definitions map =
            [ Set_array(false, "INSTALL_TARGETS", []);
              Set_array(false, "UNINSTALL_TARGETS", []);
              Set_array(false, "REINSTALL_TARGETS", []);
-             define_install_rules_empty
+             define_install_rules_empty;
+             Lines [ "" ];
            ]
        else
          let header =
@@ -718,9 +879,11 @@ let finish_definitions map =
              Set_array(false, "UNINSTALL_TARGETS", []);
              Set_array(false, "REINSTALL_TARGETS", []);
              Set_array(false, "DEFINE_RULES", []);
+             Lines [ "" ];
            ] in
          let footer =
-           [ define_install_rules;
+           [ Lines [ "" ];
+             define_install_rules;
            ] in
          header @ dir.dir_install @ footer in
        { dir with
@@ -808,7 +971,8 @@ let equip_project ctxt pkg =
              let acc1 = add_library ctxt pkg acc cs bs lib in
              inst_library ctxt pkg acc1 cs bs lib
          | Executable (cs, bs, exec) ->
-             add_executable ctxt pkg acc cs bs exec
+             let acc1 = add_executable ctxt pkg acc cs bs exec in
+             inst_executable ctxt pkg acc1 cs bs exec
          | Object (cs, bs, lib) ->
              establish acc (new_dir bs.bs_path)
          | _ ->
