@@ -155,6 +155,15 @@ OASIS_scratchpad_append_del_data_files(key) =
     close($(f))
     Shell.rm(-f $(OASIS_scratchpad)c)
 
+
+OASIS_destdir(path) =
+    if $(defined DESTDIR)
+        return $(absname $(dir $(DESTDIR)/$(path)))
+    if $(defined oasis_destdir)
+        return $(absname $(dir $(oasis_destdir)/$(path)))
+    else
+        return $(absname $(dir $(path)))
+
 # OASIS_getvar(v) gets the contents of the (array) variable named v, or
 # the empty array if it is not defined. If the variable NAME is defined
 # in the context where this function is called, it is first looked at
@@ -489,12 +498,13 @@ OASIS_install_OCamlLibrary(name, flname, add_to, files, opt_files) =
         install_OCamlLibrary($(flname), $(basename $(add_to)), $(files), $(opt_files))
 
 private.install_data(tag, src, dest) =
-    Shell.mkdir(-p $(dest))
+    private.d = $(OASIS_destdir $(dest))
+    Shell.mkdir(-p $(d))
     private.files = $(glob iF, $(src))
     foreach (file => ..., $(files))
-        Shell.cp($(file) $(dest)/$(basename $(file)))
-        println($"Installed $(dest)/$(basename $(file))")
-    OASIS_scratchpad_append_new_data_files($(tag), $(addprefix $(dest)/, $(basename $(files))))
+        Shell.cp($(file) $(d)/.)
+        println($"Installed $(d)/$(basename $(file))")
+    OASIS_scratchpad_append_new_data_files($(tag), $(addprefix $(d)/, $(basename $(files))))
 
 private.uninstall_data(tag) =
     private.files = $(OASIS_empty_array)
@@ -550,14 +560,22 @@ OASIS_expand_file_Executable(name) =
         return $(name)
 
 private.install_Executable(name,src) =
-    Shell.mkdir(-p $(oasis_bindir))
-    Shell.cp($(src) $(oasis_bindir)/$(basename $(name)))
-    println($"Installed $(oasis_bindir)/$(basename $(name))")
+    private.d = $(OASIS_destdir $(oasis_bindir))
+    private.f = $(d)/$(basename $(name))
+    Shell.mkdir(-p $(d))
+    if $(test -d $(f))
+        err. =
+            extends $(Exception)
+            message = $"Is a directory: $(f)"
+        raise($(err))
+    Shell.cp($(src) $(f))
+    println($"Installed $(f)")
 
 private.uninstall_Executable(name) =
-    if $(file-exists $(oasis_bindir)/$(basename $(name)))
-        Shell.rm(-f $(oasis_bindir)/$(basename $(name)))
-        println($"Removed $(oasis_bindir)/$(basename $(name))")
+    private.d = $(OASIS_destdir $(oasis_bindir))
+    if $(file-exists $(d)/$(basename $(name)))
+        Shell.rm(-f $(d)/$(basename $(name)))
+        println($"Removed $(d)/$(basename $(name))")
 
 OASIS_install_Executable(name,src) =
     OMakeFlags($(instflags))

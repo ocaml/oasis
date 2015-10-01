@@ -26,7 +26,6 @@
 
 (* TODO:
 
-    - destdir
     - library with -pack
     - support for objects
     - support for documents
