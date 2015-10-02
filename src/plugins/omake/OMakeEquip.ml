@@ -29,10 +29,12 @@
     - library with -pack
     - support for objects
     - support for documents
+    - XOMakeExtraArgs
  *)
 
 open OASISPlugin
 open OASISTypes
+open OMakeFields
 open OMakeFormat
 open Printf
 
@@ -78,11 +80,11 @@ let rec establish map dir =
     StrMap.add dir.dir_path dir map2
 
 
-let establish_in map bs module_includes =
+let establish_in map path module_includes =
   (* Also create OMakefile in all directories storing the module files: *)
   StrSet.fold
     (fun include_dir acc ->
-       establish map (new_dir (OASISUnixPath.concat bs.bs_path include_dir))
+       establish map (new_dir (OASISUnixPath.concat path include_dir))
     )
     module_includes
     map
@@ -232,30 +234,40 @@ let get_lib_flname cs lib =
     )
     
 
-let get_lib_includes pkg bs =
+let get_lib_includes_1 pkg cur_path libs =
   (* only the direct includes, not the indirect ones *)
   strset_flatten
     (List.map
-       (function
-         | FindlibPackage _ -> StrSet.empty
-         | InternalLibrary sect_name ->
-             let sect =
-               try OASISSection.section_find (`Library,sect_name) pkg.sections
-               with Not_found ->
-                 failwith (sprintf "Cannot find section: %s" sect_name) in
-             ( match sect with
-                 | Library(_,sect_bs,_) ->
-                     StrSet.singleton
-                       (OASISUnixPath.make_relative
-                          bs.bs_path
-                          sect_bs.bs_path
-                       )
-                 | _ ->
-                     StrSet.empty
-             )
+       (fun sect_name ->
+          let sect =
+            try OASISSection.section_find (`Library,sect_name) pkg.sections
+            with Not_found ->
+              failwith (sprintf "Cannot find section: %s" sect_name) in
+          ( match sect with
+              | Library(_,sect_bs,_) ->
+                  StrSet.singleton
+                    (OASISUnixPath.make_relative
+                       cur_path
+                       sect_bs.bs_path
+                    )
+              | _ ->
+                  StrSet.empty
+          )
        )
-       bs.bs_build_depends
+       libs
     )
+
+let get_lib_includes pkg bs =
+  let libs =
+    List.flatten
+      (List.map
+         (function
+           | FindlibPackage _ -> []
+           | InternalLibrary sect_name -> [sect_name]
+         )
+         bs.bs_build_depends
+      ) in
+  get_lib_includes_1 pkg bs.bs_path libs
 
 
 let get_lib_deps ?(transitive=false) pkg bs =
@@ -518,7 +530,110 @@ let add_library ctx pkg map cs bs lib =
   let dir = StrMap.find bs.bs_path map in
   let dir = { dir with dir_build = Section section :: dir.dir_build } in
   let map = StrMap.add bs.bs_path dir map in
-  establish_in map bs module_includes
+  establish_in map bs.bs_path module_includes
+
+
+let add_document ctx pkg map cs doc =
+  let path = DocFields.path cs.cs_data in  (* TODO *)
+  let libs_findlib = DocFields.libraries cs.cs_data in
+  let intro = DocFields.intro cs.cs_data in
+  let modules = DocFields.modules cs.cs_data in
+  let texts = DocFields.texts cs.cs_data in
+
+  let map = establish map (new_dir path) in
+
+  let _, _, library_name_of_findlib_name =
+    OASISFindlib.findlib_mapping pkg in
+  let libs =
+    List.map library_name_of_findlib_name libs_findlib in
+
+(*
+  let lib_includes =
+    get_lib_includes_1 pkg path libs in
+ *)
+  let module_includes =
+    List.fold_left
+      (fun acc m ->
+         let d = OASISUnixPath.dirname m in
+         if OASISUnixPath.is_current_dir d then
+           acc
+         else
+           StrSet.add d acc
+      )
+      StrSet.empty
+      modules in
+(*
+  let ocaml_includes =
+    StrSet.union lib_includes module_includes in
+ *)
+  let module_impls =
+    List.flatten
+      (List.map
+         (fun m ->
+            let m = fixup_module_case path m in
+            [ Literal m ]
+         )
+         modules
+      ) in
+  let text_lits =
+    List.map (fun s -> Literal s) texts in
+  let intro_lits =
+    match intro with
+      | None -> []
+      | Some intr -> [Literal intr] in
+  let format =
+    match doc.doc_format with
+      | HTML _ -> "html"
+      | DocText -> "txt"
+      | PDF -> "pdf"
+      | PostScript -> "ps"
+      | Info _ -> "texi"
+      | DVI -> "dvi"
+      | OtherDoc -> "other" in
+  let section =
+    [ Set_string(false, "NAME", Literal cs.cs_name);
+      Set_string(false, "FORMAT", Literal format);
+      Set_array(false, "MODULES", module_impls @ 
+                                    [gen_getvar "EXTRA_MODULES"] );
+      Set_array(false, "TEXTS", text_lits @ 
+                                  [gen_getvar "EXTRA_TEXTS"] );
+      Set_array(false, "INTRO", intro_lits);
+      Set_array(false, "OCAML_LIBS",
+                ( List.map
+                    (fun n -> Literal n)
+                    libs
+                  @
+                    [gen_getvar "EXTRA_OCAML_LIBS"] ));
+      Set_array(false, "OCAMLDOCFLAGS",
+                [ gen_getvar "EXTRA_OCAMLDOCFLAGS" ]);
+      Set_array(false, "OCAMLDOCFLAGS_HTML",
+                [ gen_getvar "EXTRA_OCAMLDOCFLAGS_HTML" ]);
+      Set_array(false, "OCAMLDOCFLAGS_LATEX",
+                [ gen_getvar "EXTRA_OCAMLDOCFLAGS_LATEX" ]);
+      Set_array(false, "OCAMLFINDFLAGS",
+                [ gen_getvar "EXTRA_OCAMLFINDFLAGS" ]);
+      Lines
+        [ "DefineRules() =";
+          "    OASIS_build_OCamlDoc($(NAME), $(MODULES), $(TEXTS))";
+        ];
+      Cond([ om_cond_of_flag doc.doc_build,
+             [ Set_array(true, "BUILD_DOC_TARGETS",
+                         [Expression "$(OASIS_target_OCamlDoc $(NAME), $(FORMAT))"]);
+               Export ["BUILD_DOC_TARGETS"];
+             ]
+           ],
+           []);
+      Set_array(true, "DEFINE_RULES", [Expression "$(DefineRules)"]);
+      Export [ "BUILD_DOC_TARGETS";
+               "DEFINE_RULES";
+             ];
+    ] in
+  let section =
+    skippable "SKIP_DOC" cs.cs_name section in
+  let dir = StrMap.find path map in
+  let dir = { dir with dir_build = Section section :: dir.dir_build } in
+  let map = StrMap.add path dir map in
+  establish_in map path module_includes
 
 
 let inst_data ?(typ="OCamlLibrary") bs =
@@ -756,7 +871,7 @@ let add_executable ctx pkg map cs bs exec =
   let dir = StrMap.find bs.bs_path map in
   let dir = { dir with dir_build = Section section :: dir.dir_build } in
   let map = StrMap.add bs.bs_path dir map in
-  establish_in map bs module_includes
+  establish_in map bs.bs_path module_includes
 
 
 let inst_executable ctx pkg map cs bs exec =
@@ -973,7 +1088,11 @@ let equip_project ctxt pkg =
              let acc1 = add_executable ctxt pkg acc cs bs exec in
              inst_executable ctxt pkg acc1 cs bs exec
          | Object (cs, bs, lib) ->
+             (* TODO *)
              establish acc (new_dir bs.bs_path)
+         | Doc(cs,doc) ->
+             let acc1 = add_document ctxt pkg acc cs doc in
+             acc1
          | _ ->
              acc
       )

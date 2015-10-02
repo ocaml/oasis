@@ -6,6 +6,13 @@ scratchpad. =
 ROOT = $(dir .)
 OASIS_empty_array[] =
 
+if $(equal $(OSTYPE), Win32)
+    OASIS_linefeed = \r\n
+    export
+else
+    OASIS_linefeed = \n
+    export
+
 instflags = $(if $(VERBOSE), $(OASIS_empty_array), -s)
 
 if $(not $(defined CMXS_ENABLED))
@@ -18,6 +25,22 @@ if $(not $(defined OCAMLMKLIB))
 
 if $(not $(defined OCAMLMKLIBFLAGS))
     OCAMLMKLIBFLAGS =
+    export
+
+if $(not $(defined OCAMLDOC))
+    OCAMLDOC = $(OCAMLFIND) ocamldoc
+    export
+
+if $(not $(defined OCAMLDOCFLAGS))
+    OCAMLDOCFLAGS =
+    export
+
+if $(not $(defined OCAMLDOCFLAGS_HTML))
+    OCAMLDOCFLAGS_HTML =
+    export
+
+if $(not $(defined OCAMLDOCFLAGS_LATEX))
+    OCAMLDOCFLAGS_LATEX =
     export
 
 if $(not $(defined OCAML_LIB_CCLIB))
@@ -115,6 +138,8 @@ OASIS_clean_list[] =
     *$(EXT_LIB)
     *.so
     *.cmxs
+    *.libodoc
+    *.mododoc
 
 OASIS_distclean_list[] =
     $(OASIS_clean_list)
@@ -271,6 +296,9 @@ OASIS_build_OCamlLibrary(name,modules,c_objects) =
     private.NATIVEDEPS = $(addsuffix .cmxa, $(OCAML_LIBS))
     private.CLIBDEPS   = $(addsuffix $(EXT_LIB), $(OCAML_LIBS))
 
+    private.LIBODOCFILE  = $(file $(name).libodoc)
+    private.MODODOCFILES = $(addsuffix .mododoc, $(modules))
+
     #
     # Link commands
     #
@@ -335,7 +363,65 @@ OASIS_build_OCamlLibrary(name,modules,c_objects) =
     $(CMXSFILE): $(NATIVELIB) $(CLIB)
         $(OCAMLOPTLINK) -shared -cclib -L. -o $(CMXSFILE) $(NATIVELIB)
 
+    $(LIBODOCFILE): $(MODODOCFILES)
+         section
+             f = $(fopen $(LIBODOCFILE), w)
+             foreach(file => ..., $(MODODOCFILES))
+                 fprintln($(f), $(file))
+             close($(f))
+
     return $(array $(if $(NATIVE_ENABLED), $(NATIVELIB)), $(if $(NATIVE_ENABLED), $(CLIB)), $(if $(and $(NATIVE_ENABLED), $(CMXS_ENABLED)), $(CMXSFILE)), $(if $(BYTE_ENABLED), $(BYTELIB)))
+
+%.mododoc: %.ml
+        $(OCAMLDOC) $(OCAMLDOCFLAGS) -dump $@ \
+            $(PREFIXED_OCAMLPACKS) $(PREFIXED_OCAMLINCLUDES) \
+            $<
+
+%.mododoc: %.mli
+        $(OCAMLDOC) $(OCAMLDOCFLAGS) -dump $@ \
+            $(PREFIXED_OCAMLPACKS) $(PREFIXED_OCAMLINCLUDES) \
+            $<
+
+private.lines(filenames) =
+        private.data = $(cat $(filenames))
+        return $(split $(OASIS_linefeed), $(data))
+
+OASIS_target_OCamlDoc(name,format) =
+        value $"$(name).doc/$(format)"
+
+OASIS_build_OCamlDoc(name,modules,texts) =
+        private.LIBODOCS = $(addsuffix .libodoc, $(OCAML_LIBS))
+        private.MODODOCS = $(addsuffix .mododoc, $(modules))
+        private.odocdeps = $(MODODOCS) $(lines $(LIBODOCS))
+        private.otherdeps = $(addsuffix .txt, $(texts))
+
+        if $(not $(defined TITLE))
+            TITLE = $(name)
+            export
+
+        if $(not $(defined INTRO))
+            INTRO = $(OASIS_empty_array)
+            export
+
+        %(name).doc/html: %(name).doc/html/index.html
+
+        %(name).doc/html/index.html: $(odocdeps) $(otherdeps)
+            Shell.mkdir(-p $(name).doc/html)
+            Shell.rm(-f $(name).doc/html/*)
+            $(OCAMLDOC) $(OCAMLDOCFLAGS) -html $(OCAMLDOCFLAGS_HTML) \
+                $(addprefix -load, $(odocdeps)) $(otherdeps) \
+                -d $(name).doc/html/ \
+                -t $(TITLE) $(addprefix -intro, $(INTRO))
+
+        %(name).doc/latex: %(name).doc/latex/$(name).tex
+
+        %(name).doc/latex/$(name).tex: $(odocdeps) $(otherdeps)
+            Shell.mkdir(-p $(name).doc/latex)
+            Shell.rm(-f $(name).doc/latex/*)
+            $(OCAMLDOC) $(OCAMLDOCFLAGS) -latex $(OCAMLDOCFLAGS_LATEX) \
+                $(addprefix -load, $(odocdeps)) $(otherdeps) \
+                -o $(name).doc/latex/$(name).tex \
+                -t $(TITLE) $(addprefix -intro, $(INTRO))
 
 
 OASIS_target_OCamlExecutable(name) =

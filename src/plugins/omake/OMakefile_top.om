@@ -44,7 +44,7 @@ DefineCommandVars()
 
 # Global phonies: This declaration is visible in the whole build tree.
 
-.PHONY: build install uninstall reinstall clean distclean
+.PHONY: build doc install uninstall reinstall clean distclean
 .DEFAULT: build
 
 # Define hierarchy (sets OASIS_SUBDIRS to the sub directories that are part
@@ -60,7 +60,7 @@ include _oasis_hier.om
 
 # Local phonies: This declaration is only visible in this directory.
 
-.PHONY: build-here install-here uninstall-here reinstall-here pre-install-here clean-here distclean-here
+.PHONY: build-here doc-here install-here uninstall-here reinstall-here pre-install-here clean-here distclean-here
 
 # At this point you may set any of the EXTRA variables used in the .om files:
 #
@@ -153,6 +153,7 @@ DefineInstallRules()
 # You can also request to build explicit files, e.g. omake mylib.cma
 
 build-here: $(BUILD_TARGETS)
+doc-here: $(BUILD_DOC_TARGETS)
 install-here: $(INSTALL_TARGETS)
 uninstall-here: $(UNINSTALL_TARGETS)
 reinstall-here: $(REINSTALL_TARGETS)
@@ -165,6 +166,7 @@ distclean-here:
     rm -f $(OASIS_distclean_list)
 
 build: build-here
+doc: doc-here
 install: install-here
 uninstall: uninstall-here
 reinstall: reinstall-here

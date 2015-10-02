@@ -175,6 +175,7 @@ Library "builtin-plugins"
                    plugins/extra/devfiles/DevFilesData,
                    plugins/extra/stdfiles/StdFilesData,
                    plugins/omake/OMakeData,
+                   plugins/omake/OMakeFields,
                    plugins/omake/OMakeEquip,
                    plugins/omake/OMakeFormat
   CompiledObject: Best

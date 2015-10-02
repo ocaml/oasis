@@ -223,7 +223,7 @@ true: annot, bin_annot
 
 "src/plugins/custom/CustomPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
 
-"src/plugins/omake/OMakePlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
+"src/plugins/omake/OMakeFields.ml": syntax_camlp4o, pkg_odn.with.syntax
 
 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml": syntax_camlp4o, pkg_odn.with.syntax
 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml": use_ocamlbuild
