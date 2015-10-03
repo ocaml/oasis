@@ -33,8 +33,19 @@ TYPE_CONV_PATH "OMakeFields"
 
 type run_t =
   {
+    run_path : unix_dirname;   (* "doc" only *)
     extra_args: string list;
   } with odn
+
+let string_of_format =
+  function
+  | HTML _ -> "html"
+  | DocText -> "txt"
+  | PDF -> "pdf"
+  | PostScript -> "ps"
+  | Info _ -> "texi"
+  | DVI -> "dvi"
+  | OtherDoc -> "html"
 
 
 (* END EXPORT *)
@@ -84,6 +95,7 @@ module DocFields = struct
   let path =
     new_field
       "Path"
+      ~default:OASISUnixPath.current_dir_name
       directory
       (ns_ "Top level directory for building ocamldoc documentation")
       (fun _ t -> t.path)
@@ -130,7 +142,6 @@ module DocFields = struct
       space_separated
       (ns_ "OCamldoc flags")
       (fun _ t -> t.flags)
-
 end
 
 module InstallFields = struct

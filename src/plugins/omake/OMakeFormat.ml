@@ -25,6 +25,8 @@
     @author Gerd Stolpmann
   *)
 
+(* END EXPORT *)
+
 open Printf
 
 type om_entry =
@@ -169,6 +171,3 @@ let write_omake_file ?(skip_existing=false) upath entries =
     List.iter (write f 0) entries;
     close_out f
   )
-
-
-(* END EXPORT *)

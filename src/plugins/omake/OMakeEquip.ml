@@ -28,7 +28,6 @@
 
     - library with -pack
     - support for objects
-    - support for documents
     - XOMakeExtraArgs
  *)
 
@@ -581,15 +580,7 @@ let add_document ctx pkg map cs doc =
     match intro with
       | None -> []
       | Some intr -> [Literal intr] in
-  let format =
-    match doc.doc_format with
-      | HTML _ -> "html"
-      | DocText -> "txt"
-      | PDF -> "pdf"
-      | PostScript -> "ps"
-      | Info _ -> "texi"
-      | DVI -> "dvi"
-      | OtherDoc -> "other" in
+  let format = string_of_format doc.doc_format in
   let section =
     [ Set_string(false, "NAME", Literal cs.cs_name);
       Set_string(false, "FORMAT", Literal format);
@@ -943,12 +934,14 @@ let finish_definitions map =
        let build = 
          if dir.dir_build = [] then
            [ Set_array(false, "BUILD_TARGETS", []);
+             Set_array(false, "BUILD_DOC_TARGETS", []);
              define_build_rules_empty;
              Lines [ "" ];
            ]
        else
          let header =
            [ Set_array(false, "BUILD_TARGETS", []);
+             Set_array(false, "BUILD_DOC_TARGETS", []);
              Set_array(false, "DEFINE_RULES", []);
              Set_array(false, "ACCU_OCAMLINCLUDES", []);
              Set_array(false, "ACCU_OCAMLPACKS", []);

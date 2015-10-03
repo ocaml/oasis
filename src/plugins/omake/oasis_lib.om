@@ -141,6 +141,13 @@ OASIS_clean_list[] =
     *.libodoc
     *.mododoc
 
+OASIS_rec_clean_list[] =
+    *.doc/html
+    *.doc/latex
+
+OASIS_dir_clean_list[] =
+    *.doc
+
 OASIS_distclean_list[] =
     $(OASIS_clean_list)
     *.omc
@@ -148,6 +155,18 @@ OASIS_distclean_list[] =
     setup.log
     setup.log.om
     _oasis_setup.om
+
+OASIS_rec_distclean_list[] =
+    $(OASIS_rec_clean_list)
+
+OASIS_dir_distclean_list[] =
+    $(OASIS_dir_clean_list)
+
+OASIS_rmdir(dirs) =
+    private.expdirs = $(glob iD, $(dirs))
+    foreach(dir => ...,$(expdirs))
+        if $(test -d $(dir))
+            Shell.rmdir(-f -- $(dir))
 
 OASIS_scratchpad = $(ROOT)/setup.log.om
 
@@ -316,7 +335,7 @@ OASIS_build_OCamlLibrary(name,modules,c_objects) =
             natflags = -ccopt $(quote $(OCAMLOPTFLAGS))
             export natflags
         if $(gt $(length $(OCAML_LIB_DLLIB)), 0)
-            byteflags = -cclib $(quote $(addprefix -dllib, $(OCAML_LIB_DLLIB)))
+            byteflags = -cclib $(quote $(mapprefix -dllib, $(OCAML_LIB_DLLIB)))
             export byteflags
         if $(gt $(length $(OCAML_LIB_DLLPATH)), 0)
             byteflags = -dllpath $(OCAML_LIB_DLLPATH)
@@ -392,7 +411,7 @@ OASIS_target_OCamlDoc(name,format) =
 OASIS_build_OCamlDoc(name,modules,texts) =
         private.LIBODOCS = $(addsuffix .libodoc, $(OCAML_LIBS))
         private.MODODOCS = $(addsuffix .mododoc, $(modules))
-        private.odocdeps = $(MODODOCS) $(lines $(LIBODOCS))
+        private.odocdeps = $(MODODOCS)
         private.otherdeps = $(addsuffix .txt, $(texts))
 
         if $(not $(defined TITLE))
@@ -403,25 +422,34 @@ OASIS_build_OCamlDoc(name,modules,texts) =
             INTRO = $(OASIS_empty_array)
             export
 
-        %(name).doc/html: %(name).doc/html/index.html
+        .SCANNER: $(name).doc/html/index.html: $(LIBODOCS)
+            section
+                deps = $(lines $(LIBODOCS))
+                foreach(dep => ...,$(deps))
+                    println($"$(name).doc/html/index.html: $(dep)")
 
-        %(name).doc/html/index.html: $(odocdeps) $(otherdeps)
-            Shell.mkdir(-p $(name).doc/html)
-            Shell.rm(-f $(name).doc/html/*)
+        $(name).doc/html $(name).doc/html/index.html: $(odocdeps) $(otherdeps)
+            mkdir -p $(name).doc/html
+            rm -f $(name).doc/html/*
             $(OCAMLDOC) $(OCAMLDOCFLAGS) -html $(OCAMLDOCFLAGS_HTML) \
-                $(addprefix -load, $(odocdeps)) $(otherdeps) \
+                $(mapprefix -load, $(array $(odocdeps), $(lines $(LIBODOCS)))) \
+                $(otherdeps) \
                 -d $(name).doc/html/ \
-                -t $(TITLE) $(addprefix -intro, $(INTRO))
+                -t $(TITLE) $(mapprefix -intro, $(INTRO))
 
-        %(name).doc/latex: %(name).doc/latex/$(name).tex
+        .SCANNER: $(name).doc/latex/$(name).tex: $(LIBODOCS)
+            section
+                deps = $(lines $(LIBODOCS))
+                foreach(dep => ...,$(deps))
+                    println($"$(name).doc/latex/$(name).tex: $(dep)")
 
-        %(name).doc/latex/$(name).tex: $(odocdeps) $(otherdeps)
-            Shell.mkdir(-p $(name).doc/latex)
-            Shell.rm(-f $(name).doc/latex/*)
+        $(name).doc/latex $(name).doc/latex/$(name).tex: $(odocdeps) $(otherdeps)
+            mkdir -p $(name).doc/latex
+            rm -f $(name).doc/latex/*
             $(OCAMLDOC) $(OCAMLDOCFLAGS) -latex $(OCAMLDOCFLAGS_LATEX) \
-                $(addprefix -load, $(odocdeps)) $(otherdeps) \
+                $(mapprefix -load, $(array $(odocdeps), $(lines $(LIBODOCS)))) \
                 -o $(name).doc/latex/$(name).tex \
-                -t $(TITLE) $(addprefix -intro, $(INTRO))
+                -t $(TITLE) $(mapprefix -intro, $(INTRO))
 
 
 OASIS_target_OCamlExecutable(name) =

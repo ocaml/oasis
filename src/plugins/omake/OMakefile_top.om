@@ -161,9 +161,15 @@ pre-install-here:
 
 clean-here:
     rm -f $(OASIS_clean_list)
+    rm -rf $(OASIS_rec_clean_list)
+    section
+        OASIS_rmdir($(OASIS_dir_clean_list))
 
 distclean-here:
     rm -f $(OASIS_distclean_list)
+    rm -rf $(OASIS_rec_distclean_list)
+    section
+        OASIS_rmdir($(OASIS_dir_distclean_list))
 
 build: build-here
 doc: doc-here

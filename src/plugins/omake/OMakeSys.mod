@@ -1,2 +1,2 @@
-OMakeFormat.ml
+OMakeFields.ml
 OMakePlugin.ml
