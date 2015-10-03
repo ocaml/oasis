@@ -564,6 +564,15 @@ OASIS_uninstalltarget_Executable(name) =
 OASIS_reinstalltarget_Executable(name) =
     value $".PHONY/reinstall-exec-$(name)"
 
+OASIS_installtarget_Document(name) =
+    value $".PHONY/install-doc-$(name)"
+
+OASIS_uninstalltarget_Document(name) =
+    value $".PHONY/uninstall-doc-$(name)"
+
+OASIS_reinstalltarget_Document(name) =
+    value $".PHONY/reinstall-doc-$(name)"
+
 OASIS_expand_module_files_OCamlLibrary(modules) =
     value $(array \
               $(addsuffixes $(OCAML_LIB_MODULE_SUFFIXES), $(modules)), \
@@ -729,6 +738,43 @@ OASIS_reinstall_data_Executable(name, src, dest) =
     OMakeFlags($(instflags))
     .PHONY/reinstall-exec-$(name):
         install_data($"exec-$(name)", $(src), $(dest))
+
+OASIS_expand_files_Document(name, format) =
+    return $(glob iF, $(name).doc/$(format)/*)
+
+private.install_Document(name, src, dest) =
+    install_data($"doc-$(name)", $(src), $(dest))
+
+private.uninstall_Document(name) =
+    uninstall_data($"doc-$(name)")
+
+OASIS_install_Document(name, src, dest) =
+    OMakeFlags($(instflags))
+    .PHONY/install-doc-$(name): pre-install-here
+        install_Document($(name), $(src), $(dest))
+
+OASIS_uninstall_Document(name) =
+    OMakeFlags($(instflags))
+    .PHONY/uninstall-doc-$(name):
+        uninstall_Document($(name))
+
+OASIS_reinstall_Document(name, src, dest) =
+    OMakeFlags($(instflags))
+    .PHONY/reinstall-doc-$(name): .PHONY/uninstall-doc-$(name)
+        install_Document($(name), $(src), $(dest))
+
+OASIS_install_data_Document(name, src, dest) =
+    OMakeFlags($(instflags))
+    .PHONY/install-doc-$(name):
+        install_data($"doc-$(name)", $(src), $(dest))
+
+OASIS_uninstall_data_Document(name) =
+# no action needed
+
+OASIS_reinstall_data_Document(name, src, dest) =
+    OMakeFlags($(instflags))
+    .PHONY/reinstall-doc-$(name):
+        install_data($"doc-$(name)", $(src), $(dest))
 
 
 # Reading in setup.data

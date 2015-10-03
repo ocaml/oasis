@@ -139,12 +139,12 @@ let gen_getvar name =
 exception Ident of string
 
 
-let get_data_destination dir_opt =
+let get_data_destination ?(default_dest = "$datadir/$pkg_name") dir_opt =
   (* cannot use Buffer.add_substitute because we want to get an omake
      expression as result *)
   let dir =
     match dir_opt with
-      | None -> "$datadir/$pkg_name"
+      | None -> default_dest
       | Some dir -> dir in
   let lim = String.length dir in
   let get_lit acc =
@@ -532,8 +532,126 @@ let add_library ctx pkg map cs bs lib =
   establish_in map bs.bs_path module_includes
 
 
+let inst_data ?(typ="OCamlLibrary") ?default_dest data_files =
+  let lines1 =
+    [ sprintf "    OASIS_uninstall_data_%s($(NAME))" typ;
+    ] in
+  let lines2 =
+    List.flatten
+      (List.map
+         (fun (src, dest) ->
+            let dest_val = get_data_destination ?default_dest dest in
+            [ sprintf "    OASIS_install_data_%s($(NAME), %s, %s)"
+                      typ src (string_of_value (Concat dest_val));
+              sprintf "    OASIS_reinstall_data_%s($(NAME), %s, %s)"
+                      typ src (string_of_value (Concat dest_val));
+            ]
+         )
+         data_files
+      ) in
+  Lines (lines1 @ lines2)
+
+
+let inst_library ctx pkg map cs bs lib =
+  let findlib_parent_section =
+    match lib.lib_findlib_parent with
+      | None -> None
+      | Some p ->
+          ( try
+              Some
+                (List.find
+                   (fun sect ->
+                      match sect with
+                        | Library(cs,bs,lib) ->
+                            get_lib_flname cs lib = p
+                        | _ ->
+                            false
+                   )
+                   pkg.sections
+                )
+            with
+              | Not_found ->
+                  failwith ("No section with this findlib name: " ^ p)
+          ) in
+  let findlib_parent_relpath =
+    match findlib_parent_section with
+      | None -> None
+      | Some(Library(_,pbs,_)) ->
+          Some(OASISUnixPath.make_relative bs.bs_path pbs.bs_path)
+      | Some _ ->
+          assert false in
+  let modules =
+    List.map
+      (fun m0 ->
+         let m = fixup_module_case bs.bs_path m0 in
+         Literal m
+      )
+      lib.lib_modules in
+  let maybe_meta =
+    if lib.lib_findlib_parent = None then [Literal "META"] else [] in
+  let section =
+    [ Set_string(false, "NAME", Literal cs.cs_name);
+      Set_string(false, "FINDLIB_NAME", Literal (get_lib_flname cs lib));
+      Set_string(false, "FINDLIB_PARENT",
+                 match lib.lib_findlib_parent, findlib_parent_relpath with
+                   | None, None -> Variable "FINDLIB_NAME"
+                   | Some p, Some path -> Literal(OASISUnixPath.concat path p)
+                   | _ -> assert false);
+      set_byte_or_native bs;
+      Set_array(false, "INSTALL_MODULES",
+                modules @
+                  [ gen_getvar "EXTRA_INSTALL_MODULES" ]);
+      Set_array(false, "INSTALL_FILES",
+                maybe_meta @
+                  [ Expression "$(OASIS_expand_module_files_OCamlLibrary $(INSTALL_MODULES))";
+                    Expression "$(OASIS_expand_library_files_OCamlLibrary $(NAME))";
+                    gen_getvar "EXTRA_INSTALL_FILES"
+               ]);
+      Set_array(false, "INSTALL_OPTIONAL_FILES", 
+                [ Expression "$(OASIS_expand_optional_module_files_OCamlLibrary $(INSTALL_MODULES))";
+                  Expression "$(OASIS_expand_optional_library_files_OCamlLibrary $(NAME))";
+                  gen_getvar "EXTRA_INSTALL_OPTIONAL_FILES"
+               ]);
+      Lines
+        [ "DefineRules() =";
+          "    OASIS_install_OCamlLibrary($(NAME), $(FINDLIB_NAME), $(FINDLIB_PARENT), $(INSTALL_FILES), $(INSTALL_OPTIONAL_FILES))";
+          "    OASIS_uninstall_OCamlLibrary($(NAME), $(FINDLIB_NAME), $(FINDLIB_PARENT))";
+          "    OASIS_reinstall_OCamlLibrary($(NAME), $(FINDLIB_NAME), $(FINDLIB_PARENT), $(INSTALL_FILES), $(INSTALL_OPTIONAL_FILES))";
+        ];
+      inst_data bs.bs_data_files;
+      Cond([ om_cond_of_flag bs.bs_install,
+             [ Set_array(true, "INSTALL_TARGETS",
+                         [Expression
+                            "$(OASIS_installtarget_OCamlLibrary $(NAME))"]);
+               Set_array(true, "UNINSTALL_TARGETS",
+                         [Expression
+                            "$(OASIS_uninstalltarget_OCamlLibrary $(NAME))"]);
+               Set_array(true, "REINSTALL_TARGETS",
+                         [Expression
+                            "$(OASIS_reinstalltarget_OCamlLibrary $(NAME))"]);
+               Export [ "INSTALL_TARGETS";
+                        "UNINSTALL_TARGETS";
+                        "REINSTALL_TARGETS";
+                      ];
+             ]
+           ],
+           []);
+      Set_array(true, "DEFINE_RULES", [Expression "$(DefineRules)"]);
+      Export [ "INSTALL_TARGETS";
+               "UNINSTALL_TARGETS";
+               "REINSTALL_TARGETS";
+               "DEFINE_RULES";
+             ];
+    ] in
+  let section =
+    skippable "SKIP_INSTALL" cs.cs_name section in
+  let dir = StrMap.find bs.bs_path map in
+  let dir = { dir with dir_install = Section section :: dir.dir_install } in
+  StrMap.add bs.bs_path dir map
+
+
 let add_document ctx pkg map cs doc =
-  let path = DocFields.path cs.cs_data in  (* TODO *)
+  let path = DocFields.path cs.cs_data in
   let libs_findlib = DocFields.libraries cs.cs_data in
   let intro = DocFields.intro cs.cs_data in
   let modules = DocFields.modules cs.cs_data in
@@ -627,103 +745,37 @@ let add_document ctx pkg map cs doc =
   establish_in map path module_includes
 
 
-let inst_data ?(typ="OCamlLibrary") bs =
-  let lines1 =
-    [ sprintf "    OASIS_uninstall_data_%s($(NAME))" typ;
-    ] in
-  let lines2 =
-    List.flatten
-      (List.map
-         (fun (src, dest) ->
-            let dest_val = get_data_destination dest in
-            [ sprintf "    OASIS_install_data_%s($(NAME), %s, %s)"
-                      typ src (string_of_value (Concat dest_val));
-              sprintf "    OASIS_reinstall_data_%s($(NAME), %s, %s)"
-                      typ src (string_of_value (Concat dest_val));
-            ]
-         )
-         bs.bs_data_files
-      ) in
-  Lines (lines1 @ lines2)
-
-
-let inst_library ctx pkg map cs bs lib =
-  let findlib_parent_section =
-    match lib.lib_findlib_parent with
-      | None -> None
-      | Some p ->
-          ( try
-              Some
-                (List.find
-                   (fun sect ->
-                      match sect with
-                        | Library(cs,bs,lib) ->
-                            get_lib_flname cs lib = p
-                        | _ ->
-                            false
-                   )
-                   pkg.sections
-                )
-            with
-              | Not_found ->
-                  failwith ("No section with this findlib name: " ^ p)
-          ) in
-  let findlib_parent_relpath =
-    match findlib_parent_section with
-      | None -> None
-      | Some(Library(_,pbs,_)) ->
-          Some(OASISUnixPath.make_relative bs.bs_path pbs.bs_path)
-      | Some _ ->
-          assert false in
-  let modules =
-    List.map
-      (fun m0 ->
-         let m = fixup_module_case bs.bs_path m0 in
-         Literal m
-      )
-      lib.lib_modules in
-  let maybe_meta =
-    if lib.lib_findlib_parent = None then [Literal "META"] else [] in
+let inst_document ctx pkg map cs doc =
+  let path = DocFields.path cs.cs_data in
+  let format = string_of_format doc.doc_format in
+  let dest = get_data_destination (Some doc.doc_install_dir) in
+  let data_files = doc.doc_data_files in
   let section =
     [ Set_string(false, "NAME", Literal cs.cs_name);
-      Set_string(false, "FINDLIB_NAME", Literal (get_lib_flname cs lib));
-      Set_string(false, "FINDLIB_PARENT",
-                 match lib.lib_findlib_parent, findlib_parent_relpath with
-                   | None, None -> Variable "FINDLIB_NAME"
-                   | Some p, Some path -> Literal(OASISUnixPath.concat path p)
-                   | _ -> assert false);
-      set_byte_or_native bs;
-      Set_array(false, "INSTALL_MODULES",
-                modules @
-                  [ gen_getvar "EXTRA_INSTALL_MODULES" ]);
+      Set_string(false, "FORMAT", Literal format);
+      Set_string(false, "DEST", Concat dest);
       Set_array(false, "INSTALL_FILES",
-                maybe_meta @
-                  [ Expression "$(OASIS_expand_module_files_OCamlLibrary $(INSTALL_MODULES))";
-                    Expression "$(OASIS_expand_library_files_OCamlLibrary $(NAME))";
-                    gen_getvar "EXTRA_INSTALL_FILES"
-               ]);
-      Set_array(false, "INSTALL_OPTIONAL_FILES", 
-                [ Expression "$(OASIS_expand_optional_module_files_OCamlLibrary $(INSTALL_MODULES))";
-                  Expression "$(OASIS_expand_optional_library_files_OCamlLibrary $(NAME))";
-                  gen_getvar "EXTRA_INSTALL_OPTIONAL_FILES"
-               ]);
+                 [ Expression
+                     "$(OASIS_expand_files_Document $(NAME), $(FORMAT))";
+                   gen_getvar "EXTRA_INSTALL_FILES"
+                 ]);
       Lines
         [ "DefineRules() =";
-          "    OASIS_install_OCamlLibrary($(NAME), $(FINDLIB_NAME), $(FINDLIB_PARENT), $(INSTALL_FILES), $(INSTALL_OPTIONAL_FILES))";
-          "    OASIS_uninstall_OCamlLibrary($(NAME), $(FINDLIB_NAME), $(FINDLIB_PARENT))";
-          "    OASIS_reinstall_OCamlLibrary($(NAME), $(FINDLIB_NAME), $(FINDLIB_PARENT), $(INSTALL_FILES), $(INSTALL_OPTIONAL_FILES))";
+          "    OASIS_install_Document($(NAME), $(INSTALL_FILES), $(DEST))";
+          "    OASIS_uninstall_Document($(NAME))";
+          "    OASIS_reinstall_Document($(NAME), $(INSTALL_FILES), $(DEST))";
         ];
-      inst_data bs;
-      Cond([ om_cond_of_flag bs.bs_install,
+      inst_data ~typ:"Document" ~default_dest:doc.doc_install_dir data_files;
+      Cond([ om_cond_of_flag doc.doc_install,
              [ Set_array(true, "INSTALL_TARGETS",
                          [Expression
-                            "$(OASIS_installtarget_OCamlLibrary $(NAME))"]);
+                            "$(OASIS_installtarget_Document $(NAME))"]);
                Set_array(true, "UNINSTALL_TARGETS",
                          [Expression
-                            "$(OASIS_uninstalltarget_OCamlLibrary $(NAME))"]);
+                            "$(OASIS_uninstalltarget_Document $(NAME))"]);
                Set_array(true, "REINSTALL_TARGETS",
                          [Expression
-                            "$(OASIS_reinstalltarget_OCamlLibrary $(NAME))"]);
+                            "$(OASIS_reinstalltarget_Document $(NAME))"]);
                Export [ "INSTALL_TARGETS";
                         "UNINSTALL_TARGETS";
                         "REINSTALL_TARGETS";
@@ -739,10 +791,10 @@ let inst_library ctx pkg map cs bs lib =
              ];
     ] in
   let section =
-    skippable "SKIP_INSTALL" cs.cs_name section in
-  let dir = StrMap.find bs.bs_path map in
+    skippable "SKIP_DOC_INSTALL" cs.cs_name section in
+  let dir = StrMap.find path map in
   let dir = { dir with dir_install = Section section :: dir.dir_install } in
-  StrMap.add bs.bs_path dir map
+  StrMap.add path dir map
 
 
 let add_executable ctx pkg map cs bs exec =
@@ -877,7 +929,7 @@ let inst_executable ctx pkg map cs bs exec =
           "    OASIS_uninstall_Executable($(NAME))";
           "    OASIS_reinstall_Executable($(NAME), $(INSTALL_FILE))";
         ];
-      inst_data ~typ:"Executable" bs;
+      inst_data ~typ:"Executable" bs.bs_data_files;
       Cond([ om_cond_of_flag bs.bs_install,
              [ Set_array(true, "INSTALL_TARGETS",
                          [Expression
@@ -1085,7 +1137,7 @@ let equip_project ctxt pkg =
              establish acc (new_dir bs.bs_path)
          | Doc(cs,doc) ->
              let acc1 = add_document ctxt pkg acc cs doc in
-             acc1
+             inst_document ctxt pkg acc1 cs doc
          | _ ->
              acc
       )

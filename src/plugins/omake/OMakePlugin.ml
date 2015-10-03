@@ -37,6 +37,7 @@ module BuildRuntime =
 struct
   let main run pkg extra_args =
     run_command "omake" ["build"] extra_args;
+    (* The following exists only to make the internal install plugin happy: *)
     List.iter
       (fun sct ->
          let evs =
@@ -69,9 +70,6 @@ struct
 
   let clean run pkg extra_args =
     run_command "omake" ["clean"] extra_args;
-    (* TODO: this seems to be pretty generic (at least wrt to ocamlbuild
-     * considering moving this to BaseSetup?
-     *)
     List.iter
       (function
          | Library (cs, _, _) ->
@@ -80,6 +78,7 @@ struct
              BaseBuilt.unregister BaseBuilt.BExec cs.cs_name;
              BaseBuilt.unregister BaseBuilt.BExecLib cs.cs_name
          | Doc(cs, _) ->
+             (* "omake clean" also cleans docs *)
              BaseBuilt.unregister BaseBuilt.BDoc cs.cs_name
          | _ ->
              ())
@@ -108,7 +107,24 @@ module DocRuntime = struct
           cs.cs_name ^ ".doc";
           string_of_format doc.doc_format;
         ] in
-    run_command "omake" [target] extra_args
+    run_command "omake" [target] extra_args;
+    (* The following exists only to make the internal install plugin happy: *)
+    List.iter
+      (fun sct ->
+         match sct with
+           | Doc(cs,doc) when var_choose doc.doc_build ->
+               List.iter
+                 (fun glb ->
+                    BaseBuilt.register
+                      BaseBuilt.BDoc
+                      cs.cs_name
+                      [OASISFileUtil.glob ~ctxt:!BaseContext.default
+                                          (Filename.concat target glb)])
+                 ["*"]
+           | _ ->
+               ()
+      )
+      pkg.sections
 end
 
 
