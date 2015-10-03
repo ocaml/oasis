@@ -594,13 +594,22 @@ OASIS_expand_optional_library_files_OCamlLibrary(name) =
 
 private.install_OCamlLibrary(flname, add_to, files, opt_files) =
     private.args = $(if $(equal $(flname), $(add_to)), $(OASIS_empty_array), -add)
+    private.destdir = $(shell $(OCAMLFIND) printconf destdir)
+    if $(not $(defined OCAMLFIND_DESTDIR))
+        destdir = $(OASIS_destdir $(destdir))
+        Shell.mkdir(-p $(destdir))
+        export destdir
     $(OCAMLFIND) \
-         install $(OCAMLFINDFLAGS_INSTALL) \
+         install -destdir $(destdir) $(OCAMLFINDFLAGS_INSTALL) \
          $(add_to) $(args) $(files) -optional $(opt_files)
 
 private.uninstall_OCamlLibrary(flname) =
+    private.destdir = $(shell $(OCAMLFIND) printconf destdir)
+    if $(not $(defined OCAMLFIND_DESTDIR))
+        destdir = $(OASIS_destdir $(destdir))
+        export destdir
     $(OCAMLFIND) \
-         remove $(OCAMLFINDFLAGS_REMOVE) $(flname)
+         remove -destdir $(destdir) $(OCAMLFINDFLAGS_REMOVE) $(flname)
 
 # note that add_to may be prefixed by a path! e.g. ../../dir/findlibname.subpkg
 
