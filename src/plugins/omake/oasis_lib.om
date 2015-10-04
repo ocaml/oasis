@@ -7,10 +7,10 @@ ROOT = $(dir .)
 OASIS_empty_array[] =
 
 if $(equal $(OSTYPE), Win32)
-    OASIS_linefeed = \r\n
+    OASIS_linefeed = $(unhexify 0d0a)
     export
 else
-    OASIS_linefeed = \n
+    OASIS_linefeed = $(unhexify 0a)
     export
 
 instflags = $(if $(VERBOSE), $(OASIS_empty_array), -s)
@@ -139,7 +139,7 @@ OASIS_clean_list[] =
     *.so
     *.cmxs
     *.libodoc
-    *.mododoc
+    *.odoc
 
 OASIS_rec_clean_list[] =
     *.doc/html
@@ -238,49 +238,49 @@ OASIS_modify_OCAMLINCLUDES(module, flags) =
     OCAMLINCLUDES += $(flags)
     $(module).cmi:
     $(module).cmo:
-    $(module).cmx $(module.o):
+    $(module).cmx $(module)$(EXT_OBJ):
 
 OASIS_modify_OCAMLPACKS(module, flags) =
     OCAMLPACKS += $(flags)
     $(module).cmi:
     $(module).cmo:
-    $(module).cmx $(module.o):
+    $(module).cmx $(module)$(EXT_OBJ):
 
 OASIS_modify_OCAMLFLAGS(module, flags) =
     OCAMLFLAGS += $(flags)
     $(module).cmi:
     $(module).cmo:
-    $(module).cmx $(module.o):
+    $(module).cmx $(module)$(EXT_OBJ):
 
 OASIS_modify_OCAMLCFLAGS(module, flags) =
     OCAMLCFLAGS += $(flags)
     $(module).cmi:
     $(module).cmo:
-    $(module).cmx $(module.o):
+    $(module).cmx $(module)$(EXT_OBJ):
 
 OASIS_modify_OCAMLOPTFLAGS(module, flags) =
     OCAMLOPTFLAGS += $(flags)
     $(module).cmi:
     $(module).cmo:
-    $(module).cmx $(module.o):
+    $(module).cmx $(module)$(EXT_OBJ):
 
 OASIS_modify_OCAMLFINDFLAGS(module, flags) =
     OCAMLFINDFLAGS += $(flags)
     $(module).cmi:
     $(module).cmo:
-    $(module).cmx $(module.o):
+    $(module).cmx $(module)$(EXT_OBJ):
 
 OASIS_modify_OCAMLLEXFLAGS(module, flags) =
     OCAMLLEXFLAGS += $(flags)
     $(module).cmi:
     $(module).cmo:
-    $(module).cmx $(module.o):
+    $(module).cmx $(module)$(EXT_OBJ):
 
 OASIS_modify_OCAMLYACCFLAGS(module, flags) =
     OCAMLYACCFLAGS += $(flags)
     $(module).cmi:
     $(module).cmo:
-    $(module).cmx $(module.o):
+    $(module).cmx $(module)$(EXT_OBJ):
 
 OASIS_modify_CFLAGS(module, flags) =
     CFLAGS += $(flags)
@@ -316,7 +316,7 @@ OASIS_build_OCamlLibrary(name,modules,c_objects) =
     private.CLIBDEPS   = $(addsuffix $(EXT_LIB), $(OCAML_LIBS))
 
     private.LIBODOCFILE  = $(file $(name).libodoc)
-    private.MODODOCFILES = $(addsuffix .mododoc, $(modules))
+    private.ODOCFILES =    $(addsuffix .odoc, $(modules))
 
     #
     # Link commands
@@ -382,21 +382,21 @@ OASIS_build_OCamlLibrary(name,modules,c_objects) =
     $(CMXSFILE): $(NATIVELIB) $(CLIB)
         $(OCAMLOPTLINK) -shared -cclib -L. -o $(CMXSFILE) $(NATIVELIB)
 
-    $(LIBODOCFILE): $(MODODOCFILES)
+    $(LIBODOCFILE): $(ODOCFILES)
          section
              f = $(fopen $(LIBODOCFILE), w)
-             foreach(file => ..., $(MODODOCFILES))
+             foreach(file => ..., $(ODOCFILES))
                  fprintln($(f), $(file))
              close($(f))
 
     return $(array $(if $(NATIVE_ENABLED), $(NATIVELIB)), $(if $(NATIVE_ENABLED), $(CLIB)), $(if $(and $(NATIVE_ENABLED), $(CMXS_ENABLED)), $(CMXSFILE)), $(if $(BYTE_ENABLED), $(BYTELIB)))
 
-%.mododoc: %.ml
+%.odoc: %.ml
         $(OCAMLDOC) $(OCAMLDOCFLAGS) -dump $@ \
             $(PREFIXED_OCAMLPACKS) $(PREFIXED_OCAMLINCLUDES) \
             $<
 
-%.mododoc: %.mli
+%.odoc: %.mli
         $(OCAMLDOC) $(OCAMLDOCFLAGS) -dump $@ \
             $(PREFIXED_OCAMLPACKS) $(PREFIXED_OCAMLINCLUDES) \
             $<
@@ -410,8 +410,8 @@ OASIS_target_OCamlDoc(name,format) =
 
 OASIS_build_OCamlDoc(name,modules,texts) =
         private.LIBODOCS = $(addsuffix .libodoc, $(OCAML_LIBS))
-        private.MODODOCS = $(addsuffix .mododoc, $(modules))
-        private.odocdeps = $(MODODOCS)
+        private.ODOCS = $(addsuffix .odoc, $(modules))
+        private.odocdeps = $(ODOCS)
         private.otherdeps = $(addsuffix .txt, $(texts))
 
         if $(not $(defined TITLE))
@@ -432,7 +432,7 @@ OASIS_build_OCamlDoc(name,modules,texts) =
             mkdir -p $(name).doc/html
             rm -f $(name).doc/html/*
             $(OCAMLDOC) $(OCAMLDOCFLAGS) -html $(OCAMLDOCFLAGS_HTML) \
-                $(mapprefix -load, $(array $(odocdeps), $(lines $(LIBODOCS)))) \
+                $(mapprefix -load, $(set $(array $(odocdeps), $(lines $(LIBODOCS))))) \
                 $(otherdeps) \
                 -d $(name).doc/html/ \
                 -t $(TITLE) $(mapprefix -intro, $(INTRO))
@@ -447,7 +447,7 @@ OASIS_build_OCamlDoc(name,modules,texts) =
             mkdir -p $(name).doc/latex
             rm -f $(name).doc/latex/*
             $(OCAMLDOC) $(OCAMLDOCFLAGS) -latex $(OCAMLDOCFLAGS_LATEX) \
-                $(mapprefix -load, $(array $(odocdeps), $(lines $(LIBODOCS)))) \
+                $(mapprefix -load, $(set $(array $(odocdeps), $(lines $(LIBODOCS))))) \
                 -o $(name).doc/latex/$(name).tex \
                 -t $(TITLE) $(mapprefix -intro, $(INTRO))
 

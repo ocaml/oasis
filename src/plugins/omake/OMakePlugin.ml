@@ -113,14 +113,23 @@ module DocRuntime = struct
       (fun sct ->
          match sct with
            | Doc(cs,doc) when var_choose doc.doc_build ->
-               List.iter
-                 (fun glb ->
-                    BaseBuilt.register
-                      BaseBuilt.BDoc
-                      cs.cs_name
-                      [OASISFileUtil.glob ~ctxt:!BaseContext.default
-                                          (Filename.concat target glb)])
-                 ["*"]
+               let files = 
+                 Array.to_list
+                   (Sys.readdir (OASISHostPath.of_unix target)) in
+               let files =
+                 List.filter
+                   (fun n -> n.[0] <> '.')
+                   files in
+               let full_files =
+                 List.map
+                   (fun n ->
+                      OASISHostPath.of_unix (OASISUnixPath.concat target n)
+                   )
+                   files in
+               BaseBuilt.register
+                 BaseBuilt.BDoc
+                 cs.cs_name
+                 [full_files]
            | _ ->
                ()
       )
@@ -223,13 +232,13 @@ let install_init () =
 (* Doc plugin *)
 let doc_init () =
   let generator data =
-    let path = DocFields.path data in
-    { OMakeFields.run_path = path;
+    (* bug in OASIS? DocFields.path gives here always PropList.Not_set exn *)
+    { OMakeFields.run_path = DocFields.path data;
       OMakeFields.extra_args = [];
     } in
   let doit ctxt pkg (cs,doc) =
     let run =
-      generator pkg.schema_data in
+      generator cs.cs_data in
     let equip() =
       OMakeEquip.equip_project ctxt pkg in
     { ctxt with other_actions = equip :: ctxt.other_actions },
@@ -247,7 +256,7 @@ let doc_init () =
     }
   in
   Doc.register_act DocFields.self_id doit;
-  register_generator_package DocFields.id DocFields.doc_data generator
+  register_generator_section `Doc DocFields.id DocFields.doc_data generator
 
 
 let init () =

@@ -148,10 +148,10 @@ let write_omake_file ?(skip_existing=false) upath entries =
             )
             lines
       | Cond(ll1,l2) ->
-          write_indent f indent;
           let s = ref "if" in
           List.iter
             (fun (c,l1) ->
+               write_indent f indent;
                fprintf f "%s %s\n" !s (string_of_condition c);
                List.iter (write f (indent+4)) l1;
                s := "elseif";

@@ -128,7 +128,7 @@ let set_array_cond append name args_choices =
                Export [name]
              ])
          )
-         args_choices,
+         (List.rev args_choices),
        [])
   
 
