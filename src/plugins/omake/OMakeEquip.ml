@@ -50,8 +50,15 @@ module StrSet = Set.Make(String)
 
 type dir_map = dir StrMap.t
 
+let fixup_path path =
+  if path = "/" then (* CHECK: can we really run into this? *)
+    failwith "Absolute paths not supported here";
+  let l = OASISString.nsplit path '/' in
+  let l = List.filter (fun n -> n <> "") l in
+  String.concat "/" l
+
 let new_dir path =
-  { dir_path = path;
+  { dir_path = fixup_path path;
     dir_top = false;
     dir_sub = [];
     dir_build = [];
@@ -64,18 +71,16 @@ let new_dir_map() =
   StrMap.add top_dir.dir_path top_dir StrMap.empty
 
 let rec establish map dir =
-  if dir.dir_path = "/" then (* CHECK: can we really run into this? *)
-    failwith "Absolute paths not supported here";
   if StrMap.mem dir.dir_path map then
     map
   else
     let container = OASISUnixPath.dirname dir.dir_path in
     let cont_dir = new_dir container in
     let map1 = establish map cont_dir in
-    let cont_dir1 = StrMap.find container map1 in
+    let cont_dir1 = StrMap.find cont_dir.dir_path map1 in
     let cont_dir2 =
       { cont_dir1 with dir_sub = dir.dir_path :: cont_dir1.dir_sub } in
-    let map2 = StrMap.add container cont_dir2 map1 in
+    let map2 = StrMap.add cont_dir.dir_path cont_dir2 map1 in
     StrMap.add dir.dir_path dir map2
 
 
@@ -405,7 +410,8 @@ let add_library ctx pkg map cs bs lib =
   (* CHECK: what if bs.bs_path contains .. path elements? What if module names
      do so?
    *)
-  let map = establish map (new_dir bs.bs_path) in
+  let lib_dir = new_dir bs.bs_path in
+  let map = establish map lib_dir in
   let lib_includes = get_lib_includes pkg bs in
   let lib_deps = get_lib_deps pkg bs in
   let module_includes =
@@ -519,9 +525,9 @@ let add_library ctx pkg map cs bs lib =
     ] in
   let section =
     skippable "SKIP_BUILD" cs.cs_name section in
-  let dir = StrMap.find bs.bs_path map in
+  let dir = StrMap.find lib_dir.dir_path map in
   let dir = { dir with dir_build = Section section :: dir.dir_build } in
-  let map = StrMap.add bs.bs_path dir map in
+  let map = StrMap.add lib_dir.dir_path dir map in
   establish_in map bs.bs_path module_includes
 
 
@@ -546,6 +552,7 @@ let inst_data ?(typ="OCamlLibrary") ?default_dest data_files =
 
 
 let inst_library ctx pkg map cs bs lib =
+  let lib_dir = new_dir bs.bs_path in
   let findlib_parent_section =
     match lib.lib_findlib_parent with
       | None -> None
@@ -638,9 +645,9 @@ let inst_library ctx pkg map cs bs lib =
     ] in
   let section =
     skippable "SKIP_INSTALL" cs.cs_name section in
-  let dir = StrMap.find bs.bs_path map in
+  let dir = StrMap.find lib_dir.dir_path map in
   let dir = { dir with dir_install = Section section :: dir.dir_install } in
-  StrMap.add bs.bs_path dir map
+  StrMap.add lib_dir.dir_path dir map
 
 
 let add_document ctx pkg map cs doc =
@@ -650,7 +657,8 @@ let add_document ctx pkg map cs doc =
   let modules = DocFields.modules cs.cs_data in
   let texts = DocFields.texts cs.cs_data in
 
-  let map = establish map (new_dir path) in
+  let doc_dir = new_dir path in
+  let map = establish map doc_dir in
 
   let _, _, library_name_of_findlib_name =
     OASISFindlib.findlib_mapping pkg in
@@ -734,14 +742,15 @@ let add_document ctx pkg map cs doc =
     ] in
   let section =
     skippable "SKIP_DOC" cs.cs_name section in
-  let dir = StrMap.find path map in
+  let dir = StrMap.find doc_dir.dir_path map in
   let dir = { dir with dir_build = Section section :: dir.dir_build } in
-  let map = StrMap.add path dir map in
+  let map = StrMap.add doc_dir.dir_path dir map in
   establish_in map path module_includes
 
 
 let inst_document ctx pkg map cs doc =
   let path = DocFields.path cs.cs_data in
+  let doc_dir = new_dir path in
   let format = string_of_format doc.doc_format in
   let dest = get_data_destination (Some doc.doc_install_dir) in
   let data_files = doc.doc_data_files in
@@ -787,16 +796,17 @@ let inst_document ctx pkg map cs doc =
     ] in
   let section =
     skippable "SKIP_DOC_INSTALL" cs.cs_name section in
-  let dir = StrMap.find path map in
+  let dir = StrMap.find doc_dir.dir_path map in
   let dir = { dir with dir_install = Section section :: dir.dir_install } in
-  StrMap.add path dir map
+  StrMap.add doc_dir.dir_path dir map
 
 
 let add_executable ctx pkg map cs bs exec =
   (* CHECK: what if bs.bs_path contains .. path elements? What if module names
      do so?
    *)
-  let map = establish map (new_dir bs.bs_path) in
+  let exec_dir = new_dir bs.bs_path in
+  let map = establish map exec_dir in
   let lib_includes = get_lib_includes pkg bs in
   let trans_lib_deps = get_lib_deps ~transitive:true pkg bs in
   let module_includes =
@@ -906,13 +916,14 @@ let add_executable ctx pkg map cs bs exec =
   let section =
     skippable "SKIP_BUILD" cs.cs_name section in
 
-  let dir = StrMap.find bs.bs_path map in
+  let dir = StrMap.find exec_dir.dir_path map in
   let dir = { dir with dir_build = Section section :: dir.dir_build } in
-  let map = StrMap.add bs.bs_path dir map in
+  let map = StrMap.add exec_dir.dir_path dir map in
   establish_in map bs.bs_path module_includes
 
 
 let inst_executable ctx pkg map cs bs exec =
+  let exec_dir = new_dir bs.bs_path in
   let section =
     [ Set_string(false, "NAME", Literal cs.cs_name);
       set_byte_or_native bs;
@@ -951,9 +962,9 @@ let inst_executable ctx pkg map cs bs exec =
     ] in
   let section =
     skippable "SKIP_INSTALL" cs.cs_name section in
-  let dir = StrMap.find bs.bs_path map in
+  let dir = StrMap.find exec_dir.dir_path map in
   let dir = { dir with dir_install = Section section :: dir.dir_install } in
-  StrMap.add bs.bs_path dir map
+  StrMap.add exec_dir.dir_path dir map
 
 
 let define_build_rules =
@@ -1117,28 +1128,34 @@ let write_files map =
 
 
 let equip_project ctxt pkg =
-  let map =
-    List.fold_left
-      (fun acc ->
-         function
-         | Library (cs, bs, lib) ->
-             let acc1 = add_library ctxt pkg acc cs bs lib in
-             inst_library ctxt pkg acc1 cs bs lib
-         | Executable (cs, bs, exec) ->
-             let acc1 = add_executable ctxt pkg acc cs bs exec in
-             inst_executable ctxt pkg acc1 cs bs exec
-         | Object (cs, bs, lib) ->
-             (* TODO *)
-             establish acc (new_dir bs.bs_path)
-         | Doc(cs,doc) ->
-             let acc1 = add_document ctxt pkg acc cs doc in
-             inst_document ctxt pkg acc1 cs doc
-         | _ ->
-             acc
-      )
-      (new_dir_map())
-      pkg.sections in
-  let map =
-    finish_definitions map in
-  write_files map
-
+  Printexc.record_backtrace true;
+  try
+    let map =
+      List.fold_left
+        (fun acc ->
+           function
+           | Library (cs, bs, lib) ->
+               let acc1 = add_library ctxt pkg acc cs bs lib in
+               inst_library ctxt pkg acc1 cs bs lib
+           | Executable (cs, bs, exec) ->
+               let acc1 = add_executable ctxt pkg acc cs bs exec in
+               inst_executable ctxt pkg acc1 cs bs exec
+           | Object (cs, bs, lib) ->
+               (* TODO *)
+               establish acc (new_dir bs.bs_path)
+           | Doc(cs,doc) ->
+               let acc1 = add_document ctxt pkg acc cs doc in
+               inst_document ctxt pkg acc1 cs doc
+           | _ ->
+               acc
+        )
+        (new_dir_map())
+        pkg.sections in
+    let map =
+      finish_definitions map in
+    write_files map
+  with
+    | err ->
+        let bt = Printexc.get_backtrace() in
+        eprintf "Backtrace: %s\n%!" bt;
+        raise err
