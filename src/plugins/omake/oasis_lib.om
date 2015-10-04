@@ -414,13 +414,22 @@ private.rebased_lines(filenames) =
         value $(l1)
 
 OASIS_target_OCamlDoc(name,format) =
-        value $"$(name).doc/$(format)"
+        switch $(format)
+        case pdf
+            return $"$(name).doc/latex/$(name).pdf"
+        case ps
+            return $"$(name).doc/latex/$(name).ps"
+        case dvi
+            return $"$(name).doc/latex/$(name).dvi"
+        default
+            return $"$(name).doc/$(format)"
 
 OASIS_build_OCamlDoc(name,modules,texts) =
         private.LIBODOCS = $(addsuffix .libodoc, $(OCAML_LIBS))
         private.ODOCS = $(addsuffix .odoc, $(modules))
         private.odocdeps = $(ODOCS)
         private.otherdeps = $(addsuffix .txt, $(texts))
+        private.texexts = .dvi .pdf .ps
 
         if $(not $(defined TITLE))
             TITLE = $(name)
@@ -430,6 +439,9 @@ OASIS_build_OCamlDoc(name,modules,texts) =
             INTRO = $(OASIS_empty_array)
             export
 
+        Shell.mkdir(-p $(name).doc/html)
+        Shell.mkdir(-p $(name).doc/latex)
+
         .SCANNER: $(name).doc/html/index.html: $(LIBODOCS)
             section
                 deps = $(rebased_lines $(LIBODOCS))
@@ -437,13 +449,12 @@ OASIS_build_OCamlDoc(name,modules,texts) =
                     println($"$(name).doc/html/index.html: $(dep)")
 
         $(name).doc/html $(name).doc/html/index.html: $(odocdeps) $(otherdeps)
-            mkdir -p $(name).doc/html
             rm -f $(name).doc/html/*
             $(OCAMLDOC) $(OCAMLDOCFLAGS) -html $(OCAMLDOCFLAGS_HTML) \
                 $(mapprefix -load, $(set $(array $(odocdeps), $(rebased_lines $(LIBODOCS))))) \
                 $(otherdeps) \
                 -d $(name).doc/html/ \
-                -t $(TITLE) $(mapprefix -intro, $(INTRO))
+                -t $(TITLE) $(mapprefix -intro, $(addsuffix .txt $(INTRO)))
 
         .SCANNER: $(name).doc/latex/$(name).tex: $(LIBODOCS)
             section
@@ -452,12 +463,14 @@ OASIS_build_OCamlDoc(name,modules,texts) =
                     println($"$(name).doc/latex/$(name).tex: $(dep)")
 
         $(name).doc/latex $(name).doc/latex/$(name).tex: $(odocdeps) $(otherdeps)
-            mkdir -p $(name).doc/latex
             rm -f $(name).doc/latex/*
             $(OCAMLDOC) $(OCAMLDOCFLAGS) -latex $(OCAMLDOCFLAGS_LATEX) \
                 $(mapprefix -load, $(set $(array $(odocdeps), $(rebased_lines $(LIBODOCS))))) \
                 -o $(name).doc/latex/$(name).tex \
                 -t $(TITLE) $(mapprefix -intro, $(INTRO))
+
+        .SUBDIRS: $(name).doc/latex
+            LaTeXDocument($(name), $(name))
 
 
 OASIS_target_OCamlExecutable(name) =
@@ -472,14 +485,16 @@ OASIS_target_OCamlExecutable(name) =
 OASIS_build_OCamlExecutable(name,mainmodule,c_objects) =
     private.get_byte_deps(cmofile, cmafiles) =
         private.all_cmodeps = $(dependencies-all $(cmofile))
-        private.cmo_cmodeps = $(filter %.cmo, $(all_cmodeps))
+        private.cmi_cmodeps = $(filter %.cmi, $(all_cmodeps))
+        private.cmo_cmodeps = $(replacesuffixes .cmi, .cmo, $(cmi_cmodeps))
         private.all_cmadeps = $(dependencies-all $(cmafiles))
         private.cmo_cmadeps = $(filter %.cmo, $(all_cmadeps))
         value $(set $(set-diff $(cmo_cmodeps), $(cmo_cmadeps)))
 
     private.get_native_deps(cmxfile, cmxafiles) =
         private.all_cmxdeps = $(dependencies-all $(cmxfile))
-        private.cmx_cmxdeps = $(filter %.cmx, $(all_cmxdeps))
+        private.cmi_cmxdeps = $(filter %.cmi, $(all_cmxdeps))
+        private.cmo_cmodeps = $(replacesuffixes .cmi, .cmx, $(cmi_cmodeps))
         private.all_cmxadeps = $(dependencies-all $(cmxafiles))
         private.cmx_cmxadeps = $(filter %.cmx, $(all_cmxadeps))
         value $(set $(set-diff $(cmx_cmxdeps), $(cmx_cmxadeps)))
@@ -748,7 +763,15 @@ OASIS_reinstall_data_Executable(name, src, dest) =
         install_data($"exec-$(name)", $(src), $(dest))
 
 OASIS_expand_files_Document(name, format) =
-    return $(glob iF, $(name).doc/$(format)/*)
+    switch $(format)
+    case dvi
+        return $"$(name).doc/latex/$(name).dvi"
+    case pdf
+        return $"$(name).doc/latex/$(name).pdf"
+    case ps
+        return $"$(name).doc/latex/$(name).ps"
+    default
+        return $(glob iF, $(name).doc/$(format)/*)
 
 private.install_Document(name, src, dest) =
     install_data($"doc-$(name)", $(src), $(dest))
@@ -1030,10 +1053,6 @@ OASIS_convert_env(inchannel,outchannel) =
             raise $(parse_error $(tok.loc))
 
 
-# note OCAMLDEP_MODULES_ENABLED: I tried true, but in this case the automatic
-# tracking of the modules of executables doesn't work anymore, for an unknown
-# reason
-
 OASIS_generate_setup() =
     private.inch = $(fopen setup.data, r)
     private.outch = $(fopen _oasis_setup.om, w)
@@ -1041,7 +1060,7 @@ OASIS_generate_setup() =
     fprintln($(outch), $'USE_OCAMLFIND = true')
     fprintln($(outch), $'BYTE_ENABLED = true')
     fprintln($(outch), $'NATIVE_ENABLED = $(OCAMLOPT_EXISTS)')
-    fprintln($(outch), $'OCAMLDEP_MODULES_ENABLED = false')
+    fprintln($(outch), $'OCAMLDEP_MODULES_ENABLED = true')
     fprintln($(outch), $'CMXS_ENABLED = $(oasis_native_dynlink)')
     fprintln($(outch), $'OCAMLFLAGS = -g')
     fprintln($(outch), $'INCLUDES = $(oasis_standard_library)')

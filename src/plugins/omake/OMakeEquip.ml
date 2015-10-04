@@ -724,6 +724,7 @@ let add_document ctx pkg map cs doc =
                 [ gen_getvar "EXTRA_OCAMLDOCFLAGS_LATEX" ]);
       Set_array(false, "OCAMLFINDFLAGS",
                 [ gen_getvar "EXTRA_OCAMLFINDFLAGS" ]);
+      Set_array(true, "TEXINPUTS", [Expression "$(NAME).doc/latex"]);
       Lines
         [ "DefineRules() =";
           "    OASIS_build_OCamlDoc($(NAME), $(MODULES), $(TEXTS))";
@@ -1001,7 +1002,8 @@ let finish_definitions map =
            [ Set_array(false, "BUILD_TARGETS", []);
              Set_array(false, "BUILD_DOC_TARGETS", []);
              Set_array(false, "DEFINE_RULES", []);
-             Set_array(false, "ACCU_OCAMLINCLUDES", []);
+             (* "." is required for OCAMLDEP_MODULES_ENABLED! *)
+             Set_array(false, "ACCU_OCAMLINCLUDES", [ Literal "." ]);
              Set_array(false, "ACCU_OCAMLPACKS", []);
              Set_array(false, "ACCU_CFLAGS", []);
              Set_array(false, "ACCU_OCAMLCFLAGS", []);
