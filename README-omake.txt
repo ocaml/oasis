@@ -40,19 +40,21 @@ Just change:
 
  - BuildType: OMake
 
-   in all sections for libraries, executables, and documents (or just
-   globally)
+   in all sections for libraries and executables (or just globally)
 
  - If you want to use the install plugin:
    InstallType: OMake
 
- - In documents, use
+ - In documents, change:
+   Type: OMake
+
+   Also, use
      XOMakePath and XOMakeLibraries
    instead of
      XOCamlbuildPath and XOCamlbuildLibraries
 
 After that, don't forget to run "oasis setup". This generates a bunch
-of files. After that, you are ready, and e.g.
+of files. After that, you are ready to go, and e.g.
 
 ocaml setup.ml -build
 
@@ -96,7 +98,7 @@ After "oasis setup", the following files are generated:
 Note that OMake stores a binary version of the *.om files with suffix .omc.
 
 ----------------------------------------------------------------------
-The configuration
+Configure
 ----------------------------------------------------------------------
 
 OMake is able to read setup.data (the file where the result of
@@ -117,7 +119,7 @@ Note that _oasis_setup.om is automatically rebuilt once setup.data is
 changed.
 
 ----------------------------------------------------------------------
-The build
+Build
 ----------------------------------------------------------------------
 
 OMake doesn't use a separate build directory. Object files are put
@@ -126,16 +128,12 @@ into the source hierarchy side by side with the source.
 (Note: there is a vmount() function, but it is still marked as
 experimental feature. See the OMake manual.)
 
-There is one thing that is fundamentally different. If you build a
-library or executable from some OCaml modules, the method for getting
-the flags to build the individual modules is different. OCamlbuild
-gets these flags from the _tags file. OMake ignores the _tags file.
-Instead, there are two mechanisms, and one is per directory, and one per
-file:
-
- - If a module is located in a directory dir, the file dir/OMakefile
-   is evaluated, and a couple of variables are used to get the
-   compiler flags:
+There is one thing that is fundamentally different. First, there is no
+_tags file. OMake only gets the build flags from the OMakefile. Second,
+OMake takes the build flags from the OMakefile in the same directory as
+the module/library/executable. The build flags are derived from a number
+of variables defined in the OMakefiles. The exact set is documented in
+the OMake manual, but the most important variables are:
 
    OCAMLPACKS:     the findlib packages
    OCAMLINCLUDES:  other project directories to include
@@ -144,15 +142,31 @@ file:
    OCAMLOPTFLAGS:  flags for ocamlopt
    OCAMLFINDFLAGS: flags for ocamlfind
 
-   The values of these variables at the END of dir/OMakefile is
-   essential.
+The generated _oasis_build.om files already initialize these variables
+in a meaningful way. Nevertheless, you should know:
 
-   If you look at the generated _oasis_build.om file, you see that
-   some of these flags are accumulated, and are actually the concatentation
-   of what is needed for any library/executable defined in the directory.
-   This means: if there are several libraries/executables in the same
-   directory, they will use the same compiler flags to build the
-   OCaml modules.
+ - If you want good control over the flags for a certain library or
+   executable, build the library or executable in a directory of its
+   own. This way, you can be sure that it is isolated from the
+   settings of any other library or executable, as these are built
+   in different directories.
+
+ - It is a bad idea to put modules into subdirectories unless you want
+   to achieve a special effect. For example, you could have in _oasis:
+
+   Modules:
+      P
+      Q
+      subdir/R
+      subdir/S
+
+   The point here is now that R and S are now built in the subdirectory,
+   and the flags are taken from the OMakefile in this subdirectory. The
+   generator does not take care of anything in this situation, and probably
+   does not generate the right flags.
+
+   So, don't do this even if you only have something innocent in mind
+   like grouping your files logically.
 
  - It is possible to set deviating flags for a module. There are a number
    of helper functions to do so. E.g. if a module X needs camlp4 syntax,
@@ -166,7 +180,23 @@ There is some documentation in the top-most OMakefile explaining further
 ways to set flags.
 
 ----------------------------------------------------------------------
-Installing
+Doc
+----------------------------------------------------------------------
+
+The doc plugin understands a couple of additional options:
+
+ - OMakePath: where to build the document
+ - OMakeLibraries: libraries to include into the document
+ - OMakeModules: modules to include into the document
+ - OMakeTexts: texts to include (the files must have suffix .txt
+   but omit the extension, e.g. "OMakeTexts: foo" would take foo.txt)
+ - OMakeIntro: introductory text (also without extension)
+ - OMakeFlags: additional flags for ocamldoc
+
+You can set Format to either HTML, PDF, PostScript, or DVI.
+
+----------------------------------------------------------------------
+Install
 ----------------------------------------------------------------------
 
 The new install plugin should just do the same as the internal plugin,
