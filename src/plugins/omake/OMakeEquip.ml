@@ -233,25 +233,35 @@ let get_lib_flname cs lib =
     )
     
 
+let rebase_lib_dir pkg cur_path lib_sect_name =
+  let sect2 =
+    try OASISSection.section_find
+          (`Library,lib_sect_name) pkg.sections
+    with Not_found ->
+      failwith
+        (sprintf "Cannot find section: %s" lib_sect_name) in
+  ( match sect2 with
+      | Library(_,sect_bs,_) ->
+          OASISUnixPath.make_relative
+            cur_path
+            sect_bs.bs_path
+      | _ ->
+          assert false
+  )
+
+
+let rebase_lib pkg cur_path lib_sect_name =
+  let p = rebase_lib_dir pkg cur_path lib_sect_name in
+  OASISUnixPath.concat p lib_sect_name
+
+
 let get_lib_includes_1 pkg cur_path libs =
   (* only the direct includes, not the indirect ones *)
   strset_flatten
     (List.map
        (fun sect_name ->
-          let sect =
-            try OASISSection.section_find (`Library,sect_name) pkg.sections
-            with Not_found ->
-              failwith (sprintf "Cannot find section: %s" sect_name) in
-          ( match sect with
-              | Library(_,sect_bs,_) ->
-                  StrSet.singleton
-                    (OASISUnixPath.make_relative
-                       cur_path
-                       sect_bs.bs_path
-                    )
-              | _ ->
-                  StrSet.empty
-          )
+          let p = rebase_lib_dir pkg cur_path sect_name in
+          StrSet.singleton p
        )
        libs
     )
@@ -298,25 +308,8 @@ let get_lib_deps ?(transitive=false) pkg bs =
                   (function
                     | FindlibPackage _ -> StrSet.empty
                     | InternalLibrary sect_name2 ->
-                        let sect2 =
-                          try OASISSection.section_find
-                                (`Library,sect_name2) pkg.sections
-                          with Not_found ->
-                            failwith
-                              (sprintf "Cannot find section: %s" sect_name2) in
-                        ( match sect2 with
-                            | Library(_,sect_bs,_) ->
-                                StrSet.singleton
-                                  (OASISUnixPath.concat
-                                     (OASISUnixPath.make_relative
-                                        bs.bs_path
-                                        sect_bs.bs_path
-                                     )
-                                     sect_name2
-                                  )
-                            | _ ->
-                                StrSet.empty
-                        )
+                        let p = rebase_lib pkg bs.bs_path sect_name2 in
+                        StrSet.singleton p
                   )
                   deps
                )
@@ -663,6 +656,8 @@ let add_document ctx pkg map cs doc =
     OASISFindlib.findlib_mapping pkg in
   let libs =
     List.map library_name_of_findlib_name libs_findlib in
+  let libs =
+    List.map (rebase_lib pkg path) libs in
 
 (*
   let lib_includes =

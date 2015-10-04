@@ -95,7 +95,7 @@ module DocFields = struct
   let path =
     new_field
       "Path"
-      (* ~default:OASISUnixPath.current_dir_name *)
+      ~default:OASISUnixPath.current_dir_name
       file
       (ns_ "Top level directory for building ocamldoc documentation")
       (fun _ t -> t.path)
@@ -119,7 +119,7 @@ module DocFields = struct
   let libraries =
     new_field
       "Libraries"
-      (* ~default:[] *)
+      ~default:[]
       (comma_separated findlib_full)
       (ns_ "Findlib names of internal libraries used to generate the ocamldoc \
             documentation")

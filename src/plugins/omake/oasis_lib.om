@@ -405,6 +405,14 @@ private.lines(filenames) =
         private.data = $(cat $(filenames))
         return $(split $(OASIS_linefeed), $(data))
 
+private.rebased_lines(filenames) =
+        private.l1[] =
+        foreach(n => ..., $(filenames))
+            private.l2 = $(lines $(n))
+            l1 += $(addprefix $(dirname $(n))/, $(l2))
+            export l1
+        value $(l1)
+
 OASIS_target_OCamlDoc(name,format) =
         value $"$(name).doc/$(format)"
 
@@ -424,7 +432,7 @@ OASIS_build_OCamlDoc(name,modules,texts) =
 
         .SCANNER: $(name).doc/html/index.html: $(LIBODOCS)
             section
-                deps = $(lines $(LIBODOCS))
+                deps = $(rebased_lines $(LIBODOCS))
                 foreach(dep => ...,$(deps))
                     println($"$(name).doc/html/index.html: $(dep)")
 
@@ -432,14 +440,14 @@ OASIS_build_OCamlDoc(name,modules,texts) =
             mkdir -p $(name).doc/html
             rm -f $(name).doc/html/*
             $(OCAMLDOC) $(OCAMLDOCFLAGS) -html $(OCAMLDOCFLAGS_HTML) \
-                $(mapprefix -load, $(set $(array $(odocdeps), $(lines $(LIBODOCS))))) \
+                $(mapprefix -load, $(set $(array $(odocdeps), $(rebased_lines $(LIBODOCS))))) \
                 $(otherdeps) \
                 -d $(name).doc/html/ \
                 -t $(TITLE) $(mapprefix -intro, $(INTRO))
 
         .SCANNER: $(name).doc/latex/$(name).tex: $(LIBODOCS)
             section
-                deps = $(lines $(LIBODOCS))
+                deps = $(rebased_lines $(LIBODOCS))
                 foreach(dep => ...,$(deps))
                     println($"$(name).doc/latex/$(name).tex: $(dep)")
 
@@ -447,7 +455,7 @@ OASIS_build_OCamlDoc(name,modules,texts) =
             mkdir -p $(name).doc/latex
             rm -f $(name).doc/latex/*
             $(OCAMLDOC) $(OCAMLDOCFLAGS) -latex $(OCAMLDOCFLAGS_LATEX) \
-                $(mapprefix -load, $(set $(array $(odocdeps), $(lines $(LIBODOCS))))) \
+                $(mapprefix -load, $(set $(array $(odocdeps), $(rebased_lines $(LIBODOCS))))) \
                 -o $(name).doc/latex/$(name).tex \
                 -t $(TITLE) $(mapprefix -intro, $(INTRO))
 
@@ -463,17 +471,17 @@ OASIS_target_OCamlExecutable(name) =
 
 OASIS_build_OCamlExecutable(name,mainmodule,c_objects) =
     private.get_byte_deps(cmofile, cmafiles) =
-        private.all_cmodeps = $(dependencies-all cmofile)
-        private.cmo_cmodeps = $(filter .cmo, $(all_cmodeps))
-        private.all_cmadeps = $(dependencies-all cmafiles)
-        private.cmo_cmadeps = $(filter .cmo, $(all_cmadeps))
+        private.all_cmodeps = $(dependencies-all $(cmofile))
+        private.cmo_cmodeps = $(filter %.cmo, $(all_cmodeps))
+        private.all_cmadeps = $(dependencies-all $(cmafiles))
+        private.cmo_cmadeps = $(filter %.cmo, $(all_cmadeps))
         value $(set $(set-diff $(cmo_cmodeps), $(cmo_cmadeps)))
 
     private.get_native_deps(cmxfile, cmxafiles) =
-        private.all_cmxdeps = $(dependencies-all cmxfile)
-        private.cmx_cmxdeps = $(filter .cmx, $(all_cmxdeps))
-        private.all_cmxadeps = $(dependencies-all cmxafiles)
-        private.cmx_cmxadeps = $(filter .cmx, $(all_cmxadeps))
+        private.all_cmxdeps = $(dependencies-all $(cmxfile))
+        private.cmx_cmxdeps = $(filter %.cmx, $(all_cmxdeps))
+        private.all_cmxadeps = $(dependencies-all $(cmxafiles))
+        private.cmx_cmxadeps = $(filter %.cmx, $(all_cmxadeps))
         value $(set $(set-diff $(cmx_cmxdeps), $(cmx_cmxadeps)))
 
     private.CMOFILE   = $(addsuffix .cmo, $(mainmodule))
@@ -1022,6 +1030,10 @@ OASIS_convert_env(inchannel,outchannel) =
             raise $(parse_error $(tok.loc))
 
 
+# note OCAMLDEP_MODULES_ENABLED: I tried true, but in this case the automatic
+# tracking of the modules of executables doesn't work anymore, for an unknown
+# reason
+
 OASIS_generate_setup() =
     private.inch = $(fopen setup.data, r)
     private.outch = $(fopen _oasis_setup.om, w)
@@ -1029,7 +1041,7 @@ OASIS_generate_setup() =
     fprintln($(outch), $'USE_OCAMLFIND = true')
     fprintln($(outch), $'BYTE_ENABLED = true')
     fprintln($(outch), $'NATIVE_ENABLED = $(OCAMLOPT_EXISTS)')
-    fprintln($(outch), $'OCAMLDEP_MODULES_ENABLED = true')
+    fprintln($(outch), $'OCAMLDEP_MODULES_ENABLED = false')
     fprintln($(outch), $'CMXS_ENABLED = $(oasis_native_dynlink)')
     fprintln($(outch), $'OCAMLFLAGS = -g')
     fprintln($(outch), $'INCLUDES = $(oasis_standard_library)')
