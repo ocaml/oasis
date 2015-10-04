@@ -26,9 +26,7 @@
 
 (* TODO:
 
-    - library with -pack
     - support for objects
-    - XOMakeExtraArgs
  *)
 
 open OASISPlugin
@@ -43,6 +41,7 @@ type dir =
       dir_sub : string list;
       dir_build : om_entry list;
       dir_install : om_entry list;
+      dir_pack : bool;
     }
 
 module StrMap = Map.Make(String)
@@ -63,6 +62,7 @@ let new_dir path =
     dir_sub = [];
     dir_build = [];
     dir_install = [];
+    dir_pack = false;
   }
 
 let new_dir_map() =
@@ -411,6 +411,9 @@ let add_library ctx pkg map cs bs lib =
      do so?
    *)
   let lib_dir = new_dir bs.bs_path in
+  if lib_dir.dir_pack then
+    failwith ("It is not supported to build a second library in a directory \
+               where already a packed library is built");
   let map = establish map lib_dir in
   let lib_includes = get_lib_includes pkg bs in
   let lib_deps = get_lib_deps pkg bs in
@@ -444,6 +447,7 @@ let add_library ctx pkg map cs bs lib =
       ) in
   let section =
     [ Set_string(false, "NAME", Literal cs.cs_name);
+      Set_string(false, "CNAME", Literal (String.capitalize cs.cs_name));
       set_byte_or_native bs;
       Set_array(false, "MODULES", module_impls @ 
                                     [gen_getvar "EXTRA_MODULES"] );
@@ -478,14 +482,25 @@ let add_library ctx pkg map cs bs lib =
       set_array_cond false "cflags" bs.bs_ccopt;
       set_array_cond false "ocamlcflags" bs.bs_byteopt;
       set_array_cond false "ocamloptflags" bs.bs_nativeopt;
+      if lib.lib_pack then
+        Set_array(false, "ocamloptflags_late", [ Expression "-for-pack";
+                                                 Expression "$(CNAME)" ])
+      else
+        Set_array(false, "ocamloptflags_late", []);
       Lines
         [ "OCAMLCFLAGS += $(ocamlcflags)";
           "OCAMLOPTFLAGS += $(ocamloptflags)";
         ];
       Lines
-        [ "DefineRules() =";
-          "    OASIS_build_OCamlLibrary($(NAME), $(MODULES), $(C_OBJECTS))";
-        ];
+        [ "DefineRules() =" ];
+      if lib.lib_pack then
+        Lines
+          [ "    OASIS_build_OCamlPack($(CNAME), $(MODULES))";
+            "    OASIS_build_OCamlLibrary($(NAME), $(CNAME), $(C_OBJECTS))"
+          ]
+      else
+        Lines
+          [ "    OASIS_build_OCamlLibrary($(NAME), $(MODULES), $(C_OBJECTS))" ];
       Cond([ om_cond_of_flag bs.bs_build,
              [ Set_array(true, "BUILD_TARGETS",
                          [Expression "$(OASIS_target_OCamlLibrary $(NAME))"]);
@@ -513,6 +528,7 @@ let add_library ctx pkg map cs bs lib =
       Set_array(true, "ACCU_CFLAGS", [Variable "cflags"]);
       Set_array(true, "ACCU_OCAMLCFLAGS", [Variable "ocamlcflags"]);
       Set_array(true, "ACCU_OCAMLOPTFLAGS", [Variable "ocamloptflags"]);
+      Set_array(true, "ACCU_OCAMLOPTFLAGS", [Variable "ocamloptflags_late"]);
       Export [ "BUILD_TARGETS";
                "DEFINE_RULES";
                "ACCU_OCAMLINCLUDES";
@@ -526,7 +542,10 @@ let add_library ctx pkg map cs bs lib =
   let section =
     skippable "SKIP_BUILD" cs.cs_name section in
   let dir = StrMap.find lib_dir.dir_path map in
-  let dir = { dir with dir_build = Section section :: dir.dir_build } in
+  let dir = { dir with
+              dir_build = Section section :: dir.dir_build;
+              dir_pack = lib.lib_pack;
+            } in
   let map = StrMap.add lib_dir.dir_path dir map in
   establish_in map bs.bs_path module_includes
 
@@ -807,6 +826,9 @@ let add_executable ctx pkg map cs bs exec =
      do so?
    *)
   let exec_dir = new_dir bs.bs_path in
+  if exec_dir.dir_pack then
+    failwith ("It is not supported to build an executable in a directory \
+               where already a packed library is built");
   let map = establish map exec_dir in
   let lib_includes = get_lib_includes pkg bs in
   let trans_lib_deps = get_lib_deps ~transitive:true pkg bs in

@@ -59,11 +59,28 @@ open OASISSchema
 let nm, ver =
   "OMake", Some OASISConf.version_short
 
+module CommonFields = struct
+  let common_fields schm id pivot_data =
+    let extra_args =
+      new_field
+        schm
+        id
+        "ExtraArgs"
+        ~default:[]
+        command_line_options
+        (fun () -> s_ "Gives extra arguments to omake")
+        pivot_data
+        (fun _ t -> t.extra_args) in
+    extra_args
+end
+
 module BuildFields = struct
   let build_plugin = `Build, nm, ver
   let build_data   = (data_new_property build_plugin : run_t OASISPlugin.prop)
   let self_id, id =
     Build.create build_plugin
+  let extra_args =
+    CommonFields.common_fields OASISPackage.schema id build_data
 end
 
 module DocFields = struct
@@ -142,6 +159,9 @@ module DocFields = struct
       space_separated
       (ns_ "OCamldoc flags")
       (fun _ t -> t.flags)
+
+  let extra_args =
+    CommonFields.common_fields OASISDocument.schema id doc_data
 end
 
 module InstallFields = struct

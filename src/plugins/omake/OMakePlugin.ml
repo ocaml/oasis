@@ -33,10 +33,11 @@ open OASISTypes
 
 let run_command  = BaseCustom.run
 
+
 module BuildRuntime =
 struct
   let main run pkg extra_args =
-    run_command "omake" ["build"] extra_args;
+    run_command "omake" ( ["build"] @ OMakeFields.(run.extra_args)) extra_args;
     (* The following exists only to make the internal install plugin happy: *)
     List.iter
       (fun sct ->
@@ -69,7 +70,7 @@ struct
       pkg.sections
 
   let clean run pkg extra_args =
-    run_command "omake" ["clean"] extra_args;
+    run_command "omake" (["clean"] @ OMakeFields.(run.extra_args)) extra_args;
     List.iter
       (function
          | Library (cs, _, _) ->
@@ -85,16 +86,18 @@ struct
       pkg.sections
 
   let distclean run pkg extra_args =
-    run_command "omake" ["distclean"] extra_args
+    run_command "omake" (["distclean"] @ OMakeFields.(run.extra_args)) 
+                extra_args
 end
 
 
 module InstallRuntime = struct
   let install run pkg extra_args =
-    run_command "omake" ["install"] extra_args
+    run_command "omake" (["install"] @ OMakeFields.(run.extra_args)) extra_args
 
   let uninstall run pkg extra_args =
-    run_command "omake" ["uninstall"] extra_args
+    run_command "omake" (["uninstall"] @ OMakeFields.(run.extra_args))
+                extra_args
 end
 
 
@@ -107,7 +110,7 @@ module DocRuntime = struct
           cs.cs_name ^ ".doc";
           string_of_format doc.doc_format;
         ] in
-    run_command "omake" [target] extra_args;
+    run_command "omake" ([target] @ OMakeFields.(run.extra_args)) extra_args;
     (* The following exists only to make the internal install plugin happy: *)
     List.iter
       (fun sct ->
@@ -158,7 +161,7 @@ open OMakeFields
 let build_init () =
   let generator data =
     { OMakeFields.run_path = "";
-      OMakeFields.extra_args = []
+      OMakeFields.extra_args = OMakeFields.BuildFields.extra_args data;
     } in
   let doit ctxt pkg =
     let run =
@@ -234,7 +237,7 @@ let doc_init () =
   let generator data =
     (* bug in OASIS? DocFields.path gives here always PropList.Not_set exn *)
     { OMakeFields.run_path = DocFields.path data;
-      OMakeFields.extra_args = [];
+      OMakeFields.extra_args = BuildFields.extra_args data;
     } in
   let doit ctxt pkg (cs,doc) =
     let run =
