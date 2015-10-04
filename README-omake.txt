@@ -40,7 +40,11 @@ Just change:
 
  - BuildType: OMake
 
-   in all sections for libraries, executables, and documents
+   in all sections for libraries, executables, and documents (or just
+   globally)
+
+ - If you want to use the install plugin:
+   InstallType: OMake
 
  - In documents, use
      XOMakePath and XOMakeLibraries
