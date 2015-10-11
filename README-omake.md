@@ -146,6 +146,9 @@ the OMake manual, but the most important variables are:
 The generated _oasis_build.om files already initialize these variables
 in a meaningful way. Nevertheless, you should know:
 
+ * For compiling modules, the value of of these variable at the end
+   of the OMakefile in the same directory counts.
+
  * If you want good control over the flags for a certain library or
    executable, build the library or executable in a directory of its
    own. This way, you can be sure that it is isolated from the
@@ -155,11 +158,13 @@ in a meaningful way. Nevertheless, you should know:
  * It is a bad idea to put modules into subdirectories unless you want
    to achieve a special effect. For example, you could have in _oasis:
 
+   ```
    Modules:
       P
       Q
       subdir/R
       subdir/S
+   ```
 
    The point here is now that R and S are now built in the subdirectory,
    and the flags are taken from the OMakefile in this subdirectory. The
