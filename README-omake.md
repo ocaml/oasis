@@ -178,7 +178,9 @@ in a meaningful way. Nevertheless, you should know:
    of helper functions to do so. E.g. if a module X needs camlp4 syntax,
    the way to enable this only for this module is:
 
+   ```
    OASIS_modify_OCAMLFINDFLAGS(X, -syntax camlp4)
+   ```
 
    Put that into the OMakefile of the directory where X exists.
 
@@ -187,7 +189,7 @@ ways to set flags.
 
 ## Doc
 
-The doc plugin understands a couple of additional options:
+The doc plugin understands a couple of additional options in _oasis:
 
  * OMakePath: where to build the document
  * OMakeLibraries: libraries to include into the document
