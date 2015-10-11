@@ -34,17 +34,20 @@ because it also runs OMake.
 
 Just change:
 
- * BuildType: OMake
-
-   in all sections for libraries and executables (or just globally)
+ * In all sections for libraries and executables (or just globally):
+   ```
+   BuildType: OMake
+   ```
 
  * If you want to use the install plugin:
+   ```
    InstallType: OMake
+   ```
 
  * In documents, change:
-```
-Type: OMake
-```
+   ```
+   Type: OMake
+   ```
 
    Also, use
      `XOMakePath` and `XOMakeLibraries`
@@ -54,7 +57,9 @@ Type: OMake
 After that, don't forget to run "oasis setup". This generates a bunch
 of files. After that, you are ready to go, and e.g.
 
+```
 ocaml setup.ml -build
+```
 
 will invoke OMake. Note that you can also run OMake directly:
 
