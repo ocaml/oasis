@@ -70,7 +70,7 @@ omake install
 ```
 
 When distributing your project, you should also pack up the generated files
-(OMakeroot, OMakefile, _oasis_*.om except _oasis_setup.om).
+(`OMakeroot`, `OMakefile`, `_oasis_*.om` except `_oasis_setup.om`).
 
 ## Generated files
 
