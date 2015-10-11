@@ -13,7 +13,7 @@ The OMake plugin uses a scheme that is largely compatible with the way
 ocamlbuild works. However, there are a few differences you should be
 aware of (see below in this doc). That means it is normally sufficient
 to change the plugin type in your _oasis file to "omake". At this
-point, generate the OMakefiles with "oasis setup", modify them by your
+point, generate the OMakefiles with `oasis setup`, modify them by your
 needs, and enjoy the new scripting capabilities.
 
 What is included:
@@ -54,7 +54,7 @@ Just change:
    instead of
      `XOCamlbuildPath` and `XOCamlbuildLibraries`
 
-After that, don't forget to run "oasis setup". This generates a bunch
+After that, don't forget to run `oasis setup`. This generates a bunch
 of files. After that, you are ready to go, and e.g.
 
 ```
@@ -74,36 +74,36 @@ When distributing your project, you should also pack up the generated files
 
 ## Generated files
 
-After "oasis setup", the following files are generated:
+After `oasis setup`, the following files are generated:
 
  * OMakeroot: This file marks the root of the directory hierarchy, and
    contains global OMake configurations. This file is constant, and never
-   changed by "oasis setup" again once put into place.
+   changed by `oasis setup` again once put into place.
 
  * OMakefile: This file exists in every directory of the hierarchy,
    and is starting point for the definition of rules for the
-   directory.  This file is constant, and never changed by "oasis
-   setup" again once put into place. The idea is that this file
+   directory.  This file is constant, and never changed by `oasis setup`
+   again once put into place. The idea is that this file
    can be freely modified by your needs.
 
  * _oasis_lib.om: This is the library with additional OMake functionality.
-   It is overwritten with every "oasis setup".
+   It is overwritten with every `oasis setup`.
 
  * _oasis_hier.om: This file defines a variable with the subdirectories.
-   It is overwritten with every "oasis setup".
+   It is overwritten with every `oasis setup`.
 
  * _oasis_build.om: This file defines the build rules derived from _oasis.
-   It is overwritten with every "oasis setup".
+   It is overwritten with every `oasis setup`.
 
  * _oasis_install.om: This file defines the install rules derived from _oasis.
-   It is overwritten with every "oasis setup".
+   It is overwritten with every `oasis setup`.
 
 Note that OMake stores a binary version of the *.om files with suffix .omc.
 
 ## Configure
 
 OMake is able to read setup.data (the file where the result of
-"ocaml setup.ml -configure" is written to). There is a converted file
+`ocaml setup.ml -configure` is written to). There is a converted file
 _oasis_setup.om:
 
  * All OASIS variables are prefixed with "oasis_". E.g. "bindir" is
@@ -134,6 +134,8 @@ the module/library/executable. The build flags are derived from a number
 of variables defined in the OMakefiles. The exact set is documented in
 the OMake manual, but the most important variables are:
 
+   Variable        | Meaning
+-------------------|---------------------------------------------
    OCAMLPACKS:     | the findlib packages
    OCAMLINCLUDES:  | other project directories to include
    OCAMLFLAGS:     | flags for both ocamlc and ocamlopt
