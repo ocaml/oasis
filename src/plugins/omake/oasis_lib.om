@@ -521,7 +521,7 @@ OASIS_build_OCamlExecutable(name,mainmodule,c_objects) =
     private.get_native_deps(cmxfile, cmxafiles) =
         private.all_cmxdeps = $(dependencies-all $(cmxfile))
         private.cmi_cmxdeps = $(filter %.cmi, $(all_cmxdeps))
-        private.cmo_cmodeps = $(replacesuffixes .cmi, .cmx, $(cmi_cmodeps))
+        private.cmx_cmxdeps = $(replacesuffixes .cmi, .cmx, $(cmi_cmxdeps))
         private.all_cmxadeps = $(dependencies-all $(cmxafiles))
         private.cmx_cmxadeps = $(filter %.cmx, $(all_cmxadeps))
         value $(set $(set-diff $(cmx_cmxdeps), $(cmx_cmxadeps)))
@@ -548,13 +548,13 @@ OASIS_build_OCamlExecutable(name,mainmodule,c_objects) =
     private.flags =
     private.byteflags =
     if $(gt $(length $(OCAML_LINK_CCLIB)), 0)
-        flags += -cclib $(quote $(OCAML_LINK_CCLIB))
+        flags += -cclib $(OCAML_LINK_CCLIB)
         export flags
     if $(gt $(length $(OCAML_LINK_DLLIB)), 0)
-        byteflags += -dllib $(quote $(OCAML_LINK_DLLIB))
+        byteflags += -dllib $(OCAML_LINK_DLLIB)
         export byteflags
     if $(gt $(length $(OCAML_LINK_DLLPATH)), 0)
-        byteflags += -dllpath $(quote $(OCAML_LINK_DLLPATH))
+        byteflags += -dllpath $(OCAML_LINK_DLLPATH)
         export byteflags
 
     #

@@ -284,7 +284,7 @@ let get_lib_includes pkg bs =
   get_lib_includes_1 pkg bs.bs_path libs
 
 
-let get_lib_deps ?(transitive=false) pkg bs =
+let get_lib_deps ?(transitive=false) ?(filter = fun _ -> true) pkg bs =
   (* transitive=false: only the direct dependencies, not the indirect ones.
      transitive=true: the indirect ones too
    *)
@@ -313,14 +313,29 @@ let get_lib_deps ?(transitive=false) pkg bs =
                   (function
                     | FindlibPackage _ -> StrSet.empty
                     | InternalLibrary sect_name2 ->
-                        let p = rebase_lib pkg bs.bs_path sect_name2 in
-                        StrSet.singleton p
+                        if filter sect_name2 then
+                          let p = rebase_lib pkg bs.bs_path sect_name2 in
+                          StrSet.singleton p
+                        else
+                          StrSet.empty
                   )
                   deps
                )
        )
        bs.bs_build_depends
     )
+
+
+let lib_has_c_sources pkg sect_name =
+  let sect =
+    try OASISSection.section_find (`Library,sect_name) pkg.sections
+    with Not_found ->
+      failwith (sprintf "Cannot find section: %s" sect_name) in
+  match sect with
+    | Library(cs,bs,lib) ->
+        bs.bs_c_sources <> []
+    | _ ->
+        false
 
 
 let get_ocamlpacks ?(transitive=false) pkg bs =
@@ -832,6 +847,19 @@ let add_executable ctx pkg map cs bs exec =
   let map = establish map exec_dir in
   let lib_includes = get_lib_includes pkg bs in
   let trans_lib_deps = get_lib_deps ~transitive:true pkg bs in
+  let clib_deps =
+    get_lib_deps
+      ~transitive:true 
+      ~filter:(lib_has_c_sources pkg)
+      pkg bs in
+  let auto_cclib =
+    List.map
+      (fun p -> Literal ("-L" ^ OASISUnixPath.dirname p))
+      (StrSet.elements clib_deps) in
+  let auto_dllpath =
+    List.map
+      (fun p -> Literal (OASISUnixPath.dirname p))
+      (StrSet.elements clib_deps) in
   let module_includes =
     let d = OASISUnixPath.dirname exec.exec_main_is in
     if OASISUnixPath.is_current_dir d then
@@ -875,13 +903,13 @@ let add_executable ctx pkg map cs bs exec =
         ];
       set_array_cond false "OCAML_LINK_CCLIB" bs.bs_cclib;
       Set_array(true, "OCAML_LINK_CCLIB",
-                [gen_getvar "EXTRA_OCAML_LINK_CCLIB"]);
+                auto_cclib @ [gen_getvar "EXTRA_OCAML_LINK_CCLIB"]);
       set_array_cond false "OCAML_LINK_DLLIB" bs.bs_dlllib;
       Set_array(true, "OCAML_LINK_DLLIB",
                 [gen_getvar "EXTRA_OCAML_LINK_DLLIB"]);
       set_array_cond false "OCAML_LINK_DLLPATH" bs.bs_dllpath;
       Set_array(true, "OCAML_LINK_DLLPATH",
-                [gen_getvar "EXTRA_OCAML_LINK_DLLPATH"]);
+                auto_dllpath @ [gen_getvar "EXTRA_OCAML_LINK_DLLPATH"]);
       Set_array(false, "OCAML_LINK_FLAGS", 
                 [ Literal "-linkpkg";
                   gen_getvar "EXTRA_OCAML_LINK_FLAGS" ]);
