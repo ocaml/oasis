@@ -510,8 +510,8 @@ let add_library ctx pkg map cs bs lib =
         [ "DefineRules() =" ];
       if lib.lib_pack then
         Lines
-          [ "    OASIS_build_OCamlPack($(CNAME), $(MODULES))";
-            "    OASIS_build_OCamlLibrary($(NAME), $(CNAME), $(C_OBJECTS))"
+          [ "    OASIS_build_OCamlPack($(NAME), $(MODULES))";
+            "    OASIS_build_OCamlLibrary($(NAME), $(NAME), $(C_OBJECTS))"
           ]
       else
         Lines
