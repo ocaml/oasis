@@ -481,7 +481,7 @@ OASIS_build_OCamlDoc(name,modules,texts) =
                 $(mapprefix -load, $(set $(array $(odocdeps), $(rebased_lines $(LIBODOCS))))) \
                 $(otherdeps) \
                 -d $(name).doc/html/ \
-                -t $(TITLE) $(mapprefix -intro, $(addsuffix .txt $(INTRO)))
+                -t $(TITLE) $(mapprefix -intro, $(addsuffix .txt, $(INTRO)))
 
         .SCANNER: $(name).doc/latex/$(name).tex: $(LIBODOCS)
             section
