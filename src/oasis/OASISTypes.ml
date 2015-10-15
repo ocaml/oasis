@@ -142,6 +142,7 @@ type build_section =
       bs_compiled_object: compiled_object;
       bs_build_depends:   dependency list;
       bs_build_tools:     tool list;
+      bs_source_patterns: (string * string) list;
       bs_c_sources:       unix_filename list;
       bs_data_files:      (unix_filename * unix_filename option) list;
       bs_ccopt:           args conditional;

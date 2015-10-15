@@ -155,6 +155,14 @@ val files: string list t
 val file_glob: string t
 
 
+(** File pattern value, split on the single '%'. *)
+val file_pattern: (string * string) t
+
+
+(** File pattern list value. *)
+val file_patterns: (string * string) list t
+
+
 (** Directory value. *)
 val directory: string t
 

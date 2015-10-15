@@ -140,6 +140,18 @@ let file_glob =
   {string_not_empty with update = update_fail}
 
 
+let file_pattern =
+  {
+    parse =
+      (fun ~ctxt str ->
+        match OASISString.nsplit str '%' with
+        | [pfx; sfx] -> (pfx, sfx)
+        | _ -> failwith (s_ "Expecting a file pattern, containing one %."));
+    update = update_fail;
+    print = (fun (pfx, sfx) -> pfx ^ "%" ^ sfx);
+  }
+
+
 let directory =
   {string_not_empty with update = update_fail}
 
@@ -293,6 +305,10 @@ let modules =
 
 let files =
   comma_separated file
+
+
+let file_patterns =
+  comma_separated file_pattern
 
 
 let categories =
