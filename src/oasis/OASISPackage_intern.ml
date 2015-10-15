@@ -36,61 +36,37 @@ open OASISValues
 open OASISUtils
 open OASISSchema_intern
 open OASISGettext
-open OASISExpr
 
 
-let mod_build_depends f pkg =
-  {pkg with
-     sections =
-       List.map
-         (function
-           | Library (cs, bs, lib) ->
-             Library (cs, f bs, lib)
-           | Object (cs, bs, obj) ->
-             Object (cs, f bs, obj)
-           | Executable (cs, bs, exec) ->
-             Executable (cs, f bs, exec)
-           | Test _ | Flag _ | SrcRepo _ | Doc _ as sct ->
-             sct)
-         pkg.sections}
-
-
-let add_build_depend build_depend pkg =
-  mod_build_depends
-    (fun bs ->
-       {bs with bs_build_depends = build_depend :: bs.bs_build_depends})
-    pkg
-
-
-let add_build_tool ?(no_test=false) ?(condition=[EBool true, true])
-    build_tool pkg =
-  let pkg =
-    mod_build_depends
-      (fun bs ->
-         {bs with bs_build_tools = build_tool :: bs.bs_build_tools})
-      pkg
+let propagate_fields
+    ~build_depends
+    ~build_tools
+    ~interface_patterns
+    ~implementation_patterns
+    pkg =
+  let mod_bs bs =
+    {bs with
+     bs_build_depends = build_depends @ bs.bs_build_depends;
+     bs_build_tools = build_tools @ bs.bs_build_tools;
+     bs_implementation_patterns =
+       implementation_patterns @ bs.bs_implementation_patterns;
+     bs_interface_patterns =
+       interface_patterns @ bs.bs_interface_patterns}
   in
-  if no_test then
-    pkg
-  else
-    {pkg with
-       sections =
-         List.map
-           (function
-             | Test (cs, test) ->
-               Test (cs,
-                 {test with
-                    test_tools =
-                      build_tool :: test.test_tools})
-             | Doc (cs, doc) ->
-               Doc (cs,
-                 {doc with
-                    doc_build_tools =
-                      build_tool :: doc.doc_build_tools})
-             | Library _ | Object _
-             | Executable _ | Flag _ | SrcRepo _ as sct ->
-               sct)
-           pkg.sections}
+  {pkg with
+   sections =
+     List.map
+       (function
+         | Library (cs, bs, lib) -> Library (cs, mod_bs bs, lib)
+         | Object (cs, bs, obj) -> Object (cs, mod_bs bs, obj)
+         | Executable (cs, bs, exec) -> Executable (cs, mod_bs bs, exec)
+         | Test (cs, test) ->
+           Test (cs, {test with test_tools = build_tools @ test.test_tools})
+         | Doc (cs, doc) ->
+           Doc (cs,
+                {doc with doc_build_tools = build_tools @ doc.doc_build_tools})
+         | Flag _ | SrcRepo _ as sct -> sct)
+       pkg.sections}
 
 
 let schema =
@@ -132,7 +108,7 @@ let alpha_features, beta_features =
   let value_feature stage =
     {
       parse =
-        (fun ~ctxt feature_name ->
+        (fun ~ctxt:_ feature_name ->
            match OASISFeatures.get_stage feature_name with
              | OASISFeatures.InDev feature_stage ->
                if feature_stage <> stage then
@@ -402,123 +378,125 @@ let generator =
       (fun pkg -> pkg.disable_oasis_section)
   in
   let build_depends =
-    OASISBuildSection_intern.build_depends_field schm
-      (fun pkg -> [])
+    OASISBuildSection_intern.build_depends_field schm (fun _ -> [])
   in
   let build_tools =
-    OASISBuildSection_intern.build_tools_field schm
-      (fun pkg -> [])
+    OASISBuildSection_intern.build_tools_field schm (fun _ -> [])
   in
-  (fun data sections ->
-     let plugins = plugins data in
-     let conf    = conf_type data in
-     let build   = build_type data in
-     let install = install_type data in
+  let interface_patterns, implementation_patterns =
+    OASISBuildSection_intern.source_patterns_fields schm
+      [] (fun _ -> [])
+      [] (fun _ -> [])
+  in
+  fun data sections ->
+    let plugins = plugins data in
+    let conf    = conf_type data in
+    let build   = build_type data in
+    let install = install_type data in
 
-     (* Generate plugin data *)
-     let set_plugin_data generator plugin_data data =
-       let rplugin_data = ref plugin_data in
-       List.iter
-         (fun plg ->
-            generator
-              (plg :> plugin_kind plugin)
-              rplugin_data
-              data)
-         plugins;
-       generator
-         (conf :> plugin_kind plugin)
-         rplugin_data data;
-       generator
-         (build :> plugin_kind plugin)
-         rplugin_data data;
-       generator
-         (install :> plugin_kind plugin)
-         rplugin_data data;
-       !rplugin_data
-     in
+    (* Generate plugin data *)
+    let set_plugin_data generator plugin_data data =
+      let rplugin_data = ref plugin_data in
+      List.iter
+        (fun plg ->
+           generator
+             (plg :> plugin_kind plugin)
+             rplugin_data
+             data)
+        plugins;
+      generator
+        (conf :> plugin_kind plugin)
+        rplugin_data data;
+      generator
+        (build :> plugin_kind plugin)
+        rplugin_data data;
+      generator
+        (install :> plugin_kind plugin)
+        rplugin_data data;
+      !rplugin_data
+    in
 
-     (* Plugin data for package *)
-     let plugin_data =
-       set_plugin_data
-         OASISPlugin.generator_package
-         []
-         data
-     in
+    (* Plugin data for package *)
+    let plugin_data =
+      set_plugin_data
+        OASISPlugin.generator_package
+        []
+        data
+    in
 
-     (* Fix plugin data for sections, set data from plugin
-      * defined at package level
-     *)
-     let sections =
-       List.map
-         (fun sct ->
-            let knd, cs =
-              OASISSection.section_kind_common sct
-            in
-            let plugin_data =
-              set_plugin_data
-                (OASISPlugin.generator_section knd)
-                cs.cs_plugin_data
-                cs.cs_data
-            in
-            OASISSection.section_common_set
-              {cs with cs_plugin_data = plugin_data}
-              sct)
-         sections
-     in
+    (* Fix plugin data for sections, set data from plugin
+     * defined at package level
+    *)
+    let sections =
+      List.map
+        (fun sct ->
+           let knd, cs =
+             OASISSection.section_kind_common sct
+           in
+           let plugin_data =
+             set_plugin_data
+               (OASISPlugin.generator_section knd)
+               cs.cs_plugin_data
+               cs.cs_data
+           in
+           OASISSection.section_common_set
+             {cs with cs_plugin_data = plugin_data}
+             sct)
+        sections
+    in
 
-     let oasis_version = oasis_version data in
-     let alpha_features = alpha_features data in
-     let beta_features = beta_features data in
-     if (alpha_features <> [] || beta_features <> []) &&
-        (OASISVersion.version_compare
-           oasis_version OASISConf.version_short) <> 0 then
-       failwithf
-         (f_ "You need to use the latest OASISFormat to be able to use \
-              fields %s and %s. Change 'OASISFormat: %s' to \
-              'OASISFormat: %s'")
-         (OASISFeatures.field_of_stage OASISFeatures.Alpha)
-         (OASISFeatures.field_of_stage OASISFeatures.Beta)
-         (OASISVersion.string_of_version oasis_version)
-         (OASISVersion.string_of_version OASISConf.version_short);
-
-     List.fold_right
-       add_build_depend
-       (build_depends data)
-       (List.fold_right
-          add_build_tool
-          (build_tools data)
-          {
-            oasis_version          = oasis_version;
-            ocaml_version          = ocaml_version data;
-            findlib_version        = findlib_version data;
-            alpha_features         = alpha_features;
-            beta_features          = beta_features;
-            name                   = name data;
-            version                = version data;
-            license                = license data;
-            license_file           = license_file data;
-            copyrights             = copyrights data;
-            maintainers            = maintainers data;
-            authors                = authors data;
-            homepage               = homepage data;
-            bugreports             = bugreports data;
-            synopsis               = synopsis data;
-            description            = description data;
-            tags                   = tags data;
-            categories             = categories data;
-            conf_type              = conf;
-            conf_custom            = conf_custom data;
-            build_type             = build;
-            build_custom           = build_custom data;
-            install_type           = install;
-            install_custom         = install_custom data;
-            uninstall_custom       = uninstall_custom data;
-            clean_custom           = clean_custom data;
-            distclean_custom       = distclean_custom data;
-            files_ab               = files_ab data;
-            plugins                = plugins;
-            disable_oasis_section  = disable_oasis_section data;
-            sections               = sections;
-            schema_data            = data;
-            plugin_data            = plugin_data;
-          }))
+    let oasis_version = oasis_version data in
+    let alpha_features = alpha_features data in
+    let beta_features = beta_features data in
+    if (alpha_features <> [] || beta_features <> []) &&
+       (OASISVersion.version_compare
+          oasis_version OASISConf.version_short) <> 0 then begin
+      failwithf
+        (f_ "You need to use the latest OASISFormat to be able to use \
+             fields %s and %s. Change 'OASISFormat: %s' to \
+             'OASISFormat: %s'")
+        (OASISFeatures.field_of_stage OASISFeatures.Alpha)
+        (OASISFeatures.field_of_stage OASISFeatures.Beta)
+        (OASISVersion.string_of_version oasis_version)
+        (OASISVersion.string_of_version OASISConf.version_short)
+    end;
+    propagate_fields
+     ~build_tools:(build_tools data)
+     ~build_depends:(build_depends data)
+     ~interface_patterns:(interface_patterns data)
+     ~implementation_patterns:(implementation_patterns data)
+     {
+       oasis_version          = oasis_version;
+       ocaml_version          = ocaml_version data;
+       findlib_version        = findlib_version data;
+       alpha_features         = alpha_features;
+       beta_features          = beta_features;
+       name                   = name data;
+       version                = version data;
+       license                = license data;
+       license_file           = license_file data;
+       copyrights             = copyrights data;
+       maintainers            = maintainers data;
+       authors                = authors data;
+       homepage               = homepage data;
+       bugreports             = bugreports data;
+       synopsis               = synopsis data;
+       description            = description data;
+       tags                   = tags data;
+       categories             = categories data;
+       conf_type              = conf;
+       conf_custom            = conf_custom data;
+       build_type             = build;
+       build_custom           = build_custom data;
+       install_type           = install;
+       install_custom         = install_custom data;
+       uninstall_custom       = uninstall_custom data;
+       clean_custom           = clean_custom data;
+       distclean_custom       = distclean_custom data;
+       files_ab               = files_ab data;
+       plugins                = plugins;
+       disable_oasis_section  = disable_oasis_section data;
+       sections               = sections;
+       schema_data            = data;
+       plugin_data            = plugin_data;
+     }

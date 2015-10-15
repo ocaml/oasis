@@ -1,0 +1,18 @@
+OASISFormat: 0.4
+Name: source_patterns
+Version: 0.0.1
+Authors: Foo Bar
+License: LGPL with OCaml linking exception
+Synopsis: Test source_patterns
+BetaFeatures: section_object
+AlphaFeatures: source_patterns
+
+Object object1
+  Path: .
+  Modules: O1
+  InterfacePatterns: ${module}.eliomi
+  ImplementationPatterns: ${module}.eliom
+
+Object object2
+  Path: .
+  Modules: O2

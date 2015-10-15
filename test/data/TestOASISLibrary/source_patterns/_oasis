@@ -1,0 +1,12 @@
+OASISFormat: 0.4
+Name: source_patterns
+Version: 0.0.1
+Authors: Foo Bar
+License: LGPL with OCaml linking exception
+Synopsis: Test source_patterns with library
+AlphaFeatures: source_patterns
+
+Library lib
+  Path: .
+  Modules: L1, L2, L3
+  ImplementationPatterns+: ${module}.mlify

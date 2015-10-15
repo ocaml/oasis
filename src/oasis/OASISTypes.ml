@@ -120,21 +120,23 @@ type common_section =
 
 type build_section =
   {
-    bs_build:               bool conditional;
-    bs_install:             bool conditional;
-    bs_path:                unix_dirname;
-    bs_compiled_object:     compiled_object;
-    bs_build_depends:       dependency list;
-    bs_build_tools:         tool list;
-    bs_c_sources:           unix_filename list;
-    bs_data_files:          (unix_filename * unix_filename option) list;
-    bs_findlib_extra_files: unix_filename list;
-    bs_ccopt:               args conditional;
-    bs_cclib:               args conditional;
-    bs_dlllib:              args conditional;
-    bs_dllpath:             args conditional;
-    bs_byteopt:             args conditional;
-    bs_nativeopt:           args conditional;
+    bs_build:                   bool conditional;
+    bs_install:                 bool conditional;
+    bs_path:                    unix_dirname;
+    bs_compiled_object:         compiled_object;
+    bs_build_depends:           dependency list;
+    bs_build_tools:             tool list;
+    bs_interface_patterns:      OASISSourcePatterns.t list;
+    bs_implementation_patterns: OASISSourcePatterns.t list;
+    bs_c_sources:               unix_filename list;
+    bs_data_files:              (unix_filename * unix_filename option) list;
+    bs_findlib_extra_files:     unix_filename list;
+    bs_ccopt:                   args conditional;
+    bs_cclib:                   args conditional;
+    bs_dlllib:                  args conditional;
+    bs_dllpath:                 args conditional;
+    bs_byteopt:                 args conditional;
+    bs_nativeopt:               args conditional;
   }
 
 
@@ -356,6 +358,10 @@ let odn_of_package pkg =
          (of_list odn_of_dependency v.bs_build_depends));
         ("bs_build_tools",
          (of_list odn_of_tool v.bs_build_tools));
+        ("bs_interface_patterns",
+         (of_list OASISSourcePatterns.odn_of_t v.bs_interface_patterns));
+        ("bs_implementation_patterns",
+         (of_list OASISSourcePatterns.odn_of_t v.bs_implementation_patterns));
         ("bs_c_sources",
          (of_list odn_of_unix_filename v.bs_c_sources));
         ("bs_data_files",

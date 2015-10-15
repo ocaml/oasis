@@ -192,6 +192,10 @@ type build_section =
     (** List of dependencies. *)
     bs_build_tools:         tool list;
     (** List of build tools. *)
+    bs_interface_patterns: OASISSourcePatterns.t list;
+    (** Patterns used to locate interface source filesi (.mli). *)
+    bs_implementation_patterns: OASISSourcePatterns.t list;
+    (** Patterns used to locate implementation source files (.ml). *)
     bs_c_sources:           unix_filename list;
     (** C sources, relative to [bs_path]. *)
     bs_data_files:          (unix_filename * unix_filename option) list;

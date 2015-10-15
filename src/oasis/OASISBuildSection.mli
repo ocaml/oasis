@@ -26,6 +26,15 @@
 *)
 
 
+(** Search a module file. *)
+val find_module:
+  (string -> bool) ->
+  OASISTypes.build_section ->
+  OASISUnixPath.unix_filename ->
+  [ `No_sources of OASISUnixPath.unix_filename list
+  | `Sources of OASISUnixPath.unix_filename * string list ]
+
+
 (** Compute the order of section building, taking into account
     build dependencies between sections. {b Not exported}.
 *)

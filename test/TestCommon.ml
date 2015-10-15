@@ -256,3 +256,50 @@ let all_subdirectories test_ctxt dn lst fmt =
           (fun _ -> assert_bool (fmt dn) (SetString.mem dn st)))
      (Sys.readdir dn)
 
+class ['a] mem_fs : ['a] OASISFileSystem.fs =
+  object
+    val tbl = Hashtbl.create 13
+
+    method string_of_filename s = OASISFileSystem.to_unix_filename s
+
+    method open_out ?mode:_ ?perm:_ fn =
+      Hashtbl.add tbl fn ();
+      object
+        method close = ()
+        method output _ = ()
+      end
+
+    method open_in ?mode:_ ?perm:_ _ =
+      object
+        method close = ()
+        method input _ _ = raise End_of_file
+      end
+
+    method file_exists fn = Hashtbl.mem tbl fn
+    method remove fn = Hashtbl.remove tbl fn
+  end
+
+
+class ['a] spy_fs test_ctxt fs : ['a] OASISFileSystem.fs =
+  object(self)
+    method private log op fn =
+      logf test_ctxt `Info "%s(%S)" op (fs#string_of_filename fn)
+
+    method string_of_filename = fs#string_of_filename
+    method open_out ?mode ?perm fn =
+      self#log "open_out" fn;
+      fs#open_out ?mode ?perm fn
+
+    method open_in ?mode ?perm fn =
+      self#log "open_in" fn;
+      fs#open_in ?mode ?perm fn
+
+    method file_exists fn = 
+      self#log "file_exists" fn;
+      fs#file_exists fn
+
+    method remove fn =
+      self#log "remove" fn;
+      fs#remove fn
+end
+

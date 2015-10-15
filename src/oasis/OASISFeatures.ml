@@ -70,7 +70,7 @@ struct
     Printf.sprintf
       "oasis_version: %s; alpha_features: %s; beta_features: %s; \
        plugins_version: %s"
-      (OASISVersion.string_of_version t.oasis_version)
+      (OASISVersion.string_of_version (t:t).oasis_version)
       (String.concat ", " t.alpha_features)
       (String.concat ", " t.beta_features)
       (String.concat ", "
@@ -95,14 +95,14 @@ type stage = Alpha | Beta
 
 let string_of_stage =
   function
-    | Alpha -> "alpha"
-    | Beta -> "beta"
+  | Alpha -> "alpha"
+  | Beta -> "beta"
 
 
 let field_of_stage =
   function
-    | Alpha -> "AlphaFeatures"
-    | Beta -> "BetaFeatures"
+  | Alpha -> "AlphaFeatures"
+  | Beta -> "BetaFeatures"
 
 type publication = InDev of stage | SinceVersion of OASISVersion.t
 
@@ -126,35 +126,35 @@ let beta = InDev Beta
 let to_string t =
   Printf.sprintf
     "feature: %s; plugin: %s; publication: %s"
-    t.name
+    (t:t).name
     (match t.plugin with
-      | None -> "<none>"
-      | Some (_, nm, _) -> nm)
+     | None -> "<none>"
+     | Some (_, nm, _) -> nm)
     (match t.publication with
-      | InDev stage -> string_of_stage stage
-      | SinceVersion ver -> ">= "^(OASISVersion.string_of_version ver))
+     | InDev stage -> string_of_stage stage
+     | SinceVersion ver -> ">= "^(OASISVersion.string_of_version ver))
 
 let data_check t data origin =
   let no_message = "no message" in
 
   let check_feature features stage =
-    let has_feature = List.mem t.name features in
+    let has_feature = List.mem (t:t).name features in
     if not has_feature then
-      match origin with
-        | Field (fld, where) ->
-          Some
-            (Printf.sprintf
-               (f_ "Field %s in %s is only available when feature %s \
-                    is in field %s.")
-               fld where t.name (field_of_stage stage))
-        | Section sct ->
-          Some
-            (Printf.sprintf
-               (f_ "Section %s is only available when features %s \
-                    is in field %s.")
-               sct t.name (field_of_stage stage))
-        | NoOrigin ->
-          Some no_message
+      match (origin:origin) with
+      | Field (fld, where) ->
+        Some
+          (Printf.sprintf
+             (f_ "Field %s in %s is only available when feature %s \
+                  is in field %s.")
+             fld where t.name (field_of_stage stage))
+      | Section sct ->
+        Some
+          (Printf.sprintf
+             (f_ "Section %s is only available when features %s \
+                  is in field %s.")
+             sct t.name (field_of_stage stage))
+      | NoOrigin ->
+        Some no_message
     else
       None
   in
@@ -165,131 +165,127 @@ let data_check t data origin =
         version (OASISVersion.VGreaterEqual min_version)
     in
     Printf.ksprintf
-      (fun str ->
-         if version_is_good then
-           None
-         else
-           Some str)
+      (fun str -> if version_is_good then None else Some str)
       fmt
   in
 
   match origin, t.plugin, t.publication with
-    | _, _, InDev Alpha -> check_feature data.Data.alpha_features Alpha
-    | _, _, InDev Beta -> check_feature data.Data.beta_features Beta
-    | Field(fld, where), None, SinceVersion min_version ->
-      version_is_good ~min_version data.Data.oasis_version
-        (f_ "Field %s in %s is only valid since OASIS v%s, update \
-             OASISFormat field from '%s' to '%s' after checking \
-             OASIS changelog.")
-        fld where (string_of_version min_version)
-        (string_of_version data.Data.oasis_version)
-        (string_of_version min_version)
+  | _, _, InDev Alpha -> check_feature data.Data.alpha_features Alpha
+  | _, _, InDev Beta -> check_feature data.Data.beta_features Beta
+  | Field(fld, where), None, SinceVersion min_version ->
+    version_is_good ~min_version data.Data.oasis_version
+      (f_ "Field %s in %s is only valid since OASIS v%s, update \
+           OASISFormat field from '%s' to '%s' after checking \
+           OASIS changelog.")
+      fld where (string_of_version min_version)
+      (string_of_version data.Data.oasis_version)
+      (string_of_version min_version)
 
-    | Field(fld, where), Some(plugin_knd, plugin_name, _),
-      SinceVersion min_version ->
-      begin
-        try
-          let plugin_version_current =
-            try
-              match Data.plugin_version plugin_knd plugin_name data with
-                | Some ver -> ver
-                | None ->
-                  failwithf
-                    (f_ "Field %s in %s is only valid for the OASIS \
-                         plugin %s since v%s, but no plugin version is \
-                         defined in the _oasis file, change '%s' to \
-                         '%s (%s)' in your _oasis file.")
-                    fld where plugin_name (string_of_version min_version)
-                    plugin_name
-                    plugin_name (string_of_version min_version)
-            with Not_found ->
-              failwithf
-                (f_ "Field %s in %s is only valid when the OASIS plugin %s \
-                     is defined.")
-                fld where plugin_name
-          in
-          version_is_good ~min_version plugin_version_current
-            (f_ "Field %s in %s is only valid for the OASIS plugin %s \
-                 since v%s, update your plugin from '%s (%s)' to \
-                 '%s (%s)' after checking the plugin's changelog.")
-            fld where plugin_name (string_of_version min_version)
-            plugin_name (string_of_version plugin_version_current)
-            plugin_name (string_of_version min_version)
-        with Failure msg ->
-          Some msg
-      end
-
-    | Section sct, None, SinceVersion min_version ->
-      version_is_good ~min_version data.Data.oasis_version
-        (f_ "Section %s is only valid for since OASIS v%s, update \
-             OASISFormat field from '%s' to '%s' after checking OASIS \
-             changelog.")
-        sct (string_of_version min_version)
-        (string_of_version data.Data.oasis_version)
-        (string_of_version min_version)
-
-    | Section sct, Some(plugin_knd, plugin_name, _),
-      SinceVersion min_version ->
-      begin
-        try
-          let plugin_version_current =
-            try
-              match Data.plugin_version plugin_knd plugin_name data with
-                | Some ver -> ver
-                | None ->
-                  failwithf
-                    (f_ "Section %s is only valid for the OASIS \
-                         plugin %s since v%s, but no plugin version is \
-                         defined in the _oasis file, change '%s' to \
-                         '%s (%s)' in your _oasis file.")
-                    sct plugin_name (string_of_version min_version)
-                    plugin_name
-                    plugin_name (string_of_version min_version)
-            with Not_found ->
-              failwithf
-                (f_ "Section %s is only valid when the OASIS plugin %s \
-                     is defined.")
-                sct plugin_name
-          in
-          version_is_good ~min_version plugin_version_current
-            (f_ "Section %s is only valid for the OASIS plugin %s \
-                 since v%s, update your plugin from '%s (%s)' to \
-                 '%s (%s)' after checking the plugin's changelog.")
-            sct plugin_name (string_of_version min_version)
-            plugin_name (string_of_version plugin_version_current)
-            plugin_name (string_of_version min_version)
-        with Failure msg ->
-          Some msg
-      end
-
-    | NoOrigin, None, SinceVersion min_version ->
-      version_is_good ~min_version data.Data.oasis_version "%s" no_message
-
-    | NoOrigin, Some(plugin_knd, plugin_name, _), SinceVersion min_version ->
-      begin
-        try
-          let plugin_version_current =
+  | Field(fld, where), Some(plugin_knd, plugin_name, _),
+    SinceVersion min_version ->
+    begin
+      try
+        let plugin_version_current =
+          try
             match Data.plugin_version plugin_knd plugin_name data with
-              | Some ver -> ver
-              | None -> raise Not_found
-          in
-          version_is_good ~min_version plugin_version_current
-            "%s" no_message
-        with Not_found ->
-          Some no_message
-      end
+            | Some ver -> ver
+            | None ->
+              failwithf
+                (f_ "Field %s in %s is only valid for the OASIS \
+                     plugin %s since v%s, but no plugin version is \
+                     defined in the _oasis file, change '%s' to \
+                     '%s (%s)' in your _oasis file.")
+                fld where plugin_name (string_of_version min_version)
+                plugin_name
+                plugin_name (string_of_version min_version)
+          with Not_found ->
+            failwithf
+              (f_ "Field %s in %s is only valid when the OASIS plugin %s \
+                   is defined.")
+              fld where plugin_name
+        in
+        version_is_good ~min_version plugin_version_current
+          (f_ "Field %s in %s is only valid for the OASIS plugin %s \
+               since v%s, update your plugin from '%s (%s)' to \
+               '%s (%s)' after checking the plugin's changelog.")
+          fld where plugin_name (string_of_version min_version)
+          plugin_name (string_of_version plugin_version_current)
+          plugin_name (string_of_version min_version)
+      with Failure msg ->
+        Some msg
+    end
+
+  | Section sct, None, SinceVersion min_version ->
+    version_is_good ~min_version data.Data.oasis_version
+      (f_ "Section %s is only valid for since OASIS v%s, update \
+           OASISFormat field from '%s' to '%s' after checking OASIS \
+           changelog.")
+      sct (string_of_version min_version)
+      (string_of_version data.Data.oasis_version)
+      (string_of_version min_version)
+
+  | Section sct, Some(plugin_knd, plugin_name, _),
+    SinceVersion min_version ->
+    begin
+      try
+        let plugin_version_current =
+          try
+            match Data.plugin_version plugin_knd plugin_name data with
+            | Some ver -> ver
+            | None ->
+              failwithf
+                (f_ "Section %s is only valid for the OASIS \
+                     plugin %s since v%s, but no plugin version is \
+                     defined in the _oasis file, change '%s' to \
+                     '%s (%s)' in your _oasis file.")
+                sct plugin_name (string_of_version min_version)
+                plugin_name
+                plugin_name (string_of_version min_version)
+          with Not_found ->
+            failwithf
+              (f_ "Section %s is only valid when the OASIS plugin %s \
+                   is defined.")
+              sct plugin_name
+        in
+        version_is_good ~min_version plugin_version_current
+          (f_ "Section %s is only valid for the OASIS plugin %s \
+               since v%s, update your plugin from '%s (%s)' to \
+               '%s (%s)' after checking the plugin's changelog.")
+          sct plugin_name (string_of_version min_version)
+          plugin_name (string_of_version plugin_version_current)
+          plugin_name (string_of_version min_version)
+      with Failure msg ->
+        Some msg
+    end
+
+  | NoOrigin, None, SinceVersion min_version ->
+    version_is_good ~min_version data.Data.oasis_version "%s" no_message
+
+  | NoOrigin, Some(plugin_knd, plugin_name, _), SinceVersion min_version ->
+    begin
+      try
+        let plugin_version_current =
+          match Data.plugin_version plugin_knd plugin_name data with
+          | Some ver -> ver
+          | None -> raise Not_found
+        in
+        version_is_good ~min_version plugin_version_current
+          "%s" no_message
+      with Not_found ->
+        Some no_message
+    end
 
 
 let data_assert t data origin =
   match data_check t data origin with
-    | None -> ()
-    | Some str -> failwith str
+  | None -> ()
+  | Some str -> failwith str
 
 
 let data_test t data =
   match data_check t data NoOrigin with
-    | None -> true
-    | Some str -> false
+  | None -> true
+  | Some _ -> false
 
 
 let package_test t pkg =
@@ -396,3 +392,8 @@ let findlib_extra_files =
   create "findlib_extra_files" beta
     (fun () ->
        s_ "Allow to install extra files for findlib libraries.")
+
+let source_patterns =
+  create "source_patterns" alpha
+    (fun () ->
+       s_ "Customize mapping between module name and source file.")

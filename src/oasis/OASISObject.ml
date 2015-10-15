@@ -25,19 +25,27 @@ open OASISTypes
 open OASISGettext
 
 
+let find_module ~ctxt source_file_exists cs bs modul =
+  match OASISBuildSection.find_module source_file_exists bs modul with
+  | `Sources _ as res -> res
+  | `No_sources _ as res ->
+    OASISMessage.warning
+      ~ctxt
+      (f_ "Cannot find source file matching module '%s' in object %s.")
+      modul cs.cs_name;
+    OASISMessage.warning
+      ~ctxt
+      (f_ "Use InterfacePatterns or ImplementationPatterns to define \
+           this file with feature %S.")
+      (OASISFeatures.source_patterns.OASISFeatures.name);
+    res
+
 let source_unix_files ~ctxt (cs, bs, obj) source_file_exists =
   List.fold_left
     (fun acc modul ->
-       match OASISLibrary.find_module source_file_exists bs modul with
-         | `Sources (base_fn, lst) ->
-           (base_fn, lst) :: acc
-         | `No_sources _ ->
-           OASISMessage.warning
-             ~ctxt
-             (f_ "Cannot find source file matching \
-                  module '%s' in object %s")
-             modul cs.cs_name;
-           acc)
+       match find_module ~ctxt source_file_exists cs bs modul with
+       | `Sources (base_fn, lst) -> (base_fn, lst) :: acc
+       | `No_sources _ -> acc)
     []
     obj.obj_modules
 
@@ -49,15 +57,9 @@ let generated_unix_files
     (cs, bs, obj) =
 
   let find_module ext modul =
-    match OASISLibrary.find_module source_file_exists bs modul with
-      | `Sources (base_fn, _) -> [base_fn ^ ext]
-      | `No_sources lst ->
-        OASISMessage.warning
-          ~ctxt
-          (f_ "Cannot find source file matching \
-               module '%s' in object %s")
-          modul cs.cs_name ;
-        lst
+    match find_module ~ctxt source_file_exists cs bs modul with
+    | `Sources (base_fn, _) -> [base_fn ^ ext]
+    | `No_sources lst -> lst
   in
 
   let header, byte, native, c_object, f =

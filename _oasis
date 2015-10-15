@@ -52,6 +52,7 @@ Library oasis
            OASISUnixPath,
            OASISFileSystem,
            OASISContext,
+           OASISSourcePatterns,
            OASISGettext,
            OASISMessage,
            OASISText,

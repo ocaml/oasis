@@ -21,13 +21,14 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 882122b3d91b2fa00ec5810fb4384cee)
+# DO NOT EDIT (digest: 5807d65e823480d9efda44d63833870e)
 oasis/FormatExt
 oasis/PropList
 oasis/OASISUtils
 oasis/OASISUnixPath
 oasis/OASISFileSystem
 oasis/OASISContext
+oasis/OASISSourcePatterns
 oasis/OASISGettext
 oasis/OASISMessage
 oasis/OASISText

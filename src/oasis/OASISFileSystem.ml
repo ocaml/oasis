@@ -49,7 +49,8 @@ let std_length = 4096 (* Standard buffer/read length. *)
 let binary_out = Mode.binary_out
 let binary_in = Mode.binary_in
 
-let of_unix_filename ufn = (ufn : 'a filename)
+let of_unix_filename ufn = (ufn: 'a filename)
+let to_unix_filename fn = (fn: string)
 
 
 let defer_close o f =
@@ -116,7 +117,7 @@ class ['a] host_fs rootdir : ['a] fs =
         method input buf len =
           let read = ref 0 in
           try
-            for i = 0 to len do
+            for _ = 0 to len do
               Buffer.add_char buf (Stream.next strm);
               incr read
             done

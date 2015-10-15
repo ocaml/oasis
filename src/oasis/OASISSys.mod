@@ -11,6 +11,7 @@ OASISVersion.ml
 OASISLicense.ml
 OASISExpr.ml
 OASISText.ml
+OASISSourcePatterns.ml
 OASISTypes.ml
 OASISFeatures.ml
 OASISSection.ml

@@ -108,7 +108,10 @@ let () =
          TestLicense.tests;
          TestOASISAst.tests;
          TestOASISFileSystem.tests;
+         TestOASISLibrary.tests;
+         TestOASISObject.tests;
          TestOASISParse.tests;
+         TestOASISSourcePatterns.tests;
          TestOASISString.tests;
          TestOASISText.tests;
          TestPluginDevFiles.tests;

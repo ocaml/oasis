@@ -28,7 +28,6 @@
 
 open OASISSchema_intern
 open OASISValues
-open OASISUtils
 open OASISGettext
 open OASISTypes
 
@@ -137,6 +136,36 @@ let build_install_data_fields
   in
   build, install, data_files
 
+let source_patterns_fields schm default_intf sync_intf default_impl sync_impl =
+  let value_source_pattern =
+    let open OASISValues in
+    {
+      parse = (fun ~ctxt:_ str -> OASISSourcePatterns.parse str);
+      update = update_fail;
+      print = OASISSourcePatterns.to_string;
+    }
+  in
+  let value_source_patterns =
+    OASISValues.comma_separated value_source_pattern
+  in
+  let interface_patterns =
+    new_field schm "InterfacePatterns"
+      ~default:default_intf
+      ~feature:OASISFeatures.source_patterns
+      value_source_patterns
+      (fun () -> s_ "Patterns to use for locating source files.")
+      sync_intf
+  in
+  let implementation_patterns =
+    new_field schm "ImplementationPatterns"
+      ~default:default_impl
+      ~feature:OASISFeatures.source_patterns
+      value_source_patterns
+      (fun () -> s_ "Patterns to use for locating source files.")
+      sync_impl
+  in
+  interface_patterns, implementation_patterns
+
 
 let section_fields _ comp_dflt schm sync =
   let path =
@@ -178,6 +207,13 @@ let section_fields _ comp_dflt schm sync =
       (fun () ->
          s_ "Define the compilation type of the section: byte, native or best")
       (fun pkg -> (sync pkg).bs_compiled_object)
+  in
+  let interface_patterns, implementation_patterns =
+    source_patterns_fields schm
+      OASISSourcePatterns.interface
+      (fun pkg -> (sync pkg).bs_interface_patterns)
+      OASISSourcePatterns.implementation
+      (fun pkg -> (sync pkg).bs_implementation_patterns)
   in
   let c_sources =
     new_field schm "CSources"
@@ -228,21 +264,23 @@ let section_fields _ comp_dflt schm sync =
       (fun () -> s_ "ocamlopt arguments to use when building.")
       (fun pkg -> (sync pkg).bs_nativeopt)
   in
-  (fun nm data ->
+  (fun _ data ->
      {
-       bs_build               = build data;
-       bs_install             = install data;
-       bs_path                = path data;
-       bs_compiled_object     = compiled_object data;
-       bs_build_depends       = build_depends data;
-       bs_build_tools         = build_tools data;
-       bs_c_sources           = c_sources data;
-       bs_data_files          = data_files data;
-       bs_findlib_extra_files = findlib_extra_files data;
-       bs_ccopt               = ccopt data;
-       bs_cclib               = cclib data;
-       bs_dlllib              = dlllib data;
-       bs_dllpath             = dllpath data;
-       bs_byteopt             = byteopt data;
-       bs_nativeopt           = nativeopt data;
+       bs_build                   = build data;
+       bs_install                 = install data;
+       bs_path                    = path data;
+       bs_compiled_object         = compiled_object data;
+       bs_build_depends           = build_depends data;
+       bs_build_tools             = build_tools data;
+       bs_interface_patterns      = interface_patterns data;
+       bs_implementation_patterns = implementation_patterns data;
+       bs_c_sources               = c_sources data;
+       bs_data_files              = data_files data;
+       bs_findlib_extra_files     = findlib_extra_files data;
+       bs_ccopt                   = ccopt data;
+       bs_cclib                   = cclib data;
+       bs_dlllib                  = dlllib data;
+       bs_dllpath                 = dllpath data;
+       bs_byteopt                 = byteopt data;
+       bs_nativeopt               = nativeopt data;
      })

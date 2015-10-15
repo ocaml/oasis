@@ -29,17 +29,8 @@
 open OASISTypes
 
 
-(** Looks for a module file, considering capitalization or not. *)
-val find_module:
-  (string -> bool) ->
-  build_section ->
-  OASISUnixPath.unix_filename ->
-  [ `No_sources of OASISUnixPath.unix_filename list
-  | `Sources of OASISUnixPath.unix_filename * string list ]
-
-
 (** [source_unix_files (cs, bs, lib) source_file_exists] Source files for this
-    library. The first part of the tuple is the file without extenstion for
+    library. The first part of the tuple is the file without extension for
     modules and the second part is the source files matching (e.g. .ml and
     .mli).
 *)

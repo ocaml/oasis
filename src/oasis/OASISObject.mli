@@ -21,11 +21,15 @@
 (******************************************************************************)
 
 
+(** Object section
+    @author Sylvain Le Gall
+*)
+
 open OASISTypes
 
 
 (** [source_unix_files (cs, bs, obj) source_file_exists] Source files for this
-    object. The first part of the tuple is the file without extenstion for
+    object. The first part of the tuple is the file without extension for
     modules and the second part is the source files matching (e.g. .ml and
     .mli).
 *)

@@ -1,6 +1,7 @@
 type 'a filename
 
 val of_unix_filename: OASISUnixPath.unix_filename -> 'a filename
+val to_unix_filename: 'a filename -> OASISUnixPath.unix_filename
 
 class type closer =
   object

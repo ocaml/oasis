@@ -20,14 +20,37 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+open OASISTypes
+
+(* Look for a module file, considering capitalization or not. *)
+let find_module source_file_exists bs modul =
+  let possible_lst =
+    OASISSourcePatterns.all_possible_files
+      (bs.bs_interface_patterns @ bs.bs_implementation_patterns)
+      ~path:bs.bs_path
+      ~modul
+  in
+  match List.filter source_file_exists possible_lst with
+  | (fn :: _) as fn_lst -> `Sources (OASISUnixPath.chop_extension fn, fn_lst)
+  | [] ->
+    let open OASISUtils in
+    let _, rev_lst =
+      List.fold_left
+        (fun (set, acc) fn ->
+           let base_fn = OASISUnixPath.chop_extension fn in
+           if SetString.mem base_fn set then
+             set, acc
+           else
+             SetString.add base_fn set, base_fn :: acc)
+        (SetString.empty, []) possible_lst
+    in
+    `No_sources (List.rev rev_lst)
+
 
 (* END EXPORT *)
 
 
-open OASISTypes
-open OASISUtils
 open OASISSection
-open OASISSection_intern
 
 module G = OASISGraph
 
@@ -90,15 +113,12 @@ let build_graph pkg =
   List.iter
     (fun (vrtx, sct) ->
        match sct with
-         | Library (cs, bs, _)
-         | Object (cs, bs, _)
-         | Executable (cs, bs, _) ->
-           add_build_section vrtx bs
-         | Test (cs, {test_tools = build_tools})
-         | Doc (cs, {doc_build_tools = build_tools}) ->
-           add_build_tool vrtx build_tools
-         | Flag _ | SrcRepo _ ->
-           ())
+       | Library (_, bs, _) | Object (_, bs, _) | Executable (_, bs, _) ->
+         add_build_section vrtx bs
+       | Test (_, {test_tools = build_tools})
+       | Doc (_, {doc_build_tools = build_tools}) ->
+         add_build_tool vrtx build_tools
+       | Flag _ | SrcRepo _ -> ())
     sections;
 
   sct_of_vrtx, ext_of_vrtx, g
@@ -177,7 +197,7 @@ let transitive_build_depends pkg =
   in
 
   MapSection.mapi
-    (fun k lst ->
+    (fun _ lst ->
        List.rev_map
          (fun (_, dep) -> dep)
          (* Reverse order to match List.rev_map *)
