@@ -460,12 +460,15 @@ let add_library ctx pkg map cs bs lib =
          )
          (lib.lib_modules @ lib.lib_internal_modules)
       ) in
+  let priv_modules = "MODULES_" ^ cs.cs_name in
+  let priv_c_sources = "C_SOURCES_" ^ cs.cs_name in
   let section =
     [ Set_string(false, "NAME", Literal cs.cs_name);
       Set_string(false, "CNAME", Literal (String.capitalize cs.cs_name));
       set_byte_or_native bs;
       Set_array(false, "MODULES", module_impls @ 
                                     [gen_getvar "EXTRA_MODULES"] );
+      Set_array(false, priv_modules, [ Variable "MODULES" ]);
       Set_array(false, "OCAML_LIBS",
                 ( List.map
                     (fun n -> Literal n)
@@ -484,6 +487,7 @@ let add_library ctx pkg map cs bs lib =
         [ "C_OBJECTS = $(replacesuffixes .c, $(EXT_OBJ), $(C_SOURCES))";
           "C_OBJECTS += $(OASIS_getvar EXTRA_C_OBJECTS)";
         ];
+      Set_array(false, priv_c_sources, [ Variable "C_SOURCES" ]);
       set_array_cond false "OCAML_LIB_CCLIB" bs.bs_cclib;
       Set_array(true, "OCAML_LIB_CCLIB", [gen_getvar "EXTRA_OCAML_LIB_CCLIB"]);
       set_array_cond false "OCAML_LIB_DLLIB" bs.bs_dlllib;
@@ -552,6 +556,8 @@ let add_library ctx pkg map cs bs lib =
                "ACCU_OCAMLOPTFLAGS";
                "ACCU_CFLAGS";
                "ACCU_SYNTAX_CAMLP4O";
+               priv_modules;
+               priv_c_sources;
              ];
     ] in
   let section =
