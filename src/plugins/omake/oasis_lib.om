@@ -1,0 +1,1098 @@
+################################################################################
+# OASIS: architecture for building OCaml libraries and applications            #
+#                                                                              #
+# Copyright (C) 2011-2013, Sylvain Le Gall                                     #
+# Copyright (C) 2008-2011, OCamlCore SARL                                      #
+#                                                                              #
+# This library is free software; you can redistribute it and/or modify it      #
+# under the terms of the GNU Lesser General Public License as published by     #
+# the Free Software Foundation; either version 2.1 of the License, or (at      #
+# your option) any later version, with the OCaml static compilation            #
+# exception.                                                                   #
+#                                                                              #
+# This library is distributed in the hope that it will be useful, but          #
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY   #
+# or FITNESS FOR A PARTICULAR PURPOSE. See the file COPYING for more           #
+# details.                                                                     #
+#                                                                              #
+# You should have received a copy of the GNU Lesser General Public License     #
+# along with this library; if not, write to the Free Software Foundation,      #
+# Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA                #
+################################################################################
+
+# Function library for OASIS builds.
+
+scratchpad. =
+    data_files = $(Map)
+
+ROOT = $(dir .)
+OASIS_empty_array[] =
+
+if $(equal $(OSTYPE), Win32)
+    OASIS_linefeed = $(unhexify 0d0a)
+    export
+else
+    OASIS_linefeed = $(unhexify 0a)
+    export
+
+instflags = $(if $(VERBOSE), $(OASIS_empty_array), -s)
+
+if $(not $(defined CMXS_ENABLED))
+    CMXS_ENABLED = false
+    export
+
+if $(not $(defined OCAMLMKLIB))
+    OCAMLMKLIB = ocamlmklib
+    export
+
+if $(not $(defined OCAMLMKLIBFLAGS))
+    OCAMLMKLIBFLAGS =
+    export
+
+if $(not $(defined OCAMLDOC))
+    OCAMLDOC = $(OCAMLFIND) ocamldoc
+    export
+
+if $(not $(defined OCAMLDOCFLAGS))
+    OCAMLDOCFLAGS =
+    export
+
+if $(not $(defined OCAMLDOCFLAGS_HTML))
+    OCAMLDOCFLAGS_HTML =
+    export
+
+if $(not $(defined OCAMLDOCFLAGS_LATEX))
+    OCAMLDOCFLAGS_LATEX =
+    export
+
+if $(not $(defined OCAML_LIB_CCLIB))
+    OCAML_LIB_CCLIB =
+    export
+
+if $(not $(defined OCAML_LIB_DLLIB))
+    OCAML_LIB_DLLIB =
+    export
+
+if $(not $(defined OCAML_LIB_DLLPATH))
+    OCAML_LIB_DLLPATH =
+    export
+
+if $(not $(defined OCAML_LIB_MODULE_SUFFIXES))
+    OCAML_LIB_MODULE_SUFFIXES[] =
+        .cmi
+    export
+
+if $(not $(defined OCAML_LIB_MODULE_SUFFIXES_BYTE))
+    OCAML_LIB_MODULE_SUFFIXES_BYTE[] =
+    export
+
+if $(not $(defined OCAML_LIB_MODULE_SUFFIXES_NATIVE))
+    OCAML_LIB_MODULE_SUFFIXES_NATIVE[] =
+    export
+
+if $(not $(defined OCAML_LIB_OPTIONAL_MODULE_SUFFIXES))
+    OCAML_LIB_OPTIONAL_MODULE_SUFFIXES[] =
+        .mli
+        .cmt
+        .cmti
+        .annot
+    export
+
+if $(not $(defined OCAML_LIB_OPTIONAL_MODULE_SUFFIXES_BYTE))
+    OCAML_LIB_OPTIONAL_MODULE_SUFFIXES_BYTE[] =
+    export
+
+if $(not $(defined OCAML_LIB_OPTIONAL_MODULE_SUFFIXES_NATIVE))
+    OCAML_LIB_OPTIONAL_MODULE_SUFFIXES_NATIVE[] =
+        .cmx
+    export
+
+if $(not $(defined OCAML_LIB_LIBRARY_SUFFIXES))
+    OCAML_LIB_LIBRARY_SUFFIXES[] =
+    export
+
+if $(not $(defined OCAML_LIB_LIBRARY_SUFFIXES_BYTE))
+    OCAML_LIB_LIBRARY_SUFFIXES_BYTE[] =
+        .cma
+    export
+
+if $(not $(defined OCAML_LIB_LIBRARY_SUFFIXES_NATIVE))
+    OCAML_LIB_LIBRARY_SUFFIXES_NATIVE[] =
+        .cmxa
+        $(EXT_LIB)
+    if $(CMXS_ENABLED)
+        OCAML_LIB_LIBRARY_SUFFIXES_NATIVE[] +=
+            .cmxs
+        export
+    export
+
+if $(not $(defined OCAML_LINK_CCLIB))
+    OCAML_LINK_CCLIB =
+    export
+
+if $(not $(defined OCAML_LINK_DLLIB))
+    OCAML_LINK_DLLIB =
+    export
+
+if $(not $(defined OCAML_LINK_DLLPATH))
+    OCAML_LINK_DLLPATH =
+    export
+
+if $(not $(defined OCAMLFINDFLAGS_INSTALL))
+    OCAMLFINDFLAGS_INSTALL =
+    export
+
+if $(not $(defined OCAMLFINDFLAGS_REMOVE))
+    OCAMLFINDFLAGS_REMOVE =
+    export
+
+
+
+OASIS_clean_list[] =
+    *.cmi
+    *.cmt
+    *.cmti
+    *.cmo
+    *.cma
+    *.cmx
+    *$(EXT_OBJ)
+    *.cmxa
+    *$(EXT_LIB)
+    *.so
+    *.cmxs
+    *.libodoc
+    *.odoc
+
+OASIS_rec_clean_list[] =
+    *.doc/html
+    *.doc/latex
+
+OASIS_dir_clean_list[] =
+    *.doc
+
+OASIS_distclean_list[] =
+    $(OASIS_clean_list)
+    *.omc
+    setup.data
+    setup.log
+    setup.log.om
+    _oasis_setup.om
+
+OASIS_rec_distclean_list[] =
+    $(OASIS_rec_clean_list)
+
+OASIS_dir_distclean_list[] =
+    $(OASIS_dir_clean_list)
+
+OASIS_rmdir(dirs) =
+    private.expdirs = $(glob iD, $(dirs))
+    foreach(dir => ...,$(expdirs))
+        if $(test -d $(dir))
+            Shell.rmdir(-f -- $(dir))
+
+OASIS_scratchpad = $(ROOT)/setup.log.om
+
+.INCLUDE: $(OASIS_scratchpad)
+    section
+        private.f = $(fopen $(OASIS_scratchpad), wa)
+        close($(f))
+
+OASIS_scratchpad_append_new_data_files(key, files) =
+    private.f = $(fopen $(OASIS_scratchpad), wa)
+    fprintln($(f), $"section")
+    fprintln($(f), $"    private.key = $(string-escaped $(key))")
+    fprintln($(f), $'    private.files = $(OASIS_empty_array)')
+    fprintln($(f), $'    if $(scratchpad.data_files.mem $(key))')
+    fprintln($(f), $'        files = $(scratchpad.data_files.find $(key))')
+    fprintln($(f), $'        export files')
+    foreach(file => ..., $(files))
+        fprintln($(f), $"    files += $(string-escaped $(file))")
+    fprintln($(f), $'    scratchpad.data_files = $(scratchpad.data_files.add $(key), $(files))')
+    fprintln($(f), $'    export')
+    close($(f))
+    Shell.rm(-f $(OASIS_scratchpad)c)
+
+OASIS_scratchpad_append_del_data_files(key) =
+    private.f = $(fopen $(OASIS_scratchpad), wa)
+    fprintln($(f), $"section")
+    fprintln($(f), $"    private.key = $(string-escaped $(key))")
+    fprintln($(f), $'    scratchpad.data_files = $(scratchpad.data_files.remove $(key))')
+    fprintln($(f), $'    export')
+    close($(f))
+    Shell.rm(-f $(OASIS_scratchpad)c)
+
+
+OASIS_destdir(path) =
+    if $(defined DESTDIR)
+        return $(absname $(dir $(DESTDIR)/$(path)))
+    if $(defined oasis_destdir)
+        return $(absname $(dir $(oasis_destdir)/$(path)))
+    else
+        return $(absname $(dir $(path)))
+
+# OASIS_getvar(v) gets the contents of the (array) variable named v, or
+# the empty array if it is not defined. If the variable NAME is defined
+# in the context where this function is called, it is first looked at
+# the variable v_$(NAME), and this variable is taken instead.
+
+OASIS_getvar(name) =
+    declare private.v
+    if $(and $(defined NAME) $(defined $(name)_$(NAME)))
+        v = $(getvar $(name)_$(NAME))
+        export v
+    else
+        if $(defined $(name))
+            v = $(getvar $(name))
+            export v
+        else
+            v = $(OASIS_empty_array)
+            export v
+        export v
+    value $(apply $(v))
+
+
+OASIS_run(list) =
+    run_it(f) =
+        value $(f)
+    foreach($(run_it), $(list))
+
+OASIS_modify_OCAMLINCLUDES(module, flags) =
+    OCAMLINCLUDES += $(flags)
+    $(module).cmi:
+    $(module).cmo:
+    $(module).cmx $(module)$(EXT_OBJ):
+
+OASIS_modify_OCAMLPACKS(module, flags) =
+    OCAMLPACKS += $(flags)
+    $(module).cmi:
+    $(module).cmo:
+    $(module).cmx $(module)$(EXT_OBJ):
+
+OASIS_modify_OCAMLFLAGS(module, flags) =
+    OCAMLFLAGS += $(flags)
+    $(module).cmi:
+    $(module).cmo:
+    $(module).cmx $(module)$(EXT_OBJ):
+
+OASIS_modify_OCAMLCFLAGS(module, flags) =
+    OCAMLCFLAGS += $(flags)
+    $(module).cmi:
+    $(module).cmo:
+    $(module).cmx $(module)$(EXT_OBJ):
+
+OASIS_modify_OCAMLOPTFLAGS(module, flags) =
+    OCAMLOPTFLAGS += $(flags)
+    $(module).cmi:
+    $(module).cmo:
+    $(module).cmx $(module)$(EXT_OBJ):
+
+OASIS_modify_OCAMLFINDFLAGS(module, flags) =
+    OCAMLFINDFLAGS += $(flags)
+    $(module).cmi:
+    $(module).cmo:
+    $(module).cmx $(module)$(EXT_OBJ):
+
+OASIS_modify_OCAMLLEXFLAGS(module, flags) =
+    OCAMLLEXFLAGS += $(flags)
+    $(module).cmi:
+    $(module).cmo:
+    $(module).cmx $(module)$(EXT_OBJ):
+
+OASIS_modify_OCAMLYACCFLAGS(module, flags) =
+    OCAMLYACCFLAGS += $(flags)
+    $(module).cmi:
+    $(module).cmo:
+    $(module).cmx $(module)$(EXT_OBJ):
+
+OASIS_modify_CFLAGS(module, flags) =
+    CFLAGS += $(flags)
+    $(module)$(EXT_OBJ):
+
+OASIS_target_OCamlLibrary(name) =
+    value $(array $(if $(NATIVE_ENABLED), $(array $(name).cmxa, $(name)$(EXT_LIB))), $(if $(and $(NATIVE_ENABLED), $(CMXS_ENABLED)), $(name).cmxs), $(if $(BYTE_ENABLED), $(name).cma))
+
+# Extensions compared to OCamlLibrary:
+#  - OCAML_LIBS and OCAML_CLIBS are now dependencies
+#  - creates the cmxs if CMXS_ENABLED
+#  - ignores OCAMLPACKS (no relinking of packages)
+#  - can link in c_objects
+
+OASIS_build_OCamlLibrary(name,modules,c_objects) =
+    private.name = $(file $(name))
+
+    private.OFILES   = $(addsuffix $(EXT_OBJ), $(modules))
+    private.CMOFILES = $(addsuffix .cmo, $(modules))
+    private.CMXFILES = $(addsuffix .cmx, $(modules))
+
+    private.CLIB      = $(file $(name)$(EXT_LIB))
+    private.BYTELIB   = $(file $(name).cma)
+    private.NATIVELIB = $(file $(name).cmxa)
+    private.LIBNAME   = $(file $(name))
+
+    private.CMXSFILE  = $(file $(name).cmxs)
+    private.C_OBJECTS = $(file $(c_objects))
+    private.STUBS     = $(LIBNAME)_stubs
+
+    private.BYTEDEPS   = $(addsuffix .cma, $(OCAML_LIBS))
+    private.NATIVEDEPS = $(addsuffix .cmxa, $(OCAML_LIBS))
+    private.CLIBDEPS   = $(addsuffix $(EXT_LIB), $(OCAML_LIBS))
+
+    private.LIBODOCFILE  = $(file $(name).libodoc)
+    private.ODOCFILES =    $(addsuffix .odoc, $(modules))
+
+    #
+    # Link commands
+    #
+    if $(gt $(length $(C_OBJECTS)), 0)
+        private.flags =
+        private.byteflags =
+        private.natflags =
+        if $(gt $(length $(OCAML_LIB_FLAGS)), 0)
+            flags = -ccopt $(quote $(OCAML_LIB_FLAGS))
+            export flags
+        if $(gt $(length $(OCAMLCFLAGS)), 0)
+            byteflags = -ccopt $(quote $(OCAMLCFLAGS))
+            export byteflags
+        if $(gt $(length $(OCAMLOPTFLAGS)), 0)
+            natflags = -ccopt $(quote $(OCAMLOPTFLAGS))
+            export natflags
+        if $(gt $(length $(OCAML_LIB_DLLIB)), 0)
+            byteflags = -cclib $(quote $(mapprefix -dllib, $(OCAML_LIB_DLLIB)))
+            export byteflags
+        if $(gt $(length $(OCAML_LIB_DLLPATH)), 0)
+            byteflags = -dllpath $(OCAML_LIB_DLLPATH)
+            export byteflags
+
+        $(BYTELIB): $(CMOFILES) $(C_OBJECTS) $(BYTEDEPS)
+            $(OCAMLMKLIB) \
+                 $(OCAML_LIB_CCLIB) $(flags) $(byteflags) \
+                 -ocamlc "$(OCAMLC)" \
+                 -o $(LIBNAME) -oc $(STUBS) \
+                 $(OCamlLinkSort $(CMOFILES)) $(C_OBJECTS)
+
+        $(NATIVELIB) $(CLIB): $(CMXFILES) $(OFILES) $(C_OBJECTS) $(NATIVEDEPS) $(CLIBDEPS)
+            $(OCAMLMKLIB) \
+                 $(OCAML_LIB_CCLIB) $(flags) $(natflags) \
+                 -ocamlopt "$(OCAMLOPT)" \
+                 -o $(LIBNAME) -oc $(STUBS) \
+                 $(OCamlLinkSort $(CMXFILES)) $(C_OBJECTS)
+    else
+        private.flags =
+        private.byteflags =
+        if $(gt $(length $(OCAML_LIB_CCLIB)), 0)
+            flags += -cclib $(quote $(OCAML_LIB_CCLIB))
+            export flags
+        if $(gt $(length $(OCAML_LIB_DLLIB)), 0)
+            byteflags += -dllib $(quote $(OCAML_LIB_DLLIB))
+            export byteflags
+        if $(gt $(length $(OCAML_LIB_DLLPATH)), 0)
+            byteflags += -dllpath $(quote $(OCAML_LIB_DLLPATH))
+            export byteflags
+
+        $(BYTELIB): $(CMOFILES) $(BYTEDEPS)
+            $(OCAMLLINK) -a \
+                 -o $(BYTELIB) $(OCAMLCFLAGS) \
+                 $(flags) $(OCAML_LIB_FLAGS) \
+                 $(OCamlLinkSort $(CMOFILES))
+
+        $(NATIVELIB) $(CLIB): $(CMXFILES) $(OFILES) $(NATIVEDEPS) $(CLIBDEPS)
+            $(OCAMLOPTLINK) -a \
+                 -o $(NATIVELIB) $(OCAMLOPTFLAGS) \
+                 $(flags) $(OCAML_LIB_FLAGS) \
+                 $(OCamlLinkSort $(CMXFILES))
+
+    $(CMXSFILE): $(NATIVELIB) $(CLIB)
+        $(OCAMLOPTLINK) -shared -cclib -L. -o $(CMXSFILE) $(NATIVELIB)
+
+    $(LIBODOCFILE): $(ODOCFILES)
+         section
+             f = $(fopen $(LIBODOCFILE), w)
+             foreach(file => ..., $(ODOCFILES))
+                 fprintln($(f), $(file))
+             close($(f))
+
+    return $(array $(if $(NATIVE_ENABLED), $(NATIVELIB)), $(if $(NATIVE_ENABLED), $(CLIB)), $(if $(and $(NATIVE_ENABLED), $(CMXS_ENABLED)), $(CMXSFILE)), $(if $(BYTE_ENABLED), $(BYTELIB)))
+
+
+OASIS_build_OCamlPack(name,modules) =
+    OCamlPackage($(name), $(modules))
+
+
+%.odoc: %.ml
+        $(OCAMLDOC) $(OCAMLDOCFLAGS) -dump $@ \
+            $(PREFIXED_OCAMLPACKS) $(PREFIXED_OCAMLINCLUDES) \
+            $<
+
+%.odoc: %.mli
+        $(OCAMLDOC) $(OCAMLDOCFLAGS) -dump $@ \
+            $(PREFIXED_OCAMLPACKS) $(PREFIXED_OCAMLINCLUDES) \
+            $<
+
+private.lines(filenames) =
+        private.data = $(cat $(filenames))
+        return $(split $(OASIS_linefeed), $(data))
+
+private.rebased_lines(filenames) =
+        private.l1[] =
+        foreach(n => ..., $(filenames))
+            private.l2 = $(lines $(n))
+            l1 += $(addprefix $(dirname $(n))/, $(l2))
+            export l1
+        value $(l1)
+
+OASIS_target_OCamlDoc(name,format) =
+        switch $(format)
+        case pdf
+            return $"$(name).doc/latex/$(name).pdf"
+        case ps
+            return $"$(name).doc/latex/$(name).ps"
+        case dvi
+            return $"$(name).doc/latex/$(name).dvi"
+        default
+            return $"$(name).doc/$(format)"
+
+OASIS_build_OCamlDoc(name,modules,texts) =
+        private.LIBODOCS = $(addsuffix .libodoc, $(OCAML_LIBS))
+        private.ODOCS = $(addsuffix .odoc, $(modules))
+        private.odocdeps = $(ODOCS)
+        private.otherdeps = $(addsuffix .txt, $(texts))
+        private.texexts = .dvi .pdf .ps
+
+        if $(not $(defined TITLE))
+            TITLE = $(name)
+            export
+
+        if $(not $(defined INTRO))
+            INTRO = $(OASIS_empty_array)
+            export
+
+        Shell.mkdir(-p $(name).doc/html)
+        Shell.mkdir(-p $(name).doc/latex)
+
+        .SCANNER: $(name).doc/html/index.html: $(LIBODOCS)
+            section
+                deps = $(rebased_lines $(LIBODOCS))
+                foreach(dep => ...,$(deps))
+                    println($"$(name).doc/html/index.html: $(dep)")
+
+        $(name).doc/html $(name).doc/html/index.html: $(odocdeps) $(otherdeps)
+            rm -f $(name).doc/html/*
+            $(OCAMLDOC) $(OCAMLDOCFLAGS) -html $(OCAMLDOCFLAGS_HTML) \
+                $(mapprefix -load, $(set $(array $(odocdeps), $(rebased_lines $(LIBODOCS))))) \
+                $(otherdeps) \
+                -d $(name).doc/html/ \
+                -t $(TITLE) $(mapprefix -intro, $(addsuffix .txt, $(INTRO)))
+
+        .SCANNER: $(name).doc/latex/$(name).tex: $(LIBODOCS)
+            section
+                deps = $(rebased_lines $(LIBODOCS))
+                foreach(dep => ...,$(deps))
+                    println($"$(name).doc/latex/$(name).tex: $(dep)")
+
+        $(name).doc/latex $(name).doc/latex/$(name).tex: $(odocdeps) $(otherdeps)
+            rm -f $(name).doc/latex/*
+            $(OCAMLDOC) $(OCAMLDOCFLAGS) -latex $(OCAMLDOCFLAGS_LATEX) \
+                $(mapprefix -load, $(set $(array $(odocdeps), $(rebased_lines $(LIBODOCS))))) \
+                -o $(name).doc/latex/$(name).tex \
+                -t $(TITLE) $(mapprefix -intro, $(INTRO))
+
+        .SUBDIRS: $(name).doc/latex
+            LaTeXDocument($(name), $(name))
+
+
+OASIS_target_OCamlExecutable(name) =
+    value $(name)
+
+# The difference to OCamlProgram is that OASIS_build_OCamlExecutable figures
+# the modules of the program automatically out. You just need to pass in the
+# name of the main module.
+# Also:
+#  - can link in c_objects
+
+OASIS_build_OCamlExecutable(name,mainmodule,c_objects) =
+    private.get_byte_deps(cmofile, cmafiles) =
+        private.all_cmodeps = $(dependencies-all $(cmofile))
+        private.cmi_cmodeps = $(filter %.cmi, $(all_cmodeps))
+        private.cmo_cmodeps = $(replacesuffixes .cmi, .cmo, $(cmi_cmodeps))
+        private.all_cmadeps = $(dependencies-all $(cmafiles))
+        private.cmo_cmadeps = $(filter %.cmo, $(all_cmadeps))
+        value $(set $(set-diff $(cmo_cmodeps), $(cmo_cmadeps)))
+
+    private.get_native_deps(cmxfile, cmxafiles) =
+        private.all_cmxdeps = $(dependencies-all $(cmxfile))
+        private.cmi_cmxdeps = $(filter %.cmi, $(all_cmxdeps))
+        private.cmx_cmxdeps = $(replacesuffixes .cmi, .cmx, $(cmi_cmxdeps))
+        private.all_cmxadeps = $(dependencies-all $(cmxafiles))
+        private.cmx_cmxadeps = $(filter %.cmx, $(all_cmxadeps))
+        value $(set $(set-diff $(cmx_cmxdeps), $(cmx_cmxadeps)))
+
+    private.CMOFILE   = $(addsuffix .cmo, $(mainmodule))
+    private.CMXFILE   = $(addsuffix .cmx, $(mainmodule))
+    private.OFILE     = $(addsuffix $(EXT_OBJ), $(mainmodule))
+
+    private.CMAFILES  = $(addsuffix .cma,  $(OCAML_LIBS))
+    private.CMXAFILES = $(addsuffix .cmxa, $(OCAML_LIBS))
+    private.ARFILES   = $(addsuffix $(EXT_LIB), $(OCAML_LIBS))
+    private.CMA_OTHER_FILES = $(addsuffix .cma, $(OCAML_OTHER_LIBS))
+    private.CMXA_OTHER_FILES = $(addsuffix .cmxa, $(OCAML_OTHER_LIBS))
+
+    private.CLIBS = $(addsuffix $(EXT_LIB), $(OCAML_CLIBS))
+    private.C_OBJECTS = $(file $(c_objects))
+
+    private.name = $(file $(name))
+
+    private.PROG     = $(file $(name)$(EXE))
+    private.BYTEPROG = $(file $(name).run)
+    private.OPTPROG  = $(file $(name).opt)
+
+    private.flags =
+    private.byteflags =
+    if $(gt $(length $(OCAML_LINK_CCLIB)), 0)
+        flags += -cclib $(OCAML_LINK_CCLIB)
+        export flags
+    if $(gt $(length $(OCAML_LINK_DLLIB)), 0)
+        byteflags += -dllib $(OCAML_LINK_DLLIB)
+        export byteflags
+    if $(gt $(length $(OCAML_LINK_DLLPATH)), 0)
+        byteflags += -dllpath $(OCAML_LINK_DLLPATH)
+        export byteflags
+
+    #
+    # Rules to build byte-code and native targets
+    #
+    $(BYTEPROG): $(CMAFILES) $(CMOFILE) $(CLIBS) $(C_OBJECTS)
+        $(OCAMLFIND) $(OCAMLLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLCFLAGS)\
+                 $(PREFIXED_OCAMLINCLUDES) $(OCAML_BYTE_LINK_FLAGS) \
+                 $(byteflags) $(flags) \
+                 -o $@ $(CMA_OTHER_FILES) $(CMAFILES) \
+                 $(OCamlLinkSort $(get_byte_deps $(CMOFILE), $(CMAFILES)) $(CMOFILE)) \
+                 $(C_OBJECTS) $(CLIBS) $(OCAML_LINK_FLAGS)
+
+    $(OPTPROG): $(CMXAFILES) $(ARFILES) $(CMXFILE) $(OFILE) $(CLIBS) $(C_OBJECTS)
+         $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLOPTFLAGS)\
+                 $(PREFIXED_OCAMLINCLUDES) $(OCAML_NATIVE_LINK_FLAGS)\
+                 $(flags) \
+                 -o $@ $(CMXA_OTHER_FILES) $(CMXAFILES) \
+                 $(OCamlLinkSort $(get_native_deps $(CMXFILE), $(CMXAFILES)) $(CMXFILE)) \
+                 $(C_OBJECTS) $(CLIBS) $(OCAML_LINK_FLAGS)
+
+    #
+    # Link the actual executables.
+    # Always prefer native executables.
+    #
+    if $(NATIVE_ENABLED)
+        $(PROG): $(OPTPROG)
+            ln-or-cp $< $@
+    elseif $(BYTE_ENABLED)
+        $(PROG): $(BYTEPROG)
+            ln-or-cp $< $@
+    else
+        err. =
+            extends $(UnbuildableException)
+            message = $(string $"Cannot build $(PROG) because neither bytecode nor native code is enabled")
+        raise($(err))
+    return $(array $(PROG), $(if $(NATIVE_ENABLED), $(OPTPROG)), $(if $(BYTE_ENABLED), $(BYTEPROG)))
+
+
+# install things
+
+OASIS_installtarget_OCamlLibrary(name) =
+    value $".PHONY/install-lib-$(name)"
+
+OASIS_uninstalltarget_OCamlLibrary(name) =
+    value $".PHONY/uninstall-lib-$(name)"
+
+OASIS_reinstalltarget_OCamlLibrary(name) =
+    value $".PHONY/reinstall-lib-$(name)"
+
+OASIS_installtarget_Executable(name) =
+    value $".PHONY/install-exec-$(name)"
+
+OASIS_uninstalltarget_Executable(name) =
+    value $".PHONY/uninstall-exec-$(name)"
+
+OASIS_reinstalltarget_Executable(name) =
+    value $".PHONY/reinstall-exec-$(name)"
+
+OASIS_installtarget_Document(name) =
+    value $".PHONY/install-doc-$(name)"
+
+OASIS_uninstalltarget_Document(name) =
+    value $".PHONY/uninstall-doc-$(name)"
+
+OASIS_reinstalltarget_Document(name) =
+    value $".PHONY/reinstall-doc-$(name)"
+
+OASIS_expand_module_files_OCamlLibrary(modules) =
+    value $(array \
+              $(addsuffixes $(OCAML_LIB_MODULE_SUFFIXES), $(modules)), \
+              $(if $(BYTE_ENABLED), $(addsuffixes $(OCAML_LIB_MODULE_SUFFIXES_BYTE), $(modules))), \
+              $(if $(NATIVE_ENABLED), $(addsuffixes $(OCAML_LIB_MODULE_SUFFIXES_NATIVE), $(modules))))
+
+
+OASIS_expand_optional_module_files_OCamlLibrary(modules) =
+    value $(array \
+              $(addsuffixes $(OCAML_LIB_OPTIONAL_MODULE_SUFFIXES), $(modules)), \
+              $(if $(BYTE_ENABLED), $(addsuffixes $(OCAML_LIB_OPTIONAL_MODULE_SUFFIXES_BYTE), $(modules))), \
+              $(if $(NATIVE_ENABLED), $(addsuffixes $(OCAML_LIB_OPTIONAL_MODULE_SUFFIXES_NATIVE), $(modules))))
+
+
+OASIS_expand_library_files_OCamlLibrary(name) =
+    value $(array \
+              $(addsuffixes $(OCAML_LIB_LIBRARY_SUFFIXES), $(name)), \
+              $(if $(BYTE_ENABLED), $(addsuffixes $(OCAML_LIB_LIBRARY_SUFFIXES_BYTE), $(name))), \
+              $(if $(NATIVE_ENABLED), $(addsuffixes $(OCAML_LIB_LIBRARY_SUFFIXES_NATIVE), $(name))))
+
+
+OASIS_expand_optional_library_files_OCamlLibrary(name) =
+    private.files[] =
+        lib$(name)_stubs$(EXT_LIB)
+        dll$(name)_stubs$(EXT_DLL)
+    value $(files)
+
+
+private.install_OCamlLibrary(flname, add_to, files, opt_files) =
+    private.args = $(if $(equal $(flname), $(add_to)), $(OASIS_empty_array), -add)
+    private.destdir = $(shell $(OCAMLFIND) printconf destdir)
+    if $(not $(defined OCAMLFIND_DESTDIR))
+        destdir = $(OASIS_destdir $(destdir))
+        Shell.mkdir(-p $(destdir))
+        export destdir
+    $(OCAMLFIND) \
+         install -destdir $(destdir) $(OCAMLFINDFLAGS_INSTALL) \
+         $(add_to) $(args) $(files) -optional $(opt_files)
+
+private.uninstall_OCamlLibrary(flname) =
+    private.destdir = $(shell $(OCAMLFIND) printconf destdir)
+    if $(not $(defined OCAMLFIND_DESTDIR))
+        destdir = $(OASIS_destdir $(destdir))
+        export destdir
+    $(OCAMLFIND) \
+         remove -destdir $(destdir) $(OCAMLFINDFLAGS_REMOVE) $(flname)
+
+# note that add_to may be prefixed by a path! e.g. ../../dir/findlibname.subpkg
+
+OASIS_install_OCamlLibrary(name, flname, add_to, files, opt_files) =
+    OMakeFlags($(instflags))
+    private.dep = $(if $(equal $(flname), $(add_to)), $(OASIS_empty_array), .PHONY/$(dirname $(add_to))/install-findlib-$(basename $(add_to)))
+    .PHONY/install-lib-$(name): .PHONY/install-findlib-$(flname)
+    .PHONY/install-findlib-$(flname): $(dep) pre-install-here
+        install_OCamlLibrary($(flname), $(basename $(add_to)), $(files), $(opt_files))
+
+private.install_data(tag, src, dest) =
+    private.d = $(OASIS_destdir $(dest))
+    Shell.mkdir(-p $(d))
+    private.files = $(glob iF, $(src))
+    foreach (file => ..., $(files))
+        Shell.cp($(file) $(d)/.)
+        println($"Installed $(d)/$(basename $(file))")
+    OASIS_scratchpad_append_new_data_files($(tag), $(addprefix $(d)/, $(basename $(files))))
+
+private.uninstall_data(tag) =
+    private.files = $(OASIS_empty_array)
+    if $(scratchpad.data_files.mem $(tag))
+        files = $(scratchpad.data_files.find $(tag))
+        export files
+    foreach(file => ..., $(files))
+        Shell.rm(-f $(file))
+        println($"Removed $(file)")
+    OASIS_scratchpad_append_del_data_files($(tag))
+
+OASIS_uninstall_OCamlLibrary(name, flname, add_to) =
+    OMakeFlags($(instflags))
+    .PHONY/uninstall-lib-$(name): .PHONY/uninstall-findlib-$(flname)
+    if $(equal $(flname), $(add_to))
+        .PHONY/uninstall-findlib-$(flname):
+            uninstall_OCamlLibrary($(flname))
+    else
+        .PHONY/uninstall-findlib-$(flname): .PHONY/$(dirname $(add_to))/uninstall-findlib-$(basename $(add_to))
+
+OASIS_reinstall_OCamlLibrary(name, flname, add_to, files, opt_files) =
+    OMakeFlags($(instflags))
+    .PHONY/reinstall-lib-$(name): .PHONY/reinstall-findlib-$(flname)
+    if $(equal $(flname), $(add_to))
+        .PHONY/reinstall-findlib-$(flname): .PHONY/uninstall-lib-$(name)
+            install_OCamlLibrary($(flname), $(add_to), $(files), $(opt_files))
+    else
+        .PHONY/reinstall-findlib-$(flname): .PHONY/$(dirname $(add_to))/reinstall-findlib-$(basename $(add_to))
+            install_OCamlLibrary($(flname), $(basename $(add_to)), $(files), $(opt_files))
+
+
+OASIS_install_data_OCamlLibrary(name, src, dest) =
+    OMakeFlags($(instflags))
+    .PHONY/install-lib-$(name):
+        install_data($"lib-$(name)", $(src), $(dest))
+
+OASIS_uninstall_data_OCamlLibrary(name) =
+    OMakeFlags($(instflags))
+    .PHONY/uninstall-lib-$(name):
+        uninstall_data($"lib-$(name)")
+
+OASIS_reinstall_data_OCamlLibrary(name, src, dest) =
+    OMakeFlags($(instflags))
+    .PHONY/reinstall-lib-$(name):
+        install_data($"lib-$(name)", $(src), $(dest))
+
+OASIS_expand_file_Executable(name) =
+    if $(NATIVE_ENABLED)
+        return $(name).opt
+    elseif $(BYTE_ENABLED)
+        return $(name).run
+    else
+        return $(name)
+
+private.install_Executable(name,src) =
+    private.d = $(OASIS_destdir $(oasis_bindir))
+    private.f = $(d)/$(basename $(name))
+    Shell.mkdir(-p $(d))
+    if $(test -d $(f))
+        err. =
+            extends $(Exception)
+            message = $"Is a directory: $(f)"
+        raise($(err))
+    Shell.cp($(src) $(f))
+    println($"Installed $(f)")
+
+private.uninstall_Executable(name) =
+    private.d = $(OASIS_destdir $(oasis_bindir))
+    if $(file-exists $(d)/$(basename $(name)))
+        Shell.rm(-f $(d)/$(basename $(name)))
+        println($"Removed $(d)/$(basename $(name))")
+
+OASIS_install_Executable(name,src) =
+    OMakeFlags($(instflags))
+    .PHONY/install-exec-$(name): pre-install-here
+        install_Executable($(name), $(src))
+
+OASIS_uninstall_Executable(name) =
+    OMakeFlags($(instflags))
+    .PHONY/uninstall-exec-$(name):
+        uninstall_Executable($(name))
+
+OASIS_reinstall_Executable(name,src) =
+    OMakeFlags($(instflags))
+    .PHONY/reinstall-exec-$(name): .PHONY/uninstall-exec-$(name)
+        install_Executable($(name), $(src))
+
+OASIS_install_data_Executable(name, src, dest) =
+    OMakeFlags($(instflags))
+    .PHONY/install-exec-$(name):
+        install_data($"exec-$(name)", $(src), $(dest))
+
+OASIS_uninstall_data_Executable(name) =
+    OMakeFlags($(instflags))
+    .PHONY/uninstall-exec-$(name):
+        uninstall_data($"exec-$(name)")
+
+OASIS_reinstall_data_Executable(name, src, dest) =
+    OMakeFlags($(instflags))
+    .PHONY/reinstall-exec-$(name):
+        install_data($"exec-$(name)", $(src), $(dest))
+
+OASIS_expand_files_Document(name, format) =
+    switch $(format)
+    case dvi
+        return $"$(name).doc/latex/$(name).dvi"
+    case pdf
+        return $"$(name).doc/latex/$(name).pdf"
+    case ps
+        return $"$(name).doc/latex/$(name).ps"
+    default
+        return $(glob iF, $(name).doc/$(format)/*)
+
+private.install_Document(name, src, dest) =
+    install_data($"doc-$(name)", $(src), $(dest))
+
+private.uninstall_Document(name) =
+    uninstall_data($"doc-$(name)")
+
+OASIS_install_Document(name, src, dest) =
+    OMakeFlags($(instflags))
+    .PHONY/install-doc-$(name): pre-install-here
+        install_Document($(name), $(src), $(dest))
+
+OASIS_uninstall_Document(name) =
+    OMakeFlags($(instflags))
+    .PHONY/uninstall-doc-$(name):
+        uninstall_Document($(name))
+
+OASIS_reinstall_Document(name, src, dest) =
+    OMakeFlags($(instflags))
+    .PHONY/reinstall-doc-$(name): .PHONY/uninstall-doc-$(name)
+        install_Document($(name), $(src), $(dest))
+
+OASIS_install_data_Document(name, src, dest) =
+    OMakeFlags($(instflags))
+    .PHONY/install-doc-$(name):
+        install_data($"doc-$(name)", $(src), $(dest))
+
+OASIS_uninstall_data_Document(name) =
+# no action needed
+
+OASIS_reinstall_data_Document(name, src, dest) =
+    OMakeFlags($(instflags))
+    .PHONY/reinstall-doc-$(name):
+        install_data($"doc-$(name)", $(src), $(dest))
+
+
+# Reading in setup.data
+
+private.to_hex_digit(n) =
+    if $(eq $(n), 10)
+        return a
+    elseif $(eq $(n), 11)
+        return b
+    elseif $(eq $(n), 12)
+        return c
+    elseif $(eq $(n), 13)
+        return d
+    elseif $(eq $(n), 14)
+        return e
+    elseif $(eq $(n), 15)
+        return f
+    else
+        return $(string $(n))
+
+private.char(code) =
+    d1 = $(div $(code) 16)
+    d2 = $(mod $(code) 16)
+    return $(unhexify $(string $(to_hex_digit $(d1))$(to_hex_digit $(d2))))
+
+private.string_lexer() =
+    lexer. =
+        extends $(Lexer)
+
+        declare lex
+        declare rule
+
+        buffer[] =
+
+        other: .
+            buffer[] += $0
+            lex()
+
+        eof: $"\'"
+            err. =
+                extends $(Exception)
+                message = $"Unterminated string, location: $(string-of-location $(parse-loc))"
+            raise $(err)
+
+        chars: $'[^\\"]+'
+            buffer[] += $0
+            lex()
+
+        string-end: $'"'
+            Token.pair(string, $(concat $(string), $(buffer)))
+
+        esc1: $'\\\\'
+            buffer[] += \\
+            lex()
+
+        esc2: $"\\'"
+            buffer[] += \'
+            lex()
+
+        esc3: $'\\"'
+            buffer[] += \"
+            lex()
+
+        esc4: $'\\n'
+            buffer[] += $(unhexify 0a)
+            lex()
+
+        esc5: $'\\t'
+            buffer[] += $(unhexify 09)
+            lex()
+
+        esc6: $'\\b'
+            buffer[] += $(unhexify 07)
+            lex()
+
+        esc7: $'\\r'
+            buffer[] += $(unhexify 0d)
+            lex()
+
+        esc8: $'\\ '
+            buffer[] += \ 
+            lex()
+
+        esc9: $'\\\([0-7]\)\([0-7]\)\([0-7]\)'
+            # Work around an omake-0.9.8.6 bug
+            if $(defined 4)
+                d1 = $2
+                d2 = $3
+                d3 = $4
+                export d1 d2 d3
+            else
+                d1 = $1
+                d2 = $2
+                d3 = $3
+                export d1 d2 d3
+            code = $(add $(add $(mul $(int $(d1)) 64) $(mul $(int $(d2)) 8)) $(int $(d3)))
+            buffer[] += $(char $(code))
+            lex()
+
+        esc10: $'\\x\([0-9a-fA-F][0-9a-fA-F]\)'
+            buffer[] += $(unhexify $1)
+            lex()
+
+        newline: $'(\n|\r\n)'
+            buffer[] += $(unhexify 0a)
+            lex()
+
+    return $(lexer)
+        
+
+private.main_lexer() =
+    lexer. =
+        extends $(Lexer)
+
+        declare lex
+        declare rule
+
+        other: .
+            err. =
+                extends $(Exception)
+                message = $"Lexing error, location: $(string-of-location $(parse-loc))"
+            raise $(err)
+
+        white: $'[ \r\n\t]+'
+            lex()
+
+        ident: $"[a-zA-Z0-9_']+"
+            Token.pair(ident, $0)
+
+        equal: =
+            Token.unit(equal)
+
+        string: $'"'
+            slexer = $(string_lexer)
+            slexer.lex-channel($(channel))
+
+        eof: $"\'"
+            Token.unit(eof)
+
+    return $(lexer)
+
+
+param_lexer() =
+    private.dollar = \$
+    lexer. =
+        extends $(Lexer)
+
+        declare lex
+        declare rule
+
+        buffer[] =
+
+        other: .
+            err. =
+                extends $(Exception)
+                message = $"Lexing error, location: $(string-of-location $(parse-loc))"
+            raise $(err)
+
+        dollar1: $"\$(dollar)\([a-zA-Z0-9_]+\)"
+            declare private.ident
+            declare private.varname
+            # omake-0.9.8.6 bug
+            if $(defined 4)
+                ident = $4
+                export ident
+            else
+                ident = $1
+                export ident
+            varname = $"oasis_$(ident)"
+            buffer += $"$(dollar)(apply $(dollar)(getvar $(string-escaped $(varname))))"
+            lex()
+
+        dollar2: $"\$(dollar)[(]\([^)]+\)[)]"
+            declare private.ident
+            declare private.varname
+            # omake-0.9.8.6 bug
+            if $(defined 3)
+                ident = $3
+                export ident
+            else
+                ident = $1
+                export ident
+            varname = $"oasis_$(ident)"
+            buffer += $"$(dollar)(apply $(dollar)(getvar $(string-escaped $(varname))))"
+            lex()
+
+        dollar3: $"\$(dollar)[{]\([^)]+\)[}]"
+            declare private.ident
+            declare private.varname
+            # omake-0.9.8.6 bug
+            if $(defined 2)
+                ident = $2
+                export ident
+            else
+                ident = $1
+                export ident
+            varname = $"oasis_$(ident)"
+            buffer += $"$(dollar)(apply $(dollar)(getvar $(string-escaped $(varname))))"
+            lex()
+
+        esc: $"\\\(.\)"
+            declare private.data
+            data = $1
+            buffer += $(string-escaped $(data))
+            lex()
+
+        regular: $"[^\\$(dollar)]+"
+            declare private.data
+            data = $0
+            buffer += $(string-escaped $(data))
+            lex()
+
+        eof: $"\'"
+            value $(concat $(string), $(buffer))
+
+
+private.parse_error(loc) =
+    err. =
+        extends $(Exception)
+        message = $"Parse error, location: $(string-of-location $(loc))"
+    value $(err)
+
+
+OASIS_convert_env(inchannel,outchannel) =
+    private.lexer = $(main_lexer)
+    # omake-0.9.8.6 bug: "while" condition is not evaluated at all
+    while true
+        private.tok = $(lexer.lex-channel $(inchannel))
+        if $(equal $(tok.name), eof)
+            value $(break)
+        elseif $(equal $(tok.name), ident)
+            private.ident = $(tok.val)
+            tok = $(lexer.lex-channel $(inchannel))
+            if $(not $(equal $(tok.name), equal))
+                raise $(parse_error $(tok.loc))
+            tok = $(lexer.lex-channel $(inchannel))
+            if $(not $(equal $(tok.name), string))
+                raise $(parse_error $(tok.loc))
+            private.val = $(tok.val)
+            private.plexer = $(param_lexer)
+            private.omakecode = $(plexer.lex-channel $(open-in-string $(val)))
+            fprintln($(outchannel), $"oasis_$(string-escaped $(ident))() =")
+            fprintln($(outchannel), $"    value $(omakecode)")
+        else
+            raise $(parse_error $(tok.loc))
+
+
+OASIS_generate_setup() =
+    private.inch = $(fopen setup.data, r)
+    private.outch = $(fopen _oasis_setup.om, w)
+    OASIS_convert_env($(inch), $(outch))
+    fprintln($(outch), $'USE_OCAMLFIND = true')
+    fprintln($(outch), $'BYTE_ENABLED = true')
+    fprintln($(outch), $'NATIVE_ENABLED = $(OCAMLOPT_EXISTS)')
+    fprintln($(outch), $'OCAMLDEP_MODULES_ENABLED = true')
+    fprintln($(outch), $'CMXS_ENABLED = $(oasis_native_dynlink)')
+    fprintln($(outch), $'OCAMLFLAGS = -g')
+    fprintln($(outch), $'INCLUDES = $(oasis_standard_library)')
+    fprintln($(outch), $'CC = $(nth-hd 1, $(split $(oasis_bytecomp_c_compiler)))')
+    fprintln($(outch), $'CFLAGS = $(nth-tl 1, $(split $(oasis_bytecomp_c_compiler)))')
+    close($(inch))
+    flush($(outch))
+    close($(outch))

@@ -402,6 +402,7 @@ let run_ocaml_setup_ml
     ("OCAMLFIND_DESTDIR", t.ocaml_lib_dir)
     :: ("OCAMLFIND_LDCONF", "ignore")
     :: ("OCAML_TOPLEVEL_PATH", toplevel_path)
+    :: ("HOME", t.build_dir)
     :: extra_env
   in
   let cmd, args =

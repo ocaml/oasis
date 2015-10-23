@@ -1,0 +1,57 @@
+OASISFormat: 0.4
+Name:        complex
+Version:     0.1
+Synopsis:    Libraries and executables
+Authors:     Gerd Stolpmann
+License:     LGPL with OCaml linking exception
+BuildTools:  omake
+BuildType:   OMake (0.4)
+
+Library liba
+  Modules:         A2
+  InternalModules: A1
+  Path:            src/liba
+  BuildDepends:    str
+  Install:         true
+
+Library libb
+  Modules:      B1
+  Path:         src/libb
+  BuildDepends: liba
+  Install:      true
+
+Library libc
+  Modules:      C1
+  Path:         src/libc
+  BuildDepends: libb
+  Install:      true
+
+Library libwithc
+  Modules:      P
+  CSources:     pc.c
+  Path:         src/libwithc
+  Install:      true
+
+Library packedlib
+  Modules:      Q
+  Path:         src/packedlib
+  Pack:         true
+  BuildDepends:
+  Install:      true
+  ByteOpt:      -bin-annot
+  NativeOpt:    -bin-annot
+
+Executable exec
+  MainIs:       x2.ml
+  Path:         src/exec
+  BuildDepends: libc, libwithc, packedlib
+  Install:      true
+
+Document interdepend
+  Title:                API reference for interdepend
+  Type:                 omake (0.4)
+  InstallDir:           $htmldir/interdepend
+  Install:              true
+  BuildTools+:          ocamldoc
+  XOMakePath:      src
+  XOMakeLibraries: liba, libb, libc

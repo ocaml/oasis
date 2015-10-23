@@ -116,5 +116,6 @@ let () =
          TestStdFiles.tests;
          TestOASISText.tests;
          TestOASISString.tests;
+         TestOMake.tests;
        ]);
       extract_timings ()

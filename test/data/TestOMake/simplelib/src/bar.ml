@@ -21,18 +21,8 @@
 (******************************************************************************)
 
 
-(** Load builtin plugins
-  *)
+type t = string
 
 
-let init () =
-  NonePlugin.init ();
-  InternalInstallPlugin.init ();
-  InternalConfigurePlugin.init ();
-  OCamlbuildPlugin.init ();
-  OCamlbuildDocPlugin.init ();
-  CustomPlugin.init ();
-  OMakePlugin.init ();
-  METAPlugin.init ();
-  DevFilesPlugin.init ();
-  StdFilesPlugin.init ()
+let create s = s
+let value s = s

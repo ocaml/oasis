@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 363e92bf1512a5f72aa67e68c6e1fce7)
+# DO NOT EDIT (digest: 1369a41de36f43216f9bcab650b56a52)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -87,6 +87,11 @@ true: annot, bin_annot
 <src/plugins/ocamlbuild/*.ml{,i,y}>: pkg_unix
 <src/plugins/ocamlbuild/*.ml{,i,y}>: use_base
 <src/plugins/ocamlbuild/*.ml{,i,y}>: use_oasis
+<src/plugins/omake/*.ml{,i,y}>: pkg_ocamlbuild
+<src/plugins/omake/*.ml{,i,y}>: pkg_odn
+<src/plugins/omake/*.ml{,i,y}>: pkg_unix
+<src/plugins/omake/*.ml{,i,y}>: use_base
+<src/plugins/omake/*.ml{,i,y}>: use_oasis
 # Library dynrun
 "src/dynrun/dynrun.cmxs": use_dynrun
 <src/dynrun/*.ml{,i,y}>: pkg_ocamlbuild
@@ -217,6 +222,8 @@ true: annot, bin_annot
 # Plugins
 
 "src/plugins/custom/CustomPlugin.ml": syntax_camlp4o, pkg_odn.with.syntax
+
+"src/plugins/omake/OMakeFields.ml": syntax_camlp4o, pkg_odn.with.syntax
 
 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml": syntax_camlp4o, pkg_odn.with.syntax
 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml": use_ocamlbuild
