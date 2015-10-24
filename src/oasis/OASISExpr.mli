@@ -34,8 +34,7 @@
 (** {2 Test} *)
 
 
-(** Test definition.
-  *)
+(** Test definition. *)
 type test
 
 
@@ -104,13 +103,13 @@ val reduce: t -> t
 
 (** Try to reduce the size of a choice list. {b Not exported}.
   *)
-val reduce_choices: (t * 'a) list -> (t * 'a) list
+val reduce_choices: 'a choices -> 'a choices
 
 
 (** [if_then_else cond choices_if choices_else] Combine choices, if_then_else
     style.
   *)
-val if_then_else: t -> (t * 'a) list -> (t * 'a) list -> (t * 'a) list
+val if_then_else: t -> 'a choices -> 'a choices -> 'a choices
 
 
 (** Dump ODN.t. {b Not exported}. *)
