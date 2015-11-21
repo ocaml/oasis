@@ -24,11 +24,11 @@ open Ocamlbuild_plugin;;
 open Command;;
 
 let depends_from_file env build ?(fmod=fun x -> x) fn =
-  let depends_lst = 
-    let deps = 
+  let depends_lst =
+    let deps =
       ref []
     in
-    let fd = 
+    let fd =
       open_in  fn
     in
       (
@@ -42,20 +42,20 @@ let depends_from_file env build ?(fmod=fun x -> x) fn =
       close_in fd;
       List.rev !deps
   in
-    List.iter 
+    List.iter
       (fun fn ->
          List.iter
            (function
               | Outcome.Good _ -> ()
-              | Outcome.Bad exn -> 
-                  prerr_endline 
-                    (Printf.sprintf 
+              | Outcome.Bad exn ->
+                  prerr_endline
+                    (Printf.sprintf
                        "Could not build '%s': %s"
                        fn
                        (Printexc.to_string exn));
 
                   raise exn
-           ) 
+           )
            (build [[fn]])
       )
       depends_lst
@@ -75,8 +75,8 @@ rule "ocamlmod: %.mod -> %.ml"
       let dirname =
         Pathname.dirname modfn
       in
-        depends_from_file 
-          env 
+        depends_from_file
+          env
           build
           ~fmod:(fun fn -> dirname/fn)
           modfn;
@@ -91,11 +91,11 @@ rule "ocamlify: %.mlify -> %.mlify.depends"
   ~prod:"%.mlify.depends"
   ~dep:"%.mlify"
   begin
-    fun env _ -> 
-      Cmd(S[ocamlify; 
+    fun env _ ->
+      Cmd(S[ocamlify;
             T(tags_of_pathname (env "%.mlify")++"ocamlify"++"depends");
-            A"--depends"; 
-            A"--output"; P(env "%.mlify.depends"); 
+            A"--depends";
+            A"--output"; P(env "%.mlify.depends");
             P(env "%.mlify");])
   end
 ;;
@@ -103,10 +103,10 @@ rule "ocamlify: %.mlify -> %.mlify.depends"
 rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
   ~prod:"%.ml"
   ~deps:["%.mlify"; "%.mlify.depends"]
-  begin 
+  begin
     fun env build ->
-      depends_from_file 
-        env 
+      depends_from_file
+        env
         build
         (env "%.mlify.depends");
       Cmd(S[ocamlify; A"--output"; P(env "%.ml"); P(env "%.mlify")])
@@ -114,7 +114,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: c0ae498354f6736674499caf221fdc53) *)
+(* DO NOT EDIT (digest: 93629990588f6b02d3a98ac61ff38528) *)
 module OASISGettext = struct
 # 22 "src/oasis/OASISGettext.ml"
 
@@ -256,12 +256,10 @@ module BaseEnvLight = struct
 
 
   let default_filename =
-    Filename.concat
-      (Sys.getcwd ())
-      "setup.data"
+    lazy (Filename.concat (Sys.getcwd ()) "setup.data")
 
 
-  let load ?(allow_empty=false) ?(filename=default_filename) () =
+  let load ?(allow_empty=false) ?(filename=Lazy.force default_filename) () =
     if Sys.file_exists filename then
       begin
         let chn =
@@ -349,7 +347,7 @@ module BaseEnvLight = struct
 end
 
 
-# 237 "myocamlbuild.ml"
+# 235 "myocamlbuild.ml"
 module MyOCamlbuildFindlib = struct
 # 22 "src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml"
 
@@ -379,7 +377,8 @@ module MyOCamlbuildFindlib = struct
 
   let exec_from_conf exec =
     let exec =
-      let env_filename = Pathname.basename BaseEnvLight.default_filename in
+      let env_filename =
+        Pathname.basename (Lazy.force BaseEnvLight.default_filename) in
       let env = BaseEnvLight.load ~filename:env_filename ~allow_empty:true () in
       try
         BaseEnvLight.var_get exec env
@@ -580,8 +579,7 @@ module MyOCamlbuildBase = struct
 
 
   let env_filename =
-    Pathname.basename
-      BaseEnvLight.default_filename
+    lazy (Pathname.basename (Lazy.force BaseEnvLight.default_filename))
 
 
   let dispatch_combine lst =
@@ -602,7 +600,7 @@ module MyOCamlbuildBase = struct
   let dispatch t e =
     let env =
       BaseEnvLight.load
-        ~filename:env_filename
+        ~filename:(Lazy.force env_filename)
         ~allow_empty:true
         ()
     in
@@ -720,7 +718,7 @@ module MyOCamlbuildBase = struct
 end
 
 
-# 608 "myocamlbuild.ml"
+# 606 "myocamlbuild.ml"
 open Ocamlbuild_plugin;;
 let package_default =
   {
@@ -921,12 +919,12 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 810 "myocamlbuild.ml"
+# 808 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 open Ocamlbuild_plugin;;
 
-dispatch 
+dispatch
   (MyOCamlbuildBase.dispatch_combine
      [
        dispatch_default;
@@ -935,10 +933,10 @@ dispatch
             | After_rules ->
                 begin
                   flag ["ocaml"; "compile"] & S[A"-warn-error"; A"+8"];
-                  try 
-                    let gettext = 
-                      BaseEnvLight.var_get 
-                        "gettext" 
+                  try
+                    let gettext =
+                      BaseEnvLight.var_get
+                        "gettext"
                         (BaseEnvLight.load
                            ~allow_empty:true
                            ~filename:(Lazy.force MyOCamlbuildBase.env_filename)
@@ -946,21 +944,21 @@ dispatch
                     in
                       if gettext = "true" then
                         begin
-                          flag ["dep"; "pkg_camlp4.macro"] 
+                          flag ["dep"; "pkg_camlp4.macro"]
                             & S[A"-ppopt"; A"-D";  A"-ppopt"; A"HAS_GETTEXT"];
-                          flag ["compile"; "pkg_camlp4.macro"] 
+                          flag ["compile"; "pkg_camlp4.macro"]
                             & S[A"-ppopt"; A"-D";  A"-ppopt"; A"HAS_GETTEXT"];
                           List.iter
                             (fun pkg ->
-                               flag ["ocaml"; "compile";  "cond_pkg_"^pkg] 
+                               flag ["ocaml"; "compile";  "cond_pkg_"^pkg]
                                  & S[A"-package"; A pkg];
-                               flag ["ocaml"; "ocamldep"; "cond_pkg_"^pkg] 
+                               flag ["ocaml"; "ocamldep"; "cond_pkg_"^pkg]
                                  & S[A"-package"; A pkg];
-                               flag ["ocaml"; "doc";      "cond_pkg_"^pkg] 
+                               flag ["ocaml"; "doc";      "cond_pkg_"^pkg]
                                  & S[A"-package"; A pkg];
-                               flag ["ocaml"; "link";     "cond_pkg_"^pkg] 
+                               flag ["ocaml"; "link";     "cond_pkg_"^pkg]
                                  & S[A"-package"; A pkg];
-                               flag ["ocaml"; "infer_interface"; "cond_pkg_"^pkg] 
+                               flag ["ocaml"; "infer_interface"; "cond_pkg_"^pkg]
                                  & S[A"-package"; A pkg])
                             ["gettext.base"; "gettext-stub"]
                         end
