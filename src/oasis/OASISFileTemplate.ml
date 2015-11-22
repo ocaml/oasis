@@ -662,8 +662,8 @@ let find e t =
 let replace e t =
   let e =
     if OASISUnixPath.Set.mem
-        (OASISHostPath.to_unix e.fn)
-        t.disable_oasis_section_files then
+         (try OASISHostPath.to_unix e.fn with Failure _ -> e.fn)
+         t.disable_oasis_section_files then
       {e with disable_oasis_section = true}
     else
       e
