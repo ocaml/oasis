@@ -200,7 +200,7 @@ let main ctxt pkg =
           if compiled_setup_ml then begin
             Printf.bprintf buff
               "setup.exe: setup.ml%s\n\
-               \tocamlfind ocamlopt -o $@%s $< || ocamlfind ocamlc -o $@%s $< || true\n\
+               \tocamlfind ocamlopt -o $@%s setup.ml || ocamlfind ocamlc -o $@%s setup.ml || true\n\
                \t$(RM) setup.cmi setup.cmo setup.cmx setup.o\n\n"
               makefile_setup_deps packages packages;
           end;
