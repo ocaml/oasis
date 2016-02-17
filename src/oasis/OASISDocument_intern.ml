@@ -90,6 +90,8 @@ let schema, generator =
   let doc_format =
     new_field schm "Format"
       ~default:OtherDoc
+      (* TODO: document in the manual. *)
+      (* TODO: Manpage ? *)
       (choices
          (fun () -> "document format")
          ["HTML",       HTML "index.html";
