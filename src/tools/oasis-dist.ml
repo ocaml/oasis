@@ -47,10 +47,10 @@ let with_tmpdir f =
     Filename.temp_file "oasis-dist-" ".dir"
   in
   let clean () =
-    OASISFileUtil.rmdir ~ctxt:!BaseContext.default res
+    FileUtil.rm ~recurse:true [res]
   in
     Sys.remove res;
-    OASISFileUtil.mkdir ~ctxt:!BaseContext.default res;
+    FileUtil.mkdir res;
     try
       f res;
       clean ()
@@ -213,6 +213,7 @@ let () =
   let build = ref true in
   let tag = ref true in
   let sign = ref true in
+  let ignore_changes = ref false in
   let () =
     Arg.parse
       [
@@ -227,6 +228,10 @@ let () =
         "-no-sign",
         Arg.Clear sign,
         " Don't sign the result.";
+
+        "-ignore_changes",
+        Arg.Set ignore_changes,
+        " Ignore local changes.";
       ]
       (fun s -> failwith (Printf.sprintf "Don't know what to do with %S" s))
       "oasis-dist: build tarball out of oasis enabled sources."
@@ -266,7 +271,7 @@ let () =
         new no_vcs ctxt
   in
 
-    if not vcs#check_uncommited_changes then
+    if not !ignore_changes && not vcs#check_uncommited_changes then
       begin
         error ~ctxt "Uncommited changes";
         exit 1
