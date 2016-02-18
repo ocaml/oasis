@@ -5,7 +5,7 @@ Authors:      Sylvain Le Gall
 LicenseFile:  LICENSE
 License:      LGPL with OCaml linking exception
 Synopsis:     Demonstrate the use of Flag.
-BuildDepends: extlib
+BuildDepends: bigarray
 BuildTools:   ocamlbuild
 FilesAB:      src/simplelib/Conf.ml.ab
 

@@ -124,6 +124,7 @@ let tests =
        depending on a library which uses this c-file is re-linked
        properly
        TODO: reassert that this test fails without the fix in cb96135a
+       TODO: test is flaky.
      *)
     "external source rebuild" >::
     (fun test_ctxt ->
@@ -151,19 +152,27 @@ let tests =
 
        oasis_setup test_ctxt t;
 
-       ( let c = open_out c_source in Printf.fprintf c "%s\n" code_a ; close_out c );
+       begin
+         let c = open_out c_source in
+           Printf.fprintf c "%s\n" code_a;
+           close_out c
+       end;
 
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-configure" ];
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"];
 
        (* first, compile and assert everything worked *)
        assert_bool "File 'B.native' has been created"
-		   (Sys.file_exists (in_src_dir t "B.native"));
+         (Sys.file_exists (in_src_dir t "B.native"));
 
        assert_command ~ctxt:test_ctxt ~chdir:t.src_dir ~exit_code:(Unix.WEXITED 42) (in_src_dir t "B.native") [];
 
        (* change c-file, rebuild and assert result-code *)
-       ( let c = open_out c_source in Printf.fprintf c "%s\n" code_b ; close_out c ) ;
+       begin
+         let c = open_out c_source in
+           Printf.fprintf c "%s\n" code_b;
+           close_out c
+       end;
 
        (* uncomment to make this test succeed *)
        (* run_ocaml_setup_ml ~check_output:true test_ctxt t ["-clean"]; *)

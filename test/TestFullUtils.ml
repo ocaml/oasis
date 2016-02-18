@@ -545,6 +545,7 @@ let register_installed_files test_ctxt t installed_files_lst =
             List.rev_append
               [
                 "index.html";
+                "index_extensions.html";
                 "index_attributes.html";
                 "index_class_types.html";
                 "index_classes.html";
@@ -605,6 +606,10 @@ let register_installed_files test_ctxt t installed_files_lst =
                    acc
            | "so" when is_win32 ->
                (FilePath.replace_extension fn ".dll") :: acc
+           | "html" when 
+               FilePath.basename fn = "index_extensions.html" 
+               && OASISVersion.version_compare_string t.ocaml_version "4.02" < 0 ->
+               acc
            | _ ->
                fn :: acc)
       [] lst

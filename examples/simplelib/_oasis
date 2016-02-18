@@ -15,8 +15,7 @@ Description:
   Not much more to say
 
 Homepage: http://example.com
-BuildDepends:
- extlib
+BuildDepends: bigarray
 
 Library simplelib
   Path: src

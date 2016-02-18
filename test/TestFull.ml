@@ -68,8 +68,8 @@ let gen_tests ~is_native () =
              InstalledOCamlLibrary
                ("simplelib",
                 ["simplelib.cma";
-                 "Foo.cmi"; "Foo.ml"; "Foo.annot"; "Foo.cmti"; "Foo.cmt";
-                 "Bar.cmi"; "Bar.ml"; "Bar.annot"; "Bar.cmti"; "Bar.cmt";
+                 "Foo.cmi"; "Foo.ml"; "Foo.annot"; "Foo.cmt";
+                 "Bar.cmi"; "Bar.ml"; "Bar.annot"; "Bar.cmt";
                  "META";
                  "simplelib.cmxa";
                  "simplelib.cmxs";
@@ -78,9 +78,9 @@ let gen_tests ~is_native () =
              InstalledOCamlLibrary
                ("simplelibext",
                 ["simplelibext.cma";
-                 "FooExt.cmi"; "FooExt.ml"; "FooExt.annot"; "FooExt.cmti";
+                 "FooExt.cmi"; "FooExt.ml"; "FooExt.annot";
                  "FooExt.cmt";
-                 "BarExt.cmi"; "BarExt.ml"; "BarExt.annot"; "BarExt.cmti";
+                 "BarExt.cmi"; "BarExt.ml"; "BarExt.annot";
                  "BarExt.cmt";
                  "META";
                  "simplelibext.cmxa";
@@ -150,9 +150,11 @@ let gen_tests ~is_native () =
                  "packedlib.cmxa"; "packedlib.cmxs";
                  "packedlib.a";
                  "Baz.annot"; "Baz.cmt"; "bar.annot"; "bar.cmt"; "bar.cmti";
-                 "foo.annot"; "foo.cmt"; "foo.cmti";
-                 "packedlib.cmt"])
+                 "foo.annot"; "foo.cmt"; "foo.cmti"])
            ];
+         if OASISVersion.version_compare_string t.ocaml_version "4.02" >= 0 then begin
+           register_installed_files test_ctxt t [InstalledOCamlLibrary("packedlib", ["packedlib.cmt"])]
+         end;
          (* Run standard test. *)
          standard_test test_ctxt t;
          try_installed_library test_ctxt t "packedlib" ["Packedlib.Foo"]);
@@ -509,7 +511,7 @@ let gen_tests ~is_native () =
            [
              InstalledOCamlLibrary
                ("with-a",
-                ["META"; "A.ml"; "A.cmi"; "A.annot"; "A.cmti"; "with-a.cma"]);
+                ["META"; "A.ml"; "A.cmi"; "A.annot"; "A.cmt"; "with-a.cma"]);
            ];
          (* Run standard test. *)
          standard_test test_ctxt t);
@@ -710,11 +712,14 @@ let gen_tests ~is_native () =
                ("mylib",
                 ["META"; "dllmylib_stubs.so";
                  "foo.ml"; "mylib.cma"; "mylib.cmi";
-                 "foo.annot"; "foo.cmt"; "foo.cmti";
-                 "bar.annot"; "bar.cmt"; "bar.cmti";
+                 "foo.annot"; "foo.cmt";
+                 "bar.annot"; "bar.cmt";
                  "mylib.cmxa"; "mylib.cmxs"; "mylib.cmx";
                  "mylib.a"; "libmylib_stubs.a"])
            ];
+         if OASISVersion.version_compare_string t.ocaml_version "4.02" >= 0 then begin
+           register_installed_files test_ctxt t [InstalledOCamlLibrary("mylib", ["mylib.cmt"])]
+         end;
          (* Run standard test. *)
          standard_test test_ctxt t;
          (* Try the result. *)
