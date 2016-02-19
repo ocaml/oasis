@@ -201,10 +201,12 @@ let dispatch conf =
         flag ["ocaml"; "pkg_threads"; "doc"] (S[A "-I"; A "+threads"]);
         flag ["ocaml"; "pkg_threads"; "link"] (S[A "-thread"]);
         flag ["ocaml"; "pkg_threads"; "infer_interface"] (S[A "-thread"]);
+        flag ["c"; "pkg_threads"; "compile"] (S[A "-thread"]);
         flag ["ocaml"; "package(threads)"; "compile"] (S[A "-thread"]);
         flag ["ocaml"; "package(threads)"; "doc"] (S[A "-I"; A "+threads"]);
         flag ["ocaml"; "package(threads)"; "link"] (S[A "-thread"]);
         flag ["ocaml"; "package(threads)"; "infer_interface"] (S[A "-thread"]);
+        flag ["c"; "package(threads)"; "compile"] (S[A "-thread"]);
 
     | _ ->
         ()
