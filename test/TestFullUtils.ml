@@ -589,7 +589,7 @@ let register_installed_files test_ctxt t installed_files_lst =
                OASISVersion.version_compare_string t.ocaml_version "3.11" < 0 ->
                acc
            | "cmt" | "cmti" when
-               OASISVersion.version_compare_string t.ocaml_version "4.00" < 0 ->
+               OASISVersion.version_compare_string t.ocaml_version "4.01" < 0 ->
                acc
            | "a" ->
                let fn =
