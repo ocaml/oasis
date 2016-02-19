@@ -1,10 +1,10 @@
 
-Guidelines to develop OASIS
+Guidelines for developing OASIS
 ===========================
 
 Updates in _oasis:
 
-_oasis and setup.ml of the OASIS project need to be updated with the officialy
+_oasis and setup.ml of the OASIS project need to be updated with the officially
 released version of OASIS.
 
 __You should never use the version of OASIS under development to update__
@@ -12,11 +12,11 @@ __You should never use the version of OASIS under development to update__
 Go to http://oasis.forge.ocamlcore.org/ and install the latest available
 version.
 
-The reason of that decision is that if you generate a new version of setup.ml
+The reason for that decision is that if you generate a new version of setup.ml
 using your current version, each commit will include a change in setup.ml and
-it will be mostly a repetition of something you write elsewhere in your commit.
+it will be mostly a repetition of something you wrote elsewhere in your commit.
 Moreover, it can lead to conflict and it is never good to have to worry about
-conflicts (it has generated unreconciliable changes when the project was using
+conflicts (it has generated irreconcilable changes when the project was using
 darcs).
 
 
@@ -36,8 +36,8 @@ There are two kind of plugin:
    found in the `_oasis` file. For example `Plugins: AutoGenerate (0.1)` in the
    `_oasis` file will trigger the load of the plugin `autogenerate`.
 
-The plugin system of `oasis` use findlib to detect plugins, so you must install
-plugins as a standard OCaml library with a META file. OASIS detects plugin when
+`Oasis`'s plugin system uses findlib to detect plugins, so you must install
+plugins as a standard OCaml library with a META file. OASIS detects plugins when
 they have a field `plugin_system = "oasis"` or `plugin_system = "oasis-cli"` in
 their META file.
 
@@ -80,16 +80,16 @@ Cut a release
 Versions support policy
 =======================
 
-Since OASIS should allow to compile projects in most environment, it should not
-set constraint on dependencies too high. Here are some policies, to determine
-what version of a dependencies we should support:
+To help keep Oasis as widely usable as possible, we should be conservative about
+the minimum required version of our dependencies. Here are some policies, to
+determine what version of a dependency we should require:
 
  * For generated setup.ml:
   * No deps (standalone) except OCaml
   * OCaml version must be at least the one in Debian stable.
  * For generated files (e.g. myocamlbuild.ml):
   * Version of the target in Debian stable or that matches the constraint
-    express in _oasis. E.g. if OCamlVersion: >= 4.01, we can generate
+    expressed in _oasis. E.g. if OCamlVersion: >= 4.01, we can generate
     myocamlbuild.ml for this specific version because the constraint will be
     checked at configure time.
  * For the OASIS sources:
@@ -100,20 +100,21 @@ what version of a dependencies we should support:
   * Version published, no strong requirement since tests can be disabled.
 
 
-OASIS backward compatibility
-============================
+Backwards compatibility
+=======================
 
-OASIS supports former version of OASISFormat. Most of the important things are
-automatically backported to former version. However on the long term we might
-decide to drop support of old OASISFormat.
+OASIS supports the former version of OASISFormat. Most of the important things
+have been backported to former version. However in the long term we might decide
+to drop support of old OASISFormat.
 
-We will support as long as possible an OASISFormat version but for any version
-below the OASIS version present in Debian stable, we may drop the support.
+We will support a version of OASISFormat for as long as possible.  However, we
+may drop support for any OASISFormat version older than the version of OASIS in
+Debian stable.
 
 For example:
- * Debian stable is released with OASIS 0.2.0
- * We may support OASISFormat: 0.1 as long as possible but, at one point we may
-   enforce at least OASISFormat: 0.2.
+ * Debian stable is released with OASIS `0.2.0`
+ * We will continue to support OASISFormat: `0.1` as long as possible but, at some
+   point we will enforce using at least OASISFormat: `0.2`.
 
 A list of supported OASISFormat can be found in OASISPackage_intern.ml.
 
