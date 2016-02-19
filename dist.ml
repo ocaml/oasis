@@ -50,8 +50,13 @@ let exec nm =
 
 let distdir = Filename.concat (Sys.getcwd ()) "dist"
 let oasis_exec =
-  FilePath.make_filename
-    [(Sys.getcwd ()); "_build"; "src"; "cli"; "Main.byte"]
+  let fn = FilePath.make_filename [(Sys.getcwd ()); "_build"; "src"; "cli"] in
+  let native = Filename.concat fn "Main.native" in
+  let byte = Filename.concat fn "Main.byte" in
+    if Sys.file_exists native then
+      native
+    else
+      byte
 let git_exec = exec "git"
 let tar_exec = exec "tar"
 
