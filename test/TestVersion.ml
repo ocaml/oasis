@@ -83,15 +83,16 @@ let tests =
     "compare" >:::
     (List.map version_compare_of_vector
        [
-         "1.0.2", "1.0.2", 0;
-         "1.0.1", "1.0.2", -1;
-         "1.0.3", "1.0.2", 1;
-         "0.6.0", "0.7",   -1;
+         "1.0.2",     "1.0.2", 0;
+         "1.0.1",     "1.0.2", -1;
+         "1.0.3",     "1.0.2", 1;
+         "0.6.0",     "0.7",   -1;
          "1.2.0",     "1.2.0~rc1",    1;
          "1.2.0~rc1", "1.2.0~rc2",    -1;
          "0.1.0",     "0.2.0~alpha1", -1;
          "0.2.0",     "0.2.0~alpha1", 1;
-         "2.0beta", "2.0beta", 0;
+         "2.0beta",   "2.0beta", 0;
+         "0.1.1",     "0.1.99", -1;
        ]);
 
     "comparator" >:::
@@ -102,6 +103,7 @@ let tests =
          "1.0.2", "> 1.0.2", false;
          "1.0.1", ">= 1.0.2", false;
          "1.0",   ">= 1.0 && < 2.0", true;
+         "0.1.1", "< 0.1.99", true;
          "4.01.0+dev1_2012-03-31", ">= 3.12", true;
        ]);
 
@@ -119,11 +121,42 @@ let tests =
 
     "back-and-forth" >::
     (fun test_ctxt ->
-       let str = ">= 1.0 && <= 2.0 || = 3.0" in
-       let cmp = comparator_of_string str in
-       let cmp' = comparator_of_string (string_of_comparator cmp) in
-         assert_equal
-           ~printer:string_of_comparator
-           cmp
-           cmp');
+       List.iter
+         (fun str ->
+            let cmp = comparator_of_string str in
+            let cmp' = comparator_of_string (string_of_comparator cmp) in
+              assert_equal
+                ~printer:string_of_comparator
+                cmp
+                cmp')
+         [
+           ">= 1.0 && <= 2.0 || = 3.0";
+           "> 0.5";
+         ]);
+
+    "reduce" >::
+    (fun test_ctxt ->
+       List.iter 
+         (fun (scmp1, scmp2) ->
+            let cmp1 = comparator_reduce (comparator_of_string scmp1) in
+            let cmp2 = comparator_of_string scmp2 in
+              non_fatal test_ctxt
+                (fun test_ctxt ->
+                   assert_equal
+                     ~msg:"comparator_reduce2"
+                     ~printer:string_of_comparator
+                     cmp2
+                     cmp1))
+         [
+            ">= 1.0 && >= 0.5", ">= 1.0";
+            ">= 1.0 || >= 0.5", ">= 0.5";
+            "= 1.0 || >= 0.5", ">= 0.5";
+            "= 1.0 && >= 0.5", "= 1.0";
+            "<= 1.0 && >= 0.5", ">= 0.5 && <= 1.0";
+            "< 1.0 && >= 0.5", ">= 0.5 && < 1.0";
+            "< 1.0 && > 0.5", "> 0.5 && < 1.0";
+            "<= 1.0 && > 0.5", "> 0.5 && <= 1.0";
+            "( >= 0.1.0 && <= 0.1.99 ) || ( >= 0.1.1 && <= 0.1.1.99 )",
+            ">= 0.1.0 && <= 0.1.99";
+         ]);
   ]

@@ -253,23 +253,115 @@ let comparator_of_string str =
         str
         (Printexc.to_string e)
 
-
-let rec comparator_reduce =
-  function
-    | VAnd (v1, v2) ->
-        (* TODO: this can be improved to reduce more *)
-        let v1 =
-          comparator_reduce v1
-        in
-        let v2 =
-          comparator_reduce v2
-        in
-          if v1 = v2 then
-            v1
-          else
-            VAnd (v1, v2)
-    | cmp ->
-        cmp
+(* The comparator_reduce function transforms the given comparator into its
+ * disjunctive normal form considering, with all version in ascending order. It
+ * uses intervals of version to combine the terms of the comparator.
+ *)
+let comparator_reduce =
+  (* Compare endpoints *)
+  let cmp_norm e1 e2 =
+    match e1, e2 with
+    | `BeforeFirst, `BeforeFirst | `AfterLast, `AfterLast -> `EQ
+    | `BeforeFirst, _ | _, `AfterLast -> `AB
+    | _, `BeforeFirst | `AfterLast, _ -> `BA
+    | `Version v1, `Version v2 ->
+        let d = version_compare v1 v2 in
+          if d = 0 then `EQ else if d < 0 then `AB else `BA
+  in
+  let rec split e1 e2 e3 tl =
+    match e2 with
+    | `Version v2 -> `Interval(e1, e2) :: `Point v2 :: `Interval(e2, e3) :: tl
+    | _ -> assert false
+  in
+  let pushif op acc b1 b2 e = if op b1 b2 then e :: acc else acc in
+  (* Combine heads of intervals and continue processing. *)
+  let rec combine op acc hd1 tl1 hd2 tl2 =
+    let id, cons, pacc = (fun i -> i), (fun i j -> i :: j), pushif op acc in
+    let m ?(acc=acc) ?(f1=id) ?(f2=id) () = merge op acc (f1 tl1) (f2 tl2) in
+      match hd1, hd2 with
+      | `Interval(e1, e2), `Interval (e3, e4) ->
+          begin
+            match cmp_norm e3 e1, cmp_norm e1 e4, cmp_norm e2 e4 with
+            | `BA,   _, _   -> combine op acc hd2 tl2 hd1 tl1
+            | `EQ,   _, `EQ -> m ~acc:(pacc true true hd1) ()
+            | `AB, `EQ,   _ -> m ~acc:(pacc false true hd2) ~f1:(cons hd1) ()
+            | `AB, `BA,   _ -> m ~acc:(pacc false true hd2) ~f1:(cons hd1) ()
+            | `AB, `AB, `BA -> m ~f1:(split e1 e4 e2) ~f2:(split e3 e1 e4) ()
+            | `AB, `AB, `EQ -> m ~f1:(cons hd1) ~f2:(split e3 e1 e4) ()
+            | `AB, `AB, `AB -> m ~f1:(cons hd1) ~f2:(split e3 e1 e4) ()
+            | `EQ,   _, `BA -> m ~f1:(split e1 e4 e2) ~f2:(cons hd2) ()
+            | `EQ,   _, `AB -> m ~f1:(cons hd1) ~f2:(split e3 e2 e4) ()
+          end
+      | `Interval(e1, e2), `Point v3 ->
+          begin
+            let e3 = `Version v3 in
+              match cmp_norm e3 e1, cmp_norm e2 e3 with
+              | `BA, `BA -> m ~f1:(split e1 e3 e2) ~f2:(cons hd2) ()
+              | (`EQ | `AB), _ -> m ~acc:(pacc false true hd2) ~f1:(cons hd1) ()
+              | _, (`EQ | `AB) -> m ~acc:(pacc true false hd1) ~f2:(cons hd2) ()
+          end
+      | `Point v1, `Point v2 ->
+          begin
+            match cmp_norm (`Version v1) (`Version v2) with
+            | `EQ -> m ~acc:(pacc true true hd1) ()
+            | `AB -> m ~acc:(pacc true false hd1) ~f2:(cons hd2) ()
+            | `BA -> m ~acc:(pacc false true hd2) ~f1:(cons hd1) ()
+          end
+      | `Point _, `Interval _ -> combine op acc hd2 tl2 hd1 tl1
+  (* Reduce a list of segment when we can find some patterns. *)
+  and reduce acc i =
+    match i with
+    | `Interval(e1, `Version v2) :: `Point v3
+      :: `Interval(`Version v4, e5) :: tl when v2 = v3 && v3 = v4 ->
+        reduce [] (List.rev_append acc (`Interval(e1, e5) :: tl))
+    | hd :: tl -> reduce (hd :: acc) tl
+    | [] -> List.rev acc
+  and merge op acc i1 i2 =
+    match i1, i2 with
+    | hd1 :: tl1, hd2 :: tl2 -> combine op acc hd1 tl1 hd2 tl2
+    | hd :: tl, [] -> merge op (pushif op acc true false hd) tl []
+    | [], hd :: tl -> merge op (pushif op acc false true hd) [] tl
+    | [], [] -> reduce [] (List.rev acc)
+  in
+  let rec of_comparator =
+    function
+      | VGreater v -> [`Interval(`Version v, `AfterLast)]
+      | VLesser v  -> [`Interval(`BeforeFirst, `Version v)]
+      | VEqual v   -> [`Point v]
+      | VGreaterEqual v -> [`Point v; `Interval(`Version v, `AfterLast)]
+      | VLesserEqual v  -> [`Interval(`BeforeFirst, `Version v); `Point v]
+      | VOr (c1, c2)  -> merge ( || ) [] (of_comparator c1) (of_comparator c2)
+      | VAnd (c1, c2) -> merge ( && ) [] (of_comparator c1) (of_comparator c2)
+  in
+  let to_comparator i =
+    let cmp_true = VOr(VLesserEqual "0", VGreaterEqual "0") in
+    let rec close_interval acc i c e =
+      match e, i with
+      | `Version v1, `Point v2 :: tl when v1 = v2 ->
+          combine_intervals acc tl c (VLesserEqual v1)
+      | `Version v, _ -> combine_intervals acc i c (VLesser v)
+      | `AfterLast, _ -> combine_intervals acc i c cmp_true
+      | `BeforeFirst, _ -> assert false
+    and combine_intervals acc i c1 c2 =
+      let vor c1 c2 = if c1 = cmp_true then c2 else VOr(c1, c2) in
+        match c1 = cmp_true, c2 = cmp_true with
+        | true, true -> map_intervals cmp_true i
+        | true, false -> map_intervals (vor acc c2) i
+        | false, true -> map_intervals (vor acc c1) i
+        | false, false -> map_intervals (vor acc (VAnd(c1, c2))) i
+    and map_intervals acc i =
+      match i with
+      | `Point v1 :: `Interval(`Version v2, e3) :: tl when v1 = v2 ->
+          close_interval acc tl (VGreaterEqual v2) e3
+      | `Interval(`BeforeFirst, e) :: tl -> close_interval acc tl cmp_true e
+      | `Interval(`Version v, e) :: tl -> close_interval acc tl (VGreater v) e
+      | `Interval(`AfterLast, _) :: _  -> assert false
+      | `Point v :: tl -> combine_intervals acc tl (VEqual v) cmp_true
+      | [] -> assert (acc <> cmp_true); acc
+    in
+      map_intervals cmp_true i
+  in
+    fun v -> to_comparator (of_comparator v)
 
 
 open OASISValues

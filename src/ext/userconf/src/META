@@ -21,9 +21,9 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 797c58243afa5874e36bc50894ee98f9)
+# DO NOT EDIT (digest: 3c65049f13a1cea4d370fbb468881add)
 version = "0.4.6"
-description = "Tooling for building OCaml libraries and applications"
+description = "Architecture for building OCaml libraries and applications"
 archive(byte) = "userconf.cma"
 archive(byte, plugin) = "userconf.cma"
 archive(native) = "userconf.cmxa"
