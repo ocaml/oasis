@@ -574,7 +574,6 @@ let gen_tests ~is_native () =
          (* Run standard test. *)
          standard_test test_ctxt t);
 
-    (* TODO: move full tests under their own directory. *)
     "bug588" >::
     (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
@@ -594,6 +593,8 @@ let gen_tests ~is_native () =
        let t =
          setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug588"]
        in
+         (* Copy initial version of the _oasis. *)
+         cp [in_src_dir t "_tags_manual"] (in_src_dir t "_tags");
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
          register_generated_files t

@@ -942,26 +942,31 @@ dispatch
                            ~filename:(Lazy.force MyOCamlbuildBase.env_filename)
                            ())
                     in
+                    let ppopt_flag, gettext_base_flag, gettext_stub_flag =
                       if gettext = "true" then
-                        begin
-                          flag ["dep"; "pkg_camlp4.macro"]
-                            & S[A"-ppopt"; A"-D";  A"-ppopt"; A"HAS_GETTEXT"];
-                          flag ["compile"; "pkg_camlp4.macro"]
-                            & S[A"-ppopt"; A"-D";  A"-ppopt"; A"HAS_GETTEXT"];
-                          List.iter
-                            (fun pkg ->
-                               flag ["ocaml"; "compile";  "cond_pkg_"^pkg]
-                                 & S[A"-package"; A pkg];
-                               flag ["ocaml"; "ocamldep"; "cond_pkg_"^pkg]
-                                 & S[A"-package"; A pkg];
-                               flag ["ocaml"; "doc";      "cond_pkg_"^pkg]
-                                 & S[A"-package"; A pkg];
-                               flag ["ocaml"; "link";     "cond_pkg_"^pkg]
-                                 & S[A"-package"; A pkg];
-                               flag ["ocaml"; "infer_interface"; "cond_pkg_"^pkg]
-                                 & S[A"-package"; A pkg])
-                            ["gettext.base"; "gettext-stub"]
-                        end
+                        S[A"-ppopt"; A"-D";  A"-ppopt"; A"HAS_GETTEXT"],
+                        S[A"-package"; A "gettext.base"],
+                        S[A"-package"; A "gettext-stub"]
+                      else
+                        S[], S[], S[]
+                    in
+                    flag ["dep"; "pkg_camlp4.macro"]
+                      & ppopt_flag;
+                    flag ["compile"; "pkg_camlp4.macro"]
+                      & ppopt_flag;
+                    List.iter
+                      (fun (pkg, pkg_flag) ->
+                         flag ["ocaml"; "compile";  "cond_pkg_"^pkg]
+                           & pkg_flag;
+                         flag ["ocaml"; "ocamldep"; "cond_pkg_"^pkg]
+                           & pkg_flag;
+                         flag ["ocaml"; "doc";      "cond_pkg_"^pkg]
+                           & pkg_flag;
+                         flag ["ocaml"; "link";     "cond_pkg_"^pkg]
+                           & pkg_flag;
+                         flag ["ocaml"; "infer_interface"; "cond_pkg_"^pkg]
+                           & pkg_flag)
+                      ["gettext.base", gettext_base_flag; "gettext-stub", gettext_stub_flag]
                   with Not_found ->
                     ()
                 end
