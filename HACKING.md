@@ -54,7 +54,11 @@ Cut a release
   * Date, first entry must be "Version X.Y.Z".
   * Major/Minor changes.
   * Thanks section.
- * Create [blog post][blog-post].
+ * Create a [blog post][blog-post].
+  * See the [blog post example][blog-post-example] for content
+ * Create a [news on the forge][forge-post].
+  * Subject: OASIS v0.4.2 release
+  * Details: Read the full blog post here: URL of the blog post.
  * `make deploy`
  * Update Change Log in the Files section of forge:
   * Copy-paste last entry of CHANGES.txt.
@@ -71,6 +75,8 @@ Cut a release
 
  [jenkins]: http://deci.ovh.le-gall.net:8080/job/ocaml-oasis/
  [blog-post]: http://le-gall.net/sylvain+violaine/blog/admin/posts.php
+ [blog-post-example]: http://le-gall.net/sylvain+violaine/blog/index.php?post/2014/10/23/Release-of-OASIS-0.4.5
+ [forge-post]: https://forge.ocamlcore.org/news/submit.php?group_id=54
  [bugs-version]: https://forge.ocamlcore.org/tracker/admin/index.php?add_opt=1&boxid=995&group_id=54&atid=291
  [patches-version]: https://forge.ocamlcore.org/tracker/admin/index.php?add_opt=1&boxid=1007&group_id=54&atid=293
  [bugs]: https://forge.ocamlcore.org/tracker/?atid=291&group_id=54&func=browse
