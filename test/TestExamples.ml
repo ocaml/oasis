@@ -479,4 +479,23 @@ let tests =
                    (Printf.sprintf "examples/%s is not tested." dn)
                    (dn = "oasis" || (List.mem_assoc dn all_tests))))
          (Sys.readdir (in_example_dir test_ctxt [])));
+
+    "examples/oasis">::
+    (fun test_ctxt ->
+       let dn = in_example_dir test_ctxt ["oasis"] in
+         Array.iter
+           (fun bn ->
+              let fn = Filename.concat dn bn in
+                non_fatal test_ctxt
+                  (fun test_ctxt ->
+                     try
+                       let _pkg: OASISTypes.package =
+                         OASISParse.from_file ~ctxt:oasis_ctxt fn
+                       in
+                         ()
+                     with e ->
+                       assert_failure
+                         (Printf.sprintf "Parsing error of %s: %s."
+                            ("oasis/"^bn) (Printexc.to_string e))))
+           (Sys.readdir dn));
   ]
