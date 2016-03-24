@@ -1,4 +1,4 @@
-OASISFormat: 0.1
+OASISFormat: 0.4
 Name:        with-subpackage
 Version:     0.0
 Synopsis:    Simple library package with a sub library

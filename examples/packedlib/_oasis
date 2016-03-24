@@ -1,4 +1,4 @@
-OASISFormat: 0.3
+OASISFormat: 0.4
 Name: packedlib
 Version: 0.1
 Authors: Till Varoquaux <till@janestreet.com>
@@ -6,10 +6,9 @@ Maintainers: Till Varoquaux <till@janestreet.com>
 Copyrights: (C) 2011 Till Varoquaux
 License: LGPL with OCaml linking exception
 BuildTools: ocamlbuild
-Plugins: META (0.3)
+Plugins: META (0.4)
 
 Synopsis: Testing packed libraries work fine in oasis
-
 
 Library packedlib
   Pack: true

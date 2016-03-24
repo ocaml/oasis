@@ -429,6 +429,15 @@ let gen_tests ~is_native () =
           ~native_dynlink:is_native
           (in_example_dir test_ctxt [nm])
       in
+      let pkg =
+        OASISParse.from_file
+          ~ctxt:oasis_ctxt
+          (in_src_dir t OASISParse.default_oasis_fn)
+      in
+        assert_equal
+          ~msg:"Latest OASIS version"
+          ~cmp:(fun v1 v2 -> OASISVersion.version_compare v1 v2 = 0)
+          OASISConf.version_short pkg.OASISTypes.oasis_version;
         f test_ctxt t)
   in
     List.map runner all_tests 
