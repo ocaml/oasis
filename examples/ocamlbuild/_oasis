@@ -9,6 +9,7 @@ BuildTools: ocamlbuild
 XOCamlbuildPluginTags: package(odn.with.syntax), syntax(camlp4o)
 XOCamlbuildExtraArgs: -j 4 -verbose 0
 OCamlVersion: >= 4.01
+Plugins: META (0.4)
 
 Library test
   Path: src

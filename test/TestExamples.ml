@@ -416,6 +416,22 @@ let all_tests =
          ];
        (* Run standard test. *)
        standard_test test_ctxt t);
+
+    "ocamlbuild",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t
+         (oasis_ocamlbuild_files @ ["src/test.mldylib"; "src/test.mllib"; "src/META"]);
+       register_installed_files test_ctxt t
+         [
+           InstalledOCamlLibrary
+             ("test",
+              ["test.ml"; "test.a"; "test.annot"; "test.cma"; "test.cmi"; "test.cmt";
+               "test.cmx"; "test.cmxa"; "test.cmxs"; "META"]);
+         ];
+       (* Run standard test. *)
+       standard_test test_ctxt t);
   ]
 
 
@@ -452,4 +468,15 @@ let tests =
 
     "best=byte">:::
     (gen_tests ~is_native:false ());
+
+    "all_examples">::
+    (fun test_ctxt ->
+       Array.iter
+         (fun dn ->
+            non_fatal test_ctxt
+              (fun test_ctxt ->
+                 assert_bool
+                   (Printf.sprintf "examples/%s is not tested." dn)
+                   (dn = "oasis" || (List.mem_assoc dn all_tests))))
+         (Sys.readdir (in_example_dir test_ctxt [])));
   ]
