@@ -104,6 +104,7 @@ let () =
          TestFileTemplate.tests;
          TestBasic.tests;
          TestFull.tests;
+         TestExamples.tests;
          TestMETA.tests;
          TestLog.tests;
          TestLicense.tests;
