@@ -114,7 +114,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 93629990588f6b02d3a98ac61ff38528) *)
+(* DO NOT EDIT (digest: 47a1ea52b5bf97b4cc13e8abfef68b80) *)
 module OASISGettext = struct
 # 22 "src/oasis/OASISGettext.ml"
 
@@ -532,10 +532,12 @@ module MyOCamlbuildFindlib = struct
           flag ["ocaml"; "pkg_threads"; "doc"] (S[A "-I"; A "+threads"]);
           flag ["ocaml"; "pkg_threads"; "link"] (S[A "-thread"]);
           flag ["ocaml"; "pkg_threads"; "infer_interface"] (S[A "-thread"]);
+          flag ["c"; "pkg_threads"; "compile"] (S[A "-thread"]);
           flag ["ocaml"; "package(threads)"; "compile"] (S[A "-thread"]);
           flag ["ocaml"; "package(threads)"; "doc"] (S[A "-I"; A "+threads"]);
           flag ["ocaml"; "package(threads)"; "link"] (S[A "-thread"]);
           flag ["ocaml"; "package(threads)"; "infer_interface"] (S[A "-thread"]);
+          flag ["c"; "package(threads)"; "compile"] (S[A "-thread"]);
 
       | _ ->
           ()
@@ -718,7 +720,7 @@ module MyOCamlbuildBase = struct
 end
 
 
-# 606 "myocamlbuild.ml"
+# 608 "myocamlbuild.ml"
 open Ocamlbuild_plugin;;
 let package_default =
   {
@@ -752,8 +754,7 @@ let package_default =
             []);
           ("plugin3",
             ["src/ext/plugin-loader/test/data/findlib/plugin3"],
-            []);
-          ("userconf", ["src/ext/userconf/src"], [])
+            [])
        ];
      lib_c = [];
      flags = [];
@@ -856,7 +857,6 @@ let package_default =
                "src/plugins/none";
                "src/plugins/ocamlbuild"
             ]);
-          ("src/ext/userconf/test", ["src/ext/userconf/src"]);
           ("src/ext/plugin-loader/test/data/findlib/plugin3",
             ["src/ext/plugin-loader/test/data/findlib/pluginloaderLib"]);
           ("src/ext/plugin-loader/test/data/findlib/plugin2",

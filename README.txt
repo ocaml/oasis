@@ -1,16 +1,17 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 850a4f92bc8d28b3dd7640aaec5892a2) *)
+(* DO NOT EDIT (digest: c8e8783a2c14c80fa26640db61bbf891) *)
 
-oasis - Architecture for building OCaml libraries and applications
-==================================================================
+oasis - Tooling for building OCaml libraries and applications
+=============================================================
 
 OASIS generates a full configure, build and install system for your
 application. It starts with a simple `_oasis` file at the toplevel of your
 project and creates everything required.
 
-It uses external tools like OCamlbuild and it can be considered as the glue
-between various subsystems that do the job. It should support the following
-tools:
+OASIS leverages existing OCaml tooling to perform most of it's work. In fact,
+it might be more appropriate to think of it as simply the glue that binds
+these other subsystems together and coordinates the work that they do. It
+should support the following tools:
 
  * OCamlbuild
  * OMake (todo)

@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 363e92bf1512a5f72aa67e68c6e1fce7)
+# DO NOT EDIT (digest: 975479674159ba5e47d14de4b7613dfd)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -180,13 +180,6 @@ true: annot, bin_annot
 <src/ext/plugin-loader/test/*.ml{,i,y}>: pkg_findlib
 <src/ext/plugin-loader/test/*.ml{,i,y}>: pkg_oUnit
 <src/ext/plugin-loader/test/*.ml{,i,y}>: use_plugin-loader
-# Library userconf
-"src/ext/userconf/src/userconf.cmxs": use_userconf
-# Executable test_userconf
-"src/ext/userconf/test/TestUserConf.byte": pkg_oUnit
-"src/ext/userconf/test/TestUserConf.byte": use_userconf
-<src/ext/userconf/test/*.ml{,i,y}>: pkg_oUnit
-<src/ext/userconf/test/*.ml{,i,y}>: use_userconf
 # OASIS_STOP
 
 # Base system and OASIS library 
