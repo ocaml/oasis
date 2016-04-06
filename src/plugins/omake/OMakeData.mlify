@@ -1,0 +1,6 @@
+VarString     omakesys_ml        "OMakeSys.ml"
+VarStringList readme_template_mkd "MANUAL-template.mkd"
+VarString     oasis_lib_om       "oasis_lib.om"
+VarString     omakeroot          "OMakeroot.om"
+VarString     omakefile_top      "OMakefile_top.om"
+VarString     omakefile_nontop   "OMakefile_nontop.om"

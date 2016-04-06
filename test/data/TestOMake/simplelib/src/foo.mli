@@ -21,18 +21,6 @@
 (******************************************************************************)
 
 
-(** Load builtin plugins
-  *)
-
-
-let init () =
-  NonePlugin.init ();
-  InternalInstallPlugin.init ();
-  InternalConfigurePlugin.init ();
-  OCamlbuildPlugin.init ();
-  OCamlbuildDocPlugin.init ();
-  CustomPlugin.init ();
-  OMakePlugin.init ();
-  METAPlugin.init ();
-  DevFilesPlugin.init ();
-  StdFilesPlugin.init ()
+type t
+val create: int -> t
+val value: t -> int

@@ -114,7 +114,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 47a1ea52b5bf97b4cc13e8abfef68b80) *)
+(* DO NOT EDIT (digest: 8e712ffc501d26ff1464a081409919f4) *)
 module OASISGettext = struct
 # 22 "src/oasis/OASISGettext.ml"
 
@@ -737,7 +737,8 @@ let package_default =
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ],
             []);
           ("dynrun", ["src/dynrun"], []);
@@ -771,6 +772,20 @@ let package_default =
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
                "src/plugins/none";
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
+            ]);
+          ("src/plugins/omake",
+            [
+               "src";
+               "src/base";
+               "src/oasis";
+               "src/plugins/custom";
+               "src/plugins/extra/META";
+               "src/plugins/extra/devfiles";
+               "src/plugins/extra/stdfiles";
+               "src/plugins/internal";
+               "src/plugins/none";
                "src/plugins/ocamlbuild"
             ]);
           ("src/plugins/ocamlbuild",
@@ -783,7 +798,8 @@ let package_default =
                "src/plugins/extra/devfiles";
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
-               "src/plugins/none"
+               "src/plugins/none";
+               "src/plugins/omake"
             ]);
           ("src/plugins/none",
             [
@@ -795,7 +811,8 @@ let package_default =
                "src/plugins/extra/devfiles";
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ]);
           ("src/plugins/internal",
             [
@@ -807,7 +824,8 @@ let package_default =
                "src/plugins/extra/devfiles";
                "src/plugins/extra/stdfiles";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ]);
           ("src/plugins/extra/stdfiles",
             [
@@ -819,7 +837,8 @@ let package_default =
                "src/plugins/extra/devfiles";
                "src/plugins/internal";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ]);
           ("src/plugins/extra/devfiles",
             [
@@ -831,7 +850,8 @@ let package_default =
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ]);
           ("src/plugins/extra/META",
             [
@@ -843,7 +863,8 @@ let package_default =
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ]);
           ("src/plugins/custom",
             [
@@ -855,7 +876,8 @@ let package_default =
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ]);
           ("src/ext/plugin-loader/test/data/findlib/plugin3",
             ["src/ext/plugin-loader/test/data/findlib/pluginloaderLib"]);
@@ -882,7 +904,8 @@ let package_default =
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ]);
           ("src/cli",
             [
@@ -896,7 +919,8 @@ let package_default =
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ]);
           ("src/base", ["src/oasis"]);
           ("src",
@@ -909,7 +933,8 @@ let package_default =
                "src/plugins/extra/stdfiles";
                "src/plugins/internal";
                "src/plugins/none";
-               "src/plugins/ocamlbuild"
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
             ])
        ]
   }
@@ -919,7 +944,7 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 808 "myocamlbuild.ml"
+# 833 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 open Ocamlbuild_plugin;;

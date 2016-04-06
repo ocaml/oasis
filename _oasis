@@ -162,7 +162,8 @@ Library "builtin-plugins"
            plugins/ocamlbuild/OCamlbuildCommon,
            plugins/custom/CustomPlugin,
            plugins/extra/devfiles/DevFilesPlugin,
-           plugins/extra/stdfiles/StdFilesPlugin
+           plugins/extra/stdfiles/StdFilesPlugin,
+           plugins/omake/OMakePlugin
   InternalModules: plugins/none/NoneData,
                    plugins/internal/InternalData,
                    plugins/internal/InternalId,
@@ -173,7 +174,11 @@ Library "builtin-plugins"
                    plugins/custom/CustomData,
                    plugins/extra/META/METAData,
                    plugins/extra/devfiles/DevFilesData,
-                   plugins/extra/stdfiles/StdFilesData
+                   plugins/extra/stdfiles/StdFilesData,
+                   plugins/omake/OMakeData,
+                   plugins/omake/OMakeFields,
+                   plugins/omake/OMakeEquip,
+                   plugins/omake/OMakeFormat
   CompiledObject: Best
   BuildDepends: oasis, oasis.base, ocamlbuild
   FindlibParent: oasis
@@ -226,7 +231,7 @@ Test main
   Type: custom (0.3)
   Command: $test -oasis $oasis -is-native $is_native -native-dynlink $native_dynlink -ocamlmod $ocamlmod -fake-ocamlfind $fake_ocamlfind
   WorkingDirectory: test
-  TestTools: oasis, test, ocamlmod, fake_ocamlfind
+  TestTools: oasis, test, ocamlmod, fake_ocamlfind, omake, ocamlbuild
 
 Document manual
   Type: custom (0.3)

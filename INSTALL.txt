@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 8f06c4218e3363c184ab44c4798e0b52) *)
+(* DO NOT EDIT (digest: aee751ec8ddbbd5c016edf965def8d8c) *)
 
 This is the INSTALL file for the oasis distribution.
 
@@ -23,6 +23,7 @@ In order to compile this package, you will need:
 * fileutils (>= 0.4.2) for executable test, executable test_loader
 * expect (>= 0.0.4) for executable test
 * pcre for executable test
+* omake for test main
 
 Installing
 ==========

@@ -92,6 +92,7 @@ let tests =
            \nXStdFilesINSTALLFilename\
            \nXStdFilesAUTHORS\
            \nXStdFilesAUTHORSFilename\
+           \nXOMakeExtraArgs\
            \nTags\
            \nTest(main).Run\
            \nTest(main).Type\

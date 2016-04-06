@@ -68,12 +68,12 @@ let standard_test_compiled test_ctxt t =
 
   (* Distclean. *)
   run_ocaml_setup_ml test_ctxt t "distclean" [];
-  check_generated_files t;
+  check_generated_files "after distclean" t;
 
   assert_command ~ctxt:test_ctxt ~chdir:t.src_dir "make" ["setup.exe"];
 
   register_generated_files t ["setup.exe"];
-  check_generated_files t;
+  check_generated_files "after make setup.exe" t;
 
   (* Run configure target *)
   run_ocaml_setup_ml test_ctxt t
