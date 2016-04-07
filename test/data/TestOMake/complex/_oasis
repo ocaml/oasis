@@ -1,12 +1,13 @@
-OASISFormat: 0.4
-Name:        complex
-Version:     0.1
-Synopsis:    Libraries and executables
-Authors:     Gerd Stolpmann
-License:     LGPL with OCaml linking exception
-BuildTools:  omake
-BuildType:   OMake (0.4)
-Plugins:     META (0.4)
+OASISFormat:  0.4
+Name:         complex
+Version:      0.1
+Synopsis:     Libraries and executables
+Authors:      Gerd Stolpmann
+License:      LGPL with OCaml linking exception
+BuildTools:   omake
+BuildType:    OMake (0.4)
+Plugins:      META (0.4)
+OCamlVersion: >= 4.00.0
 
 Library liba
   Modules:         A2
@@ -38,6 +39,7 @@ Library packedlib
   Path:         src/packedlib
   Pack:         true
   Install:      true
+  # -bin-annot only available for OCaml >= 4.00.0
   ByteOpt:      -bin-annot
   NativeOpt:    -bin-annot
 

@@ -96,6 +96,9 @@ let tests =
            ~native_dynlink:(native_dynlink test_ctxt)
            (in_testdata_dir test_ctxt ["TestOMake"; "complex"])
        in
+         skip_if
+           (OASISVersion.version_compare_string t.ocaml_version "4.00.0" < 0)
+           "Need OCaml 4.00.0 at least.";
          oasis_setup test_ctxt t;
          register_generated_files t
            (oasis_omake_files
