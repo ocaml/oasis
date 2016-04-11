@@ -32,137 +32,99 @@ open TestCommon
 open TestFullUtils
 
 
-let gen_tests ~is_native () =
-  let native_dynlink test_ctxt =
-    if is_native then
-      native_dynlink test_ctxt
-    else
-      false
-  in
-  let setup_test_directories test_ctxt fpath path =
-    setup_test_directories test_ctxt ~is_native
-      ~native_dynlink:(native_dynlink test_ctxt)
-      (fpath test_ctxt path)
-  in
+let all_tests =
   [
     (* Single level package *)
-    "1level" >::
-    (fun test_ctxt ->
-       let () = skip_long_test test_ctxt in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "1level"]
-       in
-         oasis_setup test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t
-           (oasis_ocamlbuild_files @
-            [
-              "META";
-              "with-a.mllib";
-              "with-a.mldylib";
-              "with-a.odocl";
-            ]);
-         register_installed_files test_ctxt t
-           [
-             InstalledOCamlLibrary
-               ("with-a",
-                ["META"; "A.ml"; "A.cmi"; "with-a.cma";
-                 "A.cmx"; "with-a.cmxa"; "with-a.cmxs";
-                 "with-a.a";
-                 "A.annot"; "A.cmt"]);
-             InstalledBin ["test-with-a"];
-             InstalledAPIRef("with-a", ["A"]);
-           ];
-         (* Run standard test. *)
-         standard_test test_ctxt t;
-         (* Try the result. *)
-         try_installed_library test_ctxt t "with-a" ["A"];
-         try_installed_exec test_ctxt t "test-with-a" []);
+    "1level",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t
+         (oasis_ocamlbuild_files @
+          [
+            "META";
+            "with-a.mllib";
+            "with-a.mldylib";
+            "with-a.odocl";
+          ]);
+       register_installed_files test_ctxt t
+         [
+           InstalledOCamlLibrary
+             ("with-a",
+              ["META"; "A.ml"; "A.cmi"; "with-a.cma";
+               "A.cmx"; "with-a.cmxa"; "with-a.cmxs";
+               "with-a.a";
+               "A.annot"; "A.cmt"]);
+           InstalledBin ["test-with-a"];
+           InstalledAPIRef("with-a", ["A"]);
+         ];
+       (* Run standard test. *)
+       standard_test test_ctxt t;
+       (* Try the result. *)
+       try_installed_library test_ctxt t "with-a" ["A"];
+       try_installed_exec test_ctxt t "test-with-a" []);
 
     (* Try custom document build *)
-    "customdoc" >::
-    (fun test_ctxt ->
+    "customdoc",
+    (fun test_ctxt t ->
        (* TODO: check custom install as well. *)
-       let () = skip_long_test test_ctxt in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir
-           ["TestFull"; "customdoc"]
-       in
-         oasis_setup test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t
-           (oasis_ocamlbuild_files @
-            ["META"; "with-a.mllib"; "with-a.mldylib"]);
-         register_installed_files test_ctxt t
-           [
-             InstalledOCamlLibrary
-               ("with-a",
-                ["META"; "A.ml"; "A.cmi"; "A.annot"; "A.cmt"; "with-a.cma"]);
-           ];
-         (* Run standard test. *)
-         standard_test test_ctxt t);
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t
+         (oasis_ocamlbuild_files @
+          ["META"; "with-a.mllib"; "with-a.mldylib"]);
+       register_installed_files test_ctxt t
+         [
+           InstalledOCamlLibrary
+             ("with-a",
+              ["META"; "A.ml"; "A.cmi"; "A.annot"; "A.cmt"; "with-a.cma"]);
+         ];
+       (* Run standard test. *)
+       standard_test test_ctxt t);
 
     (* Use cclib option *)
-    "with-cclib" >::
-    (fun test_ctxt ->
-       let () =
-         skip_long_test test_ctxt;
-         skip_if
-           (not (Sys.file_exists "/usr/include/stringprep.h"))
-           "Cannot find 'stringprep.h'"
-       in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir
-           ["TestFull"; "with-cclib"]
-       in
-         oasis_setup test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t
-           (oasis_ocamlbuild_files @
-            [
-              "src/META";
-              "Makefile";
-              "configure";
-              "src/libtest_oasis_c_dependency_stubs.clib";
-              "src/test_oasis_c_dependency.mllib";
-              "src/test_oasis_c_dependency.mldylib";
-            ]);
-         (* Run standard test. *)
-         standard_test test_ctxt t);
+    "with-cclib",
+    (fun test_ctxt t ->
+       skip_if
+         (not (Sys.file_exists "/usr/include/stringprep.h"))
+         "Cannot find 'stringprep.h'";
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t
+         (oasis_ocamlbuild_files @
+          [
+            "src/META";
+            "Makefile";
+            "configure";
+            "src/libtest_oasis_c_dependency_stubs.clib";
+            "src/test_oasis_c_dependency.mllib";
+            "src/test_oasis_c_dependency.mldylib";
+          ]);
+       (* Run standard test. *)
+       standard_test test_ctxt t);
 
     (* With a documentation that is not built *)
-    "no-install-doc" >::
-    (fun test_ctxt ->
-       let () = skip_long_test test_ctxt in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir
-           ["TestFull"; "no-install-doc"]
-       in
-         oasis_setup test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t oasis_ocamlbuild_files;
-         (* Run standard test. *)
-         standard_test test_ctxt t);
+    "no-install-doc" ,
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t oasis_ocamlbuild_files;
+       (* Run standard test. *)
+       standard_test test_ctxt t);
 
     (* Need to create a a parent directory *)
-    "create-parent-dir" >::
-    (fun test_ctxt ->
-       let () = skip_long_test test_ctxt in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir
-           ["TestFull"; "create-parent-dir"]
-       in
-         oasis_setup test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t oasis_ocamlbuild_files;
-         register_installed_files test_ctxt t
-           [InstalledData ["toto/toto/toto.txt"]];
-         (* Run standard test. *)
-         standard_test test_ctxt t);
+    "create-parent-dir",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t oasis_ocamlbuild_files;
+       register_installed_files test_ctxt t
+         [InstalledData ["toto/toto/toto.txt"]];
+       (* Run standard test. *)
+       standard_test test_ctxt t);
 
-    "bug588" >::
-    (fun test_ctxt ->
-       let () = skip_long_test test_ctxt in
+    "bug588",
+    (fun test_ctxt t ->
        let () =
          let cmd =
            Printf.sprintf
@@ -176,9 +138,6 @@ let gen_tests ~is_native () =
              (Sys.command cmd <> 0)
              "Cannot find package bitstring"
        in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug588"]
-       in
          (* Copy initial version of the _oasis. *)
          cp [in_src_dir t "_tags_manual"] (in_src_dir t "_tags");
          oasis_setup test_ctxt t;
@@ -189,41 +148,28 @@ let gen_tests ~is_native () =
          (* Run standard test. *)
          standard_test test_ctxt t);
 
-    "bug619" >::
-    (fun test_ctxt ->
-       let () = skip_long_test test_ctxt in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug619"]
-       in
-         oasis_setup test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t oasis_ocamlbuild_files;
-         (* Run standard test. *)
-         standard_test test_ctxt t);
+    "bug619",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t oasis_ocamlbuild_files;
+       (* Run standard test. *)
+       standard_test test_ctxt t);
 
-    "bug571" >::
-    (fun test_ctxt ->
-       let () = skip_long_test test_ctxt in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug571"]
-       in
-         oasis_setup test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t oasis_ocamlbuild_files;
-         (* Run standard test. *)
-         standard_test test_ctxt t);
+    "bug571",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t oasis_ocamlbuild_files;
+       (* Run standard test. *)
+       standard_test test_ctxt t);
 
-    "flag-ccopt" >::
-    (fun test_ctxt ->
+    "flag-ccopt",
+    (fun test_ctxt t ->
        let () =
-         skip_long_test test_ctxt;
          skip_if
            (not (Sys.file_exists "/usr/lib/libz.so.1"))
            "zlib not installed"
-       in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir
-           ["TestFull"; "flag-ccopt"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -233,31 +179,23 @@ let gen_tests ~is_native () =
          (* Run standard test. *)
          standard_test test_ctxt t);
 
-    "bug738" >::
-    (fun test_ctxt ->
-       let () = skip_long_test test_ctxt in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug738"]
-       in
-         oasis_setup test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t
-           (oasis_ocamlbuild_files @
-            ["src/test.mllib"; "src/test.mldylib"; "src/META"]);
-         register_installed_files test_ctxt t
-           [InstalledOCamlLibrary ("test", ["META"; "foo.cmi"; "test.cma";
-                                   "foo.annot"; "foo.cmt"])];
-         (* Run standard test. *)
-         standard_test test_ctxt t);
+    "bug738",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t
+         (oasis_ocamlbuild_files @
+          ["src/test.mllib"; "src/test.mldylib"; "src/META"]);
+       register_installed_files test_ctxt t
+         [InstalledOCamlLibrary ("test", ["META"; "foo.cmi"; "test.cma";
+                                 "foo.annot"; "foo.cmt"])];
+       (* Run standard test. *)
+       standard_test test_ctxt t);
 
-    "bug982" >::
-    (fun test_ctxt ->
+    "bug982",
+    (fun test_ctxt t ->
        let () =
-         skip_long_test test_ctxt;
          skip_if (Sys.os_type = "Win32") "UNIX only test"
-       in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug982"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -265,14 +203,10 @@ let gen_tests ~is_native () =
          (* Run standard test. *)
          standard_test test_ctxt t);
 
-   "bug823" >::
-    (fun test_ctxt ->
+   "bug823",
+    (fun test_ctxt t ->
        let () =
-         skip_long_test test_ctxt;
          skip_if (Sys.os_type = "Win32") "UNIX only test"
-       in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug823"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -280,59 +214,46 @@ let gen_tests ~is_native () =
          (* Run standard test. *)
          standard_test test_ctxt t);
 
-   "bugClib" >::
-    (fun test_ctxt ->
-       let () = skip_long_test test_ctxt in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir
-           ["TestFull"; "bugClib"]
-       in
-         oasis_setup test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t
-           (oasis_ocamlbuild_files @
-            ["META"; "mylib.mlpack"; "mylib.mllib"; "mylib.mldylib";
-             "libmylib_stubs.clib"]);
-         register_installed_files test_ctxt t
-           [
-             InstalledOCamlLibrary
-               ("mylib",
-                ["META"; "dllmylib_stubs.so";
-                 "foo.ml"; "mylib.cma"; "mylib.cmi";
-                 "foo.annot"; "foo.cmt";
-                 "bar.annot"; "bar.cmt";
-                 "mylib.cmxa"; "mylib.cmxs"; "mylib.cmx";
-                 "mylib.a"; "libmylib_stubs.a"])
-           ];
-         if OASISVersion.version_compare_string t.ocaml_version "4.02" >= 0 then begin
-           register_installed_files test_ctxt t [InstalledOCamlLibrary("mylib", ["mylib.cmt"])]
-         end;
-         (* Run standard test. *)
-         standard_test test_ctxt t;
-         (* Try the result. *)
-         try_installed_library test_ctxt t "mylib" ["Mylib.Foo"; "Mylib.Bar"]);
+   "bugClib",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t
+         (oasis_ocamlbuild_files @
+          ["META"; "mylib.mlpack"; "mylib.mllib"; "mylib.mldylib";
+           "libmylib_stubs.clib"]);
+       register_installed_files test_ctxt t
+         [
+           InstalledOCamlLibrary
+             ("mylib",
+              ["META"; "dllmylib_stubs.so";
+               "foo.ml"; "mylib.cma"; "mylib.cmi";
+               "foo.annot"; "foo.cmt";
+               "bar.annot"; "bar.cmt";
+               "mylib.cmxa"; "mylib.cmxs"; "mylib.cmx";
+               "mylib.a"; "libmylib_stubs.a"])
+         ];
+       if OASISVersion.version_compare_string t.ocaml_version "4.02" >= 0 then begin
+         register_installed_files test_ctxt t [InstalledOCamlLibrary("mylib", ["mylib.cmt"])]
+       end;
+       (* Run standard test. *)
+       standard_test test_ctxt t;
+       (* Try the result. *)
+       try_installed_library test_ctxt t "mylib" ["Mylib.Foo"; "Mylib.Bar"]);
 
-    "bug791" >::
-    (fun test_ctxt ->
-       let () = skip_long_test test_ctxt in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir
-           ["TestFull"; "bug791"]
-       in
-         oasis_setup test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t
-           (oasis_ocamlbuild_files @ ["src/testA.mllib"; "src/testA.mldylib"]);
-         (* Run standard test. *)
-         standard_test test_ctxt t);
+    "bug791",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t
+         (oasis_ocamlbuild_files @ ["src/testA.mllib"; "src/testA.mldylib"]);
+       (* Run standard test. *)
+       standard_test test_ctxt t);
 
-    "bug938">::
-    (fun test_ctxt ->
+    "bug938",
+    (fun test_ctxt t ->
        let () =
          skip_if (Sys.os_type = "Win32") "UNIX test"
-       in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug938"]
        in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
@@ -344,112 +265,8 @@ let gen_tests ~is_native () =
          run_ocaml_setup_ml test_ctxt t
            ["-configure"; "--enable-all"; "--disable-over"]);
 
-    "TEMP=a b" >::
-    (fun test_ctxt ->
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "bug571"]
-       in
-       let tmpdir = bracket_tmpdir test_ctxt in
-       let dn = Filename.concat tmpdir "a b" in
-         mkdir dn;
-         oasis_setup test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t oasis_ocamlbuild_files;
-         (* Check everything ok. *)
-         standard_checks test_ctxt t;
-         (* Run the test, try to use a temporary directory with space in the
-          * filename. *)
-         run_ocaml_setup_ml test_ctxt t
-           ~extra_env:[if Sys.os_type = "Win32" then
-                         "TEMP", dn
-                       else
-                         "TMPDIR", dn]
-           ["-configure"]);
-
-    "setup with dev mode (weak)">::
-    (fun test_ctxt ->
-       let () =
-         skip_if (Sys.os_type = "Win32") "UNIX test"
-       in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "dev"]
-       in
-         (* Copy initial version of the _oasis. *)
-         cp [in_src_dir t "_oasis.v1"] (in_src_dir t "_oasis");
-         oasis_setup ~dev:true test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t ("_oasis" :: oasis_ocamlbuild_files);
-         (* Check everything ok. *)
-         standard_checks test_ctxt t;
-         (* Run test. *)
-         run_ocaml_setup_ml test_ctxt t ["-all"];
-         assert_bool
-           "Library .cma not created."
-           (not (Sys.file_exists (in_src_dir t "_build/mylib.cma")));
-         cp [in_src_dir t "_oasis.v2"] (in_src_dir t "_oasis");
-         run_ocaml_setup_ml test_ctxt t ["-all"];
-         assert_bool
-           "Library .cma created."
-           (Sys.file_exists (in_src_dir t "_build/mylib.cma")));
-
-    "setup with dev mode (light)">::
-    (fun test_ctxt ->
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "dev"]
-       in
-         (* Copy initial version of the _oasis. *)
-         cp [in_src_dir t "_oasis.v2"] (in_src_dir t "_oasis");
-         oasis_setup ~dev:true ~dynamic:true test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t ["_oasis"];
-         (* Check everything ok. *)
-         standard_checks test_ctxt t;
-         (* Run test. *)
-         assert_bool
-           "setup.ml is smaller than 3kB"
-           (let chn = open_in (in_src_dir t setup_ml) in
-              try
-                let size = in_channel_length chn in
-                  close_in chn;
-                  size < 3072 (* 3kB *)
-              with e ->
-                close_in chn;
-                raise e);
-         run_ocaml_setup_ml test_ctxt t ["-all"];
-         assert_bool
-           "Library .cma created."
-           (Sys.file_exists (in_src_dir t "_build/mylib.cma")));
-
-    "setup with no dev mode">::
-    (fun test_ctxt ->
-       let () = skip_long_test test_ctxt in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "dev"]
-       in
-         (* Copy initial version of the _oasis. *)
-         cp [in_src_dir t "_oasis.v1"] (in_src_dir t "_oasis");
-         oasis_setup test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t ("_oasis" :: oasis_ocamlbuild_files);
-         (* Check everything ok. *)
-         standard_checks test_ctxt t;
-         (* Run test. *)
-         run_ocaml_setup_ml test_ctxt t ["-all"];
-         assert_bool
-           "Library .cma not created."
-           (not (Sys.file_exists (in_src_dir t "_build/mylib.cma")));
-         cp [in_src_dir t "_oasis.v2"] (in_src_dir t "_oasis");
-         run_ocaml_setup_ml test_ctxt t ["-all"];
-         assert_bool
-           "Library .cma still not created."
-           (not (Sys.file_exists (in_src_dir t "_build/mylib.cma"))));
-
-    "ver0.3">::
-    (fun test_ctxt ->
-       let () = skip_long_test test_ctxt in
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir ["TestFull"; "ver0.3"]
-       in
+    "ver0.3",
+    (fun test_ctxt t ->
        let doc_done_fn = in_src_dir t "doc-done" in
        let test_done_fn = in_src_dir t "test-done" in
          oasis_setup test_ctxt t;
@@ -483,12 +300,8 @@ let gen_tests ~is_native () =
            (not (Sys.file_exists doc_done_fn));
          run_ocaml_setup_ml test_ctxt t ["-distclean"]);
 
-    "bug1358">::
-    (fun test_ctxt ->
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir
-           ["TestFull"; "bug1358"]
-       in
+    "bug1358",
+    (fun test_ctxt t ->
        let () =
          skip_if
            (OASISVersion.version_compare_string t.ocaml_version "4.00" < 0)
@@ -500,26 +313,18 @@ let gen_tests ~is_native () =
          (* Run standard test. *)
          standard_test test_ctxt t);
 
-    "dynrun_for_release">::
-    (fun test_ctxt ->
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir
-           ["TestFull"; "dynrun_for_release"]
-       in
-         oasis_setup ~dev:true ~dynamic:true test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t ["INSTALL.txt"];
-         (* Run standard test. *)
-         standard_test test_ctxt t;
-         dbug_file_content test_ctxt (in_src_dir t "INSTALL.txt"));
+    "dynrun_for_release",
+    (fun test_ctxt t ->
+       oasis_setup ~dev:true ~dynamic:true test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t ["INSTALL.txt"];
+       (* Run standard test. *)
+       standard_test test_ctxt t;
+       dbug_file_content test_ctxt (in_src_dir t "INSTALL.txt"));
 
-    "dynlink">::
-    (fun test_ctxt ->
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir
-           ["TestFull"; "dynlink"]
-       in
-       let has_native = is_native && (native_dynlink test_ctxt) in
+    "dynlink",
+    (fun test_ctxt t ->
+       let has_native = t.is_native && (native_dynlink test_ctxt) in
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
          register_generated_files t
@@ -564,15 +369,122 @@ let gen_tests ~is_native () =
                 [t.ocaml_lib_dir; "entry_point"; "dyn_loaded.cmxs"]];
          ());
 
-    "recurselib">::
-    (fun test_ctxt ->
-       let t =
-         setup_test_directories test_ctxt in_testdata_dir
-           ["TestFull"; "recurselib"]
-       in
-         (* The test is that 'oasis setup' should not fail. *)
-         oasis_setup test_ctxt t);
+    "recurselib",
+    (fun test_ctxt t ->
+       (* The test is that 'oasis setup' should not fail. *)
+       oasis_setup test_ctxt t);
   ]
+
+
+let different_directory_tests =
+  [
+    "TEMP=a b", "bug571",
+    (fun test_ctxt t ->
+       let tmpdir = bracket_tmpdir test_ctxt in
+       let dn = Filename.concat tmpdir "a b" in
+         mkdir dn;
+         oasis_setup test_ctxt t;
+         (* Setup expectation. *)
+         register_generated_files t oasis_ocamlbuild_files;
+         (* Check everything ok. *)
+         standard_checks test_ctxt t;
+         (* Run the test, try to use a temporary directory with space in the
+          * filename. *)
+         run_ocaml_setup_ml test_ctxt t
+           ~extra_env:[if Sys.os_type = "Win32" then
+                         "TEMP", dn
+                       else
+                         "TMPDIR", dn]
+           ["-configure"]);
+
+    "setup with dev mode (weak)", "dev",
+    (fun test_ctxt t ->
+       let () =
+         skip_if (Sys.os_type = "Win32") "UNIX test"
+       in
+         (* Copy initial version of the _oasis. *)
+         cp [in_src_dir t "_oasis.v1"] (in_src_dir t "_oasis");
+         oasis_setup ~dev:true test_ctxt t;
+         (* Setup expectation. *)
+         register_generated_files t ("_oasis" :: oasis_ocamlbuild_files);
+         (* Check everything ok. *)
+         standard_checks test_ctxt t;
+         (* Run test. *)
+         run_ocaml_setup_ml test_ctxt t ["-all"];
+         assert_bool
+           "Library .cma not created."
+           (not (Sys.file_exists (in_src_dir t "_build/mylib.cma")));
+         cp [in_src_dir t "_oasis.v2"] (in_src_dir t "_oasis");
+         run_ocaml_setup_ml test_ctxt t ["-all"];
+         assert_bool
+           "Library .cma created."
+           (Sys.file_exists (in_src_dir t "_build/mylib.cma")));
+
+    "setup with dev mode (light)", "dev",
+    (fun test_ctxt t ->
+       (* Copy initial version of the _oasis. *)
+       cp [in_src_dir t "_oasis.v2"] (in_src_dir t "_oasis");
+       oasis_setup ~dev:true ~dynamic:true test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t ["_oasis"];
+       (* Check everything ok. *)
+       standard_checks test_ctxt t;
+       (* Run test. *)
+       assert_bool
+         "setup.ml is smaller than 3kB"
+         (let chn = open_in (in_src_dir t setup_ml) in
+            try
+              let size = in_channel_length chn in
+                close_in chn;
+                size < 3072 (* 3kB *)
+            with e ->
+              close_in chn;
+              raise e);
+       run_ocaml_setup_ml test_ctxt t ["-all"];
+       assert_bool
+         "Library .cma created."
+         (Sys.file_exists (in_src_dir t "_build/mylib.cma")));
+
+    "setup with no dev mode", "dev",
+    (fun test_ctxt t ->
+       (* Copy initial version of the _oasis. *)
+       cp [in_src_dir t "_oasis.v1"] (in_src_dir t "_oasis");
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t ("_oasis" :: oasis_ocamlbuild_files);
+       (* Check everything ok. *)
+       standard_checks test_ctxt t;
+       (* Run test. *)
+       run_ocaml_setup_ml test_ctxt t ["-all"];
+       assert_bool
+         "Library .cma not created."
+         (not (Sys.file_exists (in_src_dir t "_build/mylib.cma")));
+       cp [in_src_dir t "_oasis.v2"] (in_src_dir t "_oasis");
+       run_ocaml_setup_ml test_ctxt t ["-all"];
+       assert_bool
+         "Library .cma still not created."
+         (not (Sys.file_exists (in_src_dir t "_build/mylib.cma"))));
+  ]
+
+
+let gen_tests ~is_native () =
+  let runner (nm, dn, f) =
+    nm >::
+    (fun test_ctxt ->
+       let () = skip_long_test test_ctxt in
+       let t =
+         setup_test_directories test_ctxt ~is_native
+           ~native_dynlink:(is_native && (native_dynlink test_ctxt))
+           (in_testdata_dir test_ctxt ["TestFull"; dn])
+       in
+         f test_ctxt t)
+  in
+    List.map runner 
+      (List.flatten
+         [
+           List.map (fun (a, b) -> a, a, b) all_tests;
+           different_directory_tests;
+         ])
 
 
 let tests =
