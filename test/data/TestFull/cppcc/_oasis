@@ -5,6 +5,7 @@ License:     LGPL with OCaml linking exception
 Authors:     Sylvain Le Gall
 Synopsis:    Test how to handle C++ compiler.
 BuildTools:  ocamlbuild
+Plugins:     META (0.4)
 
 Library cppcc
   Path:     .

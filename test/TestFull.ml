@@ -361,6 +361,25 @@ let all_tests =
     (fun test_ctxt t ->
        (* The test is that 'oasis setup' should not fail. *)
        oasis_setup test_ctxt t);
+
+    "cppcc",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t 
+         (oasis_ocamlbuild_files @
+          ["META"; "cppcc.mldylib"; "cppcc.mllib"; "libcppcc_stubs.clib"]);
+       register_installed_files test_ctxt t
+         [
+           InstalledOCamlLibrary
+             ("cppcc",
+              ["META"; "cppcc.a"; "cppcc.annot"; "cppcc.cma"; "cppcc.cmi";
+               "cppcc.cmt"; "cppcc.cmx"; "cppcc.cmxa"; "cppcc.cmxs";
+               "cppcc.ml"; "dllcppcc_stubs.so"; "libcppcc_stubs.a";
+              ]);
+         ];
+       (* Run standard test. *)
+       standard_test test_ctxt t);
   ]
 
 
