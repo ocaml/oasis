@@ -260,3 +260,16 @@ let skip_test_on_non_native_arch lst =
            f test_ctxt)
   in
   List.map skip_non_native lst
+
+
+(* Check all subdirectories are listed. *)
+let all_subdirectories test_ctxt dn lst fmt =
+  let st =
+    List.fold_left (fun st e -> SetString.add e st) SetString.empty lst
+  in
+   Array.iter
+     (fun dn ->
+        non_fatal test_ctxt
+          (fun test_ctxt -> assert_bool (fmt dn) (SetString.mem dn st)))
+     (Sys.readdir dn)
+

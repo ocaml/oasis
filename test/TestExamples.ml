@@ -471,14 +471,10 @@ let tests =
 
     "all_examples">::
     (fun test_ctxt ->
-       Array.iter
-         (fun dn ->
-            non_fatal test_ctxt
-              (fun test_ctxt ->
-                 assert_bool
-                   (Printf.sprintf "examples/%s is not tested." dn)
-                   (dn = "oasis" || (List.mem_assoc dn all_tests))))
-         (Sys.readdir (in_example_dir test_ctxt [])));
+       all_subdirectories test_ctxt
+         (in_example_dir test_ctxt [])
+         ("oasis" :: List.map fst all_tests)
+         (Printf.sprintf "examples/%s is not tested."));
 
     "examples/oasis">::
     (fun test_ctxt ->
