@@ -26,7 +26,7 @@ Description:
   should support the following tools:
   .
    * OCamlbuild
-   * OMake (todo)
+   * OMake
    * OCamlMakefile (todo),
    * ocaml-autoconf (todo)
   .

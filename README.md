@@ -14,7 +14,7 @@ between various subsystems that do the job. It should support the following
 tools:
 
  * OCamlbuild
- * OMake (todo)
+ * OMake
  * OCamlMakefile (todo),
  * ocaml-autoconf (todo)
 

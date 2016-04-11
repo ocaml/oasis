@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: c8e8783a2c14c80fa26640db61bbf891) *)
+(* DO NOT EDIT (digest: 7cefd474e4af4a91067d668e9311a91b) *)
 
 oasis - Tooling for building OCaml libraries and applications
 =============================================================
@@ -14,7 +14,7 @@ these other subsystems together and coordinates the work that they do. It
 should support the following tools:
 
  * OCamlbuild
- * OMake (todo)
+ * OMake
  * OCamlMakefile (todo),
  * ocaml-autoconf (todo)
 
