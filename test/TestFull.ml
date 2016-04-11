@@ -125,28 +125,15 @@ let all_tests =
 
     "bug588",
     (fun test_ctxt t ->
-       let () =
-         let cmd =
-           Printf.sprintf
-             "ocamlfind query bitstring > %s 2>&1"
-             (if Sys.os_type = "Win32" then
-                "NUL"
-              else
-                "/dev/null")
-         in
-           skip_if
-             (Sys.command cmd <> 0)
-             "Cannot find package bitstring"
-       in
-         (* Copy initial version of the _oasis. *)
-         cp [in_src_dir t "_tags_manual"] (in_src_dir t "_tags");
-         oasis_setup test_ctxt t;
-         (* Setup expectation. *)
-         register_generated_files t
-           ((List.filter (( <> ) "_tags") oasis_ocamlbuild_files) @
-            ["libtest.mllib"; "libtest.mldylib"; "libtest.odocl"]);
-         (* Run standard test. *)
-         standard_test test_ctxt t);
+       (* Copy initial version of the _oasis. *)
+       cp [in_src_dir t "_tags_manual"] (in_src_dir t "_tags");
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t
+         (oasis_ocamlbuild_files @
+          ["libtest.mllib"; "libtest.mldylib"; "libtest.odocl"]);
+       (* Run standard test. *)
+       standard_test test_ctxt t);
 
     "bug619",
     (fun test_ctxt t ->
@@ -167,8 +154,9 @@ let all_tests =
     "flag-ccopt",
     (fun test_ctxt t ->
        let () =
+         skip_if (Sys.os_type = "Win32") "UNIX only test";
          skip_if
-           (not (Sys.file_exists "/usr/lib/libz.so.1"))
+           (Sys.command "pkg-config zlib --exists" <> 0)
            "zlib not installed"
        in
          oasis_setup test_ctxt t;

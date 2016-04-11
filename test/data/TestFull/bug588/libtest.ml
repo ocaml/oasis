@@ -21,7 +21,13 @@
 (******************************************************************************)
 
 
-let run () = print_endline "hello"
+let q =
+  IFDEF HAS_FRENCH THEN
+    "bonjour"
+  ELSE
+    "hello"
+  ENDIF
+
+let run () = print_endline q
 
 
-let q = BITSTRING { 1l: 32 }

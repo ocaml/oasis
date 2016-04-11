@@ -10,7 +10,7 @@ Library libtest
   Path:    .
   Install: false
   Modules: Libtest
-  BuildDepends: bitstring.syntax, bitstring
+  BuildDepends: camlp4.macro
 
 Document libtest
   Title:                API reference for libtest
