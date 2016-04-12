@@ -223,7 +223,7 @@ let tests =
   List.flatten
     [
       [
-        "all_TestFull" >::
+        "all_TestOCamlbuild" >::
         (fun test_ctxt ->
            all_subdirectories test_ctxt
              (in_testdata_dir test_ctxt ["TestOCamlbuild"])
