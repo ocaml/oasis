@@ -1,0 +1,21 @@
+OASISFormat: 0.4
+Name: findlib_directory
+Version: 0.0.1
+Authors: Foo Bar
+BuildTools: ocamlbuild
+License: LGPL with OCaml linking exception
+Synopsis: Test installation in sub-directories of findlib.
+BetaFeatures: section_object, findlib_directory
+Plugins: META(0.4)
+
+Library library
+  Path: .
+  Modules: L
+  FindlibName: foobar
+  FindlibDirectory: lib
+
+Object object
+  Path: .
+  Modules: O
+  FindlibFullName: foobar.object
+  FindlibDirectory: obj

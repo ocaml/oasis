@@ -115,6 +115,7 @@ let () =
          TestOASISText.tests;
          TestOCamlbuild.tests;
          TestOMake.tests;
+         TestPluginInternal.tests;
          TestPropList.tests;
          TestQuery.tests;
          TestQuickstart.tests;

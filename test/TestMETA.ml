@@ -59,7 +59,7 @@ let tests =
                (fun grp ->
                   match grp with
                     | Container (nm, _)
-                    | Package (nm, _, _, _, _) -> nm = fndlb_nm)
+                    | Package (nm, _, _, _, _, _) -> nm = fndlb_nm)
                groups
            with Not_found ->
              failwith

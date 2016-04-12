@@ -98,6 +98,15 @@ let schema, generator =
          s_ "Name used by findlib.")
       (fun (_, _, lib) -> lib.lib_findlib_name)
   in
+  let findlib_directory =
+    new_field schm "FindlibDirectory"
+      ~default:None
+      ~feature:OASISFeatures.findlib_directory
+      (opt directory)
+      (fun () ->
+         s_ "Directory used by findlib.")
+      (fun (_, _, lib) -> lib.lib_findlib_directory)
+  in
   let findlib_containers =
     new_field schm "FindlibContainers"
       ~default:[]
@@ -119,5 +128,6 @@ let schema, generator =
           lib_internal_modules   = internal_modules data;
           lib_findlib_parent     = findlib_parent data;
           lib_findlib_name       = findlib_name data;
+          lib_findlib_directory  = findlib_directory data;
           lib_findlib_containers = findlib_containers data;
         }))

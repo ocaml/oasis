@@ -339,14 +339,14 @@ let flag_docs =
   create "flag_docs"
     (since_version "0.3")
     (fun () ->
-       s_ "Building docs require '-docs' flag at configure.")
+       s_ "Make building docs require '-docs' flag at configure.")
 
 
 let flag_tests =
   create "flag_tests"
     (since_version "0.3")
     (fun () ->
-       s_ "Running tests require '-tests' flag at configure.")
+       s_ "Make running tests require '-tests' flag at configure.")
 
 
 let pack =
@@ -371,12 +371,12 @@ let dynrun_for_release =
 let compiled_setup_ml =
   create "compiled_setup_ml" alpha
     (fun () ->
-       s_ "It compiles the setup.ml and speed-up actions done with it.")
+       s_ "Compile the setup.ml and speed-up actions done with it.")
 
 let disable_oasis_section =
   create "disable_oasis_section" alpha
     (fun () ->
-       s_ "Allows the OASIS section comments and digest to be omitted in \
+       s_ "Allow the OASIS section comments and digests to be omitted in \
            generated files.")
 
 let no_automatic_syntax =
@@ -385,3 +385,9 @@ let no_automatic_syntax =
        s_ "Disable the automatic inclusion of -syntax camlp4o for packages \
            that matches the internal heuristic (if a dependency ends with \
            a .syntax or is a well known syntax).")
+
+let findlib_directory =
+  create "findlib_directory" beta
+    (fun () ->
+       s_ "Allow to install findlib libraries in sub-directories of the target \
+          findlib directory.")

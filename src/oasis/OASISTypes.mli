@@ -227,6 +227,10 @@ type library =
     (** Findlib name of this library, this name is used to refer to this
         library in build dependencies.
     *)
+    lib_findlib_directory:  unix_dirname option;
+    (** Findlib sub-directory where the library will be installed. This
+        directory is actually relative to the directory of the findlib parent.
+      *)
     lib_findlib_containers: findlib_name list;
     (** Name of virtual containers (empty findlib package) between findlib
         parent and findlib name
@@ -243,6 +247,8 @@ type object_ =
     (** Findlib name of this library, this name is used to refer to this
         library in build dependencies.
     *)
+    obj_findlib_directory:  unix_dirname option;
+    (** See {!library.lib_findlib_directory}. *)
   }
 
 

@@ -24,7 +24,6 @@
 open OASISTypes
 open OASISUtils
 open OASISGettext
-open OASISSection
 
 
 type library_name = name
@@ -39,10 +38,11 @@ exception FindlibPackageNotFound of findlib_name
 type group_t =
   | Container of findlib_name * group_t list
   | Package of (findlib_name *
-        common_section *
-        build_section *
-        [`Library of library | `Object of object_] *
-        group_t list)
+                common_section *
+                build_section *
+                [`Library of library | `Object of object_] *
+                unix_dirname option *
+                group_t list)
 
 
 type data = common_section *
@@ -224,17 +224,31 @@ let findlib_mapping pkg =
     add_children (OASISString.nsplit fndlb_fullname '.') mp
   in
 
-  let rec group_of_tree mp =
+  let unix_directory dn lib =
+    let directory =
+      match lib with
+      | `Library lib -> lib.lib_findlib_directory
+      | `Object obj -> obj.obj_findlib_directory
+    in
+    match dn, directory with
+    | None, None -> None
+    | None, Some dn | Some dn, None -> Some dn
+    | Some dn1, Some dn2 -> Some (OASISUnixPath.concat dn1 dn2)
+  in
+
+  let rec group_of_tree dn mp =
     MapString.fold
       (fun nm node acc ->
          let cur =
            match node with
-             | Node (Some (cs, bs, lib), children) ->
-               Package (nm, cs, bs, lib, group_of_tree children)
-             | Node (None, children) ->
-               Container (nm, group_of_tree children)
-             | Leaf (cs, bs, lib) ->
-               Package (nm, cs, bs, lib, [])
+           | Node (Some (cs, bs, lib), children) ->
+             let current_dn = unix_directory dn lib in
+             Package (nm, cs, bs, lib, current_dn, group_of_tree current_dn children)
+           | Node (None, children) ->
+             Container (nm, group_of_tree dn children)
+           | Leaf (cs, bs, lib) ->
+             let current_dn = unix_directory dn lib in
+             Package (nm, cs, bs, lib, current_dn, [])
          in
          cur :: acc)
       mp []
@@ -254,9 +268,7 @@ let findlib_mapping pkg =
       pkg.sections
   in
 
-  let groups =
-    group_of_tree group_mp
-  in
+  let groups = group_of_tree None group_mp in
 
   let library_name_of_findlib_name =
     lazy begin
@@ -282,7 +294,7 @@ let findlib_mapping pkg =
 let findlib_of_group =
   function
     | Container (fndlb_nm, _)
-    | Package (fndlb_nm, _, _, _, _) -> fndlb_nm
+    | Package (fndlb_nm, _, _, _, _, _) -> fndlb_nm
 
 
 let root_of_group grp =
@@ -298,7 +310,7 @@ let root_of_group grp =
                res)
           None
           children
-      | Package (_, cs, bs, lib, _) ->
+      | Package (_, cs, bs, lib, _, _) ->
         Some (cs, bs, lib)
   in
   match root_lib_aux grp with

@@ -144,6 +144,7 @@ type library =
     lib_internal_modules:   string list;
     lib_findlib_parent:     findlib_name option;
     lib_findlib_name:       findlib_name option;
+    lib_findlib_directory:  unix_dirname option;
     lib_findlib_containers: findlib_name list;
   }
 
@@ -152,6 +153,7 @@ type object_ =
   {
     obj_modules:            string list;
     obj_findlib_fullname:   findlib_name list option;
+    obj_findlib_directory:  unix_dirname option;
   }
 
 
@@ -379,6 +381,8 @@ let odn_of_package pkg =
          of_option of_string v.lib_findlib_parent);
         ("lib_findlib_name",
          of_option of_string v.lib_findlib_name);
+        ("lib_findlib_directory",
+         of_option odn_of_unix_filename v.lib_findlib_directory);
         ("lib_findlib_containers",
          of_list of_string v.lib_findlib_containers);
       ])
@@ -388,6 +392,8 @@ let odn_of_package pkg =
       [ ("obj_modules", of_list of_string v.obj_modules);
         ("obj_findlib_fullname",
          of_option (of_list of_string) v.obj_findlib_fullname);
+        ("obj_findlib_directory",
+         of_option odn_of_unix_filename v.obj_findlib_directory);
       ])
   in
   let odn_of_executable v =

@@ -38,10 +38,12 @@ exception FindlibPackageNotFound of findlib_name
 type group_t =
   | Container of findlib_part_name * group_t list
   | Package of (findlib_part_name *
-        common_section *
-        build_section *
-        [`Library of library | `Object of object_] *
-        group_t list)
+                common_section *
+                build_section *
+                [`Library of library | `Object of object_] *
+                unix_dirname option * (* relative directory *)
+                group_t list)
+(* TODO: use package_t to remove the 7 elements tuple. *)
 
 
 (** Compute groups of libraries, associate root libraries with

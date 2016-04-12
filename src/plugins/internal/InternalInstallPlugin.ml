@@ -37,34 +37,17 @@ open OASISGettext
 open OASISUtils
 
 
-let exec_hook =
-  ref (fun (cs, bs, exec) -> cs, bs, exec)
+let exec_hook = ref (fun (cs, bs, exec) -> cs, bs, exec)
+let lib_hook  = ref (fun (cs, bs, dn, lib) -> cs, bs, dn, lib, [])
+let obj_hook  = ref (fun (cs, bs, dn, obj) -> cs, bs, dn, obj, [])
+let doc_hook  = ref (fun (cs, doc) -> cs, doc)
+
+let install_file_ev    = "install-file"
+let install_dir_ev     = "install-dir"
+let install_findlib_ev = "install-findlib"
 
 
-let lib_hook =
-  ref (fun (cs, bs, lib) -> cs, bs, lib, [])
-
-
-let obj_hook =
-  ref (fun (cs, bs, obj) -> cs, bs, obj, [])
-
-
-let doc_hook =
-  ref (fun (cs, doc) -> cs, doc)
-
-
-let install_file_ev =
-  "install-file"
-
-
-let install_dir_ev =
-  "install-dir"
-
-
-let install_findlib_ev =
-  "install-findlib"
-
-
+(* TODO: this can be more generic and used elsewhere. *)
 let win32_max_command_line_length = 8000
 
 
@@ -148,9 +131,9 @@ let install =
       fun fn -> fn
   in
 
-  let install_file ~ctxt ?tgt_fn src_file envdir =
+  let install_file ~ctxt ?(prepend_destdir=true) ?tgt_fn src_file envdir =
     let tgt_dir =
-      in_destdir (envdir ())
+      if prepend_destdir then in_destdir (envdir ()) else envdir ()
     in
     let tgt_file =
       Filename.concat
@@ -167,12 +150,40 @@ let install =
         (fun dn ->
            info (f_ "Creating directory '%s'") dn;
            BaseLog.register ~ctxt install_dir_ev dn)
-        tgt_dir;
+        (Filename.dirname tgt_file);
 
       (* Really install files *)
       info (f_ "Copying file '%s' to '%s'") src_file tgt_file;
       OASISFileUtil.cp ~ctxt src_file tgt_file;
       BaseLog.register ~ctxt install_file_ev tgt_file
+  in
+
+  (* Install the files for a library. *)
+
+  let install_lib_files ~ctxt findlib_name files =
+    let findlib_dir =
+      let dn =
+        let findlib_destdir =
+          OASISExec.run_read_one_line ~ctxt (ocamlfind ())
+            ["printconf" ; "destdir"]
+        in
+        Filename.concat findlib_destdir findlib_name
+      in
+      fun () -> dn
+    in
+    let () =
+      if not (OASISFileUtil.file_exists_case (findlib_dir ())) then
+        failwithf
+          (f_ "Directory '%s' doesn't exist for findlib library %s")
+          (findlib_dir ()) findlib_name
+    in
+    let f dir file =
+      let basename = Filename.basename file in
+      let tgt_fn = Filename.concat dir basename in
+      (* Destdir is already include in printconf. *)
+      install_file ~ctxt ~prepend_destdir:false ~tgt_fn file findlib_dir
+    in
+    List.iter (fun (dir, files) -> List.iter (f dir) files) files ;
   in
 
   (* Install data into defined directory *)
@@ -220,132 +231,130 @@ let install =
   let install_libs ~ctxt pkg =
 
     let files_of_library (f_data, acc) data_lib =
-      let cs, bs, lib, lib_extra =
-        !lib_hook data_lib
-      in
-        if var_choose bs.bs_install &&
-           BaseBuilt.is_built ~ctxt BaseBuilt.BLib cs.cs_name then begin
-          (* Start with acc + lib_extra *)
-          let acc = List.rev_append lib_extra acc in
-          let acc =
-            (* Add uncompiled header from the source tree *)
-            let path = OASISHostPath.of_unix bs.bs_path in
-            List.fold_left
-              (fun acc modul ->
-                 begin
-                   try
-                     [List.find
-                        OASISFileUtil.file_exists_case
-                        (List.map
-                           (Filename.concat path)
-                           (make_fnames modul [".mli"; ".ml"]))]
-                   with Not_found ->
-                     warning
-                       (f_ "Cannot find source header for module %s \
-                            in library %s")
-                       modul cs.cs_name;
-                     []
-                 end
-                 @
-                 List.filter
-                   OASISFileUtil.file_exists_case
-                   (List.map
-                      (Filename.concat path)
-                      (make_fnames modul [".annot";".cmti";".cmt"]))
-                 @ acc)
-              acc
-              lib.lib_modules
-          in
+      let cs, bs, lib, dn, lib_extra = !lib_hook data_lib in
+      if var_choose bs.bs_install &&
+         BaseBuilt.is_built ~ctxt BaseBuilt.BLib cs.cs_name then begin
+        (* Start with lib_extra *)
+        let new_files = lib_extra in
+        let new_files =
+          (* Add uncompiled header from the source tree *)
+          let path = OASISHostPath.of_unix bs.bs_path in
+          List.fold_left
+            (fun acc modul ->
+               begin
+                 try
+                   [List.find
+                      OASISFileUtil.file_exists_case
+                      (List.map
+                         (Filename.concat path)
+                         (make_fnames modul [".mli"; ".ml"]))]
+                 with Not_found ->
+                   warning
+                     (f_ "Cannot find source header for module %s \
+                          in library %s")
+                     modul cs.cs_name;
+                   []
+               end
+               @
+               List.filter
+                 OASISFileUtil.file_exists_case
+                 (List.map
+                    (Filename.concat path)
+                    (make_fnames modul [".annot";".cmti";".cmt"]))
+               @ acc)
+            new_files
+            lib.lib_modules
+        in
 
-          let acc =
-            (* Get generated files *)
-            BaseBuilt.fold
-              ~ctxt
-              BaseBuilt.BLib
-              cs.cs_name
-              (fun acc fn -> fn :: acc)
-              acc
-          in
+        let new_files =
+          (* Get generated files *)
+          BaseBuilt.fold
+            ~ctxt
+            BaseBuilt.BLib
+            cs.cs_name
+            (fun acc fn -> fn :: acc)
+            new_files
+        in
+        let acc = (dn, new_files) :: acc in
 
-          let f_data () =
-            (* Install data associated with the library *)
-            install_data
-              ~ctxt
-              bs.bs_path
-              bs.bs_data_files
-              (Filename.concat
-                 (datarootdir ())
-                 pkg.name);
-            f_data ()
-          in
+        let f_data () =
+          (* Install data associated with the library *)
+          install_data
+            ~ctxt
+            bs.bs_path
+            bs.bs_data_files
+            (Filename.concat
+               (datarootdir ())
+               pkg.name);
+          f_data ()
+        in
 
-          (f_data, acc)
-        end else begin
-          (f_data, acc)
-        end
+        (f_data, acc)
+      end else begin
+        (f_data, acc)
+      end
     and files_of_object (f_data, acc) data_obj =
-      let cs, bs, obj, obj_extra =
-        !obj_hook data_obj
-      in
-        if var_choose bs.bs_install &&
-           BaseBuilt.is_built ~ctxt BaseBuilt.BObj cs.cs_name then begin
-          (* Start with acc + obj_extra *)
-          let acc = List.rev_append obj_extra acc in
-          let acc =
-            (* Add uncompiled header from the source tree *)
-            let path =
-              OASISHostPath.of_unix bs.bs_path
-            in
-            List.fold_left
-              (fun acc modul ->
-                 begin
-                   try
-                     [List.find
-                        OASISFileUtil.file_exists_case
-                        (List.map
-                           (Filename.concat path)
-                           (make_fnames modul [".mli"; ".ml"]))]
-                   with Not_found ->
-                     warning
-                       (f_ "Cannot find source header for module %s \
-                            in object %s")
-                       modul cs.cs_name;
-                     []
-                 end
-                 @
-                 List.filter
-                   OASISFileUtil.file_exists_case
-                   (List.map
-                      (Filename.concat path)
-                      (make_fnames modul [".annot";".cmti";".cmt"]))
-                 @ acc)
-              acc
-              obj.obj_modules
+      let cs, bs, obj, dn, obj_extra = !obj_hook data_obj in
+      if var_choose bs.bs_install &&
+         BaseBuilt.is_built ~ctxt BaseBuilt.BObj cs.cs_name then begin
+        (* Start with obj_extra *)
+        let new_files = obj_extra in
+        let new_files =
+          (* Add uncompiled header from the source tree *)
+          let path =
+            OASISHostPath.of_unix bs.bs_path
           in
+          List.fold_left
+            (fun acc modul ->
+               begin
+                 try
+                   [List.find
+                      OASISFileUtil.file_exists_case
+                      (List.map
+                         (Filename.concat path)
+                         (make_fnames modul [".mli"; ".ml"]))]
+                 with Not_found ->
+                   warning
+                     (f_ "Cannot find source header for module %s \
+                          in object %s")
+                     modul cs.cs_name;
+                   []
+               end
+               @
+               List.filter
+                 OASISFileUtil.file_exists_case
+                 (List.map
+                    (Filename.concat path)
+                    (make_fnames modul [".annot";".cmti";".cmt"]))
+               @ acc)
+            new_files
+            obj.obj_modules
+        in
 
-          let acc =
-            (* Get generated files *)
-            BaseBuilt.fold
-              ~ctxt
-              BaseBuilt.BObj
-              cs.cs_name
-              (fun acc fn -> fn :: acc)
-              acc
-          in
+        let new_files =
+          (* Get generated files *)
+          BaseBuilt.fold
+            ~ctxt
+            BaseBuilt.BObj
+            cs.cs_name
+            (fun acc fn -> fn :: acc)
+            new_files
+        in
+        let acc = (dn, new_files) :: acc in
 
-          let f_data () =
-            (* Install data associated with the object *)
-            install_data
-              ~ctxt
-              bs.bs_path
-              bs.bs_data_files
-              (Filename.concat (datarootdir ()) pkg.name);
-            f_data ()
-          in
-          (f_data, acc)
-        end else begin
-          (f_data, acc)
-        end
+        let f_data () =
+          (* Install data associated with the object *)
+          install_data
+            ~ctxt
+            bs.bs_path
+            bs.bs_data_files
+            (Filename.concat (datarootdir ()) pkg.name);
+          f_data ()
+        in
+        (f_data, acc)
+      end else begin
+        (f_data, acc)
+      end
     in
 
     (* Install one group of library *)
@@ -356,10 +365,10 @@ let install =
           match grp with
             | Container (_, children) ->
                 data_and_files, children
-            | Package (_, cs, bs, `Library lib, children) ->
-                files_of_library data_and_files (cs, bs, lib), children
-            | Package (_, cs, bs, `Object obj, children) ->
-                files_of_object data_and_files (cs, bs, obj), children
+            | Package (_, cs, bs, `Library lib, dn, children) ->
+                files_of_library data_and_files (cs, bs, lib, dn), children
+            | Package (_, cs, bs, `Object obj, dn, children) ->
+                files_of_object data_and_files (cs, bs, obj, dn), children
         in
           List.fold_left
             install_group_lib_aux
@@ -368,19 +377,13 @@ let install =
       in
 
       (* Findlib name of the root library *)
-      let findlib_name =
-        findlib_of_group grp
-      in
+      let findlib_name = findlib_of_group grp in
 
       (* Determine root library *)
-      let root_lib =
-        root_of_group grp
-      in
+      let root_lib = root_of_group grp in
 
       (* All files to install for this library *)
-      let f_data, files =
-        install_group_lib_aux (ignore, []) grp
-      in
+      let f_data, files = install_group_lib_aux (ignore, []) grp in
 
         (* Really install, if there is something to install *)
       if files = [] then begin
@@ -402,6 +405,7 @@ let install =
           (* Make filename shorter to avoid hitting command max line length
            * too early, esp. on Windows.
           *)
+          (* TODO: move to OASISHostPath as make_relative. *)
           let remove_prefix p n =
             let plen = String.length p in
             let nlen = String.length n in
@@ -416,31 +420,34 @@ let install =
               n
             end
           in
-          List.map (remove_prefix (Sys.getcwd ())) files
-        in
-        info
-          (f_ "Installing findlib library '%s'")
-          findlib_name;
-        let ocamlfind = ocamlfind () in
-        let commands =
-          split_install_command
-            ocamlfind
-            findlib_name
-            meta
+          List.map
+            (fun (dir, fn) ->
+               (dir, List.map (remove_prefix (Sys.getcwd ())) fn))
             files
         in
-        List.iter (OASISExec.run ~ctxt ocamlfind) commands;
+        let ocamlfind = ocamlfind () in
+        let nodir_files, dir_files =
+          List.fold_left
+            (fun (nodir, dir) (dn, lst) ->
+               match dn with
+               | Some dn -> nodir, (dn, lst) :: dir
+               | None -> lst @ nodir, dir)
+            ([], [])
+            (List.rev files)
+        in
+        info (f_ "Installing findlib library '%s'") findlib_name;
+        List.iter
+          (OASISExec.run ~ctxt ocamlfind)
+          (split_install_command ocamlfind findlib_name meta nodir_files);
+        install_lib_files ~ctxt findlib_name dir_files;
         BaseLog.register ~ctxt install_findlib_ev findlib_name
       end;
 
-        (* Install data files *)
-        f_data ();
-
+      (* Install data files *)
+      f_data ();
     in
 
-    let group_libs, _, _ =
-      findlib_mapping pkg
-    in
+    let group_libs, _, _ = findlib_mapping pkg in
 
       (* We install libraries in groups *)
       List.iter install_group_lib group_libs
@@ -513,43 +520,42 @@ let install =
 
 (* Uninstall already installed data *)
 let uninstall ~ctxt _ _ =
-  List.iter
-    (fun (ev, data) ->
-       if ev = install_file_ev then begin
-         if OASISFileUtil.file_exists_case data then begin
-           info (f_ "Removing file '%s'") data;
-           Sys.remove data
-         end else begin
-           warning (f_ "File '%s' doesn't exist anymore") data
-         end
-       end else if ev = install_dir_ev then begin
-         if Sys.file_exists data && Sys.is_directory data then begin
-           if Sys.readdir data = [||] then begin
-             info (f_ "Removing directory '%s'") data;
-             OASISFileUtil.rmdir ~ctxt data
-           end else begin
-             warning
-               (f_ "Directory '%s' is not empty (%s)")
-               data
-               (String.concat ", " (Array.to_list (Sys.readdir data)))
-           end
-         end else begin
-           warning (f_ "Directory '%s' doesn't exist anymore") data
-         end
-       end else if ev = install_findlib_ev then begin
-         info (f_ "Removing findlib library '%s'") data;
-         OASISExec.run ~ctxt (ocamlfind ()) ["remove"; data]
-       end else begin
-         failwithf (f_ "Unknown log event '%s'") ev;
-       end;
-       BaseLog.unregister ~ctxt ev data)
-    (* We process event in reverse order *)
+  let uninstall_aux (ev, data) =
+    if ev = install_file_ev then begin
+      if OASISFileUtil.file_exists_case data then begin
+        info (f_ "Removing file '%s'") data;
+        Sys.remove data
+      end else begin
+        warning (f_ "File '%s' doesn't exist anymore") data
+      end
+    end else if ev = install_dir_ev then begin
+      if Sys.file_exists data && Sys.is_directory data then begin
+        if Sys.readdir data = [||] then begin
+          info (f_ "Removing directory '%s'") data;
+          OASISFileUtil.rmdir ~ctxt data
+        end else begin
+          warning
+            (f_ "Directory '%s' is not empty (%s)")
+            data
+            (String.concat ", " (Array.to_list (Sys.readdir data)))
+        end
+      end else begin
+        warning (f_ "Directory '%s' doesn't exist anymore") data
+      end
+    end else if ev = install_findlib_ev then begin
+      info (f_ "Removing findlib library '%s'") data;
+      OASISExec.run ~ctxt (ocamlfind ()) ["remove"; data]
+    end else begin
+      failwithf (f_ "Unknown log event '%s'") ev;
+    end;
+    BaseLog.unregister ~ctxt ev data
+  in
+  (* We process event in reverse order *)
+  List.iter uninstall_aux
     (List.rev
-       (BaseLog.filter ~ctxt
-          [install_file_ev;
-           install_dir_ev;
-           install_findlib_ev]))
-
+       (BaseLog.filter ~ctxt [install_file_ev; install_dir_ev]));
+  List.iter uninstall_aux
+    (List.rev (BaseLog.filter ~ctxt [install_findlib_ev]))
 
 (* END EXPORT *)
 

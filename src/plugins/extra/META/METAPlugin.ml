@@ -187,7 +187,6 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
             OASISFileUtil.file_exists_case path
           in
           let m =
-            prerr_endline (Printf.sprintf "module: %s" m);
             List.find
               (fun m -> exists m ".mli" || exists m ".ml")
               [ OASISString.uncapitalize_ascii m;
@@ -212,6 +211,17 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
           | None -> default_synopsis
       in
       pp_print_sfield fmt ("description", txt)
+    end;
+    begin
+      let directory =
+        match contents with
+        | `Library l -> l.lib_findlib_directory
+        | `Object o -> o.obj_findlib_directory
+      in
+      match directory with
+      | Some dir ->
+        pp_print_sfield fmt ("directory", dir)
+      | None -> ()
     end;
     begin
       let requires =
@@ -290,10 +300,8 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
 
           (FormatExt.pp_print_list pp_print_group "") children
 
-      | Package (fndlb_nm, lib_cs, lib_bs, lib, children) ->
-        let t =
-          generator lib_cs.cs_data
-        in
+      | Package (fndlb_nm, lib_cs, lib_bs, lib, _, children) ->
+        let t = generator lib_cs.cs_data in
         if t.enable then
           fprintf fmt "@,@[<v1>@[package %S (@]%a@]@,)"
             fndlb_nm
@@ -307,7 +315,7 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
     match grp with
       | Container (_, children) ->
         FormatExt.pp_print_list pp_print_group "" fmt children
-      | Package (_, lib_cs, lib_bs, lib, children) ->
+      | Package (_, lib_cs, lib_bs, lib, _, children) ->
         pp_print_library fmt (lib_cs, lib_bs, lib, children)
   end;
   fprintf fmt "@,# OASIS_STOP@,";
@@ -322,9 +330,7 @@ let main ctxt pkg =
   let meta_created = Hashtbl.create 3 in
   List.fold_left
     (fun ctxt grp ->
-       let root_cs, root_bs, root_lib =
-         root_of_group grp
-       in
+       let root_cs, root_bs, _ = root_of_group grp in
        let root_t =
          generator root_cs.cs_data
        in
