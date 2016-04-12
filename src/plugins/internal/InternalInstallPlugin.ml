@@ -62,75 +62,6 @@ let install_dir_ev =
 let install_findlib_ev =
   "install-findlib"
 
-
-let win32_max_command_line_length = 8000
-
-
-let split_install_command ocamlfind findlib_name meta files =
-  if Sys.os_type = "Win32" then
-    (* Arguments for the first command: *)
-    let first_args = ["install"; findlib_name; meta] in
-    (* Arguments for remaining commands: *)
-    let other_args = ["install"; findlib_name; "-add"] in
-    (* Extract as much files as possible from [files], [len] is
-       the current command line length: *)
-    let rec get_files len acc files =
-      match files with
-        | [] ->
-            (List.rev acc, [])
-        | file :: rest ->
-            let len = len + 1 + String.length file in
-            if len > win32_max_command_line_length then
-              (List.rev acc, files)
-            else
-              get_files len (file :: acc) rest
-    in
-    (* Split the command into several commands. *)
-    let rec split args files =
-      match files with
-        | [] ->
-            []
-        | _ ->
-            (* Length of "ocamlfind install <lib> [META|-add]" *)
-            let len =
-              List.fold_left
-                (fun len arg ->
-                   len + 1 (* for the space *) + String.length arg)
-                (String.length ocamlfind)
-                args
-            in
-            match get_files len [] files with
-              | ([], _) ->
-                  failwith (s_ "Command line too long.")
-              | (firsts, others) ->
-                  let cmd = args @ firsts in
-                  (* Use -add for remaining commands: *)
-                  let () =
-                    let findlib_ge_132 =
-                      OASISVersion.comparator_apply
-                        (OASISVersion.version_of_string
-                           (BaseStandardVar.findlib_version ()))
-                        (OASISVersion.VGreaterEqual
-                           (OASISVersion.version_of_string "1.3.2"))
-                    in
-                      if not findlib_ge_132 then
-                        failwithf
-                          (f_ "Installing the library %s require to use the \
-                               flag '-add' of ocamlfind because the command \
-                               line is too long. This flag is only available \
-                               for findlib 1.3.2. Please upgrade findlib from \
-                               %s to 1.3.2")
-                          findlib_name (BaseStandardVar.findlib_version ())
-                  in
-                  let cmds = split other_args others in
-                  cmd :: cmds
-    in
-    (* The first command does not use -add: *)
-    split first_args files
-  else
-    ["install" :: findlib_name :: meta :: files]
-
-
 let install pkg argv =
 
   let in_destdir =
@@ -165,12 +96,26 @@ let install pkg argv =
         (fun dn ->
            info (f_ "Creating directory '%s'") dn;
            BaseLog.register install_dir_ev dn)
-        tgt_dir;
+        (Filename.dirname tgt_file);
 
       (* Really install files *)
       info (f_ "Copying file '%s' to '%s'") src_file tgt_file;
       OASISFileUtil.cp ~ctxt:!BaseContext.default src_file tgt_file;
       BaseLog.register install_file_ev tgt_file
+  in
+
+  (* Install the files for a library. *)
+  let install_lib_files findlib_name meta files =
+    let findlib_dir () =
+      Filename.concat (libdir ()) findlib_name
+    in
+    let files = ("", [meta]) :: files in
+    let f dir file =
+      let basename = Filename.basename file in
+      let tgt_fn = Filename.concat dir basename in
+      install_file ~tgt_fn file findlib_dir
+    in
+    List.iter (fun (dir, files) -> List.iter (f dir) files) files ;
   in
 
   (* Install data into defined directory *)
@@ -221,14 +166,18 @@ let install pkg argv =
       let cs, bs, lib, lib_extra =
         !lib_hook data_lib
       in
+      let dir = match lib.lib_findlib_directory with
+        | Some d -> d
+        | None -> ""
+      in
         if var_choose bs.bs_install &&
            BaseBuilt.is_built BaseBuilt.BLib cs.cs_name then
           begin
-            let acc =
-              (* Start with acc + lib_extra *)
-              List.rev_append lib_extra acc
+            let new_files =
+              (* Start with lib_extra *)
+              lib_extra
             in
-            let acc =
+            let new_files =
               (* Add uncompiled header from the source tree *)
               let path =
                 OASISHostPath.of_unix bs.bs_path
@@ -257,18 +206,19 @@ let install pkg argv =
                          (make_fnames modul [".annot";".cmti";".cmt"]))
                     @ acc
                   end
-                  acc
+                  new_files
                   lib.lib_modules
             in
 
-            let acc =
+            let new_files =
              (* Get generated files *)
              BaseBuilt.fold
                BaseBuilt.BLib
                cs.cs_name
                (fun acc fn -> fn :: acc)
-               acc
+               new_files
             in
+            let acc = (dir, new_files) :: acc in
 
             let f_data () =
               (* Install data associated with the library *)
@@ -291,14 +241,18 @@ let install pkg argv =
       let cs, bs, obj, obj_extra =
         !obj_hook data_obj
       in
+      let dir = match obj.obj_findlib_directory with
+        | Some d -> d
+        | None -> ""
+      in
         if var_choose bs.bs_install &&
            BaseBuilt.is_built BaseBuilt.BObj cs.cs_name then
           begin
-            let acc =
-              (* Start with acc + obj_extra *)
-              List.rev_append obj_extra acc
+            let new_files =
+              (* Start with obj_extra *)
+              obj_extra
             in
-            let acc =
+            let new_files =
               (* Add uncompiled header from the source tree *)
               let path =
                 OASISHostPath.of_unix bs.bs_path
@@ -327,18 +281,19 @@ let install pkg argv =
                          (make_fnames modul [".annot";".cmti";".cmt"]))
                     @ acc
                   end
-                  acc
+                  new_files
                   obj.obj_modules
             in
 
-            let acc =
+            let new_files =
              (* Get generated files *)
              BaseBuilt.fold
                BaseBuilt.BObj
                cs.cs_name
                (fun acc fn -> fn :: acc)
-               acc
+               new_files
             in
+            let acc = (dir, new_files) :: acc in
 
             let f_data () =
               (* Install data associated with the object *)
@@ -444,22 +399,15 @@ let install pkg argv =
                   else
                     n
               in
-                List.map (remove_prefix (Sys.getcwd ())) files
+              let f (dir, fn) =
+                (dir, List.map (remove_prefix (Sys.getcwd ())) fn)
+              in
+              List.map f files
             in
               info
                 (f_ "Installing findlib library '%s'")
                 findlib_name;
-              let ocamlfind = ocamlfind () in
-              let commands =
-                split_install_command
-                  ocamlfind
-                  findlib_name
-                  meta
-                  files
-              in
-              List.iter
-                (OASISExec.run ~ctxt:!BaseContext.default ocamlfind)
-                commands;
+              install_lib_files findlib_name meta files ;
               BaseLog.register install_findlib_ev findlib_name
           end;
 
@@ -582,7 +530,11 @@ let uninstall _ argv =
                  data
              end
          end
-       else if ev = install_dir_ev then
+       else if ev = install_dir_ev || ev = install_findlib_ev then
+         let data =
+           if ev = install_dir_ev then data
+           else Filename.concat (libdir ()) data
+         in
          begin
            if Sys.file_exists data && Sys.is_directory data then
              begin
@@ -610,12 +562,6 @@ let uninstall _ argv =
                  (f_ "Directory '%s' doesn't exist anymore")
                  data
              end
-         end
-       else if ev = install_findlib_ev then
-         begin
-           info (f_ "Removing findlib library '%s'") data;
-           OASISExec.run ~ctxt:!BaseContext.default
-             (ocamlfind ()) ["remove"; data]
          end
        else
          failwithf (f_ "Unknown log event '%s'") ev;
