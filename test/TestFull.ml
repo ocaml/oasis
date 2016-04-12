@@ -406,6 +406,17 @@ let all_tests =
          ];
        (* Run standard test. *)
        standard_test test_ctxt t);
+
+    "bug623",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t
+         (oasis_ocamlbuild_files @
+          ["empty.mldylib"; "empty.mllib"]);
+       (* Run standard test. *)
+       run_ocaml_setup_ml test_ctxt t ["-configure"];
+       run_ocaml_setup_ml test_ctxt t ~exit_code:(Unix.WEXITED 1) ["-test"]);
   ]
 
 

@@ -4,6 +4,11 @@ Version:     0
 Synopsis:    Test bug 623
 Authors:     Me
 License:     GPL
+BuildTools:  ocamlbuild
+
+Library empty
+  Path: .
+  Modules: A
 
 Test "false"
   Command: toto
