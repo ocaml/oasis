@@ -153,6 +153,7 @@ type object_ =
   {
     obj_modules:            string list;
     obj_findlib_fullname:   findlib_name list option;
+    obj_findlib_directory:  unix_dirname option;
   }
 
 
