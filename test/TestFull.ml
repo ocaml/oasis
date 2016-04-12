@@ -380,6 +380,32 @@ let all_tests =
          ];
        (* Run standard test. *)
        standard_test test_ctxt t);
+
+    "bug1239",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t
+         (oasis_ocamlbuild_files @
+          ["src/META"; "src/bar/META"; "src/bar/bar.mldylib";
+           "src/bar/bar.mllib"; "src/bar/bar.mlpack"; "src/foo.mldylib";
+           "src/foo.mllib";
+          ]);
+       register_installed_files test_ctxt t
+         [
+           InstalledOCamlLibrary
+             ("bar",
+              ["META"; "a.annot"; "a.cmt"; "a.ml"; "bar.a"; "bar.cma";
+               "bar.cmi"; "bar.cmt"; "bar.cmx"; "bar.cmxa"; "bar.cmxs";
+              ]);
+           InstalledOCamlLibrary
+             ("foo",
+              ["META"; "foo.a"; "foo.cma"; "foo.cmxa"; "foo.cmxs"; "m.annot";
+               "m.cmi"; "m.cmt"; "m.ml"; "m.cmx";
+              ]);
+         ];
+       (* Run standard test. *)
+       standard_test test_ctxt t);
   ]
 
 

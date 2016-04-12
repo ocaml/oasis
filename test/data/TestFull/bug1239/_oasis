@@ -6,7 +6,7 @@ Synopsis:     Foo
 Authors:      Philippe Veber
 License:      GPL
 LicenseFile:  LICENCE
-Plugins:      META (0.3), DevFiles (0.3)
+Plugins:      META (0.3)
 BuildTools:   ocamlbuild
 
 
