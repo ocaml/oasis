@@ -155,6 +155,7 @@ OASIS_clean_list[] =
     *.cmo
     *.cma
     *.cmx
+    *.annot
     *$(EXT_OBJ)
     *.cmxa
     *$(EXT_LIB)

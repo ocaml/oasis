@@ -35,6 +35,9 @@ include _oasis_lib.om
 # OCAMLFINDFLAGS += -verbose             (be verbose)
 # OCAMLFLAGS += -bin-annot               (create .cmt/.cmti files)
 
+OCAMLFLAGS_ANNOT = -annot -bin-annot
+OCAMLFLAGS += $(OCAMLFLAGS_ANNOT)
+
 # Until this point we allow to override variables via the command-line.
 # That means all initializations from above can be changed by omake arguments
 # here. E.g. invoke with "omake BYTE_ENABLED=false" to disable bytecode

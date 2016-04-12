@@ -75,9 +75,9 @@ let tests =
                ("simplelib",
                 ["META";
                  "bar.mli"; "bar.cmi"; "bar.cmx";
-                 (* TODO: "bar.annot"; "bar.cmt" *)
+                 "bar.annot"; "bar.cmt"; "bar.cmti";
                  "foo.mli"; "foo.cmi"; "foo.cmx";
-                 (* TODO: "foo.annot"; "foo.cmt"; *)
+                 "foo.annot"; "foo.cmt"; "foo.cmti";
                  "simplelib.cma"; "simplelib.cmxa"; "simplelib.cmxs";
                  "simplelib.a"]);
              InstalledAPIRef("simplelib", ["Foo"; "Bar"]);
@@ -112,26 +112,31 @@ let tests =
              InstalledBin ["exec"];
              InstalledOCamlLibrary
                ("liba",
-                ["META"; "a1.cmx"; "a2.cmi"; "a2.cmx"; "a2.ml"; "liba.a";
-                 "liba.cma"; "liba.cmxa"; "liba.cmxs"]);
+                ["META"; "a1.cmx"; "a2.cmi"; "a2.cmx"; "a2.ml";
+                 "a2.annot"; "a2.cmt";
+                  "liba.a"; "liba.cma"; "liba.cmxa"; "liba.cmxs"]);
              InstalledOCamlLibrary
                ("libb",
-                ["META"; "B1.cmi"; "B1.cmx"; "B1.ml"; "libb.a"; "libb.cma";
-                 "libb.cmxa"; "libb.cmxs"]);
+                ["META"; "B1.cmi"; "B1.cmx"; "B1.ml"; "libb.a";
+                 "B1.annot"; "B1.cmt";
+                 "libb.cma"; "libb.cmxa"; "libb.cmxs"]);
              InstalledOCamlLibrary
                ("libc",
-                ["META"; "c1.cmi"; "c1.cmx"; "c1.ml"; "libc.a"; "libc.cma";
-                 "libc.cmxa"; "libc.cmxs"]);
+                ["META"; "c1.cmi"; "c1.cmx"; "c1.mli";
+                 "c1.annot"; "c1.cmt"; "c1.cmti";
+                 "libc.a"; "libc.cma"; "libc.cmxa"; "libc.cmxs"]);
              InstalledOCamlLibrary
                ("libwithc",
                 ["META"; "dlllibwithc_stubs.so"; "liblibwithc_stubs.a";
                  "libwithc.a"; "libwithc.cma"; "libwithc.cmxa";
-                 "libwithc.cmxs"; "p.cmi"; "p.cmx"; "p.ml"]);
+                 "libwithc.cmxs";
+                 "p.cmi"; "p.cmx"; "p.ml"; "p.annot"; "p.cmt";]);
              InstalledOCamlLibrary
                ("packedlib",
                 ["META"; "packedlib.a"; "packedlib.cma"; "packedlib.cmi";
                  "packedlib.cmt"; "packedlib.cmx"; "packedlib.cmxa";
-                 "packedlib.cmxs"; "q.cmt"; "q.ml"]);
+                 "packedlib.cmxs";
+                 "q.cmt"; "q.ml"; "q.annot"; "q.cmt"]);
              InstalledAPIRef("interdepend", ["C1"]);
            ];
          (* Run standard test. *)
@@ -139,9 +144,7 @@ let tests =
          (* Try the result. *)
          try_installed_library test_ctxt t "liba" ["A2"];
          try_installed_library test_ctxt t "libb" ["B1"];
-      (* TODO: should work.
          try_installed_library test_ctxt t "libc" ["C1"];
-       *)
          try_installed_library test_ctxt t "libwithc" ["P"];
          try_installed_library test_ctxt t "packedlib" ["Packedlib"];
     );
