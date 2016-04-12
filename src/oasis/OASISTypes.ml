@@ -144,6 +144,7 @@ type library =
     lib_internal_modules:   string list;
     lib_findlib_parent:     findlib_name option;
     lib_findlib_name:       findlib_name option;
+    lib_findlib_directory:  unix_dirname option;
     lib_findlib_containers: findlib_name list;
   }
 
