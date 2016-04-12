@@ -37,112 +37,124 @@ let oasis_omake_files dirs =
           dirs))
 
 
+let all_tests =
+  [
+    "simplelib",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       register_generated_files t
+         (oasis_omake_files ["src"]);
+       register_installed_files test_ctxt t
+         [
+           InstalledOCamlLibrary
+             ("simplelib",
+              ["META";
+               "bar.mli"; "bar.cmi"; "bar.cmx";
+               (* TODO: "bar.annot"; "bar.cmt" *)
+               "foo.mli"; "foo.cmi"; "foo.cmx";
+               (* TODO: "foo.annot"; "foo.cmt"; *)
+               "simplelib.cma"; "simplelib.cmxa"; "simplelib.cmxs";
+               "simplelib.a"]);
+           InstalledAPIRef("simplelib", ["Foo"; "Bar"]);
+         ];
+       (* Run standard test. *)
+       standard_test test_ctxt t;
+       (* Try the result. *)
+       try_installed_library test_ctxt t "simplelib" ["Foo"];
+    );
+
+    "complex",
+    (fun test_ctxt t ->
+       skip_if
+         (OASISVersion.version_compare_string t.ocaml_version "4.00.0" < 0)
+         "Need OCaml 4.00.0 at least.";
+       oasis_setup test_ctxt t;
+       register_generated_files t
+         (oasis_omake_files
+            ["src"; "src/liba"; "src/libb"; "src/libc"; "src/libwithc";
+             "src/exec"; "src/packedlib"]);
+       register_generated_files t
+         ["src/liba/META"; "src/libb/META"; "src/libc/META";
+          "src/libwithc/META"; "src/packedlib/META"];
+       register_installed_files test_ctxt t
+         [
+           InstalledBin ["exec"];
+           InstalledOCamlLibrary
+             ("liba",
+              ["META"; "a1.cmx"; "a2.cmi"; "a2.cmx"; "a2.ml"; "liba.a";
+               "liba.cma"; "liba.cmxa"; "liba.cmxs"]);
+           InstalledOCamlLibrary
+             ("libb",
+              ["META"; "B1.cmi"; "B1.cmx"; "B1.ml"; "libb.a"; "libb.cma";
+               "libb.cmxa"; "libb.cmxs"]);
+           InstalledOCamlLibrary
+             ("libc",
+              ["META"; "c1.cmi"; "c1.cmx"; "c1.ml"; "libc.a"; "libc.cma";
+               "libc.cmxa"; "libc.cmxs"]);
+           InstalledOCamlLibrary
+             ("libwithc",
+              ["META"; "dlllibwithc_stubs.so"; "liblibwithc_stubs.a";
+               "libwithc.a"; "libwithc.cma"; "libwithc.cmxa";
+               "libwithc.cmxs"; "p.cmi"; "p.cmx"; "p.ml"]);
+           InstalledOCamlLibrary
+             ("packedlib",
+              ["META"; "packedlib.a"; "packedlib.cma"; "packedlib.cmi";
+               "packedlib.cmt"; "packedlib.cmx"; "packedlib.cmxa";
+               "packedlib.cmxs"; "q.cmt"; "q.ml"]);
+           InstalledAPIRef("interdepend", ["C1"]);
+         ];
+       (* Run standard test. *)
+       standard_test test_ctxt t;
+       (* Try the result. *)
+       try_installed_library test_ctxt t "liba" ["A2"];
+       try_installed_library test_ctxt t "libb" ["B1"];
+    (* TODO: should work.
+       try_installed_library test_ctxt t "libc" ["C1"];
+     *)
+       try_installed_library test_ctxt t "libwithc" ["P"];
+       try_installed_library test_ctxt t "packedlib" ["Packedlib"];
+    );
+  ]
+
+let gen_test (nm, f) =
+  nm >::
+  (fun test_ctxt ->
+     let t =
+       setup_test_directories test_ctxt
+         ~is_native:(is_native test_ctxt)
+         ~native_dynlink:(native_dynlink test_ctxt)
+         (in_testdata_dir test_ctxt ["TestOMake"; nm])
+     in
+       f test_ctxt t)
+
 let tests =
   "Plugin OMake" >:::
-  [
-    "simplelib1" >::
-    (fun test_ctxt ->
-       let dn =
-         in_testdata_dir test_ctxt ["TestOMake"; "simplelib"]
-       in
-       let fn = Filename.concat dn OASISParse.default_oasis_fn in
-       let pkg = OASISParse.from_file ~ctxt:oasis_ctxt fn in
-       let ctxt, _ =
-         with_bracket_chdir test_ctxt dn
-           (fun test_ctxt ->
-              BaseSetup.of_package ~setup_update:false OASISSetupUpdate.NoUpdate pkg)
-       in
-       let () =
-         assert_bool "No error during generation." (not ctxt.error)
-       in
-       ()
-    );
-
-    "simplelib2" >::
-    (fun test_ctxt ->
-       let t =
-         setup_test_directories test_ctxt
-           ~is_native:(is_native test_ctxt)
-           ~native_dynlink:(native_dynlink test_ctxt)
-           (in_testdata_dir test_ctxt ["TestOMake"; "simplelib"])
-       in
-         oasis_setup test_ctxt t;
-         register_generated_files t
-           (oasis_omake_files ["src"]);
-         register_installed_files test_ctxt t
-           [
-             InstalledOCamlLibrary
-               ("simplelib",
-                ["META";
-                 "bar.mli"; "bar.cmi"; "bar.cmx";
-                 (* TODO: "bar.annot"; "bar.cmt" *)
-                 "foo.mli"; "foo.cmi"; "foo.cmx";
-                 (* TODO: "foo.annot"; "foo.cmt"; *)
-                 "simplelib.cma"; "simplelib.cmxa"; "simplelib.cmxs";
-                 "simplelib.a"]);
-             InstalledAPIRef("simplelib", ["Foo"; "Bar"]);
-           ];
-         (* Run standard test. *)
-         standard_test test_ctxt t;
-         (* Try the result. *)
-         try_installed_library test_ctxt t "simplelib" ["Foo"];
-    );
-
-    "complex1" >::
-    (fun test_ctxt ->
-       let t =
-         setup_test_directories test_ctxt
-           ~is_native:(is_native test_ctxt)
-           ~native_dynlink:(native_dynlink test_ctxt)
-           (in_testdata_dir test_ctxt ["TestOMake"; "complex"])
-       in
-         skip_if
-           (OASISVersion.version_compare_string t.ocaml_version "4.00.0" < 0)
-           "Need OCaml 4.00.0 at least.";
-         oasis_setup test_ctxt t;
-         register_generated_files t
-           (oasis_omake_files
-              ["src"; "src/liba"; "src/libb"; "src/libc"; "src/libwithc";
-               "src/exec"; "src/packedlib"]);
-         register_generated_files t
-           ["src/liba/META"; "src/libb/META"; "src/libc/META";
-            "src/libwithc/META"; "src/packedlib/META"];
-         register_installed_files test_ctxt t
-           [
-             InstalledBin ["exec"];
-             InstalledOCamlLibrary
-               ("liba",
-                ["META"; "a1.cmx"; "a2.cmi"; "a2.cmx"; "a2.ml"; "liba.a";
-                 "liba.cma"; "liba.cmxa"; "liba.cmxs"]);
-             InstalledOCamlLibrary
-               ("libb",
-                ["META"; "B1.cmi"; "B1.cmx"; "B1.ml"; "libb.a"; "libb.cma";
-                 "libb.cmxa"; "libb.cmxs"]);
-             InstalledOCamlLibrary
-               ("libc",
-                ["META"; "c1.cmi"; "c1.cmx"; "c1.ml"; "libc.a"; "libc.cma";
-                 "libc.cmxa"; "libc.cmxs"]);
-             InstalledOCamlLibrary
-               ("libwithc",
-                ["META"; "dlllibwithc_stubs.so"; "liblibwithc_stubs.a";
-                 "libwithc.a"; "libwithc.cma"; "libwithc.cmxa";
-                 "libwithc.cmxs"; "p.cmi"; "p.cmx"; "p.ml"]);
-             InstalledOCamlLibrary
-               ("packedlib",
-                ["META"; "packedlib.a"; "packedlib.cma"; "packedlib.cmi";
-                 "packedlib.cmt"; "packedlib.cmx"; "packedlib.cmxa";
-                 "packedlib.cmxs"; "q.cmt"; "q.ml"]);
-             InstalledAPIRef("interdepend", ["C1"]);
-           ];
-         (* Run standard test. *)
-         standard_test test_ctxt t;
-         (* Try the result. *)
-         try_installed_library test_ctxt t "liba" ["A2"];
-         try_installed_library test_ctxt t "libb" ["B1"];
-      (* TODO: should work.
-         try_installed_library test_ctxt t "libc" ["C1"];
-       *)
-         try_installed_library test_ctxt t "libwithc" ["P"];
-         try_installed_library test_ctxt t "packedlib" ["Packedlib"];
-    );
+  List.flatten
+    [
+      [
+        "simplelib-generation" >::
+        (fun test_ctxt ->
+           let dn =
+             in_testdata_dir test_ctxt ["TestOMake"; "simplelib"]
+           in
+           let fn = Filename.concat dn OASISParse.default_oasis_fn in
+           let pkg = OASISParse.from_file ~ctxt:oasis_ctxt fn in
+           let ctxt, _ =
+             with_bracket_chdir test_ctxt dn
+               (fun test_ctxt ->
+                  BaseSetup.of_package ~setup_update:false OASISSetupUpdate.NoUpdate pkg)
+           in
+           let () =
+             assert_bool "No error during generation." (not ctxt.error)
+           in
+           ()
+        );
+        "all_TestOMake" >::
+        (fun test_ctxt ->
+           all_subdirectories test_ctxt
+             (in_testdata_dir test_ctxt ["TestOMake"])
+             (List.map fst all_tests)
+             (Printf.sprintf "test/data/TestOCamlbuild/%s is not tested."));
+      ];
+      List.map gen_test all_tests;
   ]
