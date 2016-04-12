@@ -540,4 +540,12 @@ let tests =
 
     "best=byte" >:::
     (gen_tests ~is_native:false ());
+
+    "all_TestFull" >::
+    (fun test_ctxt ->
+       all_subdirectories test_ctxt
+         (in_testdata_dir test_ctxt ["TestFull"])
+         ((List.map fst all_tests)
+         @ (List.map (fun (_, a, _) -> a) different_directory_tests))
+         (Printf.sprintf "test/data/TestFull/%s is not tested."));
   ]
