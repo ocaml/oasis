@@ -461,7 +461,7 @@ let add_library ctx pkg map cs bs lib =
   let priv_c_sources = "C_SOURCES_" ^ cs.cs_name in
   let section =
     [ Set_string(false, "NAME", Literal cs.cs_name);
-      Set_string(false, "CNAME", Literal (String.capitalize cs.cs_name));
+      Set_string(false, "CNAME", Literal (OASISString.capitalize_ascii cs.cs_name));
       set_byte_or_native bs;
       Set_array(false, "MODULES", module_impls @
           [gen_getvar "EXTRA_MODULES"] );
