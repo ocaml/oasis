@@ -534,13 +534,6 @@ let gen_tests ~is_native () =
 let tests =
   "TestFull" >:::
   [
-    "best=native" >:::
-    (skip_test_on_non_native_arch
-       (gen_tests ~is_native:true ()));
-
-    "best=byte" >:::
-    (gen_tests ~is_native:false ());
-
     "all_TestFull" >::
     (fun test_ctxt ->
        all_subdirectories test_ctxt
@@ -548,4 +541,11 @@ let tests =
          ((List.map fst all_tests)
          @ (List.map (fun (_, a, _) -> a) different_directory_tests))
          (Printf.sprintf "test/data/TestFull/%s is not tested."));
+
+    "best=native" >:::
+    (skip_test_on_non_native_arch
+       (gen_tests ~is_native:true ()));
+
+    "best=byte" >:::
+    (gen_tests ~is_native:false ());
   ]

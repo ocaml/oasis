@@ -28,44 +28,10 @@ open OASISFileTemplate
 open TestFullUtils
 
 
-let tests =
-  "Plugin OCamlbuild" >:::
+let all_tests =
   [
-    "missing-source" >::
-    (fun test_ctxt ->
-       let dn =
-         in_testdata_dir test_ctxt ["TestOCamlbuild"; "missing-source"]
-       in
-       let fn = Filename.concat dn OASISParse.default_oasis_fn in
-       let pkg = OASISParse.from_file ~ctxt:oasis_ctxt fn in
-       let ctxt, _ =
-         with_bracket_chdir test_ctxt dn
-           (fun test_ctxt ->
-              BaseSetup.of_package ~setup_update:false OASISSetupUpdate.NoUpdate pkg)
-       in
-       let () =
-         assert_bool "No error during generation." (not ctxt.error)
-       in
-       let tmpl = find "test.mllib" ctxt.files in
-         match tmpl.body with
-           | Body lst | BodyWithDigest (_, lst) ->
-               assert_equal
-                 ~printer:(fun lst ->
-                             String.concat ", "
-                               (List.map (Printf.sprintf "%S") lst))
-                 ["A"; "B"; "C"]
-                 (List.sort String.compare lst);
-           | NoBody ->
-               assert_failure "No content for test.mllib.");
-
-    "set-ocamlfind" >::
-    (fun test_ctxt ->
-       let t =
-         setup_test_directories test_ctxt
-           ~is_native:(is_native test_ctxt)
-           ~native_dynlink:(native_dynlink test_ctxt)
-           (in_testdata_dir test_ctxt ["TestOCamlbuild"; "set-ocamlfind"])
-       in
+    "set-ocamlfind",
+    (fun test_ctxt t ->
        let () =
          skip_if
            (OASISVersion.version_compare_string t.ocaml_version "3.12.1" < 0)
@@ -104,14 +70,8 @@ let tests =
                   (OASISString.starts_with ~what:fake_ocamlfind line))
            (OASISString.nsplit build_log '\n'));
 
-    "use-ocamlfind" >::
-    (fun test_ctxt ->
-       let t =
-         setup_test_directories test_ctxt
-           ~is_native:(is_native test_ctxt)
-           ~native_dynlink:(native_dynlink test_ctxt)
-           (in_testdata_dir test_ctxt ["TestOCamlbuild"; "use-ocamlfind"])
-       in
+    "use-ocamlfind",
+    (fun test_ctxt t ->
        oasis_setup test_ctxt t;
        run_ocaml_setup_ml ~check_output:true test_ctxt t
          ["-configure"; "--enable-docs"];
@@ -120,24 +80,19 @@ let tests =
        run_ocaml_setup_ml ~check_output:true test_ctxt t
          ["-doc"]);
 
-    (* this test changes a c-source file and asserts that an executable
+    (* This test changes a c-source file and asserts that an executable
        depending on a library which uses this c-file is re-linked
        properly
        TODO: reassert that this test fails without the fix in cb96135a
        TODO: test is flaky.
      *)
-    "external source rebuild" >::
-    (fun test_ctxt ->
+    "external-c-rebuild",
+    (fun test_ctxt t ->
        let () = skip_if true "to be fixed" in
-       let t =
-         setup_test_directories test_ctxt
-           ~is_native:(is_native test_ctxt)
-           ~native_dynlink:(native_dynlink test_ctxt)
-           (in_testdata_dir test_ctxt ["TestOCamlbuild"; "external-c-rebuild"])
 
        (* contain c-source code here to avoid any problems with
           aborted evaluation *)
-       and code_a = "#include \"header.h\"
+       let code_a = "#include \"header.h\"
                      CAMLprim value oasis_c_build_test_foo(value x) {
                        CAMLparam1(x);
                        CAMLreturn(Val_int(42));
@@ -182,14 +137,8 @@ let tests =
        assert_command ~ctxt:test_ctxt ~chdir:t.src_dir ~exit_code:(Unix.WEXITED 23) (in_src_dir t "B.native") []
     );
 
-    "env-tags" >::
-    (fun test_ctxt ->
-       let t =
-         setup_test_directories test_ctxt
-           ~is_native:(is_native test_ctxt)
-           ~native_dynlink:(native_dynlink test_ctxt)
-           (in_testdata_dir test_ctxt ["TestOCamlbuild"; "env-tags"])
-       in
+    "env-tags",
+    (fun test_ctxt t ->
        let tests_tag_detected_fn = in_src_dir t "tests-tag-detected" in
        oasis_setup test_ctxt t;
 
@@ -208,20 +157,14 @@ let tests =
 
     (* This test checks that the "no_automatic_syntax" AlphaFeature doesn't
        disable the pkg_* flag injection that is necessary for OCaml < 3.12.1 *)
-    "pr63-no-automatic-syntax" >::
-    (fun test_ctxt ->
-       let t =
-         setup_test_directories test_ctxt
-           ~is_native:(is_native test_ctxt)
-           ~native_dynlink:(native_dynlink test_ctxt)
-           (in_testdata_dir test_ctxt ["TestOCamlbuild"; "pr63-no-automatic-syntax"])
-       in
+    "pr63-no-automatic-syntax",
+    (fun test_ctxt t ->
        oasis_setup test_ctxt t;
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-configure"];
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"]);
 
-    "gpr61-pass-thread-to-C-files" >::
-    (fun test_ctxt ->
+    "gpr61-pass-thread-to-C-files",
+    (fun test_ctxt t ->
       let t =
          setup_test_directories test_ctxt
            ~is_native:(is_native test_ctxt)
@@ -231,4 +174,63 @@ let tests =
        oasis_setup test_ctxt t;
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-configure"];
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"]);
+  ]
+
+let other_tests =
+  [
+    "missing-source",
+    (fun test_ctxt ->
+       let dn =
+         in_testdata_dir test_ctxt ["TestOCamlbuild"; "missing-source"]
+       in
+       let fn = Filename.concat dn OASISParse.default_oasis_fn in
+       let pkg = OASISParse.from_file ~ctxt:oasis_ctxt fn in
+       let ctxt, _ =
+         with_bracket_chdir test_ctxt dn
+           (fun test_ctxt ->
+              BaseSetup.of_package ~setup_update:false OASISSetupUpdate.NoUpdate pkg)
+       in
+       let () =
+         assert_bool "No error during generation." (not ctxt.error)
+       in
+       let tmpl = find "test.mllib" ctxt.files in
+         match tmpl.body with
+           | Body lst | BodyWithDigest (_, lst) ->
+               assert_equal
+                 ~printer:(fun lst ->
+                             String.concat ", "
+                               (List.map (Printf.sprintf "%S") lst))
+                 ["A"; "B"; "C"]
+                 (List.sort String.compare lst);
+           | NoBody ->
+               assert_failure "No content for test.mllib.");
+  ]
+
+let gen_test (nm, f) =
+  nm >::
+  (fun test_ctxt ->
+     let () = skip_long_test test_ctxt in
+     let t =
+       setup_test_directories test_ctxt
+         ~is_native:(is_native test_ctxt)
+         ~native_dynlink:(native_dynlink test_ctxt)
+         (in_testdata_dir test_ctxt ["TestOCamlbuild"; nm])
+     in
+       f test_ctxt t)
+
+let tests =
+  "Plugin OCamlbuild" >:::
+  List.flatten
+    [
+      [
+        "all_TestFull" >::
+        (fun test_ctxt ->
+           all_subdirectories test_ctxt
+             (in_testdata_dir test_ctxt ["TestOCamlbuild"])
+             ((List.map fst all_tests)
+             @ (List.map fst other_tests))
+           (Printf.sprintf "test/data/TestOCamlbuild/%s is not tested."));
+      ];
+      List.map gen_test all_tests;
+      List.map (fun (nm, f) -> nm >:: f) other_tests;
   ]
