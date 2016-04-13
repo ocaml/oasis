@@ -77,9 +77,12 @@ let install pkg argv =
       fun fn -> fn
   in
 
-  let install_file ?tgt_fn src_file envdir =
+  let install_file ?(with_destdir=true) ?tgt_fn src_file envdir =
     let tgt_dir =
-      in_destdir (envdir ())
+      if with_destdir then
+        in_destdir (envdir ())
+      else
+        envdir ()
     in
     let tgt_file =
       Filename.concat
@@ -106,14 +109,15 @@ let install pkg argv =
 
   (* Install the files for a library. *)
   let install_lib_files findlib_name meta files =
-    let findlib_dir () =
-      Filename.concat (libdir ()) findlib_name
+    let findlib_dir =
+      let s = Filename.concat (findlib_destdir ()) findlib_name in
+      fun () -> s
     in
     let files = ("", [meta]) :: files in
     let f dir file =
       let basename = Filename.basename file in
       let tgt_fn = Filename.concat dir basename in
-      install_file ~tgt_fn file findlib_dir
+      install_file ~with_destdir:false ~tgt_fn file findlib_dir
     in
     List.iter (fun (dir, files) -> List.iter (f dir) files) files ;
   in
@@ -533,7 +537,7 @@ let uninstall _ argv =
        else if ev = install_dir_ev || ev = install_findlib_ev then
          let data =
            if ev = install_dir_ev then data
-           else Filename.concat (libdir ()) data
+           else Filename.concat (findlib_destdir ()) data
          in
          begin
            if Sys.file_exists data && Sys.is_directory data then

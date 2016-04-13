@@ -420,6 +420,17 @@ let native_dynlink =
        string_of_bool res)
 
 
+let findlib_destdir =
+  var_define
+    ~short_desc:(fun () -> s_ "Directory where to install ocamlfind libraries.")
+    ~cli:CLINone
+    "findlib_destdir"
+    (fun () -> OASISExec.run_read_one_line
+        ~ctxt:!BaseContext.default
+        (ocamlfind ())
+        [ "printconf" ; "destdir"])
+
+
 let init pkg =
   rpkg := Some pkg;
   List.iter (fun f -> f pkg.oasis_version) !var_cond
