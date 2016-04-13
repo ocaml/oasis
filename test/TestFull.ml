@@ -396,7 +396,7 @@ let all_tests =
            InstalledOCamlLibrary
              ("bar",
               ["META"; "a.annot"; "a.cmt"; "a.ml"; "bar.a"; "bar.cma";
-               "bar.cmi"; "bar.cmt"; "bar.cmx"; "bar.cmxa"; "bar.cmxs";
+               "bar.cmi"; "bar.cmx"; "bar.cmxa"; "bar.cmxs";
               ]);
            InstalledOCamlLibrary
              ("foo",
@@ -404,6 +404,9 @@ let all_tests =
                "m.cmi"; "m.cmt"; "m.ml"; "m.cmx";
               ]);
          ];
+       if OASISVersion.version_compare_string t.ocaml_version "4.02" >= 0 then begin
+         register_installed_files test_ctxt t [InstalledOCamlLibrary("bar", ["bar.cmt"])]
+       end;
        (* Run standard test. *)
        standard_test test_ctxt t);
 
