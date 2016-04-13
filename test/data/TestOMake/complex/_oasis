@@ -22,9 +22,9 @@ Library libb
   BuildDepends: liba
   Install:      true
 
-Library libc
+Library libc_
   Modules:      C1
-  Path:         src/libc
+  Path:         src/libc_
   BuildDepends: libb
   Install:      true
 
@@ -46,7 +46,7 @@ Library packedlib
 Executable exec
   MainIs:       x2.ml
   Path:         src/exec
-  BuildDepends: libc, libwithc, packedlib
+  BuildDepends: libc_, libwithc, packedlib
   Install:      true
 
 Document interdepend
@@ -56,4 +56,4 @@ Document interdepend
   Install:              true
   BuildTools+:          ocamldoc
   XOMakePath:      src
-  XOMakeLibraries: liba, libb, libc
+  XOMakeLibraries: liba, libb, libc_

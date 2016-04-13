@@ -102,10 +102,10 @@ let tests =
          oasis_setup test_ctxt t;
          register_generated_files t
            (oasis_omake_files
-              ["src"; "src/liba"; "src/libb"; "src/libc"; "src/libwithc";
+              ["src"; "src/liba"; "src/libb"; "src/libc_"; "src/libwithc";
                "src/exec"; "src/packedlib"]);
          register_generated_files t
-           ["src/liba/META"; "src/libb/META"; "src/libc/META";
+           ["src/liba/META"; "src/libb/META"; "src/libc_/META";
             "src/libwithc/META"; "src/packedlib/META"];
          register_installed_files test_ctxt t
            [
@@ -121,10 +121,10 @@ let tests =
                  "B1.annot"; "B1.cmt";
                  "libb.cma"; "libb.cmxa"; "libb.cmxs"]);
              InstalledOCamlLibrary
-               ("libc",
+               ("libc_",
                 ["META"; "c1.cmi"; "c1.cmx"; "c1.mli";
                  "c1.annot"; "c1.cmt"; "c1.cmti";
-                 "libc.a"; "libc.cma"; "libc.cmxa"; "libc.cmxs"]);
+                 "libc_.a"; "libc_.cma"; "libc_.cmxa"; "libc_.cmxs"]);
              InstalledOCamlLibrary
                ("libwithc",
                 ["META"; "dlllibwithc_stubs.so"; "liblibwithc_stubs.a";
@@ -144,7 +144,7 @@ let tests =
          (* Try the result. *)
          try_installed_library test_ctxt t "liba" ["A2"];
          try_installed_library test_ctxt t "libb" ["B1"];
-         try_installed_library test_ctxt t "libc" ["C1"];
+         try_installed_library test_ctxt t "libc_" ["C1"];
          try_installed_library test_ctxt t "libwithc" ["P"];
          try_installed_library test_ctxt t "packedlib" ["Packedlib"];
     );
