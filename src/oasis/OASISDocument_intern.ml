@@ -23,7 +23,7 @@
 
 (** Test schema and generator
     @author Sylvain Le Gall
-  *)
+*)
 
 
 (* END EXPORT *)
@@ -115,9 +115,9 @@ let schema, generator =
       (fun (_, doc) ->
          match doc.doc_format with
            | HTML idx | Info idx ->
-               Some idx
+             Some idx
            | DocText | PDF | PostScript | DVI | OtherDoc ->
-               None)
+             None)
   in
   let install_dir =
     new_field schm "InstallDir"
@@ -128,94 +128,94 @@ let schema, generator =
       (fun (_, doc) -> Some doc.doc_install_dir)
   in
   let build, install, data_files =
-   OASISBuildSection_intern.build_install_data_fields schm
-     (fun (_, doc) -> doc.doc_build)
-     (fun (_, doc) -> doc.doc_install)
-     (fun (_, doc) -> doc.doc_data_files)
+    OASISBuildSection_intern.build_install_data_fields schm
+      (fun (_, doc) -> doc.doc_build)
+      (fun (_, doc) -> doc.doc_install)
+      (fun (_, doc) -> doc.doc_data_files)
   in
-    schm,
-    (fun features_data nm data ->
-       let cs =
-         cmn_section_gen features_data nm data
-       in
-       let typ =
-         typ data
-       in
-       let rplugin_data =
-         ref cs.cs_plugin_data
-       in
-       let cs =
-         OASISPlugin.generator_section
-           `Doc
-           (typ :> plugin_kind plugin)
-           rplugin_data
-           cs.cs_data;
-         {cs with cs_plugin_data = !rplugin_data}
-       in
-       let build =
-         if OASISFeatures.data_test OASISFeatures.flag_docs features_data then
-           (* TODO: establish a formal link between here and BaseStandardVars *)
-           OASISExpr.if_then_else
-             (OASISExpr.EFlag "docs") (build data) [OASISExpr.EBool true, false]
-         else
-             build data
-       in
-         Doc
-           (cs,
-            (* TODO: find a way to code that in a way compatible with
-             * quickstart
-             *)
-            let doc_format =
-              match doc_format data with
-                | HTML _ ->
-                    begin
-                      match index data with
-                        | Some fn -> HTML fn
-                        | None ->
-                            failwithf
-                              (f_ "Index is mandatory for format HTML in \
-                                   document %s")
-                              nm
-                    end
-                | Info fn ->
-                    begin
-                      match index data with
-                        | Some fn -> Info fn
-                        | None ->
-                            failwithf
-                              (f_ "Index is mandatory for format info in \
-                                   document %s")
-                              nm
-                    end
-                | DocText | PDF | PostScript | DVI | OtherDoc as fmt ->
-                    fmt
-            in
-            let doc_install_dir =
-              match install_dir data with
-                | None ->
-                    begin
-                      match doc_format with
-                        | HTML _     -> "$htmldir"
-                        | DocText    -> "$docdir"
-                        | PDF        -> "$pdfdir"
-                        | PostScript -> "$psdir"
-                        | Info _     -> "$infodir"
-                        | DVI        -> "$dvidir"
-                        | OtherDoc   -> "$docdir"
-                    end
-                | Some dir ->
-                    dir
-            in
-              {
-                doc_type        = typ;
-                doc_custom      = custom data;
-                doc_build       = build;
-                doc_install     = install data;
-                doc_install_dir = doc_install_dir;
-                doc_title       = title data;
-                doc_authors     = authors data;
-                doc_abstract    = abstract data;
-                doc_format      = doc_format;
-                doc_data_files  = data_files data;
-                doc_build_tools = build_tools data;
-              }))
+  schm,
+  (fun features_data nm data ->
+     let cs =
+       cmn_section_gen features_data nm data
+     in
+     let typ =
+       typ data
+     in
+     let rplugin_data =
+       ref cs.cs_plugin_data
+     in
+     let cs =
+       OASISPlugin.generator_section
+         `Doc
+         (typ :> plugin_kind plugin)
+         rplugin_data
+         cs.cs_data;
+       {cs with cs_plugin_data = !rplugin_data}
+     in
+     let build =
+       if OASISFeatures.data_test OASISFeatures.flag_docs features_data then
+         (* TODO: establish a formal link between here and BaseStandardVars *)
+         OASISExpr.if_then_else
+           (OASISExpr.EFlag "docs") (build data) [OASISExpr.EBool true, false]
+       else
+         build data
+     in
+     Doc
+       (cs,
+        (* TODO: find a way to code that in a way compatible with
+         * quickstart
+        *)
+        let doc_format =
+          match doc_format data with
+            | HTML _ ->
+              begin
+                match index data with
+                  | Some fn -> HTML fn
+                  | None ->
+                    failwithf
+                      (f_ "Index is mandatory for format HTML in \
+                           document %s")
+                      nm
+              end
+            | Info fn ->
+              begin
+                match index data with
+                  | Some fn -> Info fn
+                  | None ->
+                    failwithf
+                      (f_ "Index is mandatory for format info in \
+                           document %s")
+                      nm
+              end
+            | DocText | PDF | PostScript | DVI | OtherDoc as fmt ->
+              fmt
+        in
+        let doc_install_dir =
+          match install_dir data with
+            | None ->
+              begin
+                match doc_format with
+                  | HTML _     -> "$htmldir"
+                  | DocText    -> "$docdir"
+                  | PDF        -> "$pdfdir"
+                  | PostScript -> "$psdir"
+                  | Info _     -> "$infodir"
+                  | DVI        -> "$dvidir"
+                  | OtherDoc   -> "$docdir"
+              end
+            | Some dir ->
+              dir
+        in
+        {
+          doc_type        = typ;
+          doc_custom      = custom data;
+          doc_build       = build;
+          doc_install     = install data;
+          doc_install_dir = doc_install_dir;
+          doc_title       = title data;
+          doc_authors     = authors data;
+          doc_abstract    = abstract data;
+          doc_format      = doc_format;
+          doc_data_files  = data_files data;
+          doc_build_tools = build_tools data;
+        }))

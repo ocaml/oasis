@@ -41,14 +41,14 @@ type 'a main_t = ctxt:OASISContext.t -> 'a
 type 'a run_t = unit -> cli_parsing_t * 'a main_t
 
 type t =
-    {
-      scmd_name: string;
-      scmd_synopsis: string;
-      scmd_help: string;
-      scmd_usage: string;
-      scmd_deprecated: bool;
-      scmd_run: unit run_t;
-    }
+  {
+    scmd_name: string;
+    scmd_synopsis: string;
+    scmd_help: string;
+    scmd_usage: string;
+    scmd_deprecated: bool;
+    scmd_run: unit run_t;
+  }
 
 type registered_t = Builtin of t | Plugin of (PluginLoader.entry * t option)
 
@@ -60,14 +60,14 @@ let default_fspecs () = ([], default_anon), (fun () -> ())
 
 
 let make_run
-      (fspecs: unit -> cli_parsing_t * 'a cli_parsing_post_t)
-      (main: ('a -> 'b) main_t) () =
+    (fspecs: unit -> cli_parsing_t * 'a cli_parsing_post_t)
+    (main: ('a -> 'b) main_t) () =
   let cli_parsing, cli_parsing_post = fspecs () in
   let main' ~ctxt =
     let a = cli_parsing_post () in
-      main ~ctxt a
+    main ~ctxt a
   in
-    cli_parsing, main'
+  cli_parsing, main'
 
 
 (* TODO: protect with mutex. *)
@@ -103,45 +103,45 @@ let register ?(usage=default_usage) ?(deprecated=false) nm synopsis help run =
   try
     match Hashtbl.find all t.scmd_name with
       | Plugin (e, None) ->
-          let t' =
-            {t with
-              scmd_synopsis = merge_option
-                                e.PluginLoader.synopsis
-                                t.scmd_synopsis;
-              scmd_deprecated = e.PluginLoader.deprecated || t.scmd_deprecated}
-          in
-            Hashtbl.replace all t.scmd_name (Plugin(e, Some t'))
+        let t' =
+          {t with
+             scmd_synopsis = merge_option
+                 e.PluginLoader.synopsis
+                 t.scmd_synopsis;
+             scmd_deprecated = e.PluginLoader.deprecated || t.scmd_deprecated}
+        in
+        Hashtbl.replace all t.scmd_name (Plugin(e, Some t'))
       | Builtin _ ->
-          failwithf
-            (f_ "Trying to double-register the builtin subcommand %s.")
-            t.scmd_name
+        failwithf
+          (f_ "Trying to double-register the builtin subcommand %s.")
+          t.scmd_name
       | Plugin (e, Some _) ->
-          failwithf
-            (f_ "Trying to double-register the plugin subcommand %s (%s).")
-            nm (e.PluginLoader.findlib_name)
+        failwithf
+          (f_ "Trying to double-register the plugin subcommand %s (%s).")
+          nm (e.PluginLoader.findlib_name)
 
   with Not_found ->
-    match !loading_plugin with
-      | None ->
-          Hashtbl.add all t.scmd_name (Builtin t)
-      | Some findlib_name ->
-          failwithf
-            (f_ "Trying to register unknown plugin subcommand %s within loading
+  match !loading_plugin with
+    | None ->
+      Hashtbl.add all t.scmd_name (Builtin t)
+    | Some findlib_name ->
+      failwithf
+        (f_ "Trying to register unknown plugin subcommand %s within loading
                  of %s.")
-            nm findlib_name
+        nm findlib_name
 
 
 let find nm =
   let load_plugin nm =
     match !loading_plugin with
       | Some nm' ->
-          failwithf
-            (f_ "Recursive loading of plugins (%s and %s).")
-            nm nm'
+        failwithf
+          (f_ "Recursive loading of plugins (%s and %s).")
+          nm nm'
       | None ->
-          loading_plugin := Some nm;
-          PluginLoader.load (plugin_cli_t ()) nm;
-          loading_plugin := None
+        loading_plugin := Some nm;
+        PluginLoader.load (plugin_cli_t ()) nm;
+        loading_plugin := None
   in
   let rec find' retry =
     try
@@ -149,17 +149,17 @@ let find nm =
         | Builtin t
         | Plugin(_, Some t) -> t
         | Plugin(e, None) ->
-            if retry then
-              failwithf
-                (f_ "Loading findlib %s should register subcommand %s, but the \
-                     loading didn't registered it.")
-                e.PluginLoader.findlib_name nm;
-            load_plugin nm;
-            find' true
+          if retry then
+            failwithf
+              (f_ "Loading findlib %s should register subcommand %s, but the \
+                   loading didn't registered it.")
+              e.PluginLoader.findlib_name nm;
+          load_plugin nm;
+          find' true
     with Not_found ->
       failwithf (f_ "Subcommand '%s' doesn't exist") nm
   in
-    find' false
+  find' false
 
 
 let list_plugin ?(deprecated=true) () =
@@ -168,10 +168,10 @@ let list_plugin ?(deprecated=true) () =
        match v with
          | Builtin _ -> acc
          | Plugin(e, _) ->
-             if deprecated || not e.PluginLoader.deprecated then
-               e :: acc
-             else
-               acc)
+           if deprecated || not e.PluginLoader.deprecated then
+             e :: acc
+           else
+             acc)
     all []
 
 
@@ -181,11 +181,11 @@ let list_builtin ?(deprecated=true) () =
       (fun _ v acc ->
          match v with
            | Builtin t ->
-               if deprecated || not t.scmd_deprecated then
-                 t :: acc
-               else
-                 acc
+             if deprecated || not t.scmd_deprecated then
+               t :: acc
+             else
+               acc
            | Plugin(e, _) -> acc)
       all []
   in
-    lst
+  lst

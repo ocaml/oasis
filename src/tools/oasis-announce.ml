@@ -26,10 +26,10 @@ let () =
   with Not_found -> ()
 
 
-#use "topfind"
-#require "oasis"
-#require "oasis.base"
-#require "pcre"
+    #use "topfind"
+                        #require "oasis"
+                        #require "oasis.base"
+                        #require "pcre"
 
 
 open OASISMessage
@@ -39,7 +39,7 @@ open OASISTypes
 let () =
   let ctxt =
     {!OASISContext.default with
-         OASISContext.ignore_plugins = true}
+       OASISContext.ignore_plugins = true}
   in
   let pkg =
     OASISParse.from_file
@@ -70,17 +70,17 @@ let () =
     match pkg.description with
       | Some txt -> txt
       | None ->
-          warning ~ctxt "No description";
-          ""
+        warning ~ctxt "No description";
+        ""
   in
 
   let body =
     match pkg.homepage with
       | Some url ->
-          body^(Printf.sprintf "\n\nHomepage:\n%s" url)
+        body^(Printf.sprintf "\n\nHomepage:\n%s" url)
       | None ->
-          warning ~ctxt "No homepage";
-          body
+        warning ~ctxt "No homepage";
+        body
   in
 
   let body =
@@ -89,35 +89,35 @@ let () =
         (fun data ->
            function
              | SrcRepo (cs, srcrepo) when cs.cs_name = "head" ->
-                 Some (cs, srcrepo)
+               Some (cs, srcrepo)
              | _ ->
-                 data)
+               data)
         None
         pkg.sections
     in
-      match data with
-        | Some (cs, src) ->
-            begin
-              let get =
-                match src.src_repo_type with
-                  | Darcs ->
-                     Printf.sprintf "$ darcs get %s" src.src_repo_location
-                  | Svn ->
-                     Printf.sprintf "$ svn co %s" src.src_repo_location
-                  | _ ->
-                     failwith "Unsupported VCS"
-              in
-                body^"\n\nGet source code:\n"^get^
-                (match src.src_repo_browser with
-                   | Some url ->
-                       "\n\nBrowse source code:\n"^url
-                   | None ->
-                       "")
-            end
+    match data with
+      | Some (cs, src) ->
+        begin
+          let get =
+            match src.src_repo_type with
+              | Darcs ->
+                Printf.sprintf "$ darcs get %s" src.src_repo_location
+              | Svn ->
+                Printf.sprintf "$ svn co %s" src.src_repo_location
+              | _ ->
+                failwith "Unsupported VCS"
+          in
+          body^"\n\nGet source code:\n"^get^
+            (match src.src_repo_browser with
+              | Some url ->
+                "\n\nBrowse source code:\n"^url
+              | None ->
+                "")
+        end
 
-        | None ->
-            warning ~ctxt "No source repository";
-            body
+      | None ->
+        warning ~ctxt "No source repository";
+        body
   in
 
   let email =
@@ -152,41 +152,41 @@ let () =
   let fn =
     Filename.temp_file "oasis-announce-" ".txt"
   in
-    try
-      let () =
-        let chn_out = open_out fn in
-          output_string chn_out email;
-          close_out chn_out
-      in
-      let edit_exit_code =
-        Sys.command
-          (Printf.sprintf "%s %s"
-             (Filename.quote editor)
-             (Filename.quote fn))
-      in
-      let send_announcement =
-        print_string "Send the announcement? (y/N) ";
-        match read_line () with
-          | "y" -> true
-          | _ -> false
-      in
-        if send_announcement then
-          begin
-            let mta_exit_code =
-              assert(edit_exit_code = 0);
-              Sys.command
-                (Printf.sprintf "%s -t < %s"
-                   (Filename.quote mta)
-                   (Filename.quote fn))
-            in
-              assert(mta_exit_code = 0);
-              print_endline "Announcement sent."
-          end
-        else
-          begin
-            print_endline "No announcement sent."
-          end;
-        Sys.remove fn
-    with e ->
-      Sys.remove fn;
-      raise e
+  try
+    let () =
+      let chn_out = open_out fn in
+      output_string chn_out email;
+      close_out chn_out
+    in
+    let edit_exit_code =
+      Sys.command
+        (Printf.sprintf "%s %s"
+           (Filename.quote editor)
+           (Filename.quote fn))
+    in
+    let send_announcement =
+      print_string "Send the announcement? (y/N) ";
+      match read_line () with
+        | "y" -> true
+        | _ -> false
+    in
+    if send_announcement then
+      begin
+        let mta_exit_code =
+          assert(edit_exit_code = 0);
+          Sys.command
+            (Printf.sprintf "%s -t < %s"
+               (Filename.quote mta)
+               (Filename.quote fn))
+        in
+        assert(mta_exit_code = 0);
+        print_endline "Announcement sent."
+      end
+    else
+      begin
+        print_endline "No announcement sent."
+      end;
+    Sys.remove fn
+  with e ->
+    Sys.remove fn;
+    raise e

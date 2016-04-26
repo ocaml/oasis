@@ -23,7 +23,7 @@
 
 (** Display the manual
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open CLISubCommand
@@ -35,37 +35,37 @@ let main ~ctxt output =
   let fmt, fclose =
     match output with
       | Some fn ->
-          let chn =
-            open_out fn
-          in
-            Format.formatter_of_out_channel chn,
-            (fun () -> close_out chn)
+        let chn =
+          open_out fn
+        in
+        Format.formatter_of_out_channel chn,
+        (fun () -> close_out chn)
 
       | None ->
-          let pager, fmt =
-            CLIPager.open_out ()
-          in
-            fmt,
-            (fun () -> CLIPager.close_out pager)
+        let pager, fmt =
+          CLIPager.open_out ()
+        in
+        fmt,
+        (fun () -> CLIPager.close_out pager)
   in
 
-    OASISHelp.pp_print_help
-      fmt
+  OASISHelp.pp_print_help
+    fmt
 
-      (* CLI help *)
-      (pp_print_help ~ctxt AllSubCommand Markdown)
+    (* CLI help *)
+    (pp_print_help ~ctxt AllSubCommand Markdown)
 
-      (* Fields from schema *)
-      BaseEnv.schema
+    (* Fields from schema *)
+    BaseEnv.schema
 
-      (* Environment variable *)
-      (let lst =
-         BaseEnv.var_all ()
-       in
-         fun nm _ ->
-           List.mem nm lst);
+    (* Environment variable *)
+    (let lst =
+       BaseEnv.var_all ()
+     in
+     fun nm _ ->
+       List.mem nm lst);
 
-    fclose ()
+  fclose ()
 
 
 let () =
@@ -75,9 +75,9 @@ let () =
     (CLISubCommand.make_run
        (fun () ->
           let output = ref None in
-            (["-o",
-              Arg.String (fun s -> output := Some s),
-              "fn Output manual to filename."],
-             CLISubCommand.default_anon),
-            (fun () -> !output))
+          (["-o",
+            Arg.String (fun s -> output := Some s),
+            "fn Output manual to filename."],
+           CLISubCommand.default_anon),
+          (fun () -> !output))
        main)

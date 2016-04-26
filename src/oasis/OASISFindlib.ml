@@ -39,15 +39,15 @@ exception FindlibPackageNotFound of findlib_name
 type group_t =
   | Container of findlib_name * group_t list
   | Package of (findlib_name *
-                common_section *
-                build_section *
-                [`Library of library | `Object of object_] *
-                group_t list)
+        common_section *
+        build_section *
+        [`Library of library | `Object of object_] *
+        group_t list)
 
 
 type data = common_section *
-            build_section *
-            [`Library of library | `Object of object_]
+    build_section *
+    [`Library of library | `Object of object_]
 type tree =
   | Node of (data option) * (tree MapString.t)
   | Leaf of data
@@ -65,53 +65,53 @@ let findlib_mapping pkg =
       let name =
         String.concat "." (lib.lib_findlib_containers @ [name])
       in
-        name
+      name
     in
-      List.fold_left
-        (fun mp ->
-           function
-             | Library (cs, _, lib) ->
-                 begin
-                   let lib_name = cs.cs_name in
-                   let fndlb_parts = fndlb_parts cs lib in
-                     if MapString.mem lib_name mp then
-                       failwithf
-                         (f_ "The library name '%s' is used more than once.")
-                         lib_name;
-                     match lib.lib_findlib_parent with
-                       | Some lib_name_parent ->
-                           MapString.add
-                             lib_name
-                             (`Unsolved (lib_name_parent, fndlb_parts))
-                             mp
-                       | None ->
-                           MapString.add
-                             lib_name
-                             (`Solved fndlb_parts)
-                             mp
-                 end
-
-             | Object (cs, _, obj) ->
-                 begin
-                   let obj_name = cs.cs_name in
-                   if MapString.mem obj_name mp then
-                     failwithf
-                       (f_ "The object name '%s' is used more than once.")
-                       obj_name;
-                   let findlib_full_name = match obj.obj_findlib_fullname with
-                     | Some ns -> String.concat "." ns
-                     | None -> obj_name
-                   in
+    List.fold_left
+      (fun mp ->
+         function
+           | Library (cs, _, lib) ->
+             begin
+               let lib_name = cs.cs_name in
+               let fndlb_parts = fndlb_parts cs lib in
+               if MapString.mem lib_name mp then
+                 failwithf
+                   (f_ "The library name '%s' is used more than once.")
+                   lib_name;
+               match lib.lib_findlib_parent with
+                 | Some lib_name_parent ->
                    MapString.add
-                     obj_name
-                     (`Solved findlib_full_name)
+                     lib_name
+                     (`Unsolved (lib_name_parent, fndlb_parts))
                      mp
-                 end
+                 | None ->
+                   MapString.add
+                     lib_name
+                     (`Solved fndlb_parts)
+                     mp
+             end
 
-             | Executable _ | Test _ | Flag _ | SrcRepo _ | Doc _ ->
-                 mp)
-        MapString.empty
-        pkg.sections
+           | Object (cs, _, obj) ->
+             begin
+               let obj_name = cs.cs_name in
+               if MapString.mem obj_name mp then
+                 failwithf
+                   (f_ "The object name '%s' is used more than once.")
+                   obj_name;
+               let findlib_full_name = match obj.obj_findlib_fullname with
+                 | Some ns -> String.concat "." ns
+                 | None -> obj_name
+               in
+               MapString.add
+                 obj_name
+                 (`Solved findlib_full_name)
+                 mp
+             end
+
+           | Executable _ | Test _ | Flag _ | SrcRepo _ | Doc _ ->
+             mp)
+      MapString.empty
+      pkg.sections
   in
 
   (* Solve the above graph to be only library name to full findlib name. *)
@@ -123,40 +123,40 @@ let findlib_mapping pkg =
                with regard to findlib naming.")
           lib_name;
       let visited = SetString.add lib_name visited in
-        try
-          match MapString.find lib_name mp with
-            | `Solved fndlb_nm ->
-                fndlb_nm, mp
-            | `Unsolved (lib_nm_parent, post_fndlb_nm) ->
-                let pre_fndlb_nm, mp =
-                  solve visited mp lib_nm_parent lib_name
-                in
-                let fndlb_nm = pre_fndlb_nm^"."^post_fndlb_nm in
-                  fndlb_nm, MapString.add lib_name (`Solved fndlb_nm) mp
-        with Not_found ->
-          failwithf
-            (f_ "Library '%s', which is defined as the findlib parent of \
-                 library '%s', doesn't exist.")
-            lib_name lib_name_child
+      try
+        match MapString.find lib_name mp with
+          | `Solved fndlb_nm ->
+            fndlb_nm, mp
+          | `Unsolved (lib_nm_parent, post_fndlb_nm) ->
+            let pre_fndlb_nm, mp =
+              solve visited mp lib_nm_parent lib_name
+            in
+            let fndlb_nm = pre_fndlb_nm^"."^post_fndlb_nm in
+            fndlb_nm, MapString.add lib_name (`Solved fndlb_nm) mp
+      with Not_found ->
+        failwithf
+          (f_ "Library '%s', which is defined as the findlib parent of \
+               library '%s', doesn't exist.")
+          lib_name lib_name_child
     in
     let mp =
       MapString.fold
         (fun lib_name status mp ->
            match status with
              | `Solved _ ->
-                 (* Solved initialy, no need to go further *)
-                 mp
+               (* Solved initialy, no need to go further *)
+               mp
              | `Unsolved _ ->
-                 let _, mp = solve SetString.empty mp lib_name "<none>" in
-                   mp)
+               let _, mp = solve SetString.empty mp lib_name "<none>" in
+               mp)
         fndlb_parts_of_lib_name
         fndlb_parts_of_lib_name
     in
-      MapString.map
-        (function
-           | `Solved fndlb_nm -> fndlb_nm
-           | `Unsolved _ -> assert false)
-        mp
+    MapString.map
+      (function
+        | `Solved fndlb_nm -> fndlb_nm
+        | `Unsolved _ -> assert false)
+      mp
   in
 
   (* Convert an internal library name to a findlib name. *)
@@ -168,60 +168,60 @@ let findlib_mapping pkg =
   in
 
   (* Add a library to the tree.
-   *)
+  *)
   let add sct mp =
     let fndlb_fullname =
       let cs, _, _ = sct in
       let lib_name = cs.cs_name in
-        findlib_name_of_library_name lib_name
+      findlib_name_of_library_name lib_name
     in
     let rec add_children nm_lst (children: tree MapString.t) =
       match nm_lst with
         | (hd :: tl) ->
-            begin
-              let node =
-                try
-                  add_node tl (MapString.find hd children)
-                with Not_found ->
-                  (* New node *)
-                  new_node tl
-              in
-                MapString.add hd node children
-            end
+          begin
+            let node =
+              try
+                add_node tl (MapString.find hd children)
+              with Not_found ->
+                (* New node *)
+                new_node tl
+            in
+            MapString.add hd node children
+          end
         | [] ->
-            (* Should not have a nameless library. *)
-            assert false
+          (* Should not have a nameless library. *)
+          assert false
     and add_node tl node =
       if tl = [] then
         begin
           match node with
             | Node (None, children) ->
-                Node (Some sct, children)
+              Node (Some sct, children)
             | Leaf (cs', _, _) | Node (Some (cs', _, _), _) ->
-                (* TODO: allow to merge Package, i.e.
-                 * archive(byte) = "foo.cma foo_init.cmo"
-                 *)
-                let cs, _, _ = sct in
-                  failwithf
-                    (f_ "Library '%s' and '%s' have the same findlib name '%s'")
-                    cs.cs_name cs'.cs_name fndlb_fullname
+              (* TODO: allow to merge Package, i.e.
+               * archive(byte) = "foo.cma foo_init.cmo"
+              *)
+              let cs, _, _ = sct in
+              failwithf
+                (f_ "Library '%s' and '%s' have the same findlib name '%s'")
+                cs.cs_name cs'.cs_name fndlb_fullname
         end
       else
         begin
           match node with
             | Leaf data ->
-                Node (Some data, add_children tl MapString.empty)
+              Node (Some data, add_children tl MapString.empty)
             | Node (data_opt, children) ->
-                Node (data_opt, add_children tl children)
+              Node (data_opt, add_children tl children)
         end
     and new_node =
       function
         | [] ->
-            Leaf sct
+          Leaf sct
         | hd :: tl ->
-            Node (None, MapString.add hd (new_node tl) MapString.empty)
+          Node (None, MapString.add hd (new_node tl) MapString.empty)
     in
-      add_children (OASISString.nsplit fndlb_fullname '.') mp
+    add_children (OASISString.nsplit fndlb_fullname '.') mp
   in
 
   let rec group_of_tree mp =
@@ -230,13 +230,13 @@ let findlib_mapping pkg =
          let cur =
            match node with
              | Node (Some (cs, bs, lib), children) ->
-                 Package (nm, cs, bs, lib, group_of_tree children)
+               Package (nm, cs, bs, lib, group_of_tree children)
              | Node (None, children) ->
-                 Container (nm, group_of_tree children)
+               Container (nm, group_of_tree children)
              | Leaf (cs, bs, lib) ->
-                 Package (nm, cs, bs, lib, [])
+               Package (nm, cs, bs, lib, [])
          in
-           cur :: acc)
+         cur :: acc)
       mp []
   in
 
@@ -245,11 +245,11 @@ let findlib_mapping pkg =
       (fun mp ->
          function
            | Library (cs, bs, lib) ->
-               add (cs, bs, `Library lib) mp
+             add (cs, bs, `Library lib) mp
            | Object (cs, bs, obj) ->
-               add (cs, bs, `Object obj) mp
+             add (cs, bs, `Object obj) mp
            | _ ->
-               mp)
+             mp)
       MapString.empty
       pkg.sections
   in
@@ -274,9 +274,9 @@ let findlib_mapping pkg =
       raise (FindlibPackageNotFound fndlb_nm)
   in
 
-    groups,
-    findlib_name_of_library_name,
-    library_name_of_findlib_name
+  groups,
+  findlib_name_of_library_name,
+  library_name_of_findlib_name
 
 
 let findlib_of_group =
@@ -290,24 +290,24 @@ let root_of_group grp =
     (* We do a DFS in the group. *)
     function
       | Container (_, children) ->
-          List.fold_left
-            (fun res grp ->
-               if res = None then
-                 root_lib_aux grp
-               else
-                 res)
-            None
-            children
+        List.fold_left
+          (fun res grp ->
+             if res = None then
+               root_lib_aux grp
+             else
+               res)
+          None
+          children
       | Package (_, cs, bs, lib, _) ->
-          Some (cs, bs, lib)
+        Some (cs, bs, lib)
   in
-    match root_lib_aux grp with
-      | Some res ->
-          res
-      | None ->
-          failwithf
-            (f_ "Unable to determine root library of findlib library '%s'")
-            (findlib_of_group grp)
+  match root_lib_aux grp with
+    | Some res ->
+      res
+    | None ->
+      failwithf
+        (f_ "Unable to determine root library of findlib library '%s'")
+        (findlib_of_group grp)
 
 
 (* END EXPORT *)
@@ -316,17 +316,17 @@ let root_of_group grp =
 let () =
   Printexc.register_printer
     (function
-       | InternalLibraryNotFound lib_nm ->
-           Some
-             (Printf.sprintf
-                (f_ "Unable to translate internal library name '%s' \
-                     to findlib name.")
-                lib_nm)
-       | FindlibPackageNotFound fndlb_nm ->
-           Some
-             (Printf.sprintf
-                (f_ "Unable to translate findlib name '%s' \
-                     to internal library name.")
-                fndlb_nm)
-       | _ ->
-           None)
+      | InternalLibraryNotFound lib_nm ->
+        Some
+          (Printf.sprintf
+             (f_ "Unable to translate internal library name '%s' \
+                  to findlib name.")
+             lib_nm)
+      | FindlibPackageNotFound fndlb_nm ->
+        Some
+          (Printf.sprintf
+             (f_ "Unable to translate findlib name '%s' \
+                  to internal library name.")
+             fndlb_nm)
+      | _ ->
+        None)

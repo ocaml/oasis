@@ -26,7 +26,7 @@
  *
  * It was:
  * Copyright (C) 2008 Stéphane Glondu
- *)
+*)
 
 
 exception Dynlink_error of string * exn
@@ -50,32 +50,32 @@ open Printf
 let () =
   Printexc.register_printer
     (function
-       | Dynlink_error (s, Dynlink.Error e) ->
-           Some
-             (sprintf (f_ "Dynlink error while loading '%s': %s")
-                s (Dynlink.error_message e))
+      | Dynlink_error (s, Dynlink.Error e) ->
+        Some
+          (sprintf (f_ "Dynlink error while loading '%s': %s")
+             s (Dynlink.error_message e))
 
-       | Findlib_error (s, Fl_package_base.No_such_package (s', msg)) ->
-           let pkg =
-             if s = s' then
-               "'"^s^"'"
-             else
-               sprintf (f_ "'%s' [while trying to load '%s']") s' s
-           in
-           let additional =
-             if msg = "" then "" else sprintf " (%s)" msg
-           in
-             Some
-               (sprintf (f_ "Findlib package %s not found%s")
-                  pkg additional)
+      | Findlib_error (s, Fl_package_base.No_such_package (s', msg)) ->
+        let pkg =
+          if s = s' then
+            "'"^s^"'"
+          else
+            sprintf (f_ "'%s' [while trying to load '%s']") s' s
+        in
+        let additional =
+          if msg = "" then "" else sprintf " (%s)" msg
+        in
+        Some
+          (sprintf (f_ "Findlib package %s not found%s")
+             pkg additional)
 
-       | Findlib_error (s, e) ->
-           Some (sprintf "Findlib error while handling '%s': %s"
-                   s (Printexc.to_string e))
-       | Plugin_not_found nm ->
-           Some (sprintf (f_ "Plugin '%s' not found") nm)
-       | _ ->
-           None);
+      | Findlib_error (s, e) ->
+        Some (sprintf "Findlib error while handling '%s': %s"
+            s (Printexc.to_string e))
+      | Plugin_not_found nm ->
+        Some (sprintf (f_ "Plugin '%s' not found") nm)
+      | _ ->
+        None);
 
 
 module StringSet = Set.Make(String)
@@ -94,7 +94,7 @@ let add_findlib_package e =
   findlib_packages_loaded := SetString.add e !findlib_packages_loaded
 
 (* Fake object, to keep in the generated program a reference to CamlinternalOO.
- *)
+*)
 class foo = object end
 
 
@@ -105,20 +105,20 @@ let init findlib_packages_loaded =
 
 
 type 'a t =
-    {
-      system: string;
-      msg: ([>`Debug | `Warning | `Error] as 'a) -> string -> unit;
-    }
+  {
+    system: string;
+    msg: ([>`Debug | `Warning | `Error] as 'a) -> string -> unit;
+  }
 
 
 type entry =
-    {
-      findlib_name: string;
-      name: string;
-      synopsis: string option;
-      version: string option;
-      deprecated: bool;
-    }
+  {
+    findlib_name: string;
+    name: string;
+    synopsis: string option;
+    version: string option;
+    deprecated: bool;
+  }
 
 
 (* Using Findlib to locate files *)
@@ -126,95 +126,95 @@ let findfiles t package =
   let rev_split_blank str =
     let buf = Buffer.create 13 in
     let lst = ref [] in
-      String.iter
-        (function
-           | ' ' ->
-               if Buffer.length buf > 0 then
-                 begin
-                   lst := Buffer.contents buf :: !lst;
-                   Buffer.clear buf
-                 end
-           | c ->
-               Buffer.add_char buf c)
-        str;
-      begin
-        match Buffer.contents buf with
-          | "" -> ()
-          | str -> lst := str :: !lst
-      end;
-      !lst
+    String.iter
+      (function
+        | ' ' ->
+          if Buffer.length buf > 0 then
+            begin
+              lst := Buffer.contents buf :: !lst;
+              Buffer.clear buf
+            end
+        | c ->
+          Buffer.add_char buf c)
+      str;
+    begin
+      match Buffer.contents buf with
+        | "" -> ()
+        | str -> lst := str :: !lst
+    end;
+    !lst
   in
 
-    try
-      let preds =
-        [if Dynlink.is_native then "native" else "byte"]
-      in
-      let deps =
-        List.filter
-          (fun a -> not (SetString.mem a !findlib_packages_loaded))
-          (Findlib.package_deep_ancestors preds [package])
-      in
-        t.msg
-          `Debug
-           (sprintf
-              (f_ "Dependencies of %s: %s")
-              package (String.concat ", " deps));
-      let rec aux =
-        function
-          | [] -> []
-          | a :: tl ->
-              let mods =
+  try
+    let preds =
+      [if Dynlink.is_native then "native" else "byte"]
+    in
+    let deps =
+      List.filter
+        (fun a -> not (SetString.mem a !findlib_packages_loaded))
+        (Findlib.package_deep_ancestors preds [package])
+    in
+    t.msg
+      `Debug
+      (sprintf
+         (f_ "Dependencies of %s: %s")
+         package (String.concat ", " deps));
+    let rec aux =
+      function
+        | [] -> []
+        | a :: tl ->
+          let mods =
+            try
+              let raw =
+                Findlib.package_property ("plugin" :: preds) a "archive"
+              in
+              List.rev (rev_split_blank raw)
+            with Not_found ->
+              begin
                 try
-                  let raw =
-                    Findlib.package_property ("plugin" :: preds) a "archive"
-                  in
-                    List.rev (rev_split_blank raw)
+                  let raw = Findlib.package_property preds a "archive" in
+                  List.rev_map
+                    (fun fn ->
+                       (* Replacing .cmx/.cmxa by .cmxs *)
+                       if Dynlink.is_native &&
+                          (Filename.check_suffix fn "cmx" ||
+                           Filename.check_suffix fn "cmxa") then
+                         (Filename.chop_extension fn) ^ ".cmxs"
+                       else
+                         fn)
+                    (rev_split_blank raw)
                 with Not_found ->
                   begin
-                    try
-                      let raw = Findlib.package_property preds a "archive" in
-                        List.rev_map
-                          (fun fn ->
-                             (* Replacing .cmx/.cmxa by .cmxs *)
-                             if Dynlink.is_native &&
-                                (Filename.check_suffix fn "cmx" ||
-                                 Filename.check_suffix fn "cmxa") then
-                               (Filename.chop_extension fn) ^ ".cmxs"
-                             else
-                               fn)
-                          (rev_split_blank raw)
-                    with Not_found ->
-                      begin
-                        t.msg `Error
-                          (sprintf
-                             (f_ "Cannot find 'archive' attribute for findlib \
-                                  package %s")
-                             a);
-                        []
-                      end
+                    t.msg `Error
+                      (sprintf
+                         (f_ "Cannot find 'archive' attribute for findlib \
+                              package %s")
+                         a);
+                    []
                   end
-              in
-              let base = Findlib.package_directory a in
-                add_findlib_package a;
-                (List.map (Findlib.resolve_path ~base) mods) @ (aux tl)
-        in
+              end
+          in
+          let base = Findlib.package_directory a in
+          add_findlib_package a;
+          (List.map (Findlib.resolve_path ~base) mods) @ (aux tl)
+    in
 
-        let res = aux deps in
-          t.msg `Debug (sprintf "Object files needed: %s"
-                          (String.concat ", " res));
-          res
+    let res = aux deps in
+    t.msg `Debug (sprintf "Object files needed: %s"
+        (String.concat ", " res));
+    res
 
-    with e ->
-      raise (Findlib_error (package, e))
+  with e ->
+    raise (Findlib_error (package, e))
 
 
 module SetEntry =
   Set.Make
     (struct
-       type t = entry
-       let compare e1 e2 =
-         String.compare e1.name e2.name
-     end)
+      type t = entry
+      let compare e1 e2 =
+        String.compare e1.name e2.name
+    end)
 
 
 let list t =
@@ -239,47 +239,47 @@ let list t =
                | Some str -> str
                | None -> dflt
            in
-             if plugin_system = t.system then begin
-               let deprecated =
-                 let str =
-                   default_lookup_val "plugin_deprecated" "false"
-                 in
-                 try
-                   bool_of_string str
-                 with Invalid_argument _ ->
-                   t.msg `Warning
-                     (sprintf "Field plugin_deprecated of plugin '%s' \
-                               should be true or false, got %s."
-                        pkg_str str);
-                   false
+           if plugin_system = t.system then begin
+             let deprecated =
+               let str =
+                 default_lookup_val "plugin_deprecated" "false"
                in
-               let entry =
-                 {
-                   findlib_name = pkg_str;
-                   name = default_lookup_val "plugin_name" pkg_str;
-                   synopsis = default_lookup "plugin_synopsis";
-                   version = default_lookup "version";
-                   deprecated = deprecated;
-                 }
-               in
-                 if SetEntry.mem entry acc then
-                   t.msg `Warning
-                     (sprintf
-                        (f_ "Plugin '%s' already defined \
-                             (findlib name: %s; directory: '%s').")
-                        entry.name
-                        pkg_str
-                        pkg.Fl_package_base.package_dir);
-                 SetEntry.add entry acc
-             end else begin
-               acc
-             end
+               try
+                 bool_of_string str
+               with Invalid_argument _ ->
+                 t.msg `Warning
+                   (sprintf "Field plugin_deprecated of plugin '%s' \
+                             should be true or false, got %s."
+                      pkg_str str);
+                 false
+             in
+             let entry =
+               {
+                 findlib_name = pkg_str;
+                 name = default_lookup_val "plugin_name" pkg_str;
+                 synopsis = default_lookup "plugin_synopsis";
+                 version = default_lookup "version";
+                 deprecated = deprecated;
+               }
+             in
+             if SetEntry.mem entry acc then
+               t.msg `Warning
+                 (sprintf
+                    (f_ "Plugin '%s' already defined \
+                         (findlib name: %s; directory: '%s').")
+                    entry.name
+                    pkg_str
+                    pkg.Fl_package_base.package_dir);
+             SetEntry.add entry acc
+           end else begin
+             acc
+           end
          with e ->
            acc)
       SetEntry.empty
       lst
   in
-    SetEntry.elements set
+  SetEntry.elements set
 
 
 let load t nm =
@@ -293,9 +293,9 @@ let load t nm =
   let lst =
     findfiles t entry.findlib_name
   in
-    try
-      List.iter Dynlink.loadfile lst
-    with e ->
-      raise (Dynlink_error (nm, e))
+  try
+    List.iter Dynlink.loadfile lst
+  with e ->
+    raise (Dynlink_error (nm, e))
 
 

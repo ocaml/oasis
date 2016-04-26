@@ -23,7 +23,7 @@
 
 (** Check an _oasis file
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISGettext

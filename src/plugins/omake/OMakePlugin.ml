@@ -23,7 +23,7 @@
 
 (** Generate omake configure/build/doc/test/install system
     @author Gerd Stolpmann
-  *)
+*)
 
 
 open BaseEnv
@@ -44,50 +44,50 @@ struct
          let evs =
            match sct with
              | Library (cs, bs, lib) when var_choose bs.bs_build ->
-                 begin
-                   let evs, _ =
-                     BaseBuilt.of_library
-                       OASISHostPath.of_unix
-                       (cs, bs, lib)
-                   in
-                     evs
-                 end
+               begin
+                 let evs, _ =
+                   BaseBuilt.of_library
+                     OASISHostPath.of_unix
+                     (cs, bs, lib)
+                 in
+                 evs
+               end
              | Executable (cs, bs, exec) when var_choose bs.bs_build ->
-                 begin
-                   let evs, _, _ =
-                     BaseBuilt.of_executable
-                       OASISHostPath.of_unix
-                       (cs, bs, exec)
-                   in
-                     evs
-                 end
+               begin
+                 let evs, _, _ =
+                   BaseBuilt.of_executable
+                     OASISHostPath.of_unix
+                     (cs, bs, exec)
+                 in
+                 evs
+               end
              | _ ->
-                 []
+               []
          in
-           List.iter
-             (fun (bt, bnm, lst) -> BaseBuilt.register bt bnm lst)
-             evs)
+         List.iter
+           (fun (bt, bnm, lst) -> BaseBuilt.register bt bnm lst)
+           evs)
       pkg.sections
 
   let clean run pkg extra_args =
     run_command "omake" (["clean"] @ OMakeFields.(run.extra_args)) extra_args;
     List.iter
       (function
-         | Library (cs, _, _) ->
-             BaseBuilt.unregister BaseBuilt.BLib cs.cs_name
-         | Executable (cs, _, _) ->
-             BaseBuilt.unregister BaseBuilt.BExec cs.cs_name;
-             BaseBuilt.unregister BaseBuilt.BExecLib cs.cs_name
-         | Doc(cs, _) ->
-             (* "omake clean" also cleans docs *)
-             BaseBuilt.unregister BaseBuilt.BDoc cs.cs_name
-         | _ ->
-             ())
+        | Library (cs, _, _) ->
+          BaseBuilt.unregister BaseBuilt.BLib cs.cs_name
+        | Executable (cs, _, _) ->
+          BaseBuilt.unregister BaseBuilt.BExec cs.cs_name;
+          BaseBuilt.unregister BaseBuilt.BExecLib cs.cs_name
+        | Doc(cs, _) ->
+          (* "omake clean" also cleans docs *)
+          BaseBuilt.unregister BaseBuilt.BDoc cs.cs_name
+        | _ ->
+          ())
       pkg.sections
 
   let distclean run pkg extra_args =
     run_command "omake" (["distclean"] @ OMakeFields.(run.extra_args))
-                extra_args;
+      extra_args;
     List.iter
       (fun fn -> if Sys.file_exists fn then Sys.remove fn)
       [".omakedb"; ".omakedb.lock"]
@@ -101,7 +101,7 @@ module InstallRuntime = struct
 
   let uninstall run pkg extra_args =
     run_command "omake" (["uninstall"] @ OMakeFields.(run.extra_args))
-                extra_args
+      extra_args
 end
 
 
@@ -120,25 +120,25 @@ module DocRuntime = struct
       (fun sct ->
          match sct with
            | Doc(cs,doc) when var_choose doc.doc_build ->
-               let files =
-                 Array.to_list
-                   (Sys.readdir (OASISHostPath.of_unix target)) in
-               let files =
-                 List.filter
-                   (fun n -> n.[0] <> '.')
-                   files in
-               let full_files =
-                 List.map
-                   (fun n ->
-                      OASISHostPath.of_unix (OASISUnixPath.concat target n)
-                   )
-                   files in
-               BaseBuilt.register
-                 BaseBuilt.BDoc
-                 cs.cs_name
-                 [full_files]
+             let files =
+               Array.to_list
+                 (Sys.readdir (OASISHostPath.of_unix target)) in
+             let files =
+               List.filter
+                 (fun n -> n.[0] <> '.')
+                 files in
+             let full_files =
+               List.map
+                 (fun n ->
+                    OASISHostPath.of_unix (OASISUnixPath.concat target n)
+                 )
+                 files in
+             BaseBuilt.register
+               BaseBuilt.BDoc
+               cs.cs_name
+               [full_files]
            | _ ->
-               ()
+             ()
       )
       pkg.sections
 end

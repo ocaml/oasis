@@ -23,7 +23,7 @@
 
 (** Running commands
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISTypes
@@ -34,7 +34,7 @@ open OASISTypes
     (even when it is [0]).  Otherwise, a non-zero exit code raises
     [Failure].
     @param quote quote the prog.
-  *)
+*)
 val run:
   ctxt:OASISContext.t ->
   ?f_exit_code:(int -> unit) ->

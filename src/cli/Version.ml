@@ -22,7 +22,7 @@
 
 
 (** Display version of the OASIS command
-  *)
+*)
 
 
 open CLISubCommand

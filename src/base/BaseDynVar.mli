@@ -28,9 +28,9 @@
     matching executable had been successfully created.
 
     @author Sylvain Le Gall
-  *)
+*)
 
 
 (** Read 'setup.log' and sets variables.
-  *)
+*)
 val init: OASISTypes.package -> unit

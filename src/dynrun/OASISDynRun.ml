@@ -25,7 +25,7 @@
 
    We use this to reduce setup.ml replaceable section to a few lines
    everything else is dynamically generated.
- *)
+*)
 
 
 let () = OASISBuiltinPlugins.init ()
@@ -40,7 +40,7 @@ let setup_t =
     OASISParse.from_file ~ctxt:!BaseContext.default OASISParse.default_oasis_fn
   in
   let _, setup_t = BaseSetup.of_package ~setup_update:false OASISSetupUpdate.Dynamic pkg in
-    setup_t
+  setup_t
 
 
 (* Re-export BaseSetup.setup so one can modify setup_t before passing it
@@ -74,11 +74,11 @@ module BaseSetup = struct
       let setup_t =
         (* Override distclean, because it remove setup.log and we need it for
          * BaseGenerate.restore
-         *)
+        *)
         {setup_t with distclean = setup_t.distclean @ [fun _ _ -> cleanup ()]}
       in
-        BaseSetup.setup setup_t;
-        cleanup ()
+      BaseSetup.setup setup_t;
+      cleanup ()
     with e ->
       cleanup ();
       raise e

@@ -27,9 +27,9 @@ open OASISSection
 
 (** Add section fields *)
 let section_fields
-      hlp
-      (schm: 'a OASISSchema_intern.t)
-      (sync: 'a -> common_section) =
+    hlp
+    (schm: 'a OASISSchema_intern.t)
+    (sync: 'a -> common_section) =
   fun (features_data: OASISFeatures.Data.t) nm data ->
     {
       cs_name = nm;
@@ -53,7 +53,7 @@ module SetSectionId = Set.Make(CIdSection)
 
 
 (** Convert a MapSection.t into a MapSectionId.t
-  *)
+*)
 let map_section_id mp =
   MapSection.fold
     (fun k v mp ->

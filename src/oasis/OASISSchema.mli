@@ -23,7 +23,7 @@
 
 (** Add fields to _oasis for plugin
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISTypes
@@ -44,7 +44,7 @@ type 'a t = 'a OASISSchema_intern.t
     The result of this function is a getter that helps you to get the data
     from the field parsed in the _oasis file. You should use it to generate
     a datastructure (the one that will be used by [sync]).
-  *)
+*)
 val new_field:
   ('b t) ->
   OASISPlugin.all_t ->
@@ -61,7 +61,7 @@ val new_field:
     The extra [default_cond] parameter allows to define a complex default. If
     [default_cond] and [default] are defined together, they are concatened in
     this order.
-  *)
+*)
 val new_field_conditional:
   ('b t) ->
   OASISPlugin.all_t ->

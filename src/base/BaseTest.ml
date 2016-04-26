@@ -32,11 +32,11 @@ let test lst pkg extra_args =
 
   let one_test (failure, n) (test_plugin, cs, test) =
     if var_choose
-         ~name:(Printf.sprintf
-                  (f_ "test %s run")
-                  cs.cs_name)
-         ~printer:string_of_bool
-         test.test_run then
+        ~name:(Printf.sprintf
+            (f_ "test %s run")
+            cs.cs_name)
+        ~printer:string_of_bool
+        test.test_run then
       begin
         let () =
           info (f_ "Running test '%s'") cs.cs_name
@@ -44,33 +44,33 @@ let test lst pkg extra_args =
         let back_cwd =
           match test.test_working_directory with
             | Some dir ->
-                let cwd =
-                  Sys.getcwd ()
-                in
-                let chdir d =
-                  info (f_ "Changing directory to '%s'") d;
-                  Sys.chdir d
-                in
-                  chdir dir;
-                  fun () -> chdir cwd
+              let cwd =
+                Sys.getcwd ()
+              in
+              let chdir d =
+                info (f_ "Changing directory to '%s'") d;
+                Sys.chdir d
+              in
+              chdir dir;
+              fun () -> chdir cwd
 
             | None ->
-                fun () -> ()
+              fun () -> ()
         in
-          try
-            let failure_percent =
-              BaseCustom.hook
-                test.test_custom
-                (test_plugin pkg (cs, test))
-                extra_args
-            in
-              back_cwd ();
-              (failure_percent +. failure, n + 1)
-          with e ->
-            begin
-              back_cwd ();
-              raise e
-            end
+        try
+          let failure_percent =
+            BaseCustom.hook
+              test.test_custom
+              (test_plugin pkg (cs, test))
+              extra_args
+          in
+          back_cwd ();
+          (failure_percent +. failure, n + 1)
+        with e ->
+          begin
+            back_cwd ();
+            raise e
+          end
       end
     else
       begin
@@ -95,15 +95,15 @@ let test lst pkg extra_args =
       (f_ "Tests had a %.2f%% failure rate")
       (100. *. failure_percent)
   in
-    if failure_percent > 0.0 then
-      failwith msg
-    else
-      info "%s" msg;
+  if failure_percent > 0.0 then
+    failwith msg
+  else
+    info "%s" msg;
 
-    (* Possible explanation why the tests where not run. *)
-    if OASISFeatures.package_test OASISFeatures.flag_tests pkg &&
-       not (bool_of_string (BaseStandardVar.tests ())) &&
-       lst <> [] then
-      BaseMessage.warning
-        "Tests are turned off, consider enabling with \
-         'ocaml setup.ml -configure --enable-tests'"
+  (* Possible explanation why the tests where not run. *)
+  if OASISFeatures.package_test OASISFeatures.flag_tests pkg &&
+     not (bool_of_string (BaseStandardVar.tests ())) &&
+     lst <> [] then
+    BaseMessage.warning
+      "Tests are turned off, consider enabling with \
+       'ocaml setup.ml -configure --enable-tests'"

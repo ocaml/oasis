@@ -36,35 +36,35 @@ let find_module source_file_exists bs modul =
        OASISUnixPath.uncapitalize_file modul;
        OASISUnixPath.capitalize_file modul]
   in
-    (* TODO: we should be able to be able to determine the source for every
-     * files. Hence we should introduce a Module(source: fn) for the fields
-     * Modules and InternalModules
-     *)
-    List.fold_left
-      (fun acc base_fn ->
-         match acc with
-           | `No_sources _ ->
-               begin
-                 let file_found =
-                   List.fold_left
-                     (fun acc ext ->
-                        if source_file_exists (base_fn^ext) then
-                          (base_fn^ext) :: acc
-                        else
-                          acc)
-                     []
-                     [".ml"; ".mli"; ".mll"; ".mly"]
-                 in
-                   match file_found with
-                     | [] ->
-                         acc
-                     | lst ->
-                         `Sources (base_fn, lst)
-               end
-           | `Sources _ ->
-               acc)
-      (`No_sources possible_base_fn)
-      possible_base_fn
+  (* TODO: we should be able to be able to determine the source for every
+   * files. Hence we should introduce a Module(source: fn) for the fields
+   * Modules and InternalModules
+  *)
+  List.fold_left
+    (fun acc base_fn ->
+       match acc with
+         | `No_sources _ ->
+           begin
+             let file_found =
+               List.fold_left
+                 (fun acc ext ->
+                    if source_file_exists (base_fn^ext) then
+                      (base_fn^ext) :: acc
+                    else
+                      acc)
+                 []
+                 [".ml"; ".mli"; ".mll"; ".mly"]
+             in
+             match file_found with
+               | [] ->
+                 acc
+               | lst ->
+                 `Sources (base_fn, lst)
+           end
+         | `Sources _ ->
+           acc)
+    (`No_sources possible_base_fn)
+    possible_base_fn
 
 
 let source_unix_files ~ctxt (cs, bs, lib) source_file_exists =
@@ -72,49 +72,49 @@ let source_unix_files ~ctxt (cs, bs, lib) source_file_exists =
     (fun acc modul ->
        match find_module source_file_exists bs modul with
          | `Sources (base_fn, lst) ->
-             (base_fn, lst) :: acc
+           (base_fn, lst) :: acc
          | `No_sources _ ->
-             OASISMessage.warning
-               ~ctxt
-               (f_ "Cannot find source file matching \
-                    module '%s' in library %s")
-               modul cs.cs_name;
-             acc)
+           OASISMessage.warning
+             ~ctxt
+             (f_ "Cannot find source file matching \
+                  module '%s' in library %s")
+             modul cs.cs_name;
+           acc)
     []
     (lib.lib_modules @ lib.lib_internal_modules)
 
 
 let generated_unix_files
-      ~ctxt
-      ~is_native
-      ~has_native_dynlink
-      ~ext_lib
-      ~ext_dll
-      ~source_file_exists
-      (cs, bs, lib) =
+    ~ctxt
+    ~is_native
+    ~has_native_dynlink
+    ~ext_lib
+    ~ext_dll
+    ~source_file_exists
+    (cs, bs, lib) =
 
   let find_modules lst ext =
     let find_module modul =
       match find_module source_file_exists bs modul with
         | `Sources (base_fn, [fn]) when ext <> "cmi"
                                      && Filename.check_suffix fn ".mli" ->
-            None (* No implementation files for pure interface. *)
+          None (* No implementation files for pure interface. *)
         | `Sources (base_fn, _) ->
-            Some [base_fn]
+          Some [base_fn]
         | `No_sources lst ->
-            OASISMessage.warning
-              ~ctxt
-              (f_ "Cannot find source file matching \
-                   module '%s' in library %s")
-              modul cs.cs_name;
-            Some lst
+          OASISMessage.warning
+            ~ctxt
+            (f_ "Cannot find source file matching \
+                 module '%s' in library %s")
+            modul cs.cs_name;
+          Some lst
     in
     List.fold_left
       (fun acc nm ->
-        match find_module nm with
-          | None -> acc
-          | Some base_fns ->
-              List.map (fun base_fn -> base_fn ^"."^ext) base_fns :: acc)
+         match find_module nm with
+           | None -> acc
+           | Some base_fns ->
+             List.map (fun base_fn -> base_fn ^"."^ext) base_fns :: acc)
       []
       lst
   in
@@ -127,17 +127,17 @@ let generated_unix_files
         | Best -> is_native
         | Byte -> false
     in
-      if should_be_built then
-        if lib.lib_pack then
-          find_modules
-            [cs.cs_name]
-            "cmx"
-        else
-          find_modules
-            (lib.lib_modules @ lib.lib_internal_modules)
-            "cmx"
+    if should_be_built then
+      if lib.lib_pack then
+        find_modules
+          [cs.cs_name]
+          "cmx"
       else
-        []
+        find_modules
+          (lib.lib_modules @ lib.lib_internal_modules)
+          "cmx"
+    else
+      []
   in
 
   let acc_nopath =
@@ -183,15 +183,15 @@ let generated_unix_files
              [cs.cs_name^".cmxs"] :: acc
            else acc)
       in
-        [cs.cs_name^".cmxa"] :: [cs.cs_name^ext_lib] :: acc
+      [cs.cs_name^".cmxa"] :: [cs.cs_name^ext_lib] :: acc
     in
-      match bs.bs_compiled_object with
-        | Native ->
-            byte (native acc_nopath)
-        | Best when is_native ->
-            byte (native acc_nopath)
-        | Byte | Best ->
-            byte acc_nopath
+    match bs.bs_compiled_object with
+      | Native ->
+        byte (native acc_nopath)
+      | Best when is_native ->
+        byte (native acc_nopath)
+      | Byte | Best ->
+        byte acc_nopath
   in
 
   (* Add C library to be built *)
@@ -200,21 +200,21 @@ let generated_unix_files
       begin
         ["lib"^cs.cs_name^"_stubs"^ext_lib]
         ::
-        ["dll"^cs.cs_name^"_stubs"^ext_dll]
+          ["dll"^cs.cs_name^"_stubs"^ext_dll]
         ::
-        acc_nopath
+          acc_nopath
       end
     else
       acc_nopath
   in
 
-    (* All the files generated *)
-    List.rev_append
-      (List.rev_map
-         (List.rev_map
-            (OASISUnixPath.concat bs.bs_path))
-         acc_nopath)
-      (headers @ cmxs)
+  (* All the files generated *)
+  List.rev_append
+    (List.rev_map
+       (List.rev_map
+          (OASISUnixPath.concat bs.bs_path))
+       acc_nopath)
+    (headers @ cmxs)
 
 
 (* END EXPORT *)

@@ -26,7 +26,7 @@
     The whole module is {b not exported}.
 
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISTypes
@@ -37,7 +37,7 @@ val default_oasis_fn: host_filename
 (** [from_stream ~ctxt ~ignore_plugins ~fn st] Parse the OASIS file [~fn] and
     check it. If [~ignore_plugins] is set, ignore unknown plugin's fields in the
     file.
-  *)
+*)
 val from_stream:
   ctxt:OASISContext.t ->
   ?fn:host_filename ->
@@ -46,7 +46,7 @@ val from_stream:
 
 
 (** See {!from_stream}, apply to a filename.
-  *)
+*)
 val from_file:
   ctxt:OASISContext.t ->
   host_filename ->
@@ -54,7 +54,7 @@ val from_file:
 
 
 (** See {!from_stream}, apply to a string.
-  *)
+*)
 val from_string:
   ctxt:OASISContext.t ->
   ?fn:host_filename ->

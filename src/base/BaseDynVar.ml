@@ -32,34 +32,34 @@ let init pkg =
   (* TODO: provide compile option for library libary_byte_args_VARNAME... *)
   List.iter
     (function
-       | Executable (cs, bs, exec) ->
-           if var_choose bs.bs_build then
-             var_ignore
-               (var_redefine
-                  (* We don't save this variable *)
-                  ~dump:false
-                  ~short_desc:(fun () ->
-                                 Printf.sprintf
-                                   (f_ "Filename of executable '%s'")
-                                   cs.cs_name)
-                  (OASISUtils.varname_of_string cs.cs_name)
-                  (fun () ->
-                     let fn_opt =
-                       fold
-                         BExec cs.cs_name
-                         (fun _ fn -> Some fn)
-                         None
-                     in
-                       match fn_opt with
-                         | Some fn -> fn
-                         | None ->
-                             raise
-                               (PropList.Not_set
-                                  (cs.cs_name,
-                                   Some (Printf.sprintf
-                                           (f_ "Executable '%s' not yet built.")
-                                           cs.cs_name)))))
+      | Executable (cs, bs, exec) ->
+        if var_choose bs.bs_build then
+          var_ignore
+            (var_redefine
+               (* We don't save this variable *)
+               ~dump:false
+               ~short_desc:(fun () ->
+                 Printf.sprintf
+                   (f_ "Filename of executable '%s'")
+                   cs.cs_name)
+               (OASISUtils.varname_of_string cs.cs_name)
+               (fun () ->
+                  let fn_opt =
+                    fold
+                      BExec cs.cs_name
+                      (fun _ fn -> Some fn)
+                      None
+                  in
+                  match fn_opt with
+                    | Some fn -> fn
+                    | None ->
+                      raise
+                        (PropList.Not_set
+                           (cs.cs_name,
+                            Some (Printf.sprintf
+                                (f_ "Executable '%s' not yet built.")
+                                cs.cs_name)))))
 
-       | Library _ | Object _ | Flag _ | Test _ | SrcRepo _ | Doc _ ->
-           ())
+      | Library _ | Object _ | Flag _ | Test _ | SrcRepo _ | Doc _ ->
+        ())
     pkg.sections

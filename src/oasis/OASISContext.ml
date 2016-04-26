@@ -51,7 +51,7 @@ let printf lvl str =
       | `Info  -> s_ "I: "
       | `Debug -> s_ "D: "
   in
-    prerr_endline (beg^str)
+  prerr_endline (beg^str)
 
 
 let default =

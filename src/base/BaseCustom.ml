@@ -42,29 +42,29 @@ let hook ?(failsafe=false) cstm f e =
         | Some (cmd, args) -> String.concat " " (cmd :: args)
         | None -> s_ "No command"
     in
-      match
-        var_choose
-          ~name:(s_ "Pre/Post Command")
-          ~printer
-          lst with
-        | Some (cmd, args) ->
-            begin
-              try
-                run cmd args [||]
-              with e when failsafe ->
-                warning
-                  (f_ "Command '%s' fail with error: %s")
-                  (String.concat " " (cmd :: args))
-                  (match e with
-                     | Failure msg -> msg
-                     | e -> Printexc.to_string e)
-            end
-        | None ->
-            ()
+    match
+      var_choose
+        ~name:(s_ "Pre/Post Command")
+        ~printer
+        lst with
+      | Some (cmd, args) ->
+        begin
+          try
+            run cmd args [||]
+          with e when failsafe ->
+            warning
+              (f_ "Command '%s' fail with error: %s")
+              (String.concat " " (cmd :: args))
+              (match e with
+                | Failure msg -> msg
+                | e -> Printexc.to_string e)
+        end
+      | None ->
+        ()
   in
   let res =
     optional_command cstm.pre_command;
     f e
   in
-    optional_command cstm.post_command;
-    res
+  optional_command cstm.post_command;
+  res

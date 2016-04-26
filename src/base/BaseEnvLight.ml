@@ -58,23 +58,23 @@ let load ?(allow_empty=false) ?(filename=Lazy.force default_filename) () =
       let rec read_file mp =
         match Stream.npeek 3 lexer with
           | [Genlex.Ident nm; Genlex.Kwd "="; Genlex.String value] ->
-              Stream.junk lexer;
-              Stream.junk lexer;
-              Stream.junk lexer;
-              read_file (MapString.add nm value mp)
+            Stream.junk lexer;
+            Stream.junk lexer;
+            Stream.junk lexer;
+            read_file (MapString.add nm value mp)
           | [] ->
-              mp
+            mp
           | _ ->
-              failwith
-                (Printf.sprintf
-                   "Malformed data file '%s' line %d"
-                   filename !line)
+            failwith
+              (Printf.sprintf
+                 "Malformed data file '%s' line %d"
+                 filename !line)
       in
       let mp =
         read_file MapString.empty
       in
-        close_in chn;
-        mp
+      close_in chn;
+      mp
     end
   else if allow_empty then
     begin
@@ -93,19 +93,19 @@ let rec var_expand str env =
   let buff =
     Buffer.create ((String.length str) * 2)
   in
-    Buffer.add_substitute
-      buff
-      (fun var ->
-         try
-           var_expand (MapString.find var env) env
-         with Not_found ->
-           failwith
-             (Printf.sprintf
-                "No variable %s defined when trying to expand %S."
-                var
-                str))
-      str;
-    Buffer.contents buff
+  Buffer.add_substitute
+    buff
+    (fun var ->
+       try
+         var_expand (MapString.find var env) env
+       with Not_found ->
+         failwith
+           (Printf.sprintf
+              "No variable %s defined when trying to expand %S."
+              var
+              str))
+    str;
+  Buffer.contents buff
 
 
 let var_get name env =

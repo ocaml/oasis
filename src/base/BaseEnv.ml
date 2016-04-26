@@ -44,13 +44,13 @@ type cli_handle_t =
 
 
 type definition_t =
-    {
-      hide:       bool;
-      dump:       bool;
-      cli:        cli_handle_t;
-      arg_help:   string option;
-      group:      string option;
-    }
+  {
+    hide:       bool;
+    dump:       bool;
+    cli:        cli_handle_t;
+    arg_help:   string option;
+    group:      string option;
+  }
 
 
 let schema =
@@ -76,51 +76,51 @@ let rec var_expand str =
   let buff =
     Buffer.create ((String.length str) * 2)
   in
-    Buffer.add_substitute
-      buff
-      (fun var ->
-         try
-           (* TODO: this is a quick hack to allow calling Test.Command
-            * without defining executable name really. I.e. if there is
-            * an exec Executable toto, then $(toto) should be replace
-            * by its real name. It is however useful to have this function
-            * for other variable that depend on the host and should be
-            * written better than that.
-            *)
-           let st =
-             var_lxr (Stream.of_string var)
-           in
-             match Stream.npeek 3 st with
-               | [Genlex.Ident "utoh"; Genlex.Ident nm] ->
-                   OASISHostPath.of_unix (var_get nm)
-               | [Genlex.Ident "utoh"; Genlex.String s] ->
-                   OASISHostPath.of_unix s
-               | [Genlex.Ident "ocaml_escaped"; Genlex.Ident nm] ->
-                   String.escaped (var_get nm)
-               | [Genlex.Ident "ocaml_escaped"; Genlex.String s] ->
-                   String.escaped s
-               | [Genlex.Ident nm] ->
-                   var_get nm
-               | _ ->
-                   failwithf
-                     (f_ "Unknown expression '%s' in variable expansion of %s.")
-                     var
-                     str
-         with
-           | Unknown_field (_, _) ->
-               failwithf
-                 (f_ "No variable %s defined when trying to expand %S.")
-                 var
-                 str
-           | Stream.Error e ->
-               failwithf
-                 (f_ "Syntax error when parsing '%s' when trying to \
-                      expand %S: %s")
-                 var
-                 str
-                 e)
-      str;
-    Buffer.contents buff
+  Buffer.add_substitute
+    buff
+    (fun var ->
+       try
+         (* TODO: this is a quick hack to allow calling Test.Command
+          * without defining executable name really. I.e. if there is
+          * an exec Executable toto, then $(toto) should be replace
+          * by its real name. It is however useful to have this function
+          * for other variable that depend on the host and should be
+          * written better than that.
+         *)
+         let st =
+           var_lxr (Stream.of_string var)
+         in
+         match Stream.npeek 3 st with
+           | [Genlex.Ident "utoh"; Genlex.Ident nm] ->
+             OASISHostPath.of_unix (var_get nm)
+           | [Genlex.Ident "utoh"; Genlex.String s] ->
+             OASISHostPath.of_unix s
+           | [Genlex.Ident "ocaml_escaped"; Genlex.Ident nm] ->
+             String.escaped (var_get nm)
+           | [Genlex.Ident "ocaml_escaped"; Genlex.String s] ->
+             String.escaped s
+           | [Genlex.Ident nm] ->
+             var_get nm
+           | _ ->
+             failwithf
+               (f_ "Unknown expression '%s' in variable expansion of %s.")
+               var
+               str
+       with
+         | Unknown_field (_, _) ->
+           failwithf
+             (f_ "No variable %s defined when trying to expand %S.")
+             var
+             str
+         | Stream.Error e ->
+           failwithf
+             (f_ "Syntax error when parsing '%s' when trying to \
+                  expand %S: %s")
+             var
+             str
+             e)
+    str;
+  Buffer.contents buff
 
 
 and var_get name =
@@ -135,7 +135,7 @@ and var_get name =
           raise e
       end
   in
-    var_expand vl
+  var_expand vl
 
 
 let var_choose ?printer ?name lst =
@@ -150,24 +150,24 @@ let var_protect vl =
   let buff =
     Buffer.create (String.length vl)
   in
-    String.iter
-      (function
-         | '$' -> Buffer.add_string buff "\\$"
-         | c   -> Buffer.add_char   buff c)
-      vl;
-    Buffer.contents buff
+  String.iter
+    (function
+      | '$' -> Buffer.add_string buff "\\$"
+      | c   -> Buffer.add_char   buff c)
+    vl;
+  Buffer.contents buff
 
 
 let var_define
-      ?(hide=false)
-      ?(dump=true)
-      ?short_desc
-      ?(cli=CLINone)
-      ?arg_help
-      ?group
-      name (* TODO: type constraint on the fact that name must be a valid OCaml
-                id *)
-      dflt =
+    ?(hide=false)
+    ?(dump=true)
+    ?short_desc
+    ?(cli=CLINone)
+    ?arg_help
+    ?group
+    name (* TODO: type constraint on the fact that name must be a valid OCaml
+              id *)
+    dflt =
 
   let default =
     [
@@ -188,7 +188,7 @@ let var_define
   in
 
   (* Try to find a value that can be defined
-   *)
+  *)
   let var_get_low lst =
     let errors, res =
       List.fold_left
@@ -199,11 +199,11 @@ let var_define
                  errors, Some (v ())
                with
                  | Not_found ->
-                      errors, res
+                   errors, res
                  | Failure rsn ->
-                     (rsn :: errors), res
+                   (rsn :: errors), res
                  | e ->
-                     (Printexc.to_string e) :: errors, res
+                   (Printexc.to_string e) :: errors, res
              end
            else
              errors, res)
@@ -213,13 +213,13 @@ let var_define
               Pervasives.compare o2 o1)
            lst)
     in
-      match res, errors with
-        | Some v, _ ->
-            v
-        | None, [] ->
-            raise (Not_set (name, None))
-        | None, lst ->
-            raise (Not_set (name, Some (String.concat (s_ ", ") lst)))
+    match res, errors with
+      | Some v, _ ->
+        v
+      | None, [] ->
+        raise (Not_set (name, None))
+      | None, lst ->
+        raise (Not_set (name, Some (String.concat (s_ ", ") lst)))
   in
 
   let help =
@@ -240,19 +240,19 @@ let var_define
       extra
   in
 
-    fun () ->
-      var_expand (var_get_low (var_get_lst env))
+  fun () ->
+    var_expand (var_get_low (var_get_lst env))
 
 
 let var_redefine
-      ?hide
-      ?dump
-      ?short_desc
-      ?cli
-      ?arg_help
-      ?group
-      name
-      dflt =
+    ?hide
+    ?dump
+    ?short_desc
+    ?cli
+    ?arg_help
+    ?group
+    name
+    dflt =
   if Schema.mem schema name then
     begin
       (* TODO: look suspsicious, we want to memorize dflt not dflt () *)
@@ -331,7 +331,7 @@ let dump ?(filename=Lazy.force default_filename) () =
                    env
                    nm
                in
-                 output nm value
+               output nm value
              with Not_set _ ->
                ()
            end;
@@ -339,11 +339,11 @@ let dump ?(filename=Lazy.force default_filename) () =
       !env_from_file
       schema
   in
-    (* Dump data defined outside of schema *)
-    MapString.iter output mp_todo;
+  (* Dump data defined outside of schema *)
+  MapString.iter output mp_todo;
 
-    (* End of the dump *)
-    close_out chn
+  (* End of the dump *)
+  close_out chn
 
 
 let print () =
@@ -364,9 +364,9 @@ let print () =
                    | Some s -> s ()
                    | None -> nm
                in
-                 (txt, value) :: acc
+               (txt, value) :: acc
              with Not_set _ ->
-                 acc
+               acc
            end
          else
            acc)
@@ -385,7 +385,7 @@ let print () =
   Printf.printf "\nConfiguration: \n";
   List.iter
     (fun (name, value) ->
-      Printf.printf "%s: %s %s\n" name (dot_pad name) value)
+       Printf.printf "%s: %s %s\n" name (dot_pad name) value)
     (List.rev printable_vars);
   Printf.printf "\n%!"
 
@@ -394,106 +394,106 @@ let args () =
   let arg_concat =
     OASISUtils.varname_concat ~hyphen:'-'
   in
-    [
-      "--override",
-       Arg.Tuple
-         (
-           let rvr = ref ""
-           in
-           let rvl = ref ""
-           in
-             [
-               Arg.Set_string rvr;
-               Arg.Set_string rvl;
-               Arg.Unit
-                 (fun () ->
-                    Schema.set
-                      schema
-                      env
-                      ~context:OCommandLine
-                      !rvr
-                      !rvl)
-             ]
-         ),
-      "var+val  Override any configuration variable.";
+  [
+    "--override",
+    Arg.Tuple
+      (
+        let rvr = ref ""
+        in
+        let rvl = ref ""
+        in
+        [
+          Arg.Set_string rvr;
+          Arg.Set_string rvl;
+          Arg.Unit
+            (fun () ->
+               Schema.set
+                 schema
+                 env
+                 ~context:OCommandLine
+                 !rvr
+                 !rvl)
+        ]
+      ),
+    "var+val  Override any configuration variable.";
 
-    ]
-    @
+  ]
+  @
     List.flatten
       (Schema.fold
-        (fun acc name def short_descr_opt ->
-           let var_set s =
-             Schema.set
-               schema
-               env
-               ~context:OCommandLine
-               name
-               s
-           in
+         (fun acc name def short_descr_opt ->
+            let var_set s =
+              Schema.set
+                schema
+                env
+                ~context:OCommandLine
+                name
+                s
+            in
 
-           let arg_name =
-             OASISUtils.varname_of_string ~hyphen:'-' name
-           in
+            let arg_name =
+              OASISUtils.varname_of_string ~hyphen:'-' name
+            in
 
-           let hlp =
-             match short_descr_opt with
-               | Some txt -> txt ()
-               | None -> ""
-           in
+            let hlp =
+              match short_descr_opt with
+                | Some txt -> txt ()
+                | None -> ""
+            in
 
-           let arg_hlp =
-             match def.arg_help with
-               | Some s -> s
-               | None   -> "str"
-           in
+            let arg_hlp =
+              match def.arg_help with
+                | Some s -> s
+                | None   -> "str"
+            in
 
-           let default_value =
-             try
-               Printf.sprintf
-                 (f_ " [%s]")
-                 (Schema.get
-                    schema
-                    env
-                    name)
-             with Not_set _ ->
-               ""
-           in
+            let default_value =
+              try
+                Printf.sprintf
+                  (f_ " [%s]")
+                  (Schema.get
+                     schema
+                     env
+                     name)
+              with Not_set _ ->
+                ""
+            in
 
-           let args =
-             match def.cli with
-               | CLINone ->
-                   []
-               | CLIAuto ->
-                   [
-                     arg_concat "--" arg_name,
-                     Arg.String var_set,
-                     Printf.sprintf (f_ "%s %s%s") arg_hlp hlp default_value
-                   ]
-               | CLIWith ->
-                   [
-                     arg_concat "--with-" arg_name,
-                     Arg.String var_set,
-                     Printf.sprintf (f_ "%s %s%s") arg_hlp hlp default_value
-                   ]
-               | CLIEnable ->
-                   let dflt =
-                     if default_value = " [true]" then
-                       s_ " [default: enabled]"
-                     else
-                       s_ " [default: disabled]"
-                   in
-                     [
-                       arg_concat "--enable-" arg_name,
-                       Arg.Unit (fun () -> var_set "true"),
-                       Printf.sprintf (f_ " %s%s") hlp dflt;
+            let args =
+              match def.cli with
+                | CLINone ->
+                  []
+                | CLIAuto ->
+                  [
+                    arg_concat "--" arg_name,
+                    Arg.String var_set,
+                    Printf.sprintf (f_ "%s %s%s") arg_hlp hlp default_value
+                  ]
+                | CLIWith ->
+                  [
+                    arg_concat "--with-" arg_name,
+                    Arg.String var_set,
+                    Printf.sprintf (f_ "%s %s%s") arg_hlp hlp default_value
+                  ]
+                | CLIEnable ->
+                  let dflt =
+                    if default_value = " [true]" then
+                      s_ " [default: enabled]"
+                    else
+                      s_ " [default: disabled]"
+                  in
+                  [
+                    arg_concat "--enable-" arg_name,
+                    Arg.Unit (fun () -> var_set "true"),
+                    Printf.sprintf (f_ " %s%s") hlp dflt;
 
-                       arg_concat "--disable-" arg_name,
-                       Arg.Unit (fun () -> var_set "false"),
-                       Printf.sprintf (f_ " %s%s") hlp dflt
-                     ]
-               | CLIUser lst ->
-                   lst
-           in
-             args :: acc)
+                    arg_concat "--disable-" arg_name,
+                    Arg.Unit (fun () -> var_set "false"),
+                    Printf.sprintf (f_ " %s%s") hlp dflt
+                  ]
+                | CLIUser lst ->
+                  lst
+            in
+            args :: acc)
          []
          schema)

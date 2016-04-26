@@ -23,7 +23,7 @@
 
 (** Internal plugin identification
     @author Sylvain Le Gall
-  *)
+*)
 
 
 let name = "Internal"
@@ -41,4 +41,4 @@ open OASISPlugin
 let init () =
   register_help (`All, name, Some version)
     {(help_default InternalData.readme_template_mkd) with
-         help_order = 30}
+       help_order = 30}

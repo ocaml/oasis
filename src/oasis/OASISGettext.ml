@@ -51,9 +51,9 @@ IFDEF HAS_GETTEXT THEN
 include
   Gettext.Library
     (struct
-       let textdomain   = "oasis"
-       let codeset      = None
-       let dir          = None
-       let dependencies = Gettext.init
-     end)
+      let textdomain   = "oasis"
+      let codeset      = None
+      let dir          = None
+      let dependencies = Gettext.init
+    end)
 ENDIF

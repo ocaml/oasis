@@ -53,11 +53,11 @@ let var_define_cond ~since_version f dflt =
   let since_version =
     OASISVersion.VGreaterEqual (OASISVersion.version_of_string since_version)
   in
-    var_cond :=
+  var_cond :=
     (fun ver ->
        if OASISVersion.comparator_apply ver since_version then
          holder := f ()) :: !var_cond;
-    fun () -> !holder ()
+  fun () -> !holder ()
 
 
 (**/**)
@@ -118,11 +118,11 @@ let flexdll_version =
          OASISExec.run_read_output ~ctxt:!BaseContext.default
            (flexlink ()) ["-help"]
        in
-         match lst with
-           | line :: _ ->
-               Scanf.sscanf line "FlexDLL version %s" (fun ver -> ver)
-           | [] ->
-               raise Not_found)
+       match lst with
+         | line :: _ ->
+           Scanf.sscanf line "FlexDLL version %s" (fun ver -> ver)
+         | [] ->
+           raise Not_found)
 
 
 (**/**)
@@ -152,12 +152,12 @@ let prefix =
     (fun () ->
        match os_type () with
          | "Win32" ->
-             let program_files =
-               Sys.getenv "PROGRAMFILES"
-             in
-               program_files/(pkg_name ())
+           let program_files =
+             Sys.getenv "PROGRAMFILES"
+           in
+           program_files/(pkg_name ())
          | _ ->
-             "/usr/local")
+           "/usr/local")
 
 
 let exec_prefix =
@@ -293,12 +293,12 @@ let is_native =
          let _s: string =
            ocamlopt ()
          in
-           "true"
+         "true"
        with PropList.Not_set _ ->
          let _s: string =
            ocamlc ()
          in
-           "false")
+         "false")
 
 
 let ext_program =
@@ -351,7 +351,7 @@ let tests =
     (fun () ->
        var_define
          ~short_desc:(fun () ->
-                        s_ "Compile tests executable and library and run them")
+           s_ "Compile tests executable and library and run them")
          ~cli:CLIEnable
          "tests"
          (fun () -> "false"))
@@ -390,35 +390,35 @@ let native_dynlink =
          in
          let has_native_dynlink =
            let ocamlfind = ocamlfind () in
-             try
-               let fn =
-                 OASISExec.run_read_one_line
-                   ~ctxt:!BaseContext.default
-                   ocamlfind
-                   ["query"; "-predicates"; "native"; "dynlink";
-                    "-format"; "%d/%a"]
-               in
-                 Sys.file_exists fn
-             with _ ->
-               false
+           try
+             let fn =
+               OASISExec.run_read_one_line
+                 ~ctxt:!BaseContext.default
+                 ocamlfind
+                 ["query"; "-predicates"; "native"; "dynlink";
+                  "-format"; "%d/%a"]
+             in
+             Sys.file_exists fn
+           with _ ->
+             false
          in
-           if not has_native_dynlink then
+         if not has_native_dynlink then
+           false
+         else if ocaml_lt_312 () then
+           false
+         else if (os_type () = "Win32" || os_type () = "Cygwin")
+              && flexdll_lt_030 () then
+           begin
+             BaseMessage.warning
+               (f_ ".cmxs generation disabled because FlexDLL needs to be \
+                    at least 0.30. Please upgrade FlexDLL from %s to 0.30.")
+               (flexdll_version ());
              false
-           else if ocaml_lt_312 () then
-             false
-           else if (os_type () = "Win32" || os_type () = "Cygwin")
-                   && flexdll_lt_030 () then
-             begin
-               BaseMessage.warning
-                 (f_ ".cmxs generation disabled because FlexDLL needs to be \
-                      at least 0.30. Please upgrade FlexDLL from %s to 0.30.")
-                 (flexdll_version ());
-               false
-             end
-           else
-             true
+           end
+         else
+           true
        in
-         string_of_bool res)
+       string_of_bool res)
 
 
 let init pkg =

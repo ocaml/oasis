@@ -39,8 +39,7 @@ type t =
   | EAnd of t * t
   | EOr of t * t
   | EFlag of flag
-  | ETest of test * string
-  with odn
+  | ETest of test * string with odn
 
 
 type 'a choices = (t * 'a) list with odn

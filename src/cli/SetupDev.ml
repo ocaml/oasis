@@ -23,7 +23,7 @@
 
 (** Like Setup but in development mode (deprecated).
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open CLISubCommand

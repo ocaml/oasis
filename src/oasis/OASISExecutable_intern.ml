@@ -23,7 +23,7 @@
 
 (** Executable schema and generator
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISTypes
@@ -63,13 +63,13 @@ let schema, generator =
            print  = (fun s -> s);
          }
        in
-         {
-           parse  = (fun ~ctxt str ->
-                       file.parse ~ctxt
-                         (base_value.parse ~ctxt str));
-           update = update_fail;
-           print  = (fun fn -> file.print (base_value.print fn));
-         })
+       {
+         parse  = (fun ~ctxt str ->
+           file.parse ~ctxt
+             (base_value.parse ~ctxt str));
+         update = update_fail;
+         print  = (fun fn -> file.print (base_value.print fn));
+       })
       (fun () ->
          s_ "OCaml file (.ml) containing main procedure for the executable.")
       (fun (_, _, exec) -> exec.exec_main_is)
@@ -82,12 +82,12 @@ let schema, generator =
          s_ "Create custom bytecode executable.")
       (fun (_, _, exec) -> exec.exec_custom)
   in
-    schm,
-    (fun features_data nm data ->
-       Executable
-         (cmn_section_gen features_data nm data,
-          build_section_gen nm data,
-          {
-            exec_main_is = main_is data;
-            exec_custom  = custom data;
-          }))
+  schm,
+  (fun features_data nm data ->
+     Executable
+       (cmn_section_gen features_data nm data,
+        build_section_gen nm data,
+        {
+          exec_main_is = main_is data;
+          exec_custom  = custom data;
+        }))

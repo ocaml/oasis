@@ -28,14 +28,14 @@
 
     @author Sylvain Le Gall
     @see <http://oasis.forge.ocamlcore.org/MANUAL.html#conditional-value> OASIS Manual
-  *)
+*)
 
 
 (** {2 Test} *)
 
 
 (** Test definition.
-  *)
+*)
 type test
 
 
@@ -58,7 +58,7 @@ type flag = string
 
 
 (** Boolean expression definition.
-  *)
+*)
 type t =
   | EBool of bool  (** true or false *)
   | ENot of t      (** ! e *)
@@ -69,13 +69,13 @@ type t =
 
 
 (** Choose among different values
-  *)
+*)
 type 'a choices = (t * 'a) list
 
 
 (** [eval eval_tst t] Evaluates the expression. Use [eval_tst]
     to get values of flags and tests.
-  *)
+*)
 val eval: (string -> string) -> t -> bool
 
 
@@ -85,7 +85,7 @@ val eval: (string -> string) -> t -> bool
     choice list name.
 
     See also {!eval}.
-  *)
+*)
 val choose:
   ?printer:('a -> string) ->
   ?name:string ->
@@ -93,23 +93,23 @@ val choose:
 
 
 (** Check that a boolean expression only use available flags. {b Not exported}.
-  *)
+*)
 val check: (flag list) -> t -> unit
 
 
 (** Try to reduce the size of a boolean expression. {b Not exported}.
-  *)
+*)
 val reduce: t -> t
 
 
 (** Try to reduce the size of a choice list. {b Not exported}.
-  *)
+*)
 val reduce_choices: (t * 'a) list -> (t * 'a) list
 
 
 (** [if_then_else cond choices_if choices_else] Combine choices, if_then_else
     style.
-  *)
+*)
 val if_then_else: t -> (t * 'a) list -> (t * 'a) list -> (t * 'a) list
 
 

@@ -23,7 +23,7 @@
 
 (** Various utilities
     @author Sylvain Le Gall
-  *)
+*)
 
 
 (** {2 Map} *)
@@ -84,7 +84,7 @@ module SetStringCsl: SetExt.S with type elt = String.t
 
 
 (** Caseless string hashtable
-  *)
+*)
 module HashStringCsl: Hashtbl.S with type key = String.t
 
 
@@ -94,19 +94,19 @@ module HashStringCsl: Hashtbl.S with type key = String.t
 (** [varname_of_string ~hyphen:c s] Transform a string [s] into a variable name,
     following this convention: no digit at the beginning, lowercase, only a-z
     and 0-9 chars. Whenever there is a problem, use an hyphen.
-  *)
+*)
 val varname_of_string: ?hyphen:char -> string -> string
 
 
 (** [varname_concat ~hyphen p s] Concat variable name, removing hyphen at end
     of [p] and at beginning of [s].
-  *)
+*)
 val varname_concat: ?hyphen:char -> string -> string -> string
 
 
 (** [is_varname str] Check that the string [str] is a valid varname. See
     {!varname_of_string} for definition.
-  *)
+*)
 val is_varname: string -> bool
 
 
@@ -117,7 +117,7 @@ val is_varname: string -> bool
     except that one specify the string raised through a format string.
 
     Example: [failwithf "Cannot do %s because of %d" str i]
-  *)
+*)
 val failwithf: ('a, unit, string, 'b) format4 -> 'a
 
 
@@ -125,7 +125,7 @@ val failwithf: ('a, unit, string, 'b) format4 -> 'a
 
 
 (** Caseless compare function
-  *)
+*)
 val compare_csl: string -> string -> int
 
 

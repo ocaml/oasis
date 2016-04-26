@@ -29,10 +29,10 @@
     been displayed.
 
     @author Sylvain Le Gall
-  *)
+*)
 
 (** Generic message.
-  *)
+*)
 val generic_message:
   ctxt:OASISContext.t ->
   [`Debug|`Info|`Warning|`Error] ->
@@ -40,21 +40,21 @@ val generic_message:
 
 
 (** Print a debug message.
-  *)
+*)
 val debug: ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
 
 
 (** Print information message.
-  *)
+*)
 val info: ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
 
 
 (** Print a warning message.
-  *)
+*)
 val warning: ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
 
 
 (** Print an error message.
-  *)
+*)
 val error: ctxt:OASISContext.t -> ('a, unit, string, unit) format4 -> 'a
 

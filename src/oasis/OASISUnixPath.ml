@@ -46,18 +46,18 @@ let concat f1 f2 =
     let f1' =
       try OASISString.strip_ends_with ~what:"/" f1 with Not_found -> f1
     in
-      f1'^"/"^f2
+    f1'^"/"^f2
 
 
 let make =
   function
     | hd :: tl ->
-        List.fold_left
-          (fun f p -> concat f p)
-          hd
-          tl
+      List.fold_left
+        (fun f p -> concat f p)
+        hd
+        tl
     | [] ->
-        invalid_arg "OASISUnixPath.make"
+      invalid_arg "OASISUnixPath.make"
 
 
 let dirname f =
@@ -72,7 +72,7 @@ let basename f =
     let pos_start =
       (String.rindex f '/') + 1
     in
-      String.sub f pos_start ((String.length f) - pos_start)
+    String.sub f pos_start ((String.length f) - pos_start)
   with Not_found ->
     f
 
@@ -85,16 +85,16 @@ let chop_extension f =
     let sub =
       String.sub f 0 last_dot
     in
-      try
-        let last_slash =
-          String.rindex f '/'
-        in
-          if last_slash < last_dot then
-            sub
-          else
-            f
-      with Not_found ->
+    try
+      let last_slash =
+        String.rindex f '/'
+      in
+      if last_slash < last_dot then
         sub
+      else
+        f
+    with Not_found ->
+      sub
 
   with Not_found ->
     f
@@ -133,28 +133,28 @@ open OASISUtils
 
 let filename_of_list lst =
   let buf = Buffer.create 34 in
-    List.iter
-      (function
-         | `Root _ | `RootRelative _ -> Buffer.add_char buf '/'
+  List.iter
+    (function
+      | `Root _ | `RootRelative _ -> Buffer.add_char buf '/'
 
-         | `Component str ->
-             if Buffer.length buf > 0 then
-               Buffer.add_char buf '/';
-             Buffer.add_string buf str
+      | `Component str ->
+        if Buffer.length buf > 0 then
+          Buffer.add_char buf '/';
+        Buffer.add_string buf str
 
-         | `CurrentDir ->
-             if Buffer.length buf > 0 then
-               begin
-                 Buffer.add_char buf '/';
-                 Buffer.add_string buf current_dir_name
-               end
+      | `CurrentDir ->
+        if Buffer.length buf > 0 then
+          begin
+            Buffer.add_char buf '/';
+            Buffer.add_string buf current_dir_name
+          end
 
-         | `ParentDir ->
-             if Buffer.length buf > 0 then
-               Buffer.add_char buf '/';
-             Buffer.add_string buf parent_dir_name)
-      lst;
-    Buffer.contents buf
+      | `ParentDir ->
+        if Buffer.length buf > 0 then
+          Buffer.add_char buf '/';
+        Buffer.add_string buf parent_dir_name)
+    lst;
+  Buffer.contents buf
 
 
 let fn_norm fn = fn_reduce [] (fn_reader ~os_type:"Unix" fn)
@@ -180,7 +180,7 @@ let make_relative fn_root fn =
   (* Create a fake absolute path that will can be used to make
    * fn_root and fn absolute.
    * It covers pathological case like "../../../../" as a filename.
-   *)
+  *)
   let fake_root =
     let abs_len =
       max (List.length lst_root)  (List.length lst) + 1
@@ -188,13 +188,13 @@ let make_relative fn_root fn =
     let idx = ref 0 in
     let rec cpt_uniq i =
       let cpt = Printf.sprintf "c%d" !idx in
-        incr idx;
-        if SetString.mem cpt existing_component then
-          cpt_uniq i
-        else
-          `Component cpt
+      incr idx;
+      if SetString.mem cpt existing_component then
+        cpt_uniq i
+      else
+        `Component cpt
     in
-      filename_of_list (`Root "" :: Array.to_list (Array.init abs_len cpt_uniq))
+    filename_of_list (`Root "" :: Array.to_list (Array.init abs_len cpt_uniq))
   in
 
 
@@ -212,27 +212,27 @@ let make_relative fn_root fn =
   let rec make_relative' =
     function
       | hd_root :: tl_root, hd :: tl when hd_root = hd ->
-          make_relative' (tl_root, tl)
+        make_relative' (tl_root, tl)
       | lst_root, lst ->
-          let back_to_base = List.rev_map (fun _ -> `ParentDir) lst_root in
-            back_to_base @ lst
+        let back_to_base = List.rev_map (fun _ -> `ParentDir) lst_root in
+        back_to_base @ lst
   in
   let res =
     filename_of_list (fn_reduce [] (make_relative' (abs_lst_root, abs_lst)))
   in
-    (* Check result. *)
-    List.iter
-      (function
-         | `Component str ->
-             if not (SetString.mem str existing_component) then
-               OASISUtils.failwithf
-                 "When trying to 'make_relative %S %S' create a \
-                  non-existent path component %S"
-                 fn_root fn str
-         | _ ->
-             ())
-      (fn_norm res);
-    res
+  (* Check result. *)
+  List.iter
+    (function
+      | `Component str ->
+        if not (SetString.mem str existing_component) then
+          OASISUtils.failwithf
+            "When trying to 'make_relative %S %S' create a \
+             non-existent path component %S"
+            fn_root fn str
+      | _ ->
+        ())
+    (fn_norm res);
+  res
 
 
 let is_current fn =
@@ -243,8 +243,8 @@ let is_current fn =
 
 
 module Set = SetExt.Make(
-struct
-  type t = unix_filename
+  struct
+    type t = unix_filename
 
-  let compare t1 t2 = String.compare (reduce t1) (reduce t2)
-end)
+    let compare t1 t2 = String.compare (reduce t1) (reduce t2)
+  end)

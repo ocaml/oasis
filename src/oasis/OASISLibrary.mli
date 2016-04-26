@@ -23,7 +23,7 @@
 
 (** Library section
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISTypes
@@ -42,7 +42,7 @@ val find_module:
     library. The first part of the tuple is the file without extenstion for
     modules and the second part is the source files matching (e.g. .ml and
     .mli).
-  *)
+*)
 val source_unix_files:
   ctxt:OASISContext.t ->
   common_section * build_section * library ->
@@ -54,7 +54,7 @@ val source_unix_files:
     is_native ext_lib ext_dll (cs, bs, lib)]
     Compute all files expected by a build of the library. For each file a list
     of alternatives is provided.
-  *)
+*)
 val generated_unix_files:
   ctxt:OASISContext.t ->
   is_native:bool ->
@@ -67,5 +67,5 @@ val generated_unix_files:
 
 
 (** Schema for the section. {b Not exported}.
-  *)
+*)
 val schema: (common_section * build_section * library) OASISSchema.t

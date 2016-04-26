@@ -23,7 +23,7 @@
 
 (** Run a oasis writer helper
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISGettext
@@ -57,7 +57,7 @@ let fspecs () =
        ((List.map fst lvls),
         (fun s -> qckstrt_lvl := List.assoc s lvls)),
      (s_ " Quickstart level, skip questions according to this \
-           level.");
+          level.");
      "-machine",
      Arg.Unit (fun () -> interf := Machine),
      (s_ " Computer readable questions for automatic completion.")] @ specs

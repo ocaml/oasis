@@ -27,23 +27,23 @@ open Format
 let pp_print_string_spaced fmt str =
   String.iter
     (function
-       | ' ' -> Format.pp_print_space fmt ()
-       | '\n' -> Format.pp_print_space fmt ()
-       | c -> Format.pp_print_char fmt c)
+      | ' ' -> Format.pp_print_space fmt ()
+      | '\n' -> Format.pp_print_space fmt ()
+      | c -> Format.pp_print_char fmt c)
     str
 
 
 let pp_print_list pp_elem lst_sep fmt =
   function
     | [] ->
-        ()
+      ()
     | hd :: tl ->
-        pp_elem fmt hd;
-        List.iter
-          (fun e ->
-             fprintf fmt lst_sep;
-             pp_elem fmt e)
-          tl
+      pp_elem fmt hd;
+      List.iter
+        (fun e ->
+           fprintf fmt lst_sep;
+           pp_elem fmt e)
+        tl
 
 
 let pp_print_cut2 fmt () =
@@ -52,12 +52,12 @@ let pp_print_cut2 fmt () =
 
 
 let pp_print_endblock ?(check_last_char="") fmt () =
-    if OASISString.ends_with ~what:"\n" check_last_char then begin
-      pp_print_newline fmt ()
-    end else begin
-      pp_print_newline fmt ();
-      pp_print_newline fmt ()
-    end
+  if OASISString.ends_with ~what:"\n" check_last_char then begin
+    pp_print_newline fmt ()
+  end else begin
+    pp_print_newline fmt ();
+    pp_print_newline fmt ()
+  end
 
 
 let pp_print_para fmt ?(end_para=true) str =
@@ -69,35 +69,35 @@ let pp_print_para fmt ?(end_para=true) str =
       begin
         match str.[i] with
           | ' ' ->
-              pp_print_space fmt ();
-              decode_string (i + 1)
+            pp_print_space fmt ();
+            decode_string (i + 1)
 
           | '\n' ->
-              if i + 1 < str_len && str.[i + 1] = '\n' then
-                begin
-                  pp_close_box fmt ();
-                  pp_print_cut2 fmt ();
-                  pp_open_box fmt 0;
-                  decode_string (i + 2)
-                end
-              else
-                begin
-                  pp_print_space fmt ();
-                  decode_string (i + 1)
-                end
+            if i + 1 < str_len && str.[i + 1] = '\n' then
+              begin
+                pp_close_box fmt ();
+                pp_print_cut2 fmt ();
+                pp_open_box fmt 0;
+                decode_string (i + 2)
+              end
+            else
+              begin
+                pp_print_space fmt ();
+                decode_string (i + 1)
+              end
 
           | c ->
-              pp_print_char fmt c;
-              decode_string (i + 1)
+            pp_print_char fmt c;
+            decode_string (i + 1)
       end;
   in
-    pp_open_vbox fmt 0;
-    pp_open_box fmt 0;
-    decode_string 0;
-    pp_close_box fmt ();
-    if end_para then
-      pp_print_cut2 fmt ();
-    pp_close_box fmt ()
+  pp_open_vbox fmt 0;
+  pp_open_box fmt 0;
+  decode_string 0;
+  pp_close_box fmt ();
+  if end_para then
+    pp_print_cut2 fmt ();
+  pp_close_box fmt ()
 
 
 let pp_print_paraf fmt ?end_para fmt' =
@@ -110,17 +110,17 @@ let pp_print_title fmt lvl str =
     pp_print_newline fmt ();
     pp_print_string fmt (String.make (String.length str) c)
   in
-    if lvl = 1 then
-      pp_print_underlined '=' fmt str
-    else if lvl = 2 then
-      pp_print_underlined '-' fmt str
-    else
-      begin
-        (* ATX style *)
-        pp_print_string fmt (String.make lvl '#');
-        pp_print_string fmt str
-      end;
-    pp_print_endblock fmt ()
+  if lvl = 1 then
+    pp_print_underlined '=' fmt str
+  else if lvl = 2 then
+    pp_print_underlined '-' fmt str
+  else
+    begin
+      (* ATX style *)
+      pp_print_string fmt (String.make lvl '#');
+      pp_print_string fmt str
+    end;
+  pp_print_endblock fmt ()
 
 
 let pp_print_titlef fmt lvl fmt' =
