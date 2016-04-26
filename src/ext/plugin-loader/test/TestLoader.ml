@@ -26,7 +26,7 @@ open OUnit2
 let pluginloader = Conf.make_exec "pluginloader"
 
 let datadir = FilePath.make_filename 
-                ["src"; "ext"; "plugin-loader"; "test"; "data"]
+    ["src"; "ext"; "plugin-loader"; "test"; "data"]
 let findlibdir = FilePath.concat datadir "findlib"
 
 
@@ -37,13 +37,13 @@ let setup_findlib test_ctxt =
   let findlibdir = FilePath.make_absolute (FileUtil.pwd ()) findlibdir in
   let copy_to_dn fn_dir fn =
     let tgt = FilePath.reparent fn_dir dn fn in
-      FileUtil.mkdir ~parent:true (FilePath.dirname tgt);
-      logf test_ctxt `Info "Copy file '%s' to '%s'\n%!" fn tgt;
-      FileUtil.cp [fn] tgt
+    FileUtil.mkdir ~parent:true (FilePath.dirname tgt);
+    logf test_ctxt `Info "Copy file '%s' to '%s'\n%!" fn tgt;
+    FileUtil.cp [fn] tgt
   in
   (* Find all the .mlldir in findlibdir and copy .cma/.cmxs from
    * the _build dir and then all the META.
-   *)
+  *)
   logf test_ctxt `Info "Findlib dir: %s" findlibdir;
   FileUtil.find
     (FileUtil.Or
@@ -77,44 +77,44 @@ let assert_pluginloader test_ctxt dn args =
       [|"OCAMLPATH="^ocamlpath|]
       (Unix.environment ())
   in
-    assert_command
-      ~env
-      ~ctxt:test_ctxt
-      ~use_stderr:true
-      ~foutput:(Stream.iter
-                  (function
-                     | '\n' ->
-                         lst := Buffer.contents buf :: !lst;
-                         Buffer.clear buf
-                     | c ->
-                         Buffer.add_char buf c))
-      (pluginloader test_ctxt) args;
+  assert_command
+    ~env
+    ~ctxt:test_ctxt
+    ~use_stderr:true
+    ~foutput:(Stream.iter
+        (function
+          | '\n' ->
+            lst := Buffer.contents buf :: !lst;
+            Buffer.clear buf
+          | c ->
+            Buffer.add_char buf c))
+    (pluginloader test_ctxt) args;
 
-    List.rev (Buffer.contents buf :: !lst)
+  List.rev (Buffer.contents buf :: !lst)
 
 
 let () =
   run_test_tt_main
     ("PluginLoader" >:::
-     [
-       "list" >::
-       (fun test_ctxt ->
-          let dn = setup_findlib test_ctxt in
-          let lst = assert_pluginloader test_ctxt dn [] in
-            assert_equal
-              ~printer:(String.concat ", ")
-              ["plugin1: first plugin";
-               "plugin2: second plugin";
-               "plugin3: third plugin";
-               ""]
-              lst);
+       [
+         "list" >::
+           (fun test_ctxt ->
+              let dn = setup_findlib test_ctxt in
+              let lst = assert_pluginloader test_ctxt dn [] in
+              assert_equal
+                ~printer:(String.concat ", ")
+                ["plugin1: first plugin";
+                 "plugin2: second plugin";
+                 "plugin3: third plugin";
+                 ""]
+                lst);
 
-      "load" >::
-      (fun test_ctxt ->
-         let dn = setup_findlib test_ctxt in
-         let lst = assert_pluginloader test_ctxt dn ["-load"; "plugin1"] in
-           assert_equal
-             ~printer:(String.concat ", ")
-             ["plugin_loaded: plugin1"; ""]
-             lst)
-     ])
+         "load" >::
+           (fun test_ctxt ->
+              let dn = setup_findlib test_ctxt in
+              let lst = assert_pluginloader test_ctxt dn ["-load"; "plugin1"] in
+              assert_equal
+                ~printer:(String.concat ", ")
+                ["plugin_loaded: plugin1"; ""]
+                lst)
+       ])

@@ -22,7 +22,7 @@
 
 
 (** Check an OASIS package
-  *)
+*)
 
 
 open OASISGettext
@@ -39,19 +39,19 @@ let check_schema ~ctxt where schm plugins features_data data =
     let fake_data =
       Data.create ()
     in
-      try
-        (Schema.get schm data fld) = (Schema.get schm fake_data fld)
-      with
-        | Not_set _
-        | No_printer _
-        | OASISValues.Not_printable ->
-            (* TODO: Don't know what to answer *)
-            true
+    try
+      (Schema.get schm data fld) = (Schema.get schm fake_data fld)
+    with
+      | Not_set _
+      | No_printer _
+      | OASISValues.Not_printable ->
+        (* TODO: Don't know what to answer *)
+        true
   in
 
   let check_is_set schm data fld =
     let field_set = Data.elements data in
-      List.mem fld field_set
+    List.mem fld field_set
   in
 
   (* Collect plugins and their version. *)
@@ -60,32 +60,32 @@ let check_schema ~ctxt where schm plugins features_data data =
       (fun plugins fld extra hlp ->
          match extra.kind with
            | DefinePlugin knd ->
-               begin
-                 try
-                   let id =
-                     plugin_of_string knd (Schema.get schm data fld)
-                   in
-                     SetPlugin.add id plugins
-                 with _ ->
-                   plugins
-               end
+             begin
+               try
+                 let id =
+                   plugin_of_string knd (Schema.get schm data fld)
+                 in
+                 SetPlugin.add id plugins
+               with _ ->
+                 plugins
+             end
 
 
            | DefinePlugins knd ->
-               begin
-                 try
-                   let lst =
-                     plugins_of_string knd (Schema.get schm data fld)
-                   in
-                     List.fold_left
-                       (fun acc id -> SetPlugin.add id acc)
-                       plugins lst
-                 with _ ->
-                   plugins
-               end
+             begin
+               try
+                 let lst =
+                   plugins_of_string knd (Schema.get schm data fld)
+                 in
+                 List.fold_left
+                   (fun acc id -> SetPlugin.add id acc)
+                   plugins lst
+               with _ ->
+                 plugins
+             end
 
            | StandardField | FieldFromPlugin _ ->
-               plugins)
+             plugins)
       plugins schm
   in
 
@@ -112,21 +112,21 @@ let check_schema ~ctxt where schm plugins features_data data =
       (fun acc fld extra hlp ->
          match extra.kind with
            | DefinePlugin _ | DefinePlugins _ | StandardField ->
-               check_get schm data fld acc
+             check_get schm data fld acc
 
            | FieldFromPlugin ((_, nm, ver) as plg_id) ->
-               if mem_no_version plg_id plugins then begin
-                 check_get schm data fld acc
-               end else if check_is_set schm data fld &&
-                           not (check_is_default schm data fld) then begin
-                 OASISMessage.warning ~ctxt
-                   (f_ "Field %s is set but matching plugin %s is not \
-                        enabled.")
-                   fld nm;
-                 acc
-               end else begin
-                 acc
-               end)
+             if mem_no_version plg_id plugins then begin
+               check_get schm data fld acc
+             end else if check_is_set schm data fld &&
+                         not (check_is_default schm data fld) then begin
+               OASISMessage.warning ~ctxt
+                 (f_ "Field %s is set but matching plugin %s is not \
+                      enabled.")
+                 fld nm;
+               acc
+             end else begin
+               acc
+             end)
       [] schm
   in
 
@@ -145,15 +145,15 @@ let check_schema ~ctxt where schm plugins features_data data =
          if check_is_set schm data fld then
            match extra.feature with
              | Some feature ->
-                 OASISFeatures.data_assert feature features_data
-                   (OASISFeatures.Field (fld, where))
+               OASISFeatures.data_assert feature features_data
+                 (OASISFeatures.Field (fld, where))
              | None ->
-                 ())
+               ())
       ()
       schm
   in
 
-    plugins
+  plugins
 
 
 let check_package ~ctxt pkg =
@@ -181,23 +181,23 @@ let check_package ~ctxt pkg =
          function
            | Flag (cs, _)
            | Executable (cs, _, _) as sct ->
-               let sct_str = OASISSection.string_of_section sct in
-               let varname = cs.cs_name in
-                 if SetString.mem varname standard_vars then
-                   OASISMessage.warning ~ctxt
-                     (f_ "%s define variable '%s' which is also a standard \
-                          variable, possible conflict.")
-                      sct_str varname;
-                 if MapString.mem varname mp then
-                   OASISMessage.warning ~ctxt
-                     (f_ "%s define variable '%s' which is also defined by \
-                          %s, possible conflict.")
-                     sct_str varname (MapString.find varname mp);
-                 MapString.add varname sct_str mp
+             let sct_str = OASISSection.string_of_section sct in
+             let varname = cs.cs_name in
+             if SetString.mem varname standard_vars then
+               OASISMessage.warning ~ctxt
+                 (f_ "%s define variable '%s' which is also a standard \
+                      variable, possible conflict.")
+                 sct_str varname;
+             if MapString.mem varname mp then
+               OASISMessage.warning ~ctxt
+                 (f_ "%s define variable '%s' which is also defined by \
+                      %s, possible conflict.")
+                 sct_str varname (MapString.find varname mp);
+             MapString.add varname sct_str mp
            | Library _ | Object _ | Doc _ | SrcRepo _ | Test _ ->
-               mp)
+             mp)
       MapString.empty
       pkg.sections
   in
 
-    ()
+  ()

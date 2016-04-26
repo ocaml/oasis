@@ -27,19 +27,19 @@ open OASISTypes
 let section_kind_common =
   function
     | Library (cs, _, _) ->
-        `Library, cs
+      `Library, cs
     | Object (cs, _, _) ->
-        `Object, cs
+      `Object, cs
     | Executable (cs, _, _) ->
-        `Executable, cs
+      `Executable, cs
     | Flag (cs, _) ->
-        `Flag, cs
+      `Flag, cs
     | SrcRepo (cs, _) ->
-        `SrcRepo, cs
+      `SrcRepo, cs
     | Test (cs, _) ->
-        `Test, cs
+      `Test, cs
     | Doc (cs, _) ->
-        `Doc, cs
+      `Doc, cs
 
 
 let section_common sct =
@@ -58,27 +58,27 @@ let section_common_set cs =
 
 
 (** Key used to identify section
-  *)
+*)
 let section_id sct =
   let k, cs =
     section_kind_common sct
   in
-    k, cs.cs_name
+  k, cs.cs_name
 
 
 let string_of_section sct =
   let k, nm =
     section_id sct
   in
-    (match k with
-       | `Library    -> "library"
-       | `Object     -> "object"
-       | `Executable -> "executable"
-       | `Flag       -> "flag"
-       | `SrcRepo    -> "src repository"
-       | `Test       -> "test"
-       | `Doc        -> "doc")
-    ^" "^nm
+  (match k with
+    | `Library    -> "library"
+    | `Object     -> "object"
+    | `Executable -> "executable"
+    | `Flag       -> "flag"
+    | `SrcRepo    -> "src repository"
+    | `Test       -> "test"
+    | `Doc        -> "doc")
+  ^" "^nm
 
 
 let section_find id scts =

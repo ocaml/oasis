@@ -26,19 +26,19 @@ open OASISUtils
 
 let default_filename =
   lazy (Filename.concat
-          (Filename.dirname (Lazy.force BaseEnv.default_filename))
-          "setup.log")
+      (Filename.dirname (Lazy.force BaseEnv.default_filename))
+      "setup.log")
 
 
 module SetTupleString =
   Set.Make
     (struct
-       type t = string * string
-       let compare (s11, s12) (s21, s22) =
-         match String.compare s11 s21 with
-           | 0 -> String.compare s12 s22
-           | n -> n
-     end)
+      type t = string * string
+      let compare (s11, s12) (s21, s22) =
+        match String.compare s11 s21 with
+          | 0 -> String.compare s12 s22
+          | n -> n
+    end)
 
 
 let load () =
@@ -61,11 +61,11 @@ let load () =
                      let t =
                        e, d
                      in
-                       if SetTupleString.mem t st then
-                         st, lst
-                       else
-                         SetTupleString.add t st,
-                         t :: lst)
+                     if SetTupleString.mem t st then
+                       st, lst
+                     else
+                       SetTupleString.add t st,
+                       t :: lst)
               with Scanf.Scan_failure _ ->
                 failwith
                   (Scanf.bscanf scbuf
@@ -76,7 +76,7 @@ let load () =
                           default_filename
                           line))
             in
-              read_aux acc
+            read_aux acc
           end
         else
           begin
@@ -84,7 +84,7 @@ let load () =
             List.rev lst
           end
       in
-        read_aux (SetTupleString.empty, [])
+      read_aux (SetTupleString.empty, [])
     end
   else
     begin
@@ -95,10 +95,10 @@ let load () =
 let register event data =
   let chn_out =
     open_out_gen [Open_append; Open_creat; Open_text] 0o644
-                 (Lazy.force default_filename)
+      (Lazy.force default_filename)
   in
-    Printf.fprintf chn_out "%S %S\n" event data;
-    close_out chn_out
+  Printf.fprintf chn_out "%S %S\n" event data;
+  close_out chn_out
 
 
 let unregister event data =
@@ -114,17 +114,17 @@ let unregister event data =
       let write_something =
         ref false
       in
-        List.iter
-          (fun (e, d) ->
-             if e <> event || d <> data then
-               begin
-                 write_something := true;
-                 Printf.fprintf chn_out "%S %S\n" e d
-               end)
-          lst;
-        close_out chn_out;
-        if not !write_something then
-          Sys.remove default_filename
+      List.iter
+        (fun (e, d) ->
+           if e <> event || d <> data then
+             begin
+               write_something := true;
+               Printf.fprintf chn_out "%S %S\n" e d
+             end)
+        lst;
+      close_out chn_out;
+      if not !write_something then
+        Sys.remove default_filename
     end
 
 
@@ -136,9 +136,9 @@ let filter events =
       SetString.empty
       events
   in
-    List.filter
-      (fun (e, _) -> SetString.mem e st_events)
-      (load ())
+  List.filter
+    (fun (e, _) -> SetString.mem e st_events)
+    (load ())
 
 
 let exists event data =

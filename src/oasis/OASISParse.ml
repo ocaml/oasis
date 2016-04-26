@@ -38,13 +38,13 @@ let from_file ~ctxt fn =
   let pkg =
     from_stream ~ctxt ~fn (Stream.of_channel chn)
   in
-    close_in chn;
-    pkg
+  close_in chn;
+  pkg
 
 
 (** [from_string ~conf str] Parse the OASIS string [str] and check it using
     context [conf].
-  *)
+*)
 let from_string ~ctxt ?fn str =
   from_stream ~ctxt ?fn (Stream.of_string str)
 

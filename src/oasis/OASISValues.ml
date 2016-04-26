@@ -30,11 +30,11 @@ exception Not_combinable
 
 
 type 'a t =
-    {
-      parse:  ctxt:OASISContext.t -> string -> 'a;
-      update: 'a -> 'a -> 'a;
-      print:  'a -> string;
-    }
+  {
+    parse:  ctxt:OASISContext.t -> string -> 'a;
+    update: 'a -> 'a -> 'a;
+    print:  'a -> string;
+  }
 
 
 let update_fail _ _ =
@@ -68,14 +68,14 @@ let lexer ?(fail=(fun ~ctxt _ _ -> ())) lxr nm =
          try
            let lexbuf = Lexing.from_string str in
            let str_matched  = lxr lexbuf in
-             if str_matched = str then
+           if str_matched = str then
+             str
+           else
+             failwithf
+               (f_ "Only substring '%s' of '%s' is a %s")
+               str_matched
                str
-             else
-               failwithf
-                 (f_ "Only substring '%s' of '%s' is a %s")
-                 str_matched
-                 str
-                 (nm ())
+               (nm ())
          with e ->
            fail ~ctxt str e;
            (* Catch all if the previous ignore error. *)
@@ -99,16 +99,16 @@ let copyright =
       StdLexer.copyright
       (fun () -> s_ "copyright")
   in
-    {base_value with
-         parse =
-           (fun ~ctxt str ->
-              try
-                base_value.parse ~ctxt str
-              with _ ->
-                failwithf
-                  (f_ "Copyright must follow the convention \
-                       '(C) 2008-2009 J.R. Hacker', here it is '%s'")
-                  str)}
+  {base_value with
+     parse =
+       (fun ~ctxt str ->
+          try
+            base_value.parse ~ctxt str
+          with _ ->
+            failwithf
+              (f_ "Copyright must follow the convention \
+                   '(C) 2008-2009 J.R. Hacker', here it is '%s'")
+              str)}
 
 
 let string =
@@ -147,7 +147,7 @@ let directory =
 let expandable value =
   (* TODO: check expandable value and return a list rather
    * than a single value. Use split_expandable defined above.
-   *)
+  *)
   value
 
 
@@ -226,20 +226,20 @@ let with_optional_parentheses main_value optional_value =
       (fun ~ctxt str ->
          match OASISString.split_optional_parentheses str with
            | e1, Some e2 ->
-               main_value.parse ~ctxt e1,
-               Some (optional_value.parse ~ctxt e2)
+             main_value.parse ~ctxt e1,
+             Some (optional_value.parse ~ctxt e2)
            | e1, None ->
-               main_value.parse ~ctxt e1,
-               None);
+             main_value.parse ~ctxt e1,
+             None);
     update = update_fail;
     print =
       (function
-         | v, None ->
-             main_value.print v
-         | v, Some opt ->
-             Printf.sprintf "%s (%s)"
-               (main_value.print v)
-               (optional_value.print opt));
+        | v, None ->
+          main_value.print v
+        | v, Some opt ->
+          Printf.sprintf "%s (%s)"
+            (main_value.print v)
+            (optional_value.print opt));
   }
 
 
@@ -249,8 +249,8 @@ let opt value =
     update = update_fail;
     print =
       (function
-         | Some v -> value.print v
-         | None -> raise Not_printable);
+        | Some v -> value.print v
+        | None -> raise Not_printable);
   }
 
 
@@ -259,36 +259,36 @@ let modules =
     lexer
       StdLexer.modul
       ~fail:(fun ~ctxt str e ->
-               match e with
-                 | Failure "lexing: empty token" ->
-                     if String.capitalize str <> str then
-                       failwithf
-                         (f_ "Module name '%s', must be capitalized ('%s').")
-                         str (String.capitalize str)
-                 | _ ->
-                     ())
+        match e with
+          | Failure "lexing: empty token" ->
+            if String.capitalize str <> str then
+              failwithf
+                (f_ "Module name '%s', must be capitalized ('%s').")
+                str (String.capitalize str)
+          | _ ->
+            ())
       (fun () -> s_ "module")
   in
-    comma_separated
-      {
-        parse =
-         (fun ~ctxt s ->
-            let path =
-              OASISUnixPath.dirname s
-            in
-            let modul =
-              OASISUnixPath.basename s
-            in
-              if String.contains path ' ' then
-                failwithf
-                  (f_ "Module path '%s' must not contain a ' '")
-                  s;
-              OASISUnixPath.concat
-                path
-                (base_value.parse ~ctxt modul));
-        update = update_fail;
-        print  = (fun s -> s);
-      }
+  comma_separated
+    {
+      parse =
+        (fun ~ctxt s ->
+           let path =
+             OASISUnixPath.dirname s
+           in
+           let modul =
+             OASISUnixPath.basename s
+           in
+           if String.contains path ' ' then
+             failwithf
+               (f_ "Module path '%s' must not contain a ' '")
+               s;
+           OASISUnixPath.concat
+             path
+             (base_value.parse ~ctxt modul));
+      update = update_fail;
+      print  = (fun s -> s);
+    }
 
 
 let files =
@@ -307,9 +307,9 @@ let choices nm lst =
            List.assoc
              (String.lowercase str)
              (List.map
-               (fun (k, v) ->
-                  String.lowercase k, v)
-                  lst)
+                (fun (k, v) ->
+                   String.lowercase k, v)
+                lst)
          with Not_found ->
            failwithf
              (f_ "Unknown %s %S (possible: %s)")
@@ -358,10 +358,10 @@ let findlib_full =
       (fun ~ctxt s ->
          let cpnts = OASISString.nsplit s '.' in
          List.iter (fun cpnt ->
-                    let _s: string = findlib_name.parse ~ctxt cpnt in
-                    ())
-             cpnts;
-           s);
+           let _s: string = findlib_name.parse ~ctxt cpnt in
+           ())
+           cpnts;
+         s);
     update = update_fail;
     print = (fun s -> s);
   }
@@ -379,110 +379,110 @@ let command_line =
     let rec addchr c =
       function
         | Some b, _ as acc ->
-            Buffer.add_char b c;
-            acc
+          Buffer.add_char b c;
+          acc
         | None, l ->
-            let b =
-              Buffer.create 13
-            in
-              addchr c (Some b, l)
+          let b =
+            Buffer.create 13
+          in
+          addchr c (Some b, l)
     in
 
     (* Add a separator that will end the previous
      * token or do nothing if already separated
-     *)
+    *)
     let addsep =
       function
         | Some b, l ->
-            None, (Buffer.contents b) :: l
+          None, (Buffer.contents b) :: l
         | None, l ->
-            None, l
+          None, l
     in
 
     (* Split the list of char into a list of token
      * taking care of matching $( ... ) and ${ ... }
-     *)
+    *)
     let rec lookup_closing oc cc acc =
       function
         | c :: tl ->
-            let acc =
-              addchr c acc
-            in
-              if c = oc then
-                begin
-                  let acc, tl =
-                    lookup_closing oc cc acc tl
-                  in
-                    lookup_closing oc cc acc tl
-                end
-              else if c = cc then
-                begin
-                  acc, tl
-                end
-              else
-                begin
-                  lookup_closing oc cc acc tl
-                end
+          let acc =
+            addchr c acc
+          in
+          if c = oc then
+            begin
+              let acc, tl =
+                lookup_closing oc cc acc tl
+              in
+              lookup_closing oc cc acc tl
+            end
+          else if c = cc then
+            begin
+              acc, tl
+            end
+          else
+            begin
+              lookup_closing oc cc acc tl
+            end
         | [] ->
-            failwithf
-              (f_ "'%s' contains unbalanced curly braces")
-              str
+          failwithf
+            (f_ "'%s' contains unbalanced curly braces")
+            str
     in
     let rec lookup_dollar acc =
       function
         | '$' :: ('(' as c) :: tl
         | '$' :: ('{' as c) :: tl ->
-            begin
-              let acc, tl =
-                lookup_closing
-                  c (if c = '(' then ')' else '}')
-                  (addchr c (addchr '$' acc))
-                  tl
-              in
-                lookup_dollar acc tl
-            end
+          begin
+            let acc, tl =
+              lookup_closing
+                c (if c = '(' then ')' else '}')
+                (addchr c (addchr '$' acc))
+                tl
+            in
+            lookup_dollar acc tl
+          end
         | ' ' :: tl ->
-            lookup_dollar (addsep acc) tl
+          lookup_dollar (addsep acc) tl
         | c :: tl ->
-            lookup_dollar (addchr c acc) tl
+          lookup_dollar (addchr c acc) tl
         | [] ->
-            begin
-              let l =
-                match acc with
-                  | Some b, l -> Buffer.contents b :: l
-                  | None, l -> l
-              in
-                List.rev l
-            end
+          begin
+            let l =
+              match acc with
+                | Some b, l -> Buffer.contents b :: l
+                | None, l -> l
+            in
+            List.rev l
+          end
     in
 
     (* Transform string into list
-     *)
+    *)
     let lst =
       let rl = ref []
       in
-        String.iter (fun c -> rl := c :: !rl) str;
-        List.rev !rl
+      String.iter (fun c -> rl := c :: !rl) str;
+      List.rev !rl
     in
 
-      lookup_dollar (None, []) lst
+    lookup_dollar (None, []) lst
   in
 
-    {
-      parse =
-        (fun ~ctxt s ->
-           match split_expandable s with
-             | cmd :: args ->
-                 cmd, args
-             | [] ->
-                 failwithf (f_ "Command line '%s' is invalid") s);
-      update =
-        (fun (cmd, args1) (arg2, args3) ->
-           (cmd, args1 @ (arg2 :: args3)));
-      print =
-        (fun (cmd, args) ->
-           space_separated.print (cmd :: args))
-    }
+  {
+    parse =
+      (fun ~ctxt s ->
+         match split_expandable s with
+           | cmd :: args ->
+             cmd, args
+           | [] ->
+             failwithf (f_ "Command line '%s' is invalid") s);
+    update =
+      (fun (cmd, args1) (arg2, args3) ->
+         (cmd, args1 @ (arg2 :: args3)));
+    print =
+      (fun (cmd, args) ->
+         space_separated.print (cmd :: args))
+  }
 
 
 let command_line_options =

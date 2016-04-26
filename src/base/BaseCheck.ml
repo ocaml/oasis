@@ -36,18 +36,18 @@ let prog_best prg prg_lst =
            (fun res e ->
               match res with
                 | Some _ ->
-                    res
+                  res
                 | None ->
-                    try
-                      Some (OASISFileUtil.which ~ctxt:!BaseContext.default e)
-                    with Not_found ->
-                      None)
+                  try
+                    Some (OASISFileUtil.which ~ctxt:!BaseContext.default e)
+                  with Not_found ->
+                    None)
            None
            prg_lst
        in
-         match alternate with
-           | Some prg -> prg
-           | None -> raise Not_found)
+       match alternate with
+         | Some prg -> prg
+         | None -> raise Not_found)
 
 
 let prog prg =
@@ -63,45 +63,45 @@ let ocamlfind =
 
 
 let version
-      var_prefix
-      cmp
-      fversion
-      () =
+    var_prefix
+    cmp
+    fversion
+    () =
   (* Really compare version provided *)
   let var =
     var_prefix^"_version_"^(OASISVersion.varname_of_comparator cmp)
   in
-    var_redefine
-      ~hide:true
-      var
-      (fun () ->
-         let version_str =
-           match fversion () with
-             | "[Distributed with OCaml]" ->
-                 begin
-                   try
-                     (var_get "ocaml_version")
-                   with Not_found ->
-                     warning
-                       (f_ "Variable ocaml_version not defined, fallback \
-                            to default");
-                     Sys.ocaml_version
-                 end
-             | res ->
-                 res
-         in
-         let version =
-           OASISVersion.version_of_string version_str
-         in
-           if OASISVersion.comparator_apply version cmp then
-             version_str
-           else
-             failwithf
-               (f_ "Cannot satisfy version constraint on %s: %s (version: %s)")
-               var_prefix
-               (OASISVersion.string_of_comparator cmp)
-               version_str)
-      ()
+  var_redefine
+    ~hide:true
+    var
+    (fun () ->
+       let version_str =
+         match fversion () with
+           | "[Distributed with OCaml]" ->
+             begin
+               try
+                 (var_get "ocaml_version")
+               with Not_found ->
+                 warning
+                   (f_ "Variable ocaml_version not defined, fallback \
+                        to default");
+                 Sys.ocaml_version
+             end
+           | res ->
+             res
+       in
+       let version =
+         OASISVersion.version_of_string version_str
+       in
+       if OASISVersion.comparator_apply version cmp then
+         version_str
+       else
+         failwithf
+           (f_ "Cannot satisfy version constraint on %s: %s (version: %s)")
+           var_prefix
+           (OASISVersion.string_of_comparator cmp)
+           version_str)
+    ()
 
 
 let package_version pkg =
@@ -122,13 +122,13 @@ let package ?version_comparator pkg () =
         (ocamlfind ())
         ["query"; "-format"; "%d"; pkg]
     in
-      if Sys.file_exists dir && Sys.is_directory dir then
-        dir
-      else
-        failwithf
-          (f_ "When looking for findlib package %s, \
-               directory %s return doesn't exist")
-          pkg dir
+    if Sys.file_exists dir && Sys.is_directory dir then
+      dir
+    else
+      failwithf
+        (f_ "When looking for findlib package %s, \
+             directory %s return doesn't exist")
+        pkg dir
   in
   let vl =
     var_redefine
@@ -136,16 +136,16 @@ let package ?version_comparator pkg () =
       (fun () -> findlib_dir pkg)
       ()
   in
-    (
-      match version_comparator with
-        | Some ver_cmp ->
-            ignore
-              (version
-                 var
-                 ver_cmp
-                 (fun _ -> package_version pkg)
-                 ())
-        | None ->
-            ()
-    );
-    vl
+  (
+    match version_comparator with
+      | Some ver_cmp ->
+        ignore
+          (version
+             var
+             ver_cmp
+             (fun _ -> package_version pkg)
+             ())
+      | None ->
+        ()
+  );
+  vl

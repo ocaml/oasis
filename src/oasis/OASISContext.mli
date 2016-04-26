@@ -23,7 +23,7 @@
 
 (** Global context for messages and i18n
     @author Sylvain Le Gall
-  *)
+*)
 
 
 type level =

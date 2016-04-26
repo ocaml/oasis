@@ -23,7 +23,7 @@
 
 (** Create the configure, build and install system
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISGettext
@@ -36,24 +36,24 @@ let fspecs () =
   let roasis_exec = ref None in
   let rupdate = ref NoUpdate in
   let specs =
-     [
-       "-real-oasis",
-       Arg.Unit (fun () -> roasis_exec := Some (Sys.executable_name)),
-       s_ " Use the real 'oasis' executable filename when generating \
-            setup.ml.";
-       "-setup-update",
-       Arg.Symbol (["none"; "weak"; "dynamic"],
-         (function
-            | "none" -> rupdate := NoUpdate
-            | "weak" -> rupdate := Weak
-            | "dynamic" -> rupdate := Dynamic
-            | str ->
-                failwithf (f_ "Unknown setup-update mode %S") str)),
-       s_ " Define the way `setup.ml` should update when `_oasis` change."
-     ]
+    [
+      "-real-oasis",
+      Arg.Unit (fun () -> roasis_exec := Some (Sys.executable_name)),
+      s_ " Use the real 'oasis' executable filename when generating \
+          setup.ml.";
+      "-setup-update",
+      Arg.Symbol (["none"; "weak"; "dynamic"],
+        (function
+          | "none" -> rupdate := NoUpdate
+          | "weak" -> rupdate := Weak
+          | "dynamic" -> rupdate := Dynamic
+          | str ->
+            failwithf (f_ "Unknown setup-update mode %S") str)),
+      s_ " Define the way `setup.ml` should update when `_oasis` change."
+    ]
   in
-    (specs, CLISubCommand.default_anon),
-    (fun () -> !roasis_exec, !rupdate)
+  (specs, CLISubCommand.default_anon),
+  (fun () -> !roasis_exec, !rupdate)
 
 
 let main ~ctxt (oasis_exec, update) oasis_fn pkg =
@@ -91,7 +91,7 @@ let main ~ctxt (oasis_exec, update) oasis_fn pkg =
       update
       pkg
   in
-    ()
+  ()
 
 
 let () =

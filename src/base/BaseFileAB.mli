@@ -31,17 +31,17 @@
     The file must end with '.ab'.
 
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISTypes
 
 
 (** Compute the target filename of an .ab file.
-  *)
+*)
 val to_filename: unix_filename -> host_filename
 
 
 (** Replace variable in file %.ab to generate %.
-  *)
+*)
 val replace: unix_filename list -> unit

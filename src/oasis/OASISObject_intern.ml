@@ -58,23 +58,23 @@ let schema, generator =
       ~default:None
       (* TODO: Check that the name is correct if this value is None, the
                package name must be correct
-       *)
+      *)
       (opt (dot_separated findlib_name))
       (fun () ->
          s_ "Name used by findlib.")
       (fun (_, _, obj) -> obj.obj_findlib_fullname)
   in
-    schm,
-    (fun features_data nm data ->
-       OASISFeatures.data_assert
-         OASISFeatures.section_object
-         features_data
-         (OASISFeatures.Section "Object");
-       Object
-         (cmn_section_gen features_data nm data,
-          (build_section_gen nm data),
-          {
-            obj_modules            = modules data;
-            obj_findlib_fullname   = findlib_fullname data;
-          }))
+  schm,
+  (fun features_data nm data ->
+     OASISFeatures.data_assert
+       OASISFeatures.section_object
+       features_data
+       (OASISFeatures.Section "Object");
+     Object
+       (cmn_section_gen features_data nm data,
+        (build_section_gen nm data),
+        {
+          obj_modules            = modules data;
+          obj_findlib_fullname   = findlib_fullname data;
+        }))
 

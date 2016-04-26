@@ -28,7 +28,7 @@
   * Updated on 2009/02/28
   *
   * Modified by Sylvain Le Gall
-  *)
+*)
 open Ocamlbuild_plugin
 
 type conf =
@@ -59,7 +59,7 @@ let exec_from_conf exec =
     if Sys.os_type = "Win32" then begin
       let buff = Buffer.create (String.length str) in
       (* Adapt for windowsi, ocamlbuild + win32 has a hard time to handle '\\'.
-       *)
+      *)
       String.iter
         (fun c -> Buffer.add_char buff (if c = '\\' then '/' else c))
         str;
@@ -68,7 +68,7 @@ let exec_from_conf exec =
       str
     end
   in
-    fix_win32 exec
+  fix_win32 exec
 
 let split s ch =
   let buf = Buffer.create 13 in
@@ -77,15 +77,15 @@ let split s ch =
     x := (Buffer.contents buf) :: !x;
     Buffer.clear buf
   in
-    String.iter
-      (fun c ->
-         if c = ch then
-           flush ()
-         else
-           Buffer.add_char buf c)
-      s;
-    flush ();
-    List.rev !x
+  String.iter
+    (fun c ->
+       if c = ch then
+         flush ()
+       else
+         Buffer.add_char buf c)
+    s;
+  flush ();
+  List.rev !x
 
 
 let split_nl s = split s '\n'
@@ -127,86 +127,86 @@ let well_known_syntax = [
 let dispatch conf =
   function
     | After_options ->
-        (* By using Before_options one let command line options have an higher
-         * priority on the contrary using After_options will guarantee to have
-         * the higher priority override default commands by ocamlfind ones *)
-        Options.ocamlc     := ocamlfind & A"ocamlc";
-        Options.ocamlopt   := ocamlfind & A"ocamlopt";
-        Options.ocamldep   := ocamlfind & A"ocamldep";
-        Options.ocamldoc   := ocamlfind & A"ocamldoc";
-        Options.ocamlmktop := ocamlfind & A"ocamlmktop";
-        Options.ocamlmklib := ocamlfind & A"ocamlmklib"
+      (* By using Before_options one let command line options have an higher
+       * priority on the contrary using After_options will guarantee to have
+       * the higher priority override default commands by ocamlfind ones *)
+      Options.ocamlc     := ocamlfind & A"ocamlc";
+      Options.ocamlopt   := ocamlfind & A"ocamlopt";
+      Options.ocamldep   := ocamlfind & A"ocamldep";
+      Options.ocamldoc   := ocamlfind & A"ocamldoc";
+      Options.ocamlmktop := ocamlfind & A"ocamlmktop";
+      Options.ocamlmklib := ocamlfind & A"ocamlmklib"
 
     | After_rules ->
 
-        (* Avoid warnings for unused tag *)
-        flag ["tests"] N;
+      (* Avoid warnings for unused tag *)
+      flag ["tests"] N;
 
-        (* When one link an OCaml library/binary/package, one should use
-         * -linkpkg *)
-        flag ["ocaml"; "link"; "program"] & A"-linkpkg";
+      (* When one link an OCaml library/binary/package, one should use
+       * -linkpkg *)
+      flag ["ocaml"; "link"; "program"] & A"-linkpkg";
 
-        (* For each ocamlfind package one inject the -package option when
-         * compiling, computing dependencies, generating documentation and
-         * linking. *)
-        List.iter
-          begin fun pkg ->
-            let base_args = [A"-package"; A pkg] in
-            (* TODO: consider how to really choose camlp4o or camlp4r. *)
-            let syn_args = [A"-syntax"; A "camlp4o"] in
-            let (args, pargs) =
-              (* Heuristic to identify syntax extensions: whether they end in
-                 ".syntax"; some might not.
-              *)
-              if not (conf.no_automatic_syntax) &&
-                 (Filename.check_suffix pkg "syntax" ||
-                  List.mem pkg well_known_syntax) then
-                (syn_args @ base_args, syn_args)
-              else
-                (base_args, [])
-            in
-            flag ["ocaml"; "compile";  "pkg_"^pkg] & S args;
-            flag ["ocaml"; "ocamldep"; "pkg_"^pkg] & S args;
-            flag ["ocaml"; "doc";      "pkg_"^pkg] & S args;
-            flag ["ocaml"; "link";     "pkg_"^pkg] & S base_args;
-            flag ["ocaml"; "infer_interface"; "pkg_"^pkg] & S args;
+      (* For each ocamlfind package one inject the -package option when
+       * compiling, computing dependencies, generating documentation and
+       * linking. *)
+      List.iter
+        begin fun pkg ->
+          let base_args = [A"-package"; A pkg] in
+          (* TODO: consider how to really choose camlp4o or camlp4r. *)
+          let syn_args = [A"-syntax"; A "camlp4o"] in
+          let (args, pargs) =
+            (* Heuristic to identify syntax extensions: whether they end in
+               ".syntax"; some might not.
+            *)
+            if not (conf.no_automatic_syntax) &&
+               (Filename.check_suffix pkg "syntax" ||
+                List.mem pkg well_known_syntax) then
+              (syn_args @ base_args, syn_args)
+            else
+              (base_args, [])
+          in
+          flag ["ocaml"; "compile";  "pkg_"^pkg] & S args;
+          flag ["ocaml"; "ocamldep"; "pkg_"^pkg] & S args;
+          flag ["ocaml"; "doc";      "pkg_"^pkg] & S args;
+          flag ["ocaml"; "link";     "pkg_"^pkg] & S base_args;
+          flag ["ocaml"; "infer_interface"; "pkg_"^pkg] & S args;
 
-            (* TODO: Check if this is allowed for OCaml < 3.12.1 *)
-            flag ["ocaml"; "compile";  "package("^pkg^")"] & S pargs;
-            flag ["ocaml"; "ocamldep"; "package("^pkg^")"] & S pargs;
-            flag ["ocaml"; "doc";      "package("^pkg^")"] & S pargs;
-            flag ["ocaml"; "infer_interface"; "package("^pkg^")"] & S pargs;
-          end
-          (find_packages ());
+          (* TODO: Check if this is allowed for OCaml < 3.12.1 *)
+          flag ["ocaml"; "compile";  "package("^pkg^")"] & S pargs;
+          flag ["ocaml"; "ocamldep"; "package("^pkg^")"] & S pargs;
+          flag ["ocaml"; "doc";      "package("^pkg^")"] & S pargs;
+          flag ["ocaml"; "infer_interface"; "package("^pkg^")"] & S pargs;
+        end
+        (find_packages ());
 
-        (* Like -package but for extensions syntax. Morover -syntax is useless
-         * when linking. *)
-        List.iter begin fun syntax ->
+      (* Like -package but for extensions syntax. Morover -syntax is useless
+       * when linking. *)
+      List.iter begin fun syntax ->
         flag ["ocaml"; "compile";  "syntax_"^syntax] & S[A"-syntax"; A syntax];
         flag ["ocaml"; "ocamldep"; "syntax_"^syntax] & S[A"-syntax"; A syntax];
         flag ["ocaml"; "doc";      "syntax_"^syntax] & S[A"-syntax"; A syntax];
         flag ["ocaml"; "infer_interface"; "syntax_"^syntax] &
-              S[A"-syntax"; A syntax];
-        end (find_syntaxes ());
+        S[A"-syntax"; A syntax];
+      end (find_syntaxes ());
 
-        (* The default "thread" tag is not compatible with ocamlfind.
-         * Indeed, the default rules add the "threads.cma" or "threads.cmxa"
-         * options when using this tag. When using the "-linkpkg" option with
-         * ocamlfind, this module will then be added twice on the command line.
-         *
-         * To solve this, one approach is to add the "-thread" option when using
-         * the "threads" package using the previous plugin.
-         *)
-        flag ["ocaml"; "pkg_threads"; "compile"] (S[A "-thread"]);
-        flag ["ocaml"; "pkg_threads"; "doc"] (S[A "-I"; A "+threads"]);
-        flag ["ocaml"; "pkg_threads"; "link"] (S[A "-thread"]);
-        flag ["ocaml"; "pkg_threads"; "infer_interface"] (S[A "-thread"]);
-        flag ["c"; "pkg_threads"; "compile"] (S[A "-thread"]);
-        flag ["ocaml"; "package(threads)"; "compile"] (S[A "-thread"]);
-        flag ["ocaml"; "package(threads)"; "doc"] (S[A "-I"; A "+threads"]);
-        flag ["ocaml"; "package(threads)"; "link"] (S[A "-thread"]);
-        flag ["ocaml"; "package(threads)"; "infer_interface"] (S[A "-thread"]);
-        flag ["c"; "package(threads)"; "compile"] (S[A "-thread"]);
+      (* The default "thread" tag is not compatible with ocamlfind.
+       * Indeed, the default rules add the "threads.cma" or "threads.cmxa"
+       * options when using this tag. When using the "-linkpkg" option with
+       * ocamlfind, this module will then be added twice on the command line.
+       *
+       * To solve this, one approach is to add the "-thread" option when using
+       * the "threads" package using the previous plugin.
+      *)
+      flag ["ocaml"; "pkg_threads"; "compile"] (S[A "-thread"]);
+      flag ["ocaml"; "pkg_threads"; "doc"] (S[A "-I"; A "+threads"]);
+      flag ["ocaml"; "pkg_threads"; "link"] (S[A "-thread"]);
+      flag ["ocaml"; "pkg_threads"; "infer_interface"] (S[A "-thread"]);
+      flag ["c"; "pkg_threads"; "compile"] (S[A "-thread"]);
+      flag ["ocaml"; "package(threads)"; "compile"] (S[A "-thread"]);
+      flag ["ocaml"; "package(threads)"; "doc"] (S[A "-I"; A "+threads"]);
+      flag ["ocaml"; "package(threads)"; "link"] (S[A "-thread"]);
+      flag ["ocaml"; "package(threads)"; "infer_interface"] (S[A "-thread"]);
+      flag ["c"; "package(threads)"; "compile"] (S[A "-thread"]);
 
     | _ ->
-        ()
+      ()

@@ -33,7 +33,7 @@
     {{:http://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version}Debian policy for version}.
 
     @author Sylvain Le Gall
-  *)
+*)
 
 
 (** {2 Version} *)
@@ -46,38 +46,38 @@ type t
 
 
 (** Compare versions.
-  *)
+*)
 val version_compare: t -> t -> int
 
 
 (** Convert and compare version strings.
-  *)
+*)
 val version_compare_string: string -> string -> int
 
 
 (** Convert a string to version.
-  *)
+*)
 val version_of_string: string -> t
 
 
 (** Convert a version to string.
-  *)
+*)
 val string_of_version: t -> string
 
 
 (** Version number value. {b Not exported}.
-  *)
+*)
 val value: t OASISValues.t
 
 
 (** Dump [ODN.t]. {b Not exported}.
-  *)
+*)
 val odn_of_t: t -> ODN.t
 
 
 (** Remove the last part of a version, after the last '.'. I.e. 0.2.0~alpha1 ->
     0.2.
-  *)
+*)
 val chop: t -> t
 
 
@@ -95,41 +95,41 @@ type comparator =
 
 
 (** Apply version comparator expression.
-  *)
+*)
 val comparator_apply: t -> comparator -> bool
 
 
 (** Convert a comparator to string.  Example of output [">= 3.12.1"].
-  *)
+*)
 val string_of_comparator: comparator -> string
 
 
 (** Convert a comparator to variable name.
-  *)
+*)
 val varname_of_comparator: comparator -> string
 
 
 (** [comparator_ge version comparator]
     Check if [comparator] is compatible with all versions >= than [version]
-  *)
+*)
 val comparator_ge: t -> comparator -> bool
 
 
 (** Convert a string to comparator. {b Not exported}.
-  *)
+*)
 val comparator_of_string: string -> comparator
 
 
 (** Simplify comparator, if possible. {b Not exported}.
-  *)
+*)
 val comparator_reduce: comparator -> comparator
 
 
 (** Check that we have a version constraint. {b Not exported}.
-  *)
+*)
 val comparator_value: comparator OASISValues.t
 
 
 (** Dump [ODN.t]. {b Not exported}.
-  *)
+*)
 val odn_of_comparator:  comparator -> ODN.t

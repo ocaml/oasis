@@ -22,7 +22,7 @@
 
 
 (** Parsing of command line arguments
-  *)
+*)
 
 
 open OASISGettext
@@ -89,16 +89,16 @@ let pp_print_help ~ctxt hext hsty fmt () =
               let arg, hlp =
                 match OASISString.nsplit hlp ' ' with
                   | hd :: tl ->
-                      hd, (String.concat " " tl)
+                    hd, (String.concat " " tl)
                   | [] ->
-                      "", ""
+                    "", ""
               in
               let arg =
                 match t with
                   | Arg.Symbol (lst, _) ->
-                      "{"^(String.concat "|" lst)^"}"
+                    "{"^(String.concat "|" lst)^"}"
                   | _ ->
-                      arg
+                    arg
               in
               let term =
                 if arg <> "" then
@@ -106,7 +106,7 @@ let pp_print_help ~ctxt hext hsty fmt () =
                 else
                   cli
               in
-                term, hlp)
+              term, hlp)
            specs)
         (if spec_help then
            ["-help|--help", s_ "Display this list of options"]
@@ -124,17 +124,17 @@ let pp_print_help ~ctxt hext hsty fmt () =
     let pp_print_spec fmt (term, hlp) =
       match hsty with
         | Markdown ->
-            pp_print_def fmt
-              ("`"^term^"`")
-              [pp_print_string_spaced, hlp]
+          pp_print_def fmt
+            ("`"^term^"`")
+            [pp_print_string_spaced, hlp]
         | Output ->
-            pp_print_output_def
-              sz fmt (term, hlp)
+          pp_print_output_def
+            sz fmt (term, hlp)
     in
 
-      pp_print_list pp_print_spec "" fmt help_specs;
-      if hsty = Output then
-        pp_print_newline fmt ()
+    pp_print_list pp_print_spec "" fmt help_specs;
+    if hsty = Output then
+      pp_print_newline fmt ()
   in
 
   let pp_print_scmds fmt () =
@@ -174,7 +174,7 @@ let pp_print_help ~ctxt hext hsty fmt () =
           | Some v -> ["Version: "^v]
           | None -> []
       in
-        (plugin_synopsis plg) ::
+      (plugin_synopsis plg) ::
         ("Findlib: "^plg.PluginLoader.findlib_name) ::
         lst
     in
@@ -183,32 +183,32 @@ let pp_print_help ~ctxt hext hsty fmt () =
       let synopsis = plugin_synopsis plg in
       match plg.PluginLoader.version with
         | Some ver_str ->
-            Printf.sprintf "%s (%s v%s)" synopsis findlib_name ver_str
+          Printf.sprintf "%s (%s v%s)" synopsis findlib_name ver_str
         | None ->
-            Printf.sprintf "%s (%s)" synopsis findlib_name
+          Printf.sprintf "%s (%s)" synopsis findlib_name
     in
-      pp_print_para fmt (s_ "Available subcommands:");
-      List.iter
-        (fun (name, e) ->
-           match hsty, e with
-             | Markdown, `Builtin scmd  ->
-                 pp_print_def fmt ("`"^name^"`")
-                   [pp_print_string_spaced, scmd.scmd_synopsis]
-             | Markdown, `Plugin plg ->
-                 pp_print_def fmt ("`"^name^"`")
-                   (List.map
-                      (fun s -> pp_print_string_spaced, s)
-                      (plugin_markdown_data plg))
-             | Output, `Builtin scmd ->
-                 pp_print_output_def
-                   sz fmt (name, scmd.scmd_synopsis)
-             | Output, `Plugin plg ->
-                 pp_print_output_def
-                   sz fmt
-                   (name, plugin_output_data plg))
-        all_scmds;
-      if hsty = Output then
-        pp_print_newline fmt ()
+    pp_print_para fmt (s_ "Available subcommands:");
+    List.iter
+      (fun (name, e) ->
+         match hsty, e with
+           | Markdown, `Builtin scmd  ->
+             pp_print_def fmt ("`"^name^"`")
+               [pp_print_string_spaced, scmd.scmd_synopsis]
+           | Markdown, `Plugin plg ->
+             pp_print_def fmt ("`"^name^"`")
+               (List.map
+                  (fun s -> pp_print_string_spaced, s)
+                  (plugin_markdown_data plg))
+           | Output, `Builtin scmd ->
+             pp_print_output_def
+               sz fmt (name, scmd.scmd_synopsis)
+           | Output, `Plugin plg ->
+             pp_print_output_def
+               sz fmt
+               (name, plugin_output_data plg))
+      all_scmds;
+    if hsty = Output then
+      pp_print_newline fmt ()
   in
 
   let pp_print_scmd fmt ~global_options ?origin scmd =
@@ -223,14 +223,14 @@ let pp_print_help ~ctxt hext hsty fmt () =
     begin
       match origin with
         | Some (`Plugin plg) ->
-            fprintf fmt
-              "@[<v>__Version__: %s<br/>@,__Findlib__: %s<br/>@]"
-              (match plg.PluginLoader.version with
-                 | Some ver_str -> ver_str
-                 | None -> "undefined")
-              plg.PluginLoader.findlib_name;
+          fprintf fmt
+            "@[<v>__Version__: %s<br/>@,__Findlib__: %s<br/>@]"
+            (match plg.PluginLoader.version with
+              | Some ver_str -> ver_str
+              | None -> "undefined")
+            plg.PluginLoader.findlib_name;
         | Some `Builtin | None ->
-            ()
+          ()
     end;
 
     pp_print_string fmt scmd.scmd_help;
@@ -258,61 +258,61 @@ let pp_print_help ~ctxt hext hsty fmt () =
       end
   in
 
-    (* Write general introduction. *)
-    begin
-      match hext with
-        | NoSubCommand | AllSubCommand ->
-            begin
-              pp_print_string fmt usage_msg;
-              pp_print_endblock fmt ();
+  (* Write general introduction. *)
+  begin
+    match hext with
+      | NoSubCommand | AllSubCommand ->
+        begin
+          pp_print_string fmt usage_msg;
+          pp_print_endblock fmt ();
 
-              pp_print_string fmt CLIData.main_mkd;
-              pp_print_endblock
-                ~check_last_char:CLIData.main_mkd
-                fmt ();
+          pp_print_string fmt CLIData.main_mkd;
+          pp_print_endblock
+            ~check_last_char:CLIData.main_mkd
+            fmt ();
 
-              pp_print_specs true fmt (fst (fspecs ()));
+          pp_print_specs true fmt (fst (fspecs ()));
 
-              pp_print_scmds fmt ();
-            end
+          pp_print_scmds fmt ();
+        end
 
-        | SubCommand _ ->
-            ()
-    end;
+      | SubCommand _ ->
+        ()
+  end;
 
-    (* Write body, focusing on specific command selected. *)
-    begin
-      match hext with
-        | NoSubCommand ->
-            ()
+  (* Write body, focusing on specific command selected. *)
+  begin
+    match hext with
+      | NoSubCommand ->
+        ()
 
-        | SubCommand nm ->
-            pp_print_scmd fmt ~global_options:true (CLISubCommand.find nm)
+      | SubCommand nm ->
+        pp_print_scmd fmt ~global_options:true (CLISubCommand.find nm)
 
-        | AllSubCommand ->
-            let scmds =
-              List.rev_map
-                (fun scmd -> scmd, `Builtin)
-                (CLISubCommand.list_builtin ~deprecated:false ())
-            in
-            let plugin_scmds =
-              if not ctxt.OASISContext.ignore_plugins then
-                List.rev_map
-                  (fun plugin ->
-                     CLISubCommand.find plugin.PluginLoader.name,
-                     `Plugin plugin)
-                  (CLISubCommand.list_plugin ~deprecated:false ())
-              else
-                []
-            in
-            List.iter
-              (fun (scmd, origin) ->
-                 pp_print_scmd fmt ~global_options:false ~origin scmd)
-              (List.sort
-                 (fun (scmd1, _) (scmd2, _) ->
-                    String.compare scmd1.scmd_name scmd2.scmd_name)
-                 (List.rev_append plugin_scmds scmds))
-    end
+      | AllSubCommand ->
+        let scmds =
+          List.rev_map
+            (fun scmd -> scmd, `Builtin)
+            (CLISubCommand.list_builtin ~deprecated:false ())
+        in
+        let plugin_scmds =
+          if not ctxt.OASISContext.ignore_plugins then
+            List.rev_map
+              (fun plugin ->
+                 CLISubCommand.find plugin.PluginLoader.name,
+                 `Plugin plugin)
+              (CLISubCommand.list_plugin ~deprecated:false ())
+          else
+            []
+        in
+        List.iter
+          (fun (scmd, origin) ->
+             pp_print_scmd fmt ~global_options:false ~origin scmd)
+          (List.sort
+             (fun (scmd1, _) (scmd2, _) ->
+                String.compare scmd1.scmd_name scmd2.scmd_name)
+             (List.rev_append plugin_scmds scmds))
+  end
 
 
 let parse_and_run () =
@@ -337,21 +337,21 @@ let parse_and_run () =
     let get_bad str =
       match OASISString.split_newline ~do_trim:false str with
         | fst :: _ ->
-            fst
+          fst
         | [] ->
-            s_ "Unknown error on the command line"
+          s_ "Unknown error on the command line"
     in
-      match exc with
-        | Arg.Bad txt ->
-            pp_print_help ~ctxt:(ctxt_gen ()) hext Output err_formatter ();
-            prerr_newline ();
-            prerr_endline (get_bad txt);
-            exit 2
-        | Arg.Help txt ->
-            pp_print_help ~ctxt:(ctxt_gen ()) hext Output std_formatter ();
-            exit 0
-        | e ->
-            raise e
+    match exc with
+      | Arg.Bad txt ->
+        pp_print_help ~ctxt:(ctxt_gen ()) hext Output err_formatter ();
+        prerr_newline ();
+        prerr_endline (get_bad txt);
+        exit 2
+      | Arg.Help txt ->
+        pp_print_help ~ctxt:(ctxt_gen ()) hext Output std_formatter ();
+        exit 0
+      | e ->
+        raise e
   in
   (* Parse global options and set scmd *)
   let () =
@@ -370,9 +370,9 @@ let parse_and_run () =
   let scmd =
     match !scmd with
       | Some scmd ->
-          scmd
+        scmd
       | None ->
-          failwith (s_ "No subcommand defined, call 'oasis help' for help")
+        failwith (s_ "No subcommand defined, call 'oasis help' for help")
   in
   let (scmd_specs, scmd_anon), main = scmd.scmd_run () in
   let () =
@@ -389,6 +389,6 @@ let parse_and_run () =
       handle_error e (SubCommand scmd.scmd_name)
   in
   let ctxt = ctxt_gen () in
-    if scmd.scmd_deprecated then
-      warning ~ctxt "Subcommand %s is deprecated." scmd.scmd_name;
-    main ~ctxt
+  if scmd.scmd_deprecated then
+    warning ~ctxt "Subcommand %s is deprecated." scmd.scmd_name;
+  main ~ctxt

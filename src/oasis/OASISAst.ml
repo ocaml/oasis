@@ -23,7 +23,7 @@
 
 (** AST manipulation
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISTypes
@@ -35,7 +35,7 @@ open OASISExpr
 
 
 (** Convert OASIS stream into package
-  *)
+*)
 let to_package conf st =
 
   let ast =
@@ -48,175 +48,175 @@ let to_package conf st =
   let ctxt_add_expr ctxt e =
     match ctxt with
       | {cond = None} ->
-          {ctxt with cond = Some e}
+        {ctxt with cond = Some e}
       | {cond = Some e'} ->
-          {ctxt with cond = Some (EAnd (e', e))}
+        {ctxt with cond = Some (EAnd (e', e))}
   in
 
   (* Explore statement, at this level it is possible that value
    * depends from condition (if expression is possible)
-   *)
+  *)
   let rec stmt schm data ctxt =
     function
       | SField (nm, op) ->
-          begin
-            try
-              match op with
-                | FSet s ->
-                    begin
-                      PropList.Schema.set
-                        schm
-                        data
-                        nm
-                        ~context:{ctxt with append = false}
-                        s
-                    end
-                | FAdd s ->
-                    begin
-                      PropList.Schema.set
-                        schm
-                        data
-                        nm
-                        ~context:{ctxt with append = true}
-                        s
-                    end
-                | FEval e ->
-                    begin
-                      PropList.Schema.set
-                        schm
-                        data
-                        nm
-                        ~context:{ctxt with append = false}
-                        (string_of_bool false);
-                      PropList.Schema.set
-                        schm
-                        data
-                        nm
-                        ~context:{(ctxt_add_expr ctxt e) with append = false}
-                        (string_of_bool true)
-                    end
-            with (PropList.Unknown_field _) as exc ->
-              if OASISPlugin.test_field_name nm &&
-                 ctxt.ctxt.OASISContext.ignore_plugins then
-                ()
-              else if ctxt.ctxt.OASISContext.ignore_unknown_fields then
-                ()
-              else
-                raise exc
-          end
+        begin
+          try
+            match op with
+              | FSet s ->
+                begin
+                  PropList.Schema.set
+                    schm
+                    data
+                    nm
+                    ~context:{ctxt with append = false}
+                    s
+                end
+              | FAdd s ->
+                begin
+                  PropList.Schema.set
+                    schm
+                    data
+                    nm
+                    ~context:{ctxt with append = true}
+                    s
+                end
+              | FEval e ->
+                begin
+                  PropList.Schema.set
+                    schm
+                    data
+                    nm
+                    ~context:{ctxt with append = false}
+                    (string_of_bool false);
+                  PropList.Schema.set
+                    schm
+                    data
+                    nm
+                    ~context:{(ctxt_add_expr ctxt e) with append = false}
+                    (string_of_bool true)
+                end
+          with (PropList.Unknown_field _) as exc ->
+            if OASISPlugin.test_field_name nm &&
+               ctxt.ctxt.OASISContext.ignore_plugins then
+              ()
+            else if ctxt.ctxt.OASISContext.ignore_unknown_fields then
+              ()
+            else
+              raise exc
+        end
 
       | SIfThenElse (e, stmt1, stmt2) ->
-          begin
-            (* Check that we have a valid expression *)
-            OASISExpr.check ctxt.valid_flags e;
-            (* Explore if branch *)
-            stmt
-              schm
-              data
-              (ctxt_add_expr ctxt e)
-              stmt1;
-            (* Explore then branch *)
-            stmt
-              schm
-              data
-              (ctxt_add_expr ctxt (ENot e))
-              stmt2
-          end
+        begin
+          (* Check that we have a valid expression *)
+          OASISExpr.check ctxt.valid_flags e;
+          (* Explore if branch *)
+          stmt
+            schm
+            data
+            (ctxt_add_expr ctxt e)
+            stmt1;
+          (* Explore then branch *)
+          stmt
+            schm
+            data
+            (ctxt_add_expr ctxt (ENot e))
+            stmt2
+        end
 
       | SBlock blk ->
-          List.iter (stmt schm data ctxt) blk
+        List.iter (stmt schm data ctxt) blk
   in
 
   (* Explore statement and register data into a newly created
    * Schema.writer.
-   *)
+  *)
   let schema_stmt gen nm schm (ctxt, scts) stmt' =
     let data = PropList.Data.create () in
     let schm = schm.OASISSchema_intern.schm in
     let where = (PropList.Schema.name schm)^" "^nm in
-      stmt schm data ctxt stmt';
-      ctxt,
-      (schm, where, data,
-       fun features_data -> gen features_data nm data)
-      :: scts
+    stmt schm data ctxt stmt';
+    ctxt,
+    (schm, where, data,
+     fun features_data -> gen features_data nm data)
+    :: scts
   in
 
   (* Recurse into top-level statement. At this level there is no conditional
    * expression but there is Flag, Library and Executable structure defined.
-   *)
+  *)
   let rec top_stmt pkg_data (ctxt, scts as acc) =
     (* TODO: refactor all section into one common function call. *)
     function
       | TSLibrary (nm, stmt) ->
-          schema_stmt
-            OASISLibrary_intern.generator
-            nm
-            OASISLibrary.schema
-            acc
-            stmt
+        schema_stmt
+          OASISLibrary_intern.generator
+          nm
+          OASISLibrary.schema
+          acc
+          stmt
 
       | TSObject (nm, stmt) ->
-          schema_stmt
-            OASISObject_intern.generator
-            nm
-            OASISObject.schema
-            acc
-            stmt
+        schema_stmt
+          OASISObject_intern.generator
+          nm
+          OASISObject.schema
+          acc
+          stmt
 
       | TSExecutable (nm, stmt) ->
-          schema_stmt
-            OASISExecutable_intern.generator
-            nm
-            OASISExecutable.schema
-            acc
-            stmt
+        schema_stmt
+          OASISExecutable_intern.generator
+          nm
+          OASISExecutable.schema
+          acc
+          stmt
 
       | TSFlag (nm, stmt) ->
-          let ctxt = {ctxt with valid_flags = nm :: ctxt.valid_flags} in
-          schema_stmt
-            OASISFlag_intern.generator
-            nm
-            OASISFlag.schema
-            (ctxt, scts)
-            stmt
+        let ctxt = {ctxt with valid_flags = nm :: ctxt.valid_flags} in
+        schema_stmt
+          OASISFlag_intern.generator
+          nm
+          OASISFlag.schema
+          (ctxt, scts)
+          stmt
 
       | TSSourceRepository (nm, stmt) ->
-          schema_stmt
-            OASISSourceRepository_intern.generator
-            nm
-            OASISSourceRepository.schema
-            acc
-            stmt
+        schema_stmt
+          OASISSourceRepository_intern.generator
+          nm
+          OASISSourceRepository.schema
+          acc
+          stmt
 
       | TSTest (nm, stmt) ->
-          schema_stmt
-            OASISTest_intern.generator
-            nm
-            OASISTest.schema
-            acc
-            stmt
+        schema_stmt
+          OASISTest_intern.generator
+          nm
+          OASISTest.schema
+          acc
+          stmt
 
       | TSDocument (nm, stmt) ->
-          schema_stmt
-            OASISDocument_intern.generator
-            nm
-            OASISDocument.schema
-            acc
-            stmt
+        schema_stmt
+          OASISDocument_intern.generator
+          nm
+          OASISDocument.schema
+          acc
+          stmt
 
       | TSStmt stmt' ->
-          stmt
-            OASISPackage.schema.OASISSchema_intern.schm
-            pkg_data
-            ctxt
-            stmt';
-          acc
+        stmt
+          OASISPackage.schema.OASISSchema_intern.schm
+          pkg_data
+          ctxt
+          stmt';
+        acc
 
       | TSBlock blk ->
-          List.fold_left
-            (top_stmt pkg_data)
-            acc
-            blk
+        List.fold_left
+          (top_stmt pkg_data)
+          acc
+          blk
   in
 
   (* Interpret AST and inject it into data. *)
@@ -243,9 +243,9 @@ let to_package conf st =
         failwith (s_ "OASISFormat not defined at the beginning of the file, \
                       consider starting with 'OASISFormat: ...'")
     in
-      OASISFeatures.Data.create oasis_version
-        (OASISPackage_intern.alpha_features data)
-        (OASISPackage_intern.beta_features data)
+    OASISFeatures.Data.create oasis_version
+      (OASISPackage_intern.alpha_features data)
+      (OASISPackage_intern.beta_features data)
   in
 
   (* Check all schema. *)
@@ -258,21 +258,21 @@ let to_package conf st =
         features_data
         data
     in
-      List.iter
-        (fun (schm, where, data, _) ->
-           let _plugins: OASISPlugin.SetPlugin.t =
-             OASISCheck.check_schema ~ctxt:ctxt.ctxt
-               where schm plugins features_data data
-           in
-             ())
-        sections
+    List.iter
+      (fun (schm, where, data, _) ->
+         let _plugins: OASISPlugin.SetPlugin.t =
+           OASISCheck.check_schema ~ctxt:ctxt.ctxt
+             where schm plugins features_data data
+         in
+         ())
+      sections
   in
 
   let pkg =
     let sections =
       List.map (fun (_, _, _, gen) -> gen features_data) sections
     in
-      OASISPackage_intern.generator data sections
+    OASISPackage_intern.generator data sections
   in
 
   (* Fix build depends to reflect internal dependencies *)
@@ -285,28 +285,28 @@ let to_package conf st =
     let map_internal_libraries sct =
       List.map
         (function
-           | (FindlibPackage (lnm, ver_opt)) as bd ->
-               let is_internal, lnm =
-                 try
-                   true, internal_of_findlib lnm
-                 with (OASISFindlib.FindlibPackageNotFound _) ->
-                   false, lnm
-               in
-                 if is_internal then
-                   begin
-                     if ver_opt <> None then
-                       failwithf
-                         (f_ "Cannot use versioned build depends \
-                              on internal library %s in %s")
-                         lnm (OASISSection.string_of_section sct);
+          | (FindlibPackage (lnm, ver_opt)) as bd ->
+            let is_internal, lnm =
+              try
+                true, internal_of_findlib lnm
+              with (OASISFindlib.FindlibPackageNotFound _) ->
+                false, lnm
+            in
+            if is_internal then
+              begin
+                if ver_opt <> None then
+                  failwithf
+                    (f_ "Cannot use versioned build depends \
+                         on internal library %s in %s")
+                    lnm (OASISSection.string_of_section sct);
 
-                     InternalLibrary lnm
-                   end
-                 else
-                   bd
+                InternalLibrary lnm
+              end
+            else
+              bd
 
-           | (InternalLibrary _) as bd ->
-               bd)
+          | (InternalLibrary _) as bd ->
+            bd)
     in
 
     let internal_tools =
@@ -314,9 +314,9 @@ let to_package conf st =
         (fun st ->
            function
              | Executable (cs, _, _) ->
-                 SetString.add cs.cs_name st
+               SetString.add cs.cs_name st
              | _ ->
-                 st)
+               st)
         SetString.empty
         pkg.sections
     in
@@ -324,77 +324,77 @@ let to_package conf st =
     let map_internal_tools sct =
       List.map
         (function
-           | ExternalTool lnm as bt ->
-               begin
-                 if SetString.mem lnm internal_tools then
-                   InternalExecutable lnm
-                 else
-                   bt
-               end
-           | InternalExecutable _ as bt ->
-               bt)
+          | ExternalTool lnm as bt ->
+            begin
+              if SetString.mem lnm internal_tools then
+                InternalExecutable lnm
+              else
+                bt
+            end
+          | InternalExecutable _ as bt ->
+            bt)
     in
 
     let map_internal sct bs =
       {bs with
-           bs_build_depends =
-             map_internal_libraries sct bs.bs_build_depends;
-           bs_build_tools =
-             map_internal_tools sct bs.bs_build_tools}
+         bs_build_depends =
+           map_internal_libraries sct bs.bs_build_depends;
+         bs_build_tools =
+           map_internal_tools sct bs.bs_build_tools}
     in
 
-      {pkg with
-           sections =
-             List.map
-               (function
-                  | Library (cs, bs, lib) as sct ->
-                      Library
-                        (cs,
-                         map_internal
-                           sct
-                           bs,
-                         lib)
-                  | Object (cs, bs, obj) as sct ->
-                      Object
-                        (cs,
-                         map_internal
-                           sct
-                           bs,
-                         obj)
-                  | Executable (cs, bs, exec) as sct ->
-                      Executable
-                        (cs,
-                         map_internal
-                           sct
-                           bs,
-                         exec)
-                  | Test (cs, tst) as sct ->
-                      Test
-                        (cs,
-                         {tst with
-                              test_tools =
-                                map_internal_tools
-                                  sct
-                                  tst.test_tools})
-                  | Doc (cs, doc) as sct ->
-                      Doc
-                        (cs,
-                         {doc with
-                              doc_build_tools =
-                                map_internal_tools
-                                  sct
-                                  doc.doc_build_tools})
-                  | Flag _ | SrcRepo _ as sct ->
-                      sct)
-               pkg.sections}
+    {pkg with
+       sections =
+         List.map
+           (function
+             | Library (cs, bs, lib) as sct ->
+               Library
+                 (cs,
+                  map_internal
+                    sct
+                    bs,
+                  lib)
+             | Object (cs, bs, obj) as sct ->
+               Object
+                 (cs,
+                  map_internal
+                    sct
+                    bs,
+                  obj)
+             | Executable (cs, bs, exec) as sct ->
+               Executable
+                 (cs,
+                  map_internal
+                    sct
+                    bs,
+                  exec)
+             | Test (cs, tst) as sct ->
+               Test
+                 (cs,
+                  {tst with
+                     test_tools =
+                       map_internal_tools
+                         sct
+                         tst.test_tools})
+             | Doc (cs, doc) as sct ->
+               Doc
+                 (cs,
+                  {doc with
+                     doc_build_tools =
+                       map_internal_tools
+                         sct
+                         doc.doc_build_tools})
+             | Flag _ | SrcRepo _ as sct ->
+               sct)
+           pkg.sections}
   in
 
   (* Check recursion and re-order library/tools so that build order is
      respected
-   *)
+  *)
   let pkg =
     {pkg with sections = OASISBuildSection.build_order pkg}
   in
-    OASISCheck.check_package ~ctxt:ctxt.ctxt pkg;
-    pkg
+  OASISCheck.check_package ~ctxt:ctxt.ctxt pkg;
+  pkg
 

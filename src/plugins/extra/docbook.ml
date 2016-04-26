@@ -22,7 +22,7 @@
 
 
 (** Docbook package
-  *)
+*)
 module Docbook =
 struct
   module Env = Environment

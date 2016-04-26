@@ -23,7 +23,7 @@
 
 (** Library schema and generator
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISTypes
@@ -92,7 +92,7 @@ let schema, generator =
       ~default:None
       (* TODO: Check that the name is correct if this value is None, the
                package name must be correct
-       *)
+      *)
       (opt findlib_name)
       (fun () ->
          s_ "Name used by findlib.")
@@ -102,22 +102,22 @@ let schema, generator =
     new_field schm "FindlibContainers"
       ~default:[]
       (* TODO: check that a container doesn't overwrite a real package
-       *)
+      *)
       (dot_separated string_not_empty)
       (fun () ->
          s_ "Virtual containers for sub-package, dot-separated")
       (fun (_, _, lib) -> lib.lib_findlib_containers)
   in
-    schm,
-    (fun features_data nm data ->
-       Library
-         (cmn_section_gen features_data nm data,
-          (build_section_gen nm data),
-          {
-            lib_modules            = external_modules data;
-            lib_pack               = pack data;
-            lib_internal_modules   = internal_modules data;
-            lib_findlib_parent     = findlib_parent data;
-            lib_findlib_name       = findlib_name data;
-            lib_findlib_containers = findlib_containers data;
-          }))
+  schm,
+  (fun features_data nm data ->
+     Library
+       (cmn_section_gen features_data nm data,
+        (build_section_gen nm data),
+        {
+          lib_modules            = external_modules data;
+          lib_pack               = pack data;
+          lib_internal_modules   = internal_modules data;
+          lib_findlib_parent     = findlib_parent data;
+          lib_findlib_name       = findlib_name data;
+          lib_findlib_containers = findlib_containers data;
+        }))

@@ -23,7 +23,7 @@
 
 (** Custom command to run before/after specific actions
     @author Sylvain Le Gall
-  *)
+*)
 
 
 (* END EXPORT *)
@@ -49,9 +49,9 @@ let add_fields schm nm hlp_pre hlp_post sync =
       hlp_post
       (fun pkg -> (sync pkg).post_command)
   in
-    (fun data ->
-       {
-         pre_command  = pre_command data;
-         post_command = post_command data;
-       })
+  (fun data ->
+     {
+       pre_command  = pre_command data;
+       post_command = post_command data;
+     })
 

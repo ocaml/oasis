@@ -23,7 +23,7 @@
 
 (** SourceRepository schema and generator (internal)
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISSchema_intern
@@ -109,19 +109,19 @@ let schema, generator =
              package's `_oasis` file.")
       (fun (_, src_repo) -> src_repo.src_repo_subdir)
   in
-    (* TODO: enforce contraint about module/branch/subdir/tag depending
-     * in src_repo_type
-     *)
-    schm,
-    (fun features_data nm data ->
-       SrcRepo
-         (cmn_section_gen features_data nm data,
-          {
-            src_repo_type        = typ data;
-            src_repo_location    = location data;
-            src_repo_browser     = browser data;
-            src_repo_module      = modul data;
-            src_repo_branch      = branch data;
-            src_repo_tag         = tag data;
-            src_repo_subdir      = subdir data;
-          }))
+  (* TODO: enforce contraint about module/branch/subdir/tag depending
+   * in src_repo_type
+  *)
+  schm,
+  (fun features_data nm data ->
+     SrcRepo
+       (cmn_section_gen features_data nm data,
+        {
+          src_repo_type        = typ data;
+          src_repo_location    = location data;
+          src_repo_browser     = browser data;
+          src_repo_module      = modul data;
+          src_repo_branch      = branch data;
+          src_repo_tag         = tag data;
+          src_repo_subdir      = subdir data;
+        }))

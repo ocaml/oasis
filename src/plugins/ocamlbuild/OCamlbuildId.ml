@@ -23,7 +23,7 @@
 
 (* Identity of OCamlbuild plugin
    @author Sylvain Le Gall
- *)
+*)
 
 
 let name    = "OCamlbuild"
@@ -41,4 +41,4 @@ open OASISPlugin
 let init () =
   register_help (`All, name, Some version)
     {(help_default OCamlbuildData.readme_template_mkd) with
-         help_order = 20}
+       help_order = 20}

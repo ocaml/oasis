@@ -31,11 +31,11 @@ let doc lst pkg extra_args =
 
   let one_doc (doc_plugin, cs, doc) =
     if var_choose
-         ~name:(Printf.sprintf
-                 (f_ "documentation %s build")
-                 cs.cs_name)
-         ~printer:string_of_bool
-         doc.doc_build then
+        ~name:(Printf.sprintf
+            (f_ "documentation %s build")
+            cs.cs_name)
+        ~printer:string_of_bool
+        doc.doc_build then
       begin
         info (f_ "Building documentation '%s'") cs.cs_name;
         BaseCustom.hook
@@ -44,11 +44,11 @@ let doc lst pkg extra_args =
           extra_args
       end
   in
-    List.iter one_doc lst;
+  List.iter one_doc lst;
 
-    if OASISFeatures.package_test OASISFeatures.flag_docs pkg &&
-       not (bool_of_string (BaseStandardVar.docs ())) &&
-       lst <> [] then
-      BaseMessage.warning
-        "Docs are turned off, consider enabling with \
-         'ocaml setup.ml -configure --enable-docs'"
+  if OASISFeatures.package_test OASISFeatures.flag_docs pkg &&
+     not (bool_of_string (BaseStandardVar.docs ())) &&
+     lst <> [] then
+    BaseMessage.warning
+      "Docs are turned off, consider enabling with \
+       'ocaml setup.ml -configure --enable-docs'"

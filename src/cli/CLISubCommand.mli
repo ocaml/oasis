@@ -23,7 +23,7 @@
 
 (** SubCommand definition
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISTypes
@@ -40,36 +40,36 @@ type 'a main_t = ctxt:OASISContext.t -> 'a
 
 (** Generate command line arguments and the function to run the main of the
     subcommand.
-  *)
+*)
 type 'a run_t = unit -> cli_parsing_t * 'a main_t
 
 type t =
-    {
-      scmd_name: name;
-      (** Name of the subcommand, used to call it *)
+  {
+    scmd_name: name;
+    (** Name of the subcommand, used to call it *)
 
-      scmd_synopsis: string;
-      (** Short description of the subcommnad, displayed when doing a summary
-          of the available subcommands
-       *)
+    scmd_synopsis: string;
+    (** Short description of the subcommnad, displayed when doing a summary
+        of the available subcommands
+    *)
 
-      scmd_help: string;
-      (** Long description of the subcommand, displayed when showing help of the
-          subcommand.
+    scmd_help: string;
+    (** Long description of the subcommand, displayed when showing help of the
+        subcommand.
 
-          It can contains variable substitution as defined in
-          [Buffer.add_substitute].
-        *)
+        It can contains variable substitution as defined in
+        [Buffer.add_substitute].
+    *)
 
-      scmd_usage: string;
-      (** [Arg] usage text *)
+    scmd_usage: string;
+    (** [Arg] usage text *)
 
-      scmd_deprecated: bool;
-      (** Is this subcommand deprecated. *)
+    scmd_deprecated: bool;
+    (** Is this subcommand deprecated. *)
 
-      scmd_run: unit run_t;
-      (** Generate the specs and a main function. *)
-    }
+    scmd_run: unit run_t;
+    (** Generate the specs and a main function. *)
+  }
 
 val default_anon: Arg.anon_fun
 val default_fspecs: (unit -> cli_parsing_t * unit cli_parsing_post_t)
@@ -78,7 +78,7 @@ val default_fspecs: (unit -> cli_parsing_t * unit cli_parsing_post_t)
     the main function. The goal is to make [main] not use global variable and
     create what is need to store them in fspecs. This allow to make the whole
     subcommand invocation thread safe.
- *)
+*)
 val make_run:
   (unit -> cli_parsing_t * 'a cli_parsing_post_t) ->
   ('a -> 'b) main_t ->
@@ -88,7 +88,7 @@ val make_run:
     provided data, see {!t} for their meanings. See {!make_run} to define a run
     function. You can also see {!CLICommon} for useful functions to wrap your
     [run].
-  *)
+*)
 val register:
   ?usage:string ->
   ?deprecated:bool ->
@@ -104,10 +104,10 @@ val find: name -> t
 
 (** List all PluginLoader entries registered. Set [deprecated] to false to
     filter out deprecated plugin
- *)
+*)
 val list_plugin: ?deprecated:bool -> unit -> PluginLoader.entry list
 
 (** List all builtin plugin registered. Set [deprecated] to false to filter
     out deprecated builtin.
-  *)
+*)
 val list_builtin: ?deprecated:bool -> unit -> t list

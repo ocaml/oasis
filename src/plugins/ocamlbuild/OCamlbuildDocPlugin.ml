@@ -23,7 +23,7 @@
 
 (* Create documentation using ocamlbuild .odocl files
    @author Sylvain Le Gall
- *)
+*)
 
 
 open OASISTypes
@@ -33,7 +33,7 @@ open OCamlbuildCommon
 open BaseStandardVar
 
 
-TYPE_CONV_PATH "OCamlbuildDocPlugin"
+    TYPE_CONV_PATH "OCamlbuildDocPlugin"
 
 type run_t =
   {
@@ -59,15 +59,15 @@ let doc_build run pkg (cs, doc) argv =
         cs.cs_name^".docdir";
       ]
   in
-    run_ocamlbuild (index_html :: run.extra_args) argv;
-    List.iter
-      (fun glb ->
-         BaseBuilt.register
-           BaseBuilt.BDoc
-           cs.cs_name
-           [OASISFileUtil.glob ~ctxt:!BaseContext.default
-              (Filename.concat tgt_dir glb)])
-      ["*.html"; "*.css"]
+  run_ocamlbuild (index_html :: run.extra_args) argv;
+  List.iter
+    (fun glb ->
+       BaseBuilt.register
+         BaseBuilt.BDoc
+         cs.cs_name
+         [OASISFileUtil.glob ~ctxt:!BaseContext.default
+            (Filename.concat tgt_dir glb)])
+    ["*.html"; "*.css"]
 
 
 let doc_clean run pkg (cs, doc) argv =
@@ -92,14 +92,14 @@ let plugin =
 
 
 type t =
-    {
-      path:      unix_dirname;
-      modules:   string list;
-      libraries: findlib_full list;
-      intro:     unix_filename option;
-      flags:     string list;
-      common:    ocamlbuild_common;
-    }
+  {
+    path:      unix_dirname;
+    modules:   string list;
+    libraries: findlib_full list;
+    intro:     unix_filename option;
+    flags:     string list;
+    common:    ocamlbuild_common;
+  }
 
 
 let pivot_data = data_new_property plugin
@@ -149,7 +149,7 @@ let libraries =
 
 
 (* TODO: the following 2 options require to edit _tags after OCamlbuildDoc
- *)
+*)
 (*
 let intro =
   new_field
@@ -179,69 +179,69 @@ let generator =
     (* Register fields. *)
     ocamlbuild_common_generator pivot_sub_data OASISDocument.schema all_id
   in
-    fun data pkg ->
-      let path = path data in
+  fun data pkg ->
+    let path = path data in
 
-      let modules_from_libraries =
-        (* Convert findlib name to internal library and compute
-         * the module they shipped.
-         *)
-        let lib_of_findlib =
-          let _, _, library_name_of_findlib_name =
-            OASISFindlib.findlib_mapping pkg
-          in
-          let lib_of_name =
-            List.fold_left
-              (fun mp ->
-                 function
-                   | Library ({cs_name = name}, bs, lib) ->
-                       MapString.add name (bs, lib) mp
-                   | _ ->
-                       mp)
-              MapString.empty
-              pkg.sections
-          in
-            fun fndlb_nm ->
-              let nm =
-                library_name_of_findlib_name fndlb_nm
-              in
-                MapString.find nm lib_of_name
+    let modules_from_libraries =
+      (* Convert findlib name to internal library and compute
+       * the module they shipped.
+      *)
+      let lib_of_findlib =
+        let _, _, library_name_of_findlib_name =
+          OASISFindlib.findlib_mapping pkg
         in
-
-          (* Fetch modules from internal libraries *)
-          List.flatten
-            (List.map
-               (fun fndlb_nm ->
-                  let bs, lib =
-                    lib_of_findlib fndlb_nm
-                  in
-                    (* Rebase modules in the doc path *)
-                    List.map
-                      (fun modul ->
-                         OASISUnixPath.make_relative
-                           path
-                           (OASISUnixPath.concat bs.bs_path modul))
-                      lib.lib_modules)
-
-               (libraries data))
+        let lib_of_name =
+          List.fold_left
+            (fun mp ->
+               function
+                 | Library ({cs_name = name}, bs, lib) ->
+                   MapString.add name (bs, lib) mp
+                 | _ ->
+                   mp)
+            MapString.empty
+            pkg.sections
+        in
+        fun fndlb_nm ->
+          let nm =
+            library_name_of_findlib_name fndlb_nm
+          in
+          MapString.find nm lib_of_name
       in
 
-      let modules_from_doc =
-        (* Fetch modules defined directly *)
-        modules data
-      in
+      (* Fetch modules from internal libraries *)
+      List.flatten
+        (List.map
+           (fun fndlb_nm ->
+              let bs, lib =
+                lib_of_findlib fndlb_nm
+              in
+              (* Rebase modules in the doc path *)
+              List.map
+                (fun modul ->
+                   OASISUnixPath.make_relative
+                     path
+                     (OASISUnixPath.concat bs.bs_path modul))
+                lib.lib_modules)
 
-      let modules =
-        modules_from_libraries @ modules_from_doc
-      in
-      {
-        path = path;
-        modules = modules;
-        libraries = libraries data;
-        intro = None;
-        flags = [];
-        common = generator_common data;
-      }
+           (libraries data))
+    in
+
+    let modules_from_doc =
+      (* Fetch modules defined directly *)
+      modules data
+    in
+
+    let modules =
+      modules_from_libraries @ modules_from_doc
+    in
+    {
+      path = path;
+      modules = modules;
+      libraries = libraries data;
+      intro = None;
+      flags = [];
+      common = generator_common data;
+    }
 
 
 let doit ctxt pkg (cs, doc) =

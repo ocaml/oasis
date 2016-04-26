@@ -35,13 +35,13 @@ let generic_message ~ctxt lvl fmt =
         | `Info  -> ctxt.info
         | _ -> true
   in
-    Printf.ksprintf
-      (fun str ->
-         if cond then
-           begin
-             ctxt.printf lvl str
-           end)
-      fmt
+  Printf.ksprintf
+    (fun str ->
+       if cond then
+         begin
+           ctxt.printf lvl str
+         end)
+    fmt
 
 
 let debug ~ctxt fmt =

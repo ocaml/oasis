@@ -23,7 +23,7 @@
 
 (** Build section internal functions
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISSchema_intern
@@ -42,26 +42,26 @@ let build_depends_field schm sync =
             findlib_full
             OASISVersion.comparator_value)
      in
-       {
-         parse =
-           (fun ~ctxt str ->
-              List.map
-                (fun (pkg, ver_constr_opt) ->
-                   FindlibPackage (pkg, ver_constr_opt))
-                (base_value.parse ~ctxt str));
+     {
+       parse =
+         (fun ~ctxt str ->
+            List.map
+              (fun (pkg, ver_constr_opt) ->
+                 FindlibPackage (pkg, ver_constr_opt))
+              (base_value.parse ~ctxt str));
 
-         update =
-           List.append;
+       update =
+         List.append;
 
-         print =
-           (fun lst ->
-              base_value.print
-                (List.map
-                   (function
-                      | FindlibPackage (nm, ver) -> (nm, ver)
-                      | InternalLibrary nm -> (nm, None))
-                   lst));
-       })
+       print =
+         (fun lst ->
+            base_value.print
+              (List.map
+                 (function
+                   | FindlibPackage (nm, ver) -> (nm, ver)
+                   | InternalLibrary nm -> (nm, None))
+                 lst));
+     })
     (fun () ->
        s_ "Dependencies on findlib packages, including internal \
            findlib packages.")
@@ -69,28 +69,28 @@ let build_depends_field schm sync =
 
 
 let build_tools_value =
-   let base =
-     comma_separated file
-   in
-     {
-       parse =
-         (fun ~ctxt str ->
-            List.map
-              (fun s -> ExternalTool s)
-              (base.parse ~ctxt str));
+  let base =
+    comma_separated file
+  in
+  {
+    parse =
+      (fun ~ctxt str ->
+         List.map
+           (fun s -> ExternalTool s)
+           (base.parse ~ctxt str));
 
-       update =
-         List.append;
+    update =
+      List.append;
 
-       print =
-         (fun lst ->
-            base.print
-              (List.map
-                 (function
-                    | InternalExecutable nm
-                    | ExternalTool nm -> nm)
+    print =
+      (fun lst ->
+         base.print
+           (List.map
+              (function
+                | InternalExecutable nm
+                | ExternalTool nm -> nm)
               lst))
-     }
+  }
 
 
 let build_tools_field schm sync =
@@ -102,12 +102,12 @@ let build_tools_field schm sync =
 
 
 let build_install_data_fields
-      ?default_cond
-      ?(default=true)
-      schm
-      sync_build
-      sync_install
-      sync_datafiles =
+    ?default_cond
+    ?(default=true)
+    schm
+    sync_build
+    sync_install
+    sync_datafiles =
   let build =
     new_field_conditional schm "Build"
       ?default_cond
@@ -135,7 +135,7 @@ let build_install_data_fields
              ([see here](#data-files))")
       sync_datafiles
   in
-    build, install, data_files
+  build, install, data_files
 
 
 let section_fields nm comp_dflt schm sync =
@@ -218,21 +218,21 @@ let section_fields nm comp_dflt schm sync =
       (fun () -> s_ "ocamlopt arguments to use when building.")
       (fun pkg -> (sync pkg).bs_nativeopt)
   in
-    (fun nm data ->
-       {
-         bs_build           = build data;
-         bs_install         = install data;
-         bs_path            = path data;
-         bs_compiled_object = compiled_object data;
-         bs_build_depends   = build_depends data;
-         bs_build_tools     = build_tools data;
-         bs_c_sources       = c_sources data;
-         bs_data_files      = data_files data;
-         bs_ccopt           = ccopt data;
-         bs_cclib           = cclib data;
-         bs_dlllib          = dlllib data;
-         bs_dllpath         = dllpath data;
-         bs_byteopt         = byteopt data;
-         bs_nativeopt       = nativeopt data;
-       })
+  (fun nm data ->
+     {
+       bs_build           = build data;
+       bs_install         = install data;
+       bs_path            = path data;
+       bs_compiled_object = compiled_object data;
+       bs_build_depends   = build_depends data;
+       bs_build_tools     = build_tools data;
+       bs_c_sources       = c_sources data;
+       bs_data_files      = data_files data;
+       bs_ccopt           = ccopt data;
+       bs_cclib           = cclib data;
+       bs_dlllib          = dlllib data;
+       bs_dllpath         = dllpath data;
+       bs_byteopt         = byteopt data;
+       bs_nativeopt       = nativeopt data;
+     })
 

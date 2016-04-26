@@ -38,7 +38,7 @@
     The whole module is {b not exported}.
 
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISUnixPath
@@ -92,17 +92,17 @@ type body =
 
 
 type template =
-    {
-      fn: host_filename;
-      comment: comment;
-      header: line list;
-      body: body;
-      footer: line list;
-      perm: int;
-      important: bool; (** Determine if should be kept in dynamic mode. *)
-      disable_oasis_section: bool;
-      (** Determine if OASIS section comments and digest should be omitted. *)
-    }
+  {
+    fn: host_filename;
+    comment: comment;
+    header: line list;
+    body: body;
+    footer: line list;
+    perm: int;
+    important: bool; (** Determine if should be kept in dynamic mode. *)
+    disable_oasis_section: bool;
+    (** Determine if OASIS section comments and digest should be omitted. *)
+  }
 
 
 (** [template_make fn cmt header body footer] Create a template for which
@@ -136,7 +136,7 @@ val template_of_mlfile:
 val to_string_list: template -> line list
 
 (** Describe what has been done to generate a file out of a template.
-  *)
+*)
 type file_generate_change =
     Create of host_filename
   (** [Create fn], [fn] is the target file, nothing exists before *)
@@ -148,7 +148,7 @@ type file_generate_change =
 
 
 (** Reset to pristine a generated file.
-  *)
+*)
 val file_rollback: ctxt:OASISContext.t -> file_generate_change -> unit
 
 
@@ -157,7 +157,7 @@ val file_rollback: ctxt:OASISContext.t -> file_generate_change -> unit
     exist use the whole template. If [~remove] is [true], then an existing file
     will be deleted iff the template body is [[]] and the header and footer of
     the file match the template's (used by the -remove option for setup-clean).
- *)
+*)
 val file_generate:
   ctxt:OASISContext.t ->
   ?remove:bool -> backup:bool -> template -> file_generate_change
@@ -167,12 +167,12 @@ val file_generate:
 
 
 (** Try to add a file that is already in the set
-  *)
+*)
 exception AlreadyExists of host_filename
 
 
 (** Set of templates.
-  *)
+*)
 type templates
 
 
@@ -182,25 +182,25 @@ val create: disable_oasis_section:unix_filename list -> unit -> templates
 
 
 (** Find a generated template file.
-  *)
+*)
 val find: host_filename -> templates -> template
 
 
 (** Add a generated template file.
-  *)
+*)
 val add: template -> templates -> templates
 
 
 (** Remove a generated template file.
-  *)
+*)
 val remove: host_filename -> templates -> templates
 
 
 (** Add or replace a generated template file.
-  *)
+*)
 val replace: template -> templates -> templates
 
 
 (** Fold over generated template files.
-  *)
+*)
 val fold: (template -> 'b -> 'b) -> templates -> 'b -> 'b

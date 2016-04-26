@@ -26,7 +26,7 @@
     The whole module is {b not exported}.
 
     @author Sylvain Le Gall
-  *)
+*)
 
 
 (** {2 Types} *)
@@ -48,93 +48,93 @@ type 'a prop   = 'a setter * 'a getter
 
 
 (** OCaml module embedded code.
-  *)
+*)
 type modul = string
 
 
 (** Describe setup file changes.
-  *)
+*)
 type ('a, 'b) setup_changes =
-    {
-      chng_moduls: modul list;
-      (** OCaml module to be added to setup file *)
+  {
+    chng_moduls: modul list;
+    (** OCaml module to be added to setup file *)
 
-      chng_main: 'a ODNFunc.func;
-      (** Main function to be added to BaseSetup.t (i.e. the one that
-          that really do something: configure, build, test...)
-        *)
+    chng_main: 'a ODNFunc.func;
+    (** Main function to be added to BaseSetup.t (i.e. the one that
+        that really do something: configure, build, test...)
+    *)
 
-      chng_clean: 'b ODNFunc.func option;
-      (** Function to be called when cleaning *)
+    chng_clean: 'b ODNFunc.func option;
+    (** Function to be called when cleaning *)
 
-      chng_distclean: 'b ODNFunc.func option;
-      (** Function to be called when distcleaning *)
-    }
+    chng_distclean: 'b ODNFunc.func option;
+    (** Function to be called when distcleaning *)
+  }
 
 
 (** Describe context when applying a plugin.
-  *)
+*)
 type context_act =
-    {
-      ctxt: OASISContext.t;
-      (** Global context. *)
+  {
+    ctxt: OASISContext.t;
+    (** Global context. *)
 
-      update: OASISSetupUpdate.t;
-      (** What is the value given to -setup-update ? *)
+    update: OASISSetupUpdate.t;
+    (** What is the value given to -setup-update ? *)
 
-      error: bool;
-      (** Are there errors? *)
+    error: bool;
+    (** Are there errors? *)
 
-      files: OASISFileTemplate.templates;
-      (** Generated files. *)
+    files: OASISFileTemplate.templates;
+    (** Generated files. *)
 
-      other_actions: (unit -> unit) list;
-      (** Extra actions. *)
-    }
+    other_actions: (unit -> unit) list;
+    (** Extra actions. *)
+  }
 
 
 (** Generator for sections (document, test).
-  *)
+*)
 type ('a, 'b) section_act =
-    context_act ->
-    package ->
-    (common_section * 'a) ->
+  context_act ->
+  package ->
+  (common_section * 'a) ->
 
-      (* Result *)
-      context_act *
+  (* Result *)
+  context_act *
 
-      ((* Run *)
-       (package -> (common_section * 'a) -> string array -> 'b),
+    ((* Run *)
+      (package -> (common_section * 'a) -> string array -> 'b),
 
-       (* Clean & Distclean *)
-       (package -> (common_section * 'a) -> string array -> unit)
-      ) setup_changes
+      (* Clean & Distclean *)
+      (package -> (common_section * 'a) -> string array -> unit)
+    ) setup_changes
 
 
 (** Generator with a package argument only (build, install).
-  *)
+*)
 type package_act =
-    context_act ->
-    package ->
+  context_act ->
+  package ->
 
-      (* Result *)
-      context_act *
+  (* Result *)
+  context_act *
 
-      ((* Run *)
-       (package -> string array -> unit),
+    ((* Run *)
+      (package -> string array -> unit),
 
-       (* Clean & Distclean *)
-       (package -> string array -> unit)
-      ) setup_changes
+      (* Clean & Distclean *)
+      (package -> string array -> unit)
+    ) setup_changes
 
 
 (** Base types to build plugin: register fields, action, generators...
-  *)
+*)
 type 'a t
 
 
 (** Base types for all plugins
-  *)
+*)
 type all_t = plugin_kind t
 
 
@@ -148,23 +148,23 @@ val quickstart_completion: plugin_kind plugin -> package -> package
 
 (** Register a generator for package, to store data of a plugin *)
 val register_generator_package:
-    all_t -> 'a prop -> (PropList.Data.t -> 'a) -> unit
+  all_t -> 'a prop -> (PropList.Data.t -> 'a) -> unit
 
 
 (** Call generator for provided plugin *)
 val generator_package:
-    plugin_kind plugin -> plugin_data ref -> PropList.Data.t -> unit
+  plugin_kind plugin -> plugin_data ref -> PropList.Data.t -> unit
 
 
 (** Register a generator for a section, to store data of a plugin *)
 val register_generator_section:
-    section_kind -> all_t -> 'a prop -> (PropList.Data.t -> 'a) -> unit
+  section_kind -> all_t -> 'a prop -> (PropList.Data.t -> 'a) -> unit
 
 
 (** Call generator for provided plugin on a section *)
 val generator_section:
-    section_kind -> plugin_kind plugin -> plugin_data ref ->
-    PropList.Data.t -> unit
+  section_kind -> plugin_kind plugin -> plugin_data ref ->
+  PropList.Data.t -> unit
 
 
 (** List available plugins. *)
@@ -187,12 +187,12 @@ val help_default: string list -> help
 
 (** Register general help. We only rely on plugin name and version. The
     replacement field will be computed using the kind of the plugin.
-  *)
+*)
 val register_help: [`All | plugin_kind] plugin -> help -> unit
 
 
 (** Get general help text
-  *)
+*)
 val help: [`All] plugin -> help
 
 
@@ -232,43 +232,43 @@ end
 (** This module manage plugin that can handle configure step. *)
 module Configure: PLUGINS with
   type act = package_act
-  and type data = package
-  and type kind = [`Configure]
+                           and type data = package
+                           and type kind = [`Configure]
 
 
 (** This module manage plugin that can handle build step. *)
 module Build: PLUGINS with
   type act = package_act
-  and type data = package
-  and type kind = [`Build]
+                       and type data = package
+                       and type kind = [`Build]
 
 
 (** This module manage plugin that can handle building documents. *)
 module Doc: PLUGINS with
   type act = (doc, unit) section_act
-  and type data = common_section * doc
-  and type kind = [`Doc]
+                     and type data = common_section * doc
+                     and type kind = [`Doc]
 
 
 (** This module manage plugin that can handle running tests. *)
 module Test: PLUGINS with
   type act = (test, float) section_act
-  and type data = common_section * test
-  and type kind = [`Test]
+                      and type data = common_section * test
+                      and type kind = [`Test]
 
 
 (** This module manage plugin that can handle install/uninstall steps. *)
 module Install: PLUGINS with
   type act = package_act * package_act
-  and type data = package
-  and type kind = [`Install]
+                         and type data = package
+                         and type kind = [`Install]
 
 
 (** This module manage plugin that can handle configure step. *)
 module Extra:     PLUGINS with
   type act = context_act -> package -> context_act
-  and type data = package
-  and type kind = [`Extra]
+                           and type data = package
+                           and type kind = [`Extra]
 
 
 (** {2 General plugin functions} *)
@@ -276,7 +276,7 @@ module Extra:     PLUGINS with
 
 (** Check that a field name has the form to match a plugin. Don't check that the
     plugin exists. This functions help to ignore plugin fields.
-  *)
+*)
 val test_field_name: string -> bool
 
 
@@ -290,7 +290,7 @@ val add_file: OASISFileTemplate.template -> context_act -> context_act
 
 (** Define an error in context. It doesn't stop processing, it just sets the
     {context_act.error} value.
-  *)
+*)
 val set_error: bool -> string -> context_act -> context_act
 
 
@@ -308,26 +308,26 @@ val string_of_plugin: 'a plugin -> string
 
 (** Compare plugin, caseless for name and don't take into account version
     if one is not set.
-  *)
+*)
 val plugin_compare: 'a plugin -> 'a plugin -> int
 
 
 (** Test equality for plugins, a special case of {!plugin_compare}.
-  *)
+*)
 val plugin_equal: 'a plugin -> 'a plugin -> bool
 
 
 (** Create storage for plugin data.
-  *)
+*)
 val data_create: unit -> plugin_data ref
 
 
 (** [data_new_property plg] Create a property that can store plugin data. Beware
     that the the couple [(plg, purpose)] must be unique.
 
-  @param purpose An identifier to make possible the use of several properties
+    @param purpose An identifier to make possible the use of several properties
                  for the same plugin. If not defined, it is derived from the
                  kind of plugin.
-  *)
+*)
 val data_new_property:
-    ?purpose:plugin_data_purpose -> plugin_kind plugin -> 'a prop
+  ?purpose:plugin_data_purpose -> plugin_kind plugin -> 'a prop

@@ -23,7 +23,7 @@
 
 (** Generate standard development files
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISFileTemplate
@@ -56,11 +56,11 @@ let all_targets =
 
 
 type t =
-    {
-      makefile_notargets: string list;
-      enable_makefile:    bool;
-      enable_configure:   bool;
-    }
+  {
+    makefile_notargets: string list;
+    enable_makefile:    bool;
+    enable_configure:   bool;
+  }
 
 
 let pivot_data =
@@ -107,12 +107,12 @@ let generator =
       pivot_data (fun _ t -> t.enable_configure)
   in
 
-    (fun data ->
-       {
-         makefile_notargets = makefile_notargets data;
-         enable_makefile    = enable_makefile data;
-         enable_configure   = enable_configure data;
-       })
+  (fun data ->
+     {
+       makefile_notargets = makefile_notargets data;
+       enable_makefile    = enable_makefile data;
+       enable_configure   = enable_configure data;
+     })
 
 
 let main ctxt pkg =
@@ -121,9 +121,9 @@ let main ctxt pkg =
   in
   let (makefile_setup_deps, packages) =
     match ctxt.update with
-    | OASISSetupUpdate.Dynamic -> (" _oasis", " -linkpkg -package oasis.dynrun")
-    | OASISSetupUpdate.Weak -> (" _oasis", "")
-    | OASISSetupUpdate.NoUpdate -> ("", "")
+      | OASISSetupUpdate.Dynamic -> (" _oasis", " -linkpkg -package oasis.dynrun")
+      | OASISSetupUpdate.Weak -> (" _oasis", "")
+      | OASISSetupUpdate.NoUpdate -> ("", "")
   in
   let compiled_setup_ml =
     OASISFeatures.package_test OASISFeatures.compiled_setup_ml pkg
@@ -144,9 +144,9 @@ let main ctxt pkg =
           let excludes =
             OASISUtils.SetString.of_list t.makefile_notargets
           in
-            List.filter
-              (fun t -> not (OASISUtils.SetString.mem t excludes))
-              all_targets
+          List.filter
+            (fun t -> not (OASISUtils.SetString.mem t excludes))
+            all_targets
         in
         let add_one_target ?(need_configure=true) ?(other_depends=[]) nm =
           let setup_deps l = if compiled_setup_ml then "$(SETUP)" :: l else l in
@@ -166,52 +166,52 @@ let main ctxt pkg =
             deps
             nm (String.uppercase nm)
         in
-          Buffer.add_string
-            buff
-            (if compiled_setup_ml then
-               "\nSETUP = ./setup.exe\n\n"
-             else
-               "\nSETUP = ocaml setup.ml\n\n"
-            );
-          List.iter
-            (function
-               | "distclean" when compiled_setup_ml ->
-                   Printf.bprintf buff
-                     "distclean: $(SETUP)\n\
-                      \t$(SETUP) -distclean $(DISTCLEANFLAGS)\n\
-                      \t$(RM) $(SETUP)\n\n";
-               | "all" | "clean" | "distclean" as nm ->
-                   add_one_target ~need_configure:false nm
-               | "test" | "doc" as nm ->
-                   add_one_target ~other_depends:["build"] nm
-               | "configure" ->
-                   let add_configure_target nm =
-                     Printf.bprintf buff
-                       "%s:%s\n\
-                        \t$(SETUP) -configure $(CONFIGUREFLAGS)\n\n"
-                       nm
-                       (if compiled_setup_ml then " $(SETUP)" else "");
-                   in
-                   add_configure_target "setup.data";
-                   add_configure_target "configure";
-               | nm ->
-                   add_one_target nm)
-            targets;
-          if compiled_setup_ml then begin
-            Printf.bprintf buff
-              "setup.exe: setup.ml%s\n\
-               \tocamlfind ocamlopt -o $@%s setup.ml || ocamlfind ocamlc -o $@%s setup.ml || true\n\
-               \t$(RM) setup.cmi setup.cmo setup.cmx setup.o\n\n"
-              makefile_setup_deps packages packages;
-          end;
-          Buffer.add_string buff (".PHONY: "^(String.concat " " targets)^"\n");
+        Buffer.add_string
+          buff
+          (if compiled_setup_ml then
+             "\nSETUP = ./setup.exe\n\n"
+           else
+             "\nSETUP = ocaml setup.ml\n\n"
+          );
+        List.iter
+          (function
+            | "distclean" when compiled_setup_ml ->
+              Printf.bprintf buff
+                "distclean: $(SETUP)\n\
+                 \t$(SETUP) -distclean $(DISTCLEANFLAGS)\n\
+                 \t$(RM) $(SETUP)\n\n";
+            | "all" | "clean" | "distclean" as nm ->
+              add_one_target ~need_configure:false nm
+            | "test" | "doc" as nm ->
+              add_one_target ~other_depends:["build"] nm
+            | "configure" ->
+              let add_configure_target nm =
+                Printf.bprintf buff
+                  "%s:%s\n\
+                   \t$(SETUP) -configure $(CONFIGUREFLAGS)\n\n"
+                  nm
+                  (if compiled_setup_ml then " $(SETUP)" else "");
+              in
+              add_configure_target "setup.data";
+              add_configure_target "configure";
+            | nm ->
+              add_one_target nm)
+          targets;
+        if compiled_setup_ml then begin
+          Printf.bprintf buff
+            "setup.exe: setup.ml%s\n\
+             \tocamlfind ocamlopt -o $@%s setup.ml || ocamlfind ocamlc -o $@%s setup.ml || true\n\
+             \t$(RM) setup.cmi setup.cmo setup.cmx setup.o\n\n"
+            makefile_setup_deps packages packages;
+        end;
+        Buffer.add_string buff (".PHONY: "^(String.concat " " targets)^"\n");
 
-          OASISPlugin.add_file
-            {(template_make "Makefile" comment_sh []
-                (OASISString.split_newline ~do_trim:false
-                   (Buffer.contents buff)) []) with
-                       important = true}
-            ctxt
+        OASISPlugin.add_file
+          {(template_make "Makefile" comment_sh []
+              (OASISString.split_newline ~do_trim:false
+                 (Buffer.contents buff)) []) with
+             important = true}
+          ctxt
       end
     else
       ctxt
@@ -225,8 +225,8 @@ let main ctxt pkg =
           if compiled_setup_ml then
             Printf.sprintf
               "if [ ! -e setup.exe ] || [ _oasis -nt setup.exe ] || [ setup.ml -nt setup.exe ] || [ configure -nt setup.exe ]; then\n  \
-                 ocamlfind ocamlopt -o setup.exe%s setup.ml || ocamlfind ocamlc -o setup.exe%s setup.ml || exit 1\n  \
-                 rm -f setup.cmi setup.cmo setup.cmx setup.o\n\
+               ocamlfind ocamlopt -o setup.exe%s setup.ml || ocamlfind ocamlc -o setup.exe%s setup.ml || exit 1\n  \
+               rm -f setup.cmi setup.cmo setup.cmx setup.o\n\
                fi\n\
                ./setup.exe -configure \"$@\""
               packages packages
@@ -244,15 +244,15 @@ let main ctxt pkg =
             comment_sh
             (DevFilesData.configure @ ocaml_setup_configure)
         in
-          OASISPlugin.add_file
-            {tmpl with perm = 0o755; important = true}
-            ctxt
+        OASISPlugin.add_file
+          {tmpl with perm = 0o755; important = true}
+          ctxt
       end
     else
       ctxt
   in
 
-    ctxt
+  ctxt
 
 
 let init () =
@@ -260,5 +260,5 @@ let init () =
   register_help
     plugin
     {(help_default DevFilesData.readme_template_mkd) with
-         help_order = 60};
+       help_order = 60};
   register_generator_package all_id pivot_data generator

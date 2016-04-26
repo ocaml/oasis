@@ -30,23 +30,23 @@ let source_unix_files ~ctxt (cs, bs, obj) source_file_exists =
     (fun acc modul ->
        match OASISLibrary.find_module source_file_exists bs modul with
          | `Sources (base_fn, lst) ->
-             (base_fn, lst) :: acc
+           (base_fn, lst) :: acc
          | `No_sources _ ->
-             OASISMessage.warning
-               ~ctxt
-               (f_ "Cannot find source file matching \
-                    module '%s' in object %s")
-               modul cs.cs_name;
-             acc)
+           OASISMessage.warning
+             ~ctxt
+             (f_ "Cannot find source file matching \
+                  module '%s' in object %s")
+             modul cs.cs_name;
+           acc)
     []
     obj.obj_modules
 
 
 let generated_unix_files
-      ~ctxt
-      ~is_native
-      ~source_file_exists
-      (cs, bs, obj) =
+    ~ctxt
+    ~is_native
+    ~source_file_exists
+    (cs, bs, obj) =
 
   let find_module ext modul =
     match OASISLibrary.find_module source_file_exists bs modul with
@@ -63,24 +63,24 @@ let generated_unix_files
   let header, byte, native, c_object, f =
     match obj.obj_modules with
       | [ m ] -> (find_module ".cmi" m,
-                  find_module ".cmo" m,
-                  find_module ".cmx" m,
-                  find_module ".o" m,
-                  fun x -> x)
+          find_module ".cmo" m,
+          find_module ".cmx" m,
+          find_module ".o" m,
+          fun x -> x)
       | _ -> ([cs.cs_name ^ ".cmi"],
-              [cs.cs_name ^ ".cmo"],
-              [cs.cs_name ^ ".cmx"],
-              [cs.cs_name ^ ".o"],
-              OASISUnixPath.concat bs.bs_path)
+          [cs.cs_name ^ ".cmo"],
+          [cs.cs_name ^ ".cmx"],
+          [cs.cs_name ^ ".o"],
+          OASISUnixPath.concat bs.bs_path)
   in
-    List.map (List.map f) (
-      match bs.bs_compiled_object with
-        | Native ->
-            native :: c_object :: byte :: header :: []
-        | Best when is_native ->
-            native :: c_object :: byte :: header :: []
-        | Byte | Best ->
-            byte :: header :: [])
+  List.map (List.map f) (
+    match bs.bs_compiled_object with
+      | Native ->
+        native :: c_object :: byte :: header :: []
+      | Best when is_native ->
+        native :: c_object :: byte :: header :: []
+      | Byte | Best ->
+        byte :: header :: [])
 
 
 (* END EXPORT *)

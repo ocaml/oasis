@@ -89,21 +89,21 @@ let compare_csl s1 s2 =
 module HashStringCsl =
   Hashtbl.Make
     (struct
-       type t = string
+      type t = string
 
-       let equal s1 s2 =
-           (String.lowercase s1) = (String.lowercase s2)
+      let equal s1 s2 =
+        (String.lowercase s1) = (String.lowercase s2)
 
-       let hash s =
-         Hashtbl.hash (String.lowercase s)
-     end)
+      let hash s =
+        Hashtbl.hash (String.lowercase s)
+    end)
 
 module SetStringCsl =
   SetExt.Make
     (struct
-       type t = string
-       let compare = compare_csl
-     end)
+      type t = string
+      let compare = compare_csl
+    end)
 
 
 let varname_of_string ?(hyphen='_') s =
@@ -117,9 +117,9 @@ let varname_of_string ?(hyphen='_') s =
         OASISString.replace_chars
           (fun c ->
              if ('a' <= c && c <= 'z')
-               ||
+                ||
                 ('A' <= c && c <= 'Z')
-               ||
+                ||
                 ('0' <= c && c <= '9') then
                c
              else
@@ -133,7 +133,7 @@ let varname_of_string ?(hyphen='_') s =
         else
           buf
       in
-        String.lowercase buf
+      String.lowercase buf
     end
 
 
@@ -151,7 +151,7 @@ let varname_concat ?(hyphen='_') p s =
     with Not_found ->
       s
   in
-    p^what^s
+  p^what^s
 
 
 let is_varname str =
@@ -179,13 +179,13 @@ struct
         (fun escaped_char ->
            function
              | '\\' when not escaped_char ->
-                 true (* Next char should be added anyway *)
+               true (* Next char should be added anyway *)
              | c ->
-                 Buffer.add_char buf c;
-                 false)
+               Buffer.add_char buf c;
+               false)
         false s
     in
-      Buffer.contents buf
+    Buffer.contents buf
 
   let is_space c = c = ' ' || c = '\t' || c = '\n' || c = '\r'
 
@@ -197,16 +197,16 @@ struct
       Buffer.add_char buf '"';
       OASISString.fold_left
         (fun need_to_quote ->
-         function
-         | '"' ->
-           Buffer.add_string buf "\\\"";
-           true
-         | '\\' ->
-           Buffer.add_string buf "\\\\";
-           true
-         | c ->
-           Buffer.add_char buf c;
-           need_to_quote || is_space c || c = '\'')
+           function
+             | '"' ->
+               Buffer.add_string buf "\\\"";
+               true
+             | '\\' ->
+               Buffer.add_string buf "\\\\";
+               true
+             | c ->
+               Buffer.add_char buf c;
+               need_to_quote || is_space c || c = '\'')
         (s = "") (* empty strings must be quoted *)
         s
     in
@@ -215,7 +215,7 @@ struct
 
   (* FIXME: Not handled (does it make sense in this context?)
      • $'string'
-   *)
+  *)
   let rec split str =
     (* Buffer holding the current arg being parsed. *)
     let buf = Buffer.create (String.length str) in
@@ -232,7 +232,7 @@ struct
 
     (* Protect Buffer.add_substitute substitution inside a string, the $... will
      * be transformed into $X0, $X1...
-     *)
+    *)
     let substr_data =
       Hashtbl.create 13
     in
@@ -244,9 +244,9 @@ struct
           buf
           (fun var ->
              let nvar = Printf.sprintf "X%d" !idx in
-               incr idx;
-               Hashtbl.add substr_data nvar var;
-               "${" ^ nvar ^ "}")
+             incr idx;
+             Hashtbl.add substr_data nvar var;
+             "${" ^ nvar ^ "}")
           str;
         buf_flush ()
       with Not_found ->
@@ -259,48 +259,48 @@ struct
     let unprotect_subst str =
       let add_end_dollar, str =
         let len = String.length str in
-          if len > 0 && str.[len - 1] = '$' then
-            true, String.sub str 0 (len - 1)
-          else
-            false, str
+        if len > 0 && str.[len - 1] = '$' then
+          true, String.sub str 0 (len - 1)
+        else
+          false, str
       in
-        Buffer.add_substitute
-          buf
-          (fun nvar ->
+      Buffer.add_substitute
+        buf
+        (fun nvar ->
            let var = try Hashtbl.find substr_data nvar
-                     with Not_found -> nvar in
+             with Not_found -> nvar in
            (* The protection, using [Buffer.add_substitute], ensures that
               if [var] contains '}' then it was delimited with '(', ')'. *)
            if String.contains var '}' then "$("^var^")"
            else "${"^var^"}"
-          )
-          str;
-        if add_end_dollar then
-          buf_add '$';
-        buf_flush ()
+        )
+        str;
+      if add_end_dollar then
+        buf_add '$';
+      buf_flush ()
     in
 
     let rec skip_blank strm =
       match Stream.peek strm with
         | Some c ->
-            if is_space c then
-              begin
-                Stream.junk strm;
-                skip_blank strm
-              end
+          if is_space c then
+            begin
+              Stream.junk strm;
+              skip_blank strm
+            end
         | None ->
-            ()
+          ()
     in
 
     let rec get_simply_quoted_string strm =
       try
         match Stream.next strm with
           | '\'' ->
-              (* End of simply quoted string *)
-              ()
+            (* End of simply quoted string *)
+            ()
           | c ->
-              buf_add c;
-              get_simply_quoted_string strm
+            buf_add c;
+            get_simply_quoted_string strm
 
       with Stream.Failure ->
         failwithf
@@ -311,33 +311,33 @@ struct
     let is_doubly_quoted_escapable =
       function
         | Some c ->
-            c = '$' || c = '`' || c = '"' || c = '\\'
+          c = '$' || c = '`' || c = '"' || c = '\\'
         | None ->
-            false
+          false
     in
 
     let get_escape_char strm =
       match Stream.peek strm with
         | Some c ->
-            buf_add c;
-            Stream.junk strm
+          buf_add c;
+          Stream.junk strm
         | None ->
-            (* Final backslash, ignore it *)
-            ()
+          (* Final backslash, ignore it *)
+          ()
     in
 
     let rec get_doubly_quoted_string strm =
       try
         match Stream.next strm with
           | '"' ->
-              (* End of doubly quoted string *)
-              ()
+            (* End of doubly quoted string *)
+            ()
           | '\\' when is_doubly_quoted_escapable (Stream.peek strm)  ->
-              get_escape_char strm;
-              get_doubly_quoted_string strm
+            get_escape_char strm;
+            get_doubly_quoted_string strm
           | c ->
-              buf_add c;
-              get_doubly_quoted_string strm
+            buf_add c;
+            get_doubly_quoted_string strm
 
       with Stream.Failure ->
         failwithf
@@ -360,29 +360,29 @@ struct
       while Stream.peek strm <> None do
         match Stream.next strm with
           | '\\' ->
-              (* Escape a char, since it is possible that get_escape_char
-               * decide to ignore the '\\', we let this function choose to
-               * add or not '\\'.
-               *)
-              get_escape_char strm
+            (* Escape a char, since it is possible that get_escape_char
+             * decide to ignore the '\\', we let this function choose to
+             * add or not '\\'.
+            *)
+            get_escape_char strm
 
           | '\'' ->
-              get_simply_quoted_string strm
+            get_simply_quoted_string strm
 
           | '"' ->
-              get_doubly_quoted_string strm
+            get_doubly_quoted_string strm
 
           | c ->
-              if is_space c then
-                begin
-                  (* We reach the end of an arg *)
-                  rargs := buf_flush () :: !rargs;
-                  skip_blank strm
-                end
-              else
-                begin
-                  buf_add c
-                end
+            if is_space c then
+              begin
+                (* We reach the end of an arg *)
+                rargs := buf_flush () :: !rargs;
+                skip_blank strm
+              end
+            else
+              begin
+                buf_add c
+              end
       done;
       let last = buf_flush () in
       if last <> "" then rargs := last :: !rargs

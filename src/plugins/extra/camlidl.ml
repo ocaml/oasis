@@ -22,7 +22,7 @@
 
 
 (** Camlidl package
-  *)
+*)
 module Camlidl =
 struct
   module Env = Environment

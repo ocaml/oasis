@@ -23,7 +23,7 @@
 
 (** Helper function to write an _oasis file
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISGettext
@@ -48,20 +48,20 @@ type interface =
 
 
 type 'a t =
-    {
-      id:        string;
-      interface: interface;
-      default:   'a default;
-      help:      string;
-      ctxt:      OASISContext.t;
-      question:  string;
-      parse:     string -> 'a;
-    }
+  {
+    id:        string;
+    interface: interface;
+    default:   'a default;
+    help:      string;
+    ctxt:      OASISContext.t;
+    question:  string;
+    parse:     string -> 'a;
+  }
 
 
 (** This expression is raised when an unprintable default
   * is chosen
-  *)
+*)
 exception ChooseNotPrintableDefault
 
 
@@ -69,29 +69,29 @@ exception ChooseNotPrintableDefault
 let help_of_default =
   function
     | Default_answer dflt ->
-        Printf.sprintf (f_ "Default is '%s'") dflt
+      Printf.sprintf (f_ "Default is '%s'") dflt
 
     | Default_value _ | Default_not_printable ->
-        s_ "A default exists, you can leave this field blank."
+      s_ "A default exists, you can leave this field blank."
 
     | NoDefault ->
-        s_ "No default exists, you need to answer this question."
+      s_ "No default exists, you need to answer this question."
 
 
 (** Ask a question until a correct answer is given
-  *)
+*)
 let ask_until_correct t =
   let rec ask_until_correct_aux () =
     let () =
       (* Question *)
       match t.interface with
         | Human ->
-            Printf.printf "%s %!" t.question
+          Printf.printf "%s %!" t.question
         | Machine ->
-            Printf.printf "???%s %!" t.id
+          Printf.printf "???%s %!" t.id
     in
-      try
-        let answer =
+    try
+      let answer =
 (*
           try
             let _ =
@@ -118,115 +118,115 @@ let ask_until_correct t =
 
           with Unix.Unix_error _ ->
  *)
-            (* Fallback if we don't have a terminal *)
-            read_line ()
-        in
-          match answer, t.default with
-            | "?", _ ->
-                print_endline t.help;
-                ask_until_correct_aux ()
+        (* Fallback if we don't have a terminal *)
+        read_line ()
+      in
+      match answer, t.default with
+        | "?", _ ->
+          print_endline t.help;
+          ask_until_correct_aux ()
 
-            | "", Default_value v ->
-                v
+        | "", Default_value v ->
+          v
 
-            | "", Default_answer s ->
-                t.parse s
+        | "", Default_answer s ->
+          t.parse s
 
-            | "", Default_not_printable ->
-                raise ChooseNotPrintableDefault
+        | "", Default_not_printable ->
+          raise ChooseNotPrintableDefault
 
-            | s, _ ->
-                t.parse s
+        | s, _ ->
+          t.parse s
 
-      with
-        | ChooseNotPrintableDefault as e ->
-            begin
-              raise e
-            end
+    with
+      | ChooseNotPrintableDefault as e ->
+        begin
+          raise e
+        end
 
-        | e ->
-            begin
-              Printf.printf (f_ "Error: %s\n") (Printexc.to_string e);
-              begin
-                match t.interface with
-                  | Human ->
-                      Printf.printf
-                        (f_ "Answer '?' for help on this question.\n%!")
-                  | Machine ->
-                      ()
-              end;
-              ask_until_correct_aux ()
-            end
+      | e ->
+        begin
+          Printf.printf (f_ "Error: %s\n") (Printexc.to_string e);
+          begin
+            match t.interface with
+              | Human ->
+                Printf.printf
+                  (f_ "Answer '?' for help on this question.\n%!")
+              | Machine ->
+                ()
+          end;
+          ask_until_correct_aux ()
+        end
   in
   let () =
     match t.interface with
       | Human ->
-          print_newline ();
-          print_endline t.help
+        print_newline ();
+        print_endline t.help
       | Machine ->
-          ()
+        ()
   in
-    ask_until_correct_aux ()
+  ask_until_correct_aux ()
 
 
 (** Try to transform a [Default_value _] into a
     [Default_answer _] if the value is among the choices
-  *)
+*)
 let printable_default default choices =
   match default with
     | Default_answer _
     | NoDefault
     | Default_not_printable as d ->
-        d
+      d
 
     | Default_value v as d ->
-        begin
-          try
-            let chc, _ =
-              List.find
-                (fun (_, v') -> v = v')
-                choices
-            in
-              Default_answer chc
+      begin
+        try
+          let chc, _ =
+            List.find
+              (fun (_, v') -> v = v')
+              choices
+          in
+          Default_answer chc
 
-          with Not_found ->
-            d
-        end
+        with Not_found ->
+          d
+      end
 
 
 (** Extend [t] so that it can be processed using a choices
     list.
-  *)
+*)
 let mk_shortcut_choices t choices =
   let help_choices =
     let fmt =
       str_formatter
     in
-      pp_open_vbox fmt 0;
-      pp_print_cut fmt ();
-      pp_print_cut fmt ();
-      pp_print_list
-        (fun fmt (chc, nm, hlp, _) ->
-           match hlp with
-             | Some txt ->
-                 fprintf
-                   fmt
-                   "%s: @[%a, %a@]"
-                   chc
-                   pp_print_string_spaced nm
-                   pp_print_string_spaced txt
-             | None ->
-                 fprintf
-                   fmt
-                   "%s: @[%a@]"
-                   chc
-                   pp_print_string_spaced nm)
-        "@,"
-        fmt
-        choices;
-      pp_print_cut fmt ();
-      pp_close_box fmt ();
-      flush_str_formatter ()
+    pp_open_vbox fmt 0;
+    pp_print_cut fmt ();
+    pp_print_cut fmt ();
+    pp_print_list
+      (fun fmt (chc, nm, hlp, _) ->
+         match hlp with
+           | Some txt ->
+             fprintf
+               fmt
+               "%s: @[%a, %a@]"
+               chc
+               pp_print_string_spaced nm
+               pp_print_string_spaced txt
+           | None ->
+             fprintf
+               fmt
+               "%s: @[%a@]"
+               chc
+               pp_print_string_spaced nm)
+      "@,"
+      fmt
+      choices;
+    pp_print_cut fmt ();
+    pp_close_box fmt ();
+    flush_str_formatter ()
   in
 
   let choices_nohelp =
@@ -243,7 +243,7 @@ let mk_shortcut_choices t choices =
      choice. The difference is that you can give only a prefix of the name
      as long as it is not ambiguous. It also has lower priority than the
      shortcut.
-   *)
+  *)
   let name_choices =
     List.rev_map
       (fun (_, e, _, vl) -> e, vl)
@@ -260,20 +260,20 @@ let mk_shortcut_choices t choices =
         let ans_low =
           String.lowercase (String.sub str 0 (String.length pre))
         in
-          pre_low = ans_low
+        pre_low = ans_low
       else
         false
     in
-      let res =
-        List.filter
-          (is_prefix s)
-          name_choices
-      in
-        match res with
-          | [_, uniq] ->
-              uniq
-          | _ ->
-              raise Not_found
+    let res =
+      List.filter
+        (is_prefix s)
+        name_choices
+    in
+    match res with
+      | [_, uniq] ->
+        uniq
+      | _ ->
+        raise Not_found
   in
 
   let parse s =
@@ -296,10 +296,10 @@ let mk_shortcut_choices t choices =
     printable_default t.default choices_nohelp
   in
 
-    {t with
-         help    = t.help^help_choices;
-         default = default;
-         parse   = parse}
+  {t with
+     help    = t.help^help_choices;
+     default = default;
+     parse   = parse}
 
 
 let mk_numbered_choices t choices =
@@ -309,9 +309,9 @@ let mk_numbered_choices t choices =
       (1, [])
       choices
   in
-    mk_shortcut_choices
-      {t with help = t.help ^(s_ "\nChoices:")}
-      (List.rev num_choices)
+  mk_shortcut_choices
+    {t with help = t.help ^(s_ "\nChoices:")}
+    (List.rev num_choices)
 
 
 let mk_numbered_choices_multi t choices =
@@ -340,10 +340,10 @@ let mk_numbered_choices_multi t choices =
                  (fun s -> OASISString.split_comma s)
                  (OASISString.nsplit s ' '))))
     in
-      String.concat ", " lst
+    String.concat ", " lst
   in
 
-    {t with parse = parse}
+  {t with parse = parse}
 
 
 let mk_yes_no t =
@@ -357,7 +357,7 @@ let mk_yes_no t =
 
 (** Ask questions for a schema (Package, Library, Executable...) *)
 let ask_schema ~ctxt
-      fields proplist_data features_data schema lvl interface plugins =
+    fields proplist_data features_data schema lvl interface plugins =
   let fake_context =
     {
       OASISAstTypes.cond = None;
@@ -380,13 +380,13 @@ let ask_schema ~ctxt
             data
             key
         in
-          Default_answer s
+        Default_answer s
       with
         | OASISValues.Not_printable ->
-            Default_not_printable
+          Default_not_printable
 
         | PropList.Not_set _ ->
-            NoDefault
+          NoDefault
     in
 
     let has_default =
@@ -400,83 +400,83 @@ let ask_schema ~ctxt
         key
         ~context:fake_context
     in
-      begin
-        match extra.qckstrt_lvl with
-          | NoChoice s ->
-              begin
-                try
-                  set s
-                with e ->
-                  failwithf
-                    (f_ "Trying to set field '%s' using mandatory \
-                         value '%s': %s")
-                    key s (Printexc.to_string e)
-              end
-          | _ when not has_default || lvl >= extra.qckstrt_lvl ->
-              begin
-                let help =
-                  match help with
-                    | Some f ->
-                        Printf.sprintf
-                          (f_ "Field: %s\n%s\n%s\n")
-                          key
-                          (f ())
-                          (help_of_default default)
+    begin
+      match extra.qckstrt_lvl with
+        | NoChoice s ->
+          begin
+            try
+              set s
+            with e ->
+              failwithf
+                (f_ "Trying to set field '%s' using mandatory \
+                     value '%s': %s")
+                key s (Printexc.to_string e)
+          end
+        | _ when not has_default || lvl >= extra.qckstrt_lvl ->
+          begin
+            let help =
+              match help with
+                | Some f ->
+                  Printf.sprintf
+                    (f_ "Field: %s\n%s\n%s\n")
+                    key
+                    (f ())
+                    (help_of_default default)
 
-                    | None ->
-                        Printf.sprintf
-                          (f_ "Field: %s\n%s\n")
-                          (help_of_default default)
-                          key
-                in
-                let t =
-                  {
-                    id        = String.lowercase key;
-                    interface = interface;
-                    default   = default;
-                    help      = help;
-                    ctxt      = ctxt;
-                    question  = Printf.sprintf
-                                  (f_ "Value for field '%s'?")
-                                  key;
-                    parse     = (fun s -> set s; s);
-                  }
-                in
-                  try
+                | None ->
+                  Printf.sprintf
+                    (f_ "Field: %s\n%s\n")
+                    (help_of_default default)
+                    key
+            in
+            let t =
+              {
+                id        = String.lowercase key;
+                interface = interface;
+                default   = default;
+                help      = help;
+                ctxt      = ctxt;
+                question  = Printf.sprintf
+                    (f_ "Value for field '%s'?")
+                    key;
+                parse     = (fun s -> set s; s);
+              }
+            in
+            try
+              begin
+                match extra.qckstrt_q () with
+                  | Field
+                  | Text ->
                     begin
-                      match extra.qckstrt_q () with
-                        | Field
-                        | Text ->
-                            begin
-                              (* TODO: text *)
-                              set (ask_until_correct t)
-                            end
-
-                        | Choices lst ->
-                            begin
-                              set
-                                (ask_until_correct
-                                   (mk_numbered_choices_multi
-                                      t
-                                      (List.map (fun s -> s, None) lst)))
-                            end
-
-                        | ExclusiveChoices lst ->
-                            begin
-                              set
-                                (ask_until_correct
-                                   (mk_numbered_choices
-                                      t
-                                      (List.map (fun s -> s, None) lst)))
-                            end
+                      (* TODO: text *)
+                      set (ask_until_correct t)
                     end
-                  with ChooseNotPrintableDefault ->
-                    ()
+
+                  | Choices lst ->
+                    begin
+                      set
+                        (ask_until_correct
+                           (mk_numbered_choices_multi
+                              t
+                              (List.map (fun s -> s, None) lst)))
+                    end
+
+                  | ExclusiveChoices lst ->
+                    begin
+                      set
+                        (ask_until_correct
+                           (mk_numbered_choices
+                              t
+                              (List.map (fun s -> s, None) lst)))
+                    end
               end
-          | _ ->
+            with ChooseNotPrintableDefault ->
               ()
-      end;
-      data
+          end
+        | _ ->
+          ()
+    end;
+    data
   in
 
   let ask_field_and_get_answer data key extra help =
@@ -484,7 +484,7 @@ let ask_schema ~ctxt
       ask_field data key extra help
     in
     let str = PropList.Schema.get schm data key in
-      data, str
+    data, str
   in
 
   let ask_plugin_fields plg data =
@@ -492,17 +492,17 @@ let ask_schema ~ctxt
       (fun data key extra help ->
          match extra.kind with
            | FieldFromPlugin plg' ->
-               begin
-                 if OASISPlugin.plugin_compare plg plg' = 0 then
-                   ask_field data key extra help
-                 else
-                   data
-               end
+             begin
+               if OASISPlugin.plugin_compare plg plg' = 0 then
+                 ask_field data key extra help
+               else
+                 data
+             end
 
            | StandardField | DefinePlugin _ | DefinePlugins _ ->
-               begin
-                 data
-               end)
+             begin
+               data
+             end)
       data
       schm
   in
@@ -510,49 +510,49 @@ let ask_schema ~ctxt
   let ask (data, new_plugins) key extra help =
     match extra.kind with
       | StandardField ->
-          begin
-            ask_field data key extra help,
-            new_plugins
-          end
+        begin
+          ask_field data key extra help,
+          new_plugins
+        end
 
       | DefinePlugin knd ->
-          begin
-            let data, plg_str =
-              ask_field_and_get_answer data key extra help
-            in
-            let plg =
-              OASISPlugin.plugin_of_string knd plg_str
-            in
-            let data =
-              ask_plugin_fields plg data
-            in
-              data, (OASISPlugin.SetPlugin.add plg new_plugins)
-          end
+        begin
+          let data, plg_str =
+            ask_field_and_get_answer data key extra help
+          in
+          let plg =
+            OASISPlugin.plugin_of_string knd plg_str
+          in
+          let data =
+            ask_plugin_fields plg data
+          in
+          data, (OASISPlugin.SetPlugin.add plg new_plugins)
+        end
 
       | DefinePlugins knd ->
-          begin
-            let data, plg_str =
-              ask_field_and_get_answer data key extra help
-            in
-              List.fold_left
-                (fun (data, new_plugins) plg ->
-                   ask_plugin_fields plg data,
-                   OASISPlugin.SetPlugin.add plg new_plugins)
-                (data, new_plugins)
-                (OASISPlugin.plugins_of_string knd plg_str)
-          end
+        begin
+          let data, plg_str =
+            ask_field_and_get_answer data key extra help
+          in
+          List.fold_left
+            (fun (data, new_plugins) plg ->
+               ask_plugin_fields plg data,
+               OASISPlugin.SetPlugin.add plg new_plugins)
+            (data, new_plugins)
+            (OASISPlugin.plugins_of_string knd plg_str)
+        end
 
       | FieldFromPlugin plg ->
-          begin
-            (* We process only fields that have been defined
-             * out of this loop, since plugins define in the
-             * loop are processed after the plugin definition
-             *)
-            if OASISPlugin.SetPlugin.mem plg plugins then
-              ask_field data key extra help, new_plugins
-            else
-              data, new_plugins
-          end
+        begin
+          (* We process only fields that have been defined
+           * out of this loop, since plugins define in the
+           * loop are processed after the plugin definition
+          *)
+          if OASISPlugin.SetPlugin.mem plg plugins then
+            ask_field data key extra help, new_plugins
+          else
+            data, new_plugins
+        end
   in
 
   let all_fields =
@@ -560,28 +560,28 @@ let ask_schema ~ctxt
       (fun mp key extra help -> MapString.add key (extra, help) mp)
       MapString.empty schm
   in
-    List.fold_left
-      (fun (data, new_plugins) fld ->
-         try
-           let extra, help = MapString.find fld all_fields in
-             match extra.feature with
-               | Some ftr ->
-                   let features_data =
-                     OASISPlugin.SetPlugin.fold
-                       (fun plg d -> OASISFeatures.Data.add_plugin plg d)
-                       new_plugins features_data
-                   in
-                   if OASISFeatures.data_test ftr features_data then
-                     ask (data, new_plugins) fld extra help
-                   else
-                     data, new_plugins
-               | None ->
-                   ask (data, new_plugins) fld extra help
-         with Not_found ->
-           failwithf
-             (f_ "Unable to find field %s in schema %s.")
-             fld (PropList.Schema.name schm))
-      (proplist_data, plugins) fields
+  List.fold_left
+    (fun (data, new_plugins) fld ->
+       try
+         let extra, help = MapString.find fld all_fields in
+         match extra.feature with
+           | Some ftr ->
+             let features_data =
+               OASISPlugin.SetPlugin.fold
+                 (fun plg d -> OASISFeatures.Data.add_plugin plg d)
+                 new_plugins features_data
+             in
+             if OASISFeatures.data_test ftr features_data then
+               ask (data, new_plugins) fld extra help
+             else
+               data, new_plugins
+           | None ->
+             ask (data, new_plugins) fld extra help
+       with Not_found ->
+         failwithf
+           (f_ "Unable to find field %s in schema %s.")
+           fld (PropList.Schema.name schm))
+    (proplist_data, plugins) fields
 
 
 (** Ask questions for a package and its sections *)
@@ -625,7 +625,7 @@ let ask_package ~ctxt lvl intrf =
         (fun plg d -> OASISFeatures.Data.add_plugin plg d)
         plugins features_data_first
     in
-      pkg_data, plugins, features_data
+    pkg_data, plugins, features_data
   in
 
   let mk_t nm hlp q =
@@ -644,10 +644,10 @@ let ask_package ~ctxt lvl intrf =
     let fmt =
       str_formatter
     in
-      pp_open_box fmt 0;
-      pp_print_string_spaced fmt s;
-      pp_close_box fmt ();
-      flush_str_formatter ()
+    pp_open_box fmt 0;
+    pp_print_string_spaced fmt s;
+    pp_close_box fmt ();
+    flush_str_formatter ()
   in
 
   let section_data =
@@ -665,7 +665,7 @@ let ask_package ~ctxt lvl intrf =
           (PropList.Data.create ()) features_data
           schema lvl intrf plugins
       in
-        gen features_data nm data
+      gen features_data nm data
     in
 
     let sections =
@@ -721,33 +721,33 @@ let ask_package ~ctxt lvl intrf =
         ask_until_correct
           (mk_shortcut_choices
              {(mk_t "create_section" hlp q)
-                with
-                    parse =
-                      (fun s ->
-                         failwithf
-                           (f_ "'%s' is not a valid choice")
-                           s);
-                    default = Default_value None}
+              with
+                 parse =
+                   (fun s ->
+                      failwithf
+                        (f_ "'%s' is not a valid choice")
+                        s);
+                 default = Default_value None}
              sections)
       in
-        match next_opt with
-          | None ->
-              List.rev acc
-          | Some f ->
-              new_section
-                ((f ()) :: acc)
-                (format_string
-                   (s_ "Section definition is complete. You can now \
-                        now create additional sections:"))
-                (s_ "Create another section?")
+      match next_opt with
+        | None ->
+          List.rev acc
+        | Some f ->
+          new_section
+            ((f ()) :: acc)
+            (format_string
+               (s_ "Section definition is complete. You can now \
+                    now create additional sections:"))
+            (s_ "Create another section?")
 
     in
-      new_section []
-        (format_string
-           (s_ "General package definition is complete. You can now \
-                create sections to describe various objects shipped \
-                by this package:"))
-        (s_ "Create a section?")
+    new_section []
+      (format_string
+         (s_ "General package definition is complete. You can now \
+              create sections to describe various objects shipped \
+              by this package:"))
+      (s_ "Create a section?")
   in
 
   let pkg =
@@ -771,17 +771,17 @@ let ask_package ~ctxt lvl intrf =
 
     (* Plugins from section *)
     @ (List.fold_left
-         (fun lst sct ->
-            match sct with
-              | Executable _ | Library _ | Object _ ->
-                  lst
-              | Test (cs, test) ->
-                  (test.test_type :> plugin_kind plugin) :: lst
-              | Doc (cs, doc) ->
-                  (doc.doc_type :> plugin_kind plugin) :: lst
-              | Flag _ | SrcRepo _ ->
-                  lst)
-         [])
+        (fun lst sct ->
+           match sct with
+             | Executable _ | Library _ | Object _ ->
+               lst
+             | Test (cs, test) ->
+               (test.test_type :> plugin_kind plugin) :: lst
+             | Doc (cs, doc) ->
+               (doc.doc_type :> plugin_kind plugin) :: lst
+             | Flag _ | SrcRepo _ ->
+               lst)
+        [])
         pkg.sections
   in
   let pkg =
@@ -790,7 +790,7 @@ let ask_package ~ctxt lvl intrf =
       pkg
       plugins
   in
-    pkg
+  pkg
 
 
 (** Create an _oasis file *)
@@ -801,23 +801,23 @@ let to_file ~ctxt fn lvl intrf oasis_setup =
     let fmt =
       std_formatter
     in
-      match intrf with
-        | Human ->
-            begin
-              pp_open_vbox fmt 0;
-              pp_open_box fmt 0;
-              pp_print_string_spaced fmt
-                (s_ "The program will ask some questions to create the \
-                     `_oasis` file. If you answer '?' to a question, an help \
-                     text will be displayed.");
-              pp_close_box fmt ();
-              pp_print_cut fmt ();
-              pp_close_box fmt ();
-              pp_print_flush fmt ();
-            end
+    match intrf with
+      | Human ->
+        begin
+          pp_open_vbox fmt 0;
+          pp_open_box fmt 0;
+          pp_print_string_spaced fmt
+            (s_ "The program will ask some questions to create the \
+                 `_oasis` file. If you answer '?' to a question, an help \
+                 text will be displayed.");
+          pp_close_box fmt ();
+          pp_print_cut fmt ();
+          pp_close_box fmt ();
+          pp_print_flush fmt ();
+        end
 
-        | Machine ->
-            ()
+      | Machine ->
+        ()
 
   in
 
@@ -827,23 +827,23 @@ let to_file ~ctxt fn lvl intrf oasis_setup =
         let a =
           ask_until_correct
             (mk_yes_no
-              {
-                id        = "overwrite";
-                interface = intrf;
-                default   = Default_value false;
-                help      = "";
-                ctxt      = ctxt;
-                parse     = bool_of_string;
-                question  =
-                  Printf.sprintf
-                    (f_ "File '%s' already exists, overwrite it?")
-                    fn;
-              })
+               {
+                 id        = "overwrite";
+                 interface = intrf;
+                 default   = Default_value false;
+                 help      = "";
+                 ctxt      = ctxt;
+                 parse     = bool_of_string;
+                 question  =
+                   Printf.sprintf
+                     (f_ "File '%s' already exists, overwrite it?")
+                     fn;
+               })
         in
-          if not a then
-            failwithf
-              (f_ "File '%s' already exists, remove it first")
-              fn
+        if not a then
+          failwithf
+            (f_ "File '%s' already exists, remove it first")
+            fn
       end
   in
 
@@ -858,9 +858,9 @@ let to_file ~ctxt fn lvl intrf oasis_setup =
     let fmt =
       formatter_of_buffer buf
     in
-      OASISFormat.pp_print_package fmt pkg;
-      Format.pp_print_flush fmt ();
-      buf
+    OASISFormat.pp_print_package fmt pkg;
+    Format.pp_print_flush fmt ();
+    buf
   in
 
   let default_program env_var prg =
@@ -869,10 +869,10 @@ let to_file ~ctxt fn lvl intrf oasis_setup =
         let prg =
           Sys.getenv env_var
         in
-          info
-            ~ctxt
-            (f_ "Environment variable %s is set to '%s'") env_var prg;
-          Some prg
+        info
+          ~ctxt
+          (f_ "Environment variable %s is set to '%s'") env_var prg;
+        Some prg
       end
     with Not_found ->
       begin
@@ -881,16 +881,16 @@ let to_file ~ctxt fn lvl intrf oasis_setup =
             let prg =
               OASISFileUtil.which ~ctxt prg
             in
-              info
-                ~ctxt
-                (f_ "Program '%s' exists") prg;
-              Some prg
+            info
+              ~ctxt
+              (f_ "Program '%s' exists") prg;
+            Some prg
           end
         with Not_found ->
           info
             ~ctxt
             (f_ "Environment variable %s is not set and program '%s' \
-               doesn't exists")
+                 doesn't exists")
             env_var prg;
           None
       end
@@ -900,89 +900,89 @@ let to_file ~ctxt fn lvl intrf oasis_setup =
     let cmd =
       (Filename.quote prg)
       ^" "^
-      (Filename.quote fn)
+        (Filename.quote fn)
     in
-      info ~ctxt (f_ "Running command '%s'") cmd;
-      match Sys.command cmd with
-        | 0 -> ()
-        | i ->
-            failwithf
-              (f_ "Command '%s' exited with status code %d")
-              cmd
-              i
+    info ~ctxt (f_ "Running command '%s'") cmd;
+    match Sys.command cmd with
+      | 0 -> ()
+      | i ->
+        failwithf
+          (f_ "Command '%s' exited with status code %d")
+          cmd
+          i
   in
 
   let dump_tmp content =
     let tmp_fn, chn =
       Filename.open_temp_file fn ".tmp"
     in
-      Buffer.output_buffer chn content;
-      close_out chn;
-      tmp_fn
+    Buffer.output_buffer chn content;
+    close_out chn;
+    tmp_fn
   in
 
   let editor content =
     match default_program "EDITOR" "editor" with
       | Some prg ->
+        begin
+          let tmp_fn =
+            dump_tmp content
+          in
           begin
-            let tmp_fn =
-              dump_tmp content
-            in
+            try
+              (* Edit content *)
+              cmd_exec prg tmp_fn;
+
+              (* Reload content *)
               begin
-                try
-                  (* Edit content *)
-                  cmd_exec prg tmp_fn;
+                let chn =
+                  open_in tmp_fn
+                in
+                Buffer.clear content;
+                Buffer.add_channel content chn (in_channel_length chn);
+                close_in chn
+              end;
 
-                  (* Reload content *)
-                  begin
-                    let chn =
-                      open_in tmp_fn
-                    in
-                      Buffer.clear content;
-                      Buffer.add_channel content chn (in_channel_length chn);
-                      close_in chn
-                  end;
+              (* Remove temporary file *)
+              Sys.remove tmp_fn
 
-                  (* Remove temporary file *)
-                  Sys.remove tmp_fn
-
-                with e ->
-                  Sys.remove tmp_fn;
-                  error ~ctxt "%s" (Printexc.to_string e)
-              end
+            with e ->
+              Sys.remove tmp_fn;
+              error ~ctxt "%s" (Printexc.to_string e)
           end
+        end
       | None ->
-          error ~ctxt "No way to edit the generated file."
+        error ~ctxt "No way to edit the generated file."
   in
 
   let pager content =
     match default_program "PAGER" "pager" with
       | Some prg ->
-          begin
-            let tmp_fn =
-              dump_tmp content
-            in
-              try
-                cmd_exec prg tmp_fn;
-                Sys.remove tmp_fn
-              with e ->
-                Sys.remove tmp_fn;
-                error ~ctxt "%s" (Printexc.to_string e)
-          end
+        begin
+          let tmp_fn =
+            dump_tmp content
+          in
+          try
+            cmd_exec prg tmp_fn;
+            Sys.remove tmp_fn
+          with e ->
+            Sys.remove tmp_fn;
+            error ~ctxt "%s" (Printexc.to_string e)
+        end
       | None ->
-          begin
-            Buffer.output_buffer stdout content;
-            flush stdout
-          end
+        begin
+          Buffer.output_buffer stdout content;
+          flush stdout
+        end
   in
 
   let create_fn content fn =
     let chn =
       open_out fn
     in
-      info ~ctxt (f_ "Creating %s file\n%!") fn;
-      Buffer.output_buffer chn content;
-      close_out chn
+    info ~ctxt (f_ "Creating %s file\n%!") fn;
+    Buffer.output_buffer chn content;
+    close_out chn
   in
 
   let ask_end () =
@@ -1030,6 +1030,6 @@ let to_file ~ctxt fn lvl intrf oasis_setup =
          ])
   in
 
-    while (ask_end ()) () do
-      ()
-    done
+  while (ask_end ()) () do
+    ()
+  done

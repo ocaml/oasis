@@ -23,7 +23,7 @@
 
 (** Clean generated template files
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open CLISubCommand
@@ -39,8 +39,8 @@ let main ~ctxt (replace_sections, remove) oasis_fn pkg =
     OASISFileTemplate.fold
       (fun tmpl () ->
          match tmpl.body with
-         | Body _
-         | BodyWithDigest _ ->
+           | Body _
+           | BodyWithDigest _ ->
              begin
                let _chng: file_generate_change =
                  file_generate
@@ -49,9 +49,9 @@ let main ~ctxt (replace_sections, remove) oasis_fn pkg =
                    ~backup:false
                    {tmpl with body = Body []}
                in
-                 ()
+               ()
              end
-         | NoBody ->
+           | NoBody ->
              ())
       ctxt.files
       ()

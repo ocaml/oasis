@@ -22,14 +22,14 @@
 
 (** Describe fields of OMake plugins
     @author Gerd Stolpmann
-  *)
+*)
 
 open BaseEnv
 open OASISGettext
 open OASISTypes
 
 
-TYPE_CONV_PATH "OMakeFields"
+    TYPE_CONV_PATH "OMakeFields"
 
 type run_t =
   {
@@ -39,13 +39,13 @@ type run_t =
 
 let string_of_format =
   function
-  | HTML _ -> "html"
-  | DocText -> "txt"
-  | PDF -> "pdf"
-  | PostScript -> "ps"
-  | Info _ -> "texi"
-  | DVI -> "dvi"
-  | OtherDoc -> "html"
+    | HTML _ -> "html"
+    | DocText -> "txt"
+    | PDF -> "pdf"
+    | PostScript -> "ps"
+    | Info _ -> "texi"
+    | DVI -> "dvi"
+    | OtherDoc -> "html"
 
 
 (* END EXPORT *)
@@ -85,13 +85,13 @@ end
 
 module DocFields = struct
   type t =
-      { path:      unix_dirname;
-        modules:   string list;
-        texts:     string list;
-        libraries: findlib_full list;
-        intro:     unix_filename option;
-        flags:     string list;
-      }
+    { path:      unix_dirname;
+      modules:   string list;
+      texts:     string list;
+      libraries: findlib_full list;
+      intro:     unix_filename option;
+      flags:     string list;
+    }
 
   let doc_plugin = `Doc, nm, ver
   let doc_data = (data_new_property doc_plugin : run_t OASISPlugin.prop)

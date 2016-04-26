@@ -32,21 +32,21 @@ open OASISTypes
 let plugin_compare (k1, n1, vo1) (k2, n2, vo2) =
   match compare k1 k2 with
     | 0 ->
-        begin
-          match OASISUtils.compare_csl n1 n2 with
-            | 0 ->
-                begin
-                  match vo1, vo2 with
-                    | Some v1, Some v2 ->
-                        OASISVersion.version_compare v1 v2
-                    | None, _ | _, None ->
-                        0
-                end
-            | n ->
-                n
-        end
+      begin
+        match OASISUtils.compare_csl n1 n2 with
+          | 0 ->
+            begin
+              match vo1, vo2 with
+                | Some v1, Some v2 ->
+                  OASISVersion.version_compare v1 v2
+                | None, _ | _, None ->
+                  0
+            end
+          | n ->
+            n
+      end
     | n ->
-        n
+      n
 
 
 let plugin_equal plg1 plg2 =
@@ -81,9 +81,9 @@ let data_new_property ?(purpose: plugin_data_purpose option) plg =
   let prp =
     match purpose, knd with
       | Some p, _ ->
-          p
+        p
       | _, knd ->
-          (knd :> plugin_data_purpose)
+        (knd :> plugin_data_purpose)
   in
   let v =
     ref None
@@ -100,17 +100,17 @@ let data_new_property ?(purpose: plugin_data_purpose option) plg =
              prp = prp' && plugin_equal plg plg')
           !t
       in
-        f ();
-        match !v with
-          | Some x ->
-              x
-          | None ->
-              raise Not_set
+      f ();
+      match !v with
+        | Some x ->
+          x
+        | None ->
+          raise Not_set
 
     with Not_found ->
       raise Not_set
   in
-    (set, get)
+  (set, get)
 
 
 (* END EXPORT *)
@@ -125,41 +125,41 @@ type modul = string
 
 
 type ('a, 'b) setup_changes =
-    {
-      chng_moduls: modul list;
-      chng_main: 'a func;
-      chng_clean: ('b func) option;
-      chng_distclean: ('b func) option;
-    }
+  {
+    chng_moduls: modul list;
+    chng_main: 'a func;
+    chng_clean: ('b func) option;
+    chng_distclean: ('b func) option;
+  }
 
 
 type context_act =
-    {
-      ctxt: OASISContext.t;
-      update: OASISSetupUpdate.t;
-      error: bool;
-      files: OASISFileTemplate.templates;
-      other_actions: (unit -> unit) list;
-    }
+  {
+    ctxt: OASISContext.t;
+    update: OASISSetupUpdate.t;
+    error: bool;
+    files: OASISFileTemplate.templates;
+    other_actions: (unit -> unit) list;
+  }
 
 
 type ('a, 'b) section_act =
-    context_act ->
-    package ->
-    (common_section * 'a) ->
-      context_act *
-      ((package -> (common_section * 'a) -> string array -> 'b),
-       (package -> (common_section * 'a) -> string array -> unit)
-      ) setup_changes
+  context_act ->
+  package ->
+  (common_section * 'a) ->
+  context_act *
+    ((package -> (common_section * 'a) -> string array -> 'b),
+     (package -> (common_section * 'a) -> string array -> unit)
+    ) setup_changes
 
 
 type package_act =
-    context_act ->
-    package ->
-      context_act *
-      ((package -> string array -> unit),
-       (package -> string array -> unit)
-      ) setup_changes
+  context_act ->
+  package ->
+  context_act *
+    ((package -> string array -> unit),
+     (package -> string array -> unit)
+    ) setup_changes
 
 
 type 'a t = 'a plugin
@@ -168,18 +168,18 @@ type all_t = plugin_kind plugin
 
 module MapPlugin =
   MapExt.Make(
-struct
-  type t = plugin_kind plugin
-  let compare = plugin_compare
-end)
+  struct
+    type t = plugin_kind plugin
+    let compare = plugin_compare
+  end)
 
 
 module SetPlugin =
   SetExt.Make(
-struct
-  type t = plugin_kind plugin
-  let compare = plugin_compare
-end)
+  struct
+    type t = plugin_kind plugin
+    let compare = plugin_compare
+  end)
 
 
 let mem_no_version (knd, nm, _) plugins =
@@ -193,20 +193,20 @@ let mem_no_version (knd, nm, _) plugins =
 
 module HashPlugin =
   Hashtbl.Make
-  (struct
-     type t = plugin_kind plugin
-     let equal = plugin_equal
-     let hash  = plugin_hash
-   end)
+    (struct
+      type t = plugin_kind plugin
+      let equal = plugin_equal
+      let hash  = plugin_hash
+    end)
 
 
 module HashPluginAll =
   Hashtbl.Make
     (struct
-       type t = [`All] plugin
-       let equal = plugin_equal
-       let hash = plugin_hash
-     end)
+      type t = [`All] plugin
+      let equal = plugin_equal
+      let hash = plugin_hash
+    end)
 
 
 (** Find a plugin with or without version *)
@@ -220,20 +220,20 @@ let find_fuzzy tbl ((knd, nm, vo) as id) =
 let string_of_plugin (_, nm, vo) =
   match vo with
     | Some v ->
-        Printf.sprintf
-          "%s (%s)"
-          nm
-          (OASISVersion.string_of_version v)
-    | None ->
+      Printf.sprintf
+        "%s (%s)"
         nm
+        (OASISVersion.string_of_version v)
+    | None ->
+      nm
 
 
 let plugin_of_string knd str =
   match OASISString.split_optional_parentheses str with
     | plg, Some ver ->
-        knd, plg, Some (OASISVersion.version_of_string ver)
+      knd, plg, Some (OASISVersion.version_of_string ver)
     | plg, None ->
-        knd, plg, None
+      knd, plg, None
 
 
 let plugins_of_string knd str =
@@ -325,10 +325,10 @@ let generator_package plg rplugin_data data =
     let lst =
       HashPlugin.find_all gen_all plg
     in
-      List.iter
-        (fun gen ->
-           gen rplugin_data data)
-        lst
+    List.iter
+      (fun gen ->
+         gen rplugin_data data)
+      lst
   with Not_found ->
     ()
 
@@ -347,11 +347,11 @@ let generator_section knd plg rplugin_data data =
     let lst =
       HashPlugin.find_all gen_section plg
     in
-      List.iter
-        (fun (knd', gen) ->
-           if knd = knd' then
-             gen rplugin_data data)
-        lst
+    List.iter
+      (fun (knd', gen) ->
+         if knd = knd' then
+           gen rplugin_data data)
+      lst
   with Not_found ->
     ()
 
@@ -401,8 +401,8 @@ end
 
 
 module Make (F: FAMILY): PLUGINS with type data = F.data
-                                   and type act = F.act
-                                   and type kind = F.kind =
+                                  and type act = F.act
+                                  and type kind = F.kind =
 struct
 
   (*
@@ -419,30 +419,30 @@ struct
   module HashPluginGlobal = HashPlugin
 
   let create plg =
-     let ver =
-       match plg with
-         | _, _, Some v -> v
-         | _, _, None ->
-             failwithf
-               (f_ "Plugin %s is defined without version.")
-               (string_of_plugin plg)
-     in
-     let all_id :> plugin_kind plugin = plg in
-     let self_id = plg in
-       HashPlugin.add version_all all_id ver;
-       self_id, all_id
+    let ver =
+      match plg with
+        | _, _, Some v -> v
+        | _, _, None ->
+          failwithf
+            (f_ "Plugin %s is defined without version.")
+            (string_of_plugin plg)
+    in
+    let all_id :> plugin_kind plugin = plg in
+    let self_id = plg in
+    HashPlugin.add version_all all_id ver;
+    self_id, all_id
 
   module HashPlugin =
     Hashtbl.Make
       (struct
-         type t = self_plugin
-         let equal = plugin_equal
-         let hash  = plugin_hash
-       end)
+        type t = self_plugin
+        let equal = plugin_equal
+        let hash  = plugin_hash
+      end)
 
   (* TODO: use a first-class module to handle this case and avoid
    * code duplication
-   *)
+  *)
   (** Find a plugin with or without version *)
   let find_fuzzy' tbl ((knd, nm, vo) as id) =
     try
@@ -488,168 +488,168 @@ struct
       let (knd, nm, ver_opt) as plg =
         plugin_of_string kind_default s
       in
-        if not ctxt.OASISContext.ignore_plugins then
-          begin
-            try
-              let ver_plg =
-                try
-                  find_fuzzy version_all (plg :> plugin_kind plugin)
-                with Not_found ->
-                  failwithf
-                    (not_found_of_kind kind_default)
+      if not ctxt.OASISContext.ignore_plugins then
+        begin
+          try
+            let ver_plg =
+              try
+                find_fuzzy version_all (plg :> plugin_kind plugin)
+              with Not_found ->
+                failwithf
+                  (not_found_of_kind kind_default)
+                  (string_of_plugin plg)
+                  (String.concat ", " (ls kind_default))
+            in
+            match ver_opt with
+              | Some ver ->
+                if OASISVersion.version_compare ver ver_plg <> 0 then
+                  OASISMessage.info ~ctxt
+                    (f_ "Plugin %s doesn't match the latest version of \
+                         this plugin. Please check plugin's changelog \
+                         and upgrade to the latest version %s.")
                     (string_of_plugin plg)
-                    (String.concat ", " (ls kind_default))
-              in
-                match ver_opt with
-                  | Some ver ->
-                      if OASISVersion.version_compare ver ver_plg <> 0 then
-                        OASISMessage.info ~ctxt
-                          (f_ "Plugin %s doesn't match the latest version of \
-                               this plugin. Please check plugin's changelog \
-                               and upgrade to the latest version %s.")
-                          (string_of_plugin plg)
-                          (OASISVersion.string_of_version ver_plg)
+                    (OASISVersion.string_of_version ver_plg)
 
-                  | None ->
-                      OASISMessage.warning ~ctxt
-                        (f_ "Plugin %s is defined without version, use \
-                             current version at least: %s.")
-                        nm
-                        (string_of_plugin  (knd, nm, Some ver_plg))
+              | None ->
+                OASISMessage.warning ~ctxt
+                  (f_ "Plugin %s is defined without version, use \
+                       current version at least: %s.")
+                  nm
+                  (string_of_plugin  (knd, nm, Some ver_plg))
 
-            with Not_found ->
-              failwithf "Plugin %s doesn't exist." (string_of_plugin plg)
-          end;
-        (F.kind_default, nm, ver_opt)
+          with Not_found ->
+            failwithf "Plugin %s doesn't exist." (string_of_plugin plg)
+        end;
+      (F.kind_default, nm, ver_opt)
     in
-      {
-        OASISValues.parse  = parse;
-        update             = OASISValues.update_fail;
-        print              = string_of_plugin;
-      }
+    {
+      OASISValues.parse  = parse;
+      update             = OASISValues.update_fail;
+      print              = string_of_plugin;
+    }
 
   let quickstart_question () =
     let knd :> plugin_kind =
       F.kind_default
     in
-      ExclusiveChoices
-        (HashPluginGlobal.fold
-           (fun (knd', nm, vo) _ lst ->
-              if knd' = knd then
-                (F.kind_default, nm, vo) :: lst
-              else
-                lst)
-           all
-           [])
+    ExclusiveChoices
+      (HashPluginGlobal.fold
+         (fun (knd', nm, vo) _ lst ->
+            if knd' = knd then
+              (F.kind_default, nm, vo) :: lst
+            else
+              lst)
+         all
+         [])
 end
 
 
 (** Configure plugins
-  *)
+*)
 module Configure =
   Make
     (struct
-       type act  = package_act
-       type data = package
-       type kind = [`Configure]
-       let kind_default = `Configure
-       let to_plugin_kind = function `Configure -> `Configure
-     end)
+      type act  = package_act
+      type data = package
+      type kind = [`Configure]
+      let kind_default = `Configure
+      let to_plugin_kind = function `Configure -> `Configure
+    end)
 
 
 (** Build plugins
-  *)
+*)
 module Build =
   Make
     (struct
-       type act  = package_act
-       type data = package
-       type kind = [`Build]
-       let kind_default = `Build
-       let to_plugin_kind = function `Build -> `Build
-     end)
+      type act  = package_act
+      type data = package
+      type kind = [`Build]
+      let kind_default = `Build
+      let to_plugin_kind = function `Build -> `Build
+    end)
 
 
 (** Document plugins
-  *)
+*)
 module Doc =
   Make
     (struct
-       type act  = (doc, unit) section_act
-       type data = common_section * doc
-       type kind = [`Doc]
-       let kind_default = `Doc
-       let to_plugin_kind = function `Doc -> `Doc
-     end)
+      type act  = (doc, unit) section_act
+      type data = common_section * doc
+      type kind = [`Doc]
+      let kind_default = `Doc
+      let to_plugin_kind = function `Doc -> `Doc
+    end)
 
 
 (** Test plugins
-  *)
+*)
 module Test =
   Make
     (struct
-       type act  = (test, float) section_act
-       type data = common_section * test
-       type kind = [`Test]
-       let kind_default = `Test
-       let to_plugin_kind = function `Test -> `Test
-     end)
+      type act  = (test, float) section_act
+      type data = common_section * test
+      type kind = [`Test]
+      let kind_default = `Test
+      let to_plugin_kind = function `Test -> `Test
+    end)
 
 
 (** Install/uninstall plugins
-  *)
+*)
 module Install =
   Make
     (struct
-       type act  = package_act * package_act
-       type data = package
-       type kind = [`Install]
-       let kind_default = `Install
-       let to_plugin_kind = function `Install -> `Install
-     end)
+      type act  = package_act * package_act
+      type data = package
+      type kind = [`Install]
+      let kind_default = `Install
+      let to_plugin_kind = function `Install -> `Install
+    end)
 
 
 (** Extra plugins
-  *)
+*)
 module Extra =
   Make
     (struct
-       type act  = context_act -> package -> context_act
-       type data = package
-       type kind = [`Extra]
-       let kind_default = `Extra
-       let to_plugin_kind = function `Extra -> `Extra
-     end)
+      type act  = context_act -> package -> context_act
+      type data = package
+      type kind = [`Extra]
+      let kind_default = `Extra
+      let to_plugin_kind = function `Extra -> `Extra
+    end)
 
 
 (** Functions for plugin writer
-  *)
+*)
 
 
 (** Check that given field name belong to any plugin
-  *)
+*)
 let test_field_name nm =
   String.length nm > 0 && (nm.[0] = 'x' || nm.[0] = 'X')
 
 
 (** Create value for a builtin plugin
-  *)
+*)
 let builtin knd nm =
   let builtin_version =
     Some OASISConf.version_short
   in
-    knd, nm, builtin_version
+  knd, nm, builtin_version
 
 
 (** Add a generated template file
-  *)
+*)
 let add_file tmpl ctxt =
   {ctxt with
-       files = OASISFileTemplate.add tmpl ctxt.files}
+     files = OASISFileTemplate.add tmpl ctxt.files}
 
 
 (** Tests for error and set error status
-  *)
+*)
 let set_error tst s ctxt =
   if tst then
     begin

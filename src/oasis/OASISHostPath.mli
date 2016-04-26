@@ -23,37 +23,37 @@
 
 (** Manipulate host filenames
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISTypes
 
 
 (** Create a filename out of its components.
-  *)
+*)
 val make: host_filename list -> host_filename
 
 
 (** Convert a unix filename into host filename.
-  *)
+*)
 val of_unix: unix_filename -> host_filename
 
 
 (** Convert a host filename into a unix filename.
     {b Not exported}
-  *)
+*)
 val to_unix: host_filename -> unix_filename
 
 
 (** Compare host filename.
     {b Not exported}
-  *)
+*)
 val compare: host_filename -> host_filename -> int
 
 
 (** See {!OASISUnixPath.add_extension}.
     {b Not exported}
-  *)
+*)
 val add_extension: host_filename -> string -> host_filename
 
 

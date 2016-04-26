@@ -26,7 +26,7 @@ type elt =
   | Para of string
   | Verbatim of string
   | BlankLine
-  with odn
+with odn
 
 type t = elt list with odn
 
@@ -44,50 +44,50 @@ let of_string str =
     function
       (* End of string special cases. *)
       | [""; ""] ->
-          [`BlankLine]
+        [`BlankLine]
       | [str; ""] ->
-          if is_verbatim str then
-            [`Verbatim str; `BlankLine]
-          else
-            [`ContPara str; `BlankLine]
+        if is_verbatim str then
+          [`Verbatim str; `BlankLine]
+        else
+          [`ContPara str; `BlankLine]
 
       | "" :: "" :: tl ->
-          `BlankLine :: (parse tl)
+        `BlankLine :: (parse tl)
 
       | str1 :: "" :: str2 :: tl when is_verbatim str2 ->
-          `ContPara str1 :: `BlankLine :: `Verbatim str2 :: (parse tl)
+        `ContPara str1 :: `BlankLine :: `Verbatim str2 :: (parse tl)
 
       | str :: "" :: tl ->
-          if is_verbatim str then
-            (`Verbatim str) :: `BlankLine :: (parse tl)
-          else
-            (`ContPara str) :: `EndPara :: (parse tl)
+        if is_verbatim str then
+          (`Verbatim str) :: `BlankLine :: (parse tl)
+        else
+          (`ContPara str) :: `EndPara :: (parse tl)
       | str :: tl ->
-          if is_verbatim str then
-            (`Verbatim str) :: (parse tl)
-          else
-            (`ContPara str) :: (parse tl)
+        if is_verbatim str then
+          (`Verbatim str) :: (parse tl)
+        else
+          (`ContPara str) :: (parse tl)
       | [] ->
-          []
+        []
   in
   let rec join_para =
     function
       | `ContPara str1 :: `ContPara str2 :: tl ->
-          join_para ((`ContPara (str1 ^ " " ^ str2)) :: tl)
+        join_para ((`ContPara (str1 ^ " " ^ str2)) :: tl)
       | `EndPara :: tl ->
-          join_para tl
+        join_para tl
       | (`Verbatim _ | `ContPara _ | `BlankLine) as e :: tl ->
-          e :: join_para tl
+        e :: join_para tl
       | [] ->
-          []
+        []
   in
-    List.map
-      (function
-         | `ContPara str -> Para str
-         | `Verbatim str ->
-             Verbatim (String.sub str 1 ((String.length str) - 1))
-         | `BlankLine -> BlankLine)
-      (join_para (parse lst))
+  List.map
+    (function
+      | `ContPara str -> Para str
+      | `Verbatim str ->
+        Verbatim (String.sub str 1 ((String.length str) - 1))
+      | `BlankLine -> BlankLine)
+    (join_para (parse lst))
 
 
 let pp_print_verbatim fmt str =
@@ -98,34 +98,34 @@ let pp_print_verbatim fmt str =
 let rec pp_print fmt =
   function
     | [Para str] ->
-        pp_print_para fmt ~end_para:false str
+      pp_print_para fmt ~end_para:false str
     | [Verbatim str] ->
-        pp_print_verbatim fmt str
+      pp_print_verbatim fmt str
     | [Para str; BlankLine] ->
-        pp_print_para fmt ~end_para:false str;
-        pp_print_newline fmt ()
+      pp_print_para fmt ~end_para:false str;
+      pp_print_newline fmt ()
     | [Verbatim str; BlankLine] ->
-        pp_print_verbatim fmt str;
-        pp_print_newline fmt ()
+      pp_print_verbatim fmt str;
+      pp_print_newline fmt ()
     | Para str :: BlankLine :: ((Verbatim _ :: _) as tl) ->
-        pp_print_para fmt str;
-        pp_print fmt tl
+      pp_print_para fmt str;
+      pp_print fmt tl
     | Para str :: ((Verbatim _ :: _) as tl) ->
-        pp_print_para ~end_para:false fmt str;
-        pp_print_newline fmt ();
-        pp_print fmt tl
+      pp_print_para ~end_para:false fmt str;
+      pp_print_newline fmt ();
+      pp_print fmt tl
     | Para str :: tl  ->
-        pp_print_para fmt str;
-        pp_print fmt tl
+      pp_print_para fmt str;
+      pp_print fmt tl
     | Verbatim str :: tl ->
-        pp_print_verbatim fmt str;
-        pp_print_newline fmt ();
-        pp_print fmt tl
+      pp_print_verbatim fmt str;
+      pp_print_newline fmt ();
+      pp_print fmt tl
     | BlankLine :: tl ->
-        pp_print_newline fmt ();
-        pp_print fmt tl
+      pp_print_newline fmt ();
+      pp_print fmt tl
     | [] ->
-        ()
+      ()
 
 
 let to_string t =

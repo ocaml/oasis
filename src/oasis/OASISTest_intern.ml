@@ -23,7 +23,7 @@
 
 (** Test schema and generator
     @author Sylvain Le Gall
-  *)
+*)
 
 
 (* END EXPORT *)
@@ -38,7 +38,7 @@ open OASISGettext
 
 let schema, generator =
   let schm =
-   schema "Test" (fun (cs, _) -> cs.cs_plugin_data)
+    schema "Test" (fun (cs, _) -> cs.cs_plugin_data)
   in
   let cmn_section_gen =
     OASISSection_intern.section_fields
@@ -92,41 +92,41 @@ let schema, generator =
          s_ "Enable this test.")
       (fun (_, test) -> test.test_run)
   in
-    schm,
-    (fun features_data nm data ->
-       let cs =
-         cmn_section_gen features_data nm data
-       in
-       (* Set data specific to plugin used for this test *)
-       let typ =
-         typ data
-       in
-       let rplugin_data =
-         ref cs.cs_plugin_data
-       in
-       let cs =
-         OASISPlugin.generator_section
-           `Test
-           (typ :> plugin_kind plugin)
-           rplugin_data
-           cs.cs_data;
-         {cs with cs_plugin_data = !rplugin_data}
-       in
-       let run =
-         if OASISFeatures.data_test OASISFeatures.flag_tests features_data then
-           (* TODO: establish a formal link between here and BaseStandardVars *)
-           OASISExpr.if_then_else
-             (OASISExpr.EFlag "tests") (run data) [OASISExpr.EBool true, false]
-         else
-             run data
-       in
-         Test
-           (cs,
-            {
-              test_type              = typ;
-              test_command           = command data;
-              test_working_directory = working_directory data;
-              test_custom            = custom data;
-              test_run               = run;
-              test_tools             = tools data;
-            }))
+  schm,
+  (fun features_data nm data ->
+     let cs =
+       cmn_section_gen features_data nm data
+     in
+     (* Set data specific to plugin used for this test *)
+     let typ =
+       typ data
+     in
+     let rplugin_data =
+       ref cs.cs_plugin_data
+     in
+     let cs =
+       OASISPlugin.generator_section
+         `Test
+         (typ :> plugin_kind plugin)
+         rplugin_data
+         cs.cs_data;
+       {cs with cs_plugin_data = !rplugin_data}
+     in
+     let run =
+       if OASISFeatures.data_test OASISFeatures.flag_tests features_data then
+         (* TODO: establish a formal link between here and BaseStandardVars *)
+         OASISExpr.if_then_else
+           (OASISExpr.EFlag "tests") (run data) [OASISExpr.EBool true, false]
+       else
+         run data
+     in
+     Test
+       (cs,
+        {
+          test_type              = typ;
+          test_command           = command data;
+          test_working_directory = working_directory data;
+          test_custom            = custom data;
+          test_run               = run;
+          test_tools             = tools data;
+        }))

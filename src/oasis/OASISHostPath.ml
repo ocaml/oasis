@@ -30,9 +30,9 @@ module Unix = OASISUnixPath
 let make =
   function
     | [] ->
-        invalid_arg "OASISHostPath.make"
+      invalid_arg "OASISHostPath.make"
     | hd :: tl ->
-        List.fold_left Filename.concat hd tl
+      List.fold_left Filename.concat hd tl
 
 
 let of_unix ufn =
@@ -58,9 +58,9 @@ let fn_norm fn =
   match OASISPath_intern.fn_reduce []
           (OASISPath_intern.fn_reader fn) with
     | (`RootRelative str) :: tl ->
-        (`Root str) :: `CurrentDir :: tl
+      (`Root str) :: `CurrentDir :: tl
     | lst ->
-        lst
+      lst
 
 let compare fn1 fn2 =
   let fn_string =
@@ -68,49 +68,49 @@ let compare fn1 fn2 =
       | `Root str
       | `RootRelative str
       | `Component str ->
-          str
+        str
       | `CurrentDir ->
-          "."
+        "."
       | `ParentDir ->
-          ".."
+        ".."
   in
   let rec compare' =
     function
       | (hd1 :: tl1), (hd2 :: tl2) ->
-          if hd1 = hd2 then
-            compare' (tl1, tl2)
-          else
-            String.compare (fn_string hd1) (fn_string hd2)
+        if hd1 = hd2 then
+          compare' (tl1, tl2)
+        else
+          String.compare (fn_string hd1) (fn_string hd2)
       | [], [] ->
-          0
+        0
       | _ :: _, [] ->
-          1
+        1
       | [], _ :: _ ->
-          -1
+        -1
   in
-    compare' (fn_norm fn1, fn_norm fn2)
+  compare' (fn_norm fn1, fn_norm fn2)
 
 
 let to_unix hfn =
   if Sys.os_type = "Unix" then
     hfn
   else
-  let rec to_unix_aux =
-    function
-      | `Root str :: _
-      | `RootRelative str :: _ ->
+    let rec to_unix_aux =
+      function
+        | `Root str :: _
+        | `RootRelative str :: _ ->
           OASISUtils.failwithf
             "Cannot translate %S to unix filename, it contains a root \
              reference (%S)." hfn str
-      | `Component str :: tl ->
+        | `Component str :: tl ->
           str :: (to_unix_aux tl)
-      | `CurrentDir :: tl ->
+        | `CurrentDir :: tl ->
           "." :: (to_unix_aux tl)
-      | `ParentDir :: tl ->
+        | `ParentDir :: tl ->
           ".." :: (to_unix_aux tl)
-      | [] ->
+        | [] ->
           []
-  in
+    in
     OASISUnixPath.make (to_unix_aux (fn_norm hfn))
 
 
@@ -119,8 +119,8 @@ let add_extension fn ext =
 
 
 module Map = OASISUtils.MapExt.Make (
-struct
-       type t = Unix.host_filename
+  struct
+    type t = Unix.host_filename
 
-       let compare = compare
-end)
+    let compare = compare
+  end)

@@ -23,7 +23,7 @@
 
 (** Plugin to handle "none" generation
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISGettext
@@ -70,7 +70,7 @@ let init () =
   let () =
     register_help (`All, nm, ver)
       {(help_default NoneData.readme_template_mkd) with
-           help_order = 10}
+         help_order = 10}
   in
 
   let plugin = `Configure, nm, ver in
@@ -84,8 +84,8 @@ let init () =
   let plugin = `Install, nm, ver in
   let self_id, _ = Install.create plugin in
   let () = Install.register_act self_id
-             ((std_no_generate "install"),
-              (std_no_generate "uninstall"))
+      ((std_no_generate "install"),
+       (std_no_generate "uninstall"))
   in
 
   let plugin = `Test, nm, ver in
@@ -96,5 +96,5 @@ let init () =
   let self_id, _ = Doc.create plugin in
   let () = Doc.register_act self_id (section_no_generate "doc") in
 
-    ()
+  ()
 

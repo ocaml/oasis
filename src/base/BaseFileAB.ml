@@ -30,39 +30,39 @@ let to_filename fn =
   let fn =
     OASISHostPath.of_unix fn
   in
-    if not (Filename.check_suffix fn ".ab") then
-      warning
-        (f_ "File '%s' doesn't have '.ab' extension")
-        fn;
-    Filename.chop_extension fn
+  if not (Filename.check_suffix fn ".ab") then
+    warning
+      (f_ "File '%s' doesn't have '.ab' extension")
+      fn;
+  Filename.chop_extension fn
 
 
 let replace fn_lst =
   let buff =
     Buffer.create 13
   in
-    List.iter
-      (fun fn ->
-         let fn =
-           OASISHostPath.of_unix fn
-         in
-         let chn_in =
-           open_in fn
-         in
-         let chn_out =
-           open_out (to_filename fn)
-         in
-           (
-             try
-               while true do
-                Buffer.add_string buff (var_expand (input_line chn_in));
-                Buffer.add_char buff '\n'
-               done
-             with End_of_file ->
-               ()
-           );
-           Buffer.output_buffer chn_out buff;
-           Buffer.clear buff;
-           close_in chn_in;
-           close_out chn_out)
-      fn_lst
+  List.iter
+    (fun fn ->
+       let fn =
+         OASISHostPath.of_unix fn
+       in
+       let chn_in =
+         open_in fn
+       in
+       let chn_out =
+         open_out (to_filename fn)
+       in
+       (
+         try
+           while true do
+             Buffer.add_string buff (var_expand (input_line chn_in));
+             Buffer.add_char buff '\n'
+           done
+         with End_of_file ->
+           ()
+       );
+       Buffer.output_buffer chn_out buff;
+       Buffer.clear buff;
+       close_in chn_in;
+       close_out chn_out)
+    fn_lst

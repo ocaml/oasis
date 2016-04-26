@@ -22,7 +22,7 @@
 
 
 (** Common arguments
-  *)
+*)
 
 
 open OASISGettext
@@ -39,7 +39,7 @@ let define_oasis_fn f () =
     g ~ctxt !oasis_fn
   in
   let (specs, anon), run = f () in
-    (specs' :: specs, anon), wrap run
+  (specs' :: specs, anon), wrap run
 
 
 let parse_oasis_fn f =
@@ -47,7 +47,7 @@ let parse_oasis_fn f =
     (fun () ->
        let wrap g ~ctxt fn =
          let pkg = OASISParse.from_file ~ctxt fn in
-           g ~ctxt fn pkg
+         g ~ctxt fn pkg
        in
        let (specs, anon), run = f () in
-         (specs, anon), wrap run)
+       (specs, anon), wrap run)

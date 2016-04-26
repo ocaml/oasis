@@ -23,7 +23,7 @@
 
 (** Common types for OASISVersion parser
     @author Sylvain Le Gall
-  *)
+*)
 
 
 type t =

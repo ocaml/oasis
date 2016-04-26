@@ -23,7 +23,7 @@
 
 (** Configure using internal scheme
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open BaseEnv
@@ -35,7 +35,7 @@ open BaseMessage
 
 (** Configure build using provided series of check to be done
   * and then output corresponding file.
-  *)
+*)
 let configure pkg argv =
   let var_ignore_eval var = let _s: string = var () in () in
   let errors = ref SetString.empty in
@@ -58,29 +58,29 @@ let configure pkg argv =
   let check_tools lst =
     List.iter
       (function
-         | ExternalTool tool ->
-             begin
-               try
-                 var_ignore_eval (BaseCheck.prog tool)
-               with e ->
-                 warn_exception e;
-                 add_errors (f_ "Cannot find external tool '%s'") tool
-             end
-         | InternalExecutable nm1 ->
-             (* Check that matching tool is built *)
-             List.iter
-               (function
-                  | Executable ({cs_name = nm2},
-                                {bs_build = build},
-                                _) when nm1 = nm2 ->
-                       if not (var_choose build) then
-                         add_errors
-                           (f_ "Cannot find buildable internal executable \
-                                '%s' when checking build depends")
-                           nm1
-                  | _ ->
-                      ())
-               pkg.sections)
+        | ExternalTool tool ->
+          begin
+            try
+              var_ignore_eval (BaseCheck.prog tool)
+            with e ->
+              warn_exception e;
+              add_errors (f_ "Cannot find external tool '%s'") tool
+          end
+        | InternalExecutable nm1 ->
+          (* Check that matching tool is built *)
+          List.iter
+            (function
+              | Executable ({cs_name = nm2},
+                  {bs_build = build},
+                  _) when nm1 = nm2 ->
+                if not (var_choose build) then
+                  add_errors
+                    (f_ "Cannot find buildable internal executable \
+                         '%s' when checking build depends")
+                    nm1
+              | _ ->
+                ())
+            pkg.sections)
       lst
   in
 
@@ -104,39 +104,39 @@ let configure pkg argv =
         (* Check depends *)
         List.iter
           (function
-             | FindlibPackage (findlib_pkg, version_comparator) ->
-                 begin
-                   try
-                     var_ignore_eval
-                       (BaseCheck.package ?version_comparator findlib_pkg)
-                   with e ->
-                     warn_exception e;
-                     match version_comparator with
-                       | None ->
-                           add_errors
-                             (f_ "Cannot find findlib package %s")
-                             findlib_pkg
-                       | Some ver_cmp ->
-                           add_errors
-                             (f_ "Cannot find findlib package %s (%s)")
-                             findlib_pkg
-                             (OASISVersion.string_of_comparator ver_cmp)
-                 end
-             | InternalLibrary nm1 ->
-                 (* Check that matching library is built *)
-                 List.iter
-                   (function
-                      | Library ({cs_name = nm2},
-                                 {bs_build = build},
-                                 _) when nm1 = nm2 ->
-                           if not (var_choose build) then
-                             add_errors
-                               (f_ "Cannot find buildable internal library \
-                                    '%s' when checking build depends")
-                               nm1
-                      | _ ->
-                          ())
-                   pkg.sections)
+            | FindlibPackage (findlib_pkg, version_comparator) ->
+              begin
+                try
+                  var_ignore_eval
+                    (BaseCheck.package ?version_comparator findlib_pkg)
+                with e ->
+                  warn_exception e;
+                  match version_comparator with
+                    | None ->
+                      add_errors
+                        (f_ "Cannot find findlib package %s")
+                        findlib_pkg
+                    | Some ver_cmp ->
+                      add_errors
+                        (f_ "Cannot find findlib package %s (%s)")
+                        findlib_pkg
+                        (OASISVersion.string_of_comparator ver_cmp)
+              end
+            | InternalLibrary nm1 ->
+              (* Check that matching library is built *)
+              List.iter
+                (function
+                  | Library ({cs_name = nm2},
+                      {bs_build = build},
+                      _) when nm1 = nm2 ->
+                    if not (var_choose build) then
+                      add_errors
+                        (f_ "Cannot find buildable internal library \
+                             '%s' when checking build depends")
+                        nm1
+                  | _ ->
+                    ())
+                pkg.sections)
           bs.bs_build_depends
       end
   in
@@ -148,44 +148,44 @@ let configure pkg argv =
   begin
     match pkg.ocaml_version with
       | Some ver_cmp ->
-          begin
-            try
-              var_ignore_eval
-                (BaseCheck.version
-                   "ocaml"
-                   ver_cmp
-                   BaseStandardVar.ocaml_version)
-            with e ->
-              warn_exception e;
-              add_errors
-                (f_ "OCaml version %s doesn't match version constraint %s")
-                (BaseStandardVar.ocaml_version ())
-                (OASISVersion.string_of_comparator ver_cmp)
-          end
+        begin
+          try
+            var_ignore_eval
+              (BaseCheck.version
+                 "ocaml"
+                 ver_cmp
+                 BaseStandardVar.ocaml_version)
+          with e ->
+            warn_exception e;
+            add_errors
+              (f_ "OCaml version %s doesn't match version constraint %s")
+              (BaseStandardVar.ocaml_version ())
+              (OASISVersion.string_of_comparator ver_cmp)
+        end
       | None ->
-          ()
+        ()
   end;
 
   (* Findlib version *)
   begin
     match pkg.findlib_version with
       | Some ver_cmp ->
-          begin
-            try
-              var_ignore_eval
-                (BaseCheck.version
-                   "findlib"
-                   ver_cmp
-                   BaseStandardVar.findlib_version)
-            with e ->
-              warn_exception e;
-              add_errors
-                (f_ "Findlib version %s doesn't match version constraint %s")
-                (BaseStandardVar.findlib_version ())
-                (OASISVersion.string_of_comparator ver_cmp)
-          end
+        begin
+          try
+            var_ignore_eval
+              (BaseCheck.version
+                 "findlib"
+                 ver_cmp
+                 BaseStandardVar.findlib_version)
+          with e ->
+            warn_exception e;
+            add_errors
+              (f_ "Findlib version %s doesn't match version constraint %s")
+              (BaseStandardVar.findlib_version ())
+              (OASISVersion.string_of_comparator ver_cmp)
+        end
       | None ->
-          ()
+        ()
   end;
   (* Make sure the findlib version is fine for the OCaml compiler. *)
   begin
@@ -216,37 +216,37 @@ let configure pkg argv =
   (* Check build depends *)
   List.iter
     (function
-       | Executable (_, bs, _)
-       | Library (_, bs, _) as sct ->
-           build_checks sct bs
-       | Doc (_, doc) ->
-           if var_choose doc.doc_build then
-             check_tools doc.doc_build_tools
-       | Test (_, test) ->
-           if var_choose test.test_run then
-             check_tools test.test_tools
-       | _ ->
-           ())
+      | Executable (_, bs, _)
+      | Library (_, bs, _) as sct ->
+        build_checks sct bs
+      | Doc (_, doc) ->
+        if var_choose doc.doc_build then
+          check_tools doc.doc_build_tools
+      | Test (_, test) ->
+        if var_choose test.test_run then
+          check_tools test.test_tools
+      | _ ->
+        ())
     pkg.sections;
 
   (* Check if we need native dynlink (presence of libraries that compile to
    * native)
-   *)
+  *)
   begin
     let has_cmxa =
       List.exists
         (function
-           | Library (_, bs, _) ->
-               var_choose bs.bs_build &&
-               (bs.bs_compiled_object = Native ||
-                (bs.bs_compiled_object = Best &&
-                 bool_of_string (BaseStandardVar.is_native ())))
-           | _  ->
-               false)
+          | Library (_, bs, _) ->
+            var_choose bs.bs_build &&
+            (bs.bs_compiled_object = Native ||
+             (bs.bs_compiled_object = Best &&
+              bool_of_string (BaseStandardVar.is_native ())))
+          | _  ->
+            false)
         pkg.sections
     in
-      if has_cmxa then
-        var_ignore_eval BaseStandardVar.native_dynlink
+    if has_cmxa then
+      var_ignore_eval BaseStandardVar.native_dynlink
   end;
 
   (* Check errors *)
@@ -291,5 +291,5 @@ let init () =
            "InternalConfigurePlugin.configure");
     }
   in
-    InternalId.init ();
-    Configure.register_act self_id doit
+  InternalId.init ();
+  Configure.register_act self_id doit

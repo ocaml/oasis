@@ -30,7 +30,7 @@
 
     @author Sylvain Le Gall
     @see <http://forge.ocamlcore.org/projects/ocaml-gettext> OCaml Gettext project
-  *)
+*)
 
 
 (** Do nothing, but register it for translation *)
@@ -48,7 +48,7 @@ val f_: ('a, 'b, 'c, 'd) format4 -> ('a, 'b, 'c, 'd) format4
 (** [fn_ fmt_singular fmt_plural n] Translate a plural string using either
     [fmt_singular] or [fmt_plural], depending of the plural status of number
     [n] in the target language.
-  *)
+*)
 val fn_:
   ('a, 'b, 'c, 'd) format4 ->
   ('a, 'b, 'c, 'd) format4 ->

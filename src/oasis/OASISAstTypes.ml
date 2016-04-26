@@ -23,7 +23,7 @@
 
 (** AST types
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISTypes
@@ -31,21 +31,21 @@ open OASISTypes
 
 (** Context for parsing and checking AST *)
 type ctxt =
-    {
-      (** Current condition for conditional fields. *)
-      cond: OASISExpr.t option;
+  {
+    (** Current condition for conditional fields. *)
+    cond: OASISExpr.t option;
 
-      (** Valid flags *)
-      valid_flags: name list;
+    (** Valid flags *)
+    valid_flags: name list;
 
-      (** Combine values rather than setting it, when
-          setting field values
-       *)
-      append: bool;
+    (** Combine values rather than setting it, when
+        setting field values
+    *)
+    append: bool;
 
-      (** Global context *)
-      ctxt: OASISContext.t;
-    }
+    (** Global context *)
+    ctxt: OASISContext.t;
+  }
 
 
 (** Abstract Syntax Tree *)

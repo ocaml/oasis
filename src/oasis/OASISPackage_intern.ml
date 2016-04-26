@@ -23,7 +23,7 @@
 
 (** Package schema and generator
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISTypes
@@ -41,18 +41,18 @@ open OASISExpr
 
 let mod_build_depends f pkg =
   {pkg with
-       sections =
-         List.map
-           (function
-              | Library (cs, bs, lib) ->
-                  Library (cs, f bs, lib)
-              | Object (cs, bs, obj) ->
-                  Object (cs, f bs, obj)
-              | Executable (cs, bs, exec) ->
-                  Executable (cs, f bs, exec)
-              | Test _ | Flag _ | SrcRepo _ | Doc _ as sct ->
-                  sct)
-           pkg.sections}
+     sections =
+       List.map
+         (function
+           | Library (cs, bs, lib) ->
+             Library (cs, f bs, lib)
+           | Object (cs, bs, obj) ->
+             Object (cs, f bs, obj)
+           | Executable (cs, bs, exec) ->
+             Executable (cs, f bs, exec)
+           | Test _ | Flag _ | SrcRepo _ | Doc _ as sct ->
+             sct)
+         pkg.sections}
 
 
 let add_build_depend build_depend pkg =
@@ -70,27 +70,27 @@ let add_build_tool ?(no_test=false) ?(condition=[EBool true, true])
          {bs with bs_build_tools = build_tool :: bs.bs_build_tools})
       pkg
   in
-    if no_test then
-      pkg
-    else
-      {pkg with
-           sections =
-             List.map
-               (function
-                  | Test (cs, test) ->
-                      Test (cs,
-                            {test with
-                                 test_tools =
-                                   build_tool :: test.test_tools})
-                  | Doc (cs, doc) ->
-                      Doc (cs,
-                           {doc with
-                                doc_build_tools =
-                                  build_tool :: doc.doc_build_tools})
-                  | Library _ | Object _
-                  | Executable _ | Flag _ | SrcRepo _ as sct ->
-                      sct)
-               pkg.sections}
+  if no_test then
+    pkg
+  else
+    {pkg with
+       sections =
+         List.map
+           (function
+             | Test (cs, test) ->
+               Test (cs,
+                 {test with
+                    test_tools =
+                      build_tool :: test.test_tools})
+             | Doc (cs, doc) ->
+               Doc (cs,
+                 {doc with
+                    doc_build_tools =
+                      build_tool :: doc.doc_build_tools})
+             | Library _ | Object _
+             | Executable _ | Flag _ | SrcRepo _ as sct ->
+               sct)
+           pkg.sections}
 
 
 let schema =
@@ -106,51 +106,51 @@ let oasis_version =
       OASISVersion.version_of_string
       ["0.3"; "0.2"; "0.1"]
   in
-    new_field schema "OASISFormat"
-      ~quickstart_level:(NoChoice current_version)
-      {
-        parse =
-          (fun ~ctxt str ->
-             let v =
-               OASISVersion.value.parse ~ctxt str
-             in
-               if not
-                    (List.mem
-                       v
-                       (current_version :: extra_supported_versions)) then
-                 failwithf
-                   (f_ "OASIS format version '%s' is not supported.")
-                   str;
-               v);
-        update = update_fail;
-        print = OASISVersion.value.print;
-      }
-      (fun () ->
-         s_ "OASIS format version used to write file `_oasis`.")
-      (fun pkg -> pkg.oasis_version)
+  new_field schema "OASISFormat"
+    ~quickstart_level:(NoChoice current_version)
+    {
+      parse =
+        (fun ~ctxt str ->
+           let v =
+             OASISVersion.value.parse ~ctxt str
+           in
+           if not
+               (List.mem
+                  v
+                  (current_version :: extra_supported_versions)) then
+             failwithf
+               (f_ "OASIS format version '%s' is not supported.")
+               str;
+           v);
+      update = update_fail;
+      print = OASISVersion.value.print;
+    }
+    (fun () ->
+       s_ "OASIS format version used to write file `_oasis`.")
+    (fun pkg -> pkg.oasis_version)
 
 
 let alpha_features, beta_features =
   let value_feature stage =
-      {
-        parse =
-          (fun ~ctxt feature_name ->
-             match OASISFeatures.get_stage feature_name with
-               | OASISFeatures.InDev feature_stage ->
-                   if feature_stage <> stage then
-                     failwithf (f_ "Feature %s is in stage %s and not %s.")
-                       feature_name
-                       (OASISFeatures.string_of_stage feature_stage)
-                       (OASISFeatures.string_of_stage stage)
-                   else
-                     feature_name
-               | OASISFeatures.SinceVersion min_version ->
-                   failwithf
-                     (f_ "Features %s has been published in OASISVersion %s.")
-                     feature_name (OASISVersion.string_of_version min_version));
-        update = update_fail;
-        print = (fun s -> s)
-      }
+    {
+      parse =
+        (fun ~ctxt feature_name ->
+           match OASISFeatures.get_stage feature_name with
+             | OASISFeatures.InDev feature_stage ->
+               if feature_stage <> stage then
+                 failwithf (f_ "Feature %s is in stage %s and not %s.")
+                   feature_name
+                   (OASISFeatures.string_of_stage feature_stage)
+                   (OASISFeatures.string_of_stage stage)
+               else
+                 feature_name
+             | OASISFeatures.SinceVersion min_version ->
+               failwithf
+                 (f_ "Features %s has been published in OASISVersion %s.")
+                 feature_name (OASISVersion.string_of_version min_version));
+      update = update_fail;
+      print = (fun s -> s)
+    }
   in
   let alpha_features =
     new_field schema
@@ -174,7 +174,7 @@ let alpha_features, beta_features =
              (will ship, under review).")
       (fun pkg -> pkg.beta_features)
   in
-    alpha_features, beta_features
+  alpha_features, beta_features
 
 
 let generator =
@@ -247,7 +247,7 @@ let generator =
     new_field "License"
       OASISLicense.value
       ~quickstart_question:(fun () ->
-                              ExclusiveChoices (OASISLicense.choices ()))
+        ExclusiveChoices (OASISLicense.choices ()))
       (fun () ->
          (s_ "DEP-5 license of the package \
               (See [DEP-5](http://dep.debian.net/deps/dep5/#index6h3))."))
@@ -380,19 +380,19 @@ let generator =
     let quickstart_question () =
       match OASISPlugin.Extra.quickstart_question () with
         | ExclusiveChoices lst ->
-            Choices lst
+          Choices lst
         | Choices _ | Field | Text as q ->
-            q
+          q
     in
-      new_field_plugins schm "Plugins"
-        ~default:[]
-        ~quickstart_level:Beginner
-        ~quickstart_question
-        `Extra
-        OASISPlugin.Extra.value
-        (fun () ->
-           s_ "Extra plugins to use.")
-        (fun pkg -> pkg.plugins)
+    new_field_plugins schm "Plugins"
+      ~default:[]
+      ~quickstart_level:Beginner
+      ~quickstart_question
+      `Extra
+      OASISPlugin.Extra.value
+      (fun () ->
+         s_ "Extra plugins to use.")
+      (fun pkg -> pkg.plugins)
   in
   let disable_oasis_section =
     new_field "DisableOASISSection"
@@ -411,116 +411,116 @@ let generator =
     OASISBuildSection_intern.build_tools_field schm
       (fun pkg -> [])
   in
-    (fun data sections ->
-       let plugins = plugins data in
-       let conf    = conf_type data in
-       let build   = build_type data in
-       let install = install_type data in
+  (fun data sections ->
+     let plugins = plugins data in
+     let conf    = conf_type data in
+     let build   = build_type data in
+     let install = install_type data in
 
-       (* Generate plugin data *)
-       let set_plugin_data generator plugin_data data =
-         let rplugin_data = ref plugin_data in
-           List.iter
-             (fun plg ->
-                generator
-                  (plg :> plugin_kind plugin)
-                  rplugin_data
-                  data)
-             plugins;
-           generator
-             (conf :> plugin_kind plugin)
-             rplugin_data data;
-           generator
-             (build :> plugin_kind plugin)
-             rplugin_data data;
-           generator
-             (install :> plugin_kind plugin)
-             rplugin_data data;
-           !rplugin_data
-       in
+     (* Generate plugin data *)
+     let set_plugin_data generator plugin_data data =
+       let rplugin_data = ref plugin_data in
+       List.iter
+         (fun plg ->
+            generator
+              (plg :> plugin_kind plugin)
+              rplugin_data
+              data)
+         plugins;
+       generator
+         (conf :> plugin_kind plugin)
+         rplugin_data data;
+       generator
+         (build :> plugin_kind plugin)
+         rplugin_data data;
+       generator
+         (install :> plugin_kind plugin)
+         rplugin_data data;
+       !rplugin_data
+     in
 
-       (* Plugin data for package *)
-       let plugin_data =
-         set_plugin_data
-           OASISPlugin.generator_package
-           []
-           data
-       in
+     (* Plugin data for package *)
+     let plugin_data =
+       set_plugin_data
+         OASISPlugin.generator_package
+         []
+         data
+     in
 
-       (* Fix plugin data for sections, set data from plugin
-        * defined at package level
-        *)
-       let sections =
-         List.map
-           (fun sct ->
-              let knd, cs =
-                OASISSection.section_kind_common sct
-              in
-              let plugin_data =
-                set_plugin_data
-                  (OASISPlugin.generator_section knd)
-                  cs.cs_plugin_data
-                  cs.cs_data
-              in
-                OASISSection.section_common_set
-                  {cs with cs_plugin_data = plugin_data}
-                  sct)
-           sections
-       in
+     (* Fix plugin data for sections, set data from plugin
+      * defined at package level
+     *)
+     let sections =
+       List.map
+         (fun sct ->
+            let knd, cs =
+              OASISSection.section_kind_common sct
+            in
+            let plugin_data =
+              set_plugin_data
+                (OASISPlugin.generator_section knd)
+                cs.cs_plugin_data
+                cs.cs_data
+            in
+            OASISSection.section_common_set
+              {cs with cs_plugin_data = plugin_data}
+              sct)
+         sections
+     in
 
-       let oasis_version = oasis_version data in
-       let alpha_features = alpha_features data in
-       let beta_features = beta_features data in
-         if (alpha_features <> [] || beta_features <> []) &&
-            (OASISVersion.version_compare
-               oasis_version OASISConf.version_short) <> 0 then
-           failwithf
-             (f_ "You need to use the latest OASISFormat to be able to use \
-                  fields %s and %s. Change 'OASISFormat: %s' to \
-                  'OASISFormat: %s'")
-             (OASISFeatures.field_of_stage OASISFeatures.Alpha)
-             (OASISFeatures.field_of_stage OASISFeatures.Beta)
-             (OASISVersion.string_of_version oasis_version)
-             (OASISVersion.string_of_version OASISConf.version_short);
+     let oasis_version = oasis_version data in
+     let alpha_features = alpha_features data in
+     let beta_features = beta_features data in
+     if (alpha_features <> [] || beta_features <> []) &&
+        (OASISVersion.version_compare
+           oasis_version OASISConf.version_short) <> 0 then
+       failwithf
+         (f_ "You need to use the latest OASISFormat to be able to use \
+              fields %s and %s. Change 'OASISFormat: %s' to \
+              'OASISFormat: %s'")
+         (OASISFeatures.field_of_stage OASISFeatures.Alpha)
+         (OASISFeatures.field_of_stage OASISFeatures.Beta)
+         (OASISVersion.string_of_version oasis_version)
+         (OASISVersion.string_of_version OASISConf.version_short);
 
-         List.fold_right
-           add_build_depend
-           (build_depends data)
-           (List.fold_right
-              add_build_tool
-              (build_tools data)
-              {
-                oasis_version          = oasis_version;
-                ocaml_version          = ocaml_version data;
-                findlib_version        = findlib_version data;
-                alpha_features         = alpha_features;
-                beta_features          = beta_features;
-                name                   = name data;
-                version                = version data;
-                license                = license data;
-                license_file           = license_file data;
-                copyrights             = copyrights data;
-                maintainers            = maintainers data;
-                authors                = authors data;
-                homepage               = homepage data;
-                bugreports             = bugreports data;
-                synopsis               = synopsis data;
-                description            = description data;
-                tags                   = tags data;
-                categories             = categories data;
-                conf_type              = conf;
-                conf_custom            = conf_custom data;
-                build_type             = build;
-                build_custom           = build_custom data;
-                install_type           = install;
-                install_custom         = install_custom data;
-                uninstall_custom       = uninstall_custom data;
-                clean_custom           = clean_custom data;
-                distclean_custom       = distclean_custom data;
-                files_ab               = files_ab data;
-                plugins                = plugins;
-                disable_oasis_section  = disable_oasis_section data;
-                sections               = sections;
-                schema_data            = data;
-                plugin_data            = plugin_data;
-              }))
+     List.fold_right
+       add_build_depend
+       (build_depends data)
+       (List.fold_right
+          add_build_tool
+          (build_tools data)
+          {
+            oasis_version          = oasis_version;
+            ocaml_version          = ocaml_version data;
+            findlib_version        = findlib_version data;
+            alpha_features         = alpha_features;
+            beta_features          = beta_features;
+            name                   = name data;
+            version                = version data;
+            license                = license data;
+            license_file           = license_file data;
+            copyrights             = copyrights data;
+            maintainers            = maintainers data;
+            authors                = authors data;
+            homepage               = homepage data;
+            bugreports             = bugreports data;
+            synopsis               = synopsis data;
+            description            = description data;
+            tags                   = tags data;
+            categories             = categories data;
+            conf_type              = conf;
+            conf_custom            = conf_custom data;
+            build_type             = build;
+            build_custom           = build_custom data;
+            install_type           = install;
+            install_custom         = install_custom data;
+            uninstall_custom       = uninstall_custom data;
+            clean_custom           = clean_custom data;
+            distclean_custom       = distclean_custom data;
+            files_ab               = files_ab data;
+            plugins                = plugins;
+            disable_oasis_section  = disable_oasis_section data;
+            sections               = sections;
+            schema_data            = data;
+            plugin_data            = plugin_data;
+          }))

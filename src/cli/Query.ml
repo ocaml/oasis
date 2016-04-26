@@ -23,7 +23,7 @@
 
 (** Load and query _oasis file
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open CLISubCommand
@@ -77,120 +77,120 @@ let query pkg separator str =
       else
         Printf.sprintf "%s(%S)"
     in
-      fmt start nm, schm
+    fmt start nm, schm
   in
 
   let parse_id_or_string =
     parser
-      | [< 'Ident str >] ->
-          str
-      | [< 'String str >] ->
-          str
+  | [< 'Ident str >] ->
+    str
+  | [< 'String str >] ->
+    str
   in
 
   let parse_fld_or_section start_nm =
     parser
-      | [< 'Kwd "("; nm = parse_id_or_string; 'Kwd ")";
-           'Kwd ".";
-           fld = parse_id_or_string >] ->
-          begin
-            let kind, schm =
-              try
-                List.assoc
-                  (String.lowercase start_nm)
-                  (List.map
-                     (fun (nm, e) -> String.lowercase nm, e)
-                     assoc_sections)
-              with Not_found ->
-                failwithf
-                  (f_ "Don't know section kind '%s' in query '%s'")
-                  start_nm str
-            in
-            let sct  =
-              OASISSection.section_find
-                (kind, nm)
-                pkg.sections
-            in
-            let data =
-              (OASISSection.section_common sct).cs_data
-            in
-              schm, data, fld
-          end
+  | [< 'Kwd "("; nm = parse_id_or_string; 'Kwd ")";
+       'Kwd ".";
+       fld = parse_id_or_string >] ->
+    begin
+      let kind, schm =
+        try
+          List.assoc
+            (String.lowercase start_nm)
+            (List.map
+               (fun (nm, e) -> String.lowercase nm, e)
+               assoc_sections)
+        with Not_found ->
+          failwithf
+            (f_ "Don't know section kind '%s' in query '%s'")
+            start_nm str
+      in
+      let sct  =
+        OASISSection.section_find
+          (kind, nm)
+          pkg.sections
+      in
+      let data =
+        (OASISSection.section_common sct).cs_data
+      in
+      schm, data, fld
+    end
 
-      | [< >] ->
-          begin
-            (* We have a single field *)
-            (proplist_schema OASISPackage.schema),
-            pkg.schema_data,
-            start_nm
-          end
+  | [< >] ->
+    begin
+      (* We have a single field *)
+      (proplist_schema OASISPackage.schema),
+      pkg.schema_data,
+      start_nm
+    end
   in
 
   let parse =
     parser
-      | [< start_nm = parse_id_or_string;
-           (schm, data, fld) = parse_fld_or_section start_nm >] ->
-          begin
-            PropList.Schema.get schm data fld
-          end
+  | [< start_nm = parse_id_or_string;
+       (schm, data, fld) = parse_fld_or_section start_nm >] ->
+    begin
+      PropList.Schema.get schm data fld
+    end
 
-      | [< 'Kwd "ListSections" >] ->
-          begin
-            String.concat
-              separator
-              (List.map
-                 (fun sct -> fst (mk_section sct))
-                 pkg.sections)
-          end
+  | [< 'Kwd "ListSections" >] ->
+    begin
+      String.concat
+        separator
+        (List.map
+           (fun sct -> fst (mk_section sct))
+           pkg.sections)
+    end
 
-      | [< 'Kwd "ListFields" >] ->
-          begin
-            let fold_schm prefix schm data acc =
-              PropList.Schema.fold
-                (fun acc nm extra _ ->
-                   try
-                     let _v: string =
-                       PropList.Schema.get schm data nm
-                     in
-                       match extra.OASISSchema_intern.feature with
-                         | Some ftr ->
-                            if OASISFeatures.package_test ftr pkg then
-                              (prefix^nm) :: acc
-                            else
-                              acc
-                         | None -> (prefix^nm) :: acc
-                   with e ->
-                     acc)
-                acc
-                schm
-            in
-            let lst =
-              List.fold_left
-                (fun acc sct ->
-                   let prefix, schm = mk_section sct in
-                   let data = (section_common sct).cs_data in
-                     fold_schm (prefix^".") schm data acc)
+  | [< 'Kwd "ListFields" >] ->
+    begin
+      let fold_schm prefix schm data acc =
+        PropList.Schema.fold
+          (fun acc nm extra _ ->
+             try
+               let _v: string =
+                 PropList.Schema.get schm data nm
+               in
+               match extra.OASISSchema_intern.feature with
+                 | Some ftr ->
+                   if OASISFeatures.package_test ftr pkg then
+                     (prefix^nm) :: acc
+                   else
+                     acc
+                 | None -> (prefix^nm) :: acc
+             with e ->
+               acc)
+          acc
+          schm
+      in
+      let lst =
+        List.fold_left
+          (fun acc sct ->
+             let prefix, schm = mk_section sct in
+             let data = (section_common sct).cs_data in
+             fold_schm (prefix^".") schm data acc)
 
-                (* Start with the package fields *)
-                (fold_schm "" (proplist_schema OASISPackage.schema)
-                   pkg.schema_data [])
+          (* Start with the package fields *)
+          (fold_schm "" (proplist_schema OASISPackage.schema)
+             pkg.schema_data [])
 
-                (* Continue with section fields *)
-                pkg.sections
-            in
+          (* Continue with section fields *)
+          pkg.sections
+      in
 
-              String.concat separator (List.rev lst)
-          end
+      String.concat separator (List.rev lst)
+    end
 
   in
-    parse (lexer (Stream.of_string str))
+  parse (lexer (Stream.of_string str))
 
 
 let main ~ctxt (queries, separator) _ pkg =
   let answers =
     List.rev_map (query pkg separator) queries
   in
-    print_endline (String.concat separator answers)
+  print_endline (String.concat separator answers)
 
 
 let () =
@@ -203,10 +203,10 @@ let () =
           (fun () ->
              let separator = ref "\n" in
              let queries = ref [] in
-               (["-separator",
-                 Arg.Set_string separator,
-                 s_ "str String to add between answers."],
-                (fun e -> queries := e :: !queries)),
-               (fun () -> !queries, !separator))
+             (["-separator",
+               Arg.Set_string separator,
+               s_ "str String to add between answers."],
+              (fun e -> queries := e :: !queries)),
+             (fun () -> !queries, !separator))
           main))
 

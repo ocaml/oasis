@@ -35,27 +35,27 @@ exception Unknown_field of name * name
 let () =
   Printexc.register_printer
     (function
-       | Not_set (nm, Some rsn) ->
-           Some
-             (Printf.sprintf (f_ "Field '%s' is not set: %s") nm rsn)
-       | Not_set (nm, None) ->
-           Some
-             (Printf.sprintf (f_ "Field '%s' is not set") nm)
-       | No_printer nm ->
-           Some
-             (Printf.sprintf (f_ "No default printer for value %s") nm)
-       | Unknown_field (nm, schm) ->
-           Some
-             (Printf.sprintf
-                (f_ "Field %s is not defined in schema %s") nm schm)
-       | _ ->
-           None)
+      | Not_set (nm, Some rsn) ->
+        Some
+          (Printf.sprintf (f_ "Field '%s' is not set: %s") nm rsn)
+      | Not_set (nm, None) ->
+        Some
+          (Printf.sprintf (f_ "Field '%s' is not set") nm)
+      | No_printer nm ->
+        Some
+          (Printf.sprintf (f_ "No default printer for value %s") nm)
+      | Unknown_field (nm, schm) ->
+        Some
+          (Printf.sprintf
+             (f_ "Field %s is not defined in schema %s") nm schm)
+      | _ ->
+        None)
 
 
 module Data =
 struct
   type t =
-      (name, unit -> unit) Hashtbl.t
+    (name, unit -> unit) Hashtbl.t
 
   let create () =
     Hashtbl.create 13
@@ -64,37 +64,37 @@ struct
     Hashtbl.clear t
 
 
-(* END EXPORT *)
+  (* END EXPORT *)
   let elements t =
     let rlst = ref [] in
-      Hashtbl.iter
-        (fun nm _ -> rlst := nm :: !rlst)
-        t;
-      !rlst
+    Hashtbl.iter
+      (fun nm _ -> rlst := nm :: !rlst)
+      t;
+    !rlst
 
   let odn_of_t t =
     ODN.APP ("PropList.Data.create", [], [ODN.UNT])
-(* START EXPORT *)
+    (* START EXPORT *)
 end
 
 
 module Schema =
 struct
   type ('ctxt, 'extra) value =
-      {
-        get:   Data.t -> string;
-        set:   Data.t -> ?context:'ctxt -> string -> unit;
-        help:  (unit -> string) option;
-        extra: 'extra;
-      }
+    {
+      get:   Data.t -> string;
+      set:   Data.t -> ?context:'ctxt -> string -> unit;
+      help:  (unit -> string) option;
+      extra: 'extra;
+    }
 
   type ('ctxt, 'extra) t =
-      {
-        name:      name;
-        fields:    (name, ('ctxt, 'extra) value) Hashtbl.t;
-        order:     name Queue.t;
-        name_norm: string -> string;
-      }
+    {
+      name:      name;
+      fields:    (name, ('ctxt, 'extra) value) Hashtbl.t;
+      order:     name Queue.t;
+      name_norm: string -> string;
+    }
 
   let create ?(case_insensitive=false) nm =
     {
@@ -113,21 +113,21 @@ struct
       t.name_norm nm
     in
 
-      if Hashtbl.mem t.fields key then
-        failwith
-          (Printf.sprintf
-             (f_ "Field '%s' is already defined in schema '%s'")
-             nm t.name);
-      Hashtbl.add
-        t.fields
-        key
-        {
-          set   = set;
-          get   = get;
-          help  = help;
-          extra = extra;
-        };
-      Queue.add nm t.order
+    if Hashtbl.mem t.fields key then
+      failwith
+        (Printf.sprintf
+           (f_ "Field '%s' is already defined in schema '%s'")
+           nm t.name);
+    Hashtbl.add
+      t.fields
+      key
+      {
+        set   = set;
+        get   = get;
+        help  = help;
+        extra = extra;
+      };
+    Queue.add nm t.order
 
   let mem t nm =
     Hashtbl.mem t.fields nm
@@ -153,7 +153,7 @@ struct
          let v =
            find t k
          in
-           f acc k v.extra v.help)
+         f acc k v.extra v.help)
       acc
       t.order
 
@@ -171,20 +171,20 @@ end
 module Field =
 struct
   type ('ctxt, 'value, 'extra) t =
-      {
-        set:    Data.t -> ?context:'ctxt -> 'value -> unit;
-        get:    Data.t -> 'value;
-        sets:   Data.t -> ?context:'ctxt -> string -> unit;
-        gets:   Data.t -> string;
-        help:   (unit -> string) option;
-        extra:  'extra;
-      }
+    {
+      set:    Data.t -> ?context:'ctxt -> 'value -> unit;
+      get:    Data.t -> 'value;
+      sets:   Data.t -> ?context:'ctxt -> string -> unit;
+      gets:   Data.t -> string;
+      help:   (unit -> string) option;
+      extra:  'extra;
+    }
 
   let new_id =
     let last_id =
       ref 0
     in
-      fun () -> incr last_id; !last_id
+    fun () -> incr last_id; !last_id
 
   let create ?schema ?name ?parse ?print ?default ?update ?help extra =
     (* Default value container *)
@@ -223,33 +223,33 @@ struct
       let x =
         match update with
           | Some f ->
-              begin
-                try
-                  f ?context (get data) x
-                with Not_set _ ->
-                  x
-              end
+            begin
+              try
+                f ?context (get data) x
+              with Not_set _ ->
+                x
+            end
           | None ->
-              x
+            x
       in
-        Hashtbl.replace
-          data
-          nm
-          (fun () -> v := Some x)
+      Hashtbl.replace
+        data
+        nm
+        (fun () -> v := Some x)
     in
 
     (* Parse string value, if possible *)
     let parse =
       match parse with
         | Some f ->
-            f
+          f
         | None ->
-            fun ?context s ->
-              failwith
-                (Printf.sprintf
-                   (f_ "Cannot parse field '%s' when setting value %S")
-                   nm
-                   s)
+          fun ?context s ->
+            failwith
+              (Printf.sprintf
+                 (f_ "Cannot parse field '%s' when setting value %S")
+                 nm
+                 s)
     in
 
     (* Set data, from string *)
@@ -261,9 +261,9 @@ struct
     let print =
       match print with
         | Some f ->
-            f
+          f
         | None ->
-            fun _ -> raise (No_printer nm)
+          fun _ -> raise (No_printer nm)
     in
 
     (* Get data, as a string *)
@@ -271,22 +271,22 @@ struct
       print (get data)
     in
 
-      begin
-        match schema with
-          | Some t ->
-              Schema.add t nm sets gets extra help
-          | None ->
-              ()
-      end;
+    begin
+      match schema with
+        | Some t ->
+          Schema.add t nm sets gets extra help
+        | None ->
+          ()
+    end;
 
-      {
-        set   = set;
-        get   = get;
-        sets  = sets;
-        gets  = gets;
-        help  = help;
-        extra = extra;
-      }
+    {
+      set   = set;
+      get   = get;
+      sets  = sets;
+      gets  = gets;
+      help  = help;
+      extra = extra;
+    }
 
   let fset data t ?context x =
     t.set data ?context x
@@ -308,5 +308,5 @@ struct
     let fld =
       Field.create ?schema ?name ?parse ?print ?default ?update ?help extra
     in
-      fun data -> Field.fget data fld
+    fun data -> Field.fget data fld
 end

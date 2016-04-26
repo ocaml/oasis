@@ -29,7 +29,7 @@
     The whole module is {b not exported}.
 
     @author Sylvain Le Gall
-  *)
+*)
 
 
 (** {2 Types and exception} *)
@@ -37,28 +37,28 @@
 
 (** Definition of a value. *)
 type 'a t =
-      {
-        parse: ctxt:OASISContext.t -> string -> 'a;
-        (** Parse a string into value *)
-        update: 'a -> 'a -> 'a;
-        (** Merge two values into one *)
-        print: 'a -> string;
-        (** Convert a value to string *)
-      }
+  {
+    parse: ctxt:OASISContext.t -> string -> 'a;
+    (** Parse a string into value *)
+    update: 'a -> 'a -> 'a;
+    (** Merge two values into one *)
+    print: 'a -> string;
+    (** Convert a value to string *)
+  }
 
 
 (** The value exist but there is no easy way to represent it.
-  *)
+*)
 exception Not_printable
 
 
 (** It is not possible to combine values.
-  *)
+*)
 exception Not_combinable
 
 
 (** Always raise {!Not_combinable}.
-  *)
+*)
 val update_fail: 'a -> 'b -> 'c
 
 
@@ -67,7 +67,7 @@ val update_fail: 'a -> 'b -> 'c
 
 (** Hidden value to build phantom data storage, cannot set/get
     it using string.
-  *)
+*)
 val blackbox: 'a t
 
 
@@ -85,26 +85,26 @@ val boolean: bool t
 
 (** Extra check to see if the string value, can be expanded
     using [Buffer.add_substitute] rules.
-  *)
+*)
 val expandable: string t -> string t
 
 
 (** [dot_separated v] When parsing split the input string using '.' separator
     and apply [v.parse]. Merge by concatenate two values, and print by joining
     [v.print] generated strings using a '.' separator. Don't strip whitespaces.
-  *)
+*)
 val dot_separated: 'a t -> 'a list t
 
 
 (** Same as {!dot_separated} using ',' as separator. Strip whitespaces before
     and after the input string.
-  *)
+*)
 val comma_separated: 'a t -> 'a list t
 
 
 (** Same {!dot_separated} using '\n' as separator. Strip whitespaces before and
     after the input string.
-  *)
+*)
 val newline_separated: 'a t -> 'a list t
 
 
@@ -116,7 +116,7 @@ val space_separated: string list t
     string ["abcd (defg)"] is split between the part not between parentheses
     and the one between. [v_main] is applied to the first one and [v_opt] to
     the latter. If no parentheses is found, only apply [v_main].
- *)
+*)
 val with_optional_parentheses: 'a t -> 'b t -> ('a * 'b option) t
 
 
@@ -128,7 +128,7 @@ val opt: 'a t -> 'a option t
     Find the right association in [lst], comparison is case insensitive.
     If something failed output a message using [nm] as the name of the
     value represented.
-  *)
+*)
 val choices: (unit -> string) -> (string * 'a) list -> 'a t
 
 

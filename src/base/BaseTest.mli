@@ -23,7 +23,7 @@
 
 (** Run tests
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISTypes
@@ -33,14 +33,14 @@ open OASISTypes
     [(f, cs, test)], apply in turn [f pkg (cs, test) extra_args] and
     collect their results. Combine all results to give a percentage of
     failure.
-  *)
+*)
 val test:
   ((package ->
-      common_section * test ->
-      arg array ->
-      float) *
-   common_section *
-   test) list ->
+    common_section * test ->
+    arg array ->
+    float) *
+     common_section *
+     test) list ->
   package ->
   arg array ->
   unit

@@ -23,7 +23,7 @@
 
 (** Flag schema and generator
     @author Sylvain Le Gall
-  *)
+*)
 
 
 (* END EXPORT *)
@@ -63,11 +63,11 @@ let schema, generator =
          s_ "Default value for the flag")
       (fun (_, flag) -> flag.flag_default)
   in
-    schm,
-    (fun features_data nm data ->
-       Flag
-         (cmn_section_gen features_data nm data,
-          {
-            flag_description = descr data;
-            flag_default     = default data;
-          }))
+  schm,
+  (fun features_data nm data ->
+     Flag
+       (cmn_section_gen features_data nm data,
+        {
+          flag_description = descr data;
+          flag_default     = default data;
+        }))

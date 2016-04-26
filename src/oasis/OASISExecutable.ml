@@ -37,16 +37,16 @@ let unix_exec_is (cs, bs, exec) is_native ext_dll suffix_program =
       | Byte -> false
   in
 
-    OASISUnixPath.concat
-      dir
-      (cs.cs_name^(suffix_program ())),
+  OASISUnixPath.concat
+    dir
+    (cs.cs_name^(suffix_program ())),
 
-    if not is_native_exec &&
-       not exec.exec_custom &&
-       bs.bs_c_sources <> [] then
-      Some (dir^"/dll"^cs.cs_name^"_stubs"^(ext_dll ()))
-    else
-      None
+  if not is_native_exec &&
+     not exec.exec_custom &&
+     bs.bs_c_sources <> [] then
+    Some (dir^"/dll"^cs.cs_name^"_stubs"^(ext_dll ()))
+  else
+    None
 
 
 (* END EXPORT *)

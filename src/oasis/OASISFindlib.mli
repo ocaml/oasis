@@ -34,36 +34,36 @@ exception FindlibPackageNotFound of findlib_name
 
 
 (** Library groups are organized in trees.
-  *)
+*)
 type group_t =
   | Container of findlib_part_name * group_t list
   | Package of (findlib_part_name *
-                common_section *
-                build_section *
-                [`Library of library | `Object of object_] *
-                group_t list)
+        common_section *
+        build_section *
+        [`Library of library | `Object of object_] *
+        group_t list)
 
 
 (** Compute groups of libraries, associate root libraries with
     a tree of its children. A group of libraries is defined by
     the fact that these libraries have a parental relationship
     and must be installed together, with the same META file.
-  *)
+*)
 val findlib_mapping: package ->
   group_t list *
-  (library_name -> findlib_name) *
-  (findlib_name -> library_name)
+    (library_name -> findlib_name) *
+    (findlib_name -> library_name)
 
 
 (** Return the findlib root name of a group, it takes into account
     containers. So the return group name is the toplevel name
     for both libraries and theirs containers.
-  *)
+*)
 val findlib_of_group: group_t -> findlib_name
 
 
 (** Return the root library, i.e. the first found into the group tree
     that has no parent.
-  *)
+*)
 val root_of_group: group_t ->
   common_section * build_section * [`Library of library | `Object of object_]

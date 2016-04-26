@@ -23,7 +23,7 @@
 
 (** Message to user, overrid for Base
     @author Sylvain Le Gall
-  *)
+*)
 open OASISMessage
 open BaseContext
 

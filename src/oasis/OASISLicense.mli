@@ -27,21 +27,21 @@
 
     @author Sylvain Le Gall
     @see <http://dep.debian.net/deps/dep5/> DEP-5
-  *)
+*)
 
 
 (** Valid licenses
-  *)
+*)
 type license
 
 
 (** Valid license exceptions.
-  *)
+*)
 type license_exception
 
 
 (** License version.
-  *)
+*)
 type license_version =
   | Version of OASISVersion.t
   | VersionOrLater of OASISVersion.t
@@ -49,7 +49,7 @@ type license_version =
 
 
 (** DEP-5 license, basic.
-  *)
+*)
 type license_dep_5_unit =
   {
     license:    license;
@@ -59,7 +59,7 @@ type license_dep_5_unit =
 
 
 (** DEP-5 license, complex.
-  *)
+*)
 type license_dep_5 =
   | DEP5Unit of license_dep_5_unit
   | DEP5Or of license_dep_5 list
@@ -67,95 +67,95 @@ type license_dep_5 =
 
 
 (** OASIS supported type of license.
-  *)
+*)
 type t =
   | DEP5License of license_dep_5
   | OtherLicense of string (* URL *)
 
 
 (** Extra data about license {b Not exported}
-  *)
+*)
 type license_data =
-    {
-      long_name: string;
-      (** Expanded name of the license. *)
+  {
+    long_name: string;
+    (** Expanded name of the license. *)
 
-      versions:  OASISVersion.t list;
-      (** Standard versions of the license. *)
+    versions:  OASISVersion.t list;
+    (** Standard versions of the license. *)
 
-      note:      string option;
-      (** Extra information about the license. *)
+    note:      string option;
+    (** Extra information about the license. *)
 
-      deprecated: string option;
-      (** Deprecated alternative. *)
-    }
+    deprecated: string option;
+    (** Deprecated alternative. *)
+  }
 
 
 (** Extra data about license exception {b Not exported}
-  *)
+*)
 type license_exception_data =
-    {
-      explanation: string;
-      (** Purpose of the exception. *)
+  {
+    explanation: string;
+    (** Purpose of the exception. *)
 
-      licenses:    license list;
-      (** Compatible licenses with the exception. *)
-    }
+    licenses:    license list;
+    (** Compatible licenses with the exception. *)
+  }
 
 
 (** Convert a DEP-5 license to string. {b Not exported}.
-  *)
+*)
 val to_string: t -> string
 
 
 (** Convert a DEP-5 license to a legal disclaimer for the product.
     {b Not exported}.
-  *)
+*)
 val legal_disclaimer: string -> t -> string
 
 
 (** Convert a license to string. {b Not exported}.
-  *)
+*)
 val string_of_license: license -> string
 
 
 (** Convert a license exception to string. {b Not exported}.
-  *)
+*)
 val string_of_license_exception: license_exception -> string
 
 
 (** License value. {b Not exported}.
-  *)
+*)
 val value: t OASISValues.t
 
 
 (** Choices for quickstart question. {b Not exported}.
-  *)
+*)
 val choices: unit -> t list
 
 
 (** All available license, their short name, their long name, and compatible
     versions. {b Not exported}.
-  *)
+*)
 val license_data: unit -> (license * license_data) list
 
 
 (** All available license exception, their name, and compatible license.
-  {b Not exported}.
-  *)
+    {b Not exported}.
+*)
 val license_exception_data:
-    unit -> (license_exception * license_exception_data) list
+  unit -> (license_exception * license_exception_data) list
 
 
 (** Dump [ODN.t]. {b Not exported}.
-  *)
+*)
 val odn_of_t: t -> ODN.t
 
 
 (** {2 License definitions}
 
     {b No licenses are exported.}
-  *)
+*)
 
 
 val proprietary: license

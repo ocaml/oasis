@@ -28,7 +28,7 @@ open FormatExt
 
 
 (** Pretty printing of OASIS files
-  *)
+*)
 
 
 let pp_print_fields fmt (schm, _, data) =
@@ -54,24 +54,24 @@ let pp_print_fields fmt (schm, _, data) =
                       fake_data
                       key
                   in
-                    str = default
+                  str = default
                 with
                   | OASISValues.Not_printable
                   | PropList.Not_set _ ->
-                      (* Unable to compare so this is not default *)
-                      false
+                    (* Unable to compare so this is not default *)
+                    false
               in
-                if not is_default then
-                  (key, str) :: acc
-                else
-                  acc
+              if not is_default then
+                (key, str) :: acc
+              else
+                acc
             with
               | OASISValues.Not_printable ->
-                  acc
+                acc
               | PropList.Not_set _ ->
-                  (* TODO: is it really necessary *)
-                  (* when extra. <> None ->*)
-                  acc)
+                (* TODO: is it really necessary *)
+                (* when extra. <> None ->*)
+                acc)
          []
          schm)
   in
@@ -80,37 +80,37 @@ let pp_print_fields fmt (schm, _, data) =
     (* ":" *)
     1
     +
-    (* Maximum length of a key *)
-    (List.fold_left
-       max
-       0
+      (* Maximum length of a key *)
+      (List.fold_left
+         max
+         0
 
-       (* Only consider length of key *)
-       (List.rev_map
-          fst
+         (* Only consider length of key *)
+         (List.rev_map
+            fst
 
-          (* Remove key/value that exceed line length *)
-          (List.filter
-             (fun (k, v) -> k + v < pp_get_margin fmt ())
+            (* Remove key/value that exceed line length *)
+            (List.filter
+               (fun (k, v) -> k + v < pp_get_margin fmt ())
 
-             (* Consider only length of key/value *)
-             (List.rev_map
-                (fun (k, v) -> String.length k, String.length v)
-                key_value))))
+               (* Consider only length of key/value *)
+               (List.rev_map
+                  (fun (k, v) -> String.length k, String.length v)
+                  key_value))))
   in
 
-    pp_open_vbox fmt 0;
-    List.iter
-      (fun (k, v) ->
-         pp_open_box fmt 2;
-         pp_print_string fmt k;
-         pp_print_string fmt ":";
-         pp_print_break fmt (max 0 (max_key_length - String.length k)) 0;
-         pp_print_string_spaced fmt v;
-         pp_close_box fmt ();
-         pp_print_cut fmt ())
-      key_value;
-    pp_close_box fmt ()
+  pp_open_vbox fmt 0;
+  List.iter
+    (fun (k, v) ->
+       pp_open_box fmt 2;
+       pp_print_string fmt k;
+       pp_print_string fmt ":";
+       pp_print_break fmt (max 0 (max_key_length - String.length k)) 0;
+       pp_print_string_spaced fmt v;
+       pp_close_box fmt ();
+       pp_print_cut fmt ())
+    key_value;
+  pp_close_box fmt ()
 
 
 let pp_print_section plugins fmt sct =
@@ -130,27 +130,27 @@ let pp_print_section plugins fmt sct =
       else
         fprintf fmt "%S" str
     in
-      fprintf fmt "@[<v 2>%s %a@,%a@]@,"
-        (PropList.Schema.name schm)
-        pp_id_or_string nm
-        pp_print_fields sct_data
+    fprintf fmt "@[<v 2>%s %a@,%a@]@,"
+      (PropList.Schema.name schm)
+      pp_id_or_string nm
+      pp_print_fields sct_data
   in
 
-   match sct with
-     | Library (cs, bs, lib) ->
-         pp_print_section' OASISLibrary.schema (cs, bs, lib)
-     | Object (cs, bs, obj) ->
-         pp_print_section' OASISObject.schema (cs, bs, obj)
-     | Executable (cs, bs, exec) ->
-         pp_print_section' OASISExecutable.schema (cs, bs, exec)
-     | SrcRepo (cs, src_repo) ->
-         pp_print_section' OASISSourceRepository.schema (cs, src_repo)
-     | Test (cs, test) ->
-         pp_print_section' OASISTest.schema (cs, test)
-     | Flag (cs, flag) ->
-         pp_print_section' OASISFlag.schema (cs, flag)
-     | Doc (cs, doc) ->
-         pp_print_section' OASISDocument.schema (cs, doc)
+  match sct with
+    | Library (cs, bs, lib) ->
+      pp_print_section' OASISLibrary.schema (cs, bs, lib)
+    | Object (cs, bs, obj) ->
+      pp_print_section' OASISObject.schema (cs, bs, obj)
+    | Executable (cs, bs, exec) ->
+      pp_print_section' OASISExecutable.schema (cs, bs, exec)
+    | SrcRepo (cs, src_repo) ->
+      pp_print_section' OASISSourceRepository.schema (cs, src_repo)
+    | Test (cs, test) ->
+      pp_print_section' OASISTest.schema (cs, test)
+    | Flag (cs, flag) ->
+      pp_print_section' OASISFlag.schema (cs, flag)
+    | Doc (cs, doc) ->
+      pp_print_section' OASISDocument.schema (cs, doc)
 
 
 let pp_print_package fmt pkg =
@@ -159,12 +159,12 @@ let pp_print_package fmt pkg =
     OASISSchema_intern.to_proplist OASISPackage.schema [] pkg
   in
 
-    pp_open_vbox fmt 0;
+  pp_open_vbox fmt 0;
 
-    pp_print_fields fmt pkg_data;
-    pp_print_cut fmt ();
+  pp_print_fields fmt pkg_data;
+  pp_print_cut fmt ();
 
-    List.iter (pp_print_section plugins fmt) pkg.sections;
+  List.iter (pp_print_section plugins fmt) pkg.sections;
 
-    pp_close_box fmt ()
+  pp_close_box fmt ()
 

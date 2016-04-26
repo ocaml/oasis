@@ -26,22 +26,22 @@ open OASISGettext
 
 
 let parse argv args =
-    (* Simulate command line for Arg *)
-    let current =
-      ref 0
-    in
+  (* Simulate command line for Arg *)
+  let current =
+    ref 0
+  in
 
-      try
-        Arg.parse_argv
-          ~current:current
-          (Array.concat [[|"none"|]; argv])
-          (Arg.align args)
-          (failwithf (f_ "Don't know what to do with arguments: '%s'"))
-          (s_ "configure options:")
-      with
-        | Arg.Help txt ->
-            print_endline txt;
-            exit 0
-        | Arg.Bad txt ->
-            prerr_endline txt;
-            exit 1
+  try
+    Arg.parse_argv
+      ~current:current
+      (Array.concat [[|"none"|]; argv])
+      (Arg.align args)
+      (failwithf (f_ "Don't know what to do with arguments: '%s'"))
+      (s_ "configure options:")
+  with
+    | Arg.Help txt ->
+      print_endline txt;
+      exit 0
+    | Arg.Bad txt ->
+      prerr_endline txt;
+      exit 1

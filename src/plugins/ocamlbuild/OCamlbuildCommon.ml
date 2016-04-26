@@ -22,7 +22,7 @@
 
 
 (** Functions common to OCamlbuild build and doc plugin
-  *)
+*)
 
 
 open OASISGettext
@@ -31,7 +31,7 @@ open BaseStandardVar
 open OASISTypes
 
 
-TYPE_CONV_PATH "OCamlbuildCommon"
+    TYPE_CONV_PATH "OCamlbuildCommon"
 
 type extra_args = string list with odn
 
@@ -95,25 +95,25 @@ let run_clean extra_argv =
   let extra_cli =
     String.concat " " (Array.to_list extra_argv)
   in
-    (* Run if never called with these args *)
-    if not (BaseLog.exists ocamlbuild_clean_ev extra_cli) then
-      begin
-        OASISExec.run ~ctxt:!BaseContext.default
-          (ocamlbuild ()) (fix_args ["-clean"] extra_argv);
-        BaseLog.register ocamlbuild_clean_ev extra_cli;
-        at_exit
-          (fun () ->
-             try
-               BaseLog.unregister ocamlbuild_clean_ev extra_cli
-             with _ ->
-               ())
-      end
+  (* Run if never called with these args *)
+  if not (BaseLog.exists ocamlbuild_clean_ev extra_cli) then
+    begin
+      OASISExec.run ~ctxt:!BaseContext.default
+        (ocamlbuild ()) (fix_args ["-clean"] extra_argv);
+      BaseLog.register ocamlbuild_clean_ev extra_cli;
+      at_exit
+        (fun () ->
+           try
+             BaseLog.unregister ocamlbuild_clean_ev extra_cli
+           with _ ->
+             ())
+    end
 
 
 (** Run ocamlbuild, unregister all clean events *)
 let run_ocamlbuild args extra_argv =
   (* TODO: enforce that target in args must be UNIX encoded i.e. toto/index.html
-   *)
+  *)
   OASISExec.run ~ctxt:!BaseContext.default
     (ocamlbuild ()) (fix_args args extra_argv);
   (* Remove any clean event, we must run it again *)
@@ -127,13 +127,13 @@ let build_dir extra_argv =
   let rec search_args dir =
     function
       | "-build-dir" :: dir :: tl ->
-          search_args dir tl
+        search_args dir tl
       | _ :: tl ->
-          search_args dir tl
+        search_args dir tl
       | [] ->
-          dir
+        dir
   in
-    search_args "_build" (fix_args [] extra_argv)
+  search_args "_build" (fix_args [] extra_argv)
 
 
 (* END EXPORT *)
@@ -154,32 +154,32 @@ let fix_build_tools tool pkg =
          let sct =
            match sct with
              | Executable (cs, bs, exec) ->
-                 let bs = fix_build_tools' sct bs in
-                   Executable (cs, bs, exec)
+               let bs = fix_build_tools' sct bs in
+               Executable (cs, bs, exec)
 
              | Library (cs, bs, lib) ->
-                 let bs = fix_build_tools' sct bs in
-                   Library (cs, bs, lib)
+               let bs = fix_build_tools' sct bs in
+               Library (cs, bs, lib)
 
              | Object (cs, bs, obj) ->
-                 let bs = fix_build_tools' sct bs in
-                   Object (cs, bs, obj)
+               let bs = fix_build_tools' sct bs in
+               Object (cs, bs, obj)
 
              | Flag _ | SrcRepo _ | Test _ | Doc _ as sct ->
-                 sct
+               sct
          in
-           sct :: acc)
+         sct :: acc)
       []
       pkg.sections
   in
-    {pkg with sections = List.rev sections}
+  {pkg with sections = List.rev sections}
 
 
 module Tag =
 struct
   (** [filename_concat fn1 fn2] Concat filename, using semantic of _tags
       [fn1] must be a real filename whereas fn2 can contains wildcards.
-    *)
+  *)
   let filename_concat fn1 fn2 =
     OASISUnixPath.concat (OASISUnixPath.reduce fn1) fn2
 end
@@ -188,10 +188,10 @@ end
 let check_ocaml_version version pkg =
   match pkg.ocaml_version with
     | Some ocaml_version ->
-        let min_ocaml_version = OASISVersion.version_of_string version in
-        OASISVersion.comparator_ge min_ocaml_version ocaml_version
+      let min_ocaml_version = OASISVersion.version_of_string version in
+      OASISVersion.comparator_ge min_ocaml_version ocaml_version
     | None ->
-        false
+      false
 
 
 let ocamlbuild_more_args =
@@ -233,11 +233,11 @@ let ocamlbuild_common_generator pivot_data schm id =
       (fun () -> s_ "Gives extra arguments to ocamlbuild")
       pivot_data (fun _ t -> t.extra_args)
   in
-    fun data ->
-      {
-        extra_args = extra_args data;
-        plugin_tags = plugin_tags data;
-      }
+  fun data ->
+    {
+      extra_args = extra_args data;
+      plugin_tags = plugin_tags data;
+    }
 
 
 let extra_args_ocamlbuild_common ~ctxt pkg t =

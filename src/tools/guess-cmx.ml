@@ -24,7 +24,7 @@
 (* Work in progress, only for testing purpose
    Try to guess file to install depending on archive (.cma) and published
    interface (.cmi)
- *)
+*)
 
 
 let () =
@@ -32,9 +32,9 @@ let () =
   with Not_found -> ()
 
 
-#use "topfind"
-#require "unix"
-#require "pcre"
+    #use "topfind"
+                        #require "unix"
+                        #require "pcre"
 
 
 let warning msg =
@@ -79,11 +79,11 @@ let find_unit directory unit_name extensions =
       Sys.file_exists
       unit_fn
   in
-    match unit_exist_fn with
-      | fn :: _ ->
-          fn
-      | [] ->
-          raise Not_found
+  match unit_exist_fn with
+    | fn :: _ ->
+      fn
+    | [] ->
+      raise Not_found
 
 
 let cmx_of_cma cma =
@@ -98,8 +98,8 @@ let cmx_of_cma cma =
     let reg =
       Pcre.regexp "Unit name: ([A-Z][A-Za-z0-9]*)"
     in
-      fun line ->
-        Pcre.get_substring (Pcre.exec ~rex:reg line) 1
+    fun line ->
+      Pcre.get_substring (Pcre.exec ~rex:reg line) 1
   in
   let unit_list =
     ref []
@@ -130,7 +130,7 @@ let cmx_of_cma cma =
         acc
       )
   in
-    List.fold_left add_cmx [] !unit_list
+  List.fold_left add_cmx [] !unit_list
 
 
 let install_lib ~directory ~archive ~interfaces =
@@ -163,7 +163,7 @@ let install_lib ~directory ~archive ~interfaces =
          with Not_found ->
            (
              warning ("Could not find interface source file for unit '"^
-                      interf^"'");
+                 interf^"'");
              acc
            )
       )
@@ -184,7 +184,7 @@ let install_lib ~directory ~archive ~interfaces =
               mandatory_file
                 (Filename.concat directory ("dll"^archive^"_stubs.so"))
             in
-              [fn_stubs_a; fn_stubs_so]
+            [fn_stubs_a; fn_stubs_so]
          )
          []
       )
@@ -193,26 +193,26 @@ let install_lib ~directory ~archive ~interfaces =
     let fn_cmxa =
       Filename.concat directory (archive^".cmxa")
     in
-      if Sys.file_exists fn_cmxa then
-        (
-          let fn_cmx =
-            cmx_of_cma fn_cma
-          in
-            fn_cmxa :: fn_cmx
-        )
-      else
-        (
-          []
-        )
+    if Sys.file_exists fn_cmxa then
+      (
+        let fn_cmx =
+          cmx_of_cma fn_cma
+        in
+        fn_cmxa :: fn_cmx
+      )
+    else
+      (
+        []
+      )
   in
-    List.flatten
-      [
-        [fn_cma; fn_a];
-        fn_lst_cmi;
-        fn_lst_mli;
-        fn_lst_native;
-        fn_lst_stubs;
-      ]
+  List.flatten
+    [
+      [fn_cma; fn_a];
+      fn_lst_cmi;
+      fn_lst_mli;
+      fn_lst_native;
+      fn_lst_stubs;
+    ]
 
 
 (* QUID: .o (.obj), .a (.lib), .so (.dll) *)
@@ -221,7 +221,7 @@ let install_lib ~directory ~archive ~interfaces =
 let () =
   print_endline
     ("To install: "^
-     (String.concat ", "
-        (install_lib ~directory:"." ~archive:"stlang"
-           ~interfaces:["STLang"; "STLangTypes"])))
+       (String.concat ", "
+          (install_lib ~directory:"." ~archive:"stlang"
+             ~interfaces:["STLang"; "STLangTypes"])))
 

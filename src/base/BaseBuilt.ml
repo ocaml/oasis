@@ -37,13 +37,13 @@ type t =
 
 let to_log_event_file t nm =
   "built_"^
-  (match t with
-     | BExec -> "exec"
-     | BExecLib -> "exec_lib"
-     | BLib -> "lib"
-     | BObj -> "obj"
-     | BDoc -> "doc")^
-  "_"^nm
+    (match t with
+      | BExec -> "exec"
+      | BExecLib -> "exec_lib"
+      | BLib -> "lib"
+      | BObj -> "obj"
+      | BDoc -> "doc")^
+    "_"^nm
 
 
 let to_log_event_done t nm =
@@ -74,10 +74,10 @@ let register t nm lst =
            false
            alt
        in
-         if not registered then
-           warning
-             (f_ "Cannot find an existing alternative files among: %s")
-             (String.concat (s_ ", ") alt))
+       if not registered then
+         warning
+           (f_ "Cannot find an existing alternative files among: %s")
+           (String.concat (s_ ", ") alt))
     lst
 
 
@@ -101,18 +101,18 @@ let fold t nm f acc =
          begin
            warning
              (f_ "File '%s' has been marked as built \
-                for %s but doesn't exist")
+                  for %s but doesn't exist")
              fn
              (Printf.sprintf
                 (match t with
-                   | BExec | BExecLib ->
-                       (f_ "executable %s")
-                   | BLib ->
-                       (f_ "library %s")
-                   | BObj ->
-                       (f_ "object %s")
-                   | BDoc ->
-                       (f_ "documentation %s"))
+                  | BExec | BExecLib ->
+                    (f_ "executable %s")
+                  | BLib ->
+                    (f_ "library %s")
+                  | BObj ->
+                    (f_ "object %s")
+                  | BDoc ->
+                    (f_ "documentation %s"))
                 nm);
            acc
          end)
@@ -146,15 +146,15 @@ let of_executable ffn (cs, bs, exec) =
   let evs =
     (BExec, cs.cs_name, [[ffn unix_exec_is]])
     ::
-    (match unix_dll_opt with
-       | Some fn ->
-           [BExecLib, cs.cs_name, [[ffn fn]]]
-       | None ->
-           [])
+      (match unix_dll_opt with
+        | Some fn ->
+          [BExecLib, cs.cs_name, [[ffn fn]]]
+        | None ->
+          [])
   in
-    evs,
-    unix_exec_is,
-    unix_dll_opt
+  evs,
+  unix_exec_is,
+  unix_dll_opt
 
 
 let of_library ffn (cs, bs, lib) =
@@ -162,7 +162,7 @@ let of_library ffn (cs, bs, lib) =
     OASISLibrary.generated_unix_files
       ~ctxt:!BaseContext.default
       ~source_file_exists:(fun fn ->
-         OASISFileUtil.file_exists_case (OASISHostPath.of_unix fn))
+        OASISFileUtil.file_exists_case (OASISHostPath.of_unix fn))
       ~is_native:(bool_of_string (is_native ()))
       ~has_native_dynlink:(bool_of_string (native_dynlink ()))
       ~ext_lib:(ext_lib ())
@@ -174,7 +174,7 @@ let of_library ffn (cs, bs, lib) =
      cs.cs_name,
      List.map (List.map ffn) unix_lst]
   in
-    evs, unix_lst
+  evs, unix_lst
 
 
 let of_object ffn (cs, bs, obj) =
@@ -182,7 +182,7 @@ let of_object ffn (cs, bs, obj) =
     OASISObject.generated_unix_files
       ~ctxt:!BaseContext.default
       ~source_file_exists:(fun fn ->
-         OASISFileUtil.file_exists_case (OASISHostPath.of_unix fn))
+        OASISFileUtil.file_exists_case (OASISHostPath.of_unix fn))
       ~is_native:(bool_of_string (is_native ()))
       (cs, bs, obj)
   in
@@ -191,5 +191,5 @@ let of_object ffn (cs, bs, obj) =
      cs.cs_name,
      List.map (List.map ffn) unix_lst]
   in
-    evs, unix_lst
+  evs, unix_lst
 

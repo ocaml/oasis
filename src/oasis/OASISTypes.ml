@@ -45,19 +45,19 @@ type compiled_object =
   | Byte
   | Native
   | Best
-  with odn
+with odn
 
 
 type dependency =
   | FindlibPackage of findlib_full * OASISVersion.comparator option
   | InternalLibrary of name
-  with odn
+with odn
 
 
 type tool =
   | ExternalTool of name
   | InternalExecutable of name
-  with odn
+with odn
 
 
 type vcs =
@@ -70,32 +70,32 @@ type vcs =
   | Arch
   | Monotone
   | OtherVCS of url
-  with odn
+with odn
 
 
 type plugin_kind =
-    [  `Configure
-     | `Build
-     | `Doc
-     | `Test
-     | `Install
-     | `Extra
-    ]
+  [  `Configure
+  | `Build
+  | `Doc
+  | `Test
+  | `Install
+  | `Extra
+  ]
 
 
 type plugin_data_purpose =
-    [  `Configure
-     | `Build
-     | `Install
-     | `Clean
-     | `Distclean
-     | `Install
-     | `Uninstall
-     | `Test
-     | `Doc
-     | `Extra
-     | `Other of string
-    ]
+  [  `Configure
+  | `Build
+  | `Install
+  | `Clean
+  | `Distclean
+  | `Install
+  | `Uninstall
+  | `Test
+  | `Doc
+  | `Extra
+  | `Other of string
+  ]
 
 
 type 'a plugin = 'a * name * OASISVersion.t option with odn
@@ -118,95 +118,95 @@ type 'a conditional = 'a OASISExpr.choices with odn
 
 
 type custom =
-    {
-      pre_command:  (command_line option) conditional;
-      post_command: (command_line option) conditional;
-    }
-    with odn
+  {
+    pre_command:  (command_line option) conditional;
+    post_command: (command_line option) conditional;
+  }
+with odn
 
 
 type common_section =
-    {
-      cs_name: name;
-      cs_data: PropList.Data.t;
-      cs_plugin_data: plugin_data;
-    }
-    with odn
+  {
+    cs_name: name;
+    cs_data: PropList.Data.t;
+    cs_plugin_data: plugin_data;
+  }
+with odn
 
 
 type build_section =
-    {
-      bs_build:           bool conditional;
-      bs_install:         bool conditional;
-      bs_path:            unix_dirname;
-      bs_compiled_object: compiled_object;
-      bs_build_depends:   dependency list;
-      bs_build_tools:     tool list;
-      bs_c_sources:       unix_filename list;
-      bs_data_files:      (unix_filename * unix_filename option) list;
-      bs_ccopt:           args conditional;
-      bs_cclib:           args conditional;
-      bs_dlllib:          args conditional;
-      bs_dllpath:         args conditional;
-      bs_byteopt:         args conditional;
-      bs_nativeopt:       args conditional;
-    }
-    with odn
+  {
+    bs_build:           bool conditional;
+    bs_install:         bool conditional;
+    bs_path:            unix_dirname;
+    bs_compiled_object: compiled_object;
+    bs_build_depends:   dependency list;
+    bs_build_tools:     tool list;
+    bs_c_sources:       unix_filename list;
+    bs_data_files:      (unix_filename * unix_filename option) list;
+    bs_ccopt:           args conditional;
+    bs_cclib:           args conditional;
+    bs_dlllib:          args conditional;
+    bs_dllpath:         args conditional;
+    bs_byteopt:         args conditional;
+    bs_nativeopt:       args conditional;
+  }
+with odn
 
 
 type library =
-    {
-      lib_modules:            string list;
-      lib_pack:               bool;
-      lib_internal_modules:   string list;
-      lib_findlib_parent:     findlib_name option;
-      lib_findlib_name:       findlib_name option;
-      lib_findlib_containers: findlib_name list;
-    } with odn
+  {
+    lib_modules:            string list;
+    lib_pack:               bool;
+    lib_internal_modules:   string list;
+    lib_findlib_parent:     findlib_name option;
+    lib_findlib_name:       findlib_name option;
+    lib_findlib_containers: findlib_name list;
+  } with odn
 
 
 type object_ =
-    {
-      obj_modules:            string list;
-      obj_findlib_fullname:   findlib_name list option;
-    } with odn
+  {
+    obj_modules:            string list;
+    obj_findlib_fullname:   findlib_name list option;
+  } with odn
 
 
 type executable =
-    {
-      exec_custom:          bool;
-      exec_main_is:         unix_filename;
-    } with odn
+  {
+    exec_custom:          bool;
+    exec_main_is:         unix_filename;
+  } with odn
 
 
 type flag =
-    {
-      flag_description:  string option;
-      flag_default:      bool conditional;
-    } with odn
+  {
+    flag_description:  string option;
+    flag_default:      bool conditional;
+  } with odn
 
 
 type source_repository =
-    {
-      src_repo_type:        vcs;
-      src_repo_location:    url;
-      src_repo_browser:     url option;
-      src_repo_module:      string option;
-      src_repo_branch:      string option;
-      src_repo_tag:         string option;
-      src_repo_subdir:      unix_filename option;
-    } with odn
+  {
+    src_repo_type:        vcs;
+    src_repo_location:    url;
+    src_repo_browser:     url option;
+    src_repo_module:      string option;
+    src_repo_branch:      string option;
+    src_repo_tag:         string option;
+    src_repo_subdir:      unix_filename option;
+  } with odn
 
 
 type test =
-    {
-      test_type:               [`Test] plugin;
-      test_command:            command_line conditional;
-      test_custom:             custom;
-      test_working_directory:  unix_filename option;
-      test_run:                bool conditional;
-      test_tools:              tool list;
-    } with odn
+  {
+    test_type:               [`Test] plugin;
+    test_command:            command_line conditional;
+    test_custom:             custom;
+    test_working_directory:  unix_filename option;
+    test_run:                bool conditional;
+    test_tools:              tool list;
+  } with odn
 
 
 type doc_format =
@@ -217,23 +217,23 @@ type doc_format =
   | Info of unix_filename
   | DVI
   | OtherDoc
-  with odn
+with odn
 
 
 type doc =
-    {
-      doc_type:        [`Doc] plugin;
-      doc_custom:      custom;
-      doc_build:       bool conditional;
-      doc_install:     bool conditional;
-      doc_install_dir: unix_filename;
-      doc_title:       string;
-      doc_authors:     string list;
-      doc_abstract:    string option;
-      doc_format:      doc_format;
-      doc_data_files:  (unix_filename * unix_filename option) list;
-      doc_build_tools: tool list;
-    } with odn
+  {
+    doc_type:        [`Doc] plugin;
+    doc_custom:      custom;
+    doc_build:       bool conditional;
+    doc_install:     bool conditional;
+    doc_install_dir: unix_filename;
+    doc_title:       string;
+    doc_authors:     string list;
+    doc_abstract:    string option;
+    doc_format:      doc_format;
+    doc_data_files:  (unix_filename * unix_filename option) list;
+    doc_build_tools: tool list;
+  } with odn
 
 
 type section =
@@ -244,54 +244,54 @@ type section =
   | SrcRepo    of common_section * source_repository
   | Test       of common_section * test
   | Doc        of common_section * doc
-  with odn
+with odn
 
 
 type section_kind =
-    [ `Library | `Object | `Executable | `Flag | `SrcRepo | `Test | `Doc ]
+  [ `Library | `Object | `Executable | `Flag | `SrcRepo | `Test | `Doc ]
 
 
 type package =
-    {
-      oasis_version:          OASISVersion.t;
-      ocaml_version:          OASISVersion.comparator option;
-      findlib_version:        OASISVersion.comparator option;
-      alpha_features:         string list;
-      beta_features:          string list;
-      name:                   package_name;
-      version:                OASISVersion.t;
-      license:                OASISLicense.t;
-      license_file:           unix_filename option;
-      copyrights:             string list;
-      maintainers:            string list;
-      authors:                string list;
-      homepage:               url option;
-      bugreports:             url option;
-      synopsis:               string;
-      description:            OASISText.t option;
-      tags:                   string list;
-      categories:             url list;
+  {
+    oasis_version:          OASISVersion.t;
+    ocaml_version:          OASISVersion.comparator option;
+    findlib_version:        OASISVersion.comparator option;
+    alpha_features:         string list;
+    beta_features:          string list;
+    name:                   package_name;
+    version:                OASISVersion.t;
+    license:                OASISLicense.t;
+    license_file:           unix_filename option;
+    copyrights:             string list;
+    maintainers:            string list;
+    authors:                string list;
+    homepage:               url option;
+    bugreports:             url option;
+    synopsis:               string;
+    description:            OASISText.t option;
+    tags:                   string list;
+    categories:             url list;
 
-      conf_type:              [`Configure] plugin;
-      conf_custom:            custom;
+    conf_type:              [`Configure] plugin;
+    conf_custom:            custom;
 
-      build_type:             [`Build] plugin;
-      build_custom:           custom;
+    build_type:             [`Build] plugin;
+    build_custom:           custom;
 
-      install_type:           [`Install] plugin;
-      install_custom:         custom;
-      uninstall_custom:       custom;
+    install_type:           [`Install] plugin;
+    install_custom:         custom;
+    uninstall_custom:       custom;
 
-      clean_custom:           custom;
-      distclean_custom:       custom;
+    clean_custom:           custom;
+    distclean_custom:       custom;
 
-      files_ab:               unix_filename list;
-      sections:               section list;
-      plugins:                [`Extra] plugin list;
-      disable_oasis_section:  unix_filename list;
-      schema_data:            PropList.Data.t;
-      plugin_data:            plugin_data;
-    } with odn
+    files_ab:               unix_filename list;
+    sections:               section list;
+    plugins:                [`Extra] plugin list;
+    disable_oasis_section:  unix_filename list;
+    schema_data:            PropList.Data.t;
+    plugin_data:            plugin_data;
+  } with odn
 
 
 (* END EXPORT *)

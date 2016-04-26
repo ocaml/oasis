@@ -23,7 +23,7 @@
 
 (** Standard variables
     @author Sylvain Le Gall
-  *)
+*)
 
 
 open OASISTypes
@@ -44,7 +44,7 @@ val flexdll_version: unit -> string
 
     See {!OASISTypes.package} for more information.
 
-  *)
+*)
 
 
 val pkg_name:    unit -> name
@@ -77,7 +77,7 @@ val systhread_supported:      unit -> string
 
     See {{:http://www.gnu.org/prep/standards/html_node/Directory-Variables.html} GNU standards}.
 
-  *)
+*)
 
 
 val prefix:         unit -> host_dirname
@@ -106,56 +106,56 @@ val destdir:        unit -> host_dirname
 
 
 (** Findlib version.
-  *)
+*)
 val findlib_version: unit -> OASISVersion.s
 
 
 (** Check that the platform is a native platform (can compile native
     exec/library).
-  *)
+*)
 val is_native: unit -> string
 
 
 (** Compute the default suffix for program (e.g. '.exe' on Win32).
-  *)
+*)
 val ext_program: unit -> string
 
 
 (** Host command to delete a file.
-  *)
+*)
 val rm: unit -> string
 
 
 (** Host command to delete a directory.
-  *)
+*)
 val rmdir: unit -> string
 
 
 (** Compile in debug mode.
-  *)
+*)
 val debug: unit -> string
 
 
 (** Compile in profile mode.
-  *)
+*)
 val profile: unit -> string
 
 
 (** Run tests.
-  *)
+*)
 val tests: unit -> string
 
 
 (** Compile docs.
-  *)
+*)
 val docs: unit -> string
 
 
 (** Support for .cmxs.
-  *)
+*)
 val native_dynlink: unit -> string
 
 
 (** Initialize some variables.
-  *)
+*)
 val init: OASISTypes.package -> unit

@@ -22,7 +22,7 @@
 
 
 (** Help on subcommands
-  *)
+*)
 
 
 open CLISubCommand
@@ -40,12 +40,12 @@ let main ~ctxt scmd_name =
   let pager, fmt =
     CLIPager.open_out ()
   in
-    try
-      pp_print_help ~ctxt hext Output fmt ();
-      CLIPager.close_out pager
-    with e ->
-      CLIPager.close_out pager;
-      raise e
+  try
+    pp_print_help ~ctxt hext Output fmt ();
+    CLIPager.close_out pager
+  with e ->
+    CLIPager.close_out pager;
+    raise e
 
 
 let () =
@@ -56,7 +56,7 @@ let () =
     (CLISubCommand.make_run
        (fun () ->
           let scmd_name = ref None in
-            ([], (fun s -> scmd_name := Some s)),
-            (fun () -> !scmd_name))
+          ([], (fun s -> scmd_name := Some s)),
+          (fun () -> !scmd_name))
        main)
 

@@ -28,7 +28,7 @@ open OASISMessage
 
 (* TODO: I don't like this quote, it is there because $(rm) foo expands to
  * 'rm -f' foo...
- *)
+*)
 let run ~ctxt ?f_exit_code ?(quote=true) cmd args =
   let cmd =
     if quote then
@@ -46,54 +46,54 @@ let run ~ctxt ?f_exit_code ?(quote=true) cmd args =
   let cmdline =
     String.concat " " (cmd :: args)
   in
-    info ~ctxt (f_ "Running command '%s'") cmdline;
-    match f_exit_code, Sys.command cmdline with
-      | None, 0 -> ()
-      | None, i ->
-          failwithf
-            (f_ "Command '%s' terminated with error code %d")
-            cmdline i
-      | Some f, i ->
-          f i
+  info ~ctxt (f_ "Running command '%s'") cmdline;
+  match f_exit_code, Sys.command cmdline with
+    | None, 0 -> ()
+    | None, i ->
+      failwithf
+        (f_ "Command '%s' terminated with error code %d")
+        cmdline i
+    | Some f, i ->
+      f i
 
 
 let run_read_output ~ctxt ?f_exit_code cmd args =
   let fn =
     Filename.temp_file "oasis-" ".txt"
   in
-    try
+  try
+    begin
+      let () =
+        run ~ctxt ?f_exit_code cmd (args @ [">"; Filename.quote fn])
+      in
+      let chn =
+        open_in fn
+      in
+      let routput =
+        ref []
+      in
       begin
-        let () =
-          run ~ctxt ?f_exit_code cmd (args @ [">"; Filename.quote fn])
-        in
-        let chn =
-          open_in fn
-        in
-        let routput =
-          ref []
-        in
-          begin
-            try
-              while true do
-                routput := (input_line chn) :: !routput
-              done
-            with End_of_file ->
-              ()
-          end;
-          close_in chn;
-          Sys.remove fn;
-          List.rev !routput
-      end
-    with e ->
-      (try Sys.remove fn with _ -> ());
-      raise e
+        try
+          while true do
+            routput := (input_line chn) :: !routput
+          done
+        with End_of_file ->
+          ()
+      end;
+      close_in chn;
+      Sys.remove fn;
+      List.rev !routput
+    end
+  with e ->
+    (try Sys.remove fn with _ -> ());
+    raise e
 
 
 let run_read_one_line ~ctxt ?f_exit_code cmd args =
   match run_read_output ~ctxt ?f_exit_code cmd args with
     | [fst] ->
-        fst
+      fst
     | lst ->
-        failwithf
-          (f_ "Command return unexpected output %S")
-          (String.concat "\n" lst)
+      failwithf
+        (f_ "Command return unexpected output %S")
+        (String.concat "\n" lst)
