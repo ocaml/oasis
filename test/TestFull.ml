@@ -45,6 +45,8 @@ let gen_tests ~is_native () =
       (fpath test_ctxt path)
   in
   [
+   (* TODO: reactivate *)
+(*
     (* Use flags *)
     "examples/flags" >::
     (fun test_ctxt ->
@@ -92,7 +94,10 @@ let gen_tests ~is_native () =
            ];
          (* Run standard test. *)
          standard_test test_ctxt t);
+ *)
 
+   (* TODO: reactivate *)
+(*
     (* Complete library *)
     "examples/simplelib" >::
     (fun test_ctxt ->
@@ -125,6 +130,7 @@ let gen_tests ~is_native () =
            ];
          (* Run standard test. *)
          standard_test test_ctxt t);
+ *)
 
     (* Packed library *)
     "examples/packedlib" >::
@@ -191,6 +197,8 @@ let gen_tests ~is_native () =
          (* Run standard test. *)
          standard_test test_ctxt t);
 
+   (* TODO: reactivate *)
+(*
     (* Library/executable using C files *)
     "examples/with-c" >::
     (fun test_ctxt ->
@@ -239,6 +247,9 @@ let gen_tests ~is_native () =
         try_installed_exec test_ctxt t "test-with-c" [];
         try_installed_library test_ctxt t "with-c" ["A"]);
 
+ *)
+   (* TODO: reactivate *)
+(*
     (* Library/executable using data files *)
     "examples/with-data" >::
     (fun test_ctxt ->
@@ -275,6 +286,7 @@ let gen_tests ~is_native () =
          standard_test test_ctxt t;
          (* Try the result. *)
          try_installed_library test_ctxt t "test" ["Test"]);
+ *)
 
     (* Library with a pure interface module in subdirectory. *)
     "examples/with-interface-module" >::
@@ -322,7 +334,8 @@ let gen_tests ~is_native () =
          register_generated_files t oasis_ocamlbuild_files;
          (* Run standard test. *)
          standard_test test_ctxt t);
-
+   (* TODO: reactivate *)
+(*
     (* Use sub-packages *)
     "examples/with-subpackage" >::
     (fun test_ctxt ->
@@ -360,6 +373,7 @@ let gen_tests ~is_native () =
          standard_test test_ctxt t;
          (* Try the result. *)
          try_installed_library test_ctxt t "test" ["A"; "B"]);
+ *)
 
     (* Interdependencies *)
     "examples/interdepend-libraries" >::
@@ -457,6 +471,8 @@ let gen_tests ~is_native () =
            (not (contains_string fn "Camlp4")));
 
 
+   (* TODO: reactivate *)
+(*
     (* Single level package *)
     "1level" >::
     (fun test_ctxt ->
@@ -490,7 +506,10 @@ let gen_tests ~is_native () =
          (* Try the result. *)
          try_installed_library test_ctxt t "with-a" ["A"];
          try_installed_exec test_ctxt t "test-with-a" []);
+ *)
 
+   (* TODO: reactivate *)
+(*
     (* Try custom document build *)
     "customdoc" >::
     (fun test_ctxt ->
@@ -513,6 +532,7 @@ let gen_tests ~is_native () =
            ];
          (* Run standard test. *)
          standard_test test_ctxt t);
+ *)
 
     (* Use cclib option *)
     "with-cclib" >::
@@ -572,6 +592,8 @@ let gen_tests ~is_native () =
          (* Run standard test. *)
          standard_test test_ctxt t);
 
+   (* TODO: reactivate *)
+(*
     (* TODO: move full tests under their own directory. *)
     "bug588" >::
     (fun test_ctxt ->
@@ -599,6 +621,7 @@ let gen_tests ~is_native () =
             ["libtest.mllib"; "libtest.mldylib"; "libtest.odocl"]);
          (* Run standard test. *)
          standard_test test_ctxt t);
+ *)
 
     "bug619" >::
     (fun test_ctxt ->
@@ -691,6 +714,8 @@ let gen_tests ~is_native () =
          (* Run standard test. *)
          standard_test test_ctxt t);
 
+   (* TODO: reactivate *)
+(*
    "bugClib" >::
     (fun test_ctxt ->
        let () = skip_long_test test_ctxt in
@@ -719,6 +744,7 @@ let gen_tests ~is_native () =
          standard_test test_ctxt t;
          (* Try the result. *)
          try_installed_library test_ctxt t "mylib" ["Mylib.Foo"; "Mylib.Bar"]);
+ *)
 
     "bug791" >::
     (fun test_ctxt ->

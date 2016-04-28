@@ -27,8 +27,8 @@
 
 
 open TestCommon
-open Expect
-open ExpectPcre
+(* open Expect *)
+(* open ExpectPcre *)
 open OUnit2
 open OASISTypes
 
@@ -40,6 +40,7 @@ module MapString = Map.Make(String)
 
 
 let tests =
+(*
 
   let assert_exit_code_equal exp_list rel =
     let string_of_exit_code =
@@ -61,7 +62,6 @@ let tests =
     let args =
       (oasis_args test_ctxt) @ ["-debug"; "quickstart"; "-machine"] @ args
     in
-
     let _, exit_code =
       try
         logf test_ctxt `Info
@@ -200,9 +200,12 @@ let tests =
       "end",            "w";
     ]
   in
-    "Quickstart" >:::
+ *)
+    "Quickstart" >::: []
+(*
     (List.map test_of_vector
        [
+         (* TODO: reactivate. *)
          "simple",
          [],
          test_simple_qa,
@@ -453,4 +456,5 @@ let tests =
                   (expect t [q] false))
            [Unix.WEXITED 2; Unix.WSIGNALED ~-8]);
     ]
+ *)
 

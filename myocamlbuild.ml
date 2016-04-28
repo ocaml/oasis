@@ -114,7 +114,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 83fd0e188611ae7489f7fe8d0eed9142) *)
+(* DO NOT EDIT (digest: fc56bf7043c69f9e9c1bc3fd9b72936f) *)
 module OASISGettext = struct
 # 22 "src/oasis/OASISGettext.ml"
 
@@ -433,7 +433,7 @@ module MyOCamlbuildFindlib = struct
 
   (* This lists all supported packages. *)
   let find_packages () =
-    List.map before_space (split_nl & run_and_read "ocamlfind list")
+    List.map before_space (split_nl & run_and_read (exec_from_conf "ocamlfind" ^ " list"))
 
 
   (* Mock to list available syntaxes. *)
