@@ -158,7 +158,7 @@ let main ctxt pkg =
              \t$(SETUP) -%s $(%sFLAGS)\n\n"
             nm
             deps
-            nm (String.uppercase nm)
+            nm (OASISString.uppercase_ascii nm)
         in
           Buffer.add_string
             buff

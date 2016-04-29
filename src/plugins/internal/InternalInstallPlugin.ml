@@ -206,8 +206,8 @@ let install pkg argv =
   let make_fnames modul sufx =
     List.fold_right
       begin fun sufx accu ->
-        (String.capitalize modul ^ sufx) ::
-        (String.uncapitalize modul ^ sufx) ::
+        (OASISString.capitalize_ascii modul ^ sufx) ::
+        (OASISString.uncapitalize_ascii modul ^ sufx) ::
         accu
       end
       sufx

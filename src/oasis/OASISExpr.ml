@@ -140,10 +140,6 @@ let string_of_test t =
 
 
 let check valid_flags =
-  let lowercase_eq str1 str2 =
-    (String.lowercase str1) = (String.lowercase str2)
-  in
-
   let rec check_aux valid_flags =
     function
       | EBool _ ->
@@ -154,7 +150,7 @@ let check valid_flags =
           check_aux valid_flags e1;
           check_aux valid_flags e2
       | EFlag nm ->
-          if not (List.exists (lowercase_eq nm) valid_flags) then
+          if not (List.exists (fun s -> compare_csl nm s = 0) valid_flags) then
             failwithf (f_ "Unknown flag '%s'") nm
       | ETest (_, _) ->
           ()

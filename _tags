@@ -187,10 +187,10 @@ true: annot, bin_annot
 <src/ext/userconf/test/*.ml{,i,y}>: use_userconf
 # OASIS_STOP
 
-# Base system and OASIS library 
+# Base system and OASIS library
 
-<test/test.byte>: use_ocamlbuild
-<src/cli/Main.byte>: use_ocamlbuild
+#<test/test.byte>: use_ocamlbuild
+#<src/cli/Main.byte>: use_ocamlbuild
 
 "src/oasis/OASISGettext.ml": syntax_camlp4o, pkg_camlp4.macro
 "src/oasis/OASISGettext.ml": cond_pkg_gettext.base

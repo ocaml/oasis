@@ -147,9 +147,40 @@ let replace_chars f s =
   String.iter (fun c -> Buffer.add_char buf (f c)) s;
   Buffer.contents buf
 
+let lowercase_ascii =
+  replace_chars
+    (fun c ->
+       if (c >= 'A' && c <= 'Z') then
+         Char.chr (Char.code c + 32)
+       else
+         c)
+
+let uncapitalize_ascii s =
+  if s <> "" then
+    (lowercase_ascii (String.sub s 0 1)) ^ (String.sub s 1 ((String.length s) - 1))
+  else
+    s
+
+let uppercase_ascii =
+  replace_chars
+    (fun c ->
+       if (c >= 'a' && c <= 'z') then
+         Char.chr (Char.code c - 32)
+       else
+         c)
+
+let capitalize_ascii s =
+  if s <> "" then
+    (uppercase_ascii (String.sub s 0 1)) ^ (String.sub s 1 ((String.length s) - 1))
+  else
+    s
 
 (* END EXPORT *)
 
+(*  TODO: replace lowercase_ascii, capitalize_ascii and uncapitalize_ascii
+    functions by String.*_ascii function when OCaml minimal version will be
+    4.03.0.
+ *)
 
 let is_whitespace =
   function

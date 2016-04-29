@@ -54,7 +54,7 @@ let plugin_equal plg1 plg2 =
 
 
 let plugin_hash (k, n, _) =
-  Hashtbl.hash (k, String.lowercase n, None)
+  Hashtbl.hash (k, OASISString.lowercase_ascii n, None)
 
 
 (*

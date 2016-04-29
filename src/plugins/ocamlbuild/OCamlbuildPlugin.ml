@@ -757,7 +757,7 @@ let add_ocamlbuild_files ctxt pkg =
 
                  let intf_module_list, impl_module_list =
                    let to_module (base_fn, _) =
-                     String.capitalize (Filename.basename base_fn)
+                     OASISString.capitalize_ascii (Filename.basename base_fn)
                    in
                    let intf_module_list =
                      if pure_interface_test pkg then
@@ -790,7 +790,7 @@ let add_ocamlbuild_files ctxt pkg =
                           (fun (base_fn, _) ->
                              OASISUnixPath.add_extension base_fn "cmx")
                           sources)
-                       ["for-pack("^String.capitalize cs.cs_name^")"]
+                       ["for-pack("^OASISString.capitalize_ascii cs.cs_name^")"]
                    else
                      tag_t
                  in
@@ -837,7 +837,7 @@ let add_ocamlbuild_files ctxt pkg =
                      (* mllib contains either the name of the pack or the list
                       * of modules. *)
                      if lib.lib_pack then
-                       [ String.capitalize cs.cs_name ]
+                       [ OASISString.capitalize_ascii cs.cs_name ]
                      else
                        impl_module_list
                    in
@@ -929,7 +929,7 @@ let add_ocamlbuild_files ctxt pkg =
                           (fun (base_fn, _) ->
                              OASISUnixPath.add_extension base_fn "cmx")
                           base_sources)
-                       ["for-pack("^String.capitalize cs.cs_name^")"]
+                       ["for-pack("^OASISString.capitalize_ascii cs.cs_name^")"]
                    else
                      tag_t
                  in

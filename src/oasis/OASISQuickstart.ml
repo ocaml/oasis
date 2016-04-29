@@ -255,10 +255,10 @@ let mk_shortcut_choices t choices =
     let is_prefix pre (str, _) =
       if String.length str >= String.length pre then
         let pre_low =
-          String.lowercase pre
+          OASISString.lowercase_ascii pre
         in
         let ans_low =
-          String.lowercase (String.sub str 0 (String.length pre))
+          OASISString.lowercase_ascii (String.sub str 0 (String.length pre))
         in
           pre_low = ans_low
       else
@@ -431,7 +431,7 @@ let ask_schema ~ctxt
                 in
                 let t =
                   {
-                    id        = String.lowercase key;
+                    id        = OASISString.lowercase_ascii key;
                     interface = interface;
                     default   = default;
                     help      = help;

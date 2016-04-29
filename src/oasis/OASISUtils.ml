@@ -83,19 +83,15 @@ module SetString = SetExt.Make(String)
 
 
 let compare_csl s1 s2 =
-  String.compare (String.lowercase s1) (String.lowercase s2)
+  String.compare (OASISString.lowercase_ascii s1) (OASISString.lowercase_ascii s2)
 
 
 module HashStringCsl =
   Hashtbl.Make
     (struct
        type t = string
-
-       let equal s1 s2 =
-           (String.lowercase s1) = (String.lowercase s2)
-
-       let hash s =
-         Hashtbl.hash (String.lowercase s)
+       let equal s1 s2 = (compare_csl s1 s2) = 0
+       let hash s = Hashtbl.hash (OASISString.lowercase_ascii s)
      end)
 
 module SetStringCsl =
@@ -133,7 +129,7 @@ let varname_of_string ?(hyphen='_') s =
         else
           buf
       in
-        String.lowercase buf
+        OASISString.lowercase_ascii buf
     end
 
 

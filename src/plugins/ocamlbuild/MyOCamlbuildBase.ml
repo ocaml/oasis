@@ -127,7 +127,7 @@ let dispatch t e =
                | nm, [], intf_modules ->
                    ocaml_lib nm;
                    let cmis =
-                     List.map (fun m -> (String.uncapitalize m) ^ ".cmi")
+                     List.map (fun m -> (OASISString.uncapitalize_ascii m) ^ ".cmi")
                               intf_modules in
                    dep ["ocaml"; "link"; "library"; "file:"^nm^".cma"] cmis
                | nm, dir :: tl, intf_modules ->
@@ -140,7 +140,7 @@ let dispatch t e =
                           ["compile"; "infer_interface"; "doc"])
                      tl;
                    let cmis =
-                     List.map (fun m -> dir^"/"^(String.uncapitalize m)^".cmi")
+                     List.map (fun m -> dir^"/"^(OASISString.uncapitalize_ascii m)^".cmi")
                               intf_modules in
                    dep ["ocaml"; "link"; "library"; "file:"^dir^"/"^nm^".cma"]
                        cmis)

@@ -103,13 +103,13 @@ let chop_extension f =
 let capitalize_file f =
   let dir = dirname f in
   let base = basename f in
-  concat dir (String.capitalize base)
+  concat dir (OASISString.capitalize_ascii base)
 
 
 let uncapitalize_file f =
   let dir = dirname f in
   let base = basename f in
-  concat dir (String.uncapitalize base)
+  concat dir (OASISString.uncapitalize_ascii base)
 
 
 (* END EXPORT *)

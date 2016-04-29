@@ -97,9 +97,9 @@ let query pkg separator str =
             let kind, schm =
               try
                 List.assoc
-                  (String.lowercase start_nm)
+                  (OASISString.lowercase_ascii start_nm)
                   (List.map
-                     (fun (nm, e) -> String.lowercase nm, e)
+                     (fun (nm, e) -> OASISString.lowercase_ascii nm, e)
                      assoc_sections)
               with Not_found ->
                 failwithf
