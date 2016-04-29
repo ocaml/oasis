@@ -383,8 +383,8 @@ let mk_std_vars ?plugin ?(filter=(fun _ -> true)) acc =
       | None ->
           "OASIS"
       | Some (knd, nm, ver) ->
-          (String.capitalize nm)^
-          (String.capitalize (kind_str knd))
+          (OASISString.capitalize_ascii nm)^
+          (OASISString.capitalize_ascii (kind_str knd))
   in
 
   let add_if_valid schm vars (pre, suf) =

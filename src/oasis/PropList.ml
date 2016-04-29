@@ -103,7 +103,7 @@ struct
       order     = Queue.create ();
       name_norm =
         (if case_insensitive then
-           String.lowercase
+           OASISString.lowercase_ascii
          else
            fun s -> s);
     }

@@ -261,10 +261,10 @@ let modules =
       ~fail:(fun ~ctxt str e ->
                match e with
                  | Failure "lexing: empty token" ->
-                     if String.capitalize str <> str then
+                     if OASISString.capitalize_ascii str <> str then
                        failwithf
                          (f_ "Module name '%s', must be capitalized ('%s').")
-                         str (String.capitalize str)
+                         str (OASISString.capitalize_ascii str)
                  | _ ->
                      ())
       (fun () -> s_ "module")
@@ -305,10 +305,10 @@ let choices nm lst =
       (fun ~ctxt str ->
          try
            List.assoc
-             (String.lowercase str)
+             (OASISString.lowercase_ascii str)
              (List.map
                (fun (k, v) ->
-                  String.lowercase k, v)
+                  OASISString.lowercase_ascii k, v)
                   lst)
          with Not_found ->
            failwithf

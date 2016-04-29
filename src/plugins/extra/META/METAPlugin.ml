@@ -192,7 +192,8 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
             prerr_endline (Printf.sprintf "module: %s" m);
             List.find
               (fun m -> exists m ".mli" || exists m ".ml")
-              [ String.uncapitalize m ; String.capitalize m ]
+              [ OASISString.uncapitalize_ascii m;
+                OASISString.capitalize_ascii m ]
           in
           m^".cmo", None,
           m^".cmx", None

@@ -51,10 +51,7 @@ struct
   let compare =
     if Sys.os_type = "Win32" then
       (* Win32 FS is case insensitive *)
-      (fun a b ->
-         String.compare
-           (String.lowercase a)
-           (String.lowercase b))
+      OASISUtils.compare_csl
     else
       String.compare
 
@@ -684,7 +681,7 @@ let check_myocamlbuild_ml test_ctxt t =
            String.iter
              (function
                 | 'A'..'Z' | 'a'..'z' | '0'..'9'
-                | '_' | '.' | ':' | '-' | '(' | ')' ->
+                | '_' | '.' | ':' | '-' | '+' | '(' | ')' | '@' ->
                     ()
                 | c ->
                     assert_failure
