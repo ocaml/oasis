@@ -10,7 +10,8 @@
      String.uppercase_ascii, String.capitalize_ascii and
      String.uncapitalize_ascii found in OCaml 4.03.0
    * Disable tests depending on not yet buildable units with OCaml 4.03.0 (e.g.
-     expect which depends on batteries, which doesn't yet compile) 
+     expect which depends on batteries, which doesn't yet compile)
+   * Minimal version of OCaml is now 3.12.1. (Debian Wheezy version)
 
 
 2014-10-22  Jacques-Pascal Deplaix <jp.deplaix AT gmail.com>
