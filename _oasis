@@ -217,7 +217,8 @@ Executable test
   CompiledObject: byte
   Build$: flag(tests)
   BuildDepends: oUnit (>= 2.0.0), findlib, fileutils (>= 0.4.2),
-                oasis, oasis.base, oasis.builtin-plugins, pcre
+                expect.pcre (>= 0.0.4), oasis, oasis.base,
+                oasis.builtin-plugins, pcre
 
 Test main
   Type: custom (0.3)

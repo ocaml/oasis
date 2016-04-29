@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 3e71393b9c45994c61e89c44a21d8042)
+# DO NOT EDIT (digest: 93f20ecbd1b85e877da3880ad71f2a58)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -99,6 +99,7 @@ true: annot, bin_annot
 "test/utils/fake_ocamlfind.byte": package(unix)
 <test/utils/*.ml{,i,y}>: package(unix)
 # Executable test
+"test/test.byte": package(expect.pcre)
 "test/test.byte": package(fileutils)
 "test/test.byte": package(findlib)
 "test/test.byte": package(oUnit)
@@ -109,6 +110,7 @@ true: annot, bin_annot
 "test/test.byte": use_base
 "test/test.byte": use_builtin-plugins
 "test/test.byte": use_oasis
+<test/*.ml{,i,y}>: package(expect.pcre)
 <test/*.ml{,i,y}>: package(fileutils)
 <test/*.ml{,i,y}>: package(findlib)
 <test/*.ml{,i,y}>: package(oUnit)
