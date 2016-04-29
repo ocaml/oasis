@@ -1,3 +1,18 @@
+2016-04-29  Sylvain Le Gall <sylvain AT le-gall.net>
+
+  * Version 0.4.6
+
+  * Hotfix release for OCaml 4.03.0 (Closes: #1519).
+
+  * Major changes:
+
+   * Create patch functions to mimic the new String.lowercase_ascii,
+     String.uppercase_ascii, String.capitalize_ascii and
+     String.uncapitalize_ascii found in OCaml 4.03.0
+   * Disable tests depending on not yet buildable units with OCaml 4.03.0 (e.g.
+     expect which depends on batteries, which doesn't yet compile) 
+
+
 2014-10-22  Jacques-Pascal Deplaix <jp.deplaix AT gmail.com>
 
   * Version 0.4.5
