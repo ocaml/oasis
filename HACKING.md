@@ -70,7 +70,7 @@ Cut a release
  * Run 'oasis setup' with the new version, inside oasis/ and commit the changes.
 
  [jenkins]: http://deci.ovh.le-gall.net:8080/job/ocaml-oasis/
- [blog-post]: http://le-gall.net/sylvain+violaine/blog/admin/posts.php
+ [blog-post]: https://le-gall.net/sylvain+violaine/blog/admin/posts.php
  [bugs-version]: https://forge.ocamlcore.org/tracker/admin/index.php?add_opt=1&boxid=995&group_id=54&atid=291
  [patches-version]: https://forge.ocamlcore.org/tracker/admin/index.php?add_opt=1&boxid=1007&group_id=54&atid=293
  [bugs]: https://forge.ocamlcore.org/tracker/?atid=291&group_id=54&func=browse
