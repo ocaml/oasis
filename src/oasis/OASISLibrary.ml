@@ -30,11 +30,9 @@ open OASISSection
 (* Look for a module file, considering capitalization or not. *)
 let find_module source_file_exists bs modul =
   let possible_base_fn =
-    List.map
-      (OASISUnixPath.concat bs.bs_path)
-      [modul;
-       OASISUnixPath.uncapitalize_file modul;
-       OASISUnixPath.capitalize_file modul]
+    [modul;
+     OASISUnixPath.uncapitalize_file modul;
+     OASISUnixPath.capitalize_file modul]
   in
     (* TODO: we should be able to be able to determine the source for every
      * files. Hence we should introduce a Module(source: fn) for the fields
@@ -47,23 +45,26 @@ let find_module source_file_exists bs modul =
                begin
                  let file_found =
                    List.fold_left
-                     (fun acc ext ->
-                        if source_file_exists (base_fn^ext) then
-                          (base_fn^ext) :: acc
+                     (fun acc (pfx, sfx) ->
+                        let fn =
+                          OASISUnixPath.concat bs.bs_path (pfx^base_fn^sfx) in
+                        if source_file_exists fn then
+                          fn :: acc
                         else
                           acc)
                      []
-                     [".ml"; ".mli"; ".mll"; ".mly"]
+                     bs.bs_source_patterns
                  in
                    match file_found with
                      | [] ->
                          acc
                      | lst ->
-                         `Sources (base_fn, lst)
+                         `Sources (OASISUnixPath.concat bs.bs_path base_fn, lst)
                end
            | `Sources _ ->
                acc)
-      (`No_sources possible_base_fn)
+      (`No_sources
+        (List.map (OASISUnixPath.concat bs.bs_path) possible_base_fn))
       possible_base_fn
 
 

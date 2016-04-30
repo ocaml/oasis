@@ -191,6 +191,8 @@ type build_section =
       (** List of dependencies. *)
       bs_build_tools:     tool list;
       (** List of build tools. *)
+      bs_source_patterns: (string * string) list;
+      (** Patterns used to locate source files. *)
       bs_c_sources:       unix_filename list;
       (** C sources, relative to [bs_path]. *)
       bs_data_files:      (unix_filename * unix_filename option) list;

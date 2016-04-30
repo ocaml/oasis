@@ -169,6 +169,13 @@ let section_fields nm comp_dflt schm sync =
          s_ "Define the compilation type of the section: byte, native or best")
       (fun pkg -> (sync pkg).bs_compiled_object)
   in
+  let source_patterns =
+    new_field schm "SourcePatterns"
+      ~default:[("", ".ml"); ("", ".mli"); ("", ".mll"); ("", ".mly")]
+      file_patterns
+      (fun () -> s_ "Patterns to use for locating source files.")
+      (fun pkg -> (sync pkg).bs_source_patterns)
+  in
   let c_sources =
     new_field schm "CSources"
       ~default:[]
@@ -226,6 +233,7 @@ let section_fields nm comp_dflt schm sync =
          bs_compiled_object = compiled_object data;
          bs_build_depends   = build_depends data;
          bs_build_tools     = build_tools data;
+         bs_source_patterns = source_patterns data;
          bs_c_sources       = c_sources data;
          bs_data_files      = data_files data;
          bs_ccopt           = ccopt data;
