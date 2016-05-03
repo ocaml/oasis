@@ -582,6 +582,14 @@ let parse_stream conf st =
       ]
   in
 
+  let id_or_string =
+    parser
+      | [<'Ident nm>] ->
+          nm
+      | [<'String nm>] ->
+          nm
+  in
+
   (* OASIS expression *)
   let rec parse_factor =
     parser
@@ -601,7 +609,7 @@ let parse_stream conf st =
           ENot e
       | [< 'Kwd "("; e = parse_expr; 'Kwd ")" >] ->
           e
-      | [< 'Ident nm; 'Kwd "("; 'Ident vl; 'Kwd ")" >] ->
+      | [< 'Ident nm; 'Kwd "("; vl = id_or_string; 'Kwd ")" >] ->
           if nm = "flag" then
             EFlag vl
           else
@@ -677,14 +685,6 @@ let parse_stream conf st =
           stmt :: tl
       | [< >] ->
           []
-  in
-
-  let id_or_string =
-    parser
-      | [<'Ident nm>] ->
-          nm
-      | [<'String nm>] ->
-          nm
   in
 
   let rec parse_top_stmt =
