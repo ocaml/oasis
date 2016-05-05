@@ -127,11 +127,12 @@ let schema, generator =
          s_ "Default target directory to install data and documentation.")
       (fun (_, doc) -> Some doc.doc_install_dir)
   in
-  let build, install, data_files =
+  let build, install, data_files, findlib_extra =
    OASISBuildSection_intern.build_install_data_fields schm
      (fun (_, doc) -> doc.doc_build)
      (fun (_, doc) -> doc.doc_install)
      (fun (_, doc) -> doc.doc_data_files)
+     (fun (_, doc) -> doc.doc_findlibextra)
   in
     schm,
     (fun features_data nm data ->
@@ -207,15 +208,16 @@ let schema, generator =
                     dir
             in
               {
-                doc_type        = typ;
-                doc_custom      = custom data;
-                doc_build       = build;
-                doc_install     = install data;
-                doc_install_dir = doc_install_dir;
-                doc_title       = title data;
-                doc_authors     = authors data;
-                doc_abstract    = abstract data;
-                doc_format      = doc_format;
-                doc_data_files  = data_files data;
-                doc_build_tools = build_tools data;
+                doc_type          = typ;
+                doc_custom        = custom data;
+                doc_build         = build;
+                doc_install       = install data;
+                doc_install_dir   = doc_install_dir;
+                doc_title         = title data;
+                doc_authors       = authors data;
+                doc_abstract      = abstract data;
+                doc_format        = doc_format;
+                doc_data_files    = data_files data;
+                doc_findlibextra  = findlib_extra data;
+                doc_build_tools   = build_tools data;
               }))

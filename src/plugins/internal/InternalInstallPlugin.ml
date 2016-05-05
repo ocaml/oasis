@@ -262,6 +262,19 @@ let install pkg argv =
             in
 
             let acc =
+              (* Add findlibextra files *)
+              let path =
+                OASISHostPath.of_unix bs.bs_path
+              in
+				  List.filter
+					 OASISFileUtil.file_exists_case
+					 (List.map
+						 (Filename.concat path)
+						 bs.bs_findlibextra)
+				  @ acc
+            in
+
+            let acc =
              (* Get generated files *)
              BaseBuilt.fold
                BaseBuilt.BLib

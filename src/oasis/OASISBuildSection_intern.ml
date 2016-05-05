@@ -107,7 +107,8 @@ let build_install_data_fields
       schm
       sync_build
       sync_install
-      sync_datafiles =
+      sync_datafiles
+      sync_findlibextra =
   let build =
     new_field_conditional schm "Build"
       ?default_cond
@@ -135,7 +136,15 @@ let build_install_data_fields
              ([see here](#data-files))")
       sync_datafiles
   in
-    build, install, data_files
+  let findlibextra_files =
+    new_field schm "FindlibExtraFiles"
+      ~default:[]
+      (comma_separated string_not_empty)
+      (fun () ->
+         s_ "Comma separated list of extra files to be installed with ocamlfind.")
+      sync_findlibextra
+  in
+    build, install, data_files, findlibextra_files
 
 
 let section_fields nm comp_dflt schm sync =
@@ -145,11 +154,12 @@ let section_fields nm comp_dflt schm sync =
       (fun () -> s_ "Directory containing the section")
       (fun pkg -> (sync pkg).bs_path)
   in
-  let build, install, data_files =
+  let build, install, data_files, findlib_extra =
     build_install_data_fields schm
       (fun pkg -> (sync pkg).bs_build)
       (fun pkg -> (sync pkg).bs_install)
       (fun pkg -> (sync pkg).bs_data_files)
+      (fun pkg -> (sync pkg).bs_findlibextra)
   in
   let build_depends =
     build_depends_field schm
@@ -228,6 +238,7 @@ let section_fields nm comp_dflt schm sync =
          bs_build_tools     = build_tools data;
          bs_c_sources       = c_sources data;
          bs_data_files      = data_files data;
+         bs_findlibextra    = findlib_extra data;
          bs_ccopt           = ccopt data;
          bs_cclib           = cclib data;
          bs_dlllib          = dlllib data;

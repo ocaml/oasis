@@ -144,6 +144,7 @@ type build_section =
       bs_build_tools:     tool list;
       bs_c_sources:       unix_filename list;
       bs_data_files:      (unix_filename * unix_filename option) list;
+      bs_findlibextra:    unix_filename list;
       bs_ccopt:           args conditional;
       bs_cclib:           args conditional;
       bs_dlllib:          args conditional;
@@ -222,17 +223,18 @@ type doc_format =
 
 type doc =
     {
-      doc_type:        [`Doc] plugin;
-      doc_custom:      custom;
-      doc_build:       bool conditional;
-      doc_install:     bool conditional;
-      doc_install_dir: unix_filename;
-      doc_title:       string;
-      doc_authors:     string list;
-      doc_abstract:    string option;
-      doc_format:      doc_format;
-      doc_data_files:  (unix_filename * unix_filename option) list;
-      doc_build_tools: tool list;
+      doc_type:         [`Doc] plugin;
+      doc_custom:       custom;
+      doc_build:        bool conditional;
+      doc_install:      bool conditional;
+      doc_install_dir:  unix_filename;
+      doc_title:        string;
+      doc_authors:      string list;
+      doc_abstract:     string option;
+      doc_format:       doc_format;
+      doc_data_files:   (unix_filename * unix_filename option) list;
+      doc_findlibextra: unix_filename list;
+      doc_build_tools:  tool list;
     } with odn
 
 

@@ -194,6 +194,7 @@ type build_section =
       bs_c_sources:       unix_filename list;
       (** C sources, relative to [bs_path]. *)
       bs_data_files:      (unix_filename * unix_filename option) list;
+      bs_findlibextra:    unix_filename list;
       (** Data files and their install location, relative to [bs_path]. *)
       bs_ccopt:           args conditional;
       (** Options for -ccopt. *)
@@ -327,29 +328,30 @@ type doc_format =
   *)
 type doc =
     {
-      doc_type:        [`Doc] plugin;
+      doc_type:         [`Doc] plugin;
       (** Plugin to build this document, default none. *)
-      doc_custom:      custom;
+      doc_custom:       custom;
       (** Custom command lines ommand to before and after. *)
-      doc_build:       bool conditional;
+      doc_build:        bool conditional;
       (** Build this document. *)
-      doc_install:     bool conditional;
+      doc_install:      bool conditional;
       (** Install this document. *)
-      doc_install_dir: unix_filename;
+      doc_install_dir:  unix_filename;
       (** Where to install this document. *)
-      doc_title:       string;
+      doc_title:        string;
       (** What is the title of this document. *)
-      doc_authors:     string list;
+      doc_authors:      string list;
       (** Who are the authors of this document. *)
-      doc_abstract:    string option;
+      doc_abstract:     string option;
       (** Abstract of this document. *)
-      doc_format:      doc_format;
+      doc_format:       doc_format;
       (** Format of this document. *)
-      doc_data_files:  (unix_filename * unix_filename option) list;
+      doc_data_files:   (unix_filename * unix_filename option) list;
       (** All data files and where they should be install, by default
           to doc_install_dir
         *)
-      doc_build_tools: tool list;
+      doc_findlibextra: unix_filename list;
+      doc_build_tools:  tool list;
       (** Tools required to generate this document. *)
     }
 
