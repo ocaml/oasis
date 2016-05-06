@@ -20,9 +20,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-
 open OASISRecDescParser
-
 
 let default_oasis_fn = "_oasis"
 
@@ -30,11 +28,8 @@ let default_oasis_fn = "_oasis"
 let from_stream ~ctxt ?fn st =
   OASISAst.to_package {oasisfn = fn; ctxt = ctxt} st
 
-
 let from_file ~ctxt fn =
-  let chn =
-    open_in fn
-  in
+  let chn = open_in fn in
   let pkg =
     from_stream ~ctxt ~fn (Stream.of_channel chn)
   in

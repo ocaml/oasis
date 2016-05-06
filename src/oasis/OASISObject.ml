@@ -23,24 +23,23 @@
 
 open OASISTypes
 open OASISGettext
+open OASISUtils
 
 
 let source_unix_files ~ctxt (cs, bs, obj) source_file_exists =
-  List.fold_left
-    (fun acc modul ->
+  L.filter_map
+    (fun modul ->
        match OASISLibrary.find_module source_file_exists bs modul with
          | `Sources (base_fn, lst) ->
-           (base_fn, lst) :: acc
+           Some (base_fn, lst)
          | `No_sources _ ->
            OASISMessage.warning
              ~ctxt
              (f_ "Cannot find source file matching \
                   module '%s' in object %s")
              modul cs.cs_name;
-           acc)
-    []
+           None)
     obj.obj_modules
-
 
 let generated_unix_files
     ~ctxt
@@ -73,14 +72,11 @@ let generated_unix_files
           [cs.cs_name ^ ".o"],
           OASISUnixPath.concat bs.bs_path)
   in
-  List.map (List.map f) (
-    match bs.bs_compiled_object with
-      | Native ->
-        native :: c_object :: byte :: header :: []
-      | Best when is_native ->
-        native :: c_object :: byte :: header :: []
-      | Byte | Best ->
-        byte :: header :: [])
+  List.map (List.map f)
+    (match bs.bs_compiled_object with
+      | Native -> [native; c_object; byte; header]
+      | Best when is_native -> [native; c_object; byte; header]
+      | Byte | Best -> [byte; header])
 
 
 (* END EXPORT *)

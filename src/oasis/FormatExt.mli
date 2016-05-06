@@ -28,24 +28,27 @@
     @author Sylvain Le Gall
 *)
 
+type 'a t = Format.formatter -> 'a -> unit
+
+val asprintf : ('a, Format.formatter, unit, string) Pervasives.format4 -> 'a
+
+(** Use the given printer to print the value into a string *)
+val to_string : 'a t -> 'a -> string
 
 (** Print a string considering ' ' as Format space.
 *)
-val pp_print_string_spaced: Format.formatter -> string -> unit
+val pp_print_string_spaced: string t
 
 
 (** [pp_print_list pp_elem sep fmt lst] Print the list [lst] of elements
     using [pp_elem] for each element and separate them by [sep].
 *)
-val pp_print_list:
-  (Format.formatter -> 'a -> unit) ->
-  ('b, Format.formatter, unit) format -> Format.formatter -> 'a list -> unit
-
+val pp_print_list: 'a t -> ('b, Format.formatter, unit) format -> 'a list t
 
 (** [pp_print_para fmt str] Print a paragraph. '\n\n' mark the end of a
     paragraph.
 *)
-val pp_print_para: Format.formatter -> ?end_para:bool -> string -> unit
+val pp_print_para: ?end_para:bool -> string t
 
 
 (** See {! pp_print_para}. *)
@@ -54,7 +57,7 @@ val pp_print_paraf:
 
 
 (** [pp_print_title fmt lvl str] Print a title using markdown formatting. *)
-val pp_print_title: Format.formatter -> int -> string -> unit
+val pp_print_title: int -> string t
 
 
 (** See {! pp_print_title}. *)
@@ -63,13 +66,12 @@ val pp_print_titlef:
 
 
 (** Print two cut in a row. *)
-val pp_print_cut2: Format.formatter -> unit -> unit
+val pp_print_cut2: unit t
 
 (** Print 1 or 2 newlines depending on the previous char. *)
 val pp_print_endblock:
-  ?check_last_char:string -> Format.formatter -> unit -> unit
+  ?check_last_char:string -> unit t
 
 
 (** Print a definition, as defined by pandoc (ext. of markdown)> *)
-val pp_print_def: Format.formatter -> string ->
-  ((Format.formatter -> 'a -> unit) * 'a) list -> unit
+val pp_print_def: string -> ('a t * 'a) list t

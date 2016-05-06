@@ -53,7 +53,6 @@ if flag(gettext)
 Library oasis
   Path: src/oasis
   Modules: FormatExt,
-           ODNFunc,
            PropList,
            OASISUtils,
            OASISUnixPath,
@@ -118,8 +117,8 @@ Library oasis
                    OASISSchema_intern,
                    OASISPath_intern
   CompiledObject: Best
-  BuildDepends: unix, odn (>= 0.0.11)
-  BuildTools+: ocamlmod, ocamlyacc, ocamllex, ocamlify
+  BuildDepends: unix (>= 0.0.11)
+  BuildTools+: ocamlyacc, ocamllex
   XMETADescription: _oasis file functions
   Install$: flag(libraries)
 

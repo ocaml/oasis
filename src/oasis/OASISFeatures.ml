@@ -20,7 +20,6 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-open OASISTypes
 open OASISUtils
 open OASISGettext
 open OASISVersion
@@ -28,7 +27,7 @@ open OASISVersion
 module MapPlugin =
   Map.Make
     (struct
-      type t = plugin_kind * name
+      type t = OASISTypes.plugin_kind * OASISTypes.name
       let compare = Pervasives.compare
     end)
 
@@ -109,7 +108,7 @@ type publication = InDev of stage | SinceVersion of OASISVersion.t
 type t =
   {
     name: string;
-    plugin: all_plugin option;
+    plugin: OASISTypes.all_plugin option;
     publication: publication;
     description: unit -> string;
   }
@@ -289,12 +288,11 @@ let data_assert t data origin =
 let data_test t data =
   match data_check t data NoOrigin with
     | None -> true
-    | Some str -> false
+    | Some _ -> false
 
 
 let package_test t pkg =
   data_test t (Data.of_package pkg)
-
 
 let create ?plugin name publication description =
   let () =

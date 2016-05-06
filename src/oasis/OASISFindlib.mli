@@ -37,11 +37,12 @@ exception FindlibPackageNotFound of findlib_name
 *)
 type group_t =
   | Container of findlib_part_name * group_t list
-  | Package of (findlib_part_name *
-        common_section *
-        build_section *
-        [`Library of library | `Object of object_] *
-        group_t list)
+  | Package of
+      findlib_part_name *
+      common_section *
+      build_section *
+      [`Library of library | `Object of object_] *
+      group_t list
 
 
 (** Compute groups of libraries, associate root libraries with
@@ -49,7 +50,8 @@ type group_t =
     the fact that these libraries have a parental relationship
     and must be installed together, with the same META file.
 *)
-val findlib_mapping: package ->
+val findlib_mapping:
+  package ->
   group_t list *
     (library_name -> findlib_name) *
     (findlib_name -> library_name)
@@ -65,5 +67,6 @@ val findlib_of_group: group_t -> findlib_name
 (** Return the root library, i.e. the first found into the group tree
     that has no parent.
 *)
-val root_of_group: group_t ->
+val root_of_group:
+  group_t ->
   common_section * build_section * [`Library of library | `Object of object_]

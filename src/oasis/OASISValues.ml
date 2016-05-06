@@ -36,15 +36,12 @@ type 'a t =
     print:  'a -> string;
   }
 
-
-let update_fail _ _ =
-  raise Not_combinable
-
+let update_fail _ _ = raise Not_combinable
 
 let blackbox =
   {
     parse  =
-      (fun ~ctxt s ->
+      (fun ~ctxt:_ s ->
          failwithf
            (f_ "Blackbox type cannot be set to the value '%s'")
            s);
@@ -61,7 +58,7 @@ struct
 end
 
 
-let lexer ?(fail=(fun ~ctxt _ _ -> ())) lxr nm =
+let lexer ?(fail=(fun ~ctxt:_ _ _ -> ())) lxr nm =
   {
     parse =
       (fun ~ctxt str ->
@@ -87,11 +84,7 @@ let lexer ?(fail=(fun ~ctxt _ _ -> ())) lxr nm =
   }
 
 
-let url =
-  lexer
-    StdLexer.url
-    (fun () -> s_ "URL")
-
+let url = lexer StdLexer.url (fun () -> s_ "URL")
 
 let copyright =
   let base_value =
@@ -102,18 +95,16 @@ let copyright =
   {base_value with
      parse =
        (fun ~ctxt str ->
-          try
-            base_value.parse ~ctxt str
+          try base_value.parse ~ctxt str
           with _ ->
             failwithf
               (f_ "Copyright must follow the convention \
                    '(C) 2008-2009 J.R. Hacker', here it is '%s'")
               str)}
 
-
 let string =
   {
-    parse =  (fun ~ctxt s -> s);
+    parse =  (fun ~ctxt:_ s -> s);
     update = (fun s1 s2 -> s1^" "^s2);
     print =  (fun s -> s);
   }
@@ -122,11 +113,9 @@ let string =
 let string_not_empty =
   {
     parse =
-      (fun ~ctxt str ->
-         if str <> "" then
-           str
-         else
-           failwith (s_ "Expecting not empty string"));
+      (fun ~ctxt:_ str ->
+         if str <> "" then str
+         else failwith (s_ "Expecting not empty string"));
     update = (fun s1 s2 ->s1^" "^s2);
     print = (fun s -> s);
   }
@@ -150,65 +139,35 @@ let expandable value =
   *)
   value
 
+(* parse values separated by [s]; [split] is the splitting function *)
+let gen_separated ~split ~s value =
+  {
+    parse =
+      (fun ~ctxt s -> List.map (value.parse ~ctxt) (split s));
+    update = List.append;
+    print =
+      (fun lst ->
+         String.concat s
+           (List.map
+              value.print
+              lst));
+  }
 
 let dot_separated value =
-  {
-    parse =
-      (fun ~ctxt s ->
-         List.map
-           (value.parse ~ctxt)
-           (OASISString.nsplit s '.'));
-    update =
-      List.append;
-    print =
-      (fun lst ->
-         String.concat "."
-           (List.map
-              value.print
-              lst));
-  }
-
+  let split s = OASISString.nsplit s '.' in
+  gen_separated ~split ~s:"." value
 
 let comma_separated value =
-  {
-    parse =
-      (fun ~ctxt s ->
-         List.map
-           (fun s -> value.parse ~ctxt s)
-           (OASISString.split_comma s));
-    update =
-      List.append;
-    print =
-      (fun lst ->
-         String.concat ", "
-           (List.map
-              value.print
-              lst));
-  }
-
+  gen_separated ~s:", " ~split:OASISString.split_comma value
 
 let newline_separated value =
-  {
-    parse =
-      (fun ~ctxt s ->
-         List.map
-           (fun s -> value.parse ~ctxt s)
-           (OASISString.split_newline s));
-    update =
-      List.append;
-    print =
-      (fun lst ->
-         String.concat "\n"
-           (List.map
-              value.print
-              lst));
-  }
-
+  let split s = OASISString.split_newline s in
+  gen_separated ~s:"\n" ~split value
 
 let space_separated =
   {
     parse =
-      (fun ~ctxt s ->
+      (fun ~ctxt:_ s ->
          List.filter
            (fun s -> s <> "")
            (OASISString.nsplit s ' '));
@@ -242,7 +201,6 @@ let with_optional_parentheses main_value optional_value =
             (optional_value.print opt));
   }
 
-
 let opt value =
   {
     parse = (fun ~ctxt str -> Some (value.parse ~ctxt str));
@@ -253,12 +211,11 @@ let opt value =
         | None -> raise Not_printable);
   }
 
-
 let modules =
   let base_value =
     lexer
       StdLexer.modul
-      ~fail:(fun ~ctxt str e ->
+      ~fail:(fun ~ctxt:_ str e ->
         match e with
           | Failure "lexing: empty token" ->
             if String.capitalize str <> str then
@@ -290,19 +247,14 @@ let modules =
       print  = (fun s -> s);
     }
 
+let files = comma_separated file
 
-let files =
-  comma_separated file
-
-
-let categories =
-  comma_separated url
-
+let categories = comma_separated url
 
 let choices nm lst =
   {
     parse =
-      (fun ~ctxt str ->
+      (fun ~ctxt:_ str ->
          try
            List.assoc
              (String.lowercase str)
@@ -321,9 +273,7 @@ let choices nm lst =
          try
            List.assoc
              v
-             (List.map
-                (fun (s, v) -> v, s)
-                lst)
+             (List.map OASISUtils.Pair.swap lst)
          with Not_found ->
            failwithf
              (f_ "Unexpected abstract choice value for %s")
@@ -340,7 +290,7 @@ let boolean =
 let findlib_name =
   {
     parse =
-      (fun ~ctxt s ->
+      (fun ~ctxt:_ s ->
          if s = "" then
            failwith (s_ "Empty string is not a valid findlib package")
          else if String.contains s '"' || String.contains s '.' then
@@ -405,24 +355,14 @@ let command_line =
     let rec lookup_closing oc cc acc =
       function
         | c :: tl ->
-          let acc =
-            addchr c acc
-          in
+          let acc = addchr c acc in
           if c = oc then
-            begin
-              let acc, tl =
-                lookup_closing oc cc acc tl
-              in
-              lookup_closing oc cc acc tl
-            end
+            let acc, tl = lookup_closing oc cc acc tl in
+            lookup_closing oc cc acc tl
           else if c = cc then
-            begin
-              acc, tl
-            end
+            acc, tl
           else
-            begin
-              lookup_closing oc cc acc tl
-            end
+            lookup_closing oc cc acc tl
         | [] ->
           failwithf
             (f_ "'%s' contains unbalanced curly braces")
@@ -446,31 +386,24 @@ let command_line =
         | c :: tl ->
           lookup_dollar (addchr c acc) tl
         | [] ->
-          begin
-            let l =
-              match acc with
-                | Some b, l -> Buffer.contents b :: l
-                | None, l -> l
-            in
-            List.rev l
-          end
+          let l =
+            match acc with
+              | Some b, l -> Buffer.contents b :: l
+              | None, l -> l
+          in
+          List.rev l
     in
 
     (* Transform string into list
     *)
-    let lst =
-      let rl = ref []
-      in
-      String.iter (fun c -> rl := c :: !rl) str;
-      List.rev !rl
-    in
+    let lst = OASISString.to_list str in
 
     lookup_dollar (None, []) lst
   in
 
   {
     parse =
-      (fun ~ctxt s ->
+      (fun ~ctxt:_ s ->
          match split_expandable s with
            | cmd :: args ->
              cmd, args
@@ -486,7 +419,7 @@ let command_line =
 
 
 let command_line_options =
-  { parse = (fun ~ctxt s -> POSIXShell.split s);
+  { parse = (fun ~ctxt:_ s -> POSIXShell.split s);
     update = List.append;
     print = (fun lst -> String.concat " " (List.map POSIXShell.escape lst));
   }

@@ -24,29 +24,17 @@
 open OASISTypes
 
 
-(*
- * Plugin operation
- *)
-
+(* Plugin operation *)
 
 let plugin_compare (k1, n1, vo1) (k2, n2, vo2) =
-  match compare k1 k2 with
-    | 0 ->
-      begin
-        match OASISUtils.compare_csl n1 n2 with
-          | 0 ->
-            begin
-              match vo1, vo2 with
-                | Some v1, Some v2 ->
-                  OASISVersion.version_compare v1 v2
-                | None, _ | _, None ->
-                  0
-            end
-          | n ->
-            n
-      end
-    | n ->
-      n
+  let cmp_versions vo1 vo2 = match vo1, vo2 with
+      | Some v1, Some v2 -> OASISVersion.version_compare v1 v2
+      | None, _ | _, None -> 0
+  in
+  let open OASISUtils.Ord in
+  compare k1 k2
+  <?> (OASISUtils.compare_csl, n1, n2)
+  <?> (cmp_versions, vo1, vo2)
 
 
 let plugin_equal plg1 plg2 =
@@ -57,9 +45,7 @@ let plugin_hash (k, n, _) =
   Hashtbl.hash (k, String.lowercase n, None)
 
 
-(*
- * Plugin properties
- *)
+(* Plugin properties *)
 
 
 exception Not_set
@@ -118,7 +104,6 @@ let data_new_property ?(purpose: plugin_data_purpose option) plg =
 
 open OASISGettext
 open OASISUtils
-open ODNFunc
 
 
 type modul = string
@@ -127,12 +112,13 @@ type modul = string
 type ('a, 'b) setup_changes =
   {
     chng_moduls: modul list;
-    chng_main: 'a func;
-    chng_clean: ('b func) option;
-    chng_distclean: ('b func) option;
+    chng_main: 'a;
+    chng_clean: 'b option;
+    chng_distclean: 'b option;
   }
 
 
+(** Describe context when applying a plugin. *)
 type context_act =
   {
     ctxt: OASISContext.t;
@@ -142,14 +128,13 @@ type context_act =
     other_actions: (unit -> unit) list;
   }
 
-
 type ('a, 'b) section_act =
   context_act ->
   package ->
   (common_section * 'a) ->
   context_act *
-    ((package -> (common_section * 'a) -> string array -> 'b),
-     (package -> (common_section * 'a) -> string array -> unit)
+    ( (package -> (common_section * 'a) -> string array -> 'b),
+      (package -> (common_section * 'a) -> string array -> unit)
     ) setup_changes
 
 
@@ -157,10 +142,9 @@ type package_act =
   context_act ->
   package ->
   context_act *
-    ((package -> string array -> unit),
-     (package -> string array -> unit)
+    ( (package -> string array -> unit),
+      (package -> string array -> unit)
     ) setup_changes
-
 
 type 'a t = 'a plugin
 type all_t = plugin_kind plugin
@@ -184,7 +168,7 @@ module SetPlugin =
 
 let mem_no_version (knd, nm, _) plugins =
   SetPlugin.fold
-    (fun (knd', nm', ver) found ->
+    (fun (knd', nm', _ver) found ->
        if not found then
          knd = knd' && (OASISUtils.compare_csl nm nm' = 0)
        else
@@ -210,7 +194,7 @@ module HashPluginAll =
 
 
 (** Find a plugin with or without version *)
-let find_fuzzy tbl ((knd, nm, vo) as id) =
+let find_fuzzy tbl ((knd, nm, _vo) as id) =
   try
     HashPlugin.find tbl id
   with Not_found ->
@@ -322,12 +306,9 @@ let register_generator_package t (prop_set, _) generator =
 
 let generator_package plg rplugin_data data =
   try
-    let lst =
-      HashPlugin.find_all gen_all plg
-    in
+    let lst = HashPlugin.find_all gen_all plg in
     List.iter
-      (fun gen ->
-         gen rplugin_data data)
+      (fun gen -> gen rplugin_data data)
       lst
   with Not_found ->
     ()
@@ -344,9 +325,7 @@ let register_generator_section knd t (prop_set, _) generator =
 
 let generator_section knd plg rplugin_data data =
   try
-    let lst =
-      HashPlugin.find_all gen_section plg
-    in
+    let lst = HashPlugin.find_all gen_section plg in
     List.iter
       (fun (knd', gen) ->
          if knd = knd' then
@@ -368,8 +347,7 @@ let ls knd =
     []
 
 
-let to_plugin t =
-  t
+let to_plugin t = t
 
 
 module type PLUGINS =
@@ -444,7 +422,7 @@ struct
    * code duplication
   *)
   (** Find a plugin with or without version *)
-  let find_fuzzy' tbl ((knd, nm, vo) as id) =
+  let find_fuzzy' tbl ((knd, nm, _vo) as id) =
     try
       HashPlugin.find tbl id
     with Not_found ->
@@ -470,9 +448,7 @@ struct
 
   (** Parse value *)
   let value =
-    let kind_default :> plugin_kind =
-      F.kind_default
-    in
+    let kind_default :> plugin_kind = F.kind_default in
 
     let not_found_of_kind =
       function
@@ -529,9 +505,7 @@ struct
     }
 
   let quickstart_question () =
-    let knd :> plugin_kind =
-      F.kind_default
-    in
+    let knd :> plugin_kind = F.kind_default in
     ExclusiveChoices
       (HashPluginGlobal.fold
          (fun (knd', nm, vo) _ lst ->
@@ -635,9 +609,7 @@ let test_field_name nm =
 (** Create value for a builtin plugin
 *)
 let builtin knd nm =
-  let builtin_version =
-    Some OASISConf.version_short
-  in
+  let builtin_version = Some OASISConf.version_short in
   knd, nm, builtin_version
 
 

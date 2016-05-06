@@ -52,28 +52,26 @@ type 'a prop   = 'a setter * 'a getter
 type modul = string
 
 
-(** Describe setup file changes.
-*)
+(** Describe setup file changes.  *)
 type ('a, 'b) setup_changes =
   {
     chng_moduls: modul list;
     (** OCaml module to be added to setup file *)
 
-    chng_main: 'a ODNFunc.func;
+    chng_main: 'a;
     (** Main function to be added to BaseSetup.t (i.e. the one that
         that really do something: configure, build, test...)
     *)
 
-    chng_clean: 'b ODNFunc.func option;
+    chng_clean: 'b option;
     (** Function to be called when cleaning *)
 
-    chng_distclean: 'b ODNFunc.func option;
+    chng_distclean: 'b option;
     (** Function to be called when distcleaning *)
   }
 
 
-(** Describe context when applying a plugin.
-*)
+(** Describe context when applying a plugin. *)
 type context_act =
   {
     ctxt: OASISContext.t;
@@ -92,9 +90,7 @@ type context_act =
     (** Extra actions. *)
   }
 
-
-(** Generator for sections (document, test).
-*)
+(** Generator for sections (document, test). *)
 type ('a, 'b) section_act =
   context_act ->
   package ->
@@ -128,13 +124,11 @@ type package_act =
     ) setup_changes
 
 
-(** Base types to build plugin: register fields, action, generators...
-*)
+(** Base types to build plugin: register fields, action, generators... *)
+
 type 'a t
 
-
-(** Base types for all plugins
-*)
+(** Base types for all plugins *)
 type all_t = plugin_kind t
 
 
@@ -191,8 +185,7 @@ val help_default: string list -> help
 val register_help: [`All | plugin_kind] plugin -> help -> unit
 
 
-(** Get general help text
-*)
+(** Get general help text *)
 val help: [`All] plugin -> help
 
 

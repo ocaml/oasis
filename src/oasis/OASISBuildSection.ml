@@ -90,12 +90,12 @@ let build_graph pkg =
   List.iter
     (fun (vrtx, sct) ->
        match sct with
-         | Library (cs, bs, _)
-         | Object (cs, bs, _)
-         | Executable (cs, bs, _) ->
+         | Library (_cs, bs, _)
+         | Object (_cs, bs, _)
+         | Executable (_cs, bs, _) ->
            add_build_section vrtx bs
-         | Test (cs, {test_tools = build_tools})
-         | Doc (cs, {doc_build_tools = build_tools}) ->
+         | Test (_cs, {test_tools = build_tools; _})
+         | Doc (_cs, {doc_build_tools = build_tools; _}) ->
            add_build_tool vrtx build_tools
          | Flag _ | SrcRepo _ ->
            ())
@@ -106,15 +106,12 @@ let build_graph pkg =
 
 let build_order pkg =
   let sct_of_vrtx, _, g = build_graph pkg in
-  List.rev
-    (List.fold_left
-       (fun acc vrtx ->
-          try
-            Hashtbl.find sct_of_vrtx vrtx :: acc
-          with Not_found ->
-            acc)
-       []
-       (G.topological_sort g))
+  L.filter_map
+    (fun vrtx ->
+       try
+         Some (Hashtbl.find sct_of_vrtx vrtx)
+       with Not_found -> None)
+    (G.topological_sort g)
 
 
 let transitive_build_depends pkg =
@@ -176,8 +173,8 @@ let transitive_build_depends pkg =
       map_deps
   in
 
-  MapSection.mapi
-    (fun k lst ->
+  MapSection.map
+    (fun lst ->
        List.rev_map
          (fun (_, dep) -> dep)
          (* Reverse order to match List.rev_map *)

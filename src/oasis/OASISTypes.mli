@@ -471,26 +471,3 @@ type 'a quickstart_question =
   | Choices of 'a list (** Multiple choices in a list. *)
   | ExclusiveChoices of 'a list (** Pick a single choice in the list. *)
 
-
-(** {2 ODN functions}
-
-    These functions allow to generate setup.ml standalone code, by serializing
-    OCaml data using OCaml notation. They are {b not exported}.
-
-    See {{:http://forge.ocamlcore.org/projects/odn} the OCaml data notation project}
-*)
-
-
-val odn_of_name:          name -> ODN.t
-val odn_of_package_name:  package_name -> ODN.t
-val odn_of_url:           url -> ODN.t
-val odn_of_unix_dirname:  unix_dirname -> ODN.t
-val odn_of_unix_filename: unix_filename -> ODN.t
-val odn_of_prog:          prog -> ODN.t
-val odn_of_arg:           arg -> ODN.t
-val odn_of_args:          args -> ODN.t
-val odn_of_command_line:  prog * args -> ODN.t
-val odn_of_findlib_name:  findlib_name -> ODN.t
-val odn_of_findlib_full:  findlib_name -> ODN.t
-val odn_of_conditional:  ('a -> ODN.t) -> 'a OASISExpr.choices -> ODN.t
-val odn_of_package: package -> ODN.t

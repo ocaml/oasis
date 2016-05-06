@@ -66,9 +66,6 @@ sig
 
   (** List field set, not exported *)
   val elements: t -> string list
-
-  (** Dump Data.t to ODN, not exported. *)
-  val odn_of_t: t -> ODN.t
 end
 
 

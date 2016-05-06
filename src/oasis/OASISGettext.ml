@@ -46,7 +46,9 @@ let init =
 
 (* END EXPORT *)
 
+(* FIXME: change this (for instance, try using dynlink?) *)
 
+(*
 IFDEF HAS_GETTEXT THEN
 include
   Gettext.Library
@@ -57,3 +59,4 @@ include
       let dependencies = Gettext.init
     end)
 ENDIF
+   *)

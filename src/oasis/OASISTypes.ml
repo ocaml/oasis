@@ -20,44 +20,40 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-
-TYPE_CONV_PATH "OASISTypes"
-
-
-type name          = string with odn
-type package_name  = string with odn
-type url           = string with odn
-type unix_dirname  = string with odn
-type unix_filename = string with odn
-type host_dirname  = string with odn
-type host_filename = string with odn
-type prog          = string with odn
-type arg           = string with odn
-type args          = string list with odn
-type command_line  = (prog * arg list) with odn
+type name          = string
+type package_name  = string
+type url           = string
+type unix_dirname  = string
+type unix_filename = string
+type host_dirname  = string
+type host_filename = string
+type prog          = string
+type arg           = string
+type args          = string list
+type command_line  = (prog * arg list)
 
 
-type findlib_name = string with odn
-type findlib_full = string with odn
+type findlib_name = string
+type findlib_full = string
 
 
 type compiled_object =
   | Byte
   | Native
   | Best
-with odn
+
 
 
 type dependency =
   | FindlibPackage of findlib_full * OASISVersion.comparator option
   | InternalLibrary of name
-with odn
+
 
 
 type tool =
   | ExternalTool of name
   | InternalExecutable of name
-with odn
+
 
 
 type vcs =
@@ -70,7 +66,7 @@ type vcs =
   | Arch
   | Monotone
   | OtherVCS of url
-with odn
+
 
 
 type plugin_kind =
@@ -98,7 +94,7 @@ type plugin_data_purpose =
   ]
 
 
-type 'a plugin = 'a * name * OASISVersion.t option with odn
+type 'a plugin = 'a * name * OASISVersion.t option
 
 
 type all_plugin = plugin_kind plugin
@@ -107,14 +103,7 @@ type all_plugin = plugin_kind plugin
 type plugin_data = (all_plugin * plugin_data_purpose * (unit -> unit)) list
 
 
-(* END EXPORT *)
-(* TODO: really export this *)
-let odn_of_plugin_data _ =
-  ODN.of_list (fun _ -> ODN.UNT) []
-(* START EXPORT *)
-
-
-type 'a conditional = 'a OASISExpr.choices with odn
+type 'a conditional = 'a OASISExpr.choices
 
 
 type custom =
@@ -122,7 +111,7 @@ type custom =
     pre_command:  (command_line option) conditional;
     post_command: (command_line option) conditional;
   }
-with odn
+
 
 
 type common_section =
@@ -131,7 +120,7 @@ type common_section =
     cs_data: PropList.Data.t;
     cs_plugin_data: plugin_data;
   }
-with odn
+
 
 
 type build_section =
@@ -151,7 +140,7 @@ type build_section =
     bs_byteopt:         args conditional;
     bs_nativeopt:       args conditional;
   }
-with odn
+
 
 
 type library =
@@ -162,28 +151,28 @@ type library =
     lib_findlib_parent:     findlib_name option;
     lib_findlib_name:       findlib_name option;
     lib_findlib_containers: findlib_name list;
-  } with odn
+  }
 
 
 type object_ =
   {
     obj_modules:            string list;
     obj_findlib_fullname:   findlib_name list option;
-  } with odn
+  }
 
 
 type executable =
   {
     exec_custom:          bool;
     exec_main_is:         unix_filename;
-  } with odn
+  }
 
 
 type flag =
   {
     flag_description:  string option;
     flag_default:      bool conditional;
-  } with odn
+  }
 
 
 type source_repository =
@@ -195,7 +184,7 @@ type source_repository =
     src_repo_branch:      string option;
     src_repo_tag:         string option;
     src_repo_subdir:      unix_filename option;
-  } with odn
+  }
 
 
 type test =
@@ -206,7 +195,7 @@ type test =
     test_working_directory:  unix_filename option;
     test_run:                bool conditional;
     test_tools:              tool list;
-  } with odn
+  }
 
 
 type doc_format =
@@ -217,7 +206,7 @@ type doc_format =
   | Info of unix_filename
   | DVI
   | OtherDoc
-with odn
+
 
 
 type doc =
@@ -233,8 +222,7 @@ type doc =
     doc_format:      doc_format;
     doc_data_files:  (unix_filename * unix_filename option) list;
     doc_build_tools: tool list;
-  } with odn
-
+  }
 
 type section =
   | Library    of common_section * build_section * library
@@ -244,7 +232,6 @@ type section =
   | SrcRepo    of common_section * source_repository
   | Test       of common_section * test
   | Doc        of common_section * doc
-with odn
 
 
 type section_kind =
@@ -291,7 +278,7 @@ type package =
     disable_oasis_section:  unix_filename list;
     schema_data:            PropList.Data.t;
     plugin_data:            plugin_data;
-  } with odn
+  }
 
 
 (* END EXPORT *)

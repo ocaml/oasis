@@ -58,36 +58,14 @@ let run ~ctxt ?f_exit_code ?(quote=true) cmd args =
 
 
 let run_read_output ~ctxt ?f_exit_code cmd args =
-  let fn =
-    Filename.temp_file "oasis-" ".txt"
-  in
-  try
-    begin
+  let fn = Filename.temp_file "oasis-" ".txt" in
+  finally
+    ~h:(fun _ -> Sys.remove fn) ()
+    ~f:(fun () ->
       let () =
         run ~ctxt ?f_exit_code cmd (args @ [">"; Filename.quote fn])
       in
-      let chn =
-        open_in fn
-      in
-      let routput =
-        ref []
-      in
-      begin
-        try
-          while true do
-            routput := (input_line chn) :: !routput
-          done
-        with End_of_file ->
-          ()
-      end;
-      close_in chn;
-      Sys.remove fn;
-      List.rev !routput
-    end
-  with e ->
-    (try Sys.remove fn with _ -> ());
-    raise e
-
+      IO.with_file_in fn IO.read_lines)
 
 let run_read_one_line ~ctxt ?f_exit_code cmd args =
   match run_read_output ~ctxt ?f_exit_code cmd args with

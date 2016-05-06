@@ -81,14 +81,10 @@ let sub_start str len =
   else
     String.sub str len (str_len - len)
 
-
 let sub_end ?(offset=0) str len =
   let str_len = String.length str in
-  if len >= str_len then
-    ""
-  else
-    String.sub str 0 (str_len - len)
-
+  if len >= str_len then ""
+  else String.sub str 0 (str_len - len)
 
 let starts_with ~what ?(offset=0) str =
   let what_idx = ref 0 in
@@ -255,11 +251,14 @@ let contains ~what str =
   in
   check 0 0
 
+let to_list str =
+  let rl = ref [] in
+  String.iter (fun c -> rl := c :: !rl) str;
+  List.rev !rl
 
 (** Split a list using ',' as separator. {b Not exported} *)
 let split_comma str =
   List.map trim (nsplit str ',')
-
 
 (** Split a list using '\n' as separator. {b Not exported} *)
 let split_newline ?(do_trim=true) str =
@@ -268,7 +267,6 @@ let split_newline ?(do_trim=true) str =
     List.map trim lst
   else
     lst
-
 
 (** Split a string containing '(...)' optionally. {b Not exported} *)
 let split_optional_parentheses str =

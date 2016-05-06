@@ -61,8 +61,7 @@ let depends_from_file env build ?(fmod=fun x -> x) fn =
       depends_lst
 ;;
 
-let ocamlmod_str = "ocamlmod";;
-let ocamlmod = A ocamlmod_str;;
+let ocamlmod = A(Filename.concat (Sys.getcwd()) "/src/tools/oasis_ocamlmod.ml");;
 
 rule "ocamlmod: %.mod -> %.ml"
   ~prod:"%.ml"
@@ -85,7 +84,7 @@ rule "ocamlmod: %.mod -> %.ml"
   end
 ;;
 
-let ocamlify = A"ocamlify";;
+let ocamlify = A(Filename.concat (Sys.getcwd()) "/src/tools/oasis_ocamlify.ml");;
 
 rule "ocamlify: %.mlify -> %.mlify.depends"
   ~prod:"%.mlify.depends"

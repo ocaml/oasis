@@ -24,13 +24,10 @@
 open OASISGettext
 
 
-    TYPE_CONV_PATH "OASISVersion"
-
-
 type s = string
 
 
-type t = string with odn
+type t = string
 
 
 type comparator =
@@ -41,8 +38,6 @@ type comparator =
   | VLesserEqual of t
   | VOr of  comparator * comparator
   | VAnd of comparator * comparator
-with odn
-
 
 (* Range of allowed characters *)
 let is_digit c =
@@ -57,7 +52,6 @@ let is_special =
   function
     | '.' | '+' | '-' | '~' -> true
     | _ -> false
-
 
 let rec version_compare v1 v2 =
   if v1 <> "" || v2 <> "" then
@@ -268,7 +262,7 @@ let comparator_reduce =
         let d = version_compare v1 v2 in
         if d = 0 then `EQ else if d < 0 then `AB else `BA
   in
-  let rec split e1 e2 e3 tl =
+  let split e1 e2 e3 tl =
     match e2 with
       | `Version v2 -> `Interval(e1, e2) :: `Point v2 :: `Interval(e2, e3) :: tl
       | _ -> assert false
@@ -369,7 +363,7 @@ open OASISValues
 
 let value =
   {
-    parse  = (fun ~ctxt s -> version_of_string s);
+    parse  = (fun ~ctxt:_ s -> version_of_string s);
     update = update_fail;
     print  = string_of_version;
   }
@@ -377,7 +371,7 @@ let value =
 
 let comparator_value =
   {
-    parse  = (fun ~ctxt s -> comparator_of_string s);
+    parse  = (fun ~ctxt:_ s -> comparator_of_string s);
     update = update_fail;
     print  = string_of_comparator;
   }

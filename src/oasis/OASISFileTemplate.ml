@@ -82,14 +82,12 @@ let comment cmt_beg cmt_end =
   in
   let to_string str =
     try
-      let str = trim str in
-      let str = strip_starts_with ~what:cmt_beg str in
-      let str =
-        match cmt_end with
-          | Some cmt_end ->
-            strip_ends_with ~what:cmt_end str
-          | None ->
-            str
+      let str = str |> trim |> strip_starts_with ~what:cmt_beg in
+      let str = match cmt_end with
+        | Some cmt_end ->
+          strip_ends_with ~what:cmt_end str
+        | None ->
+          str
       in
       Some (trim str)
     with Not_found ->
@@ -122,7 +120,6 @@ let template_make fn comment header body footer =
     important             = false;
     disable_oasis_section = false;
   }
-
 
 let template_of_string_list ~ctxt ~template ?(disable_oasis_section=false) fn comment lst =
 
@@ -255,31 +252,12 @@ let template_of_string_list ~ctxt ~template ?(disable_oasis_section=false) fn co
       fn;
   {res with body = body}
 
-
 let template_of_file ~template disable_oasis_section fn comment =
-  let lst =
-    let chn_in =
-      open_in_bin fn
-    in
-    let lst =
-      ref []
-    in
-    begin
-      try
-        while true do
-          lst := (input_line chn_in) :: !lst
-        done
-      with End_of_file ->
-        ()
-    end;
-    close_in chn_in;
-    List.rev !lst
-  in
+  let lst = IO.with_file_in fn IO.read_lines in
   template_of_string_list ~template ~disable_oasis_section fn comment lst
 
-
+(* FIXME: document and simplify *)
 let template_of_mlfile fn header body footer  =
-
   let rec count_line str line_cur str_start =
     if str_start < String.length str then
       begin
@@ -289,12 +267,10 @@ let template_of_mlfile fn header body footer  =
             (line_cur + 1)
             ((String.index_from str str_start '\n') + 1)
         with Not_found ->
-          (line_cur + 1)
+          line_cur + 1
       end
     else
-      begin
-        line_cur + 1
-      end
+      line_cur + 1
   in
 
   (* Make sure that line modifier contains reference to files that
@@ -303,7 +279,7 @@ let template_of_mlfile fn header body footer  =
   let check_line_modifier str =
     let found = ref false in
     let extract_line_modifier str =
-      if starts_with "#" (trim str) then
+      if starts_with ~what:"#" (trim str) then
         try
           match tokenize_genlex str with
             | [Genlex.Ident "#"; Genlex.Int _; Genlex.String fn] ->
@@ -348,9 +324,7 @@ let template_of_mlfile fn header body footer  =
            let contains_line_modifier, validated_str =
              check_line_modifier str
            in
-           let line_cur =
-             count_line validated_str line_cur 0
-           in
+           let line_cur = count_line validated_str line_cur 0 in
            if contains_line_modifier then
              ((Printf.sprintf "# %d %S" line_cur fn) :: validated_str :: acc),
              (line_cur + 1)
@@ -370,9 +344,7 @@ let template_of_mlfile fn header body footer  =
       List.rev rlst, line_end
   in
 
-  let header, line_end =
-    insert_line_modifier header 1 ~restore:false
-  in
+  let header, line_end = insert_line_modifier header 1 ~restore:false in
 
   let body, line_end =
     (* Will add 2 lines of comments: start + digest *)
@@ -394,7 +366,6 @@ let template_of_mlfile fn header body footer  =
     body
     footer
 
-
 let digest_update t =
   {t with
      body =
@@ -404,7 +375,6 @@ let digest_update t =
          | Body lst ->
            let d = Digest.string (String.concat "\n" lst) in
            BodyWithDigest(d, lst)}
-
 
 let digest_check t =
   let t' = digest_update t in
@@ -462,20 +432,12 @@ let to_string_list t =
 
 
 let to_file t =
-  let chn_out =
-    open_out_gen
-      [Open_wronly; Open_creat; Open_trunc; Open_binary]
-      t.perm
-      t.fn
-  in
-  List.iter
-    (fun str ->
-       output_string chn_out str;
-       output_char chn_out '\n')
-    (to_string_list t);
-  close_out chn_out;
+  IO.with_file_out
+    ~flags: [Open_wronly; Open_creat; Open_trunc; Open_binary]
+    ~perm:t.perm
+    t.fn
+    (fun oc -> IO.output_lines oc (to_string_list t));
   Unix.chmod t.fn t.perm
-
 
 type file_generate_change =
   | Create of host_filename
@@ -550,9 +512,8 @@ let file_generate ~ctxt ?(remove=false) ~backup t =
             Sys.rename fn fn_backup;
             OASISFileUtil.cp ~ctxt fn_backup fn;
             fn_backup
-          end else begin
+          end else
             backup_aux tl
-          end
 
         | [] ->
           failwithf
@@ -563,8 +524,7 @@ let file_generate ~ctxt ?(remove=false) ~backup t =
     in
     backup_aux
       ("bak" ::
-         (Array.to_list
-            (Array.init 10 (Printf.sprintf "ba%d"))))
+         (L.init 10 (Printf.sprintf "ba%d")))
   in
 
   if Sys.file_exists t.fn then
@@ -684,7 +644,6 @@ let remove fn t =
 
 let fold f t acc =
   M.fold
-    (fun k e acc ->
-       f e acc)
+    (fun _k e acc -> f e acc)
     t.files
     acc

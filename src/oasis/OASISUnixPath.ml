@@ -1,4 +1,4 @@
-(******************************************************************************)
+(* (******************************************************************************) *)
 (* OASIS: architecture for building OCaml libraries and applications          *)
 (*                                                                            *)
 (* Copyright (C) 2011-2013, Sylvain Le Gall                                   *)
@@ -69,9 +69,7 @@ let dirname f =
 
 let basename f =
   try
-    let pos_start =
-      (String.rindex f '/') + 1
-    in
+    let pos_start = (String.rindex f '/') + 1 in
     String.sub f pos_start ((String.length f) - pos_start)
   with Not_found ->
     f
@@ -79,32 +77,23 @@ let basename f =
 
 let chop_extension f =
   try
-    let last_dot =
-      String.rindex f '.'
-    in
-    let sub =
-      String.sub f 0 last_dot
-    in
+    let last_dot = String.rindex f '.' in
+    let sub = String.sub f 0 last_dot in
     try
-      let last_slash =
-        String.rindex f '/'
-      in
+      let last_slash = String.rindex f '/' in
       if last_slash < last_dot then
         sub
       else
         f
     with Not_found ->
       sub
-
   with Not_found ->
     f
-
 
 let capitalize_file f =
   let dir = dirname f in
   let base = basename f in
   concat dir (String.capitalize base)
-
 
 let uncapitalize_file f =
   let dir = dirname f in
@@ -126,10 +115,8 @@ let add_extension fn ext =
 let replace_extension fn ext =
   add_extension (Filename.chop_extension fn) ext
 
-
 open OASISPath_intern
 open OASISUtils
-
 
 let filename_of_list lst =
   let buf = Buffer.create 34 in
@@ -234,17 +221,12 @@ let make_relative fn_root fn =
     (fn_norm res);
   res
 
-
 let is_current fn =
-  if fn = current_dir_name || fn = "" then
-    true
-  else
-    (fn_norm fn) = [`CurrentDir]
+  fn = current_dir_name || fn = "" || (fn_norm fn = [`CurrentDir])
 
 
 module Set = SetExt.Make(
   struct
     type t = unix_filename
-
     let compare t1 t2 = String.compare (reduce t1) (reduce t2)
   end)

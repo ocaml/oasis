@@ -24,7 +24,6 @@
 open OASISTypes
 open OASISUtils
 open OASISGettext
-open OASISSection
 
 
 (* Look for a module file, considering capitalization or not. *)
@@ -68,21 +67,19 @@ let find_module source_file_exists bs modul =
 
 
 let source_unix_files ~ctxt (cs, bs, lib) source_file_exists =
-  List.fold_left
-    (fun acc modul ->
+  L.filter_map
+    (fun modul ->
        match find_module source_file_exists bs modul with
          | `Sources (base_fn, lst) ->
-           (base_fn, lst) :: acc
+           Some (base_fn, lst)
          | `No_sources _ ->
            OASISMessage.warning
              ~ctxt
              (f_ "Cannot find source file matching \
                   module '%s' in library %s")
              modul cs.cs_name;
-           acc)
-    []
+           None)
     (lib.lib_modules @ lib.lib_internal_modules)
-
 
 let generated_unix_files
     ~ctxt
@@ -96,8 +93,8 @@ let generated_unix_files
   let find_modules lst ext =
     let find_module modul =
       match find_module source_file_exists bs modul with
-        | `Sources (base_fn, [fn]) when ext <> "cmi"
-                                     && Filename.check_suffix fn ".mli" ->
+        | `Sources (_base_fn, [fn])
+          when ext <> "cmi" && Filename.check_suffix fn ".mli" ->
           None (* No implementation files for pure interface. *)
         | `Sources (base_fn, _) ->
           Some [base_fn]
@@ -109,13 +106,13 @@ let generated_unix_files
             modul cs.cs_name;
           Some lst
     in
-    List.fold_left
-      (fun acc nm ->
+    L.filter_map
+      (fun nm ->
          match find_module nm with
-           | None -> acc
+           | None -> None
            | Some base_fns ->
-             List.map (fun base_fn -> base_fn ^"."^ext) base_fns :: acc)
-      []
+             let res = List.map (fun base_fn -> base_fn ^"."^ext) base_fns in
+             Some res)
       lst
   in
 
@@ -140,9 +137,7 @@ let generated_unix_files
       []
   in
 
-  let acc_nopath =
-    []
-  in
+  let acc_nopath = [] in
 
   (* The headers and annot/cmt files that should be compiled along *)
   let headers =

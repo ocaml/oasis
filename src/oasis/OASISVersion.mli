@@ -70,16 +70,10 @@ val string_of_version: t -> string
 val value: t OASISValues.t
 
 
-(** Dump [ODN.t]. {b Not exported}.
-*)
-val odn_of_t: t -> ODN.t
-
-
 (** Remove the last part of a version, after the last '.'. I.e. 0.2.0~alpha1 ->
     0.2.
 *)
 val chop: t -> t
-
 
 (** {2 Version comparator} *)
 
@@ -129,7 +123,3 @@ val comparator_reduce: comparator -> comparator
 *)
 val comparator_value: comparator OASISValues.t
 
-
-(** Dump [ODN.t]. {b Not exported}.
-*)
-val odn_of_comparator:  comparator -> ODN.t

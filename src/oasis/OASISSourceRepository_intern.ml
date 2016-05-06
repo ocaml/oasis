@@ -1,4 +1,4 @@
-(******************************************************************************)
+(* (******************************************************************************) *)
 (* OASIS: architecture for building OCaml libraries and applications          *)
 (*                                                                            *)
 (* Copyright (C) 2011-2013, Sylvain Le Gall                                   *)
@@ -28,9 +28,7 @@
 
 open OASISSchema_intern
 open OASISValues
-open OASISUtils
 open OASISGettext
-open PropList.Field
 open OASISTypes
 
 

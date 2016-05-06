@@ -49,7 +49,7 @@ let check_schema ~ctxt where schm plugins features_data data =
         true
   in
 
-  let check_is_set schm data fld =
+  let check_is_set _schm data fld =
     let field_set = Data.elements data in
     List.mem fld field_set
   in
@@ -57,7 +57,7 @@ let check_schema ~ctxt where schm plugins features_data data =
   (* Collect plugins and their version. *)
   let plugins =
     Schema.fold
-      (fun plugins fld extra hlp ->
+      (fun plugins fld extra _hlp ->
          match extra.kind with
            | DefinePlugin knd ->
              begin
@@ -130,34 +130,30 @@ let check_schema ~ctxt where schm plugins features_data data =
       [] schm
   in
 
-  let () =
-    if msgfld <> [] then
-      failwithf (f_ "Missing field in %s: %s")
-        where
-        (String.concat (s_ ", ") msgfld)
-  in
+  if msgfld <> [] then (
+    failwithf (f_ "Missing field in %s: %s")
+      where
+      (String.concat (s_ ", ") msgfld)
+  );
 
   (** Check that all fields set are ok with OASISFormat. *)
 
-  let () =
-    Schema.fold
-      (fun () fld extra _ ->
-         if check_is_set schm data fld then
-           match extra.feature with
-             | Some feature ->
-               OASISFeatures.data_assert feature features_data
-                 (OASISFeatures.Field (fld, where))
-             | None ->
-               ())
-      ()
-      schm
-  in
+  Schema.fold
+    (fun () fld extra _ ->
+       if check_is_set schm data fld then
+         match extra.feature with
+           | Some feature ->
+             OASISFeatures.data_assert feature features_data
+               (OASISFeatures.Field (fld, where))
+           | None ->
+             ())
+    ()
+    schm;
 
   plugins
 
 
 let check_package ~ctxt pkg =
-
   let standard_vars =
     SetString.of_list
       (List.flatten

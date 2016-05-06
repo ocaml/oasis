@@ -121,6 +121,5 @@ let add_extension fn ext =
 module Map = OASISUtils.MapExt.Make (
   struct
     type t = Unix.host_filename
-
     let compare = compare
   end)

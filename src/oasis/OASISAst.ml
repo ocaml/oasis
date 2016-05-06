@@ -33,23 +33,19 @@ open OASISRecDescParser
 open OASISAstTypes
 open OASISExpr
 
+module P = OASISRecDescParser
 
 (** Convert OASIS stream into package
 *)
 let to_package conf st =
-
-  let ast =
-    OASISRecDescParser.parse_stream
-      conf
-      st
-  in
+  let ast = P.parse_stream conf st in
 
   (* Merge an expression with a condition in a ctxt *)
   let ctxt_add_expr ctxt e =
     match ctxt with
-      | {cond = None} ->
+      | {cond = None; _} ->
         {ctxt with cond = Some e}
-      | {cond = Some e'} ->
+      | {cond = Some e'; _} ->
         {ctxt with cond = Some (EAnd (e', e))}
   in
 
@@ -321,7 +317,7 @@ let to_package conf st =
         pkg.sections
     in
 
-    let map_internal_tools sct =
+    let map_internal_tools _sct =
       List.map
         (function
           | ExternalTool lnm as bt ->

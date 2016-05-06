@@ -30,26 +30,22 @@
 *)
 
 
-(** Valid licenses
-*)
+(** Valid licenses *)
 type license
 
 
-(** Valid license exceptions.
-*)
+(** Valid license exceptions.  *)
 type license_exception
 
 
-(** License version.
-*)
+(** License version.  *)
 type license_version =
   | Version of OASISVersion.t
   | VersionOrLater of OASISVersion.t
   | NoVersion
 
 
-(** DEP-5 license, basic.
-*)
+(** DEP-5 license, basic.  *)
 type license_dep_5_unit =
   {
     license:    license;
@@ -58,8 +54,7 @@ type license_dep_5_unit =
   }
 
 
-(** DEP-5 license, complex.
-*)
+(** DEP-5 license, complex.  *)
 type license_dep_5 =
   | DEP5Unit of license_dep_5_unit
   | DEP5Or of license_dep_5 list
@@ -145,11 +140,6 @@ val license_data: unit -> (license * license_data) list
 *)
 val license_exception_data:
   unit -> (license_exception * license_exception_data) list
-
-
-(** Dump [ODN.t]. {b Not exported}.
-*)
-val odn_of_t: t -> ODN.t
 
 
 (** {2 License definitions}

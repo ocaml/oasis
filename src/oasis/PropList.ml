@@ -71,10 +71,7 @@ struct
       (fun nm _ -> rlst := nm :: !rlst)
       t;
     !rlst
-
-  let odn_of_t t =
-    ODN.APP ("PropList.Data.create", [], [ODN.UNT])
-    (* START EXPORT *)
+  (* START EXPORT *)
 end
 
 
@@ -181,16 +178,12 @@ struct
     }
 
   let new_id =
-    let last_id =
-      ref 0
-    in
+    let last_id = ref 0 in
     fun () -> incr last_id; !last_id
 
   let create ?schema ?name ?parse ?print ?default ?update ?help extra =
     (* Default value container *)
-    let v =
-      ref None
-    in
+    let v = ref None in
 
     (* If name is not given, create unique one *)
     let nm =
@@ -244,7 +237,7 @@ struct
         | Some f ->
           f
         | None ->
-          fun ?context s ->
+          fun ?context:_ s ->
             failwith
               (Printf.sprintf
                  (f_ "Cannot parse field '%s' when setting value %S")

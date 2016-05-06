@@ -104,19 +104,13 @@ val reduce: t -> t
 
 (** Try to reduce the size of a choice list. {b Not exported}.
 *)
-val reduce_choices: (t * 'a) list -> (t * 'a) list
+val reduce_choices: 'a choices -> 'a choices
 
 
 (** [if_then_else cond choices_if choices_else] Combine choices, if_then_else
     style.
 *)
-val if_then_else: t -> (t * 'a) list -> (t * 'a) list -> (t * 'a) list
-
-
-(** Dump ODN.t. {b Not exported}. *)
-val odn_of_t: t -> ODN.t
-val odn_of_choices: ('a -> ODN.t) -> 'a choices -> ODN.t
-
+val if_then_else: t -> 'a choices -> 'a choices -> 'a choices
 
 (** Transform an expression into a string. {b Not exported} *)
 val to_string: t -> string

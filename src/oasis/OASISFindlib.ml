@@ -35,15 +35,14 @@ type 'a map_of_findlib_part_name = 'a OASISUtils.MapString.t
 exception InternalLibraryNotFound of library_name
 exception FindlibPackageNotFound of findlib_name
 
-
 type group_t =
-  | Container of findlib_name * group_t list
-  | Package of (findlib_name *
-        common_section *
-        build_section *
-        [`Library of library | `Object of object_] *
-        group_t list)
-
+  | Container of findlib_part_name * group_t list
+  | Package of
+      findlib_part_name *
+      common_section *
+      build_section *
+      [`Library of library | `Object of object_] *
+      group_t list
 
 type data = common_section *
     build_section *
@@ -254,9 +253,7 @@ let findlib_mapping pkg =
       pkg.sections
   in
 
-  let groups =
-    group_of_tree group_mp
-  in
+  let groups = group_of_tree group_mp in
 
   let library_name_of_findlib_name =
     lazy begin
@@ -278,12 +275,10 @@ let findlib_mapping pkg =
   findlib_name_of_library_name,
   library_name_of_findlib_name
 
-
 let findlib_of_group =
   function
     | Container (fndlb_nm, _)
     | Package (fndlb_nm, _, _, _, _) -> fndlb_nm
-
 
 let root_of_group grp =
   let rec root_lib_aux =

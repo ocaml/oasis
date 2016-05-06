@@ -23,6 +23,18 @@
 
 open Format
 
+type 'a t = Format.formatter -> 'a -> unit
+
+let asprintf fmt =
+  let buff = Buffer.create 13 in
+  let out = Format.formatter_of_buffer buff in
+  Format.kfprintf
+    (fun _ ->
+       pp_print_flush out ();
+       Buffer.contents buff)
+    out fmt
+
+let to_string pp x = asprintf "%a" pp x
 
 let pp_print_string_spaced fmt str =
   String.iter
@@ -35,8 +47,7 @@ let pp_print_string_spaced fmt str =
 
 let pp_print_list pp_elem lst_sep fmt =
   function
-    | [] ->
-      ()
+    | [] -> ()
     | hd :: tl ->
       pp_elem fmt hd;
       List.iter
@@ -59,11 +70,8 @@ let pp_print_endblock ?(check_last_char="") fmt () =
     pp_print_newline fmt ()
   end
 
-
-let pp_print_para fmt ?(end_para=true) str =
-  let str_len =
-    String.length str
-  in
+let pp_print_para ?(end_para=true) fmt str =
+  let str_len = String.length str in
   let rec decode_string i =
     if i < str_len then
       begin
@@ -104,7 +112,7 @@ let pp_print_paraf fmt ?end_para fmt' =
   Printf.ksprintf (pp_print_para fmt ?end_para) fmt'
 
 
-let pp_print_title fmt lvl str =
+let pp_print_title lvl fmt str =
   let pp_print_underlined c fmt str =
     pp_print_string fmt str;
     pp_print_newline fmt ();
@@ -123,11 +131,11 @@ let pp_print_title fmt lvl str =
   pp_print_endblock fmt ()
 
 
-let pp_print_titlef fmt lvl fmt' =
+let pp_print_titlef lvl fmt fmt' =
   Printf.ksprintf (pp_print_title fmt lvl) fmt'
 
 
-let pp_print_def fmt term defs =
+let pp_print_def term fmt defs =
   pp_print_string fmt term;
   pp_print_newline fmt ();
   List.iter
