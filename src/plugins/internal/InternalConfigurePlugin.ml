@@ -70,9 +70,8 @@ let configure pkg argv =
           (* Check that matching tool is built *)
           List.iter
             (function
-              | Executable ({cs_name = nm2},
-                  {bs_build = build},
-                  _) when nm1 = nm2 ->
+              | Executable ({cs_name = nm2; _},
+                  {bs_build = build; _}, _) when nm1 = nm2 ->
                 if not (var_choose build) then
                   add_errors
                     (f_ "Cannot find buildable internal executable \
@@ -126,9 +125,8 @@ let configure pkg argv =
               (* Check that matching library is built *)
               List.iter
                 (function
-                  | Library ({cs_name = nm2},
-                      {bs_build = build},
-                      _) when nm1 = nm2 ->
+                  | Library ({cs_name = nm2; _},
+                      {bs_build = build; _}, _) when nm1 = nm2 ->
                     if not (var_choose build) then
                       add_errors
                         (f_ "Cannot find buildable internal library \
@@ -279,14 +277,14 @@ let init () =
   let self_id, _ =
     Configure.create plugin
   in
-  let doit ctxt pkg =
+  let doit ctxt _pkg =
     ctxt,
     {
       chng_moduls    = [InternalData.internalsys_ml];
       chng_clean     = None;
       chng_distclean = None;
       chng_main =
-        (ODNFunc.func
+        (ODN.func
            configure
            "InternalConfigurePlugin.configure");
     }

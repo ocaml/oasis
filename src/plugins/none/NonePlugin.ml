@@ -40,25 +40,24 @@ let section_not_implemented str pkg _ _ extra_args =
 
 (* END EXPORT *)
 
-
 open OASISTypes
 open OASISPlugin
 
 
-let std_no_generate str ctxt pkg =
+let std_no_generate str ctxt _pkg =
   ctxt,
   {
     chng_moduls    = [NoneData.nonesys_ml];
     chng_clean     = None;
     chng_distclean = None;
     chng_main =
-      (ODNFunc.func_with_arg
+      (ODN.func_with_arg
          not_implemented "NonePlugin.not_implemented"
-         str ODN.of_string);
+         str ODN.string);
   }
 
 
-let section_no_generate str ctxt pkg (cs, section) =
+let section_no_generate str ctxt pkg (cs, _section) =
   std_no_generate
     (str^" of section "^cs.cs_name)
     ctxt

@@ -27,12 +27,9 @@
 
 
 open BaseEnv
-open OASISGettext
 open OASISTypes
 
-
 let run_command  = BaseCustom.run
-
 
 module BuildRuntime =
 struct
@@ -85,7 +82,7 @@ struct
           ())
       pkg.sections
 
-  let distclean run pkg extra_args =
+  let distclean run _pkg extra_args =
     run_command "omake" (["distclean"] @ OMakeFields.(run.extra_args))
       extra_args;
     List.iter
@@ -96,10 +93,10 @@ end
 
 
 module InstallRuntime = struct
-  let install run pkg extra_args =
+  let install run _pkg extra_args =
     run_command "omake" (["install"] @ OMakeFields.(run.extra_args)) extra_args
 
-  let uninstall run pkg extra_args =
+  let uninstall run _pkg extra_args =
     run_command "omake" (["uninstall"] @ OMakeFields.(run.extra_args))
       extra_args
 end
@@ -114,7 +111,7 @@ module DocRuntime = struct
           cs.cs_name ^ ".doc";
           string_of_format doc.doc_format;
         ] in
-    run_command "omake" ([target] @ OMakeFields.(run.extra_args)) extra_args;
+    run_command "omake" ([target] @ run.OMakeFields.extra_args) extra_args;
     (* The following exists only to make the internal install plugin happy: *)
     List.iter
       (fun sct ->
@@ -147,14 +144,8 @@ end
 (* END EXPORT *)
 
 
-open OASISGettext
-open ODN
-open OASISTypes
-open OASISValues
 open OASISPlugin
-open OASISSchema
 open OMakeFields
-
 
 (* Build plugin *)
 let build_init () =
@@ -173,21 +164,21 @@ let build_init () =
         [OMakeData.omakesys_ml];
 
       chng_main =
-        ODNFunc.func_with_arg
+        ODN.func_with_arg
           BuildRuntime.main ("OMakePlugin.BuildRuntime.main")
-          run OMakeFields.odn_of_run_t;
+          run OMakeFields.serialize_run_t;
 
       chng_clean =
         Some
-          (ODNFunc.func_with_arg
+          (ODN.func_with_arg
              BuildRuntime.clean ("OMakePlugin.BuildRuntime.clean")
-             run OMakeFields.odn_of_run_t);
+             run OMakeFields.serialize_run_t);
 
       chng_distclean =
         Some
-          (ODNFunc.func_with_arg
+          (ODN.func_with_arg
              BuildRuntime.distclean ("OMakePlugin.BuildRuntime.distclean")
-             run OMakeFields.odn_of_run_t);
+             run OMakeFields.serialize_run_t);
     }
   in
   Build.register_act BuildFields.self_id doit;
@@ -196,11 +187,11 @@ let build_init () =
 
 (* Install plugin *)
 let install_init () =
-  let generator_inst data =
+  let generator_inst _data =
     { OMakeFields.run_path = "";
       OMakeFields.extra_args = []
     } in
-  let generator_uninst data =
+  let generator_uninst _data =
     { OMakeFields.run_path = "";
       OMakeFields.extra_args = []
     } in
@@ -211,7 +202,9 @@ let install_init () =
       OMakeEquip.equip_project ctxt pkg in
     { ctxt with other_actions = equip :: ctxt.other_actions },
     { chng_moduls = [OMakeData.omakesys_ml];
-      chng_main = ODNFunc.func_with_arg InstallRuntime.install "OMakePlugin.InstallRuntime.install" run OMakeFields.odn_of_run_t;
+      chng_main =
+        ODN.func_with_arg InstallRuntime.install
+          "OMakePlugin.InstallRuntime.install" run OMakeFields.serialize_run_t;
       chng_clean = None;
       chng_distclean = None
     } in
@@ -222,7 +215,9 @@ let install_init () =
       OMakeEquip.equip_project ctxt pkg in
     { ctxt with other_actions = equip :: ctxt.other_actions },
     { chng_moduls = [OMakeData.omakesys_ml];
-      chng_main = ODNFunc.func_with_arg InstallRuntime.uninstall "OMakePlugin.InstallRuntime.uninstall" run OMakeFields.odn_of_run_t;
+      chng_main =
+        ODN.func_with_arg InstallRuntime.uninstall
+          "OMakePlugin.InstallRuntime.uninstall" run OMakeFields.serialize_run_t;
       chng_clean = None;
       chng_distclean = None
     } in
@@ -238,7 +233,7 @@ let doc_init () =
     { OMakeFields.run_path = DocFields.path data;
       OMakeFields.extra_args = BuildFields.extra_args data;
     } in
-  let doit ctxt pkg (cs,doc) =
+  let doit ctxt pkg (cs,_doc) =
     let run =
       generator cs.cs_data in
     let equip() =
@@ -249,9 +244,9 @@ let doc_init () =
         [OMakeData.omakesys_ml];
 
       chng_main =
-        ODNFunc.func_with_arg
+        ODN.func_with_arg
           DocRuntime.main ("OMakePlugin.DocRuntime.main")
-          run OMakeFields.odn_of_run_t;
+          run OMakeFields.serialize_run_t;
 
       chng_clean = None;
       chng_distclean = None;

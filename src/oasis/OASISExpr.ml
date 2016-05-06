@@ -21,10 +21,9 @@
 (******************************************************************************)
 
 open OASISGettext
-
+module ODN = OASISData_notation
 
 type test = string
-
 
 type flag = string
 
@@ -98,12 +97,9 @@ let choose ?printer ?name var_get lst =
   in
   choose_aux (List.rev lst)
 
-
 (* END EXPORT *)
 
-
 open OASISUtils
-
 
 let tests =
   [
@@ -118,6 +114,7 @@ let tests =
 (* TODO: check for correct syntax of str *)
 let test_of_string str = str
 
+let string_of_test t = t
 
 let check valid_flags =
   let lowercase_eq str1 str2 =
@@ -220,6 +217,20 @@ let rec to_string =
       (to_string e1)^" && ("^(to_string e2)^")"
     | EAnd (e1, e2) ->
       (to_string e1)^" && "^(to_string e2)
+
+let serialize =
+  let open ODN in
+  let rec aux = function
+    | EBool b -> vrt1 bool "EBool" b
+    | ENot x -> vrt1 aux "ENot" x
+    | EAnd (x,y) -> vrt2 aux aux "EAnd" x y
+    | EOr (x,y) -> vrt2 aux aux "EOr" x y
+    | EFlag f -> vrt1 string "EFlag" f
+    | ETest (t,s) -> vrt2 string string "ETest" t s
+  in
+  aux
+
+let serialize_choices sx = ODN.(list (tuple2 serialize sx))
 
 let string_of_choices f lst =
   let pp_pair out (e,vl) =

@@ -22,13 +22,14 @@
 
 
 open OASISGettext
+module ODN = OASISData_notation
 
 
 type s = string
 
 
 type t = string
-
+let serialize = ODN.string
 
 type comparator =
   | VGreater of t
@@ -38,6 +39,17 @@ type comparator =
   | VLesserEqual of t
   | VOr of  comparator * comparator
   | VAnd of comparator * comparator
+
+let serialize_comparator =
+  let rec aux = function
+    | VGreater x -> ODN.vrt1 serialize "VGreater" x
+    | VGreaterEqual x -> ODN.vrt1 serialize "VGreaterEqual" x
+    | VEqual x -> ODN.vrt1 serialize "VEqual" x
+    | VLesser x -> ODN.vrt1 serialize "VLesser" x
+    | VLesserEqual x -> ODN.vrt1 serialize "VLesserEqual" x
+    | VOr (x,y) -> ODN.vrt2 aux aux "VOr" x y
+    | VAnd (x,y) -> ODN.vrt2 aux aux "VAnd" x y
+  in aux
 
 (* Range of allowed characters *)
 let is_digit c =

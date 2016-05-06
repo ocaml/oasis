@@ -21,8 +21,9 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 956bbf8934f72275c29c20c43c69ebdc)
+# DO NOT EDIT (digest: 5952b35f08a571802a7e132d60121949)
 FormatExt
+OASISData_notation
 PropList
 OASISUtils
 OASISUnixPath

@@ -24,18 +24,19 @@
     @author Gerd Stolpmann
 *)
 
-open BaseEnv
-open OASISGettext
 open OASISTypes
-
-
-    TYPE_CONV_PATH "OMakeFields"
+module ODN = OASISData_notation
 
 type run_t =
-  {
-    run_path : unix_dirname;   (* "doc" only *)
+  { run_path : unix_dirname;   (* "doc" only *)
     extra_args: string list;
-  } with odn
+  }
+
+let serialize_run_t x =
+  ODN.(REC ("OMakeFields",
+    [ "run_path", serialize_unix_dirname x.run_path
+    ; "extra_args", list string x.extra_args
+    ]))
 
 let string_of_format =
   function

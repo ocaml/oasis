@@ -33,6 +33,7 @@
 
 
 open OASISTypes
+module ODN = OASISData_notation
 
 
 module MapPlugin: OASISUtils.MapExt.S with type key = plugin_kind plugin
@@ -58,15 +59,15 @@ type ('a, 'b) setup_changes =
     chng_moduls: modul list;
     (** OCaml module to be added to setup file *)
 
-    chng_main: 'a;
+    chng_main: 'a ODN.func;
     (** Main function to be added to BaseSetup.t (i.e. the one that
         that really do something: configure, build, test...)
     *)
 
-    chng_clean: 'b option;
+    chng_clean: 'b ODN.func option;
     (** Function to be called when cleaning *)
 
-    chng_distclean: 'b option;
+    chng_distclean: 'b ODN.func option;
     (** Function to be called when distcleaning *)
   }
 

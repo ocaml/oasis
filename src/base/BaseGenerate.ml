@@ -20,11 +20,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-open Format
-open OASISTypes
-open OASISUtils
 open OASISFileTemplate
-open ODN
 open OASISPlugin
 open BaseMessage
 open OASISGettext

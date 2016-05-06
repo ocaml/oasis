@@ -131,7 +131,7 @@ let split_install_command ocamlfind findlib_name meta files =
     ["install" :: findlib_name :: meta :: files]
 
 
-let install pkg argv =
+let install pkg _argv =
 
   let in_destdir =
     try
@@ -478,7 +478,7 @@ let install pkg argv =
 
   let install_execs pkg =
     let install_exec data_exec =
-      let cs, bs, exec =
+      let cs, bs, _exec =
         !exec_hook data_exec
       in
       if var_choose bs.bs_install &&
@@ -563,7 +563,7 @@ let install pkg argv =
 
 
 (* Uninstall already installed data *)
-let uninstall _ argv =
+let uninstall _ _argv =
   List.iter
     (fun (ev, data) ->
        if ev = install_file_ev then
@@ -644,22 +644,22 @@ let init () =
     Install.create plugin
   in
   (* Installation *)
-  let doit_install ctxt pkg =
+  let doit_install ctxt _pkg =
     ctxt,
     {
       chng_moduls    = [InternalData.internalsys_ml];
-      chng_main      = ODNFunc.func install "InternalInstallPlugin.install";
+      chng_main      = ODN.func install "InternalInstallPlugin.install";
       chng_clean     = None;
       chng_distclean = None;
     }
   in
 
   (* Uninstall *)
-  let doit_uninstall ctxt pkg =
+  let doit_uninstall ctxt _pkg =
     ctxt,
     {
       chng_moduls    = [InternalData.internalsys_ml];
-      chng_main      = ODNFunc.func uninstall "InternalInstallPlugin.uninstall";
+      chng_main      = ODN.func uninstall "InternalInstallPlugin.uninstall";
       chng_clean     = None;
       chng_distclean = None;
     }

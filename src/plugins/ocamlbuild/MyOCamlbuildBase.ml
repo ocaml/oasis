@@ -25,41 +25,31 @@
     @author Sylvain Le Gall
 *)
 
-
-TYPE_CONV_PATH "MyOCamlbuildBase"
-
-
 open Ocamlbuild_plugin
 module OC = Ocamlbuild_pack.Ocaml_compiler
+module ODN = OASISData_notation
 
-
-type dir = string with odn
-type file = string with odn
-type name = string with odn
-type tag = string with odn
-
+type dir = string
+type file = string
+type name = string
+type tag = string
 
 (* END EXPORT *)
-let rec odn_of_spec =
-  let vrt nm lst =
-    ODN.VRT ("Ocamlbuild_plugin."^nm, lst)
-  in
-  let vrt_str nm str =
-    vrt nm [ODN.STR str]
-  in
+let rec serialize_spec =
+  let vrt nm lst = ODN.VRT ("Ocamlbuild_plugin."^nm, lst) in
+  let vrt_str nm str = vrt nm [ODN.STR str] in
   function
     | N     -> vrt "N" []
-    | S lst -> vrt "S" [ODN.of_list odn_of_spec lst]
+    | S lst -> vrt "S" [ODN.list serialize_spec lst]
     | A s   -> vrt_str "A" s
     | P s   -> vrt_str "P" s
     | Px s  -> vrt_str "Px" s
     | Sh s  -> vrt_str "Sh" s
     | V s   -> vrt_str "V" s
-    | Quote spc -> vrt "Quote" [odn_of_spec spc]
+    | Quote spc -> vrt "Quote" [serialize_spec spc]
     | T _ ->
       assert false
 (* START EXPORT *)
-
 
 type t =
   {
@@ -70,8 +60,15 @@ type t =
      * directory.
     *)
     includes:  (dir * dir list) list;
-  } with odn
+  }
 
+let serialize x =
+  ODN.(REC ("MyOCamlbuildBase",
+    [ "lib_ocaml", list (tuple3 string (list string) (list string)) x.lib_ocaml
+    ; "lib_c", list (tuple3 string string (list string)) x.lib_c
+    ; "flags", list (tuple2 (list string) (OASISExpr.serialize_choices serialize_spec)) x.flags
+    ; "includes", list (tuple2 string (list string)) x.includes
+    ]))
 
 let env_filename =
   lazy (Pathname.basename (Lazy.force BaseEnvLight.default_filename))

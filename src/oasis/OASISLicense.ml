@@ -28,49 +28,60 @@
 
 type license = string
 
-
 type license_exception = string
-
 
 type license_version =
   | Version of OASISVersion.t
   | VersionOrLater of OASISVersion.t
   | NoVersion
 
-
-
 type license_dep_5_unit =
-  {
-    license:   license;
+  { license:   license;
     excption:  license_exception option;
     version:   license_version;
   }
-
-
 
 type license_dep_5 =
   | DEP5Unit of license_dep_5_unit
   | DEP5Or of license_dep_5 list
   | DEP5And of license_dep_5 list
 
-
 type t =
   | DEP5License of license_dep_5
   | OtherLicense of string (* URL *)
 
-
-
 (* END EXPORT *)
-
 
 open OASISValues
 open OASISUtils
 open OASISGettext
+module ODN = OASISData_notation
 
+let serialize_license_version = function
+  | Version v ->
+    ODN.vrt1 OASISVersion.serialize "OASISLicense.Version" v
+  | VersionOrLater v ->
+    ODN.vrt1 OASISVersion.serialize "OASISLicense.VersionOrLater" v
+  | NoVersion -> ODN.vrt0 "OASISLicense.NoVersion"
+
+let serialize_license_dep_5_unit x =
+  ODN.(REC ("OASISLicense",
+  [ "license", string x.license
+  ; "excption", option string x.excption
+  ; "version", serialize_license_version x.version
+  ]))
+
+let rec serialize_license_dep_5 = function
+  | DEP5Unit d -> ODN.vrt1 serialize_license_dep_5_unit "OASISLicense.DEP5Unit" d
+  | DEP5Or l -> ODN.vrt1 (ODN.list serialize_license_dep_5) "OASISLicense.DEP5Or" l
+  | DEP5And l -> ODN.vrt1 (ODN.list serialize_license_dep_5) "OASISLicense.DEP5And" l
+
+let serialize = function
+  | DEP5License l -> ODN.vrt1 serialize_license_dep_5 "OASISLicense.DEP5License" l
+  | OtherLicense s -> ODN.vrt1 ODN.string "OASISLicense.OtherLicense" s
 
 type license_data =
-  {
-    long_name: string;
+  { long_name: string;
     versions: OASISVersion.t list;
     note: string option;
     deprecated: string option;
@@ -81,12 +92,9 @@ let all_full_licenses = HashStringCsl.create 64
 let deprecated_full_licenses = ref SetStringCsl.empty
 let all_licenses = ref []
 
-
 let string_of_license s = s
 
-
 let string_of_license_exception s = s
-
 
 let string_of_license_dep_5 license_dep_5 =
   let ver =
@@ -467,15 +475,11 @@ let public_domain =
 
 
 type license_exception_data =
-  {
-    explanation: string;
+  { explanation: string;
     licenses:    license list;
   }
 
-
-let all_exceptions =
-  HashStringCsl.create 13
-
+let all_exceptions = HashStringCsl.create 13
 
 let mk_exception nm explanation licenses =
   if HashStringCsl.mem all_exceptions nm then

@@ -1,4 +1,4 @@
-(******************************************************************************)
+(* (******************************************************************************) *)
 (* OASIS: architecture for building OCaml libraries and applications          *)
 (*                                                                            *)
 (* Copyright (C) 2011-2013, Sylvain Le Gall                                   *)
@@ -23,9 +23,9 @@
 open BaseEnv
 open BaseMessage
 open OASISTypes
-open OASISSection
 open OASISGettext
 open OASISUtils
+module ODN = OASISData_notation
 
 
 type std_args_fun =
@@ -342,8 +342,7 @@ let clean, distclean =
   clean, distclean
 
 
-let version t _ =
-  print_endline t.oasis_version
+let version (t:t) _ = print_endline t.oasis_version
 
 
 let update_setup_ml, no_update_setup_ml_cli =
@@ -437,7 +436,7 @@ let update_setup_ml t =
                 (function
                   | 0 ->
                     ()
-                  | n ->
+                  | _ ->
                     failwithf
                       (f_ "Unable to update setup.ml using '%s', \
                            please fix the problem and retry.")
@@ -671,18 +670,14 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update
            function
              | Test (cs, tst) ->
                begin
-                 let ctxt, chng =
-                   (Test.act tst.test_type) ctxt pkg (cs, tst)
-                 in
+                 let ctxt, chng = (Test.act tst.test_type) ctxt pkg (cs, tst) in
                  ctxt,
                  (ODN.TPL [ODN.STR cs.cs_name;
-                           ODNFunc.odn_of_func chng.chng_main]
-                  ::
-                    test_odns),
+                           ODN.serialize_func chng.chng_main]
+                  :: test_odns),
                  (cs.cs_name, chng) :: test_changes
                end
-             | sct ->
-               acc)
+             | _sct -> acc)
         (ctxt, [], [])
         pkg.sections
     in
@@ -703,12 +698,11 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update
                  in
                  ctxt,
                  (ODN.TPL [ODN.STR cs.cs_name;
-                           ODNFunc.odn_of_func chng.chng_main]
-                  ::
-                    doc_odns),
+                           ODN.serialize_func chng.chng_main]
+                  :: doc_odns),
                  (cs.cs_name, chng) :: doc_changes
                end
-             | sct ->
+             | _sct ->
                acc)
         (ctxt, [], [])
         pkg.sections
@@ -787,16 +781,12 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update
       List.map (fun chng -> chng.chng_moduls) lst
     in
     let moduls =
-      List.flatten
-        ([
-          OASISData.oasissys_ml;
-          BaseData.basesysenvironment_ml;
-          BaseData.basesys_ml;
-        ]
-         ::
-           ((extract std_changes) @
-              (extract (List.map snd doc_changes)) @
-              (extract (List.map snd test_changes))))
+      OASISData.oasissys_ml ::
+      BaseData.basesysenvironment_ml ::
+      BaseData.basesys_ml ::
+      List.flatten (extract std_changes) @
+      List.flatten (extract (List.map snd doc_changes)) @
+      List.flatten (extract (List.map snd test_changes))
     in
 
     let rmoduls, _ =
@@ -820,55 +810,55 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update
 
   let setup_t_odn, t =
     let setup_func_calls lst =
-      List.map (fun (nm, chng) -> nm, ODNFunc.func_call chng.chng_main) lst
+      List.map (fun (nm, chng) -> nm, ODN.func_call chng.chng_main) lst
     in
     let func_calls lst =
-      List.map (fun (nm, func) -> nm, ODNFunc.func_call func) lst
+      List.map (fun (nm, func) -> nm, ODN.func_call func) lst
     in
     let odn_of_funcs lst =
-      ODN.LST (List.map ODNFunc.odn_of_func lst)
+      ODN.LST (List.map ODN.serialize_func lst)
     in
     let odn_of_assocs lst =
       ODN.LST
         (List.map
            (fun (nm, func) ->
-              ODN.TPL[ODN.STR nm; ODNFunc.odn_of_func func])
+              ODN.TPL[ODN.STR nm; ODN.serialize_func func])
            lst)
     in
     ODN.REC
       ("BaseSetup",
        [
-         "configure",      ODNFunc.odn_of_func configure_changes.chng_main;
-         "build",          ODNFunc.odn_of_func build_changes.chng_main;
+         "configure",      ODN.serialize_func configure_changes.chng_main;
+         "build",          ODN.serialize_func build_changes.chng_main;
          "test",           test_odn;
          "doc",            doc_odn;
-         "install",        ODNFunc.odn_of_func  install_changes.chng_main;
-         "uninstall",      ODNFunc.odn_of_func  uninstall_changes.chng_main;
+         "install",        ODN.serialize_func  install_changes.chng_main;
+         "uninstall",      ODN.serialize_func  uninstall_changes.chng_main;
          "clean",          odn_of_funcs clean_funcs;
          "clean_test",     odn_of_assocs clean_test_funcs;
          "clean_doc",      odn_of_assocs clean_doc_funcs;
          "distclean",      odn_of_funcs distclean_funcs;
          "distclean_test", odn_of_assocs distclean_test_funcs;
          "distclean_doc",  odn_of_assocs distclean_doc_funcs;
-         "package",        OASISTypes.odn_of_package pkg;
-         "oasis_fn",       ODN.of_option ODN.of_string oasis_fn;
-         "oasis_version",  OASISVersion.odn_of_t OASISConf.version_full;
-         "oasis_digest",   ODN.of_option ODN.of_string oasis_digest;
-         "oasis_exec",     ODN.of_option ODN.of_string oasis_exec;
-         "oasis_setup_args", ODN.of_list ODN.of_string oasis_setup_args;
-         "setup_update",   ODN.of_bool setup_update;
+         "package",        OASISTypes.serialize_package pkg;
+         "oasis_fn",       ODN.option ODN.string oasis_fn;
+         "oasis_version",  OASISVersion.serialize OASISConf.version_full;
+         "oasis_digest",   ODN.option ODN.string oasis_digest;
+         "oasis_exec",     ODN.option ODN.string oasis_exec;
+         "oasis_setup_args", ODN.list ODN.string oasis_setup_args;
+         "setup_update",   ODN.bool setup_update;
        ]),
     {
-      configure        = ODNFunc.func_call configure_changes.chng_main;
-      build            = ODNFunc.func_call build_changes.chng_main;
+      configure        = ODN.func_call configure_changes.chng_main;
+      build            = ODN.func_call build_changes.chng_main;
       doc              = setup_func_calls doc_changes;
       test             = setup_func_calls test_changes;
-      install          = ODNFunc.func_call install_changes.chng_main;
-      uninstall        = ODNFunc.func_call uninstall_changes.chng_main;
-      clean            = List.map ODNFunc.func_call clean_funcs;
+      install          = ODN.func_call install_changes.chng_main;
+      uninstall        = ODN.func_call uninstall_changes.chng_main;
+      clean            = List.map ODN.func_call clean_funcs;
       clean_test       = func_calls clean_test_funcs;
       clean_doc        = func_calls clean_doc_funcs;
-      distclean        = List.map ODNFunc.func_call distclean_funcs;
+      distclean        = List.map ODN.func_call distclean_funcs;
       distclean_test   = func_calls distclean_test_funcs;
       distclean_doc    = func_calls distclean_doc_funcs;
       package          = pkg;
@@ -886,7 +876,7 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update
   let setup_t_str =
     Format.fprintf Format.str_formatter
       "@[<hv2>let setup_t =@ %a;;@]"
-      (ODN.pp_odn ~opened_modules:["OASISTypes"])
+      (ODN.pp ~opened_modules:["OASISTypes"])
       setup_t_odn;
     Format.flush_str_formatter ()
   in

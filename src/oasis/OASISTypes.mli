@@ -471,3 +471,25 @@ type 'a quickstart_question =
   | Choices of 'a list (** Multiple choices in a list. *)
   | ExclusiveChoices of 'a list (** Pick a single choice in the list. *)
 
+(** {2 ODN functions}
+
+    These functions allow to generate setup.ml standalone code, by serializing
+    OCaml data using OCaml notation. They are {b not exported}.
+
+    See module {!OASISData_notation}
+ *)
+
+
+val serialize_name: name OASISData_notation.conv
+val serialize_package_name: package_name OASISData_notation.conv
+val serialize_url: url OASISData_notation.conv
+val serialize_unix_dirname: unix_dirname OASISData_notation.conv
+val serialize_unix_filename: unix_filename OASISData_notation.conv
+val serialize_prog: prog OASISData_notation.conv
+val serialize_arg: arg OASISData_notation.conv
+val serialize_args: args OASISData_notation.conv
+val serialize_command_line: (prog * args) OASISData_notation.conv
+val serialize_findlib_name: findlib_name OASISData_notation.conv
+val serialize_findlib_full: findlib_name OASISData_notation.conv
+val serialize_conditional: 'a OASISData_notation.conv -> 'a OASISExpr.choices OASISData_notation.conv
+val serialize_package: package OASISData_notation.conv

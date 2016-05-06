@@ -33,10 +33,8 @@
 (** Valid licenses *)
 type license
 
-
 (** Valid license exceptions.  *)
 type license_exception
-
 
 (** License version.  *)
 type license_version =
@@ -47,12 +45,10 @@ type license_version =
 
 (** DEP-5 license, basic.  *)
 type license_dep_5_unit =
-  {
-    license:    license;
+  { license:    license;
     excption:   license_exception option;
     version:    license_version;
   }
-
 
 (** DEP-5 license, complex.  *)
 type license_dep_5 =
@@ -61,15 +57,12 @@ type license_dep_5 =
   | DEP5And of license_dep_5 list
 
 
-(** OASIS supported type of license.
-*)
+(** OASIS supported type of license *)
 type t =
   | DEP5License of license_dep_5
   | OtherLicense of string (* URL *)
 
-
-(** Extra data about license {b Not exported}
-*)
+(** Extra data about license {b Not exported} *)
 type license_data =
   {
     long_name: string;
@@ -119,13 +112,10 @@ val string_of_license: license -> string
 val string_of_license_exception: license_exception -> string
 
 
-(** License value. {b Not exported}.
-*)
+(** License value. {b Not exported}. *)
 val value: t OASISValues.t
 
-
-(** Choices for quickstart question. {b Not exported}.
-*)
+(** Choices for quickstart question. {b Not exported}. *)
 val choices: unit -> t list
 
 
@@ -136,11 +126,12 @@ val license_data: unit -> (license * license_data) list
 
 
 (** All available license exception, their name, and compatible license.
-    {b Not exported}.
-*)
+    {b Not exported} *)
 val license_exception_data:
   unit -> (license_exception * license_exception_data) list
 
+(** Dump [ODN.t]. {b Not exported}. *)
+val serialize: t -> OASISData_notation.t
 
 (** {2 License definitions}
 

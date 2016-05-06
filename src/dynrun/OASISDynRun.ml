@@ -30,10 +30,8 @@
 
 let () = OASISBuiltinPlugins.init ()
 
-
 open OASISTypes
 open BaseSetup
-
 
 let setup_t =
   let pkg =
@@ -41,7 +39,6 @@ let setup_t =
   in
   let _, setup_t = BaseSetup.of_package ~setup_update:false OASISSetupUpdate.Dynamic pkg in
   setup_t
-
 
 (* Re-export BaseSetup.setup so one can modify setup_t before passing it
    to setup(). *)

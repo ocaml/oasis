@@ -28,21 +28,21 @@
 
 open OASISTypes
 open OASISGettext
-open OASISMessage
 open OCamlbuildCommon
-open BaseStandardVar
-
-
-    TYPE_CONV_PATH "OCamlbuildDocPlugin"
+module ODN = OASISData_notation
 
 type run_t =
-  {
-    extra_args: string list;
+  { extra_args: string list;
     run_path: unix_filename;
-  } with odn
+  }
 
+let serialize_run (x:run_t) =
+  ODN.(REC ("OCamlbuildDocPlugin",
+    [ "extra_args", list string x.extra_args
+    ; "run_path", serialize_unix_filename x.run_path
+    ]))
 
-let doc_build run pkg (cs, doc) argv =
+let doc_build run _pkg (cs, _doc) argv =
   let index_html =
     OASISUnixPath.make
       [
@@ -70,22 +70,19 @@ let doc_build run pkg (cs, doc) argv =
     ["*.html"; "*.css"]
 
 
-let doc_clean run pkg (cs, doc) argv =
+let doc_clean _run _pkg (cs, _doc) argv =
   run_clean argv;
   BaseBuilt.unregister BaseBuilt.BDoc cs.cs_name
 
 
 (* END EXPORT *)
 
-
 open OASISFileTemplate
-open OASISPlugin
 open OASISValues
 open OASISUtils
 open OASISPlugin
 open OASISSchema
 open OCamlbuildId
-
 
 let plugin =
   `Doc, name, Some version
@@ -194,7 +191,7 @@ let generator =
           List.fold_left
             (fun mp ->
                function
-                 | Library ({cs_name = name}, bs, lib) ->
+                 | Library ({cs_name = name; _}, bs, lib) ->
                    MapString.add name (bs, lib) mp
                  | _ ->
                    mp)
@@ -300,15 +297,15 @@ let doit ctxt pkg (cs, doc) =
       [OCamlbuildData.ocamlbuildsys_ml];
 
     chng_main =
-      ODNFunc.func_with_arg
+      ODN.func_with_arg
         doc_build "OCamlbuildDocPlugin.doc_build"
-        run odn_of_run_t;
+        run serialize_run;
 
     chng_clean =
       Some
-        (ODNFunc.func_with_arg
+        (ODN.func_with_arg
            doc_clean "OCamlbuildDocPlugin.doc_clean"
-           run odn_of_run_t);
+           run serialize_run);
 
     chng_distclean =
       None;

@@ -21,10 +21,10 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: c8ec96e46898eb76b05e345368fff4b5)
+# DO NOT EDIT (digest: b09b1d62eb49ae072a0d8604f317317c)
 version = "0.4.6"
 description = "_oasis file functions"
-requires = "unix odn"
+requires = "unix"
 archive(byte) = "oasis.cma"
 archive(byte, plugin) = "oasis.cma"
 archive(native) = "oasis.cmxa"

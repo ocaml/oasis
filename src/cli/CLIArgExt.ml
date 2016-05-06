@@ -28,7 +28,6 @@
 open OASISGettext
 open OASISMessage
 open CLISubCommand
-open OASISUtils
 open Format
 open FormatExt
 
@@ -46,14 +45,14 @@ type help_style =
 
 let usage_msg =
   Printf.sprintf (f_ "\
-OASIS v%s (C) 2009-2014 OCamlCore SARL, Sylvain Le Gall
-
-oasis [global-options*] subcommand [subcommand-options*]
-
-Environment variables:
-
-OASIS_PAGER: pager to use to display long textual output.
-
+OASIS v%s (C) 2009-2014 OCamlCore SARL, Sylvain Le Gall \n\
+\n\
+oasis [global-options*] subcommand [subcommand-options*] \n\
+\n\
+Environment variables:\n\
+\n\
+OASIS_PAGER: pager to use to display long textual output.\n\
+\n\
 Global command line options:")
     (OASISVersion.string_of_version OASISConf.version_full)
 
@@ -124,8 +123,8 @@ let pp_print_help ~ctxt hext hsty fmt () =
     let pp_print_spec fmt (term, hlp) =
       match hsty with
         | Markdown ->
-          pp_print_def fmt
-            ("`"^term^"`")
+          pp_print_def
+            ("`"^term^"`") fmt
             [pp_print_string_spaced, hlp]
         | Output ->
           pp_print_output_def
@@ -159,7 +158,7 @@ let pp_print_help ~ctxt hext hsty fmt () =
     let sz =
       (* Compute max size of the name. *)
       List.fold_left
-        (fun sz (nm, c) ->
+        (fun sz (nm, _c) ->
            max sz (String.length nm))
         0 all_scmds
     in
@@ -192,10 +191,10 @@ let pp_print_help ~ctxt hext hsty fmt () =
       (fun (name, e) ->
          match hsty, e with
            | Markdown, `Builtin scmd  ->
-             pp_print_def fmt ("`"^name^"`")
+             pp_print_def ("`"^name^"`") fmt
                [pp_print_string_spaced, scmd.scmd_synopsis]
            | Markdown, `Plugin plg ->
-             pp_print_def fmt ("`"^name^"`")
+             pp_print_def ("`"^name^"`") fmt
                (List.map
                   (fun s -> pp_print_string_spaced, s)
                   (plugin_markdown_data plg))
@@ -214,10 +213,10 @@ let pp_print_help ~ctxt hext hsty fmt () =
   let pp_print_scmd fmt ~global_options ?origin scmd =
     let (scmd_specs, _), _  = scmd.scmd_run () in
     if not scmd.scmd_deprecated then
-      pp_print_title fmt 2
+      pp_print_title 2 fmt
         (Printf.sprintf (f_ "Subcommand %s") scmd.scmd_name)
     else
-      pp_print_title fmt 2
+      pp_print_title 2 fmt
         (Printf.sprintf (f_ "Subcommand %s (deprecated)") scmd.scmd_name);
 
     begin
@@ -347,7 +346,7 @@ let parse_and_run () =
         prerr_newline ();
         prerr_endline (get_bad txt);
         exit 2
-      | Arg.Help txt ->
+      | Arg.Help _txt ->
         pp_print_help ~ctxt:(ctxt_gen ()) hext Output std_formatter ();
         exit 0
       | e ->

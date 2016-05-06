@@ -22,7 +22,7 @@
 
 
 open OASISGettext
-
+module ODN = OASISData_notation
 
 type name = string
 
@@ -63,14 +63,14 @@ struct
   let clear t =
     Hashtbl.clear t
 
-
   (* END EXPORT *)
   let elements t =
     let rlst = ref [] in
-    Hashtbl.iter
-      (fun nm _ -> rlst := nm :: !rlst)
-      t;
+    Hashtbl.iter (fun nm _ -> rlst := nm :: !rlst) t;
     !rlst
+
+  let serialize _ =
+    ODN.APP ("PropList.Data.create", [], [ODN.UNT])
   (* START EXPORT *)
 end
 

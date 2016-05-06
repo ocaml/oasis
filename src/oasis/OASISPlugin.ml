@@ -104,6 +104,7 @@ let data_new_property ?(purpose: plugin_data_purpose option) plg =
 
 open OASISGettext
 open OASISUtils
+module ODN = OASISData_notation
 
 
 type modul = string
@@ -112,9 +113,9 @@ type modul = string
 type ('a, 'b) setup_changes =
   {
     chng_moduls: modul list;
-    chng_main: 'a;
-    chng_clean: 'b option;
-    chng_distclean: 'b option;
+    chng_main: 'a ODN.func;
+    chng_clean: ('b ODN.func) option;
+    chng_distclean: ('b ODN.func) option;
   }
 
 

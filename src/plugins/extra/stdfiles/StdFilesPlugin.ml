@@ -33,7 +33,6 @@ open OASISUtils
 open OASISValues
 open OASISGettext
 open OASISVersion
-open OASISPlugin
 open OASISSchema
 open Format
 open FormatExt
@@ -51,7 +50,7 @@ let markdown =
   OASISFeatures.create "stdfiles_markdown" ~plugin
     OASISFeatures.alpha
     (fun () ->
-       s_ "Use markdown comment and replace .txt extensions of standard files by
+       s_ "Use markdown comment and replace .txt extensions of standard files by \
            .md.")
 
 type package =
@@ -415,8 +414,8 @@ let main ctxt pkg =
                    lst
                    bs.bs_build_tools
                end
-             | Test (_, {test_tools = build_tools})
-             | Doc (_, {doc_build_tools = build_tools}) as section ->
+             | Test (_, {test_tools = build_tools; _})
+             | Doc (_, {doc_build_tools = build_tools; _}) as section ->
                add_build_tools
                  (SetSection.singleton section)
                  lst
@@ -548,7 +547,7 @@ let main ctxt pkg =
 
          may (pp_print_paraf fmt "[Home page](%s)") pkg.homepage;
 
-         pp_print_title fmt 2 "Copyright and license";
+         pp_print_title 2 fmt "Copyright and license";
 
          List.iter
            (fun str ->
@@ -582,7 +581,7 @@ let main ctxt pkg =
            "This package uses OASIS to generate its build system. \
             See section OASIS for full information.";
 
-         pp_print_title fmt 1 "Dependencies";
+         pp_print_title 1 fmt "Dependencies";
          fprintf fmt "@[In order to compile this package, you will need:@]@,";
          pp_open_vbox fmt 0;
          pp_print_cut fmt ();

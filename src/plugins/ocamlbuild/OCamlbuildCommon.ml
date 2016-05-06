@@ -29,12 +29,11 @@ open OASISGettext
 open BaseEnv
 open BaseStandardVar
 open OASISTypes
+module ODN = OASISData_notation
 
+type extra_args = string list
 
-    TYPE_CONV_PATH "OCamlbuildCommon"
-
-type extra_args = string list with odn
-
+let serialize_extra_args = ODN.(list string)
 
 let ocamlbuild_clean_ev = "ocamlbuild-clean"
 
@@ -206,11 +205,15 @@ let ocamlbuild_supports_plugin_tags = check_ocaml_version "4.01"
 
 
 type ocamlbuild_common =
-  {
-    plugin_tags: string option;
+  { plugin_tags: string option;
     extra_args: string list;
-  } with odn
+  }
 
+let serialize_ocamlbuild_common x =
+  ODN.(REC ("OCamlbuildCommon",
+    [ "plugin_tags", option string x.plugin_tags
+    ; "extra_args", list string x.extra_args
+    ]))
 
 let ocamlbuild_common_generator pivot_data schm id =
   let new_field nm = OASISSchema.new_field schm id nm in

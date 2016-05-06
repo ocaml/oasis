@@ -35,10 +35,6 @@ open OCamlbuildCommon
 open BaseStandardVar
 open BaseMessage
 
-
-    TYPE_CONV_PATH "OCamlbuildPlugin"
-
-
 let cond_targets_hook =
   ref (fun lst -> lst)
 
@@ -107,8 +103,8 @@ let build extra_args pkg argv =
                       (List.map
                          (List.filter
                             (fun fn ->
-                               ends_with ".cmo" fn
-                               || ends_with ".cmx" fn))
+                               ends_with ~what:".cmo" fn
+                               || ends_with ~what:".cmx" fn))
                          unix_files))
                in
 
@@ -123,7 +119,7 @@ let build extra_args pkg argv =
 
            | Executable (cs, bs, exec) when var_choose bs.bs_build ->
              begin
-               let evs, unix_exec_is, unix_dll_opt =
+               let evs, _unix_exec_is, _unix_dll_opt =
                  BaseBuilt.of_executable
                    in_build_dir_of_unix
                    (cs, bs, exec)
@@ -140,7 +136,7 @@ let build extra_args pkg argv =
                    (* Fix evs, we want to use the unix_tgt, without copying *)
                    List.map
                      (function
-                       | BaseBuilt.BExec, nm, lst when nm = cs.cs_name ->
+                       | BaseBuilt.BExec, nm, _lst when nm = cs.cs_name ->
                          BaseBuilt.BExec, nm,
                          [[in_build_dir_of_unix unix_tgt]]
                        | ev ->
@@ -217,7 +213,6 @@ open OASISFileTemplate
 open OASISUtils
 open OASISMessage
 open OASISGettext
-open ODN
 open OASISPlugin
 open OASISTypes
 open OASISSchema
@@ -225,6 +220,7 @@ open MyOCamlbuildBase
 open Ocamlbuild_plugin
 open OCamlbuildId
 
+module ODN = OASISData_notation
 
 let plugin =
   `Build, name, Some version
@@ -1119,8 +1115,8 @@ let add_ocamlbuild_files ctxt pkg =
             (
               Format.fprintf Format.str_formatter
                 "@[<hv2>let package_default =@ %a@,@];;"
-                (pp_odn ~opened_modules:["Ocamlbuild_plugin"])
-                (MyOCamlbuildBase.odn_of_t myocamlbuild_t);
+                (ODN.pp ~opened_modules:["Ocamlbuild_plugin"])
+                (MyOCamlbuildBase.serialize myocamlbuild_t);
               Format.flush_str_formatter ()
             );
             "";
@@ -1151,10 +1147,10 @@ let doit ctxt pkg =
   ctxt,
   {
     chng_moduls       = [OCamlbuildData.ocamlbuildsys_ml];
-    chng_main         = ODNFunc.func_with_arg build
+    chng_main         = ODN.func_with_arg build
         "OCamlbuildPlugin.build"
-        extra_args odn_of_extra_args;
-    chng_clean        = Some (ODNFunc.func clean "OCamlbuildPlugin.clean");
+        extra_args serialize_extra_args;
+    chng_clean        = Some (ODN.func clean "OCamlbuildPlugin.clean");
     chng_distclean    = None;
   }
 

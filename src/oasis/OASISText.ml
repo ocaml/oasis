@@ -20,13 +20,21 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+module ODN = OASISData_notation
+
 type elt =
   | Para of string
   | Verbatim of string
   | BlankLine
 
+let serialize_elt = function
+  | Para x -> ODN.VRT ("Para", [ODN.STR x])
+  | Verbatim s -> ODN.VRT ("Verbatim", [ODN.STR s])
+  | BlankLine -> ODN.VRT ("BlankLine", [])
 
 type t = elt list
+
+let serialize l = ODN.list serialize_elt l
 
 (* END EXPORT *)
 
