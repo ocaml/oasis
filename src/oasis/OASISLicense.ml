@@ -55,7 +55,7 @@ type t =
 open OASISValues
 open OASISUtils
 open OASISGettext
-module ODN = OASISData_notation
+module ODN = OASISDataNotation
 
 let serialize_license_version = function
   | Version v ->

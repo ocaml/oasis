@@ -476,20 +476,20 @@ type 'a quickstart_question =
     These functions allow to generate setup.ml standalone code, by serializing
     OCaml data using OCaml notation. They are {b not exported}.
 
-    See module {!OASISData_notation}
+    See module {!OASISDataNotation}
  *)
 
 
-val serialize_name: name OASISData_notation.conv
-val serialize_package_name: package_name OASISData_notation.conv
-val serialize_url: url OASISData_notation.conv
-val serialize_unix_dirname: unix_dirname OASISData_notation.conv
-val serialize_unix_filename: unix_filename OASISData_notation.conv
-val serialize_prog: prog OASISData_notation.conv
-val serialize_arg: arg OASISData_notation.conv
-val serialize_args: args OASISData_notation.conv
-val serialize_command_line: (prog * args) OASISData_notation.conv
-val serialize_findlib_name: findlib_name OASISData_notation.conv
-val serialize_findlib_full: findlib_name OASISData_notation.conv
-val serialize_conditional: 'a OASISData_notation.conv -> 'a OASISExpr.choices OASISData_notation.conv
-val serialize_package: package OASISData_notation.conv
+val serialize_name: name OASISDataNotation.conv
+val serialize_package_name: package_name OASISDataNotation.conv
+val serialize_url: url OASISDataNotation.conv
+val serialize_unix_dirname: unix_dirname OASISDataNotation.conv
+val serialize_unix_filename: unix_filename OASISDataNotation.conv
+val serialize_prog: prog OASISDataNotation.conv
+val serialize_arg: arg OASISDataNotation.conv
+val serialize_args: args OASISDataNotation.conv
+val serialize_command_line: (prog * args) OASISDataNotation.conv
+val serialize_findlib_name: findlib_name OASISDataNotation.conv
+val serialize_findlib_full: findlib_name OASISDataNotation.conv
+val serialize_conditional: 'a OASISDataNotation.conv -> 'a OASISExpr.choices OASISDataNotation.conv
+val serialize_package: package OASISDataNotation.conv

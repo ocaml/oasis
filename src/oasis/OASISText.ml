@@ -20,7 +20,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-module ODN = OASISData_notation
+module ODN = OASISDataNotation
 
 type elt =
   | Para of string

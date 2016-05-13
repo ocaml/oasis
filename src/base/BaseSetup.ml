@@ -25,7 +25,7 @@ open BaseMessage
 open OASISTypes
 open OASISGettext
 open OASISUtils
-module ODN = OASISData_notation
+module ODN = OASISDataNotation
 
 
 type std_args_fun =

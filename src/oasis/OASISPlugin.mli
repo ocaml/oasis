@@ -33,7 +33,7 @@
 
 
 open OASISTypes
-module ODN = OASISData_notation
+module ODN = OASISDataNotation
 
 
 module MapPlugin: OASISUtils.MapExt.S with type key = plugin_kind plugin

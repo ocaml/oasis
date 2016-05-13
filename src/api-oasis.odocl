@@ -21,9 +21,9 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 9172d794a81368f768a274b8f9749f72)
+# DO NOT EDIT (digest: b370070c9d867ca1c961a312cd67c2cc)
 oasis/FormatExt
-oasis/OASISData_notation
+oasis/OASISDataNotation
 oasis/PropList
 oasis/OASISUtils
 oasis/OASISUnixPath

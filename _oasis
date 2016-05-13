@@ -53,7 +53,7 @@ if flag(gettext)
 Library oasis
   Path: src/oasis
   Modules: FormatExt,
-           OASISData_notation,
+           OASISDataNotation,
            PropList,
            OASISUtils,
            OASISUnixPath,

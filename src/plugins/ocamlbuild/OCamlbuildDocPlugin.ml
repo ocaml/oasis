@@ -29,7 +29,7 @@
 open OASISTypes
 open OASISGettext
 open OCamlbuildCommon
-module ODN = OASISData_notation
+module ODN = OASISDataNotation
 
 type run_t =
   { extra_args: string list;

@@ -29,7 +29,7 @@
 open BaseEnv
 open OASISGettext
 open OASISTypes
-module ODN = OASISData_notation
+module ODN = OASISDataNotation
 
 type t =
   { cmd_main:      command_line conditional;

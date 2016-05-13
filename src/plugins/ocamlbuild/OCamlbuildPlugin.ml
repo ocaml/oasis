@@ -220,7 +220,7 @@ open MyOCamlbuildBase
 open Ocamlbuild_plugin
 open OCamlbuildId
 
-module ODN = OASISData_notation
+module ODN = OASISDataNotation
 
 let plugin =
   `Build, name, Some version

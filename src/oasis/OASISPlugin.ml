@@ -104,7 +104,7 @@ let data_new_property ?(purpose: plugin_data_purpose option) plg =
 
 open OASISGettext
 open OASISUtils
-module ODN = OASISData_notation
+module ODN = OASISDataNotation
 
 
 type modul = string

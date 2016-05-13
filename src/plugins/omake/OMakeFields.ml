@@ -25,7 +25,7 @@
 *)
 
 open OASISTypes
-module ODN = OASISData_notation
+module ODN = OASISDataNotation
 
 type run_t =
   { run_path : unix_dirname;   (* "doc" only *)

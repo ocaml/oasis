@@ -131,7 +131,7 @@ val license_exception_data:
   unit -> (license_exception * license_exception_data) list
 
 (** Dump [ODN.t]. {b Not exported}. *)
-val serialize: t -> OASISData_notation.t
+val serialize: t -> OASISDataNotation.t
 
 (** {2 License definitions}
 

@@ -67,7 +67,7 @@ sig
   (** List field set, not exported *)
   val elements: t -> string list
 
-  val serialize : t -> OASISData_notation.t
+  val serialize : t -> OASISDataNotation.t
 end
 
 

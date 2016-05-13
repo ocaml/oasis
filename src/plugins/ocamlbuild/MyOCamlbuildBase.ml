@@ -27,7 +27,7 @@
 
 open Ocamlbuild_plugin
 module OC = Ocamlbuild_pack.Ocaml_compiler
-module ODN = OASISData_notation
+module ODN = OASISDataNotation
 
 type dir = string
 type file = string

@@ -22,7 +22,7 @@
 
 
 open OASISGettext
-module ODN = OASISData_notation
+module ODN = OASISDataNotation
 
 type name = string
 

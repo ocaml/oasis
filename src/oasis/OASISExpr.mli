@@ -112,8 +112,8 @@ val reduce_choices: 'a choices -> 'a choices
 val if_then_else: t -> 'a choices -> 'a choices -> 'a choices
 
 (** Dump ODN.t. {b Not exported}. *)
-val serialize : t -> OASISData_notation.t
-val serialize_choices: ('a -> OASISData_notation.t) -> 'a choices -> OASISData_notation.t
+val serialize : t -> OASISDataNotation.t
+val serialize_choices: ('a -> OASISDataNotation.t) -> 'a choices -> OASISDataNotation.t
 
 (** Transform an expression into a string. {b Not exported} *)
 val to_string: t -> string

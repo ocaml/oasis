@@ -29,7 +29,7 @@ open OASISGettext
 open BaseEnv
 open BaseStandardVar
 open OASISTypes
-module ODN = OASISData_notation
+module ODN = OASISDataNotation
 
 type extra_args = string list
 
