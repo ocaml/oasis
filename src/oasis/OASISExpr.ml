@@ -21,16 +21,11 @@
 (******************************************************************************)
 
 
-TYPE_CONV_PATH "OASISExpr"
-
-
 open OASISGettext
 
 
-type test = string with odn
-
-
-type flag = string with odn
+type test = string
+type flag = string
 
 
 type t =
@@ -39,10 +34,10 @@ type t =
   | EAnd of t * t
   | EOr of t * t
   | EFlag of flag
-  | ETest of test * string with odn
+  | ETest of test * string
 
 
-type 'a choices = (t * 'a) list with odn
+type 'a choices = (t * 'a) list
 
 
 let eval var_get t =
@@ -254,3 +249,19 @@ let rec to_string =
 let string_of_choices f lst =
   "["^(String.concat "; "
          (List.rev_map (fun (e, vl) -> (to_string e)^" -> "^(f vl)) lst))^"]"
+
+
+let odn_of_choices odn_of_a x =
+  let open OASISDataNotation in
+  let rec odn_of_t =
+    function
+    | EBool v0 -> VRT ("OASISExpr.EBool", [ of_bool v0 ])
+    | ENot v0 -> VRT ("OASISExpr.ENot", [ odn_of_t v0 ])
+    | EAnd ((v1, v0)) ->
+        VRT ("OASISExpr.EAnd", [ odn_of_t v1; odn_of_t v0 ])
+    | EOr ((v1, v0)) -> VRT ("OASISExpr.EOr", [ odn_of_t v1; odn_of_t v0 ])
+    | EFlag v0 -> VRT ("OASISExpr.EFlag", [ STR v0 ])
+    | ETest ((v1, v0)) ->
+        VRT ("OASISExpr.ETest", [ of_string (string_of_test v1); of_string v0 ])
+  in
+  of_list (fun (v1, v0) -> TPL [ odn_of_t v1; odn_of_a v0 ]) x

@@ -20,14 +20,12 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-TYPE_CONV_PATH "OASISText"
-
 type elt =
   | Para of string
   | Verbatim of string
-  | BlankLine with odn
+  | BlankLine
 
-type t = elt list with odn
+type t = elt list
 
 (* END EXPORT *)
 

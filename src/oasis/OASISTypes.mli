@@ -474,23 +474,16 @@ type 'a quickstart_question =
 
 (** {2 ODN functions}
 
+    TODO: rewrite.
+
     These functions allow to generate setup.ml standalone code, by serializing
     OCaml data using OCaml notation. They are {b not exported}.
 
     See {{:http://forge.ocamlcore.org/projects/odn} the OCaml data notation project}
 *)
 
-
-val odn_of_name:          name -> ODN.t
-val odn_of_package_name:  package_name -> ODN.t
-val odn_of_url:           url -> ODN.t
-val odn_of_unix_dirname:  unix_dirname -> ODN.t
-val odn_of_unix_filename: unix_filename -> ODN.t
-val odn_of_prog:          prog -> ODN.t
-val odn_of_arg:           arg -> ODN.t
-val odn_of_args:          args -> ODN.t
-val odn_of_command_line:  prog * args -> ODN.t
-val odn_of_findlib_name:  findlib_name -> ODN.t
-val odn_of_findlib_full:  findlib_name -> ODN.t
-val odn_of_conditional:  ('a -> ODN.t) -> 'a OASISExpr.choices -> ODN.t
-val odn_of_package: package -> ODN.t
+val odn_of_unix_dirname:  unix_dirname -> OASISDataNotation.t
+val odn_of_unix_filename: unix_filename -> OASISDataNotation.t
+val odn_of_command_line:  prog * args -> OASISDataNotation.t
+val odn_of_conditional:  ('a -> OASISDataNotation.t) -> 'a OASISExpr.choices -> OASISDataNotation.t
+val odn_of_package: package -> OASISDataNotation.t

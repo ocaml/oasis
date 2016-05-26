@@ -21,9 +21,8 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 1f72f17551ed9241b5c309db1dbad600)
+# DO NOT EDIT (digest: d76fb5f10b4b53345e879fd52a37eb74)
 oasis/FormatExt
-oasis/ODNFunc
 oasis/PropList
 oasis/OASISUtils
 oasis/OASISUnixPath
@@ -59,6 +58,7 @@ oasis/OASISFileUtil
 oasis/OASISHostPath
 oasis/OASISGraph
 oasis/OASISFeatures
+oasis/OASISDataNotation
 base/BaseArgExt
 base/BaseBuilt
 base/BaseCheck

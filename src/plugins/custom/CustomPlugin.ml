@@ -30,16 +30,12 @@ open BaseEnv
 open OASISGettext
 open OASISTypes
 
-
-TYPE_CONV_PATH "CustomPlugin"
-
-
 type t =
   {
     cmd_main:      command_line conditional;
     cmd_clean:     (command_line option) conditional;
     cmd_distclean: (command_line option) conditional;
-  } with odn
+  }
 
 
 let run  = BaseCustom.run
@@ -170,7 +166,6 @@ module DocRuntime   = Doc
 
 
 open OASISGettext
-open ODN
 open OASISTypes
 open OASISValues
 open OASISPlugin
@@ -253,6 +248,15 @@ let add_fields
   in
   cmd_main, cmd_clean, cmd_distclean, generator
 
+let odn_of_t v =
+  let open OASISDataNotation in
+  REC ("CustomPlugin",
+  [ ("cmd_main",
+      (odn_of_conditional odn_of_command_line v.cmd_main));
+    ("cmd_clean",
+      (odn_of_conditional (of_option odn_of_command_line) v.cmd_clean));
+    ("cmd_distclean",
+      (odn_of_conditional (of_option odn_of_command_line) v.cmd_distclean))])
 
 (** Standard custom handling
 *)
@@ -272,19 +276,19 @@ let std id data nm hlp hlp_clean hlp_distclean =
         [CustomData.customsys_ml];
 
       chng_main =
-        ODNFunc.func_with_arg
+        OASISDataNotation.func_with_arg
           main ("CustomPlugin.main")
           t odn_of_t;
 
       chng_clean =
         Some
-          (ODNFunc.func_with_arg
+          (OASISDataNotation.func_with_arg
              clean ("CustomPlugin.clean")
              t odn_of_t);
 
       chng_distclean =
         Some
-          (ODNFunc.func_with_arg
+          (OASISDataNotation.func_with_arg
              distclean ("CustomPlugin.distclean")
              t odn_of_t);
     }
@@ -335,19 +339,19 @@ let build_init () =
         [CustomData.customsys_ml];
 
       chng_main =
-        ODNFunc.func_with_arg
+        OASISDataNotation.func_with_arg
           BuildRuntime.main ("CustomPlugin.Build.main")
           t odn_of_t;
 
       chng_clean =
         Some
-          (ODNFunc.func_with_arg
+          (OASISDataNotation.func_with_arg
              BuildRuntime.clean ("CustomPlugin.Build.clean")
              t odn_of_t);
 
       chng_distclean =
         Some
-          (ODNFunc.func_with_arg
+          (OASISDataNotation.func_with_arg
              BuildRuntime.distclean ("CustomPlugin.Build.distclean")
              t odn_of_t);
     }
@@ -409,19 +413,19 @@ let doc_init () =
         [CustomData.customsys_ml];
 
       chng_main =
-        ODNFunc.func_with_arg
+        OASISDataNotation.func_with_arg
           DocRuntime.main ("CustomPlugin.Doc.main")
           t odn_of_t;
 
       chng_clean =
         Some
-          (ODNFunc.func_with_arg
+          (OASISDataNotation.func_with_arg
              DocRuntime.clean ("CustomPlugin.Doc.clean")
              t odn_of_t);
 
       chng_distclean =
         Some
-          (ODNFunc.func_with_arg
+          (OASISDataNotation.func_with_arg
              DocRuntime.distclean ("CustomPlugin.Doc.distclean")
              t odn_of_t);
     }
@@ -474,19 +478,19 @@ let test_init () =
         [CustomData.customsys_ml];
 
       chng_main =
-        ODNFunc.func_with_arg
+        OASISDataNotation.func_with_arg
           TestRuntime.main ("CustomPlugin.Test.main")
           t odn_of_t;
 
       chng_clean =
         Some
-          (ODNFunc.func_with_arg
+          (OASISDataNotation.func_with_arg
              TestRuntime.clean ("CustomPlugin.Test.clean")
              t odn_of_t);
 
       chng_distclean =
         Some
-          (ODNFunc.func_with_arg
+          (OASISDataNotation.func_with_arg
              TestRuntime.distclean ("CustomPlugin.Test.distclean")
              t odn_of_t);
     }

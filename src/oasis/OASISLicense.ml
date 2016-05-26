@@ -26,19 +26,14 @@
 *)
 
 
-TYPE_CONV_PATH "OASISLicense"
-
-
-type license = string with odn
-
-
-type license_exception = string with odn
+type license = string
+type license_exception = string
 
 
 type license_version =
   | Version of OASISVersion.t
   | VersionOrLater of OASISVersion.t
-  | NoVersion with odn
+  | NoVersion
 
 
 type license_dep_5_unit =
@@ -46,17 +41,18 @@ type license_dep_5_unit =
     license:   license;
     excption:  license_exception option;
     version:   license_version;
-  } with odn
+  }
 
 
 type license_dep_5 =
   | DEP5Unit of license_dep_5_unit
   | DEP5Or of license_dep_5 list
-  | DEP5And of license_dep_5 list with odn
+  | DEP5And of license_dep_5 list
+
 
 type t =
   | DEP5License of license_dep_5
-  | OtherLicense of string (* URL *) with odn
+  | OtherLicense of string (* URL *)
 
 
 (* END EXPORT *)
@@ -760,3 +756,40 @@ let choices () =
     preferred @ (List.filter (fun l -> not (List.mem l preferred)) all)
   in
   List.map (fun t -> DEP5License (DEP5Unit t)) all
+
+
+let odn_of_t =
+  let open OASISDataNotation in
+  let odn_of_license = of_string in
+  let odn_of_license_exception = of_string in
+  let odn_of_license_version =
+    function
+    | Version v0 ->
+        VRT ("OASISLicense.Version", [ OASISVersion.odn_of_t v0 ])
+    | VersionOrLater v0 ->
+        VRT ("OASISLicense.VersionOrLater", [ OASISVersion.odn_of_t v0 ])
+    | NoVersion -> VRT ("OASISLicense.NoVersion", [])
+  in
+  let odn_of_license_dep_5_unit v =
+    REC ("OASISLicense",
+      [ ("license", (odn_of_license v.license));
+        ("excption",
+         ((fun x -> of_option odn_of_license_exception x) v.excption));
+        ("version", (odn_of_license_version v.version)) ])
+  in
+  let rec odn_of_license_dep_5 =
+    function
+    | DEP5Unit v0 ->
+        VRT ("OASISLicense.DEP5Unit", [ odn_of_license_dep_5_unit v0 ])
+    | DEP5Or v0 ->
+        VRT ("OASISLicense.DEP5Or",
+          [ (fun x -> of_list odn_of_license_dep_5 x) v0 ])
+    | DEP5And v0 ->
+        VRT ("OASISLicense.DEP5And",
+          [ (fun x -> of_list odn_of_license_dep_5 x) v0 ])
+  in
+    function
+    | DEP5License v0 ->
+        VRT ("OASISLicense.DEP5License", [ odn_of_license_dep_5 v0 ])
+    | OtherLicense v0 ->
+        VRT ("OASISLicense.OtherLicense", [ of_string v0 ])

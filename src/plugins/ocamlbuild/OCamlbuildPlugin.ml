@@ -36,9 +36,6 @@ open BaseStandardVar
 open BaseMessage
 
 
-TYPE_CONV_PATH "OCamlbuildPlugin"
-
-
 let cond_targets_hook =
   ref (fun lst -> lst)
 
@@ -217,7 +214,6 @@ open OASISFileTemplate
 open OASISUtils
 open OASISMessage
 open OASISGettext
-open ODN
 open OASISPlugin
 open OASISTypes
 open OASISSchema
@@ -1119,7 +1115,7 @@ let add_ocamlbuild_files ctxt pkg =
             (
               Format.fprintf Format.str_formatter
                 "@[<hv2>let package_default =@ %a@,@];;"
-                (pp_odn ~opened_modules:["Ocamlbuild_plugin"])
+                (OASISDataNotation.pp_odn ~opened_modules:["Ocamlbuild_plugin"])
                 (MyOCamlbuildBase.odn_of_t myocamlbuild_t);
               Format.flush_str_formatter ()
             );
@@ -1151,10 +1147,10 @@ let doit ctxt pkg =
     ctxt,
     {
       chng_moduls       = [OCamlbuildData.ocamlbuildsys_ml];
-      chng_main         = ODNFunc.func_with_arg build
+      chng_main         = OASISDataNotation.func_with_arg build
                             "OCamlbuildPlugin.build"
-                            extra_args odn_of_extra_args;
-      chng_clean        = Some (ODNFunc.func clean "OCamlbuildPlugin.clean");
+                            extra_args (OASISDataNotation.of_list OASISDataNotation.of_string);
+      chng_clean        = Some (OASISDataNotation.func clean "OCamlbuildPlugin.clean");
       chng_distclean    = None;
     }
 

@@ -675,8 +675,9 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update
                    (Test.act tst.test_type) ctxt pkg (cs, tst)
                  in
                  ctxt,
-                 (ODN.TPL [ODN.STR cs.cs_name;
-                           ODNFunc.odn_of_func chng.chng_main]
+                 (OASISDataNotation.TPL
+                   [OASISDataNotation.STR cs.cs_name;
+                    OASISDataNotation.odn_of_func chng.chng_main]
                   ::
                     test_odns),
                  (cs.cs_name, chng) :: test_changes
@@ -687,7 +688,7 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update
         pkg.sections
     in
     ctxt,
-    ODN.LST (List.rev test_odns),
+    OASISDataNotation.LST (List.rev test_odns),
     List.rev test_changes
   in
 
@@ -702,8 +703,9 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update
                    (Doc.act doc.doc_type) ctxt pkg (cs, doc)
                  in
                  ctxt,
-                 (ODN.TPL [ODN.STR cs.cs_name;
-                           ODNFunc.odn_of_func chng.chng_main]
+                 (OASISDataNotation.TPL
+                   [OASISDataNotation.STR cs.cs_name;
+                     OASISDataNotation.odn_of_func chng.chng_main]
                   ::
                     doc_odns),
                  (cs.cs_name, chng) :: doc_changes
@@ -714,7 +716,7 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update
         pkg.sections
     in
     ctxt,
-    ODN.LST (List.rev doc_odns),
+    OASISDataNotation.LST (List.rev doc_odns),
     List.rev doc_changes
   in
 
@@ -820,30 +822,30 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update
 
   let setup_t_odn, t =
     let setup_func_calls lst =
-      List.map (fun (nm, chng) -> nm, ODNFunc.func_call chng.chng_main) lst
+      List.map (fun (nm, chng) -> nm, OASISDataNotation.func_call chng.chng_main) lst
     in
     let func_calls lst =
-      List.map (fun (nm, func) -> nm, ODNFunc.func_call func) lst
+      List.map (fun (nm, func) -> nm, OASISDataNotation.func_call func) lst
     in
     let odn_of_funcs lst =
-      ODN.LST (List.map ODNFunc.odn_of_func lst)
+      OASISDataNotation.LST (List.map OASISDataNotation.odn_of_func lst)
     in
     let odn_of_assocs lst =
-      ODN.LST
+      OASISDataNotation.LST
         (List.map
            (fun (nm, func) ->
-              ODN.TPL[ODN.STR nm; ODNFunc.odn_of_func func])
+              OASISDataNotation.TPL[OASISDataNotation.STR nm; OASISDataNotation.odn_of_func func])
            lst)
     in
-    ODN.REC
+    OASISDataNotation.REC
       ("BaseSetup",
        [
-         "configure",      ODNFunc.odn_of_func configure_changes.chng_main;
-         "build",          ODNFunc.odn_of_func build_changes.chng_main;
+         "configure",      OASISDataNotation.odn_of_func configure_changes.chng_main;
+         "build",          OASISDataNotation.odn_of_func build_changes.chng_main;
          "test",           test_odn;
          "doc",            doc_odn;
-         "install",        ODNFunc.odn_of_func  install_changes.chng_main;
-         "uninstall",      ODNFunc.odn_of_func  uninstall_changes.chng_main;
+         "install",        OASISDataNotation.odn_of_func  install_changes.chng_main;
+         "uninstall",      OASISDataNotation.odn_of_func  uninstall_changes.chng_main;
          "clean",          odn_of_funcs clean_funcs;
          "clean_test",     odn_of_assocs clean_test_funcs;
          "clean_doc",      odn_of_assocs clean_doc_funcs;
@@ -851,24 +853,24 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update
          "distclean_test", odn_of_assocs distclean_test_funcs;
          "distclean_doc",  odn_of_assocs distclean_doc_funcs;
          "package",        OASISTypes.odn_of_package pkg;
-         "oasis_fn",       ODN.of_option ODN.of_string oasis_fn;
+         "oasis_fn",       OASISDataNotation.of_option OASISDataNotation.of_string oasis_fn;
          "oasis_version",  OASISVersion.odn_of_t OASISConf.version_full;
-         "oasis_digest",   ODN.of_option ODN.of_string oasis_digest;
-         "oasis_exec",     ODN.of_option ODN.of_string oasis_exec;
-         "oasis_setup_args", ODN.of_list ODN.of_string oasis_setup_args;
-         "setup_update",   ODN.of_bool setup_update;
+         "oasis_digest",   OASISDataNotation.of_option OASISDataNotation.of_string oasis_digest;
+         "oasis_exec",     OASISDataNotation.of_option OASISDataNotation.of_string oasis_exec;
+         "oasis_setup_args", OASISDataNotation.of_list OASISDataNotation.of_string oasis_setup_args;
+         "setup_update",   OASISDataNotation.of_bool setup_update;
        ]),
     {
-      configure        = ODNFunc.func_call configure_changes.chng_main;
-      build            = ODNFunc.func_call build_changes.chng_main;
+      configure        = OASISDataNotation.func_call configure_changes.chng_main;
+      build            = OASISDataNotation.func_call build_changes.chng_main;
       doc              = setup_func_calls doc_changes;
       test             = setup_func_calls test_changes;
-      install          = ODNFunc.func_call install_changes.chng_main;
-      uninstall        = ODNFunc.func_call uninstall_changes.chng_main;
-      clean            = List.map ODNFunc.func_call clean_funcs;
+      install          = OASISDataNotation.func_call install_changes.chng_main;
+      uninstall        = OASISDataNotation.func_call uninstall_changes.chng_main;
+      clean            = List.map OASISDataNotation.func_call clean_funcs;
       clean_test       = func_calls clean_test_funcs;
       clean_doc        = func_calls clean_doc_funcs;
-      distclean        = List.map ODNFunc.func_call distclean_funcs;
+      distclean        = List.map OASISDataNotation.func_call distclean_funcs;
       distclean_test   = func_calls distclean_test_funcs;
       distclean_doc    = func_calls distclean_doc_funcs;
       package          = pkg;
@@ -886,7 +888,7 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update
   let setup_t_str =
     Format.fprintf Format.str_formatter
       "@[<hv2>let setup_t =@ %a;;@]"
-      (ODN.pp_odn ~opened_modules:["OASISTypes"])
+      (OASISDataNotation.pp_odn ~opened_modules:["OASISTypes"])
       setup_t_odn;
     Format.flush_str_formatter ()
   in

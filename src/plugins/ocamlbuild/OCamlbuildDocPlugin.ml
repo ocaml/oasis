@@ -33,14 +33,11 @@ open OCamlbuildCommon
 open BaseStandardVar
 
 
-TYPE_CONV_PATH "OCamlbuildDocPlugin"
-
-
 type run_t =
   {
     extra_args: string list;
     run_path: unix_filename;
-  } with odn
+  }
 
 
 let doc_build run pkg (cs, doc) argv =
@@ -295,19 +292,24 @@ let doit ctxt pkg (cs, doc) =
       extra_args = extra_args_ocamlbuild_common ~ctxt:ctxt.ctxt pkg t.common;
     }
   in
+  let odn_of_run_t v =
+    OASISDataNotation.REC ("OCamlbuildDocPlugin",
+      [ ("extra_args", ((fun x -> OASISDataNotation.of_list OASISDataNotation.of_string x) v.extra_args));
+        ("run_path", (odn_of_unix_filename v.run_path)) ])
+  in
   ctxt,
   {
     chng_moduls =
       [OCamlbuildData.ocamlbuildsys_ml];
 
     chng_main =
-      ODNFunc.func_with_arg
+      OASISDataNotation.func_with_arg
         doc_build "OCamlbuildDocPlugin.doc_build"
         run odn_of_run_t;
 
     chng_clean =
       Some
-        (ODNFunc.func_with_arg
+        (OASISDataNotation.func_with_arg
            doc_clean "OCamlbuildDocPlugin.doc_clean"
            run odn_of_run_t);
 

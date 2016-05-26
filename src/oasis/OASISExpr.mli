@@ -113,10 +113,8 @@ val reduce_choices: (t * 'a) list -> (t * 'a) list
 val if_then_else: t -> (t * 'a) list -> (t * 'a) list -> (t * 'a) list
 
 
-(** Dump ODN.t. {b Not exported}. *)
-val odn_of_t: t -> ODN.t
-val odn_of_choices: ('a -> ODN.t) -> 'a choices -> ODN.t
-
+(** Dump OASISDataNotation.t. {b Not exported}. *)
+val odn_of_choices: ('a -> OASISDataNotation.t) -> 'a choices -> OASISDataNotation.t
 
 (** Transform an expression into a string. {b Not exported} *)
 val to_string: t -> string

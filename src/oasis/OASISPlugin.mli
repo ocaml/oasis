@@ -59,15 +59,15 @@ type ('a, 'b) setup_changes =
     chng_moduls: modul list;
     (** OCaml module to be added to setup file *)
 
-    chng_main: 'a ODNFunc.func;
+    chng_main: 'a OASISDataNotation.func;
     (** Main function to be added to BaseSetup.t (i.e. the one that
         that really do something: configure, build, test...)
     *)
 
-    chng_clean: 'b ODNFunc.func option;
+    chng_clean: 'b OASISDataNotation.func option;
     (** Function to be called when cleaning *)
 
-    chng_distclean: 'b ODNFunc.func option;
+    chng_distclean: 'b OASISDataNotation.func option;
     (** Function to be called when distcleaning *)
   }
 

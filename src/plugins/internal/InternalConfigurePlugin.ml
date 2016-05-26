@@ -286,7 +286,7 @@ let init () =
       chng_clean     = None;
       chng_distclean = None;
       chng_main =
-        (ODNFunc.func
+        (OASISDataNotation.func
            configure
            "InternalConfigurePlugin.configure");
     }

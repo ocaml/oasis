@@ -21,9 +21,8 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 956bbf8934f72275c29c20c43c69ebdc)
+# DO NOT EDIT (digest: 49d54d119c48fca06f7bd9cfdc3ed30b)
 FormatExt
-ODNFunc
 PropList
 OASISUtils
 OASISUnixPath
@@ -59,6 +58,7 @@ OASISFileUtil
 OASISHostPath
 OASISGraph
 OASISFeatures
+OASISDataNotation
 OASISVersion_types
 OASISVersion_lexer
 OASISVersion_parser

@@ -24,13 +24,8 @@
 open OASISGettext
 
 
-TYPE_CONV_PATH "OASISVersion"
-
-
 type s = string
-
-
-type t = string with odn
+type t = string
 
 
 type comparator =
@@ -40,7 +35,7 @@ type comparator =
   | VLesser of t
   | VLesserEqual of t
   | VOr of  comparator * comparator
-  | VAnd of comparator * comparator with odn
+  | VAnd of comparator * comparator
 
 
 (* Range of allowed characters *)
@@ -380,3 +375,21 @@ let comparator_value =
     update = update_fail;
     print  = string_of_comparator;
   }
+
+let odn_of_t = OASISDataNotation.of_string
+
+let rec odn_of_comparator =
+  let open OASISDataNotation in
+  function
+  | VGreater v0 -> VRT ("OASISVersion.VGreater", [ odn_of_t v0 ])
+  | VGreaterEqual v0 ->
+      VRT ("OASISVersion.VGreaterEqual", [ odn_of_t v0 ])
+  | VEqual v0 -> VRT ("OASISVersion.VEqual", [ odn_of_t v0 ])
+  | VLesser v0 -> VRT ("OASISVersion.VLesser", [ odn_of_t v0 ])
+  | VLesserEqual v0 -> VRT ("OASISVersion.VLesserEqual", [ odn_of_t v0 ])
+  | VOr ((v1, v0)) ->
+      VRT ("OASISVersion.VOr",
+        [ odn_of_comparator v1; odn_of_comparator v0 ])
+  | VAnd ((v1, v0)) ->
+      VRT ("OASISVersion.VAnd",
+        [ odn_of_comparator v1; odn_of_comparator v0 ])

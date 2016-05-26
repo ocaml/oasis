@@ -24,7 +24,6 @@ open Format
 open OASISTypes
 open OASISUtils
 open OASISFileTemplate
-open ODN
 open OASISPlugin
 open BaseMessage
 open OASISGettext

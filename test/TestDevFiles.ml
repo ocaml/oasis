@@ -46,7 +46,7 @@ let run_ocaml_setup_ml
       else
         [Printf.sprintf
            "%sFLAGS=%s"
-           (String.uppercase arg)
+           (OASISString.uppercase_ascii arg)
            (String.concat " " args)
         ]
     in

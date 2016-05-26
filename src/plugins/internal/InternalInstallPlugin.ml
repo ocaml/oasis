@@ -648,7 +648,7 @@ let init () =
     ctxt,
     {
       chng_moduls    = [InternalData.internalsys_ml];
-      chng_main      = ODNFunc.func install "InternalInstallPlugin.install";
+      chng_main      = OASISDataNotation.func install "InternalInstallPlugin.install";
       chng_clean     = None;
       chng_distclean = None;
     }
@@ -659,7 +659,7 @@ let init () =
     ctxt,
     {
       chng_moduls    = [InternalData.internalsys_ml];
-      chng_main      = ODNFunc.func uninstall "InternalInstallPlugin.uninstall";
+      chng_main      = OASISDataNotation.func uninstall "InternalInstallPlugin.uninstall";
       chng_clean     = None;
       chng_distclean = None;
     }

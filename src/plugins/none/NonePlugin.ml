@@ -52,9 +52,9 @@ let std_no_generate str ctxt pkg =
     chng_clean     = None;
     chng_distclean = None;
     chng_main =
-      (ODNFunc.func_with_arg
+      (OASISDataNotation.func_with_arg
          not_implemented "NonePlugin.not_implemented"
-         str ODN.of_string);
+         str OASISDataNotation.of_string);
   }
 
 

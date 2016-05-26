@@ -26,39 +26,14 @@
   *)
 
 
-TYPE_CONV_PATH "MyOCamlbuildBase"
-
-
 open Ocamlbuild_plugin
 module OC = Ocamlbuild_pack.Ocaml_compiler
 
 
-type dir = string with odn
-type file = string with odn
-type name = string with odn
-type tag = string with odn
-
-
-(* END EXPORT *)
-let rec odn_of_spec =
-  let vrt nm lst =
-    ODN.VRT ("Ocamlbuild_plugin."^nm, lst)
-  in
-  let vrt_str nm str =
-    vrt nm [ODN.STR str]
-  in
-    function
-      | N     -> vrt "N" []
-      | S lst -> vrt "S" [ODN.of_list odn_of_spec lst]
-      | A s   -> vrt_str "A" s
-      | P s   -> vrt_str "P" s
-      | Px s  -> vrt_str "Px" s
-      | Sh s  -> vrt_str "Sh" s
-      | V s   -> vrt_str "V" s
-      | Quote spc -> vrt "Quote" [odn_of_spec spc]
-      | T _ ->
-          assert false
-(* START EXPORT *)
+type dir = string
+type file = string
+type name = string
+type tag = string
 
 
 type t =
@@ -70,7 +45,68 @@ type t =
        * directory.
        *)
       includes:  (dir * dir list) list;
-    } with odn
+    }
+
+
+(* END EXPORT *)
+let odn_of_t v =
+  let open OASISDataNotation in
+  let rec odn_of_spec =
+    let vrt nm lst =
+      VRT ("Ocamlbuild_plugin."^nm, lst)
+    in
+    let vrt_str nm str =
+      vrt nm [STR str]
+    in
+      function
+        | N     -> vrt "N" []
+        | S lst -> vrt "S" [of_list odn_of_spec lst]
+        | A s   -> vrt_str "A" s
+        | P s   -> vrt_str "P" s
+        | Px s  -> vrt_str "Px" s
+        | Sh s  -> vrt_str "Sh" s
+        | V s   -> vrt_str "V" s
+        | Quote spc -> vrt "Quote" [odn_of_spec spc]
+        | T _ ->
+            assert false
+  in
+  REC ("MyOCamlbuildBase",
+    [ ("lib_ocaml",
+       ((fun x ->
+           of_list
+             (fun (v2, v1, v0) ->
+                TPL
+                  [ of_string v2; of_list of_string v1;
+                    of_list of_string v0 ])
+             x)
+          v.lib_ocaml));
+      ("lib_c",
+       ((fun x ->
+           of_list
+             (fun (v2, v1, v0) ->
+                TPL
+                  [ of_string v2; of_string v1;
+                    of_list of_string v0 ])
+             x)
+          v.lib_c));
+      ("flags",
+       ((fun x ->
+           of_list
+             (fun (v1, v0) ->
+                TPL
+                  [ of_list of_string v1;
+                    OASISExpr.odn_of_choices odn_of_spec v0 ])
+             x)
+          v.flags));
+      ("includes",
+       ((fun x ->
+           of_list
+             (fun (v1, v0) ->
+                TPL
+                  [ of_string v1; of_list of_string v0 ])
+             x)
+          v.includes)) ])
+(* START EXPORT *)
 
 
 let env_filename =

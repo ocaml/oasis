@@ -21,40 +21,37 @@
 (******************************************************************************)
 
 
-TYPE_CONV_PATH "OASISTypes"
+type name          = string
+type package_name  = string
+type url           = string
+type unix_dirname  = string
+type unix_filename = string
+type host_dirname  = string
+type host_filename = string
+type prog          = string
+type arg           = string
+type args          = string list
+type command_line  = (prog * arg list)
 
 
-type name          = string with odn
-type package_name  = string with odn
-type url           = string with odn
-type unix_dirname  = string with odn
-type unix_filename = string with odn
-type host_dirname  = string with odn
-type host_filename = string with odn
-type prog          = string with odn
-type arg           = string with odn
-type args          = string list with odn
-type command_line  = (prog * arg list) with odn
-
-
-type findlib_name = string with odn
-type findlib_full = string with odn
+type findlib_name = string
+type findlib_full = string
 
 
 type compiled_object =
   | Byte
   | Native
-  | Best with odn
+  | Best
 
 
 type dependency =
   | FindlibPackage of findlib_full * OASISVersion.comparator option
-  | InternalLibrary of name with odn
+  | InternalLibrary of name
 
 
 type tool =
   | ExternalTool of name
-  | InternalExecutable of name with odn
+  | InternalExecutable of name
 
 
 type vcs =
@@ -66,7 +63,7 @@ type vcs =
   | Bzr
   | Arch
   | Monotone
-  | OtherVCS of url with odn
+  | OtherVCS of url
 
 
 type plugin_kind =
@@ -94,7 +91,7 @@ type plugin_data_purpose =
   ]
 
 
-type 'a plugin = 'a * name * OASISVersion.t option with odn
+type 'a plugin = 'a * name * OASISVersion.t option
 
 
 type all_plugin = plugin_kind plugin
@@ -103,21 +100,14 @@ type all_plugin = plugin_kind plugin
 type plugin_data = (all_plugin * plugin_data_purpose * (unit -> unit)) list
 
 
-(* END EXPORT *)
-(* TODO: really export this *)
-let odn_of_plugin_data _ =
-  ODN.of_list (fun _ -> ODN.UNT) []
-(* START EXPORT *)
-
-
-type 'a conditional = 'a OASISExpr.choices with odn
+type 'a conditional = 'a OASISExpr.choices
 
 
 type custom =
   {
     pre_command:  (command_line option) conditional;
     post_command: (command_line option) conditional;
-  } with odn
+  }
 
 
 type common_section =
@@ -125,7 +115,7 @@ type common_section =
     cs_name: name;
     cs_data: PropList.Data.t;
     cs_plugin_data: plugin_data;
-  } with odn
+  }
 
 
 type build_section =
@@ -144,7 +134,7 @@ type build_section =
     bs_dllpath:         args conditional;
     bs_byteopt:         args conditional;
     bs_nativeopt:       args conditional;
-  } with odn
+  }
 
 
 type library =
@@ -155,28 +145,28 @@ type library =
     lib_findlib_parent:     findlib_name option;
     lib_findlib_name:       findlib_name option;
     lib_findlib_containers: findlib_name list;
-  } with odn
+  }
 
 
 type object_ =
   {
     obj_modules:            string list;
     obj_findlib_fullname:   findlib_name list option;
-  } with odn
+  }
 
 
 type executable =
   {
     exec_custom:          bool;
     exec_main_is:         unix_filename;
-  } with odn
+  }
 
 
 type flag =
   {
     flag_description:  string option;
     flag_default:      bool conditional;
-  } with odn
+  }
 
 
 type source_repository =
@@ -188,7 +178,7 @@ type source_repository =
     src_repo_branch:      string option;
     src_repo_tag:         string option;
     src_repo_subdir:      unix_filename option;
-  } with odn
+  }
 
 
 type test =
@@ -199,7 +189,7 @@ type test =
     test_working_directory:  unix_filename option;
     test_run:                bool conditional;
     test_tools:              tool list;
-  } with odn
+  }
 
 
 type doc_format =
@@ -209,7 +199,7 @@ type doc_format =
   | PostScript
   | Info of unix_filename
   | DVI
-  | OtherDoc with odn
+  | OtherDoc
 
 
 type doc =
@@ -225,7 +215,7 @@ type doc =
     doc_format:      doc_format;
     doc_data_files:  (unix_filename * unix_filename option) list;
     doc_build_tools: tool list;
-  } with odn
+  }
 
 
 type section =
@@ -235,7 +225,7 @@ type section =
   | Flag       of common_section * flag
   | SrcRepo    of common_section * source_repository
   | Test       of common_section * test
-  | Doc        of common_section * doc with odn
+  | Doc        of common_section * doc
 
 
 type section_kind =
@@ -282,7 +272,7 @@ type package =
     disable_oasis_section:  unix_filename list;
     schema_data:            PropList.Data.t;
     plugin_data:            plugin_data;
-  } with odn
+  }
 
 
 (* END EXPORT *)
@@ -300,3 +290,272 @@ type 'a quickstart_question =
   | Text
   | Choices of 'a list
   | ExclusiveChoices of 'a list
+
+
+let odn_of_unix_dirname = OASISDataNotation.of_string
+let odn_of_unix_filename = OASISDataNotation.of_string
+let odn_of_conditional = OASISExpr.odn_of_choices
+
+let odn_of_command_line (prog, args) =
+  OASISDataNotation.TPL [OASISDataNotation.STR prog; OASISDataNotation.of_list OASISDataNotation.of_string args]
+
+let odn_of_package pkg =
+  let open OASISDataNotation in
+  let proplist_data = APP ("PropList.Data.create", [], [UNT]) in
+  let odn_of_args = of_list of_string in
+  let odn_of_plugin odn_of_a (v2, v1, v0) =
+    TPL
+      [ odn_of_a v2;
+        of_string v1;
+        of_option OASISVersion.odn_of_t v0]
+  in
+  let odn_of_custom v =
+    REC
+    ("OASISTypes",
+    ["pre_command", odn_of_conditional (of_option odn_of_command_line) v.pre_command;
+    "post_command", odn_of_conditional (of_option odn_of_command_line) v.post_command])
+  in
+  let odn_of_tool =
+    function
+    | ExternalTool v0 ->
+        VRT ("OASISTypes.ExternalTool", [ STR v0 ])
+    | InternalExecutable v0 ->
+        VRT ("OASISTypes.InternalExecutable", [ STR v0 ])
+  in
+  let odn_of_dependency =
+    function
+    | FindlibPackage ((v1, v0)) ->
+        VRT ("OASISTypes.FindlibPackage",
+          [ of_string v1;
+            (fun x -> of_option OASISVersion.odn_of_comparator x) v0 ])
+    | InternalLibrary v0 ->
+        VRT ("OASISTypes.InternalLibrary", [ STR v0 ])
+  in
+  let odn_of_compiled_object =
+    function
+    | Byte -> VRT ("OASISTypes.Byte", [])
+    | Native -> VRT ("OASISTypes.Native", [])
+    | Best -> VRT ("OASISTypes.Best", [])
+  in
+  let odn_of_common_section v =
+    REC ("OASISTypes",
+      [ ("cs_name", (STR v.cs_name));
+        ("cs_data", proplist_data);
+        ("cs_plugin_data", LST []) ])
+  in
+  let odn_of_build_section v =
+    REC ("OASISTypes",
+      [ ("bs_build", (odn_of_conditional of_bool v.bs_build));
+        ("bs_install", (odn_of_conditional of_bool v.bs_install));
+        ("bs_path", (odn_of_unix_dirname v.bs_path));
+        ("bs_compiled_object", (odn_of_compiled_object v.bs_compiled_object));
+        ("bs_build_depends",
+         ((fun x -> of_list odn_of_dependency x) v.bs_build_depends));
+        ("bs_build_tools",
+         ((fun x -> of_list odn_of_tool x) v.bs_build_tools));
+        ("bs_c_sources",
+         ((fun x -> of_list odn_of_unix_filename x) v.bs_c_sources));
+        ("bs_data_files",
+         ((fun x ->
+             of_list
+               (fun (v1, v0) ->
+                  TPL
+                    [ odn_of_unix_filename v1;
+                      (fun x -> of_option odn_of_unix_filename x) v0 ])
+               x)
+            v.bs_data_files));
+        ("bs_ccopt", (odn_of_conditional odn_of_args v.bs_ccopt));
+        ("bs_cclib", (odn_of_conditional odn_of_args v.bs_cclib));
+        ("bs_dlllib", (odn_of_conditional odn_of_args v.bs_dlllib));
+        ("bs_dllpath", (odn_of_conditional odn_of_args v.bs_dllpath));
+        ("bs_byteopt", (odn_of_conditional odn_of_args v.bs_byteopt));
+        ("bs_nativeopt", (odn_of_conditional odn_of_args v.bs_nativeopt)) ])
+  in
+  let odn_of_library v =
+    REC ("OASISTypes",
+      [ ("lib_modules", ((fun x -> of_list of_string x) v.lib_modules));
+        ("lib_pack", (of_bool v.lib_pack));
+        ("lib_internal_modules",
+         ((fun x -> of_list of_string x) v.lib_internal_modules));
+        ("lib_findlib_parent",
+         ((fun x -> of_option of_string x) v.lib_findlib_parent));
+        ("lib_findlib_name",
+         ((fun x -> of_option of_string x) v.lib_findlib_name));
+        ("lib_findlib_containers",
+         ((fun x -> of_list of_string x) v.lib_findlib_containers)) ])
+  in
+  let odn_of_object_ v =
+    REC ("OASISTypes",
+      [ ("obj_modules", ((fun x -> of_list of_string x) v.obj_modules));
+        ("obj_findlib_fullname",
+         ((fun x ->
+             of_option (fun x -> of_list of_string x) x)
+            v.obj_findlib_fullname)) ])
+  in
+  let odn_of_executable v =
+    REC ("OASISTypes",
+      [ ("exec_custom", (of_bool v.exec_custom));
+        ("exec_main_is", (odn_of_unix_filename v.exec_main_is)) ])
+  in
+  let odn_of_flag v =
+    REC ("OASISTypes",
+      [ ("flag_description",
+         ((fun x -> of_option of_string x) v.flag_description));
+        ("flag_default", (odn_of_conditional of_bool v.flag_default)) ])
+  in
+  let odn_of_vcs =
+    function
+    | Darcs -> VRT ("OASISTypes.Darcs", [])
+    | Git -> VRT ("OASISTypes.Git", [])
+    | Svn -> VRT ("OASISTypes.Svn", [])
+    | Cvs -> VRT ("OASISTypes.Cvs", [])
+    | Hg -> VRT ("OASISTypes.Hg", [])
+    | Bzr -> VRT ("OASISTypes.Bzr", [])
+    | Arch -> VRT ("OASISTypes.Arch", [])
+    | Monotone -> VRT ("OASISTypes.Monotone", [])
+    | OtherVCS v0 -> VRT ("OASISTypes.OtherVCS", [ STR v0 ])
+  in
+  let odn_of_source_repository v =
+    REC ("OASISTypes",
+      [ ("src_repo_type", (odn_of_vcs v.src_repo_type));
+        ("src_repo_location", (STR v.src_repo_location));
+        ("src_repo_browser",
+         ((fun x -> of_option of_string x) v.src_repo_browser));
+        ("src_repo_module",
+         ((fun x -> of_option of_string x) v.src_repo_module));
+        ("src_repo_branch",
+         ((fun x -> of_option of_string x) v.src_repo_branch));
+        ("src_repo_tag",
+         ((fun x -> of_option of_string x) v.src_repo_tag));
+        ("src_repo_subdir",
+         ((fun x -> of_option odn_of_unix_filename x) v.src_repo_subdir)) ])
+  in
+  let odn_of_test v =
+    REC ("OASISTypes",
+      [ ("test_type",
+         (odn_of_plugin (function | `Test -> PVR ("Test", None))
+            v.test_type));
+        ("test_command",
+         (odn_of_conditional odn_of_command_line v.test_command));
+        ("test_custom", (odn_of_custom v.test_custom));
+        ("test_working_directory",
+         ((fun x -> of_option odn_of_unix_filename x)
+            v.test_working_directory));
+        ("test_run", (odn_of_conditional of_bool v.test_run));
+        ("test_tools", ((fun x -> of_list odn_of_tool x) v.test_tools)) ])
+  in
+  let odn_of_doc_format =
+    function
+    | HTML v0 -> VRT ("OASISTypes.HTML", [ odn_of_unix_filename v0 ])
+    | DocText -> VRT ("OASISTypes.DocText", [])
+    | PDF -> VRT ("OASISTypes.PDF", [])
+    | PostScript -> VRT ("OASISTypes.PostScript", [])
+    | Info v0 -> VRT ("OASISTypes.Info", [ odn_of_unix_filename v0 ])
+    | DVI -> VRT ("OASISTypes.DVI", [])
+    | OtherDoc -> VRT ("OASISTypes.OtherDoc", [])
+  in
+  let odn_of_doc v =
+    REC ("OASISTypes",
+      [ ("doc_type",
+         (odn_of_plugin (function | `Doc -> PVR ("Doc", None)) v.doc_type));
+        ("doc_custom", (odn_of_custom v.doc_custom));
+        ("doc_build", (odn_of_conditional of_bool v.doc_build));
+        ("doc_install", (odn_of_conditional of_bool v.doc_install));
+        ("doc_install_dir", (odn_of_unix_filename v.doc_install_dir));
+        ("doc_title", (of_string v.doc_title));
+        ("doc_authors", ((fun x -> of_list of_string x) v.doc_authors));
+        ("doc_abstract",
+         ((fun x -> of_option of_string x) v.doc_abstract));
+        ("doc_format", (odn_of_doc_format v.doc_format));
+        ("doc_data_files",
+         ((fun x ->
+             of_list
+               (fun (v1, v0) ->
+                  TPL
+                    [ odn_of_unix_filename v1;
+                      (fun x -> of_option odn_of_unix_filename x) v0 ])
+               x)
+            v.doc_data_files));
+        ("doc_build_tools",
+         ((fun x -> of_list odn_of_tool x) v.doc_build_tools)) ])
+  in
+  let odn_of_section =
+    function
+    | Library ((v2, v1, v0)) ->
+        VRT ("OASISTypes.Library",
+          [ odn_of_common_section v2; odn_of_build_section v1;
+            odn_of_library v0 ])
+    | Object ((v2, v1, v0)) ->
+        VRT ("OASISTypes.Object",
+          [ odn_of_common_section v2; odn_of_build_section v1;
+            odn_of_object_ v0 ])
+    | Executable ((v2, v1, v0)) ->
+        VRT ("OASISTypes.Executable",
+          [ odn_of_common_section v2; odn_of_build_section v1;
+            odn_of_executable v0 ])
+    | Flag ((v1, v0)) ->
+        VRT ("OASISTypes.Flag",
+          [ odn_of_common_section v1; odn_of_flag v0 ])
+    | SrcRepo ((v1, v0)) ->
+        VRT ("OASISTypes.SrcRepo",
+          [ odn_of_common_section v1; odn_of_source_repository v0 ])
+    | Test ((v1, v0)) ->
+        VRT ("OASISTypes.Test",
+          [ odn_of_common_section v1; odn_of_test v0 ])
+    | Doc ((v1, v0)) ->
+        VRT ("OASISTypes.Doc", [ odn_of_common_section v1; odn_of_doc v0 ])
+  in
+  let odn_of_text =
+    let odn_of_elt =
+      function
+      | OASISText.Para v0 -> VRT ("OASISText.Para", [ of_string v0 ])
+      | OASISText.Verbatim v0 -> VRT ("OASISText.Verbatim", [ of_string v0 ])
+      | OASISText.BlankLine -> VRT ("OASISText.BlankLine", [])
+    in
+    of_list odn_of_elt
+  in
+  REC ("OASISTypes",
+    [ ("oasis_version", (OASISVersion.odn_of_t pkg.oasis_version));
+      ("ocaml_version", (of_option OASISVersion.odn_of_comparator) pkg.ocaml_version);
+      ("version",         (OASISVersion.odn_of_t pkg.version));
+      ("license",         (OASISLicense.odn_of_t pkg.license));
+      ("findlib_version", (of_option OASISVersion.odn_of_comparator pkg.findlib_version));
+      ("alpha_features",  (of_list of_string pkg.alpha_features));
+      ("beta_features",   (of_list of_string pkg.beta_features));
+      ("name",            (STR pkg.name));
+      ("license_file",    (of_option odn_of_unix_filename pkg.license_file));
+      ("copyrights",      (of_list of_string pkg.copyrights));
+      ("maintainers",     (of_list of_string pkg.maintainers));
+      ("authors",         (of_list of_string pkg.authors));
+      ("homepage",        (of_option of_string pkg.homepage));
+      ("bugreports",      (of_option of_string pkg.bugreports));
+      ("synopsis",        (of_string pkg.synopsis));
+      ("description",     (of_option odn_of_text pkg.description));
+      ("tags",            (of_list of_string pkg.tags));
+      ("categories",      (of_list of_string pkg.categories));
+      ("files_ab",        (of_list odn_of_unix_filename pkg.files_ab));
+      ("sections",        (of_list odn_of_section pkg.sections));
+      ("disable_oasis_section", (of_list odn_of_unix_filename pkg.disable_oasis_section));
+      ("conf_type",
+       (odn_of_plugin (function | `Configure -> PVR ("Configure", None))
+          pkg.conf_type));
+      ("conf_custom", (odn_of_custom pkg.conf_custom));
+      ("build_type",
+       (odn_of_plugin (function | `Build -> PVR ("Build", None))
+          pkg.build_type));
+      ("build_custom", (odn_of_custom pkg.build_custom));
+      ("install_type",
+       (odn_of_plugin (function | `Install -> PVR ("Install", None))
+          pkg.install_type));
+      ("install_custom", (odn_of_custom pkg.install_custom));
+      ("uninstall_custom", (odn_of_custom pkg.uninstall_custom));
+      ("clean_custom", (odn_of_custom pkg.clean_custom));
+      ("distclean_custom", (odn_of_custom pkg.distclean_custom));
+      ("plugins",
+       ((fun x ->
+           of_list
+             (odn_of_plugin (function | `Extra -> PVR ("Extra", None))) x)
+          pkg.plugins));
+      ("schema_data", proplist_data);
+      ("plugin_data", LST []);
+    ])
