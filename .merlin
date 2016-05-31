@@ -1,4 +1,8 @@
 S src/**
+S test/**
 B _build/src/**
+B _build/test/**
 PKG unix
+PKG oUnit
+PKG fileutils
 FLG -w +a-4-44
