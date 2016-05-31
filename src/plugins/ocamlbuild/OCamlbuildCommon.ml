@@ -184,12 +184,7 @@ end
 
 (** Check OCaml version constraint defined in _oasis. *)
 let check_ocaml_version version pkg =
-  match pkg.ocaml_version with
-    | Some ocaml_version ->
-      let min_ocaml_version = OASISVersion.version_of_string version in
-      OASISVersion.comparator_ge min_ocaml_version ocaml_version
-    | None ->
-      false
+  OASISVersion.StringVersion.comparator_ge version pkg.ocaml_version
 
 
 let ocamlbuild_more_args =

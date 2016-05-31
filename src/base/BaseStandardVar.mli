@@ -48,7 +48,7 @@ val flexdll_version: unit -> string
 
 
 val pkg_name:    unit -> name
-val pkg_version: unit -> OASISVersion.s
+val pkg_version: unit -> OASISVersion.StringVersion.t
 
 
 (** {2 ocamlc config variables} *)
@@ -107,7 +107,7 @@ val destdir:        unit -> host_dirname
 
 (** Findlib version.
 *)
-val findlib_version: unit -> OASISVersion.s
+val findlib_version: unit -> OASISVersion.StringVersion.t
 
 
 (** Check that the platform is a native platform (can compile native

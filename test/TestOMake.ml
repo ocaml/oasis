@@ -20,7 +20,6 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-open FileUtil
 open OUnit2
 open TestCommon
 open OASISPlugin
@@ -64,7 +63,7 @@ let all_tests =
     "complex",
     (fun test_ctxt t ->
        skip_if
-         (OASISVersion.version_compare_string t.ocaml_version "4.00.0" < 0)
+         (OASISVersion.StringVersion.compare t.ocaml_version "4.00.0" < 0)
          "Need OCaml 4.00.0 at least.";
        oasis_setup test_ctxt t;
        register_generated_files t

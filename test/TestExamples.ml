@@ -131,7 +131,7 @@ let all_tests =
                "Baz.annot"; "Baz.cmt"; "bar.annot"; "bar.cmt"; "bar.cmti";
                "foo.annot"; "foo.cmt"; "foo.cmti"])
          ];
-       if OASISVersion.version_compare_string t.ocaml_version "4.02" >= 0 then begin
+       if OASISVersion.StringVersion.compare t.ocaml_version "4.02" >= 0 then begin
          register_installed_files test_ctxt t [InstalledOCamlLibrary("packedlib", ["packedlib.cmt"])]
        end;
        (* Run standard test. *)
@@ -196,7 +196,7 @@ let all_tests =
               "A.annot"; "A.cmt"]);
           InstalledAPIRef("with-c", ["A"]);
         ];
-      if OASISVersion.version_compare_string t.ocaml_version "4.00" < 0 then
+      if OASISVersion.StringVersion.compare t.ocaml_version "4.00" < 0 then
         register_installed_files test_ctxt t
           [InstalledHTML("with-c", ["code_VALA.ident.html"])];
       (* Run standard test. *)

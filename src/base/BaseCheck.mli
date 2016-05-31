@@ -58,14 +58,14 @@ val ocamlfind: unit -> host_filename
 *)
 val version:
   string ->
-  OASISVersion.comparator -> (unit -> OASISVersion.s) ->
+  OASISVersion.comparator -> (unit -> OASISVersion.StringVersion.t) ->
   unit ->
-  OASISVersion.s
+  OASISVersion.StringVersion.t
 
 
 (** Get findlib package version .
 *)
-val package_version: findlib_full -> OASISVersion.s
+val package_version: findlib_full -> OASISVersion.StringVersion.t
 
 
 (** Check for findlib package and version. Return install directory.

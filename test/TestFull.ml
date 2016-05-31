@@ -221,7 +221,7 @@ let all_tests =
                "mylib.cmxa"; "mylib.cmxs"; "mylib.cmx";
                "mylib.a"; "libmylib_stubs.a"])
          ];
-       if OASISVersion.version_compare_string t.ocaml_version "4.02" >= 0 then begin
+       if OASISVersion.StringVersion.compare t.ocaml_version "4.02" >= 0 then begin
          register_installed_files test_ctxt t [InstalledOCamlLibrary("mylib", ["mylib.cmt"])]
        end;
        (* Run standard test. *)
@@ -292,7 +292,7 @@ let all_tests =
     (fun test_ctxt t ->
        let () =
          skip_if
-           (OASISVersion.version_compare_string t.ocaml_version "4.00" < 0)
+           (OASISVersion.StringVersion.compare t.ocaml_version "4.00" < 0)
            "OCaml >= 4.00 needed."
        in
          oasis_setup test_ctxt t;
@@ -404,7 +404,7 @@ let all_tests =
                "m.cmi"; "m.cmt"; "m.ml"; "m.cmx";
               ]);
          ];
-       if OASISVersion.version_compare_string t.ocaml_version "4.02" >= 0 then begin
+       if OASISVersion.StringVersion.compare t.ocaml_version "4.02" >= 0 then begin
          register_installed_files test_ctxt t [InstalledOCamlLibrary("bar", ["bar.cmt"])]
        end;
        (* Run standard test. *)

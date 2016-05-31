@@ -158,7 +158,7 @@ let check_all_files_style test_ctxt dn =
       "0.0.6"
   in
     logf test_ctxt `Info "Using ocamlmod version %s." ocamlmod_version;
-    if OASISVersion.version_compare_string ocamlmod_version "0.0.7" >= 0 then
+    if OASISVersion.StringVersion.compare ocamlmod_version "0.0.7" >= 0 then
       FileUtil.find Is_file dn
         (fun () fn -> check_file_style test_ctxt fn)
         ()
@@ -585,10 +585,10 @@ let register_installed_files test_ctxt t installed_files_lst =
            | "cmxs" when not t.native_dynlink ->
                acc
            | "annot" when
-               OASISVersion.version_compare_string t.ocaml_version "3.11" < 0 ->
+               OASISVersion.StringVersion.compare t.ocaml_version "3.11" < 0 ->
                acc
            | "cmt" | "cmti" when
-               OASISVersion.version_compare_string t.ocaml_version "4.01" < 0 ->
+               OASISVersion.StringVersion.compare t.ocaml_version "4.01" < 0 ->
                acc
            | "a" ->
                let fn =
@@ -607,7 +607,7 @@ let register_installed_files test_ctxt t installed_files_lst =
                (FilePath.replace_extension fn ".dll") :: acc
            | "html" when 
                FilePath.basename fn = "index_extensions.html" 
-               && OASISVersion.version_compare_string t.ocaml_version "4.02" < 0 ->
+               && OASISVersion.StringVersion.compare t.ocaml_version "4.02" < 0 ->
                acc
            | _ ->
                fn :: acc)

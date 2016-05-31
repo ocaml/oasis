@@ -24,7 +24,6 @@
 open OASISGettext
 
 
-type s = string
 type t = string
 
 
@@ -128,20 +127,15 @@ let rec version_compare v1 v2 =
         | n ->
           n
     end
-  else
-    begin
-      0
-    end
+  else begin
+    0
+  end
 
 
 let version_of_string str = str
 
 
 let string_of_version t = t
-
-
-let version_compare_string s1 s2 =
-  version_compare (version_of_string s1) (version_of_string s2)
 
 
 let chop t =
@@ -204,23 +198,37 @@ let rec varname_of_comparator =
       (varname_of_comparator c1)^"_and_"^(varname_of_comparator c2)
 
 
-let rec comparator_ge v' =
-  let cmp v = version_compare v v' >= 0 in
-  function
-    | VEqual v
-    | VGreaterEqual v
-    | VGreater v -> cmp v
-    | VLesserEqual _
-    | VLesser _ -> false
-    | VOr (c1, c2) -> comparator_ge v' c1 || comparator_ge v' c2
-    | VAnd (c1, c2) -> comparator_ge v' c1 && comparator_ge v' c2
-
-
 (* END EXPORT *)
 
 
 open OASISUtils
 open OASISVersion_types
+
+
+module StringVersion =
+struct
+  type t = string
+
+  let to_version = version_of_string
+
+  let compare s1 s2 = version_compare (to_version s1) (to_version s2)
+
+  let comparator_ge s c_opt =
+    let rec comparator_ge' v' =
+      let cmp v = version_compare v v' >= 0 in
+      function
+      | VEqual v
+      | VGreaterEqual v
+      | VGreater v -> cmp v
+      | VLesserEqual _
+      | VLesser _ -> false
+      | VOr (c1, c2) -> comparator_ge' v' c1 || comparator_ge' v' c2
+      | VAnd (c1, c2) -> comparator_ge' v' c1 && comparator_ge' v' c2
+    in
+    match c_opt with
+    | Some c -> comparator_ge' (to_version s) c
+    | None -> false
+end
 
 
 let comparator_of_string str =
@@ -262,7 +270,7 @@ let comparator_reduce =
         let d = version_compare v1 v2 in
         if d = 0 then `EQ else if d < 0 then `AB else `BA
   in
-  let rec split e1 e2 e3 tl =
+  let split e1 e2 e3 tl =
     match e2 with
       | `Version v2 -> `Interval(e1, e2) :: `Point v2 :: `Interval(e2, e3) :: tl
       | _ -> assert false
@@ -363,7 +371,7 @@ open OASISValues
 
 let value =
   {
-    parse  = (fun ~ctxt s -> version_of_string s);
+    parse  = (fun ~ctxt:_ s -> version_of_string s);
     update = update_fail;
     print  = string_of_version;
   }
@@ -371,7 +379,7 @@ let value =
 
 let comparator_value =
   {
-    parse  = (fun ~ctxt s -> comparator_of_string s);
+    parse  = (fun ~ctxt:_ s -> comparator_of_string s);
     update = update_fail;
     print  = string_of_comparator;
   }

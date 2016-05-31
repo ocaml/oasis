@@ -39,20 +39,12 @@
 (** {2 Version} *)
 
 
-type s = string
-
-
 type t
 
 
 (** Compare versions.
 *)
 val version_compare: t -> t -> int
-
-
-(** Convert and compare version strings.
-*)
-val version_compare_string: string -> string -> int
 
 
 (** Convert a string to version.
@@ -109,12 +101,6 @@ val string_of_comparator: comparator -> string
 val varname_of_comparator: comparator -> string
 
 
-(** [comparator_ge version comparator]
-    Check if [comparator] is compatible with all versions >= than [version]
-*)
-val comparator_ge: t -> comparator -> bool
-
-
 (** Convert a string to comparator. {b Not exported}.
 *)
 val comparator_of_string: string -> comparator
@@ -133,3 +119,22 @@ val comparator_value: comparator OASISValues.t
 (** Dump [OASISDataNotation.t]. {b Not exported}.
 *)
 val odn_of_comparator:  comparator -> OASISDataNotation.t
+
+
+(** The module [OASISVersion.StringVersion] uses [string] for version.
+*)
+module StringVersion:
+sig
+  type t = string
+
+  (** Compare version strings.
+  *)
+  val compare: t -> t -> int
+
+  (** [comparator_ge version comparator_opt]
+      Check if [comparator] is compatible with all versions >= than [version].
+      Return [false] if comparator is [None].
+      {b Not exported}
+  *)
+  val comparator_ge: string -> comparator option -> bool
+end

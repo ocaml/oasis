@@ -34,7 +34,7 @@ let all_tests =
     (fun test_ctxt t ->
        let () =
          skip_if
-           (OASISVersion.version_compare_string t.ocaml_version "3.12.1" < 0)
+           (OASISVersion.StringVersion.compare t.ocaml_version "3.12.1" < 0)
            "OCaml >= 3.12.1 needed."
        in
        let real_ocamlfind = FileUtil.which "ocamlfind" in
