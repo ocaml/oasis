@@ -641,18 +641,21 @@ let find ctxt =
       default_filename
 
 
-let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update pkg =
+let of_package ?ctxt ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update pkg =
 
   let ctxt =
     (* Initial context *)
     {
       error         = false;
       other_actions = [];
-      ctxt          = !BaseContext.default;
       update        = update;
       files = OASISFileTemplate.create
           ~disable_oasis_section:pkg.disable_oasis_section
           ();
+      ctxt =
+        (match ctxt with
+         | Some ctxt -> ctxt
+         |  None -> !BaseContext.default);
     }
   in
 
@@ -682,8 +685,7 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update
                     test_odns),
                  (cs.cs_name, chng) :: test_changes
                end
-             | sct ->
-               acc)
+             | _ -> acc)
         (ctxt, [], [])
         pkg.sections
     in
@@ -710,8 +712,7 @@ let of_package ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update
                     doc_odns),
                  (cs.cs_name, chng) :: doc_changes
                end
-             | sct ->
-               acc)
+             | _ -> acc)
         (ctxt, [], [])
         pkg.sections
     in

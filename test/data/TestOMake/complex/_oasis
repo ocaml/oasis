@@ -1,4 +1,5 @@
 OASISFormat:  0.4
+OCamlVersion: >= 4.01
 Name:         complex
 Version:      0.1
 Synopsis:     Libraries and executables
@@ -7,7 +8,6 @@ License:      LGPL with OCaml linking exception
 BuildTools:   omake
 BuildType:    OMake (0.4)
 Plugins:      META (0.4)
-OCamlVersion: >= 4.00.0
 
 Library liba
   Modules:         A2

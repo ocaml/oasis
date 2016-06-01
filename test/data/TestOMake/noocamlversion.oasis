@@ -1,5 +1,4 @@
 OASISFormat:  0.4
-OCamlVersion: >= 4.01
 Name:         simplelib
 Version:      0.0.1
 Authors:      Mauricio Fernandez <mfp@acm.org>
@@ -20,11 +19,3 @@ Description:
 Library simplelib
   Path:    src
   Modules: Foo, Bar
-
-Document simplelib
-  Title:           API reference for simplelib
-  Type:            omake (0.4)
-  InstallDir:      $htmldir/simplelib
-  BuildTools+:     ocamldoc
-  XOMakePath:      src
-  XOMakeLibraries: simplelib

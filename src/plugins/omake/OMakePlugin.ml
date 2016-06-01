@@ -27,7 +27,6 @@
 
 
 open BaseEnv
-open OASISGettext
 open OASISTypes
 
 
@@ -85,7 +84,7 @@ struct
           ())
       pkg.sections
 
-  let distclean run pkg extra_args =
+  let distclean run _ extra_args =
     run_command "omake" (["distclean"] @ OMakeFields.(run.extra_args))
       extra_args;
     List.iter
@@ -96,10 +95,10 @@ end
 
 
 module InstallRuntime = struct
-  let install run pkg extra_args =
+  let install run _ extra_args =
     run_command "omake" (["install"] @ OMakeFields.(run.extra_args)) extra_args
 
-  let uninstall run pkg extra_args =
+  let uninstall run _ extra_args =
     run_command "omake" (["uninstall"] @ OMakeFields.(run.extra_args))
       extra_args
 end
@@ -114,7 +113,7 @@ module DocRuntime = struct
           cs.cs_name ^ ".doc";
           string_of_format doc.doc_format;
         ] in
-    run_command "omake" ([target] @ OMakeFields.(run.extra_args)) extra_args;
+    run_command "omake" ([target] @ run.OMakeFields.extra_args) extra_args;
     (* The following exists only to make the internal install plugin happy: *)
     List.iter
       (fun sct ->
@@ -148,10 +147,7 @@ end
 
 
 open OASISGettext
-open OASISTypes
-open OASISValues
 open OASISPlugin
-open OASISSchema
 open OMakeFields
 
 
@@ -160,6 +156,14 @@ let odn_of_run_t v =
     [ ("run_path", (odn_of_unix_dirname v.run_path));
       ("extra_args", ((fun x -> OASISDataNotation.of_list OASISDataNotation.of_string x) v.extra_args)) ])
 
+let need_ocaml_401 ctxt pkg =
+  let open OASISVersion.StringVersion in
+  set_error
+    (not (comparator_ge "4.01" pkg.ocaml_version))
+    "omake plugin is only available for OCaml >= 4.01. \
+     Please restrict your requirements with 'OCamlVersion: >= 4.01'."
+    ctxt
+
 (* Build plugin *)
 let build_init () =
   let generator data =
@@ -167,8 +171,8 @@ let build_init () =
       OMakeFields.extra_args = OMakeFields.BuildFields.extra_args data;
     } in
   let doit ctxt pkg =
-    let run =
-      generator pkg.schema_data in
+    let ctxt = need_ocaml_401 ctxt pkg in
+    let run = generator pkg.schema_data in
     let equip() =
       OMakeEquip.equip_project ctxt pkg in
     { ctxt with other_actions = equip :: ctxt.other_actions },
@@ -200,17 +204,17 @@ let build_init () =
 
 (* Install plugin *)
 let install_init () =
-  let generator_inst data =
+  let generator_inst _ =
     { OMakeFields.run_path = "";
       OMakeFields.extra_args = []
     } in
-  let generator_uninst data =
+  let generator_uninst _ =
     { OMakeFields.run_path = "";
       OMakeFields.extra_args = []
     } in
   let doit_install ctxt pkg =
-    let run =
-      generator_inst pkg.schema_data in
+    let ctxt = need_ocaml_401 ctxt pkg in
+    let run = generator_inst pkg.schema_data in
     let equip() =
       OMakeEquip.equip_project ctxt pkg in
     { ctxt with other_actions = equip :: ctxt.other_actions },
@@ -225,8 +229,8 @@ let install_init () =
       chng_distclean = None
     } in
   let doit_uninstall ctxt pkg =
-    let run =
-      generator_uninst pkg.schema_data in
+    let ctxt = need_ocaml_401 ctxt pkg in
+    let run = generator_uninst pkg.schema_data in
     let equip() =
       OMakeEquip.equip_project ctxt pkg in
     { ctxt with other_actions = equip :: ctxt.other_actions },
@@ -252,7 +256,7 @@ let doc_init () =
     { OMakeFields.run_path = DocFields.path data;
       OMakeFields.extra_args = BuildFields.extra_args data;
     } in
-  let doit ctxt pkg (cs,doc) =
+  let doit ctxt pkg (cs, _) =
     let run =
       generator cs.cs_data in
     let equip() =

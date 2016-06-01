@@ -153,6 +153,7 @@ val find: OASISPlugin.context_act -> OASISFileTemplate.template
     matching _oasis. {b Not exported}.
 *)
 val of_package:
+  ?ctxt:OASISContext.t ->
   ?oasis_fn:host_filename ->
   ?oasis_exec:host_filename ->
   ?oasis_setup_args:string list ->

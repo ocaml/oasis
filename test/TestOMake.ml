@@ -62,9 +62,6 @@ let all_tests =
 
     "complex",
     (fun test_ctxt t ->
-       skip_if
-         (OASISVersion.StringVersion.compare t.ocaml_version "4.00.0" < 0)
-         "Need OCaml 4.00.0 at least.";
        oasis_setup test_ctxt t;
        register_generated_files t
          (oasis_omake_files
@@ -128,28 +125,54 @@ let tests =
   List.flatten
     [
       [
-        "simplelib-generation" >::
+        "generation" >::
         (fun test_ctxt ->
-           let dn =
-             in_testdata_dir test_ctxt ["TestOMake"; "simplelib"]
+           let generate ?(want_error=false) bn =
+             let dn = in_testdata_dir test_ctxt ["TestOMake"] in
+             let fn = in_testdata_dir test_ctxt ("TestOMake" :: bn) in
+             let pkg =
+               logf test_ctxt `Info "Parsing file %S." fn;
+               OASISParse.from_file ~ctxt:oasis_ignore_plugin_ctxt fn
+             in
+             let ctxt, _ =
+               logf test_ctxt `Info "Generating setup using file %S." fn;
+               with_bracket_chdir test_ctxt dn
+                 (fun _ ->
+                    BaseSetup.of_package
+                      (* TODO: always override printf, move to TestCommon. *)
+                      ~ctxt:{oasis_ctxt with
+                                   OASISContext.printf =
+                                     (fun lvl str ->
+                                        match lvl with
+                                        | `Error |  `Info | `Warning as lvl'->
+                                          logf test_ctxt lvl' "%s" str
+                                        | `Debug ->
+                                          (* TODO: output when OUnit will
+                                             support debug. *)
+                                          ())}
+                      ~setup_update:false
+                      OASISSetupUpdate.NoUpdate
+                      pkg)
+             in
+             if want_error && not ctxt.error then
+               assert_failure "Expecting an error during generation, got none."
+             else if not want_error && ctxt.error then
+               assert_failure "Expecting no error during generation, got one."
            in
-           let fn = Filename.concat dn OASISParse.default_oasis_fn in
-           let pkg = OASISParse.from_file ~ctxt:oasis_ctxt fn in
-           let ctxt, _ =
-             with_bracket_chdir test_ctxt dn
-               (fun test_ctxt ->
-                  BaseSetup.of_package ~setup_update:false OASISSetupUpdate.NoUpdate pkg)
-           in
-           let () =
-             assert_bool "No error during generation." (not ctxt.error)
-           in
-           ()
-        );
+           generate ["simplelib"; "_oasis"];
+           generate ~want_error:true ["noocamlversion.oasis"];
+           generate ~want_error:true ["ocamlversion312.oasis"];
+           generate ["ocamlversion401.oasis"];
+           generate ["ocamlversion402.oasis"]);
+
         "all_TestOMake" >::
         (fun test_ctxt ->
            all_subdirectories test_ctxt
              (in_testdata_dir test_ctxt ["TestOMake"])
-             (List.map fst all_tests)
+             (List.rev_append
+                ["noocamlversion.oasis"; "ocamlversion312.oasis";
+                 "ocamlversion401.oasis"; "ocamlversion402.oasis"]
+                (List.map fst all_tests))
              (Printf.sprintf "test/data/TestOCamlbuild/%s is not tested."));
       ];
       List.map gen_test all_tests;

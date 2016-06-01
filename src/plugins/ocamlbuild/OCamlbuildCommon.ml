@@ -139,7 +139,7 @@ let build_dir extra_argv =
 open OASISValues
 
 let fix_build_tools tool pkg =
-  let fix_build_tools' sct bs =
+  let fix_build_tools' _ bs =
     if not (List.mem tool bs.bs_build_tools) then
       {bs with bs_build_tools = tool :: bs.bs_build_tools}
     else
@@ -237,6 +237,7 @@ let extra_args_ocamlbuild_common ~ctxt pkg t =
   let extra_args =
     if t.plugin_tags <> None &&
        not (ocamlbuild_supports_plugin_tags pkg) then begin
+      (* TODO: use OASISPlugin.set_error. *)
       OASISMessage.error
         ~ctxt:ctxt
         (f_ "'XOCamlbuildPluginTags' in only available for OCaml >= 4.01. \

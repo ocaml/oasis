@@ -526,7 +526,7 @@ let gen_tests ~is_native () =
        in
          f test_ctxt t)
   in
-    List.map runner 
+    List.map runner
       (List.flatten
          [
            List.map (fun (a, b) -> a, a, b) all_tests;

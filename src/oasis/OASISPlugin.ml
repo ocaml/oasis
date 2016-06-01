@@ -650,10 +650,9 @@ let add_file tmpl ctxt =
 (** Tests for error and set error status
 *)
 let set_error tst s ctxt =
-  if tst then
-    begin
-      OASISMessage.error ~ctxt:ctxt.ctxt "%s" s;
-      {ctxt with error = true}
-    end
-  else
+  if tst then begin
+    OASISMessage.error ~ctxt:ctxt.ctxt "%s" s;
+    {ctxt with error = true}
+  end else begin
     ctxt
+  end

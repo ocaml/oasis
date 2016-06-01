@@ -36,9 +36,7 @@ let tests =
       List.split qa
     in
     let test_name =
-      Printf.sprintf
-        "query('%s', %s)"
-        fn (String.concat ", " q)
+      Printf.sprintf "query('%s', %s)" fn (String.concat ", " q)
     in
       test_name >::
       (fun test_ctxt ->

@@ -20,11 +20,3 @@ Description:
 Library simplelib
   Path:    src
   Modules: Foo, Bar
-
-Document simplelib
-  Title:           API reference for simplelib
-  Type:            omake (0.4)
-  InstallDir:      $htmldir/simplelib
-  BuildTools+:     ocamldoc
-  XOMakePath:      src
-  XOMakeLibraries: simplelib
