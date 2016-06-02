@@ -353,12 +353,7 @@ let print () =
          if not def.hide || bool_of_string (print_hidden ()) then
            begin
              try
-               let value =
-                 Schema.get
-                   schema
-                   env
-                   nm
-               in
+               let value = Schema.get schema env nm in
                let txt =
                  match short_descr_opt with
                    | Some s -> s ()
@@ -378,22 +373,21 @@ let print () =
       (List.rev_map String.length
          (List.rev_map fst printable_vars))
   in
-  let dot_pad str =
-    String.make ((max_length - (String.length str)) + 3) '.'
-  in
-
-  Printf.printf "\nConfiguration: \n";
+  let dot_pad str = String.make ((max_length - (String.length str)) + 3) '.' in
+  Printf.printf "\nConfiguration:\n";
   List.iter
     (fun (name, value) ->
-       Printf.printf "%s: %s %s\n" name (dot_pad name) value)
+       Printf.printf "%s: %s" name (dot_pad name);
+       if value = "" then
+         Printf.printf "\n"
+       else
+         Printf.printf " %s\n" value)
     (List.rev printable_vars);
   Printf.printf "\n%!"
 
 
 let args () =
-  let arg_concat =
-    OASISUtils.varname_concat ~hyphen:'-'
-  in
+  let arg_concat = OASISUtils.varname_concat ~hyphen:'-' in
   [
     "--override",
     Arg.Tuple
