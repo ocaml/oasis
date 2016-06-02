@@ -30,7 +30,7 @@ generated there is no additional dependencies (just like an autoconf
 OASIS has been created with [OCamlbuild][] in mind. So there is probably some
 features/bugs that are oriented toward this build system.
 
-  [OCamlbuild]: http://brion.inria.fr/gallium/index.php/Ocamlbuild
+  [OCamlbuild]: https://ocaml.org/learn/tutorials/ocamlbuild/
 
 Features:
 

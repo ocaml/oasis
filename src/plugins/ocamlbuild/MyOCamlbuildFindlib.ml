@@ -22,10 +22,10 @@
 
 
 (** OCamlbuild extension, copied from
-  * http://brion.inria.fr/gallium/index.php/Using_ocamlfind_with_ocamlbuild
+  * https://ocaml.org/learn/tutorials/ocamlbuild/Using_ocamlfind_with_ocamlbuild.html
   * by N. Pouillard and others
   *
-  * Updated on 2009/02/28
+  * Updated on 2016-06-02
   *
   * Modified by Sylvain Le Gall
 *)
