@@ -1,1 +1,13 @@
-XXX Manual fragment for omake stil to be written XXX
+This plugin uses OMake to generate a build system. You need to specify `OMake`
+for the `BuildType`.
+
+It is also possible to use this plugin for `Document.Type` and as a
+`InstallType`.
+
+Package fields:
+
+$ListOMakeBuildPackageFields
+
+Document fields:
+
+$ListOMakeDocDocumentFields
