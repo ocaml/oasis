@@ -78,35 +78,29 @@ let tests =
         assert_failure msg
   in
 
-  let check_one (fn, test) =
-     let pkg = from_file ~ctxt:oasis_ignore_plugin_ctxt fn in
+  let check_one test_ctxt (fn, test) =
+     let pkg = from_file ~ctxt:(oasis_ctxt ~ignore_plugin:true test_ctxt) fn in
      test pkg
   in
 
   let test_file_of_vector (fn, test) =
     fn >::
     (fun test_ctxt ->
-       check_one (in_testdata_dir test_ctxt ["TestOASIS"; fn], test))
+       check_one test_ctxt (in_testdata_dir test_ctxt ["TestOASIS"; fn], test))
   in
 
   let test_value_parser_of_vector (str, value_parse, fail) =
     str >::
     (fun test_ctxt ->
        try
-         (
-           let _s: comparator =
-             value_parse str
-           in
-             if fail then
-               assert_failure
-                 (Printf.sprintf "Parsing '%s' should have failed" str)
-         )
+         let _s: comparator = value_parse ~ctxt:(oasis_ctxt test_ctxt) str in
+         if fail then
+           assert_failure
+             (Printf.sprintf "Parsing '%s' should have failed" str)
        with _ ->
-         (
-           if not fail then
-             assert_failure
-               (Printf.sprintf "Parsing '%s' should not have failed" str)
-         ))
+         if not fail then
+           assert_failure
+             (Printf.sprintf "Parsing '%s' should not have failed" str))
   in
 
   let printer_optional_string =
@@ -126,11 +120,7 @@ let tests =
       "ValueParser" >:::
       (List.map test_value_parser_of_vector
          (List.map
-            (fun (v, f) ->
-               (v,
-                OASISVersion.comparator_value.parse
-                  ~ctxt:oasis_ctxt,
-                f))
+            (fun (v, f) -> (v, OASISVersion.comparator_value.parse, f))
             [
               ">= 3.11.1", false;
               ">= 3.11",   false;
@@ -428,7 +418,9 @@ let tests =
                 (Has_extension "oasis")
                 (ls (example_dir test_ctxt)))
            in
-             List.iter (fun fn -> check_one (fn, ignore)) lst_examples);
+           List.iter
+             (fun fn -> check_one test_ctxt (fn, ignore))
+             lst_examples);
 
         "SinceVersion" >::
         (fun test_ctxt ->
@@ -440,7 +432,7 @@ let tests =
              (fun () ->
                 let _pkg =
                   from_file
-                    ~ctxt:oasis_ignore_plugin_ctxt
+                    ~ctxt:(oasis_ctxt ~ignore_plugin:true test_ctxt)
                     (in_testdata_dir test_ctxt ["TestOASIS"; "test13.oasis"])
                 in
                   ()));
@@ -450,7 +442,7 @@ let tests =
            try
              let _pkg: OASISTypes.package =
                 from_file
-                  ~ctxt:oasis_ignore_plugin_ctxt
+                  ~ctxt:(oasis_ctxt ~ignore_plugin:true test_ctxt)
                   (in_testdata_dir test_ctxt ["TestOASIS"; "test13.oasis"])
               in
                assert_string "test15.oasis should fail to parse"
@@ -465,7 +457,7 @@ let tests =
             (fun () ->
               let _pkg =
                 from_file
-                  ~ctxt:oasis_ignore_plugin_ctxt
+                  ~ctxt:(oasis_ctxt ~ignore_plugin:true test_ctxt)
                   (in_testdata_dir test_ctxt ["TestOASIS"; "bug1236.oasis"])
               in
                 ()));
@@ -478,7 +470,7 @@ let tests =
             (fun () ->
               let _pkg =
                 from_file
-                  ~ctxt:oasis_ignore_plugin_ctxt
+                  ~ctxt:(oasis_ctxt ~ignore_plugin:true test_ctxt)
                   (in_testdata_dir test_ctxt ["TestOASIS"; "bug1295.oasis"])
               in
                 ()));

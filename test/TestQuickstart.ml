@@ -175,11 +175,11 @@ let tests =
            try
              (* TODO: rewrite with chdir *)
              assert_oasis_cli ~ctxt:test_ctxt ["-C"; tmpdir; "setup"]
-           with e ->
+           with _ ->
              failwith "'oasis setup' failed but 'oasis check' succeed"
          end;
          let pkg =
-           OASISParse.from_file ~ctxt:oasis_ctxt
+           OASISParse.from_file ~ctxt:(oasis_ctxt test_ctxt)
              (Filename.concat tmpdir "_oasis")
          in
            post pkg)
@@ -223,7 +223,7 @@ let tests =
                  failwith "Cannot find executable section 'test'"
             in
               match sct with
-                | Executable (cs, bs, exec) ->
+                | Executable (_, _, exec) ->
                     assert_equal
                       ~msg:"mainis of test"
                       ~printer:(fun s -> s)

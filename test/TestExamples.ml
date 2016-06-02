@@ -447,7 +447,7 @@ let gen_tests ~is_native () =
       in
       let pkg =
         OASISParse.from_file
-          ~ctxt:oasis_ctxt
+          ~ctxt:(oasis_ctxt test_ctxt)
           (in_src_dir t OASISParse.default_oasis_fn)
       in
         assert_equal
@@ -486,7 +486,7 @@ let tests =
                   (fun test_ctxt ->
                      try
                        let _pkg: OASISTypes.package =
-                         OASISParse.from_file ~ctxt:oasis_ctxt fn
+                         OASISParse.from_file ~ctxt:(oasis_ctxt test_ctxt) fn
                        in
                          ()
                      with e ->

@@ -73,12 +73,12 @@ let tests =
        (* Parse string to get OASIS package *)
        let dn = in_testdata_dir test_ctxt ["TestStdFiles"; "oasis"] in
        let pkg =
-         OASISParse.from_file ~ctxt:oasis_ctxt
+         OASISParse.from_file ~ctxt:(oasis_ctxt test_ctxt)
            (Filename.concat dn OASISParse.default_oasis_fn)
        in
        let ctxt, _ =
          with_bracket_chdir test_ctxt dn
-           (fun test_ctxt ->
+           (fun _ ->
               BaseSetup.of_package ~setup_update:false
                 OASISSetupUpdate.NoUpdate pkg)
        in

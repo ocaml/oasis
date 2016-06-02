@@ -59,10 +59,10 @@ let tests =
                    assert_equal
                      ~printer:(fun v -> Printf.sprintf "%S" (to_string v))
                      exp
-                     (value.parse ~ctxt:oasis_ctxt txt)
+                     (value.parse ~ctxt:(oasis_ctxt test_ctxt) txt)
                | None ->
                    try
-                     ignore (value.parse ~ctxt:oasis_ctxt txt);
+                     ignore (value.parse ~ctxt:(oasis_ctxt test_ctxt) txt);
                      assert_failure
                        (Printf.sprintf
                           "License '%s' is not valid but parse without problem"
@@ -76,7 +76,7 @@ let tests =
 
          "BSD-4-clause-1.0+",
          None;
-        
+
          (* TODO: Test also BSD3 because it was a deprecated synonym BSD-3-clause, same for 
             BSD2. *)
 

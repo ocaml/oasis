@@ -68,23 +68,24 @@ let native_dynlink =
 let oasis_exec = Conf.make_exec "oasis"
 let ocamlmod_exec = Conf.make_exec "ocamlmod"
 let fake_ocamlfind_exec = Conf.make_exec "fake_ocamlfind"
-(* TODO: add make_string_list to OUnit2. *)
+(* TODO: add make_string_list to OUnit2 and use it to define oasis_args. *)
 let oasis_args ctxt = []
-let oasis_ctxt = OASISContext.quiet
-let oasis_ignore_plugin_ctxt =
-  {oasis_ctxt with OASISContext.ignore_plugins = true}
+let oasis_ctxt ?(ignore_plugin=false) test_ctxt =
+  OASISContext.(
+    {!default with
+     ignore_plugins = ignore_plugin;
+     quiet          = false;
+     debug          = true;
+     info           = true;
+     printf =
+       (fun lvl str ->
+          match lvl with
+          | `Error |  `Info | `Warning as lvl'-> logf test_ctxt lvl' "%s" str
+          | `Debug -> (* TODO: output when OUnit will support debug. *) ())})
 
 
-let long =
-  Conf.make_bool
-    "long"
-    true
-    "Don't run long tests."
-
-
-let skip_long_test ctxt =
-  skip_if (not (long ctxt)) "Long test."
-
+let long = Conf.make_bool "long" true "Don't run long tests." 
+let skip_long_test ctxt = skip_if (not (long ctxt)) "Long test." 
 
 let example_dir =
   let value =

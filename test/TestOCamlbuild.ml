@@ -92,17 +92,17 @@ let all_tests =
 
        (* contain c-source code here to avoid any problems with
           aborted evaluation *)
-       let code_a = "#include \"header.h\"
-                     CAMLprim value oasis_c_build_test_foo(value x) {
-                       CAMLparam1(x);
-                       CAMLreturn(Val_int(42));
-                     }"
+       let code_a = "#include \"header.h\"\n\
+                     CAMLprim value oasis_c_build_test_foo(value x) {\n\
+                       CAMLparam1(x);\n\
+                       CAMLreturn(Val_int(42));\n\
+                     }\n"
 
-       and code_b = "#include \"header.h\"
-                     CAMLprim value oasis_c_build_test_foo(value x) {
-                       CAMLparam1(x);
-                       CAMLreturn(Val_int(23));
-                     }"
+       and code_b = "#include \"header.h\"\n\
+                     CAMLprim value oasis_c_build_test_foo(value x) {\n\
+                       CAMLparam1(x);\n\
+                       CAMLreturn(Val_int(23));\n\
+                     }\n"
        in
        let c_source = (in_src_dir t "c_source.c") in
 
@@ -164,7 +164,7 @@ let all_tests =
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"]);
 
     "gpr61-pass-thread-to-C-files",
-    (fun test_ctxt t ->
+    (fun test_ctxt _ ->
       let t =
          setup_test_directories test_ctxt
            ~is_native:(is_native test_ctxt)
@@ -184,10 +184,10 @@ let other_tests =
          in_testdata_dir test_ctxt ["TestOCamlbuild"; "missing-source"]
        in
        let fn = Filename.concat dn OASISParse.default_oasis_fn in
-       let pkg = OASISParse.from_file ~ctxt:oasis_ctxt fn in
+       let pkg = OASISParse.from_file ~ctxt:(oasis_ctxt test_ctxt) fn in
        let ctxt, _ =
          with_bracket_chdir test_ctxt dn
-           (fun test_ctxt ->
+           (fun _ ->
               BaseSetup.of_package ~setup_update:false OASISSetupUpdate.NoUpdate pkg)
        in
        let () =

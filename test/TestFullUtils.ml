@@ -197,7 +197,7 @@ let setup_test_directories test_ctxt ~is_native ~native_dynlink dn =
 
   (* Copy sources in this temporary directory. *)
   let src_dir =
-    OASISFileUtil.cp ~ctxt:oasis_ctxt ~recurse:true dn tmpdir;
+    OASISFileUtil.cp ~ctxt:(oasis_ctxt test_ctxt) ~recurse:true dn tmpdir;
     Filename.concat tmpdir (Filename.basename dn)
   in
 
@@ -741,7 +741,7 @@ let oasis_setup ?(dev=false) ?(dynamic=false) test_ctxt t =
   let () =
     let pkg =
       OASISParse.from_file
-        ~ctxt:oasis_ctxt
+        ~ctxt:(oasis_ctxt test_ctxt)
         (in_src_dir t OASISParse.default_oasis_fn)
     in
     match pkg.OASISTypes.ocaml_version with

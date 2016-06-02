@@ -23,7 +23,6 @@
 open OUnit2
 open TestCommon
 open OASISPlugin
-open OASISFileTemplate
 open TestFullUtils
 
 let oasis_omake_files dirs =
@@ -132,24 +131,16 @@ let tests =
              let fn = in_testdata_dir test_ctxt ("TestOMake" :: bn) in
              let pkg =
                logf test_ctxt `Info "Parsing file %S." fn;
-               OASISParse.from_file ~ctxt:oasis_ignore_plugin_ctxt fn
+               OASISParse.from_file
+                 ~ctxt:(oasis_ctxt ~ignore_plugin:true test_ctxt)
+                 fn
              in
              let ctxt, _ =
                logf test_ctxt `Info "Generating setup using file %S." fn;
                with_bracket_chdir test_ctxt dn
                  (fun _ ->
                     BaseSetup.of_package
-                      (* TODO: always override printf, move to TestCommon. *)
-                      ~ctxt:{oasis_ctxt with
-                                   OASISContext.printf =
-                                     (fun lvl str ->
-                                        match lvl with
-                                        | `Error |  `Info | `Warning as lvl'->
-                                          logf test_ctxt lvl' "%s" str
-                                        | `Debug ->
-                                          (* TODO: output when OUnit will
-                                             support debug. *)
-                                          ())}
+                      ~ctxt:(oasis_ctxt test_ctxt)
                       ~setup_update:false
                       OASISSetupUpdate.NoUpdate
                       pkg)

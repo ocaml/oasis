@@ -5,4 +5,7 @@ B _build/test/**
 PKG unix
 PKG oUnit
 PKG fileutils
+PKG findlib
+PKG expect
+PKG pcre
 FLG -w +a-4-44

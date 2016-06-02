@@ -59,10 +59,10 @@ let tests =
 
        let chng: file_generate_change =
          file_generate
-           ~ctxt:oasis_ctxt
+           ~ctxt:(oasis_ctxt test_ctxt)
            ~backup:true
            (template_of_string_list
-              ~ctxt:oasis_ctxt
+              ~ctxt:(oasis_ctxt test_ctxt)
               ~template:true
               tmp_fn
               comment_fmt
@@ -74,7 +74,7 @@ let tests =
            (file_content expected_fn)
            (file_content tmp_fn);
 
-         file_rollback ~ctxt:oasis_ctxt chng;
+         file_rollback ~ctxt:(oasis_ctxt test_ctxt) chng;
 
          if Sys.file_exists real_fn then begin
            assert_equal
@@ -179,7 +179,7 @@ let tests =
 
        let chng =
          file_generate
-           ~ctxt:oasis_ctxt
+           ~ctxt:(oasis_ctxt test_ctxt)
            ~backup:true
            (template_make
               fn
@@ -188,7 +188,7 @@ let tests =
               ["echo Hello"]
               [])
        in
-         file_rollback ~ctxt:oasis_ctxt chng;
+         file_rollback ~ctxt:(oasis_ctxt test_ctxt) chng;
          assert_equal
            ~msg:"File chgrp"
            ~printer:string_of_int
@@ -205,10 +205,10 @@ let tests =
          assert_equal
            ~printer:printer_change
            (Create fn)
-           (file_generate ~ctxt:oasis_ctxt ~backup:false ghost_meta_template);
+           (file_generate ~ctxt:(oasis_ctxt test_ctxt) ~backup:false ghost_meta_template);
          assert_equal
            ~printer:printer_change
            NoChange
-           (file_generate ~ctxt:oasis_ctxt ~backup:false ghost_meta_template);
+           (file_generate ~ctxt:(oasis_ctxt test_ctxt) ~backup:false ghost_meta_template);
          ());
   ]
