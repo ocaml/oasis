@@ -25,7 +25,7 @@
 open OUnit2
 open TestCommon
 
-let tests = 
+let tests =
   "SelfCompile" >:
   (test_case ~length:OUnitTest.Long
     (fun test_ctxt ->
@@ -33,7 +33,7 @@ let tests =
        let pwd = FileUtil.pwd () in
        let src_dir = Filename.dirname pwd in
        let in_src_dir fn = Filename.concat src_dir fn in
-       let () = 
+       let () =
          skip_if
            (Sys.os_type <> "Unix" || not (Sys.file_exists (in_src_dir ".git")))
            "Only compile for particular dev configurations."

@@ -34,6 +34,9 @@ let tests =
     "Help2" >::
     (fun test_ctxt -> assert_oasis_cli ~ctxt:test_ctxt ["help"]);
 
+    "Manual" >::
+    (fun test_ctxt -> assert_oasis_cli ~ctxt:test_ctxt ["manual"]);
+
     "Env dump/load" >::
     (fun test_ctxt ->
        (* TODO: lock *)
@@ -47,7 +50,7 @@ let tests =
          (BaseStandardVar.bindir ()));
 
     "OCaml dev version" >::
-    (fun test_ctxt ->
+    (fun _ ->
        PropList.Schema.set
          BaseEnv.schema
          BaseEnv.env
@@ -76,7 +79,7 @@ let tests =
                      (Filename.concat dn "bundle.ml")]);
 
     "Sync OASISParse/BaseSetup.default_oasis_fn" >::
-    (fun test_ctxt ->
+    (fun _ ->
        assert_equal
          ~printer:(fun s -> s)
          OASISParse.default_oasis_fn
