@@ -1139,8 +1139,8 @@ let generator =
   ocamlbuild_common_generator pivot_data OASISPackage.schema all_id
 
 let doit ctxt pkg =
-  let extra_args =
-    extra_args_ocamlbuild_common ~ctxt:ctxt.ctxt pkg
+  let extra_args, ctxt =
+    extra_args_ocamlbuild_common ctxt pkg
       (generator pkg.schema_data)
   in
   let ctxt = add_ocamlbuild_files ctxt pkg in

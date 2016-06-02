@@ -286,13 +286,12 @@ let doit ctxt pkg (cs, doc) =
       ]
   in
 
-  let run =
-    {
-      run_path = t.path;
-      extra_args = extra_args_ocamlbuild_common ~ctxt:ctxt.ctxt pkg t.common;
-    }
+  let extra_args, ctxt =
+    extra_args_ocamlbuild_common ctxt pkg t.common
   in
-  let odn_of_run_t v =
+
+  let run = {run_path = t.path; extra_args = extra_args} in
+  let odn_of_run_t (v: run_t) =
     OASISDataNotation.REC ("OCamlbuildDocPlugin",
       [ ("extra_args", ((fun x -> OASISDataNotation.of_list OASISDataNotation.of_string x) v.extra_args));
         ("run_path", (odn_of_unix_filename v.run_path)) ])
