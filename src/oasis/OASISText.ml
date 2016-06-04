@@ -135,7 +135,7 @@ let to_string t =
 
 let value =
   {
-    parse  = (fun ~ctxt s -> of_string s);
+    parse  = (fun ~ctxt:_ s -> of_string s);
     update = update_fail;
     print  = to_string;
   }

@@ -27,16 +27,6 @@
 *)
 
 
-let () =
-  try Topdirs.dir_directory (Sys.getenv "OCAML_TOPLEVEL_PATH")
-  with Not_found -> ()
-
-
-    #use "topfind"
-                        #require "unix"
-                        #require "pcre"
-
-
 let warning msg =
   prerr_endline msg
 
@@ -50,7 +40,7 @@ let find_unit directory unit_name extensions =
   let unit_base_fn =
     [
       unit_name;
-      (String.uncapitalize unit_name);
+      (OASISString.uncapitalize_ascii unit_name);
     ]
   in
   let unit_ext_fn =

@@ -40,6 +40,10 @@ Description:
 Flag libraries
   Description: Install OASIS and base libraries, for plugins development
 
+Flag devel
+  Description: Build OASIS tools for development.
+  Default: false
+
 Flag gettext
   Description: Use ocaml-gettext for i18n
   Default: false
@@ -209,6 +213,33 @@ Executable oasis
   BuildDepends: oasis, oasis.base, oasis.cli, oasis.builtin-plugins
   CompiledObject: best
 
+Document manual
+  Type: custom (0.3)
+  Title: OASIS User Manual
+  if flag(gettext)
+    XCustom: env LANG=C $oasis -ignore-plugins manual -o doc/MANUAL.mkd
+  else
+    XCustom: $oasis -ignore-plugins manual -o doc/MANUAL.mkd
+  XCustomClean: $rm doc/MANUAL.mkd
+  DataFiles: doc/MANUAL.mkd
+
+Document "api-oasis"
+  Title:                API reference for OASIS
+  Type:                 OCamlbuild (0.3)
+  InstallDir:           $htmldir/oasis
+  BuildTools+:          ocamldoc
+  XOCamlbuildPath:      src/
+  XOCamlbuildLibraries: oasis, oasis.base, oasis.cli
+
+SourceRepository head
+  Type: git
+  Location: git://github.com/gildor478/oasis.git
+  Browser: https://github.com/gildor478/oasis
+
+#
+# Tests.
+#
+
 Executable fake_ocamlfind
   Path: test/utils
   MainIs: fake_ocamlfind.ml
@@ -233,30 +264,45 @@ Test main
   WorkingDirectory: test
   TestTools: oasis, test, ocamlmod, fake_ocamlfind, omake, ocamlbuild
 
-Document manual
-  Type: custom (0.3)
-  Title: OASIS User Manual
-  if flag(gettext)
-    XCustom: env LANG=C $oasis -ignore-plugins manual -o doc/MANUAL.mkd
-  else
-    XCustom: $oasis -ignore-plugins manual -o doc/MANUAL.mkd
-  XCustomClean: $rm doc/MANUAL.mkd
-  DataFiles: doc/MANUAL.mkd
+#
+# Tools.
+#
 
-Document "api-oasis"
-  Title:                API reference for OASIS
-  Type:                 OCamlbuild (0.3)
-  InstallDir:           $htmldir/oasis
-  BuildTools+:          ocamldoc
-  XOCamlbuildPath:      src/
-  XOCamlbuildLibraries: oasis, oasis.base, oasis.cli
+Executable dist
+  Path: src/tools
+  MainIs: dist.ml
+  Install: false
+  CompiledObject: byte
+  Build$: flag(devel)
+  BuildDepends: unix, fileutils, oasis
 
-SourceRepository head
-  Type: git
-  Location: git://github.com/gildor478/oasis.git
-  Browser: https://github.com/gildor478/oasis
+Executable "guess-cmx"
+  Path: src/tools
+  MainIs: guess-cmx.ml
+  Install: false
+  CompiledObject: byte
+  Build$: flag(devel)
+  BuildDepends: pcre, unix, oasis
 
-# Third party: plugin-loader
+Executable "oasis-announce"
+  Path: src/tools
+  MainIs: oasis-announce.ml
+  Install: false
+  CompiledObject: byte
+  Build$: flag(devel)
+  BuildDepends: oasis, oasis.base, pcre
+
+Executable "oasis-dist"
+  Path: src/tools
+  MainIs: oasis-dist.ml
+  Install: false
+  CompiledObject: byte
+  Build$: flag(devel)
+  BuildDepends: oasis, oasis.base, fileutils
+
+#
+# Third party: plugin-loader.
+#
 
 Library "plugin-loader"
   Path:         src/ext/plugin-loader/src

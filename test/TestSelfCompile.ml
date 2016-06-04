@@ -39,32 +39,47 @@ let tests =
            "Only compile for particular dev configurations."
        in
        let tmpdir = bracket_tmpdir test_ctxt in
-       (* List all files that should be copied. *)
-       let is_ignored =
+       let rlst =
          let ignore_dot_git fn' =
            OASISString.starts_with ~what:(in_src_dir ".git") fn'
          in
-         let rlst = ref [ignore_dot_git] in
-         let chn = open_in (in_src_dir ".gitignore") in
-         let () =
-           try
-             while true do
-               let fn = in_src_dir (input_line chn) in
-               let test fn' =
-                 if Sys.file_exists fn && Sys.is_directory fn then
-                   OASISString.starts_with ~what:fn fn'
-                 else
-                   fn = fn'
-               in
-               rlst := test :: !rlst
-             done;
-           with End_of_file ->
-             ()
-         in
-           close_in chn;
-           fun fn ->
-             List.exists (fun test -> test fn) !rlst
+         ref [ignore_dot_git]
        in
+       let () =
+         (* Take into .gitignore to prevent copying some files. *)
+         let chn = open_in (in_src_dir ".gitignore") in
+         try
+           while true do
+             let pat = input_line chn in
+             let test =
+               if pat <> "" then begin
+                 let pat_len = String.length pat in
+                 let no_first_char = String.sub pat 1 (pat_len - 1) in
+                 match String.get pat 0, String.get pat (pat_len - 1) with
+                 | '/', '/' ->
+                   if pat_len = 1 then
+                     fun _ -> true
+                   else
+                     let fn = in_src_dir (String.sub pat 1 (pat_len - 2)) in
+                     fun s -> OASISString.starts_with ~what:fn s
+                 | '/', _ ->
+                   let fn = in_src_dir no_first_char in
+                   fun s -> fn = s
+                 | '*', _ ->
+                   fun s -> OASISString.ends_with ~what:no_first_char s
+                 | _ ->
+                   fun s -> OASISString.ends_with ~what:pat s
+               end else begin
+                 fun _ -> false
+               end
+             in
+             rlst := test :: !rlst
+           done;
+         with End_of_file ->
+           close_in chn
+       in
+       let is_ignored fn = List.exists (fun test -> test fn) !rlst in
+       (* List all files that should be copied. *)
        let files =
          FileUtil.find FileUtil.Is_file src_dir (fun lst fn -> fn :: lst) []
        in

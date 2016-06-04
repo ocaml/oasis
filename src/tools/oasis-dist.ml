@@ -1,4 +1,3 @@
-#!/usr/bin/ocamlrun ocaml
 (******************************************************************************)
 (* OASIS: architecture for building OCaml libraries and applications          *)
 (*                                                                            *)
@@ -20,17 +19,6 @@
 (* along with this library; if not, write to the Free Software Foundation,    *)
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
-
-let () =
-  try Topdirs.dir_directory (Sys.getenv "OCAML_TOPLEVEL_PATH")
-  with Not_found -> ()
-;;
-
-
-#use "topfind"
-  #require "oasis"
-  #require "oasis.base"
-  #require "fileutils"
 
 
 open OASISMessage
@@ -69,11 +57,9 @@ let update_oasis_in_tarball fn topdir =
 
 class virtual vcs =
   object
-    method check_uncommited_changes =
-      true
+    method check_uncommited_changes = true
 
-    method list_tags: string list =
-      []
+    method list_tags: string list = []
 
     method virtual dist: string -> host_filename -> unit
 

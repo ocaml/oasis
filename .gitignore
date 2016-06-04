@@ -1,6 +1,7 @@
-_build
 *.byte
 *.native
+*.mo
+/_build/
 /api-oasis.docdir
 /doc/MANUAL.mkd
 /setup.data
@@ -12,4 +13,3 @@ _build
 /tarballs
 /test/oUnit.log
 /dist/
-po/*.mo

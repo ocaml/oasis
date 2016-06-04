@@ -1,4 +1,3 @@
-#!/usr/bin/ocamlrun ocaml
 (******************************************************************************)
 (* OASIS: architecture for building OCaml libraries and applications          *)
 (*                                                                            *)
@@ -20,17 +19,6 @@
 (* along with this library; if not, write to the Free Software Foundation,    *)
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
-
-let () =
-  try Topdirs.dir_directory (Sys.getenv "OCAML_TOPLEVEL_PATH")
-  with Not_found -> ()
-
-
-    #use "topfind"
-                        #require "oasis"
-                        #require "oasis.base"
-                        #require "pcre"
-
 
 open OASISMessage
 open OASISTypes
@@ -68,7 +56,7 @@ let () =
 
   let body =
     match pkg.description with
-      | Some txt -> txt
+      | Some txt -> OASISText.to_string txt
       | None ->
         warning ~ctxt "No description";
         ""
@@ -96,7 +84,7 @@ let () =
         pkg.sections
     in
     match data with
-      | Some (cs, src) ->
+      | Some (_, src) ->
         begin
           let get =
             match src.src_repo_type with

@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 0704e0206aca3447aacb87196d7446b0)
+# DO NOT EDIT (digest: 2913b21f0b2a8191a6de426441897089)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -112,6 +112,29 @@ true: annot, bin_annot
 <test/*.ml{,i,y}>: use_base
 <test/*.ml{,i,y}>: use_builtin-plugins
 <test/*.ml{,i,y}>: use_oasis
+# Executable dist
+"src/tools/dist.byte": package(fileutils)
+"src/tools/dist.byte": package(unix)
+"src/tools/dist.byte": use_oasis
+# Executable guess-cmx
+"src/tools/guess-cmx.byte": package(pcre)
+"src/tools/guess-cmx.byte": package(unix)
+"src/tools/guess-cmx.byte": use_oasis
+# Executable oasis-announce
+"src/tools/oasis-announce.byte": package(pcre)
+"src/tools/oasis-announce.byte": package(unix)
+"src/tools/oasis-announce.byte": use_base
+"src/tools/oasis-announce.byte": use_oasis
+<src/tools/*.ml{,i,y}>: package(pcre)
+# Executable oasis-dist
+"src/tools/oasis-dist.byte": package(fileutils)
+"src/tools/oasis-dist.byte": package(unix)
+"src/tools/oasis-dist.byte": use_base
+"src/tools/oasis-dist.byte": use_oasis
+<src/tools/*.ml{,i,y}>: package(fileutils)
+<src/tools/*.ml{,i,y}>: package(unix)
+<src/tools/*.ml{,i,y}>: use_base
+<src/tools/*.ml{,i,y}>: use_oasis
 # Library plugin-loader
 "src/ext/plugin-loader/src/plugin-loader.cmxs": use_plugin-loader
 <src/ext/plugin-loader/src/*.ml{,i,y}>: package(dynlink)

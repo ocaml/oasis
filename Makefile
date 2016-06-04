@@ -21,7 +21,9 @@
 ################################################################################
 
 
-CONFIGUREFLAGS += --override ocamlbuildflags -classic-display --enable-tests
+CONFIGUREFLAGS += --override ocamlbuildflags -classic-display \
+                  --enable-tests \
+                  --enable-devel
 # TODO: gettext doesn't play nice with dynrun.
 #CONFIGUREFLAGS += $(if $(shell ocamlfind query gettext),--enable-gettext,--disable-gettext)
 
@@ -157,6 +159,6 @@ deploy: headache doc-dist
 
 
 # Create a tarball for rebuilding the current version
-dist-dev:
-	ocaml dist.ml -dev
+dist-dev: build
+	./dist.byte -dev
 

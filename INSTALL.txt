@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: b93b308607979f0d81c1a3ae0cb9a0e6) *)
+(* DO NOT EDIT (digest: 2b35b8afe014b4a0022622c7714d1e90) *)
 
 This is the INSTALL file for the oasis distribution.
 
@@ -19,9 +19,10 @@ In order to compile this package, you will need:
 * ocamlify for library base, library oasis
 * ocamlbuild for library builtin-plugins
 * oUnit (>= 2.0.0) for executable test, executable test_loader
-* fileutils (>= 0.4.2) for executable test, executable test_loader
+* fileutils (>= 0.4.2) for executable dist, executable oasis-dist,
+  executable test, executable test_loader
 * expect (>= 0.0.4) for executable test
-* pcre for executable test
+* pcre for executable guess-cmx, executable oasis-announce, executable test
 * omake for test main
 
 Installing
