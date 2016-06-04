@@ -23,10 +23,10 @@
 
 (** i18n functions
 
-    This module is really bind to ocaml-gettext library if gettext has been
-    selected when compiling the project. All these functions {b are exported}
-    but their are bound to {b dummy functions} in this case (i.e. not
-    ocaml-gettext).
+    This module is mock for ocaml-gettext library. All these functions {b are
+    exported} but their are bound to {b dummy functions} by default (i.e. not
+    ocaml-gettext). Use oasis-plugin-i18n to replace them by real translating
+    functions (TODO as of 2016-06-04).
 
     @author Sylvain Le Gall
     @see <http://forge.ocamlcore.org/projects/ocaml-gettext> OCaml Gettext project

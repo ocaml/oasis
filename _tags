@@ -196,17 +196,7 @@ true: annot, bin_annot
 
 # Base system and OASIS library
 
-"src/oasis/OASISGettext.ml": syntax_camlp4o, pkg_camlp4.macro
-"src/oasis/OASISGettext.ml": cond_pkg_gettext.base
-"src/cli/MainGettext.ml": syntax_camlp4o, pkg_camlp4.macro
-"src/cli/MainGettext.ml": cond_pkg_gettext-stub, use_oasis
-"src/cli/Main.byte": cond_pkg_gettext-stub, use_oasis
-"test/TestCommon.ml": syntax_camlp4o, pkg_camlp4.macro
-"test/TestCommon.ml": cond_pkg_gettext-stub
-"test/test.byte": cond_pkg_gettext-stub
-
 "src/oasis/OASISRecDescParser.ml": syntax_camlp4o, pkg_camlp4
-
 "src/cli/Query.ml": syntax_camlp4o, pkg_camlp4
 
 # Plugins

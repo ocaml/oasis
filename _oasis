@@ -44,16 +44,6 @@ Flag devel
   Description: Build OASIS tools for development.
   Default: false
 
-Flag gettext
-  Description: Use ocaml-gettext for i18n
-  Default: false
-
-if flag(gettext)
-  PostBuildCommand: $make -C po all
-  PostCleanCommand: $make -C po clean
-  PostInstallCommand:   $make -C po install PODIR=$prefix/share/locale
-  PostUninstallCommand: $make -C po install PODIR=$prefix/share/locale
-
 Library oasis
   Path: src/oasis
   Modules: FormatExt,
@@ -216,10 +206,7 @@ Executable oasis
 Document manual
   Type: custom (0.3)
   Title: OASIS User Manual
-  if flag(gettext)
-    XCustom: env LANG=C $oasis -ignore-plugins manual -o doc/MANUAL.mkd
-  else
-    XCustom: $oasis -ignore-plugins manual -o doc/MANUAL.mkd
+  XCustom: $oasis -ignore-plugins manual -o doc/MANUAL.mkd
   XCustomClean: $rm doc/MANUAL.mkd
   DataFiles: doc/MANUAL.mkd
 

@@ -47,10 +47,3 @@ configuration file. The generated setup only depends on the standard OCaml
 installation: no additional library is required.
 
 (* OASIS_STOP *)
-
-i18n
-====
-
-This package supports l10n through ocaml-gettext. If you have installed
-this library, you can enable i18n by using the flag `--enable-gettext` 
-when running `ocaml setup.ml -configure`.

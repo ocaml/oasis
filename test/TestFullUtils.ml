@@ -794,11 +794,7 @@ let oasis_setup ?(dev=false) ?(dynamic=false) test_ctxt t =
                  List.rev_append
                    [
                      "#require \"unix\";;";
-                     "#require \"odn\";;";
                      "#require \"ocamlbuild\";;";
-                     (* TODO: problem with gettext when using --enable-gettext.
-                      *)
-                     "#require \"gettext.base\";;";
                      load ["oasis"; "oasis.cma"];
                      load ["base"; "base.cma"];
                      load ["builtin-plugins.cma"];

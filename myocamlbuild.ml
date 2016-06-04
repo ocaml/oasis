@@ -25,22 +25,15 @@ open Command;;
 
 let depends_from_file env build ?(fmod=fun x -> x) fn =
   let depends_lst =
-    let deps =
-      ref []
-    in
-    let fd =
-      open_in  fn
-    in
-      (
-        try
-          while true; do
-            deps := (fmod (input_line fd)) :: !deps
-          done;
-        with End_of_file ->
-          ()
-      );
-      close_in fd;
-      List.rev !deps
+    let deps = ref [] in
+    let fd = open_in  fn in
+    begin
+      try
+        while true; do deps := (fmod (input_line fd)) :: !deps done
+      with End_of_file ->
+        close_in fd
+    end;
+    List.rev !deps
   in
     List.iter
       (fun fn ->
@@ -1110,54 +1103,4 @@ let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
 open Ocamlbuild_plugin;;
 
-dispatch
-  (MyOCamlbuildBase.dispatch_combine
-     [
-       dispatch_default;
-       begin
-          function
-            | After_rules ->
-                begin
-                  flag ["ocaml"; "compile"] & S[A"-warn-error"; A"+8"];
-                  try
-                    let gettext =
-                      BaseEnvLight.var_get
-                        "gettext"
-                        (BaseEnvLight.load
-                           ~allow_empty:true
-                           ~filename:(Lazy.force MyOCamlbuildBase.env_filename)
-                           ())
-                    in
-                    let ppopt_flag, gettext_base_flag, gettext_stub_flag =
-                      if gettext = "true" then
-                        S[A"-ppopt"; A"-D";  A"-ppopt"; A"HAS_GETTEXT"],
-                        S[A"-package"; A "gettext.base"],
-                        S[A"-package"; A "gettext-stub"]
-                      else
-                        S[], S[], S[]
-                    in
-                    flag ["dep"; "pkg_camlp4.macro"]
-                      & ppopt_flag;
-                    flag ["compile"; "pkg_camlp4.macro"]
-                      & ppopt_flag;
-                    List.iter
-                      (fun (pkg, pkg_flag) ->
-                         flag ["ocaml"; "compile";  "cond_pkg_"^pkg]
-                           & pkg_flag;
-                         flag ["ocaml"; "ocamldep"; "cond_pkg_"^pkg]
-                           & pkg_flag;
-                         flag ["ocaml"; "doc";      "cond_pkg_"^pkg]
-                           & pkg_flag;
-                         flag ["ocaml"; "link";     "cond_pkg_"^pkg]
-                           & pkg_flag;
-                         flag ["ocaml"; "infer_interface"; "cond_pkg_"^pkg]
-                           & pkg_flag)
-                      ["gettext.base", gettext_base_flag; "gettext-stub", gettext_stub_flag]
-                  with Not_found ->
-                    ()
-                end
-            | e ->
-                ()
-       end
-     ])
-;;
+dispatch dispatch_default;;

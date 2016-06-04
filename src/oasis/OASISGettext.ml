@@ -21,16 +21,9 @@
 (******************************************************************************)
 
 
-let ns_ str =
-  str
-
-
-let s_ str =
-  str
-
-
-let f_ (str: ('a, 'b, 'c, 'd) format4) =
-  str
+let ns_ str = str
+let s_ str = str
+let f_ (str: ('a, 'b, 'c, 'd) format4) = str
 
 
 let fn_ fmt1 fmt2 n =
@@ -40,20 +33,4 @@ let fn_ fmt1 fmt2 n =
     fmt2^^""
 
 
-let init =
-  []
-
-
-(* END EXPORT *)
-
-
-IFDEF HAS_GETTEXT THEN
-include
-  Gettext.Library
-    (struct
-      let textdomain   = "oasis"
-      let codeset      = None
-      let dir          = None
-      let dependencies = Gettext.init
-    end)
-ENDIF
+let init = []

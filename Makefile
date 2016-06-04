@@ -24,14 +24,11 @@
 CONFIGUREFLAGS += --override ocamlbuildflags -classic-display \
                   --enable-tests \
                   --enable-devel
-# TODO: gettext doesn't play nice with dynrun.
-#CONFIGUREFLAGS += $(if $(shell ocamlfind query gettext),--enable-gettext,--disable-gettext)
 
 default: test
 
 #TESTFLAGS=-only-test "OASIS:3:FileTemplate:6:META.cohttp"
 TIMINGS=1
-#export TIMINGS
 
 # OASIS_START
 # DO NOT EDIT (digest: a3c674b4239234cbbe53afe090018954)

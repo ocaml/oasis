@@ -26,24 +26,6 @@
   *)
 
 
-IFDEF HAS_GETTEXT THEN
-module Gettext =
-  Gettext.Program
-    (struct
-       let textdomain   = "oasis"
-       let codeset      = None
-       let dir          = None
-       let dependencies = Gettext.init @ OASISGettext.init
-     end)
-    (GettextStub.Native)
-ELSE
-module Gettext =
-struct
-  let init = [], ""
-end
-ENDIF
-
-
 open OUnit2
 
 
