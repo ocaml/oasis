@@ -17,8 +17,7 @@ function run {
 cd "$APPVEYOR_BUILD_FOLDER"
 
 run "OPAM initialization" opam init -y -a
-run "Install packages" \
-    opam install -y ocamlfind ocaml-data-notation ocamlmod ocamlify
+run "Install packages" opam install -y ocamlfind ocamlmod ocamlify
 eval $(opam config env)
 export OCAML_TOPLEVEL_PATH=$(opam config var toplevel)
 
