@@ -26,18 +26,11 @@
   *)
 
 
-open CLISubCommand
-open BaseMessage
-open Genlex
 open OASISGettext
 open OASISTypes
 open OASISSection
 open OASISUtils
-
-
-let lexer =
-  make_lexer
-    ["ListSections"; "ListFields"; "("; ")"; "."]
+open Query_types
 
 
 let query pkg separator str =
@@ -49,15 +42,10 @@ let query pkg separator str =
   let assoc_sections =
     [
       "Library", (`Library, proplist_schema OASISLibrary.schema);
-
       "Executable", (`Executable, proplist_schema OASISExecutable.schema);
-
       "Flag", (`Flag, proplist_schema OASISFlag.schema);
-
       "SrcRepo", (`SrcRepo, proplist_schema OASISSourceRepository.schema);
-
       "Test", (`Test, proplist_schema OASISTest.schema);
-
       "Doc", (`Doc, proplist_schema OASISDocument.schema);
     ]
   in
@@ -68,8 +56,7 @@ let query pkg separator str =
     in
     let start, (_, schm) =
       List.find
-        (fun (str, (knd', _)) -> knd = knd')
-        assoc_sections
+        (fun (_, (knd', _)) -> knd = knd') assoc_sections
     in
     let fmt =
       if OASISUtils.is_varname nm then
@@ -80,113 +67,79 @@ let query pkg separator str =
       fmt start nm, schm
   in
 
-  let parse_id_or_string =
-    parser
-      | [< 'Ident str >] ->
-          str
-      | [< 'String str >] ->
-          str
+  let q =
+    let lexbuf = Lexing.from_string str in
+    Query_parser.main Query_lexer.token lexbuf
   in
+  match q with
+  | QueryField fld ->
+    begin
+      PropList.Schema.get
+        (proplist_schema OASISPackage.schema)
+        pkg.schema_data
+        fld
+    end
+  | QuerySectionField (knd, nm, fld) ->
+    begin
+      let kind, schm =
+        try
+          List.assoc
+            (OASISString.lowercase_ascii knd)
+            (List.map
+               (fun (nm, e) -> OASISString.lowercase_ascii nm, e)
+               assoc_sections)
+        with Not_found ->
+          failwithf (f_ "Don't know section kind '%s' in query '%s'") knd str
+      in
+      let sct = OASISSection.section_find (kind, nm) pkg.sections in
+      let data = (OASISSection.section_common sct).cs_data in
+      PropList.Schema.get schm data fld
+    end
+  | QueryListSections ->
+    begin
+      String.concat
+        separator
+        (List.map (fun sct -> fst (mk_section sct)) pkg.sections)
+    end
+  | QueryListFields ->
+    begin
+      let fold_schm prefix schm data acc =
+        PropList.Schema.fold
+          (fun acc nm extra _ ->
+             try
+               let _v: string =
+                 PropList.Schema.get schm data nm
+               in
+                 match extra.OASISSchema_intern.feature with
+                   | Some ftr ->
+                      if OASISFeatures.package_test ftr pkg then
+                        (prefix^nm) :: acc
+                      else
+                        acc
+                   | None -> (prefix^nm) :: acc
+             with _ ->
+               acc)
+          acc
+          schm
+      in
+      let lst =
+        List.fold_left
+          (fun acc sct ->
+             let prefix, schm = mk_section sct in
+             let data = (section_common sct).cs_data in
+               fold_schm (prefix^".") schm data acc)
 
-  let parse_fld_or_section start_nm =
-    parser
-      | [< 'Kwd "("; nm = parse_id_or_string; 'Kwd ")";
-           'Kwd ".";
-           fld = parse_id_or_string >] ->
-          begin
-            let kind, schm =
-              try
-                List.assoc
-                  (OASISString.lowercase_ascii start_nm)
-                  (List.map
-                     (fun (nm, e) -> OASISString.lowercase_ascii nm, e)
-                     assoc_sections)
-              with Not_found ->
-                failwithf
-                  (f_ "Don't know section kind '%s' in query '%s'")
-                  start_nm str
-            in
-            let sct  =
-              OASISSection.section_find
-                (kind, nm)
-                pkg.sections
-            in
-            let data =
-              (OASISSection.section_common sct).cs_data
-            in
-              schm, data, fld
-          end
+          (* Start with the package fields *)
+          (fold_schm "" (proplist_schema OASISPackage.schema)
+             pkg.schema_data [])
 
-      | [< >] ->
-          begin
-            (* We have a single field *)
-            (proplist_schema OASISPackage.schema),
-            pkg.schema_data,
-            start_nm
-          end
-  in
+          (* Continue with section fields *)
+          pkg.sections
+      in
+      String.concat separator (List.rev lst)
+    end
 
-  let parse =
-    parser
-      | [< start_nm = parse_id_or_string;
-           (schm, data, fld) = parse_fld_or_section start_nm >] ->
-          begin
-            PropList.Schema.get schm data fld
-          end
-
-      | [< 'Kwd "ListSections" >] ->
-          begin
-            String.concat
-              separator
-              (List.map
-                 (fun sct -> fst (mk_section sct))
-                 pkg.sections)
-          end
-
-      | [< 'Kwd "ListFields" >] ->
-          begin
-            let fold_schm prefix schm data acc =
-              PropList.Schema.fold
-                (fun acc nm extra _ ->
-                   try
-                     let _v: string =
-                       PropList.Schema.get schm data nm
-                     in
-                       match extra.OASISSchema_intern.feature with
-                         | Some ftr ->
-                            if OASISFeatures.package_test ftr pkg then
-                              (prefix^nm) :: acc
-                            else
-                              acc
-                         | None -> (prefix^nm) :: acc
-                   with e ->
-                     acc)
-                acc
-                schm
-            in
-            let lst =
-              List.fold_left
-                (fun acc sct ->
-                   let prefix, schm = mk_section sct in
-                   let data = (section_common sct).cs_data in
-                     fold_schm (prefix^".") schm data acc)
-
-                (* Start with the package fields *)
-                (fold_schm "" (proplist_schema OASISPackage.schema)
-                   pkg.schema_data [])
-
-                (* Continue with section fields *)
-                pkg.sections
-            in
-
-              String.concat separator (List.rev lst)
-          end
-
-  in
-    parse (lexer (Stream.of_string str))
-
-
-let main ~ctxt (queries, separator) _ pkg =
+let main ~ctxt:_ (queries, separator) _ pkg =
   let answers =
     List.rev_map (query pkg separator) queries
   in

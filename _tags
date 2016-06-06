@@ -197,7 +197,6 @@ true: annot, bin_annot
 # Base system and OASIS library
 
 "src/oasis/OASISRecDescParser.ml": syntax_camlp4o, pkg_camlp4
-"src/cli/Query.ml": syntax_camlp4o, pkg_camlp4
 
 # Plugins
 

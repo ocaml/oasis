@@ -56,7 +56,9 @@ let tests =
           "name", "oasis"];
 
          "test1.oasis",
-         ["Flag(devmod).Default", "false"];
+         ["Flag(devmod).Default", "false";
+          "Library(toto).Path", "src/stuff";
+          "Executable(toto).MainIs", "toto.ml"];
 
          "test10.oasis",
          ["ListSections",
