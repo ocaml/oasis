@@ -66,19 +66,20 @@ let section_id sct =
   k, cs.cs_name
 
 
-let string_of_section sct =
-  let k, nm =
-    section_id sct
-  in
-  (match k with
+let string_of_section_kind =
+  function
     | `Library    -> "library"
     | `Object     -> "object"
     | `Executable -> "executable"
     | `Flag       -> "flag"
     | `SrcRepo    -> "src repository"
     | `Test       -> "test"
-    | `Doc        -> "doc")
-  ^" "^nm
+    | `Doc        -> "doc"
+
+
+let string_of_section sct =
+  let k, nm = section_id sct in
+  (string_of_section_kind k)^" "^nm
 
 
 let section_find id scts =

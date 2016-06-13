@@ -6,6 +6,6 @@ Authors:     Me
 License:     BSD3
 
 Flag "pf-inet6"
-	Description: Test INET6 sockets
-	Default: true
+  Description: Test INET6 sockets
+  Default: true
 

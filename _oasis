@@ -41,7 +41,11 @@ Flag libraries
   Description: Install OASIS and base libraries, for plugins development
 
 Flag devel
-  Description: Build OASIS tools for development.
+  Description: Build OASIS tools for development
+  Default: false
+
+Flag benchmark
+  Description: Build OASIS benchmark
   Default: false
 
 Library oasis
@@ -83,7 +87,8 @@ Library oasis
            OASISGraph,
            OASISFeatures,
            OASISDataNotation
-  InternalModules: OASISVersion_types,
+  InternalModules: OASISMutex,
+                   OASISVersion_types,
                    OASISVersion_lexer,
                    OASISVersion_parser,
                    OASISLicense_types,
@@ -91,10 +96,11 @@ Library oasis
                    OASISLicense_parser,
                    OASISValues_lexer,
                    OASISConf,
+                   OASISAst_types,
+                   OASISAst_lexer,
+                   OASISAst_parser,
                    OASISAst,
-                   OASISAstTypes,
                    OASISCheck,
-                   OASISRecDescParser,
                    OASISCustom,
                    OASISQuickstart,
                    OASISHelp,
@@ -250,6 +256,20 @@ Test main
   Command: $test -oasis $oasis -is-native $is_native -native-dynlink $native_dynlink -ocamlmod $ocamlmod -fake-ocamlfind $fake_ocamlfind
   WorkingDirectory: test
   TestTools: oasis, test, ocamlmod, fake_ocamlfind, omake, ocamlbuild
+
+Executable bench
+  Path: test
+  MainIs: bench.ml
+  Install: false
+  CompiledObject: best
+  Build$: flag(benchmark)
+  BuildDepends: benchmark (>= 1.4), oasis, oasis.base, oasis.builtin-plugins
+
+Test bench_main
+  Type: custom (0.3)
+  Command: $bench
+  Run$: flag(benchmark)
+  TestTools: bench
 
 #
 # Tools.

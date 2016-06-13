@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 49d54d119c48fca06f7bd9cfdc3ed30b)
+# DO NOT EDIT (digest: 69ad95d2f6e0015591e5d194e2ddf233)
 FormatExt
 PropList
 OASISUtils
@@ -59,6 +59,7 @@ OASISHostPath
 OASISGraph
 OASISFeatures
 OASISDataNotation
+OASISMutex
 OASISVersion_types
 OASISVersion_lexer
 OASISVersion_parser
@@ -67,10 +68,11 @@ OASISLicense_lexer
 OASISLicense_parser
 OASISValues_lexer
 OASISConf
+OASISAst_types
+OASISAst_lexer
+OASISAst_parser
 OASISAst
-OASISAstTypes
 OASISCheck
-OASISRecDescParser
 OASISCustom
 OASISQuickstart
 OASISHelp

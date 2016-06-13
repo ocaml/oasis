@@ -98,18 +98,27 @@ let pp_print_fields fmt (schm, _, data) =
                   (fun (k, v) -> String.length k, String.length v)
                   key_value))))
   in
+  let pp_print_field fmt k v =
+    pp_open_box fmt 2;
+    pp_print_string fmt k;
+    pp_print_string fmt ":";
+    pp_print_break fmt (max 0 (max_key_length - String.length k)) 0;
+    pp_print_string_spaced fmt v;
+    pp_close_box fmt ()
+  in
 
-  pp_open_vbox fmt 0;
-  List.iter
-    (fun (k, v) ->
-       pp_open_box fmt 2;
-       pp_print_string fmt k;
-       pp_print_string fmt ":";
-       pp_print_break fmt (max 0 (max_key_length - String.length k)) 0;
-       pp_print_string_spaced fmt v;
-       pp_close_box fmt ();
-       pp_print_cut fmt ())
-    key_value;
+  let _b : bool = 
+    pp_open_vbox fmt 0;
+    List.fold_left
+      (fun first (k, v) ->
+         if not first then begin
+           pp_print_cut fmt ()
+         end;
+         pp_print_field fmt k v;
+         false)
+      true
+      key_value
+  in
   pp_close_box fmt ()
 
 

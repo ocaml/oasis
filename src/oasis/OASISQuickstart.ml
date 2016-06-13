@@ -360,10 +360,10 @@ let ask_schema ~ctxt
       fields proplist_data features_data schema lvl interface plugins =
   let fake_context =
     {
-      OASISAstTypes.cond = None;
-      append             = false;
-      valid_flags        = [];
-      ctxt               = ctxt;
+      OASISAst_types.cond = None;
+      append              = false;
+      valid_flags         = [];
+      ctxt                = ctxt;
     }
   in
 
@@ -852,12 +852,8 @@ let to_file ~ctxt fn lvl intrf oasis_setup =
   in
 
   let content =
-    let buf =
-      Buffer.create 13
-    in
-    let fmt =
-      formatter_of_buffer buf
-    in
+    let buf = Buffer.create 13 in
+    let fmt = formatter_of_buffer buf in
       OASISFormat.pp_print_package fmt pkg;
       Format.pp_print_flush fmt ();
       buf

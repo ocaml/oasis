@@ -27,7 +27,7 @@ CONFIGUREFLAGS += --override ocamlbuildflags -classic-display \
 
 default: test
 
-#TESTFLAGS=-only-test "OASIS:3:FileTemplate:6:META.cohttp"
+#TESTFLAGS=-only-test "OASIS:1:OASIS:2:File:12:test-freeform.oasis"
 TIMINGS=1
 
 # OASIS_START

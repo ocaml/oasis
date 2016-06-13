@@ -98,25 +98,26 @@ let () =
       ~exit
       ("OASIS">:::
        [
-         TestPropList.tests;
-         TestOASIS.tests;
-         TestVersion.tests;
-         TestFileTemplate.tests;
          TestBasic.tests;
-         TestFull.tests;
+         TestDevFiles.tests;
          TestExamples.tests;
-         TestMETA.tests;
-         TestLog.tests;
+         TestFileTemplate.tests;
+         TestFull.tests;
          TestLicense.tests;
-         TestValues.tests;
+         TestLog.tests;
+         TestMETA.tests;
+         TestOASISAst.tests;
+         TestOASISParse.tests;
+         TestOASISString.tests;
+         TestOASISText.tests;
+         TestOCamlbuild.tests;
+         TestOMake.tests;
+         TestPropList.tests;
          TestQuery.tests;
          TestQuickstart.tests;
-         TestDevFiles.tests;
-         TestOCamlbuild.tests;
          TestSelfCompile.tests;
          TestStdFiles.tests;
-         TestOASISText.tests;
-         TestOASISString.tests;
-         TestOMake.tests;
+         TestValues.tests;
+         TestVersion.tests;
        ]);
       extract_timings ()

@@ -28,6 +28,9 @@
 
 open OASISTypes
 
+(** Convert [section_kind] to string. *)
+val string_of_section_kind: section_kind -> string
+
 
 (** {2 Manipulate a section} *)
 

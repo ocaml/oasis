@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 2913b21f0b2a8191a6de426441897089)
+# DO NOT EDIT (digest: d4e482d39ed51a12ac07bc5ca5c06e0e)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -106,8 +106,16 @@ true: annot, bin_annot
 <test/*.ml{,i,y}>: package(fileutils)
 <test/*.ml{,i,y}>: package(findlib)
 <test/*.ml{,i,y}>: package(oUnit)
-<test/*.ml{,i,y}>: package(ocamlbuild)
 <test/*.ml{,i,y}>: package(pcre)
+# Executable bench
+<test/bench.{native,byte}>: package(benchmark)
+<test/bench.{native,byte}>: package(ocamlbuild)
+<test/bench.{native,byte}>: package(unix)
+<test/bench.{native,byte}>: use_base
+<test/bench.{native,byte}>: use_builtin-plugins
+<test/bench.{native,byte}>: use_oasis
+<test/*.ml{,i,y}>: package(benchmark)
+<test/*.ml{,i,y}>: package(ocamlbuild)
 <test/*.ml{,i,y}>: package(unix)
 <test/*.ml{,i,y}>: use_base
 <test/*.ml{,i,y}>: use_builtin-plugins
@@ -194,10 +202,6 @@ true: annot, bin_annot
 <src/ext/plugin-loader/test/*.ml{,i,y}>: use_plugin-loader
 # OASIS_STOP
 
-# Base system and OASIS library
-
-"src/oasis/OASISRecDescParser.ml": syntax_camlp4o, pkg_camlp4
-
 # Plugins
 
 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml": use_ocamlbuild
@@ -215,3 +219,4 @@ true: safe_string
 
 "build": -traverse
 "build": not_hygienic
+true: explain

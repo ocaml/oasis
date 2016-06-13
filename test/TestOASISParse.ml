@@ -30,10 +30,8 @@ open OUnit2
 open TestCommon
 open OASISTypes
 open OASISParse
-open OASISRecDescParser
 open OASISValues
 open OASISVersion
-open OASISExpr
 open FileUtil
 
 
@@ -44,33 +42,19 @@ let tests =
     try
       let _ =
         List.find
-          (function
-             | Flag (cs, _) -> cs.cs_name = nm
-             | _ -> false)
+          (function | Flag (cs, _) -> cs.cs_name = nm | _ -> false)
           pkg.sections
       in
         ()
     with Not_found ->
-      assert_failure
-        (Printf.sprintf
-           "No flag '%s' defined"
-           nm)
+      assert_failure (Printf.sprintf "No flag '%s' defined" nm)
   in
 
   (* Check that at least one alternative doesn't raise an exception *)
   let assert_alternative msg lst e =
     let found_one =
       List.fold_left
-        (fun r t ->
-           if not r then
-             (
-               try
-                 t e; true
-               with _ ->
-                 false
-             )
-           else
-             r)
+        (fun r t -> if not r then try t e; true with _ -> false else r)
         false
         lst
     in
@@ -79,14 +63,16 @@ let tests =
   in
 
   let check_one test_ctxt (fn, test) =
-     let pkg = from_file ~ctxt:(oasis_ctxt ~ignore_plugin:true test_ctxt) fn in
-     test pkg
+    let pkg = from_file ~ctxt:(oasis_ctxt ~ignore_plugin:true test_ctxt) fn in
+    test pkg
   in
 
   let test_file_of_vector (fn, test) =
     fn >::
     (fun test_ctxt ->
-       check_one test_ctxt (in_testdata_dir test_ctxt ["TestOASIS"; fn], test))
+       check_one
+         test_ctxt
+         (in_testdata_dir test_ctxt ["TestOASISParse"; fn], test))
   in
 
   let test_value_parser_of_vector (str, value_parse, fail) =
@@ -105,14 +91,14 @@ let tests =
 
   let printer_optional_string =
     function
-      | Some str -> Printf.sprintf "%S" str
-      | None -> "<none>"
+    | Some str -> Printf.sprintf "%S" str
+    | None -> "<none>"
   in
 
   let printer_description =
     function
-      | Some txt -> OASISText.to_string txt
-      | None -> "<none>"
+    | Some txt -> Printf.sprintf "%S" (OASISText.to_string txt)
+    | None -> "<none>"
   in
 
     "OASIS" >:::
@@ -433,7 +419,9 @@ let tests =
                 let _pkg =
                   from_file
                     ~ctxt:(oasis_ctxt ~ignore_plugin:true test_ctxt)
-                    (in_testdata_dir test_ctxt ["TestOASIS"; "test13.oasis"])
+                    (in_testdata_dir
+                       test_ctxt
+                       ["TestOASISParse"; "test13.oasis"])
                 in
                   ()));
 
@@ -443,7 +431,9 @@ let tests =
              let _pkg: OASISTypes.package =
                 from_file
                   ~ctxt:(oasis_ctxt ~ignore_plugin:true test_ctxt)
-                  (in_testdata_dir test_ctxt ["TestOASIS"; "test13.oasis"])
+                  (in_testdata_dir
+                     test_ctxt
+                     ["TestOASISParse"; "test13.oasis"])
               in
                assert_string "test15.oasis should fail to parse"
           with Failure _ ->
@@ -458,21 +448,28 @@ let tests =
               let _pkg =
                 from_file
                   ~ctxt:(oasis_ctxt ~ignore_plugin:true test_ctxt)
-                  (in_testdata_dir test_ctxt ["TestOASIS"; "bug1236.oasis"])
+                  (in_testdata_dir
+                     test_ctxt
+                     ["TestOASISParse"; "bug1236.oasis"])
               in
                 ()));
 
        "bug1295.oasis" >::
        (fun test_ctxt ->
+          let fn =
+            in_testdata_dir test_ctxt ["TestOASISParse"; "bug1295.oasis"]
+          in
+          let txt =
+            Printf.sprintf
+              "file %S, line 17, characters 0-3: extraneous blanks at the \
+               beginning of the line" fn
+          in
           assert_raises
-            ~msg:"Unexpected indentation line 17."
-            (Failure "Unexpected indentation line 17.")
+            (Failure txt)
             (fun () ->
               let _pkg =
-                from_file
-                  ~ctxt:(oasis_ctxt ~ignore_plugin:true test_ctxt)
-                  (in_testdata_dir test_ctxt ["TestOASIS"; "bug1295.oasis"])
+                from_file ~ctxt:(oasis_ctxt ~ignore_plugin:true test_ctxt) fn
               in
-                ()));
+              ()));
       ]
     ]

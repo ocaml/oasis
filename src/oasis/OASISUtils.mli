@@ -113,13 +113,31 @@ val is_varname: string -> bool
 (** {2 Fail with Printf.sprintf} *)
 
 
-(** This function raise the [Failure] exception just as [failwith]
-    except that one specify the string raised through a format string.
+(** This function raises the [Failure] exception just as [failwith]
+    except that one specifies the string raised through a format string.
 
     Example: [failwithf "Cannot do %s because of %d" str i]
 *)
 val failwithf: ('a, unit, string, 'b) format4 -> 'a
 
+
+(** This function returns a string describing a position in a file, to locate
+    an error. The format of the string is compatible with OCaml compilation
+    location format.
+*)
+val file_location:
+  ?pos1:Lexing.position -> ?pos2:Lexing.position -> ?lexbuf:Lexing.lexbuf
+  -> unit -> string
+
+(** This function raises the [Failure] exception just as [failwith]
+    except that one specifies the string raised through a format string
+    and locate the error using [lexbuf] in the source file.
+
+    Example: [failwithpf lexbuf "Cannot do %s because of %d" str i]
+*)
+val failwithpf:
+  ?pos1:Lexing.position -> ?pos2:Lexing.position -> ?lexbuf:Lexing.lexbuf
+  -> ('a, unit, string, 'b) format4 -> 'a
 
 (** {2 String} *)
 

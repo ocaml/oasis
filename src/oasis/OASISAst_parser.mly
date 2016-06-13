@@ -22,28 +22,52 @@
 
 %{
 
-open Oasis
+open OASISAst_types
+open OASISExpr
+open OASISUtils
+open OASISGettext
+
+let parse_error s =
+  failwithpf
+    ~pos1:(Parsing.symbol_start_pos ())
+    ~pos2:(Parsing.symbol_end_pos ())
+    "%s" (s_ "syntax error")
 
 %}
 
-%token COLON
+%token <string> PLUS_COLON
+%token <string> COLON
+%token DOLLAR_COLON
 %token IF ELSE
 %token RBRACE LBRACE
-%token FLAG
-%token LIBRARY
-%token EXECUTABLE
-%token NOT AND OR RPAREN LPAREN TRUE FALSE
+%token <OASISTypes.section_kind> SECTION
+%token NOT AND OR LPAREN RPAREN TRUE FALSE
 %token EOF
 %token <string> IDENT
-%token <string> VALUE
+%token <string> QSTRING
+
+%left OR      /* Lowest precedence */
+%left AND     /* Medium precedence */
+%nonassoc NOT /* Highest precedence */
 
 %start main
-%type <Oasis.stmt> main
+%type <OASISAst_types.top_stmt> main
 
 %%
 
 main:
-  | stmt_list EOF {ASTBlock (List.rev $1)}
+  | top_stmt_list EOF {norm (TSBlock (List.rev $1))}
+;
+
+top_stmt_list:
+  | top_stmt_list top_stmt {$2 :: $1}
+  |                        {[]}
+;
+
+top_stmt:
+  | SECTION id_or_qstring sblock {TSSection($1, $2, $3)}
+  | LBRACE top_stmt_list  RBRACE {TSBlock (List.rev $2)}
+  | stmt                         {TSStmt($1)}
 ;
 
 stmt_list:
@@ -52,25 +76,40 @@ stmt_list:
 ;
 
 stmt:
-  | IDENT COLON VALUE   {ASTField($1, $3)}
-  | FLAG IDENT stmt         {ASTFlag($2, $3)}
-  | LIBRARY IDENT stmt      {ASTLibrary($2, $3)}
-  | EXECUTABLE IDENT stmt   {ASTExecutable($2, $3)}
-  | IF expr stmt ELSE stmt  {ASTIfThenElse ((fun _ -> true), $3, $5)}
-  | IF expr stmt            {ASTIfThenElse ((fun _ -> true), $3, ASTBlock [])}
-  | LBRACE stmt_list RBRACE {ASTBlock (List.rev $2)}
+  | IDENT COLON                {SField($1, FSet($2))}
+  | IDENT PLUS_COLON           {SField($1, FAdd($2))}
+  | IDENT DOLLAR_COLON expr    {SField($1, FEval($3))}
+  | IF expr sblock elsesblock  {SIfThenElse($2, $3, $4)}
+  | sblock                     {$1}
+;
+
+elsesblock:
+  | ELSE IF expr sblock elsesblock {SIfThenElse($3, $4, $5)}
+  | ELSE sblock                    {$2}
+  |                                {SBlock []}
+;
+
+sblock:
+  | LBRACE stmt_list RBRACE {SBlock (List.rev $2)}
 ;
 
 expr:
-  | TRUE                       {ETrue}
-  | FALSE                      {EFalse}
-  | LPAREN expr RPAREN         {$2}
-  | NOT expr                   {ENot $2}
-  | expr AND expr              {EAnd ($1, $3)}
-  | expr OR expr               {EOr ($1, $3)}
-  | FLAG LPAREN IDENT RPAREN   {EFlag ($3)}
-  | IDENT LPAREN IDENT RPAREN  {ETest ($1, $3)}
+  | TRUE                      {EBool true}
+  | FALSE                     {EBool false}
+  | LPAREN expr RPAREN        {$2}
+  | NOT expr                  {ENot $2}
+  | expr AND expr             {EAnd ($1, $3)}
+  | expr OR expr              {EOr ($1, $3)}
+  | IDENT LPAREN IDENT RPAREN {
+    if OASISString.lowercase_ascii $1 = "flag" then
+      EFlag($3)
+    else
+      ETest (test_of_string $1, $3)
+  }
 ;
 
+id_or_qstring:
+  | IDENT   {$1}
+  | QSTRING {$1}
+;
 %%
-

@@ -27,7 +27,7 @@
 
 
 open OASISTypes
-open OASISAstTypes
+open OASISAst_types
 open OASISGettext
 open OASISUtils
 open OASISValues
@@ -49,10 +49,10 @@ struct
   let add t schm value nm sync plugin =
     let fake_context =
       {
-        OASISAstTypes.cond = None;
-        append             = false;
-        valid_flags        = [];
-        ctxt               = !OASISContext.default;
+        cond        = None;
+        append      = false;
+        valid_flags = [];
+        ctxt        = !OASISContext.default;
       }
     in
 

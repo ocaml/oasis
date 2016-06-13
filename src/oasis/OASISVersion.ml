@@ -38,18 +38,9 @@ type comparator =
 
 
 (* Range of allowed characters *)
-let is_digit c =
-  '0' <= c && c <= '9'
-
-
-let is_alpha c =
-  ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')
-
-
-let is_special =
-  function
-    | '.' | '+' | '-' | '~' -> true
-    | _ -> false
+let is_digit c = '0' <= c && c <= '9'
+let is_alpha c = ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')
+let is_special = function | '.' | '+' | '-' | '~' -> true | _ -> false
 
 
 let rec version_compare v1 v2 =

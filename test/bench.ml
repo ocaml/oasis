@@ -20,55 +20,24 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+open OASISContext
 
-(** AST types
-    @author Sylvain Le Gall
-*)
-
-
-open OASISTypes
-
-
-(** Context for parsing and checking AST *)
-type ctxt =
-  {
-    (** Current condition for conditional fields. *)
-    cond: OASISExpr.t option;
-
-    (** Valid flags *)
-    valid_flags: name list;
-
-    (** Combine values rather than setting it, when
-        setting field values
-    *)
-    append: bool;
-
-    (** Global context *)
-    ctxt: OASISContext.t;
-  }
-
-
-(** Abstract Syntax Tree *)
-type field_op =
-  | FSet of string
-  | FAdd of string
-  | FEval of OASISExpr.t
-
-
-type stmt =
-  | SField of name * field_op
-  | SIfThenElse of OASISExpr.t * stmt * stmt
-  | SBlock of stmt list
-
-
-type top_stmt =
-  | TSLibrary of name * stmt
-  | TSObject of name * stmt
-  | TSExecutable of name * stmt
-  | TSFlag of name * stmt
-  | TSSourceRepository of name * stmt
-  | TSTest of name * stmt
-  | TSDocument of name * stmt
-  | TSStmt of stmt
-  | TSBlock of top_stmt list
-
+let () =
+  let () = OASISBuiltinPlugins.init () in
+  let bench_one t =
+    let _pkg: OASISTypes.package =
+      OASISParse.from_file
+        ~ctxt:{!OASISContext.default with parser_type = t}
+        OASISParse.default_oasis_fn
+    in
+    ()
+  in
+  let l =
+    prerr_endline "Coucou";
+    Benchmark.latencyN 2000L
+      [
+        "RecDesc", bench_one, `RecDesc;
+        "Yacc", bench_one, `Yacc;
+      ]
+  in
+  Benchmark.tabulate l

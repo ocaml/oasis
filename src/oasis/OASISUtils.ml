@@ -157,6 +157,30 @@ let is_varname str =
 let failwithf fmt = Printf.ksprintf failwith fmt
 
 
+let rec file_location ?pos1 ?pos2 ?lexbuf () =
+    match pos1, pos2, lexbuf with
+    | Some p, None, _ | None, Some p, _ ->
+      file_location ~pos1:p ~pos2:p ?lexbuf ()
+    | Some p1, Some p2, _ ->
+      let open Lexing in
+      let fn, lineno = p1.pos_fname, p1.pos_lnum in
+      let c1 = p1.pos_cnum - p1.pos_bol in
+      let c2 = c1 + (p2.pos_cnum - p1.pos_cnum) in
+      Printf.sprintf (f_ "file %S, line %d, characters %d-%d")  fn lineno c1 c2
+    | _, _, Some lexbuf ->
+      file_location
+        ~pos1:(Lexing.lexeme_start_p lexbuf)
+        ~pos2:(Lexing.lexeme_end_p lexbuf)
+        ()
+    | None, None, None ->
+      s_ "<position undefined>"
+
+
+let failwithpf ?pos1 ?pos2 ?lexbuf fmt =
+  let loc = file_location ?pos1 ?pos2 ?lexbuf () in
+  Printf.ksprintf (fun s -> failwith (Printf.sprintf "%s: %s" loc s)) fmt
+
+
 (* END EXPORT *)
 
 
@@ -183,6 +207,7 @@ struct
     in
       Buffer.contents buf
 
+  (* TODO: this function is defined elsewhere as well. reuse it from there *)
   let is_space c = c = ' ' || c = '\t' || c = '\n' || c = '\r'
 
   (* [escape s] escapes [s] in such a way that [unescape] recovers the

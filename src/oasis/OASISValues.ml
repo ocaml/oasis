@@ -44,7 +44,7 @@ let update_fail _ _ =
 let blackbox =
   {
     parse  =
-      (fun ~ctxt s ->
+      (fun ~ctxt:_ s ->
          failwithf
            (f_ "Blackbox type cannot be set to the value '%s'")
            s);
@@ -61,7 +61,7 @@ struct
 end
 
 
-let lexer ?(fail=(fun ~ctxt _ _ -> ())) lxr nm =
+let lexer ?(fail=(fun ~ctxt:_ _ _ -> ())) lxr nm =
   {
     parse =
       (fun ~ctxt str ->
@@ -113,7 +113,7 @@ let copyright =
 
 let string =
   {
-    parse =  (fun ~ctxt s -> s);
+    parse =  (fun ~ctxt:_ s -> s);
     update = (fun s1 s2 -> s1^" "^s2);
     print =  (fun s -> s);
   }
@@ -122,7 +122,7 @@ let string =
 let string_not_empty =
   {
     parse =
-      (fun ~ctxt str ->
+      (fun ~ctxt:_ str ->
          if str <> "" then
            str
          else
@@ -208,7 +208,7 @@ let newline_separated value =
 let space_separated =
   {
     parse =
-      (fun ~ctxt s ->
+      (fun ~ctxt:_ s ->
          List.filter
            (fun s -> s <> "")
            (OASISString.nsplit s ' '));
@@ -258,15 +258,11 @@ let modules =
   let base_value =
     lexer
       StdLexer.modul
-      ~fail:(fun ~ctxt str e ->
-               match e with
-                 | Failure "lexing: empty token" ->
-                     if OASISString.capitalize_ascii str <> str then
-                       failwithf
-                         (f_ "Module name '%s', must be capitalized ('%s').")
-                         str (OASISString.capitalize_ascii str)
-                 | _ ->
-                     ())
+      ~fail:(fun ~ctxt:_ str _ ->
+          if OASISString.capitalize_ascii str <> str then
+            failwithf
+              (f_ "Module name '%s', must be capitalized ('%s').")
+              str (OASISString.capitalize_ascii str))
       (fun () -> s_ "module")
   in
     comma_separated
@@ -302,7 +298,7 @@ let categories =
 let choices nm lst =
   {
     parse =
-      (fun ~ctxt str ->
+      (fun ~ctxt:_ str ->
          try
            List.assoc
              (OASISString.lowercase_ascii str)
@@ -340,7 +336,7 @@ let boolean =
 let findlib_name =
   {
     parse =
-      (fun ~ctxt s ->
+      (fun ~ctxt:_ s ->
          if s = "" then
            failwith (s_ "Empty string is not a valid findlib package")
          else if String.contains s '"' || String.contains s '.' then
@@ -470,7 +466,7 @@ let command_line =
 
     {
       parse =
-        (fun ~ctxt s ->
+        (fun ~ctxt:_ s ->
            match split_expandable s with
              | cmd :: args ->
                  cmd, args
@@ -486,7 +482,7 @@ let command_line =
 
 
 let command_line_options =
-  { parse = (fun ~ctxt s -> POSIXShell.split s);
+  { parse = (fun ~ctxt:_ s -> POSIXShell.split s);
     update = List.append;
     print = (fun lst -> String.concat " " (List.map POSIXShell.escape lst));
   }

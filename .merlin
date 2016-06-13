@@ -8,4 +8,5 @@ PKG fileutils
 PKG findlib
 PKG expect
 PKG pcre
+PKG benchmark
 FLG -w +a-4-44
