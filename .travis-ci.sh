@@ -20,7 +20,8 @@
 #  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               #
 ################################################################################
 
-OPAM_PKGS="base-bytes base-unix ocamlfind ocaml-data-notation pcre expect fileutils ounit ocamlify ocamlmod omake"
+OPAM_PKGS="base-bytes base-unix ocamlfind ocaml-data-notation pcre expect
+ fileutils ounit ocamlify ocamlmod omake benchmark"
 
 export OPAMYES=1
 if [ -f "$HOME/.opam/config" ]; then
@@ -38,6 +39,6 @@ opam install $OPAM_PKGS
 
 export OCAMLRUNPARAM=b
 
-ocaml setup.ml -configure --enable-tests
+ocaml setup.ml -configure --enable-tests --enable-devel
 ocaml setup.ml -build
 ocaml setup.ml -test
