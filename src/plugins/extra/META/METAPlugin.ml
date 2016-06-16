@@ -151,9 +151,7 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
 
   let replace_chars s =
     OASISString.replace_chars
-      (function
-        | '\n' | '\t' | '\r' -> ' '
-        | c -> c)
+      (fun c -> if OASISString.is_whitespace c then ' ' else c)
       s
   in
 

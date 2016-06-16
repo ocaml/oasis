@@ -207,9 +207,6 @@ struct
     in
       Buffer.contents buf
 
-  (* TODO: this function is defined elsewhere as well. reuse it from there *)
-  let is_space c = c = ' ' || c = '\t' || c = '\n' || c = '\r'
-
   (* [escape s] escapes [s] in such a way that [unescape] recovers the
      original string. *)
   let escape s =
@@ -227,7 +224,7 @@ struct
            true
          | c ->
            Buffer.add_char buf c;
-           need_to_quote || is_space c || c = '\'')
+           need_to_quote || OASISString.is_whitespace c || c = '\'')
         (s = "") (* empty strings must be quoted *)
         s
     in
@@ -304,7 +301,7 @@ struct
     let rec skip_blank strm =
       match Stream.peek strm with
         | Some c ->
-            if is_space c then
+            if OASISString.is_whitespace c then
               begin
                 Stream.junk strm;
                 skip_blank strm
@@ -394,16 +391,13 @@ struct
               get_doubly_quoted_string strm
 
           | c ->
-              if is_space c then
-                begin
-                  (* We reach the end of an arg *)
-                  rargs := buf_flush () :: !rargs;
-                  skip_blank strm
-                end
-              else
-                begin
-                  buf_add c
-                end
+            if OASISString.is_whitespace c then begin
+              (* We reach the end of an arg *)
+              rargs := buf_flush () :: !rargs;
+              skip_blank strm
+            end else begin
+              buf_add c
+            end
       done;
       let last = buf_flush () in
       if last <> "" then rargs := last :: !rargs
