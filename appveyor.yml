@@ -1,8 +1,5 @@
 # http://www.appveyor.com/docs/appveyor-yml
 
-# Use 'unstable' build worker image as it contains Cygwin
-os: Unstable
-
 branches:
   only:
     - master
@@ -12,20 +9,14 @@ branches:
 environment:
   global:
     CYG_ROOT: C:/cygwin
-    CYG_CACHE: C:/cygwin/var/cache/setup
-    CYG_MIRROR: http://mirrors.kernel.org/sourceware/cygwin/
-    OPAM_DIR: C:/opam
-
-cache:
-  - C:\opam
 
 install:
-  - set PATH=%OPAM_DIR%\bin;%PATH%
 #  - appveyor DownloadFile "http://cygwin.com/setup-%CYG_ARCH%.exe" -FileName "%CYG_ROOT%\setup-x86.exe"
-  - '"%CYG_ROOT%\setup-x86.exe" -qnNdO -R "%CYG_ROOT%" -s "%CYG_MIRROR%" -l "%CYG_CACHE%" -P make -P gcc-core -P ocaml -P ocaml-compiler-libs -P m4 -P tar -P patch -P flexdll -P pcre >NUL'
+  - ps: '(new-object net.webclient).DownloadString("https://aantron.github.io/binaries/cygwin/x86/ocaml/4.02/install.ps1") | PowerShell -Command -'
+  - ps: '(new-object net.webclient).DownloadString("https://aantron.github.io/binaries/cygwin/x86/camlp4/4.02/install.ps1") | PowerShell -Command -'
+  - ps: '(new-object net.webclient).DownloadString("https://aantron.github.io/binaries/cygwin/x86/opam/1.2/install.ps1") | PowerShell -Command -'
   - '%CYG_ROOT%\bin\bash -lc "cygcheck -dc cygwin"'
   - '%CYG_ROOT%\bin\bash -lc "echo \"OCaml version `ocamlc -version`\""'
-  - appveyor_install.cmd
 
 build_script:
   - 'echo Build in "%APPVEYOR_BUILD_FOLDER%"'
