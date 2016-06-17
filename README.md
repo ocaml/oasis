@@ -5,6 +5,8 @@
 oasis - Architecture for building OCaml libraries and applications
 ==================================================================
 
+[![Join the chat at https://gitter.im/ocaml/oasis](https://badges.gitter.im/ocaml/oasis.svg)](https://gitter.im/ocaml/oasis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 OASIS generates a full configure, build and install system for your
 application. It starts with a simple `_oasis` file at the toplevel of your
 project and creates everything required.
