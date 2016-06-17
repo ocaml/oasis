@@ -45,8 +45,12 @@ let mkline lexbuf lxm =
 
 let token_map = MapString.of_list [
   "if", IF; "else", ELSE;
+  (* TODO: only use 'true' and 'false' and drop the case of True and TRUE.
+   * In order to do that, estimate the impact on the current oasis files.
+   *)
   "true", TRUE; "True", TRUE; "TRUE", TRUE;
   "false", FALSE; "False", FALSE; "FALSE", FALSE;
+  "flag", FLAG;
   "Flag", SECTION `Flag;
   "Library", SECTION `Library;
   "Object", SECTION `Object;

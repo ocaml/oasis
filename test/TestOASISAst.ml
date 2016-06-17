@@ -50,6 +50,7 @@ let token_to_string =
   | TRUE -> "true"
   | FALSE -> "false"
   | IDENT s -> Printf.sprintf "IDENT %S" s
+  | FLAG -> "flag"
 
 
 let string_of_top_stmt =

@@ -41,7 +41,7 @@ let parse_error s =
 %token IF ELSE
 %token RBRACE LBRACE
 %token <OASISTypes.section_kind> SECTION
-%token NOT AND OR LPAREN RPAREN TRUE FALSE
+%token NOT AND OR LPAREN RPAREN TRUE FALSE FLAG
 %token EOF
 %token <string> IDENT
 %token <string> QSTRING
@@ -100,12 +100,8 @@ expr:
   | NOT expr                  {ENot $2}
   | expr AND expr             {EAnd ($1, $3)}
   | expr OR expr              {EOr ($1, $3)}
-  | IDENT LPAREN IDENT RPAREN {
-    if OASISString.lowercase_ascii $1 = "flag" then
-      EFlag($3)
-    else
-      ETest (test_of_string $1, $3)
-  }
+  | IDENT LPAREN IDENT RPAREN {ETest (test_of_string $1, $3)}
+  | FLAG LPAREN IDENT RPAREN  {EFlag($3)}
 ;
 
 id_or_qstring:
