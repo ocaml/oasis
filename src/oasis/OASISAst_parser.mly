@@ -67,7 +67,8 @@ top_stmt_list:
 top_stmt:
   | SECTION id_or_qstring sblock {TSSection($1, $2, $3)}
   | LBRACE top_stmt_list  RBRACE {TSBlock (List.rev $2)}
-  | stmt                         {TSStmt($1)}
+  | field                        {TSStmt($1)}
+  | ifsblock                     {TSStmt($1)}
 ;
 
 stmt_list:
@@ -76,17 +77,21 @@ stmt_list:
 ;
 
 stmt:
+  | field     {$1}
+  | ifsblock  {$1}
+  | sblock    {$1}
+;
+
+field:
   | IDENT COLON                {SField($1, FSet($2))}
   | IDENT PLUS_COLON           {SField($1, FAdd($2))}
   | IDENT DOLLAR_COLON expr    {SField($1, FEval($3))}
-  | IF expr sblock elsesblock  {SIfThenElse($2, $3, $4)}
-  | sblock                     {$1}
 ;
 
-elsesblock:
-  | ELSE IF expr sblock elsesblock {SIfThenElse($3, $4, $5)}
-  | ELSE sblock                    {$2}
-  |                                {SBlock []}
+ifsblock:
+  | IF expr sblock               {SIfThenElse($2, $3, SBlock[])}
+  | IF expr sblock ELSE ifsblock {SIfThenElse($2, $3, $5)}
+  | IF expr sblock ELSE sblock   {SIfThenElse($2, $3, $5)}
 ;
 
 sblock:
@@ -98,9 +103,9 @@ expr:
   | FALSE                     {EBool false}
   | LPAREN expr RPAREN        {$2}
   | NOT expr                  {ENot $2}
-  | expr AND expr             {EAnd ($1, $3)}
-  | expr OR expr              {EOr ($1, $3)}
-  | IDENT LPAREN IDENT RPAREN {ETest (test_of_string $1, $3)}
+  | expr AND expr             {EAnd($1, $3)}
+  | expr OR expr              {EOr($1, $3)}
+  | IDENT LPAREN IDENT RPAREN {ETest(test_of_string $1, $3)}
   | FLAG LPAREN IDENT RPAREN  {EFlag($3)}
 ;
 
