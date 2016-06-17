@@ -45,20 +45,12 @@ let parse ~ctxt ?fn lexbuf =
 
 
 let from_stream ~ctxt ?fn st =
-  let nnext st b n =
-    let read = ref 0 in
-    begin
-      try
-        while !read < n do
-          b.[!read] <- Stream.next st;
-          incr read
-        done;
-      with Stream.Failure ->
-        ()
-    end;
-    !read
+  let str =
+    let buf = Buffer.create 13 in
+    Stream.iter (Buffer.add_char buf) st;
+    Buffer.contents buf
   in
-  parse ~ctxt ?fn (Lexing.from_function (nnext st))
+  parse ~ctxt ?fn (Lexing.from_string str)
 
 
 let from_file ~ctxt fn =
