@@ -20,24 +20,15 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-open OASISContext
-
 let () =
   let () = OASISBuiltinPlugins.init () in
-  let bench_one t =
+  let bench_one () =
     let _pkg: OASISTypes.package =
       OASISParse.from_file
-        ~ctxt:{!OASISContext.default with parser_type = t}
+        ~ctxt:!OASISContext.default
         OASISParse.default_oasis_fn
     in
     ()
   in
-  let l =
-    prerr_endline "Coucou";
-    Benchmark.latencyN 2000L
-      [
-        "RecDesc", bench_one, `RecDesc;
-        "Yacc", bench_one, `Yacc;
-      ]
-  in
+  let l = Benchmark.latency1 2000L ~name:"OASISParse.from_file" bench_one () in
   Benchmark.tabulate l

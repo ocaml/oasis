@@ -44,10 +44,6 @@ Flag devel
   Description: Build OASIS tools for development
   Default: false
 
-Flag benchmark
-  Description: Build OASIS benchmark
-  Default: false
-
 Library oasis
   Path: src/oasis
   Modules: FormatExt,
@@ -233,9 +229,9 @@ SourceRepository head
 # Tests.
 #
 
-Executable fake_ocamlfind
-  Path: test/utils
-  MainIs: fake_ocamlfind.ml
+Executable "fake-ocamlfind"
+  Path: test/fake-ocamlfind
+  MainIs: FakeOCamlfind.ml
   Install: false
   CompiledObject: best
   Build$: flag(tests)
@@ -243,7 +239,7 @@ Executable fake_ocamlfind
 
 Executable test
   Path: test
-  MainIs: test.ml
+  MainIs: Test.ml
   Install: false
   CompiledObject: best
   Build$: flag(tests)
@@ -255,57 +251,51 @@ Test main
   Type: custom (0.3)
   Command: $test -oasis $oasis -is-native $is_native -native-dynlink $native_dynlink -ocamlmod $ocamlmod -fake-ocamlfind $fake_ocamlfind
   WorkingDirectory: test
-  TestTools: oasis, test, ocamlmod, fake_ocamlfind, omake, ocamlbuild
-
-Executable bench
-  Path: test
-  MainIs: bench.ml
-  Install: false
-  CompiledObject: best
-  Build$: flag(benchmark)
-  BuildDepends: benchmark (>= 1.4), oasis, oasis.base, oasis.builtin-plugins
-
-Test bench_main
-  Type: custom (0.3)
-  Command: $bench
-  Run$: flag(benchmark)
-  TestTools: bench
+  TestTools: oasis, test, ocamlmod, fake-ocamlfind, omake, ocamlbuild
 
 #
 # Tools.
 #
 
 Executable dist
-  Path: src/tools
-  MainIs: dist.ml
+  Path: src/tools/dist
+  MainIs: Dist.ml
   Install: false
   CompiledObject: byte
   Build$: flag(devel)
   BuildDepends: unix, fileutils, oasis
 
 Executable "guess-cmx"
-  Path: src/tools
-  MainIs: guess-cmx.ml
+  Path: src/tools/guess-cmx
+  MainIs: GuessCMX.ml
   Install: false
   CompiledObject: byte
   Build$: flag(devel)
   BuildDepends: pcre, unix, oasis
 
 Executable "oasis-announce"
-  Path: src/tools
-  MainIs: oasis-announce.ml
+  Path: src/tools/oasis-announce
+  MainIs: OASISAnnounce.ml
   Install: false
   CompiledObject: byte
   Build$: flag(devel)
   BuildDepends: oasis, oasis.base, pcre
 
 Executable "oasis-dist"
-  Path: src/tools
-  MainIs: oasis-dist.ml
+  Path: src/tools/oasis-dist
+  MainIs: OASISDist.ml
   Install: false
   CompiledObject: byte
   Build$: flag(devel)
   BuildDepends: oasis, oasis.base, fileutils
+
+Executable bench
+  Path: src/tools/bench
+  MainIs: Bench.ml
+  Install: false
+  CompiledObject: best
+  Build$: flag(devel)
+  BuildDepends: benchmark (>= 1.4), oasis, oasis.base, oasis.builtin-plugins
 
 #
 # Third party: plugin-loader.
@@ -359,7 +349,7 @@ Library "plugin3"
 
 Executable "pluginloader"
   Path:    src/ext/plugin-loader/test/data
-  MainIs:  pluginloader.ml
+  MainIs:  PluginLoaderMain.ml
   Install: false
   Build$: flag(tests)
   BuildDepends: pluginloaderLib, plugin-loader
