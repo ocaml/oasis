@@ -295,7 +295,7 @@ Executable bench
   Install: false
   CompiledObject: best
   Build$: flag(devel)
-  BuildDepends: benchmark (>= 1.4), oasis, oasis.base, oasis.builtin-plugins
+  BuildDepends: benchmark (>= 1.2), oasis, oasis.base, oasis.builtin-plugins
 
 #
 # Third party: plugin-loader.

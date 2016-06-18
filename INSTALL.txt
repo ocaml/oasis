@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 4aa0b44be89bbb8b3d35fd33a05da354) *)
+(* DO NOT EDIT (digest: a53e2388efd48a84b32bda27f664c488) *)
 
 This is the INSTALL file for the oasis distribution.
 
@@ -23,7 +23,7 @@ In order to compile this package, you will need:
   executable test, executable test_loader
 * expect (>= 0.0.4) for executable test
 * pcre for executable guess-cmx, executable oasis-announce, executable test
-* benchmark (>= 1.4) for executable bench
+* benchmark (>= 1.2) for executable bench
 * omake for test main
 
 Installing
