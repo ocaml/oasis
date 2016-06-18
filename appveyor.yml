@@ -21,3 +21,11 @@ install:
 build_script:
   - 'echo Build in "%APPVEYOR_BUILD_FOLDER%"'
   - '%CYG_ROOT%/bin/bash -l "%APPVEYOR_BUILD_FOLDER%/appveyor_build.sh"'
+
+notifications:
+  - provider: Webhook
+    url: https://webhooks.gitter.im/e/c9f900cf405d2c58a8ef
+    method: GET
+    on_build_success: true
+    on_build_failure: true
+    on_build_status_changed: true

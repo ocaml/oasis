@@ -1,11 +1,11 @@
 [![Travis-CI Build Status](https://travis-ci.org/ocaml/oasis.svg?branch=master)](https://travis-ci.org/ocaml/oasis)
 [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/42gumiqt5le643t2?svg=true)](https://ci.appveyor.com/project/gildor478/oasis)
+[![Join the chat at https://gitter.im/ocaml/oasis](https://badges.gitter.im/ocaml/oasis.svg)](https://gitter.im/ocaml/oasis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
 oasis - Architecture for building OCaml libraries and applications
 ==================================================================
 
-[![Join the chat at https://gitter.im/ocaml/oasis](https://badges.gitter.im/ocaml/oasis.svg)](https://gitter.im/ocaml/oasis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 OASIS generates a full configure, build and install system for your
 application. It starts with a simple `_oasis` file at the toplevel of your
