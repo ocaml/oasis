@@ -157,5 +157,5 @@ deploy: headache doc-dist
 
 # Create a tarball for rebuilding the current version
 dist-dev: build
-	./OASISDist.byte -dev
+	./Dist.byte -dev
 
