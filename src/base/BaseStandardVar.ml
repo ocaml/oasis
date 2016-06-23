@@ -23,7 +23,6 @@
 
 open OASISGettext
 open OASISTypes
-open OASISExpr
 open BaseCheck
 open BaseEnv
 
@@ -138,7 +137,7 @@ let p name hlp dflt =
 let (/) a b =
   if os_type () = Sys.os_type then
     Filename.concat a b
-  else if os_type () = "Unix" then
+  else if os_type () = "Unix" || os_type () = "Cygwin" then
     OASISUnixPath.concat a b
   else
     OASISUtils.failwithf (f_ "Cannot handle os_type %s filename concat")

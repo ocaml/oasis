@@ -22,6 +22,7 @@
 
 
 open Filename
+open OASISGettext
 
 
 module Unix = OASISUnixPath
@@ -36,9 +37,9 @@ let make =
 
 
 let of_unix ufn =
-  if Sys.os_type = "Unix" then
-    ufn
-  else
+  match Sys.os_type with
+  | "Unix" | "Cygwin" -> ufn
+  | "Win32" ->
     make
       (List.map
          (fun p ->
@@ -49,6 +50,11 @@ let of_unix ufn =
             else
               p)
          (OASISString.nsplit ufn '/'))
+  | os_type ->
+    OASISUtils.failwithf
+      (f_ "Don't know the path format of os_type %S when translating unix \
+           filename. %S")
+      os_type ufn
 
 
 (* END EXPORT *)
@@ -92,16 +98,18 @@ let compare fn1 fn2 =
 
 
 let to_unix hfn =
-  if Sys.os_type = "Unix" then
-    hfn
-  else
+  match Sys.os_type with
+  | "Unix" | "Cygwin" -> hfn
+  | "Win32" ->
     let rec to_unix_aux =
       function
         | `Root str :: _
         | `RootRelative str :: _ ->
           OASISUtils.failwithf
-            "Cannot translate %S to unix filename, it contains a root \
-             reference (%S)." hfn str
+            (f_ "Cannot translate %S to unix filename, it contains a root \
+                 reference (%S).")
+            hfn
+            str
         | `Component str :: tl ->
           str :: (to_unix_aux tl)
         | `CurrentDir :: tl ->
@@ -112,6 +120,11 @@ let to_unix hfn =
           []
     in
     OASISUnixPath.make (to_unix_aux (fn_norm hfn))
+  | os_type ->
+    OASISUtils.failwithf
+      (f_ "Don't know the path format of os_type %S when translating host \
+           filename. %S")
+      os_type hfn
 
 
 let add_extension fn ext =
