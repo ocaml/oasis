@@ -25,7 +25,7 @@ open OUnit2
 
 let pluginloader = Conf.make_exec "pluginloader"
 
-let datadir = FilePath.make_filename 
+let datadir = FilePath.make_filename
     ["src"; "ext"; "plugin-loader"; "test"; "data"]
 let findlibdir = FilePath.concat datadir "findlib"
 

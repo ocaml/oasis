@@ -33,14 +33,12 @@ open OASISString
 open BaseEnv
 open OCamlbuildCommon
 open BaseStandardVar
-open BaseMessage
 
 
-let cond_targets_hook =
-  ref (fun lst -> lst)
+let cond_targets_hook = ref (fun lst -> lst)
 
 
-let build extra_args pkg argv =
+let build ~ctxt extra_args pkg argv =
   (* Return the filename in build directory *)
   let in_build_dir fn =
     Filename.concat
@@ -104,8 +102,8 @@ let build extra_args pkg argv =
                         (List.map
                            (List.filter
                               (fun fn ->
-                               ends_with ".cmo" fn
-                               || ends_with ".cmx" fn))
+                               ends_with ~what:".cmo" fn
+                               || ends_with ~what:".cmx" fn))
                            unix_files))
                  in
 
@@ -120,10 +118,8 @@ let build extra_args pkg argv =
 
            | Executable (cs, bs, exec) when var_choose bs.bs_build ->
                begin
-                 let evs, unix_exec_is, unix_dll_opt =
-                   BaseBuilt.of_executable
-                     in_build_dir_of_unix
-                     (cs, bs, exec)
+                 let evs, _, _ =
+                   BaseBuilt.of_executable in_build_dir_of_unix (cs, bs, exec)
                  in
 
                  let target ext =
@@ -137,7 +133,7 @@ let build extra_args pkg argv =
                      (* Fix evs, we want to use the unix_tgt, without copying *)
                      List.map
                        (function
-                          | BaseBuilt.BExec, nm, lst when nm = cs.cs_name ->
+                          | BaseBuilt.BExec, nm, _ when nm = cs.cs_name ->
                               BaseBuilt.BExec, nm,
                               [[in_build_dir_of_unix unix_tgt]]
                           | ev ->
@@ -181,27 +177,30 @@ let build extra_args pkg argv =
                 (List.length fns))
              (String.concat (s_ " or ") (List.map (Printf.sprintf "'%s'") fns)))
       lst;
-      (BaseBuilt.register bt bnm lst)
+      (BaseBuilt.register ~ctxt bt bnm lst)
   in
 
   (* Run the hook *)
   let cond_targets = !cond_targets_hook cond_targets in
 
   (* Run a list of target... *)
-  run_ocamlbuild (List.flatten (List.map snd cond_targets) @ extra_args) argv;
+  run_ocamlbuild
+    ~ctxt
+    (List.flatten (List.map snd cond_targets) @ extra_args)
+    argv;
   (* ... and register events *)
   List.iter check_and_register (List.flatten (List.map fst cond_targets))
 
 
-let clean pkg extra_args  =
-  run_clean extra_args;
+let clean ~ctxt pkg extra_args  =
+  run_clean ~ctxt extra_args;
   List.iter
     (function
        | Library (cs, _, _) ->
-           BaseBuilt.unregister BaseBuilt.BLib cs.cs_name
+           BaseBuilt.unregister ~ctxt BaseBuilt.BLib cs.cs_name
        | Executable (cs, _, _) ->
-           BaseBuilt.unregister BaseBuilt.BExec cs.cs_name;
-           BaseBuilt.unregister BaseBuilt.BExecLib cs.cs_name
+           BaseBuilt.unregister ~ctxt BaseBuilt.BExec cs.cs_name;
+           BaseBuilt.unregister ~ctxt BaseBuilt.BExecLib cs.cs_name
        | _ ->
            ())
     pkg.sections
@@ -216,7 +215,6 @@ open OASISMessage
 open OASISGettext
 open OASISPlugin
 open OASISTypes
-open OASISSchema
 open MyOCamlbuildBase
 open Ocamlbuild_plugin
 open OCamlbuildId
@@ -961,7 +959,7 @@ let add_ocamlbuild_files ctxt pkg =
 
                  let ctxt =
                    match obj.obj_modules with
-                     | [ m ] -> ctxt
+                     | [ _ ] -> ctxt
                      | _ -> (* generate mlpack file *)
                          let fn_base = prepend_bs_path bs cs.cs_name in
                          let fn =
@@ -1147,7 +1145,7 @@ let doit ctxt pkg =
     ctxt,
     {
       chng_moduls       = [OCamlbuildData.ocamlbuildsys_ml];
-      chng_main         = OASISDataNotation.func_with_arg build
+      chng_main         = OASISDataNotation.func_with_arg_ctxt build
                             "OCamlbuildPlugin.build"
                             extra_args (OASISDataNotation.of_list OASISDataNotation.of_string);
       chng_clean        = Some (OASISDataNotation.func clean "OCamlbuildPlugin.clean");

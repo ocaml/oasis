@@ -30,11 +30,12 @@ open OASISTypes
 
 
 type std_args_fun =
-  package -> arg array -> unit
+  ctxt:OASISContext.t -> package -> arg array -> unit
 
 
 type ('a, 'b) section_args_fun =
-  name * (package -> (common_section * 'a) -> arg array -> 'b)
+  name *
+  (ctxt:OASISContext.t -> package -> (common_section * 'a) -> arg array -> 'b)
 
 
 type t =
@@ -53,16 +54,16 @@ type t =
     distclean_test:  (test, unit) section_args_fun list;
     package:         package;
 
-    oasis_fn:        string option;
+    oasis_fn: string option;
     (** Filename of _oasis that matches the package field. *)
 
-    oasis_version:   string;
+    oasis_version: string;
     (** OASIS version that has generated this structure. *)
 
-    oasis_digest:    Digest.t option;
+    oasis_digest: Digest.t option;
     (** Digest of _oasis that matches the package field. *)
 
-    oasis_exec:      string option;
+    oasis_exec: string option;
     (** Name of oasis executable to use, only for testing. *)
 
     oasis_setup_args: string list;
@@ -74,72 +75,58 @@ type t =
 
 
 
-(** Run the configure step.
-*)
-val configure: t -> arg array -> unit
+(** Run the configure step. *)
+val configure: ctxt:OASISContext.t -> t -> arg array -> unit
 
 
-(** Run the build step.
-*)
-val build: t -> arg array -> unit
+(** Run the build step. *)
+val build: ctxt:OASISContext.t -> t -> arg array -> unit
 
 
-(** Run the doc step: build all documents.
-*)
-val doc: t -> arg array -> unit
+(** Run the doc step: build all documents. *)
+val doc: ctxt:OASISContext.t -> t -> arg array -> unit
 
 
-(** Run the test step: run all tests.
-*)
-val test: t -> arg array -> unit
+(** Run the test step: run all tests. *)
+val test: ctxt:OASISContext.t -> t -> arg array -> unit
 
 
-(** Run the install step.
-*)
-val install: t -> arg array -> unit
+(** Run the install step. *)
+val install: ctxt:OASISContext.t -> t -> arg array -> unit
 
 
-(** Run the uninstall step.
-*)
-val uninstall: t -> arg array -> unit
+(** Run the uninstall step. *)
+val uninstall: ctxt:OASISContext.t -> t -> arg array -> unit
 
 
-(** Run the clean step.
-*)
-val clean: t -> arg array -> unit
+(** Run the clean step. *)
+val clean: ctxt:OASISContext.t -> t -> arg array -> unit
 
 
-(** Run the distclean step.
-*)
-val distclean: t -> arg array -> unit
+(** Run the distclean step. *)
+val distclean: ctxt:OASISContext.t -> t -> arg array -> unit
 
 
-(** Run the reinstall step: deinstall and install.
-*)
-val reinstall: t -> arg array -> unit
+(** Run the reinstall step: deinstall and install. *)
+val reinstall: ctxt:OASISContext.t -> t -> arg array -> unit
 
 
-(** Run all steps: configure, build, doc, test and install.
-*)
-val all: t -> arg array -> unit
+(** Run all steps: configure, build, doc, test and install. *)
+val all: ctxt:OASISContext.t -> t -> arg array -> unit
 
 
-(** Display OASIS version used to generate this setup.ml
-*)
-val version: t -> arg array -> unit
+(** Display OASIS version used to generate this setup.ml. *)
+val version: ctxt:OASISContext.t -> t -> arg array -> unit
 
 
-(** The first function called when running 'setup.ml'.
-*)
+(** The first function called when running 'setup.ml'. *)
 val setup: t -> unit
 
 
-(** Default filename for '_oasis'.
-*)
+(** Default filename for '_oasis'. *)
 val default_oasis_fn: host_filename
 
-(** Default filename for 'setup.ml'. {b Not exported}
-*)
+(** Default filename for 'setup.ml'. {b Not exported} *)
 val default_filename: host_filename
 
 

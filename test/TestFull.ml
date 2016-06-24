@@ -222,7 +222,10 @@ let all_tests =
                "mylib.a"; "libmylib_stubs.a"])
          ];
        if OASISVersion.StringVersion.compare t.ocaml_version "4.02" >= 0 then begin
-         register_installed_files test_ctxt t [InstalledOCamlLibrary("mylib", ["mylib.cmt"])]
+         register_installed_files
+           test_ctxt
+           t
+           [InstalledOCamlLibrary("mylib", ["mylib.cmt"])]
        end;
        (* Run standard test. *)
        standard_test test_ctxt t;
@@ -405,7 +408,10 @@ let all_tests =
               ]);
          ];
        if OASISVersion.StringVersion.compare t.ocaml_version "4.02" >= 0 then begin
-         register_installed_files test_ctxt t [InstalledOCamlLibrary("bar", ["bar.cmt"])]
+         register_installed_files
+           test_ctxt
+           t
+           [InstalledOCamlLibrary("bar", ["bar.cmt"])]
        end;
        (* Run standard test. *)
        standard_test test_ctxt t);
@@ -420,6 +426,40 @@ let all_tests =
        (* Run standard test. *)
        run_ocaml_setup_ml test_ctxt t ["-configure"; "--enable-tests"];
        run_ocaml_setup_ml test_ctxt t ~exit_code:(Unix.WEXITED 1) ["-test"]);
+
+    (* Use -C to change directory in 'ocaml setup.ml'. *)
+    "bug1473",
+    (fun test_ctxt t ->
+       let tmpdir = bracket_tmpdir test_ctxt in
+       let hfs = new OASISFileSystem.host_fs t.src_dir in
+       let setup_log = BaseLog.default_filename in
+       let setup_data = BaseEnv.default_filename in
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t
+         (oasis_ocamlbuild_files @
+          ["empty.mldylib"; "empty.mllib"]);
+       assert_command
+         ~chdir:tmpdir
+         ~ctxt:test_ctxt
+         "ocaml"
+         [Filename.concat t.src_dir setup_ml; "-C"; t.src_dir; "-configure"];
+       assert_command
+         ~chdir:tmpdir
+         ~ctxt:test_ctxt
+         "ocaml"
+         [Filename.concat t.src_dir setup_ml; "-C"; t.src_dir; "-build"];
+       assert_equal
+         ~msg:(Printf.sprintf "Temporary directory %S should be empty." tmpdir)
+         ~printer:(fun a -> "["^(String.concat "; " (Array.to_list a))^"]")
+         [||]
+         (Sys.readdir tmpdir);
+       assert_bool
+         (Printf.sprintf
+            "File %S and %S should exist."
+            (hfs#string_of_filename setup_log)
+            (hfs#string_of_filename setup_data))
+         (hfs#file_exists setup_log && hfs#file_exists setup_data));
   ]
 
 

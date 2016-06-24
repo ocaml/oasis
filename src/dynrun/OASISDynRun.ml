@@ -32,14 +32,20 @@ let () = OASISBuiltinPlugins.init ()
 
 
 open OASISTypes
-open BaseSetup
 
+let dynrun_ctxt = !BaseContext.default
 
 let setup_t =
   let pkg =
-    OASISParse.from_file ~ctxt:!BaseContext.default OASISParse.default_oasis_fn
+    OASISParse.from_file ~ctxt:dynrun_ctxt OASISParse.default_oasis_fn
   in
-  let _, setup_t = BaseSetup.of_package ~setup_update:false OASISSetupUpdate.Dynamic pkg in
+  let _, setup_t =
+    BaseSetup.of_package
+      ~ctxt:dynrun_ctxt
+      ~setup_update:false
+      OASISSetupUpdate.Dynamic
+      pkg
+  in
   setup_t
 
 
@@ -48,14 +54,14 @@ let setup_t =
 module BaseSetup = struct
   include BaseSetup
 
-  let setup setup_t =
+  let setup ~ctxt setup_t =
     let tmp_setup_fn =
       Filename.temp_file (setup_t.package.name^"-setup") ".ml" in
     let restored = ref false in
-    let cleanup () =
+    let cleanup ~ctxt () =
       if not !restored then begin
         restored := true;
-        BaseGenerate.restore ();
+        BaseGenerate.restore ~ctxt ();
         if Sys.file_exists tmp_setup_fn then
           Sys.remove tmp_setup_fn
       end
@@ -63,6 +69,7 @@ module BaseSetup = struct
     try
       let _lst: 'a list =
         BaseGenerate.generate
+          ~ctxt
           ~backup:true
           ~setup_fn:tmp_setup_fn
           ~restore:true
@@ -70,19 +77,20 @@ module BaseSetup = struct
           (OASISParse.from_file
              ~ctxt:!BaseContext.default OASISParse.default_oasis_fn)
       in
-      at_exit cleanup;
+      at_exit (cleanup ~ctxt);
       let setup_t =
         (* Override distclean, because it remove setup.log and we need it for
          * BaseGenerate.restore
         *)
-        {setup_t with distclean = setup_t.distclean @ [fun _ _ -> cleanup ()]}
+        {setup_t with
+         distclean = setup_t.distclean @ [fun ~ctxt _ _ -> cleanup ~ctxt ()]}
       in
       BaseSetup.setup setup_t;
-      cleanup ()
+      cleanup ~ctxt ()
     with e ->
-      cleanup ();
+      cleanup ~ctxt ();
       raise e
 end
 
 
-let setup () = BaseSetup.setup setup_t
+let setup (): unit = BaseSetup.setup ~ctxt:dynrun_ctxt setup_t

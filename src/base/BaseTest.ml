@@ -24,11 +24,10 @@
 open BaseEnv
 open BaseMessage
 open OASISTypes
-open OASISExpr
 open OASISGettext
 
 
-let test lst pkg extra_args =
+let test ~ctxt lst pkg extra_args =
 
   let one_test (failure, n) (test_plugin, cs, test) =
     if var_choose
@@ -38,15 +37,11 @@ let test lst pkg extra_args =
         ~printer:string_of_bool
         test.test_run then
       begin
-        let () =
-          info (f_ "Running test '%s'") cs.cs_name
-        in
+        let () = info (f_ "Running test '%s'") cs.cs_name in
         let back_cwd =
           match test.test_working_directory with
             | Some dir ->
-              let cwd =
-                Sys.getcwd ()
-              in
+              let cwd = Sys.getcwd () in
               let chdir d =
                 info (f_ "Changing directory to '%s'") d;
                 Sys.chdir d
@@ -61,7 +56,7 @@ let test lst pkg extra_args =
           let failure_percent =
             BaseCustom.hook
               test.test_custom
-              (test_plugin pkg (cs, test))
+              (test_plugin ~ctxt pkg (cs, test))
               extra_args
           in
           back_cwd ();
@@ -78,18 +73,8 @@ let test lst pkg extra_args =
         (failure, n)
       end
   in
-  let failed, n =
-    List.fold_left
-      one_test
-      (0.0, 0)
-      lst
-  in
-  let failure_percent =
-    if n = 0 then
-      0.0
-    else
-      failed /. (float_of_int n)
-  in
+  let failed, n = List.fold_left one_test (0.0, 0) lst in
+  let failure_percent = if n = 0 then 0.0 else failed /. (float_of_int n) in
   let msg =
     Printf.sprintf
       (f_ "Tests had a %.2f%% failure rate")

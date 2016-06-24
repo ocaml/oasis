@@ -102,13 +102,19 @@ type ('a, 'b) section_act =
 
   (* Result *)
   context_act *
+  ((* Run *)
+    (ctxt:OASISContext.t ->
+     package ->
+     (common_section * 'a) ->
+     string array ->
+     'b),
 
-    ((* Run *)
-      (package -> (common_section * 'a) -> string array -> 'b),
-
-      (* Clean & Distclean *)
-      (package -> (common_section * 'a) -> string array -> unit)
-    ) setup_changes
+    (* Clean & Distclean *)
+    (ctxt:OASISContext.t ->
+     package ->
+       (common_section * 'a) ->
+       string array ->
+       unit)) setup_changes
 
 
 (** Generator with a package argument only (build, install).
@@ -119,13 +125,11 @@ type package_act =
 
   (* Result *)
   context_act *
+  ((* Run *)
+    (ctxt:OASISContext.t -> package -> string array -> unit),
 
-    ((* Run *)
-      (package -> string array -> unit),
-
-      (* Clean & Distclean *)
-      (package -> string array -> unit)
-    ) setup_changes
+    (* Clean & Distclean *)
+    (ctxt:OASISContext.t -> package -> string array -> unit)) setup_changes
 
 
 (** Base types to build plugin: register fields, action, generators...

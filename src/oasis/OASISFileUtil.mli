@@ -23,6 +23,8 @@
 
 (** File operations
     @author Sylvain Le Gall
+
+    TODO: merge with OASISFileSystem.
 *)
 
 

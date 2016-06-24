@@ -25,9 +25,9 @@ type name          = string
 type package_name  = string
 type url           = string
 type unix_dirname  = string
-type unix_filename = string
-type host_dirname  = string
-type host_filename = string
+type unix_filename = string (* TODO: replace everywhere. *)
+type host_dirname  = string (* TODO: replace everywhere. *)
+type host_filename = string (* TODO: replace everywhere. *)
 type prog          = string
 type arg           = string
 type args          = string list
@@ -193,11 +193,11 @@ type test =
 
 
 type doc_format =
-  | HTML of unix_filename
+  | HTML of unix_filename (* TODO: source filename. *)
   | DocText
   | PDF
   | PostScript
-  | Info of unix_filename
+  | Info of unix_filename (* TODO: source filename. *)
   | DVI
   | OtherDoc
 
@@ -208,11 +208,12 @@ type doc =
     doc_custom:      custom;
     doc_build:       bool conditional;
     doc_install:     bool conditional;
-    doc_install_dir: unix_filename;
+    doc_install_dir: unix_filename; (* TODO: dest filename ?. *)
     doc_title:       string;
     doc_authors:     string list;
     doc_abstract:    string option;
     doc_format:      doc_format;
+    (* TODO: src filename. *)
     doc_data_files:  (unix_filename * unix_filename option) list;
     doc_build_tools: tool list;
   }
@@ -242,7 +243,7 @@ type package =
     name:                   package_name;
     version:                OASISVersion.t;
     license:                OASISLicense.t;
-    license_file:           unix_filename option;
+    license_file:           unix_filename option; (* TODO: source filename. *)
     copyrights:             string list;
     maintainers:            string list;
     authors:                string list;
@@ -266,10 +267,10 @@ type package =
     clean_custom:           custom;
     distclean_custom:       custom;
 
-    files_ab:               unix_filename list;
+    files_ab:               unix_filename list; (* TODO: source filename. *)
     sections:               section list;
     plugins:                [`Extra] plugin list;
-    disable_oasis_section:  unix_filename list;
+    disable_oasis_section:  unix_filename list; (* TODO: source filename. *)
     schema_data:            PropList.Data.t;
     plugin_data:            plugin_data;
   }

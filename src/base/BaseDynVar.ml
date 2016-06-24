@@ -27,12 +27,12 @@ open BaseEnv
 open BaseBuilt
 
 
-let init pkg =
+let init ~ctxt pkg =
   (* TODO: disambiguate exec vs other variable by adding exec_VARNAME. *)
   (* TODO: provide compile option for library libary_byte_args_VARNAME... *)
   List.iter
     (function
-      | Executable (cs, bs, exec) ->
+      | Executable (cs, bs, _) ->
         if var_choose bs.bs_build then
           var_ignore
             (var_redefine
@@ -45,20 +45,17 @@ let init pkg =
                (OASISUtils.varname_of_string cs.cs_name)
                (fun () ->
                   let fn_opt =
-                    fold
-                      BExec cs.cs_name
-                      (fun _ fn -> Some fn)
-                      None
+                    fold ~ctxt BExec cs.cs_name (fun _ fn -> Some fn) None
                   in
                   match fn_opt with
-                    | Some fn -> fn
-                    | None ->
-                      raise
-                        (PropList.Not_set
-                           (cs.cs_name,
-                            Some (Printf.sprintf
-                                (f_ "Executable '%s' not yet built.")
-                                cs.cs_name)))))
+                  | Some fn -> fn
+                  | None ->
+                    raise
+                      (PropList.Not_set
+                         (cs.cs_name,
+                          Some (Printf.sprintf
+                                  (f_ "Executable '%s' not yet built.")
+                                  cs.cs_name)))))
 
       | Library _ | Object _ | Flag _ | Test _ | SrcRepo _ | Doc _ ->
         ())

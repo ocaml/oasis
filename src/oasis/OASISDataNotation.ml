@@ -106,6 +106,13 @@ let func_with_arg f f_nm arg odn_of_arg =
     func_arg  = Some (odn_of_arg arg);
   }
 
+let func_with_arg_ctxt f f_nm arg odn_of_arg =
+  {
+    func_call = (fun ~ctxt -> f ~ctxt arg);
+    func_name = f_nm;
+    func_arg  = Some (odn_of_arg arg);
+  }
+
 (** Return the [t] code corresponding to a [func].
 *)
 let odn_of_func t =

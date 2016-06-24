@@ -25,6 +25,9 @@
     @author Sylvain Le Gall
 *)
 
+(* TODO: replace host_filename here by OASISContext.build_filename, using the
+   same scheme as source_filename.
+*)
 
 open OASISTypes
 
@@ -41,22 +44,33 @@ type t =
     of alternatives. At least one alternative file should exist
     when registering and we only register existing ones.
 *)
-val register: t -> name -> host_filename list list -> unit
+val register:
+  ctxt:OASISContext.t ->
+  t ->
+  name ->
+  host_filename list list ->
+  unit
 
 
 (** Unregister all files built. *)
-val unregister: t -> name -> unit
+val unregister: ctxt:OASISContext.t -> t -> name -> unit
 
 
 (** Fold-left files built, filter existing
     and non-existing files.
 *)
-val fold: t -> name -> ('a -> host_filename -> 'a) -> 'a -> 'a
+val fold:
+  ctxt:OASISContext.t ->
+  t ->
+  name ->
+  ('a -> host_filename -> 'a) ->
+  'a ->
+  'a
 
 
 (** Check if a library/object/doc/exec has been built.
 *)
-val is_built: t -> name -> bool
+val is_built: ctxt:OASISContext.t -> t -> name -> bool
 
 
 (** [of_executable loc_fn (cs, bs, exec)] Compute at the same time events

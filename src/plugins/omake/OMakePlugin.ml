@@ -35,7 +35,7 @@ let run_command  = BaseCustom.run
 
 module BuildRuntime =
 struct
-  let main run pkg extra_args =
+  let main ~ctxt run pkg extra_args =
     run_command "omake" ( ["build"] @ OMakeFields.(run.extra_args)) extra_args;
     (* Register generated files in the log files. *)
     List.iter
@@ -64,27 +64,27 @@ struct
                []
          in
          List.iter
-           (fun (bt, bnm, lst) -> BaseBuilt.register bt bnm lst)
+           (fun (bt, bnm, lst) -> BaseBuilt.register ~ctxt bt bnm lst)
            evs)
       pkg.sections
 
-  let clean run pkg extra_args =
+  let clean ~ctxt run pkg extra_args =
     run_command "omake" (["clean"] @ OMakeFields.(run.extra_args)) extra_args;
     List.iter
       (function
         | Library (cs, _, _) ->
-          BaseBuilt.unregister BaseBuilt.BLib cs.cs_name
+          BaseBuilt.unregister ~ctxt BaseBuilt.BLib cs.cs_name
         | Executable (cs, _, _) ->
-          BaseBuilt.unregister BaseBuilt.BExec cs.cs_name;
-          BaseBuilt.unregister BaseBuilt.BExecLib cs.cs_name
+          BaseBuilt.unregister ~ctxt BaseBuilt.BExec cs.cs_name;
+          BaseBuilt.unregister ~ctxt BaseBuilt.BExecLib cs.cs_name
         | Doc(cs, _) ->
           (* "omake clean" also cleans docs *)
-          BaseBuilt.unregister BaseBuilt.BDoc cs.cs_name
+          BaseBuilt.unregister ~ctxt BaseBuilt.BDoc cs.cs_name
         | _ ->
           ())
       pkg.sections
 
-  let distclean run _ extra_args =
+  let distclean ~ctxt:_ run _ extra_args =
     run_command "omake" (["distclean"] @ OMakeFields.(run.extra_args))
       extra_args;
     List.iter
@@ -95,10 +95,10 @@ end
 
 
 module InstallRuntime = struct
-  let install run _ extra_args =
+  let install ~ctxt:_ run _ extra_args =
     run_command "omake" (["install"] @ OMakeFields.(run.extra_args)) extra_args
 
-  let uninstall run _ extra_args =
+  let uninstall ~ctxt:_ run _ extra_args =
     run_command "omake" (["uninstall"] @ OMakeFields.(run.extra_args))
       extra_args
 end
@@ -106,7 +106,7 @@ end
 
 module DocRuntime = struct
   open OMakeFields
-  let main run pkg (cs,doc) extra_args =
+  let main ~ctxt run pkg (cs,doc) extra_args =
     let target =
       OASISUnixPath.make
         [ run.run_path;
@@ -118,26 +118,19 @@ module DocRuntime = struct
     List.iter
       (fun sct ->
          match sct with
-           | Doc(cs,doc) when var_choose doc.doc_build ->
-             let files =
-               Array.to_list
-                 (Sys.readdir (OASISHostPath.of_unix target)) in
-             let files =
-               List.filter
-                 (fun n -> n.[0] <> '.')
-                 files in
-             let full_files =
-               List.map
-                 (fun n ->
-                    OASISHostPath.of_unix (OASISUnixPath.concat target n)
-                 )
-                 files in
-             BaseBuilt.register
-               BaseBuilt.BDoc
-               cs.cs_name
-               [full_files]
-           | _ ->
-             ()
+         | Doc(cs,doc) when var_choose doc.doc_build ->
+           let files =
+             Array.to_list (Sys.readdir (OASISHostPath.of_unix target))
+           in
+           let files = List.filter (fun n -> n.[0] <> '.') files in
+           let full_files =
+             List.map
+               (fun n -> OASISHostPath.of_unix (OASISUnixPath.concat target n))
+               files
+           in
+           BaseBuilt.register ~ctxt BaseBuilt.BDoc cs.cs_name [full_files]
+         | _ ->
+           ()
       )
       pkg.sections
 end
@@ -181,19 +174,19 @@ let build_init () =
         [OMakeData.omakesys_ml];
 
       chng_main =
-        OASISDataNotation.func_with_arg
+        OASISDataNotation.func_with_arg_ctxt
           BuildRuntime.main ("OMakePlugin.BuildRuntime.main")
           run odn_of_run_t;
 
       chng_clean =
         Some
-          (OASISDataNotation.func_with_arg
+          (OASISDataNotation.func_with_arg_ctxt
              BuildRuntime.clean ("OMakePlugin.BuildRuntime.clean")
              run odn_of_run_t);
 
       chng_distclean =
         Some
-          (OASISDataNotation.func_with_arg
+          (OASISDataNotation.func_with_arg_ctxt
              BuildRuntime.distclean ("OMakePlugin.BuildRuntime.distclean")
              run odn_of_run_t);
     }
@@ -212,15 +205,15 @@ let install_init () =
     { OMakeFields.run_path = "";
       OMakeFields.extra_args = []
     } in
-  let doit_install ctxt pkg =
-    let ctxt = need_ocaml_401 ctxt pkg in
+  let doit_install plugin_ctxt pkg =
+    let plugin_ctxt = need_ocaml_401 plugin_ctxt pkg in
     let run = generator_inst pkg.schema_data in
     let equip() =
-      OMakeEquip.equip_project ctxt pkg in
-    { ctxt with other_actions = equip :: ctxt.other_actions },
+      OMakeEquip.equip_project plugin_ctxt pkg in
+    { plugin_ctxt with other_actions = equip :: plugin_ctxt.other_actions },
     { chng_moduls = [OMakeData.omakesys_ml];
       chng_main =
-        OASISDataNotation.func_with_arg
+        OASISDataNotation.func_with_arg_ctxt
           InstallRuntime.install
           "OMakePlugin.InstallRuntime.install"
           run
@@ -228,15 +221,15 @@ let install_init () =
       chng_clean = None;
       chng_distclean = None
     } in
-  let doit_uninstall ctxt pkg =
-    let ctxt = need_ocaml_401 ctxt pkg in
+  let doit_uninstall plugin_ctxt pkg =
+    let plugin_ctxt = need_ocaml_401 plugin_ctxt pkg in
     let run = generator_uninst pkg.schema_data in
     let equip() =
-      OMakeEquip.equip_project ctxt pkg in
-    { ctxt with other_actions = equip :: ctxt.other_actions },
+      OMakeEquip.equip_project plugin_ctxt pkg in
+    { plugin_ctxt with other_actions = equip :: plugin_ctxt.other_actions },
     { chng_moduls = [OMakeData.omakesys_ml];
       chng_main =
-        OASISDataNotation.func_with_arg
+        OASISDataNotation.func_with_arg_ctxt
           InstallRuntime.uninstall
           "OMakePlugin.InstallRuntime.uninstall"
           run
@@ -257,8 +250,7 @@ let doc_init () =
       OMakeFields.extra_args = BuildFields.extra_args data;
     } in
   let doit ctxt pkg (cs, _) =
-    let run =
-      generator cs.cs_data in
+    let run = generator cs.cs_data in
     let equip() =
       OMakeEquip.equip_project ctxt pkg in
     { ctxt with other_actions = equip :: ctxt.other_actions },
@@ -267,7 +259,7 @@ let doc_init () =
         [OMakeData.omakesys_ml];
 
       chng_main =
-        OASISDataNotation.func_with_arg
+        OASISDataNotation.func_with_arg_ctxt
           DocRuntime.main
           "OMakePlugin.DocRuntime.main"
           run

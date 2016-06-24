@@ -35,7 +35,9 @@ open OASISTypes
     failure.
 *)
 val test:
-  ((package ->
+  ctxt:OASISContext.t ->
+  ((ctxt:OASISContext.t ->
+    package ->
     common_section * test ->
     arg array ->
     float) *

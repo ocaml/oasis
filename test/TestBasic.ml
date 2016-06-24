@@ -39,10 +39,18 @@ let tests =
 
     "Env dump/load" >::
     (fun test_ctxt ->
+       let ctxt =
+         {(TestCommon.oasis_ctxt test_ctxt) with
+          OASISContext.srcfs =
+            new OASISFileSystem.host_fs
+              (in_testdata_dir test_ctxt ["TestBasic"])}
+       in
        (* TODO: lock *)
        BaseEnv.unload ();
-       BaseEnv.load ~filename:(in_testdata_dir test_ctxt
-                                 ["TestBasic"; "dir.data"]) ();
+       BaseEnv.load
+         ~ctxt
+         ~filename:(OASISFileSystem.of_unix_filename "dir.data")
+         ();
        (* Reset lazy values ? *)
        assert_equal
          ~printer:(fun s -> s)

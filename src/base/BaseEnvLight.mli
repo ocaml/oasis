@@ -43,7 +43,12 @@ val default_filename: string
 
 
 (** Load environment. *)
-val load: ?allow_empty:bool -> ?filename:string -> unit -> t
+val load:
+  ?allow_empty:bool ->
+  ?filename:string ->
+  ?stream:char Stream.t ->
+  unit ->
+  t
 
 
 (** Expand a variable, replacing $(X) by variable X recursively. *)

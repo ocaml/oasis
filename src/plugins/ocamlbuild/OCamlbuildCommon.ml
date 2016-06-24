@@ -89,35 +89,32 @@ let fix_args args extra_argv =
 
 
 (** Run 'ocamlbuild -clean' if not already done *)
-let run_clean extra_argv =
+let run_clean ~ctxt extra_argv =
   let extra_cli =
     String.concat " " (Array.to_list extra_argv)
   in
   (* Run if never called with these args *)
-  if not (BaseLog.exists ocamlbuild_clean_ev extra_cli) then
+  if not (BaseLog.exists ~ctxt ocamlbuild_clean_ev extra_cli) then
     begin
-      OASISExec.run ~ctxt:!BaseContext.default
-        (ocamlbuild ()) (fix_args ["-clean"] extra_argv);
-      BaseLog.register ocamlbuild_clean_ev extra_cli;
+      OASISExec.run ~ctxt (ocamlbuild ()) (fix_args ["-clean"] extra_argv);
+      BaseLog.register ~ctxt ocamlbuild_clean_ev extra_cli;
       at_exit
         (fun () ->
            try
-             BaseLog.unregister ocamlbuild_clean_ev extra_cli
-           with _ ->
-             ())
+             BaseLog.unregister ~ctxt ocamlbuild_clean_ev extra_cli
+           with _ -> ())
     end
 
 
 (** Run ocamlbuild, unregister all clean events *)
-let run_ocamlbuild args extra_argv =
+let run_ocamlbuild ~ctxt args extra_argv =
   (* TODO: enforce that target in args must be UNIX encoded i.e. toto/index.html
   *)
-  OASISExec.run ~ctxt:!BaseContext.default
-    (ocamlbuild ()) (fix_args args extra_argv);
+  OASISExec.run ~ctxt (ocamlbuild ()) (fix_args args extra_argv);
   (* Remove any clean event, we must run it again *)
   List.iter
-    (fun (e, d) -> BaseLog.unregister e d)
-    (BaseLog.filter [ocamlbuild_clean_ev])
+    (fun (e, d) -> BaseLog.unregister ~ctxt e d)
+    (BaseLog.filter ~ctxt [ocamlbuild_clean_ev])
 
 
 (** Determine real build directory *)

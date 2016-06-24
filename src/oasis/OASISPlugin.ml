@@ -49,8 +49,7 @@ let plugin_compare (k1, n1, vo1) (k2, n2, vo2) =
       n
 
 
-let plugin_equal plg1 plg2 =
-  plugin_compare plg1 plg2 = 0
+let plugin_equal plg1 plg2 = plugin_compare plg1 plg2 = 0
 
 
 let plugin_hash (k, n, _) =
@@ -147,8 +146,8 @@ type ('a, 'b) section_act =
   package ->
   (common_section * 'a) ->
   context_act *
-    ((package -> (common_section * 'a) -> string array -> 'b),
-     (package -> (common_section * 'a) -> string array -> unit)
+    ((ctxt:OASISContext.t -> package -> (common_section * 'a) -> string array -> 'b),
+     (ctxt:OASISContext.t -> package -> (common_section * 'a) -> string array -> unit)
     ) setup_changes
 
 
@@ -156,8 +155,8 @@ type package_act =
   context_act ->
   package ->
   context_act *
-    ((package -> string array -> unit),
-     (package -> string array -> unit)
+    ((ctxt:OASISContext.t -> package -> string array -> unit),
+     (ctxt:OASISContext.t -> package -> string array -> unit)
     ) setup_changes
 
 
@@ -183,7 +182,7 @@ module SetPlugin =
 
 let mem_no_version (knd, nm, _) plugins =
   SetPlugin.fold
-    (fun (knd', nm', ver) found ->
+    (fun (knd', nm', _) found ->
        if not found then
          knd = knd' && (OASISUtils.compare_csl nm nm' = 0)
        else
@@ -209,7 +208,7 @@ module HashPluginAll =
 
 
 (** Find a plugin with or without version *)
-let find_fuzzy tbl ((knd, nm, vo) as id) =
+let find_fuzzy tbl ((knd, nm, _) as id) =
   try
     HashPlugin.find tbl id
   with Not_found ->
@@ -443,7 +442,7 @@ struct
    * code duplication
   *)
   (** Find a plugin with or without version *)
-  let find_fuzzy' tbl ((knd, nm, vo) as id) =
+  let find_fuzzy' tbl ((knd, nm, _) as id) =
     try
       HashPlugin.find tbl id
     with Not_found ->

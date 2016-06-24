@@ -51,7 +51,7 @@ let oasis_exec = Conf.make_exec "oasis"
 let ocamlmod_exec = Conf.make_exec "ocamlmod"
 let fake_ocamlfind_exec = Conf.make_exec "fake_ocamlfind"
 (* TODO: add make_string_list to OUnit2 and use it to define oasis_args. *)
-let oasis_args ctxt = []
+let oasis_args _ = []
 let oasis_ctxt ?(ignore_plugin=false) test_ctxt =
   OASISContext.(
     {!default with
@@ -126,7 +126,7 @@ let assert_command ~ctxt
         List.iter
           (fun line ->
              non_fatal ctxt
-               (fun test_ctxt ->
+               (fun _ ->
                   List.iter
                     (fun (what, fmt) ->
                        if OASISString.starts_with ~what line then
@@ -211,13 +211,13 @@ let file_content fn =
     close_in chn;
     Buffer.contents buff
 
+let dbug_file_content _ _ = ()
 
+(* TODO: re-enable when OUnit will discard it for JUnit.xml.
 let dbug_file_content test_ctxt fn =
-  (* TODO: re-enable when OUnit will discard it for JUnit.xml.
   logf test_ctxt `Info "Content of %S:" fn;
   logf test_ctxt `Info "%s" (file_content fn)
-   *)
-  ()
+ *)
 
 (* Start a timer for [str]. *)
 let timer_start str =
@@ -253,6 +253,6 @@ let all_subdirectories test_ctxt dn lst fmt =
    Array.iter
      (fun dn ->
         non_fatal test_ctxt
-          (fun test_ctxt -> assert_bool (fmt dn) (SetString.mem dn st)))
+          (fun _ -> assert_bool (fmt dn) (SetString.mem dn st)))
      (Sys.readdir dn)
 

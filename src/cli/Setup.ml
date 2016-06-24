@@ -28,7 +28,6 @@
 
 open OASISGettext
 open OASISUtils
-open CLISubCommand
 open OASISSetupUpdate
 
 
@@ -92,6 +91,7 @@ let main ~ctxt (oasis_exec, update, nocompat) oasis_fn pkg =
   in
   let _chngs: OASISFileTemplate.file_generate_change list =
     BaseGenerate.generate
+      ~ctxt
       ~backup:false
       ~setup_fn:BaseSetup.default_filename
       ~restore:false

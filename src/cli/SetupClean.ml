@@ -26,14 +26,13 @@
 *)
 
 
-open CLISubCommand
 open OASISGettext
 open OASISFileTemplate
 open OASISPlugin
 
 
 let main ~ctxt (replace_sections, remove) oasis_fn pkg =
-  BaseGenerate.restore ();
+  BaseGenerate.restore ~ctxt ();
   if replace_sections then begin
     let ctxt, _ = BaseSetup.of_package ~oasis_fn ~setup_update:false OASISSetupUpdate.NoUpdate pkg in
     OASISFileTemplate.fold

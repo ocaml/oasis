@@ -22,6 +22,7 @@
 
 open OASISGettext
 open OASISUtils
+open OASISContext
 open PropList
 
 
@@ -53,23 +54,19 @@ type definition_t =
   }
 
 
-let schema =
-  Schema.create "environment"
+let schema = Schema.create "environment"
 
 
 (* Environment data *)
-let env =
-  Data.create ()
+let env = Data.create ()
 
 
 (* Environment data from file *)
-let env_from_file =
-  ref MapString.empty
+let env_from_file = ref MapString.empty
 
 
 (* Lexer for var *)
-let var_lxr =
-  Genlex.make_lexer []
+let var_lxr = Genlex.make_lexer []
 
 
 let rec var_expand str =
@@ -192,7 +189,7 @@ let var_define
   let var_get_low lst =
     let errors, res =
       List.fold_left
-        (fun (errors, res) (o, v) ->
+        (fun (errors, res) (_, v) ->
            if res = None then
              begin
                try
@@ -235,7 +232,7 @@ let var_define
       ~parse:(fun ?(context=ODefault) s -> [context, fun () -> s])
       ~print:var_get_low
       ~default
-      ~update:(fun ?context x old_x -> x @ old_x)
+      ~update:(fun ?context:_ x old_x -> x @ old_x)
       ?help
       extra
   in
@@ -273,7 +270,7 @@ let var_redefine
     end
 
 
-let var_ignore (e: unit -> string) = ()
+let var_ignore (_: unit -> string) = ()
 
 
 let print_hidden =
@@ -298,11 +295,34 @@ let var_all () =
        schema)
 
 
-let default_filename = lazy (Filename.concat (Sys.getcwd ()) "setup.data")
+let default_filename = in_srcdir "setup.data"
 
 
-let load ?allow_empty ?filename () =
-  env_from_file := BaseEnvLight.load ?allow_empty ?filename ()
+let load ~ctxt ?(allow_empty=false) ?(filename=default_filename) () =
+  let open OASISFileSystem in
+  env_from_file :=
+    let repr_filename = ctxt.srcfs#string_of_filename filename in
+    if ctxt.srcfs#file_exists filename then begin
+      let buf = Buffer.create 13 in
+      defer_close
+        (ctxt.srcfs#open_in ~mode:binary_in filename)
+        (read_all buf);
+      defer_close
+        (ctxt.srcfs#open_in ~mode:binary_in filename)
+        (fun rdr ->
+           OASISMessage.info ~ctxt "Loading environment from %S." repr_filename;
+           BaseEnvLight.load ~allow_empty
+             ~filename:(repr_filename)
+             ~stream:(stream_of_reader rdr)
+             ())
+    end else if allow_empty then begin
+      BaseEnvLight.MapString.empty
+    end else begin
+      failwith
+        (Printf.sprintf
+           (f_ "Unable to load environment, the file '%s' doesn't exist.")
+           repr_filename)
+    end
 
 
 let unload () =
@@ -310,40 +330,32 @@ let unload () =
   Data.clear env
 
 
-let dump ?(filename=Lazy.force default_filename) () =
-  let chn =
-    open_out_bin filename
-  in
-  let output nm value =
-    Printf.fprintf chn "%s=%S\n" nm value
-  in
-  let mp_todo =
-    (* Dump data from schema *)
-    Schema.fold
-      (fun mp_todo nm def _ ->
-         if def.dump then
-           begin
-             try
-               let value =
-                 Schema.get
-                   schema
-                   env
-                   nm
-               in
-               output nm value
-             with Not_set _ ->
-               ()
-           end;
-         MapString.remove nm mp_todo)
-      !env_from_file
-      schema
-  in
-  (* Dump data defined outside of schema *)
-  MapString.iter output mp_todo;
-
-  (* End of the dump *)
-  close_out chn
-
+let dump ~ctxt ?(filename=default_filename) () =
+  let open OASISFileSystem in
+  defer_close
+    (ctxt.OASISContext.srcfs#open_out ~mode:binary_out filename)
+    (fun wrtr ->
+       let buf = Buffer.create 63 in
+       let output nm value =
+         Buffer.add_string buf (Printf.sprintf "%s=%S\n" nm value)
+       in
+       let mp_todo =
+         (* Dump data from schema *)
+         Schema.fold
+           (fun mp_todo nm def _ ->
+              if def.dump then begin
+                try
+                  output nm (Schema.get schema env nm)
+                with Not_set _ ->
+                  ()
+              end;
+              MapString.remove nm mp_todo)
+           !env_from_file
+           schema
+       in
+       (* Dump data defined outside of schema *)
+       MapString.iter output mp_todo;
+       wrtr#output buf)
 
 let print () =
   let printable_vars =

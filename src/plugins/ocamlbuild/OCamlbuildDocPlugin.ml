@@ -28,9 +28,7 @@
 
 open OASISTypes
 open OASISGettext
-open OASISMessage
 open OCamlbuildCommon
-open BaseStandardVar
 
 
 type run_t =
@@ -40,7 +38,7 @@ type run_t =
   }
 
 
-let doc_build run pkg (cs, doc) argv =
+let doc_build ~ctxt run _ (cs, _) argv =
   let index_html =
     OASISUnixPath.make
       [
@@ -57,27 +55,26 @@ let doc_build run pkg (cs, doc) argv =
         cs.cs_name^".docdir";
       ]
   in
-  run_ocamlbuild (index_html :: run.extra_args) argv;
+  run_ocamlbuild ~ctxt (index_html :: run.extra_args) argv;
   List.iter
     (fun glb ->
        BaseBuilt.register
+         ~ctxt
          BaseBuilt.BDoc
          cs.cs_name
-         [OASISFileUtil.glob ~ctxt:!BaseContext.default
-            (Filename.concat tgt_dir glb)])
+         [OASISFileUtil.glob ~ctxt (Filename.concat tgt_dir glb)])
     ["*.html"; "*.css"]
 
 
-let doc_clean run pkg (cs, doc) argv =
-  run_clean argv;
-  BaseBuilt.unregister BaseBuilt.BDoc cs.cs_name
+let doc_clean ~ctxt _ _ (cs, _) argv =
+  run_clean ~ctxt argv;
+  BaseBuilt.unregister ~ctxt BaseBuilt.BDoc cs.cs_name
 
 
 (* END EXPORT *)
 
 
 open OASISFileTemplate
-open OASISPlugin
 open OASISValues
 open OASISUtils
 open OASISPlugin
@@ -192,7 +189,7 @@ let generator =
           List.fold_left
             (fun mp ->
                function
-                 | Library ({cs_name = name}, bs, lib) ->
+               | Library ({cs_name = name; _}, bs, lib) ->
                    MapString.add name (bs, lib) mp
                  | _ ->
                    mp)
@@ -302,13 +299,13 @@ let doit ctxt pkg (cs, doc) =
       [OCamlbuildData.ocamlbuildsys_ml];
 
     chng_main =
-      OASISDataNotation.func_with_arg
+      OASISDataNotation.func_with_arg_ctxt
         doc_build "OCamlbuildDocPlugin.doc_build"
         run odn_of_run_t;
 
     chng_clean =
       Some
-        (OASISDataNotation.func_with_arg
+        (OASISDataNotation.func_with_arg_ctxt
            doc_clean "OCamlbuildDocPlugin.doc_clean"
            run odn_of_run_t);
 

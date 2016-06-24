@@ -32,6 +32,10 @@ type level =
   | `Warning
   | `Error]
 
+type source
+type source_filename = source OASISFileSystem.filename
+
+val in_srcdir: OASISUnixPath.unix_filename -> source_filename
 
 type t =
   {
@@ -52,6 +56,9 @@ type t =
 
     printf: level -> string -> unit;
     (** Redirect output *)
+
+    srcfs: source OASISFileSystem.fs;
+    (** The file system containing the sources *)
   }
 
 

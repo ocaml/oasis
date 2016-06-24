@@ -50,27 +50,24 @@ let to_log_event_done t nm =
   "is_"^(to_log_event_file t nm)
 
 
-let register t nm lst =
-  BaseLog.register
-    (to_log_event_done t nm)
-    "true";
+let register ~ctxt t nm lst =
+  BaseLog.register ~ctxt (to_log_event_done t nm) "true";
   List.iter
     (fun alt ->
        let registered =
          List.fold_left
            (fun registered fn ->
-              if OASISFileUtil.file_exists_case fn then
-                begin
-                  BaseLog.register
-                    (to_log_event_file t nm)
-                    (if Filename.is_relative fn then
-                       Filename.concat (Sys.getcwd ()) fn
-                     else
-                       fn);
-                  true
-                end
-              else
-                registered)
+              if OASISFileUtil.file_exists_case fn then begin
+                BaseLog.register ~ctxt
+                  (to_log_event_file t nm)
+                  (if Filename.is_relative fn then
+                     Filename.concat (Sys.getcwd ()) fn
+                   else
+                     fn);
+                true
+              end else begin
+                registered
+              end)
            false
            alt
        in
@@ -81,56 +78,40 @@ let register t nm lst =
     lst
 
 
-let unregister t nm =
+let unregister ~ctxt t nm =
   List.iter
-    (fun (e, d) ->
-       BaseLog.unregister e d)
-    (BaseLog.filter
-       [to_log_event_file t nm;
-        to_log_event_done t nm])
+    (fun (e, d) -> BaseLog.unregister ~ctxt e d)
+    (BaseLog.filter ~ctxt [to_log_event_file t nm; to_log_event_done t nm])
 
 
-let fold t nm f acc =
+let fold ~ctxt t nm f acc =
   List.fold_left
     (fun acc (_, fn) ->
-       if OASISFileUtil.file_exists_case fn then
-         begin
-           f acc fn
-         end
-       else
-         begin
-           warning
-             (f_ "File '%s' has been marked as built \
-                  for %s but doesn't exist")
-             fn
-             (Printf.sprintf
-                (match t with
-                  | BExec | BExecLib ->
-                    (f_ "executable %s")
-                  | BLib ->
-                    (f_ "library %s")
-                  | BObj ->
-                    (f_ "object %s")
-                  | BDoc ->
-                    (f_ "documentation %s"))
-                nm);
-           acc
-         end)
+       if OASISFileUtil.file_exists_case fn then begin
+         f acc fn
+       end else begin
+         warning
+           (f_ "File '%s' has been marked as built \
+                for %s but doesn't exist")
+           fn
+           (Printf.sprintf
+              (match t with
+                | BExec | BExecLib -> (f_ "executable %s")
+                | BLib -> (f_ "library %s")
+                | BObj -> (f_ "object %s")
+                | BDoc -> (f_ "documentation %s"))
+              nm);
+         acc
+       end)
     acc
-    (BaseLog.filter
-       [to_log_event_file t nm])
+    (BaseLog.filter ~ctxt [to_log_event_file t nm])
 
 
-let is_built t nm =
+let is_built ~ctxt t nm =
   List.fold_left
-    (fun is_built (_, d) ->
-       (try
-          bool_of_string d
-        with _ ->
-          false))
+    (fun _ (_, d) -> try bool_of_string d with _ -> false)
     false
-    (BaseLog.filter
-       [to_log_event_done t nm])
+    (BaseLog.filter ~ctxt [to_log_event_done t nm])
 
 
 let of_executable ffn (cs, bs, exec) =

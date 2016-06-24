@@ -36,6 +36,7 @@
 type name          = string  (** Standard name. *)
 type package_name  = string  (** Name of a package, see {!package}. *)
 type url           = string  (** Standard URL. *)
+(* TODO: use OASIS{Host,Unix}Path. *)
 type unix_dirname  = string  (** UNIX directory name. *)
 type unix_filename = string  (** UNIX file name. *)
 type host_dirname  = string  (** Host directory name. *)

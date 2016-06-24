@@ -34,9 +34,9 @@ open BaseMessage
 
 
 (** Configure build using provided series of check to be done
-  * and then output corresponding file.
+    and then output corresponding file.
 *)
-let configure pkg argv =
+let configure ~ctxt:_ pkg argv =
   let var_ignore_eval var = let _s: string = var () in () in
   let errors = ref SetString.empty in
   let buff = Buffer.create 13 in
@@ -70,8 +70,8 @@ let configure pkg argv =
           (* Check that matching tool is built *)
           List.iter
             (function
-              | Executable ({cs_name = nm2},
-                  {bs_build = build},
+              | Executable ({cs_name = nm2; _},
+                            {bs_build = build; _},
                   _) when nm1 = nm2 ->
                 if not (var_choose build) then
                   add_errors
@@ -126,8 +126,8 @@ let configure pkg argv =
               (* Check that matching library is built *)
               List.iter
                 (function
-                  | Library ({cs_name = nm2},
-                      {bs_build = build},
+                  | Library ({cs_name = nm2; _},
+                             {bs_build = build; _},
                       _) when nm1 = nm2 ->
                     if not (var_choose build) then
                       add_errors
@@ -230,7 +230,7 @@ let configure pkg argv =
     pkg.sections;
 
   (* Check if we need native dynlink (presence of libraries that compile to
-   * native)
+     native)
   *)
   begin
     let has_cmxa =
@@ -279,8 +279,8 @@ let init () =
   let self_id, _ =
     Configure.create plugin
   in
-  let doit ctxt pkg =
-    ctxt,
+  let doit plugin_ctxt _ =
+    plugin_ctxt,
     {
       chng_moduls    = [InternalData.internalsys_ml];
       chng_clean     = None;

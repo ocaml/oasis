@@ -50,6 +50,7 @@ Library oasis
            PropList,
            OASISUtils,
            OASISUnixPath,
+           OASISFileSystem,
            OASISContext,
            OASISGettext,
            OASISMessage,

@@ -24,45 +24,26 @@
 open BaseEnv
 open OASISGettext
 open BaseMessage
+open OASISContext
 
 
 let to_filename fn =
-  let fn =
-    OASISHostPath.of_unix fn
-  in
   if not (Filename.check_suffix fn ".ab") then
-    warning
-      (f_ "File '%s' doesn't have '.ab' extension")
-      fn;
-  Filename.chop_extension fn
+    warning (f_ "File '%s' doesn't have '.ab' extension") fn;
+  OASISFileSystem.of_unix_filename (Filename.chop_extension fn)
 
 
-let replace fn_lst =
-  let buff =
-    Buffer.create 13
-  in
+let replace ~ctxt fn_lst =
+  let open OASISFileSystem in
+  let ibuf, obuf = Buffer.create 13, Buffer.create 13 in
   List.iter
     (fun fn ->
-       let fn =
-         OASISHostPath.of_unix fn
-       in
-       let chn_in =
-         open_in fn
-       in
-       let chn_out =
-         open_out (to_filename fn)
-       in
-       (
-         try
-           while true do
-             Buffer.add_string buff (var_expand (input_line chn_in));
-             Buffer.add_char buff '\n'
-           done
-         with End_of_file ->
-           ()
-       );
-       Buffer.output_buffer chn_out buff;
-       Buffer.clear buff;
-       close_in chn_in;
-       close_out chn_out)
+       Buffer.clear ibuf; Buffer.clear obuf;
+       defer_close
+         (ctxt.srcfs#open_in (of_unix_filename fn))
+         (read_all ibuf);
+       Buffer.add_string obuf (var_expand (Buffer.contents ibuf));
+       defer_close
+         (ctxt.srcfs#open_out (to_filename fn))
+         (fun wrtr -> wrtr#output obuf))
     fn_lst

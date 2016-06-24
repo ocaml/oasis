@@ -34,15 +34,13 @@ let generated_fn = OASISHostPath.of_unix "src/cli/CLIPluginsLoaded.ml"
 
 let post_configure pkg =
   (* Compute build depends *)
-  let _, findlib_of_name, _ =
-    OASISFindlib.findlib_mapping pkg
-  in
+  let _, findlib_of_name, _ = OASISFindlib.findlib_mapping pkg in
   let mp_int, set_ext =
     (* Collect dependencies and external dependencies from the package. *)
     List.fold_left
       (fun (mp_int, set_ext) ->
          function
-           | Library (cs, bs, lib) when var_choose bs.bs_build ->
+           | Library (cs, bs, _) when var_choose bs.bs_build ->
                begin
                  let deps, set_ext =
                    List.fold_left
@@ -68,7 +66,7 @@ let post_configure pkg =
                    MapString.add (findlib_of_name cs.cs_name) deps mp_int,
                    set_ext
                end
-           | Executable (cs, bs, exec) when var_choose bs.bs_build ->
+           | Executable (_, bs, _) when var_choose bs.bs_build ->
                let set_ext =
                  List.fold_left
                    (fun set_ext ->

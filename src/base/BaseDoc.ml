@@ -27,7 +27,7 @@ open OASISTypes
 open OASISGettext
 
 
-let doc lst pkg extra_args =
+let doc ~ctxt lst pkg extra_args =
 
   let one_doc (doc_plugin, cs, doc) =
     if var_choose
@@ -40,7 +40,7 @@ let doc lst pkg extra_args =
         info (f_ "Building documentation '%s'") cs.cs_name;
         BaseCustom.hook
           doc.doc_custom
-          (doc_plugin pkg (cs, doc))
+          (doc_plugin ~ctxt pkg (cs, doc))
           extra_args
       end
   in

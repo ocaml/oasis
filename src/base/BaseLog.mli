@@ -31,29 +31,29 @@ open OASISTypes
 
 (** Default file for registering log.
 *)
-val default_filename: host_filename Lazy.t
+val default_filename: OASISContext.source_filename
 
 
 (** Load the log file.
 *)
-val load: unit -> (name * string) list
+val load: ctxt:OASISContext.t -> unit -> (name * string) list
 
 
 (** Add an event to the log file.
 *)
-val register: name -> string -> unit
+val register: ctxt:OASISContext.t ->  name -> string -> unit
 
 
 (** Remove an event from the log file.
 *)
-val unregister: name -> string -> unit
+val unregister: ctxt:OASISContext.t ->  name -> string -> unit
 
 
 (** Filter events of the log file.
 *)
-val filter: name list -> (name * string) list
+val filter: ctxt:OASISContext.t ->  name list -> (name * string) list
 
 
 (** Check if an event exists in the log file.
 *)
-val exists: name -> string -> bool
+val exists: ctxt:OASISContext.t ->  name -> string -> bool

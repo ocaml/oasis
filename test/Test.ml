@@ -27,7 +27,6 @@
 
 
 open OUnit2
-open TestCommon
 
 
 let extract_timings () =
@@ -98,6 +97,9 @@ let () =
       ~exit
       ("OASIS">:::
        [
+         (* Keep sorted. *)
+         TestBaseCompat.tests;
+         TestBaseEnv.tests;
          TestBasic.tests;
          TestDevFiles.tests;
          TestExamples.tests;
@@ -107,6 +109,7 @@ let () =
          TestLog.tests;
          TestMETA.tests;
          TestOASISAst.tests;
+         TestOASISFileSystem.tests;
          TestOASISParse.tests;
          TestOASISString.tests;
          TestOASISText.tests;
@@ -119,7 +122,5 @@ let () =
          TestStdFiles.tests;
          TestValues.tests;
          TestVersion.tests;
-         TestBaseEnv.tests;
-         TestBaseCompat.tests;
        ]);
       extract_timings ()

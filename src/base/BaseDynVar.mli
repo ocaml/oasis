@@ -31,6 +31,5 @@
 *)
 
 
-(** Read 'setup.log' and sets variables.
-*)
-val init: OASISTypes.package -> unit
+(** Read 'setup.log' and sets variables. *)
+val init: ctxt:OASISContext.t -> OASISTypes.package -> unit

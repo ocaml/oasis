@@ -33,7 +33,9 @@ open OASISTypes
     [(f, cs, doc)], apply in turn [f pkg (cs, doc) extra_args].
 *)
 val doc:
-  ((package ->
+  ctxt:OASISContext.t ->
+  ((ctxt:OASISContext.t ->
+    package ->
     common_section * doc ->
     arg array ->
     unit) *

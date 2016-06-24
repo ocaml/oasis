@@ -1,7 +1,10 @@
 OASISGettext.ml
-OASISContext.ml
 OASISString.ml
 OASISUtils.ml
+OASISUnixPath.ml
+OASISHostPath.ml
+OASISFileSystem.ml
+OASISContext.ml
 PropList.ml
 OASISMessage.ml
 OASISVersion.ml
@@ -10,8 +13,6 @@ OASISExpr.ml
 OASISText.ml
 OASISTypes.ml
 OASISFeatures.ml
-OASISUnixPath.ml
-OASISHostPath.ml
 OASISSection.ml
 OASISBuildSection.ml
 OASISExecutable.ml

@@ -22,126 +22,104 @@
 
 
 open OASISUtils
+open OASISContext
+open OASISGettext
+open OASISFileSystem
 
 
-let default_filename =
-  lazy (Filename.concat
-      (Filename.dirname (Lazy.force BaseEnv.default_filename))
-      "setup.log")
+let default_filename = in_srcdir "setup.log"
 
 
-module SetTupleString =
-  Set.Make
-    (struct
-      type t = string * string
-      let compare (s11, s12) (s21, s22) =
-        match String.compare s11 s21 with
+let load ~ctxt () =
+  let module SetTupleString =
+    Set.Make
+      (struct
+        type t = string * string
+        let compare (s11, s12) (s21, s22) =
+          match String.compare s11 s21 with
           | 0 -> String.compare s12 s22
           | n -> n
-    end)
+      end)
+  in
+  if ctxt.srcfs#file_exists default_filename then begin
+    defer_close
+      (ctxt.srcfs#open_in default_filename)
+      (fun rdr ->
+         let strm = stream_of_reader rdr in
+         let scbuf =
+           Scanf.Scanning.from_function
+             (fun () ->
+                try
+                  Stream.next strm
+                with Stream.Failure ->
+                  raise End_of_file)
+         in
+         let rec read_aux (st, lst) =
+           if Scanf.Scanning.end_of_input scbuf then begin
+             List.rev lst
+           end else begin
+             let acc =
+               try
+                 Scanf.bscanf scbuf "%S %S\n"
+                   (fun e d ->
+                      let t = e, d in
+                      if SetTupleString.mem t st then
+                        st, lst
+                      else
+                        SetTupleString.add t st, t :: lst)
+               with Scanf.Scan_failure _ ->
+                 failwith
+                   (Scanf.bscanf scbuf
+                      "%l"
+                      (Printf.sprintf
+                         (f_ "Malformed log file '%s' at line %d")
+                         (ctxt.srcfs#string_of_filename default_filename)))
+             in
+             read_aux acc
+           end
+         in
+         read_aux (SetTupleString.empty, []))
+  end else begin
+    []
+  end
 
 
-let load () =
-  let default_filename = Lazy.force default_filename in
-  if Sys.file_exists default_filename then
-    begin
-      let chn =
-        open_in default_filename
-      in
-      let scbuf =
-        Scanf.Scanning.from_file default_filename
-      in
-      let rec read_aux (st, lst) =
-        if not (Scanf.Scanning.end_of_input scbuf) then
-          begin
-            let acc =
-              try
-                Scanf.bscanf scbuf "%S %S\n"
-                  (fun e d ->
-                     let t =
-                       e, d
-                     in
-                     if SetTupleString.mem t st then
-                       st, lst
-                     else
-                       SetTupleString.add t st,
-                       t :: lst)
-              with Scanf.Scan_failure _ ->
-                failwith
-                  (Scanf.bscanf scbuf
-                     "%l"
-                     (fun line ->
-                        Printf.sprintf
-                          "Malformed log file '%s' at line %d"
-                          default_filename
-                          line))
-            in
-            read_aux acc
-          end
-        else
-          begin
-            close_in chn;
-            List.rev lst
-          end
-      in
-      read_aux (SetTupleString.empty, [])
-    end
+let register ~ctxt event data =
+  defer_close
+    (ctxt.srcfs#open_out
+       ~mode:[Open_append; Open_creat; Open_text]
+       ~perm:0o644
+       default_filename)
+    (fun wrtr ->
+       let buf = Buffer.create 13 in
+       Printf.bprintf buf "%S %S\n" event data;
+       wrtr#output buf)
+
+
+let unregister ~ctxt event data =
+  let lst = load ~ctxt () in
+  let buf = Buffer.create 13 in
+  List.iter
+    (fun (e, d) ->
+       if e <> event || d <> data then
+         Printf.bprintf buf "%S %S\n" e d)
+    lst;
+  if Buffer.length buf > 0 then
+    defer_close
+      (ctxt.srcfs#open_out default_filename)
+      (fun wrtr -> wrtr#output buf)
   else
-    begin
-      []
-    end
+    ctxt.srcfs#remove default_filename
 
 
-let register event data =
-  let chn_out =
-    open_out_gen [Open_append; Open_creat; Open_text] 0o644
-      (Lazy.force default_filename)
-  in
-  Printf.fprintf chn_out "%S %S\n" event data;
-  close_out chn_out
-
-
-let unregister event data =
-  let default_filename = Lazy.force default_filename in
-  if Sys.file_exists default_filename then
-    begin
-      let lst =
-        load ()
-      in
-      let chn_out =
-        open_out default_filename
-      in
-      let write_something =
-        ref false
-      in
-      List.iter
-        (fun (e, d) ->
-           if e <> event || d <> data then
-             begin
-               write_something := true;
-               Printf.fprintf chn_out "%S %S\n" e d
-             end)
-        lst;
-      close_out chn_out;
-      if not !write_something then
-        Sys.remove default_filename
-    end
-
-
-let filter events =
-  let st_events =
-    List.fold_left
-      (fun st e ->
-         SetString.add e st)
-      SetString.empty
-      events
-  in
+let filter ~ctxt events =
+  let st_events = SetString.of_list events in
   List.filter
     (fun (e, _) -> SetString.mem e st_events)
-    (load ())
+    (load ~ctxt ())
 
 
-let exists event data =
+let exists ~ctxt event data =
   List.exists
     (fun v -> (event, data) = v)
-    (load ())
+    (load ~ctxt ())

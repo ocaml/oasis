@@ -20,20 +20,25 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
+open OASISContext
 open BaseEnv
 open BaseMessage
 open OASISTypes
-open OASISSection
 open OASISGettext
 open OASISUtils
 
 
 type std_args_fun =
-  package -> string array -> unit
+  ctxt:OASISContext.t -> package -> string array -> unit
 
 
 type ('a, 'b) section_args_fun =
-  name * (package -> (common_section * 'a) -> string array -> 'b)
+  name *
+  (ctxt:OASISContext.t ->
+   package ->
+   (common_section * 'a) ->
+   string array ->
+   'b)
 
 
 type t =
@@ -86,7 +91,7 @@ let lookup_plugin_section plugin action nm lst =
       action
 
 
-let configure t args =
+let configure ~ctxt t args =
   (* Run configure *)
   BaseCustom.hook
     t.package.conf_custom
@@ -95,38 +100,39 @@ let configure t args =
        begin
          try
            unload ();
-           load ();
+           load ~ctxt ();
          with _ ->
            ()
        end;
 
        (* Run plugin's configure *)
-       t.configure t.package args;
+       t.configure ~ctxt t.package args;
 
        (* Dump to allow postconf to change it *)
-       dump ())
+       dump ~ctxt ())
     ();
 
   (* Reload environment *)
   unload ();
-  load ();
+  load ~ctxt ();
 
   (* Save environment *)
   print ();
 
   (* Replace data in file *)
-  BaseFileAB.replace t.package.files_ab
+  BaseFileAB.replace ~ctxt t.package.files_ab
 
 
-let build t args =
+let build ~ctxt t args =
   BaseCustom.hook
     t.package.build_custom
-    (t.build t.package)
+    (t.build ~ctxt t.package)
     args
 
 
-let doc t args =
+let doc ~ctxt t args =
   BaseDoc.doc
+    ~ctxt
     (join_plugin_sections
        (function
          | Doc (cs, e) ->
@@ -145,8 +151,9 @@ let doc t args =
     args
 
 
-let test t args =
+let test ~ctxt t args =
   BaseTest.test
+    ~ctxt
     (join_plugin_sections
        (function
          | Test (cs, e) ->
@@ -165,16 +172,10 @@ let test t args =
     args
 
 
-let all t args =
-  let rno_doc =
-    ref false
-  in
-  let rno_test =
-    ref false
-  in
-  let arg_rest =
-    ref []
-  in
+let all ~ctxt t args =
+  let rno_doc = ref false in
+  let rno_test = ref false in
+  let arg_rest = ref [] in
   Arg.parse_argv
     ~current:(ref 0)
     (Array.of_list
@@ -197,52 +198,39 @@ let all t args =
     "";
 
   info "Running configure step";
-  configure t (Array.of_list (List.rev !arg_rest));
+  configure ~ctxt t (Array.of_list (List.rev !arg_rest));
 
   info "Running build step";
-  build     t [||];
+  build ~ctxt t [||];
 
   (* Load setup.log dynamic variables *)
-  BaseDynVar.init t.package;
+  BaseDynVar.init ~ctxt t.package;
 
-  if not !rno_doc then
-    begin
-      info "Running doc step";
-      doc t [||];
-    end
-  else
-    begin
-      info "Skipping doc step"
-    end;
-
-  if not !rno_test then
-    begin
-      info "Running test step";
-      test t [||]
-    end
-  else
-    begin
-      info "Skipping test step"
-    end
+  if not !rno_doc then begin
+    info "Running doc step";
+    doc ~ctxt t [||]
+  end else begin
+    info "Skipping doc step"
+  end;
+  if not !rno_test then begin
+    info "Running test step";
+    test ~ctxt t [||]
+  end else begin
+    info "Skipping test step"
+  end
 
 
-let install t args =
-  BaseCustom.hook
-    t.package.install_custom
-    (t.install t.package)
-    args
+let install ~ctxt t args =
+  BaseCustom.hook t.package.install_custom (t.install ~ctxt t.package) args
 
 
-let uninstall t args =
-  BaseCustom.hook
-    t.package.uninstall_custom
-    (t.uninstall t.package)
-    args
+let uninstall ~ctxt t args =
+  BaseCustom.hook t.package.uninstall_custom (t.uninstall ~ctxt t.package) args
 
 
-let reinstall t args =
-  uninstall t args;
-  install t args
+let reinstall ~ctxt t args =
+  uninstall ~ctxt t args;
+  install ~ctxt t args
 
 
 let clean, distclean =
@@ -257,7 +245,7 @@ let clean, distclean =
           | e -> Printexc.to_string e)
   in
 
-  let generic_clean t cstm mains docs tests args =
+  let generic_clean ~ctxt t cstm mains docs tests args =
     BaseCustom.hook
       ~failsafe:true
       cstm
@@ -270,40 +258,27 @@ let clean, distclean =
                  try
                    List.assoc cs.cs_name tests
                  with Not_found ->
-                 fun _ _ _ -> ()
+                 fun ~ctxt:_ _ _ _ -> ()
                in
-               failsafe
-                 (f t.package (cs, test))
-                 args
+               failsafe (f ~ctxt t.package (cs, test)) args
              | Doc (cs, doc) ->
                let f =
                  try
                    List.assoc cs.cs_name docs
                  with Not_found ->
-                 fun _ _ _ -> ()
+                 fun ~ctxt:_ _ _ _ -> ()
                in
-               failsafe
-                 (f t.package (cs, doc))
-                 args
-             | Library _
-             | Object _
-             | Executable _
-             | Flag _
-             | SrcRepo _ ->
-               ())
+               failsafe (f ~ctxt t.package (cs, doc)) args
+             | Library _ | Object _ | Executable _ | Flag _ | SrcRepo _ -> ())
            t.package.sections;
          (* Clean whole package *)
-         List.iter
-           (fun f ->
-              failsafe
-                (f t.package)
-                args)
-           mains)
+         List.iter (fun f -> failsafe (f ~ctxt t.package) args) mains)
       ()
   in
 
-  let clean t args =
+  let clean ~ctxt t args =
     generic_clean
+      ~ctxt
       t
       t.package.clean_custom
       t.clean
@@ -312,12 +287,13 @@ let clean, distclean =
       args
   in
 
-  let distclean t args =
+  let distclean ~ctxt t args =
     (* Call clean *)
-    clean t args;
+    clean ~ctxt t args;
 
     (* Call distclean code *)
     generic_clean
+      ~ctxt
       t
       t.package.distclean_custom
       t.distclean
@@ -325,25 +301,21 @@ let clean, distclean =
       t.distclean_test
       args;
 
-    (* Remove generated file *)
+    (* Remove generated source files. *)
     List.iter
       (fun fn ->
-         if Sys.file_exists fn then
-           begin
-             info (f_ "Remove '%s'") fn;
-             Sys.remove fn
-           end)
-      (Lazy.force BaseEnv.default_filename
-       :: Lazy.force BaseLog.default_filename
-       ::
-         (List.rev_map BaseFileAB.to_filename t.package.files_ab))
+         if ctxt.srcfs#file_exists fn then begin
+           info (f_ "Remove '%s'") (ctxt.srcfs#string_of_filename fn);
+           ctxt.srcfs#remove fn
+         end)
+      ([BaseEnv.default_filename; BaseLog.default_filename]
+       @ (List.rev_map BaseFileAB.to_filename t.package.files_ab))
   in
 
   clean, distclean
 
 
-let version t _ =
-  print_endline t.oasis_version
+let version ~ctxt:_ (t: t) _ = print_endline t.oasis_version
 
 
 let update_setup_ml, no_update_setup_ml_cli =
@@ -353,7 +325,7 @@ let update_setup_ml, no_update_setup_ml_cli =
    Arg.Clear b,
    s_ " Don't try to update setup.ml, even if _oasis has changed.")
 
-
+(* TODO: srcfs *)
 let default_oasis_fn = "_oasis"
 
 
@@ -434,14 +406,12 @@ let update_setup_ml t =
             OASISExec.run
               ~ctxt:!BaseContext.default
               ~f_exit_code:
-                (function
-                  | 0 ->
-                    ()
-                  | n ->
-                    failwithf
-                      (f_ "Unable to update setup.ml using '%s', \
-                           please fix the problem and retry.")
-                      oasis_exec)
+                (fun n ->
+                   if n <> 0 then
+                     failwithf
+                       (f_ "Unable to update setup.ml using '%s', \
+                            please fix the problem and retry.")
+                       oasis_exec)
               oasis_exec ("setup" :: t.oasis_setup_args);
             OASISExec.run ~ctxt:!BaseContext.default ocaml (setup_ml :: args)
           end
@@ -482,100 +452,98 @@ let update_setup_ml t =
 
 
 let setup t =
-  let catch_exn =
-    ref true
+  let catch_exn = ref true in
+  let act_ref =
+    ref (fun ~ctxt:_ _ ->
+      failwithf
+        (f_ "No action defined, run '%s %s -help'")
+        Sys.executable_name
+        Sys.argv.(0))
+
+  in
+  let extra_args_ref = ref [] in
+  let allow_empty_env_ref = ref false in
+  let arg_handle ?(allow_empty_env=false) act =
+    Arg.Tuple
+      [
+        Arg.Rest (fun str -> extra_args_ref := str :: !extra_args_ref);
+        Arg.Unit
+          (fun () ->
+             allow_empty_env_ref := allow_empty_env;
+             act_ref := act);
+      ]
   in
   try
-    let act_ref =
-      ref (fun _ ->
-        failwithf
-          (f_ "No action defined, run '%s %s -help'")
-          Sys.executable_name
-          Sys.argv.(0))
+    let () =
+      Arg.parse
+        (Arg.align
+           ([
+             "-configure",
+             arg_handle ~allow_empty_env:true configure,
+             s_ "[options*] Configure the whole build process.";
+
+             "-build",
+             arg_handle build,
+             s_ "[options*] Build executables and libraries.";
+
+             "-doc",
+             arg_handle doc,
+             s_ "[options*] Build documents.";
+
+             "-test",
+             arg_handle test,
+             s_ "[options*] Run tests.";
+
+             "-all",
+             arg_handle ~allow_empty_env:true all,
+             s_ "[options*] Run configure, build, doc and test targets.";
+
+             "-install",
+             arg_handle install,
+             s_ "[options*] Install libraries, data, executables \
+                 and documents.";
+
+             "-uninstall",
+             arg_handle uninstall,
+             s_ "[options*] Uninstall libraries, data, executables \
+                 and documents.";
+
+             "-reinstall",
+             arg_handle reinstall,
+             s_ "[options*] Uninstall and install libraries, data, \
+                 executables and documents.";
+
+             "-clean",
+             arg_handle ~allow_empty_env:true clean,
+             s_ "[options*] Clean files generated by a build.";
+
+             "-distclean",
+             arg_handle ~allow_empty_env:true distclean,
+             s_ "[options*] Clean files generated by a build and configure.";
+
+             "-version",
+             arg_handle ~allow_empty_env:true version,
+             s_ " Display version of OASIS used to generate this setup.ml.";
+
+             "-no-catch-exn",
+             Arg.Clear catch_exn,
+             s_ " Don't catch exception, useful for debugging.";
+           ]
+            @
+              (if t.setup_update then
+                 [no_update_setup_ml_cli]
+               else
+                 [])
+            @ (BaseContext.args ())))
+        (failwithf (f_ "Don't know what to do with '%s'"))
+        (s_ "Setup and run build process current package\n")
     in
-    let extra_args_ref =
-      ref []
-    in
-    let allow_empty_env_ref =
-      ref false
-    in
-    let arg_handle ?(allow_empty_env=false) act =
-      Arg.Tuple
-        [
-          Arg.Rest (fun str -> extra_args_ref := str :: !extra_args_ref);
 
-          Arg.Unit
-            (fun () ->
-               allow_empty_env_ref := allow_empty_env;
-               act_ref := act);
-        ]
-    in
-
-    Arg.parse
-      (Arg.align
-         ([
-           "-configure",
-           arg_handle ~allow_empty_env:true configure,
-           s_ "[options*] Configure the whole build process.";
-
-           "-build",
-           arg_handle build,
-           s_ "[options*] Build executables and libraries.";
-
-           "-doc",
-           arg_handle doc,
-           s_ "[options*] Build documents.";
-
-           "-test",
-           arg_handle test,
-           s_ "[options*] Run tests.";
-
-           "-all",
-           arg_handle ~allow_empty_env:true all,
-           s_ "[options*] Run configure, build, doc and test targets.";
-
-           "-install",
-           arg_handle install,
-           s_ "[options*] Install libraries, data, executables \
-               and documents.";
-
-           "-uninstall",
-           arg_handle uninstall,
-           s_ "[options*] Uninstall libraries, data, executables \
-               and documents.";
-
-           "-reinstall",
-           arg_handle reinstall,
-           s_ "[options*] Uninstall and install libraries, data, \
-               executables and documents.";
-
-           "-clean",
-           arg_handle ~allow_empty_env:true clean,
-           s_ "[options*] Clean files generated by a build.";
-
-           "-distclean",
-           arg_handle ~allow_empty_env:true distclean,
-           s_ "[options*] Clean files generated by a build and configure.";
-
-           "-version",
-           arg_handle ~allow_empty_env:true version,
-           s_ " Display version of OASIS used to generate this setup.ml.";
-
-           "-no-catch-exn",
-           Arg.Clear catch_exn,
-           s_ " Don't catch exception, useful for debugging.";
-         ]
-          @
-            (if t.setup_update then
-               [no_update_setup_ml_cli]
-             else
-               [])
-          @ (BaseContext.args ())))
-      (failwithf (f_ "Don't know what to do with '%s'"))
-      (s_ "Setup and run build process current package\n");
+    (* Instantiate the context. *)
+    let ctxt = !BaseContext.default in
 
     (* Build initial environment *)
-    load ~allow_empty:!allow_empty_env_ref ();
+    load ~ctxt ~allow_empty:!allow_empty_env_ref ();
 
     (** Initialize flags *)
     List.iter
@@ -599,10 +567,8 @@ let setup t =
                            choices)))
             in
             match hlp with
-              | Some hlp ->
-                apply ~short_desc:(fun () -> hlp) ()
-              | None ->
-                apply ()
+            | Some hlp -> apply ~short_desc:(fun () -> hlp) ()
+            | None -> apply ()
           end
         | _ ->
           ())
@@ -610,12 +576,10 @@ let setup t =
 
     BaseStandardVar.init t.package;
 
-    BaseDynVar.init t.package;
+    BaseDynVar.init ~ctxt t.package;
 
-    if t.setup_update && update_setup_ml t then
-      ()
-    else
-      !act_ref t (Array.of_list (List.rev !extra_args_ref))
+    if not (t.setup_update && update_setup_ml t) then
+      !act_ref ~ctxt t (Array.of_list (List.rev !extra_args_ref))
 
   with e when !catch_exn ->
     error "%s" (Printexc.to_string e);

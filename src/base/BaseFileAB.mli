@@ -37,11 +37,9 @@
 open OASISTypes
 
 
-(** Compute the target filename of an .ab file.
-*)
-val to_filename: unix_filename -> host_filename
+(** Compute the target filename of an .ab file. *)
+val to_filename: unix_filename -> OASISContext.source_filename
 
 
-(** Replace variable in file %.ab to generate %.
-*)
-val replace: unix_filename list -> unit
+(** Replace variable in file %.ab to generate %. *)
+val replace: ctxt:OASISContext.t -> unix_filename list -> unit

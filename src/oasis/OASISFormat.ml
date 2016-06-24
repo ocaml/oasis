@@ -21,7 +21,6 @@
 (******************************************************************************)
 
 
-open OASISSchema_intern
 open OASISTypes
 open Format
 open FormatExt
@@ -38,7 +37,7 @@ let pp_print_fields fmt (schm, _, data) =
   let key_value =
     List.rev
       (PropList.Schema.fold
-         (fun acc key extra _ ->
+         (fun acc key _ _ ->
             try
               let str =
                 PropList.Schema.get
@@ -107,7 +106,7 @@ let pp_print_fields fmt (schm, _, data) =
     pp_close_box fmt ()
   in
 
-  let _b : bool = 
+  let _b : bool =
     pp_open_vbox fmt 0;
     List.fold_left
       (fun first (k, v) ->
@@ -128,7 +127,7 @@ let pp_print_section plugins fmt sct =
       OASISSchema_intern.to_proplist schm plugins t
     in
 
-    let {cs_name = nm; cs_data = data} =
+    let {cs_name = nm; _} =
       OASISSection.section_common sct
     in
 

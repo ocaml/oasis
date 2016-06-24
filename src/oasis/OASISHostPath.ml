@@ -61,38 +61,28 @@ let of_unix ufn =
 
 
 let fn_norm fn =
-  match OASISPath_intern.fn_reduce []
-          (OASISPath_intern.fn_reader fn) with
-    | (`RootRelative str) :: tl ->
-      (`Root str) :: `CurrentDir :: tl
-    | lst ->
-      lst
+  match OASISPath_intern.fn_reduce [] (OASISPath_intern.fn_reader fn) with
+  | (`RootRelative str) :: tl -> (`Root str) :: `CurrentDir :: tl
+  | lst -> lst
+
 
 let compare fn1 fn2 =
   let fn_string =
     function
-      | `Root str
-      | `RootRelative str
-      | `Component str ->
-        str
-      | `CurrentDir ->
-        "."
-      | `ParentDir ->
-        ".."
+    | `Root str | `RootRelative str | `Component str -> str
+    | `CurrentDir -> "."
+    | `ParentDir -> ".."
   in
   let rec compare' =
     function
-      | (hd1 :: tl1), (hd2 :: tl2) ->
-        if hd1 = hd2 then
-          compare' (tl1, tl2)
-        else
-          String.compare (fn_string hd1) (fn_string hd2)
-      | [], [] ->
-        0
-      | _ :: _, [] ->
-        1
-      | [], _ :: _ ->
-        -1
+    | (hd1 :: tl1), (hd2 :: tl2) ->
+      if hd1 = hd2 then
+        compare' (tl1, tl2)
+      else
+        String.compare (fn_string hd1) (fn_string hd2)
+    | [], [] -> 0
+    | _ :: _, [] -> 1
+    | [], _ :: _ -> -1
   in
   compare' (fn_norm fn1, fn_norm fn2)
 
@@ -103,21 +93,21 @@ let to_unix hfn =
   | "Win32" ->
     let rec to_unix_aux =
       function
-        | `Root str :: _
-        | `RootRelative str :: _ ->
-          OASISUtils.failwithf
-            (f_ "Cannot translate %S to unix filename, it contains a root \
-                 reference (%S).")
-            hfn
-            str
-        | `Component str :: tl ->
-          str :: (to_unix_aux tl)
-        | `CurrentDir :: tl ->
-          "." :: (to_unix_aux tl)
-        | `ParentDir :: tl ->
-          ".." :: (to_unix_aux tl)
-        | [] ->
-          []
+      | `Root str :: _
+      | `RootRelative str :: _ ->
+        OASISUtils.failwithf
+          (f_ "Cannot translate %S to unix filename, it contains a root \
+               reference (%S).")
+          hfn
+          str
+      | `Component str :: tl ->
+        str :: (to_unix_aux tl)
+      | `CurrentDir :: tl ->
+        "." :: (to_unix_aux tl)
+      | `ParentDir :: tl ->
+        ".." :: (to_unix_aux tl)
+      | [] ->
+        []
     in
     OASISUnixPath.make (to_unix_aux (fn_norm hfn))
   | os_type ->

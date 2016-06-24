@@ -25,7 +25,6 @@
     @author Sylvain Le Gall
 *)
 
-
 open OASISTypes
 
 
@@ -39,8 +38,7 @@ type origin_t =
   | OCommandLine (** Set on command line. *)
 
 
-(** Command line handling for variable.
-*)
+(** Command line handling for variable. *)
 type cli_handle_t =
   | CLINone
   (** No command line argument. *)
@@ -54,8 +52,7 @@ type cli_handle_t =
   (** Fully define the command line arguments. *)
 
 
-(** Variable type.
-*)
+(** Variable type. *)
 type definition_t =
   {
     hide:       bool; (** Hide the variable. *)
@@ -66,29 +63,25 @@ type definition_t =
   }
 
 
-(** Schema for environment.
-*)
+(** Schema for environment. *)
 val schema: (origin_t, definition_t) PropList.Schema.t
 
 
-(** Data for environment.
-*)
+(** Data for environment. *)
 val env: PropList.Data.t
 
 
 (** Expand variable that can be found in string. Variable follow definition of
-  * variable for [Buffer.add_substitute].
+    variable for [Buffer.add_substitute].
 *)
 val var_expand: string -> string
 
 
-(** Get variable.
-*)
+(** Get variable. *)
 val var_get: name -> string
 
 
-(** Choose a value among conditional expressions.
-*)
+(** Choose a value among conditional expressions. *)
 val var_choose:
   ?printer:('a -> string) ->
   ?name:string ->
@@ -96,13 +89,11 @@ val var_choose:
   'a
 
 
-(** Protect a variable content, to avoid expansion.
-*)
+(** Protect a variable content, to avoid expansion. *)
 val var_protect: string -> string
 
 
-(** Define a variable.
-*)
+(** Define a variable. *)
 val var_define:
   ?hide:bool ->
   ?dump:bool ->
@@ -115,8 +106,7 @@ val var_define:
   (unit -> string)
 
 
-(** Define a variable or redefine it.
-*)
+(** Define a variable or redefine it. *)
 val var_redefine:
   ?hide:bool ->
   ?dump:bool ->
@@ -129,46 +119,46 @@ val var_redefine:
   (unit -> string)
 
 
-(** Well-typed ignore for [var_define].
-*)
+(** Well-typed ignore for [var_define]. *)
 val var_ignore: (unit -> string) -> unit
 
 
-(** Display all variables, even hidden one.
-*)
+(** Display all variables, even hidden one. *)
 val print_hidden: unit -> string
 
 
-(** Get all variables.
-*)
+(** Get all variables. *)
 val var_all: unit -> name list
 
 
-(** Environment default file.
-*)
-val default_filename: host_filename Lazy.t
+(** Environment default file. *)
+val default_filename: OASISContext.source_filename
 
 
-(** Initialize environment.
-*)
-val load: ?allow_empty:bool -> ?filename:host_filename -> unit -> unit
+(** Initialize environment. *)
+val load:
+  ctxt:OASISContext.t ->
+  ?allow_empty:bool ->
+  ?filename:OASISContext.source_filename ->
+  unit ->
+  unit
 
 
-(** Uninitialize environment.
-*)
+(** Uninitialize environment. *)
 val unload: unit -> unit
 
 
-(** Save environment on disk.
-*)
-val dump: ?filename:host_filename -> unit -> unit
+(** Save environment on disk. *)
+val dump:
+  ctxt:OASISContext.t ->
+  ?filename:OASISContext.source_filename ->
+  unit ->
+  unit
 
 
-(** Display environment to user.
-*)
+(** Display environment to user. *)
 val print: unit -> unit
 
 
-(** Default command line arguments, computed using variable definitions.
-*)
+(** Default command line arguments, computed using variable definitions. *)
 val args: unit -> (Arg.key * Arg.spec * Arg.doc) list

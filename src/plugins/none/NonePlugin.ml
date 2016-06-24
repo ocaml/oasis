@@ -30,11 +30,11 @@ open OASISGettext
 open OASISUtils
 
 
-let not_implemented str _ _ =
+let not_implemented ~ctxt:_ str _ _ =
   failwithf (f_ "No implementation for %s") str
 
 
-let section_not_implemented str pkg _ _ extra_args =
+let section_not_implemented ~ctxt:_ str pkg _ _ extra_args =
   not_implemented str pkg extra_args
 
 
@@ -45,24 +45,21 @@ open OASISTypes
 open OASISPlugin
 
 
-let std_no_generate str ctxt pkg =
+let std_no_generate str ctxt _ =
   ctxt,
   {
     chng_moduls    = [NoneData.nonesys_ml];
     chng_clean     = None;
     chng_distclean = None;
     chng_main =
-      (OASISDataNotation.func_with_arg
+      (OASISDataNotation.func_with_arg_ctxt
          not_implemented "NonePlugin.not_implemented"
          str OASISDataNotation.of_string);
   }
 
 
-let section_no_generate str ctxt pkg (cs, section) =
-  std_no_generate
-    (str^" of section "^cs.cs_name)
-    ctxt
-    pkg
+let section_no_generate str plugin_ctxt pkg (cs, _) =
+  std_no_generate (str^" of section "^cs.cs_name) plugin_ctxt pkg
 
 
 let init () =

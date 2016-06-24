@@ -32,14 +32,14 @@ open OASISTypes
 (** Restore generated files, when [generate] has been called with
     [~restore:true]. {b Not exported}.
 *)
-val restore: ?msg:OASISContext.t -> unit -> unit
+val restore: ctxt:OASISContext.t -> unit -> unit
 
 
 (** Generate 'setup.ml' file and the rest of the build system.
     {b Not exported}.
 *)
 val generate:
-  ?msg:OASISContext.t ->
+  ctxt:OASISContext.t ->
   restore:bool ->
   backup:bool ->
   setup_fn:host_filename ->

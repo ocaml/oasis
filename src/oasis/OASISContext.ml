@@ -31,6 +31,13 @@ type level =
   | `Error]
 
 
+type source
+type source_filename = source OASISFileSystem.filename
+
+
+let in_srcdir ufn = OASISFileSystem.of_unix_filename ufn
+
+
 type t =
   {
     (* TODO: replace this by a proplist. *)
@@ -40,6 +47,7 @@ type t =
     ignore_plugins:        bool;
     ignore_unknown_fields: bool;
     printf:                level -> string -> unit;
+    srcfs:                 source OASISFileSystem.fs;
   }
 
 
@@ -63,6 +71,7 @@ let default =
       ignore_plugins        = false;
       ignore_unknown_fields = false;
       printf                = printf;
+      srcfs                 = new OASISFileSystem.host_fs(Sys.getcwd ());
     }
 
 
@@ -91,6 +100,9 @@ let fspecs () =
    s_ " Ignore plugin's field.";
 
    "-C",
-   Arg.String (fun str -> Sys.chdir str),
+   Arg.String
+     (fun str ->
+        Sys.chdir str;
+        default := {!default with srcfs = new OASISFileSystem.host_fs str}),
    s_ "dir Change directory before running (affects setup.{data,log})."],
   fun () -> {!default with ignore_plugins = !ignore_plugins}
