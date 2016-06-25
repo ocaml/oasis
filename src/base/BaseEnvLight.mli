@@ -23,9 +23,10 @@
 
 (** Read-only access to 'setup.data'
 
-    This module defines the minimal set of functions to access data
-    contained in 'setup.data'. It allows to build third party OCaml
-    script, without embedding hundreeds line of code.
+    This module defines the minimal set of functions to access data contained
+    in 'setup.data'. It allows to build third party OCaml script, without
+    embedding hundreeds line of code. It doesn't take into account '-C' and
+    other options.
 
     @author Sylvain Le Gall
 *)
@@ -37,18 +38,17 @@ module MapString: Map.S with type key = string
 type t = string MapString.t
 
 
-(** Environment default file
-*)
-val default_filename: string Lazy.t
+(** Environment default file. *)
+val default_filename: string
 
 
-(** Load environment.
-*)
+(** Load environment. *)
 val load: ?allow_empty:bool -> ?filename:string -> unit -> t
 
-(** Expand a variable, replacing $(X) by variable X recursively.
-*)
+
+(** Expand a variable, replacing $(X) by variable X recursively. *)
 val var_expand: string -> t -> string
+
 
 (** Get a variable that evaluate expression that can be found in it (see
     [Buffer.add_substitute]).
@@ -56,6 +56,5 @@ val var_expand: string -> t -> string
 val var_get: string -> t -> string
 
 
-(** Choose a value among conditional expressions.
-*)
+(** Choose a value among conditional expressions. *)
 val var_choose: 'a OASISExpr.choices -> t -> 'a

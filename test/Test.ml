@@ -119,5 +119,6 @@ let () =
          TestStdFiles.tests;
          TestValues.tests;
          TestVersion.tests;
+         TestBaseEnv.tests;
        ]);
       extract_timings ()

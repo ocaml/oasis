@@ -31,24 +31,19 @@
 *)
 open Ocamlbuild_plugin
 
-type conf =
-  { no_automatic_syntax: bool;
-  }
 
-(* these functions are not really officially exported *)
-let run_and_read =
-  Ocamlbuild_pack.My_unix.run_and_read
+type conf = {no_automatic_syntax: bool}
 
 
-let blank_sep_strings =
-  Ocamlbuild_pack.Lexers.blank_sep_strings
+let run_and_read = Ocamlbuild_pack.My_unix.run_and_read
+
+
+let blank_sep_strings = Ocamlbuild_pack.Lexers.blank_sep_strings
 
 
 let exec_from_conf exec =
   let exec =
-    let env_filename =
-      Pathname.basename (Lazy.force BaseEnvLight.default_filename) in
-    let env = BaseEnvLight.load ~filename:env_filename ~allow_empty:true () in
+    let env = BaseEnvLight.load ~allow_empty:true () in
     try
       BaseEnvLight.var_get exec env
     with Not_found ->
@@ -69,6 +64,7 @@ let exec_from_conf exec =
     end
   in
   fix_win32 exec
+
 
 let split s ch =
   let buf = Buffer.create 13 in

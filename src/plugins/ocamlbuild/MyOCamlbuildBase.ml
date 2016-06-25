@@ -109,10 +109,6 @@ let odn_of_t v =
 (* START EXPORT *)
 
 
-let env_filename =
-  lazy (Pathname.basename (Lazy.force BaseEnvLight.default_filename))
-
-
 let dispatch_combine lst =
   fun e ->
     List.iter
@@ -129,12 +125,7 @@ let nm_libstubs nm =
 
 
 let dispatch t e =
-  let env =
-    BaseEnvLight.load
-      ~filename:(Lazy.force env_filename)
-      ~allow_empty:true
-      ()
-  in
+  let env = BaseEnvLight.load ~allow_empty:true () in
     match e with
       | Before_options ->
           let no_trailing_dot s =

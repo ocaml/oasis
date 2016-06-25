@@ -298,8 +298,7 @@ let var_all () =
        schema)
 
 
-let default_filename =
-  BaseEnvLight.default_filename
+let default_filename = lazy (Filename.concat (Sys.getcwd ()) "setup.data")
 
 
 let load ?allow_empty ?filename () =

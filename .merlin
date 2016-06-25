@@ -9,4 +9,5 @@ PKG findlib
 PKG expect
 PKG pcre
 PKG benchmark
+PKG ocamlbuild
 FLG -w +a-4-44
