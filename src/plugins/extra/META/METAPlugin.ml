@@ -214,6 +214,17 @@ let pp_print_meta pkg root_t findlib_name_of_library_name fmt grp =
       pp_print_sfield fmt ("description", txt)
     end;
     begin
+      let directory =
+        match contents with
+        | `Library l -> l.lib_findlib_directory
+        | `Object o -> o.obj_findlib_directory
+      in
+      match directory with
+      | Some dir ->
+        pp_print_sfield fmt ("directory", dir)
+      | None -> ()
+    end;
+    begin
       let requires =
         match t.requires with
           | Some lst ->

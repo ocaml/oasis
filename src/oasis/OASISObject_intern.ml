@@ -64,6 +64,17 @@ let schema, generator =
          s_ "Name used by findlib.")
       (fun (_, _, obj) -> obj.obj_findlib_fullname)
   in
+  let findlib_directory =
+    new_field schm "FindlibDirectory"
+      ~default:None
+      (* TODO: Check that the name is correct if this value is None, the
+               package name must be correct
+       *)
+      (opt directory)
+      (fun () ->
+         s_ "Directory used by findlib.")
+      (fun (_, _, obj) -> obj.obj_findlib_directory)
+  in
   schm,
   (fun features_data nm data ->
      OASISFeatures.data_assert
@@ -76,5 +87,6 @@ let schema, generator =
         {
           obj_modules            = modules data;
           obj_findlib_fullname   = findlib_fullname data;
+          obj_findlib_directory   = findlib_directory data;
         }))
 

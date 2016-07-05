@@ -101,6 +101,7 @@ val pdfdir:         unit -> host_dirname
 val psdir:          unit -> host_dirname
 val destdir:        unit -> host_dirname
 
+val findlib_destdir:unit -> host_dirname
 
 (** {2 Various} *)
 
