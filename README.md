@@ -30,7 +30,8 @@ integrates your libraries and software with third parties tools like GODI.
 See the file [INSTALL.txt](INSTALL.txt) for building and installation
 instructions.
 
-[Home page](http://oasis.forge.ocamlcore.org/)
+* [Home page](http://oasis.forge.ocamlcore.org/)
+* [Issue Tracker](https://forge.ocamlcore.org/tracker/?group_id=54)
 
 Copyright and license
 ---------------------
