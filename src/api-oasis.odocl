@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: d76fb5f10b4b53345e879fd52a37eb74)
+# DO NOT EDIT (digest: 139999e1c5d388a44a502ecdfb699c4e)
 oasis/FormatExt
 oasis/PropList
 oasis/OASISUtils
@@ -77,6 +77,7 @@ base/BaseTest
 base/BaseDynVar
 base/BaseMessage
 base/BaseContext
+base/BaseCompat
 cli/CLISubCommand
 cli/CLIArgExt
 cli/CLICommon

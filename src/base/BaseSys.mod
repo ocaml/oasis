@@ -13,3 +13,4 @@ BaseDynVar.ml
 BaseTest.ml
 BaseDoc.ml
 BaseSetup.ml
+BaseCompat.ml

@@ -35,12 +35,14 @@ open OASISSetupUpdate
 let fspecs () =
   let roasis_exec = ref None in
   let rupdate = ref NoUpdate in
+  let rnocompat = ref false in 
   let specs =
     [
       "-real-oasis",
       Arg.Unit (fun () -> roasis_exec := Some (Sys.executable_name)),
       s_ " Use the real 'oasis' executable filename when generating \
           setup.ml.";
+
       "-setup-update",
       Arg.Symbol (["none"; "weak"; "dynamic"],
         (function
@@ -49,14 +51,18 @@ let fspecs () =
           | "dynamic" -> rupdate := Dynamic
           | str ->
             failwithf (f_ "Unknown setup-update mode %S") str)),
-      s_ " Define the way `setup.ml` should update when `_oasis` change."
+      s_ " Define the way `setup.ml` should update when `_oasis` change.";
+
+      "-no-compat",
+      Arg.Unit (fun () -> rnocompat := true),
+      s_ " Don't generate compatibility layer in `setup.ml`.";
     ]
   in
   (specs, CLISubCommand.default_anon),
-  (fun () -> !roasis_exec, !rupdate)
+  (fun () -> !roasis_exec, !rupdate, !rnocompat)
 
 
-let main ~ctxt (oasis_exec, update) oasis_fn pkg =
+let main ~ctxt (oasis_exec, update, nocompat) oasis_fn pkg =
   let oasis_setup_args =
     List.flatten
       [
@@ -78,6 +84,10 @@ let main ~ctxt (oasis_exec, update) oasis_fn pkg =
           ["-setup-update"; "dynamic"]
         else
           [];
+        if nocompat then
+          ["-no-compat"]
+        else
+          [];
       ]
   in
   let _chngs: OASISFileTemplate.file_generate_change list =
@@ -88,6 +98,7 @@ let main ~ctxt (oasis_exec, update) oasis_fn pkg =
       ~oasis_fn
       ?oasis_exec
       ~oasis_setup_args
+      ~nocompat
       update
       pkg
   in

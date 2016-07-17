@@ -120,5 +120,6 @@ let () =
          TestValues.tests;
          TestVersion.tests;
          TestBaseEnv.tests;
+         TestBaseCompat.tests;
        ]);
       extract_timings ()

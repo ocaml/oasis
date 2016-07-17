@@ -492,7 +492,6 @@ let setup t =
           (f_ "No action defined, run '%s %s -help'")
           Sys.executable_name
           Sys.argv.(0))
-
     in
     let extra_args_ref =
       ref []
@@ -641,7 +640,15 @@ let find ctxt =
       default_filename
 
 
-let of_package ?ctxt ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update update pkg =
+let of_package
+    ?ctxt
+    ?oasis_fn
+    ?oasis_exec
+    ?(oasis_setup_args=[])
+    ?(nocompat=false)
+    ~setup_update
+    update
+    pkg =
 
   let ctxt =
     (* Initial context *)
@@ -894,6 +901,22 @@ let of_package ?ctxt ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update 
     Format.flush_str_formatter ()
   in
 
+  (* Compatibility layer. *)
+  let compat =
+    let modul =
+      let buf = Buffer.create 15 in
+      Buffer.add_string buf "BaseCompat.Compat_";
+      String.iter
+        (fun c -> Buffer.add_char buf (if c = '.' then '_' else c))
+        (OASISVersion.string_of_version pkg.OASISTypes.oasis_version);
+      Buffer.contents buf
+    in
+    [
+      Printf.sprintf "let setup_t = %s.adapt_setup_t setup_t" modul;
+      Printf.sprintf "open %s" modul;
+    ]
+  in
+
   let setup_tmpl =
     OASISFileTemplate.template_of_mlfile
       default_filename
@@ -916,16 +939,19 @@ let of_package ?ctxt ?oasis_fn ?oasis_exec ?(oasis_setup_args=[]) ~setup_update 
           "*)";
         ]
         @
-          moduls
+        moduls
         @
-          [
-            "open OASISTypes;;";
-            "";
-            setup_t_str;
-            "";
-            "let setup () = BaseSetup.setup setup_t;;";
-            ""
-          ])
+        [
+          "open OASISTypes;;";
+          "";
+          setup_t_str;
+          "";
+          "let setup () = BaseSetup.setup setup_t;;";
+          ""
+        ]
+        @
+        (if nocompat then [] else compat)
+      )
 
       (* Footer *)
       ["let () = setup ();;"]

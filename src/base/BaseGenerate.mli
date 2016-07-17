@@ -43,6 +43,7 @@ val generate:
   restore:bool ->
   backup:bool ->
   setup_fn:host_filename ->
+  ?nocompat:bool ->
   ?oasis_exec:host_filename ->
   ?oasis_fn:host_filename ->
   ?oasis_setup_args:string list ->

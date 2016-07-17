@@ -100,7 +100,7 @@ struct
         (List.rev_map
            (fun (fn, digest) ->
               fn_printer ~root fn, digest)
-           (elements exp))
+           (elements lst))
     in
     Diff.assert_equal ?msg (convert exp) (convert act)
 end
@@ -132,7 +132,7 @@ let check_file_style test_ctxt fn =
       let line = input_line chn in
       incr line_number;
       non_fatal test_ctxt
-        (fun test_ctxt ->
+        (fun _ ->
            let strlen = String.length line in
            if strlen > 0 && line.[strlen - 1] = ' ' then
              if strlen = 1 || strlen > 1 && line.[strlen - 2] != '\\' then
@@ -745,17 +745,16 @@ let oasis_setup ?(dev=false) ?(dynamic=false) test_ctxt t =
         (in_src_dir t OASISParse.default_oasis_fn)
     in
     match pkg.OASISTypes.ocaml_version with
-      | Some ver_cmp ->
-          skip_if
-            (not
-               (OASISVersion.comparator_apply
-                  (OASISVersion.version_of_string t.ocaml_version)
-                  ver_cmp))
-            (Printf.sprintf
-               "Need ocaml version %s."
-               (OASISVersion.string_of_comparator ver_cmp))
-      | None ->
-          ()
+    | Some ver_cmp ->
+      skip_if
+        (not
+           (OASISVersion.comparator_apply
+              (OASISVersion.version_of_string t.ocaml_version)
+              ver_cmp))
+        (Printf.sprintf
+           "Need ocaml version %s."
+           (OASISVersion.string_of_comparator ver_cmp))
+    | None -> ()
   in
   let timer = timer_start "oasis_setup" in
     (* Create build system using OASIS *)

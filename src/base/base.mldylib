@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 38bcdd84664fbd35fc8a144c159dbedf)
+# DO NOT EDIT (digest: 0fe2c29d0e142b5eb3d9f7fdf0a342bc)
 BaseArgExt
 BaseBuilt
 BaseCheck
@@ -40,4 +40,5 @@ BaseTest
 BaseDynVar
 BaseMessage
 BaseContext
+BaseCompat
 # OASIS_STOP

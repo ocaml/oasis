@@ -106,6 +106,7 @@ let generate ?msg
     ~restore
     ~backup
     ~setup_fn
+    ?(nocompat=false)
     ?oasis_exec
     ?oasis_fn
     ?oasis_setup_args
@@ -113,8 +114,12 @@ let generate ?msg
     pkg =
   let ctxt, _ =
     BaseSetup.of_package
-      ?oasis_fn ?oasis_exec ?oasis_setup_args
-      ~setup_update:(update = Weak) update pkg
+      ?oasis_fn
+      ?oasis_exec
+      ?oasis_setup_args
+      ~nocompat
+      ~setup_update:(update = Weak)
+      update pkg
   in
 
   let msg =
@@ -129,66 +134,63 @@ let generate ?msg
   in
 
   let ctxt =
-    let default_fn =
-      BaseSetup.default_filename
-    in
-    if change_setup_fn then
-      begin
-        (* Copy the setup.ml file to its right filename
-         * and update context accordingly
-        *)
-        let setup_tmpl = BaseSetup.find ctxt in
+    let default_fn = BaseSetup.default_filename in
+    if change_setup_fn then begin
+      (* Copy the setup.ml file to its right filename
+       * and update context accordingly
+       *)
+      let setup_tmpl = BaseSetup.find ctxt in
 
-        if Sys.file_exists default_fn then
-          OASISFileUtil.cp ~ctxt:msg default_fn setup_fn;
-        {ctxt with
-           files =
-             OASISFileTemplate.add
-               {setup_tmpl with fn = setup_fn}
-               (OASISFileTemplate.remove
-                  setup_tmpl.fn
-                  ctxt.files)}
-      end
-    else
+      if Sys.file_exists default_fn then
+        OASISFileUtil.cp ~ctxt:msg default_fn setup_fn;
+      {ctxt with
+       files =
+         OASISFileTemplate.add
+           {setup_tmpl with fn = setup_fn}
+           (OASISFileTemplate.remove
+              setup_tmpl.fn
+              ctxt.files)}
+    end else begin
       ctxt
+    end
   in
 
   let ctxt =
     (* Fix setup for dynamic update. *)
-    if update = Dynamic then
-      begin
-        (* We just keep setup.ml, Makefile and configure. *)
-        let files =
-          OASISFileTemplate.fold
-            (fun tmpl acc ->
-               if tmpl.fn = setup_fn then
-                 OASISFileTemplate.add
-                   {tmpl with body =
-                                Body
-                                  [
-                                    if OASISFeatures.package_test
-                                        OASISFeatures.dynrun_for_release pkg then
-                                      BaseData.dynrun_for_release_ml
-                                    else if OASISFeatures.package_test
-                                        OASISFeatures.compiled_setup_ml pkg then
-                                      BaseData.compiled_setup_ml
-                                    else
-                                      BaseData.dynrun_ml
-                                  ]}
-                   acc
-               else if tmpl.important then
-                 OASISFileTemplate.add tmpl acc
-               else
-                 acc)
-            ctxt.files
-            (OASISFileTemplate.create
-               ~disable_oasis_section:pkg.OASISTypes.disable_oasis_section
-               ())
-        in
-        {ctxt with files = files}
-      end
-    else
+    if update = Dynamic then begin
+      (* We just keep setup.ml, Makefile and configure. *)
+      let files =
+        OASISFileTemplate.fold
+          (fun tmpl acc ->
+             if tmpl.fn = setup_fn then
+               OASISFileTemplate.add
+                 {tmpl with
+                  body =
+                    Body
+                      [
+                        if OASISFeatures.package_test
+                            OASISFeatures.dynrun_for_release pkg then
+                          BaseData.dynrun_for_release_ml
+                        else if OASISFeatures.package_test
+                            OASISFeatures.compiled_setup_ml pkg then
+                          BaseData.compiled_setup_ml
+                        else
+                          BaseData.dynrun_ml
+                      ]}
+                 acc
+             else if tmpl.important then
+               OASISFileTemplate.add tmpl acc
+             else
+               acc)
+          ctxt.files
+          (OASISFileTemplate.create
+             ~disable_oasis_section:pkg.OASISTypes.disable_oasis_section
+             ())
+      in
+      {ctxt with files = files}
+    end else begin
       ctxt
+    end
   in
 
   let () =
@@ -231,15 +233,11 @@ let generate ?msg
           begin
             let () =
               unregister chng;
-              begin
-                match bak with
-                  | Some fn -> Sys.remove fn
-                  | None    -> ()
-              end
+              match bak with
+              | Some fn -> Sys.remove fn
+              | None    -> ()
             in
-            let chng =
-              Create fn
-            in
+            let chng = Create fn in
             if restore then
               register chng;
             chng
