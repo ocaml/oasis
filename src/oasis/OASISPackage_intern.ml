@@ -102,9 +102,7 @@ let oasis_version =
     OASISConf.version_short
   in
   let extra_supported_versions =
-    List.map
-      OASISVersion.version_of_string
-      ["0.3"; "0.2"; "0.1"]
+    List.map OASISVersion.version_of_string ["0.3"]
   in
   new_field schema "OASISFormat"
     ~quickstart_level:(NoChoice current_version)

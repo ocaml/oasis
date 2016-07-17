@@ -1,5 +1,5 @@
 # Bug 811
-OASISFormat:  0.2
+OASISFormat:  0.3
 Name:         foo
 Version:      0.0.1
 Synopsis:     Just a test

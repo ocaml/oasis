@@ -164,7 +164,7 @@ let tests =
 (* TODO: move that to files. *)
          "2-subpackages",
          "\
-OASISFormat:  0.1
+OASISFormat:  0.3
 Name:         ocaml-data-notation
 Version:      0.0.1
 Synopsis:     store data using OCaml notation
@@ -200,7 +200,7 @@ Library pa_noodn
 
          "virtual-root",
          "\
-OASISFormat:  0.1
+OASISFormat:  0.3
 Name:         ocaml-data-notation
 Version:      0.0.1
 Synopsis:     store data using OCaml notation
@@ -217,7 +217,7 @@ Library odn
 
          "syntax",
          "\
-OASISFormat:  0.1
+OASISFormat:  0.3
 Name:         ocaml-data-notation
 Version:      0.0.1
 Synopsis:     store data using OCaml notation
@@ -244,7 +244,7 @@ Library pa_odn
 
          "long-synopsis",
          "\
-OASISFormat:  0.1
+OASISFormat:  0.3
 Name:         ocaml-data-notation
 Version:      0.0.1
 Synopsis:     store data using OCaml notation with a very very very very very \

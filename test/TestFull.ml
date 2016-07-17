@@ -418,7 +418,7 @@ let all_tests =
          (oasis_ocamlbuild_files @
           ["empty.mldylib"; "empty.mllib"]);
        (* Run standard test. *)
-       run_ocaml_setup_ml test_ctxt t ["-configure"];
+       run_ocaml_setup_ml test_ctxt t ["-configure"; "--enable-tests"];
        run_ocaml_setup_ml test_ctxt t ~exit_code:(Unix.WEXITED 1) ["-test"]);
   ]
 

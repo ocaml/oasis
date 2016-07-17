@@ -1,4 +1,4 @@
-OASISFormat: 0.1
+OASISFormat: 0.3
 Name:        bug623
 Version:     0
 Synopsis:    Test bug 623
@@ -12,4 +12,5 @@ Library empty
 
 Test "false"
   Command: toto
+  Run: true
 

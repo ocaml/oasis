@@ -1,4 +1,4 @@
-OASISFormat: 0.1
+OASISFormat: 0.3
 Name:        test-pass-threads-to-c-files
 Version:     0.1
 Synopsis:    test oasis with c files and dependency on threads

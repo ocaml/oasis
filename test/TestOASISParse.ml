@@ -412,9 +412,9 @@ let tests =
         (fun test_ctxt ->
            assert_raises
              ~msg:"Pack is supported only in 0.3"
-             (Failure "Field Pack in Library test1 is only valid since \
-                       OASIS v0.3, update OASISFormat field from \
-                       '0.2' to '0.3' after checking OASIS changelog.")
+             (Failure "Field BetaFeatures in package is only valid since \
+                       OASIS v0.4, update OASISFormat field from '0.3' to \
+                       '0.4' after checking OASIS changelog.")
              (fun () ->
                 let _pkg =
                   from_file
@@ -433,7 +433,7 @@ let tests =
                   ~ctxt:(oasis_ctxt ~ignore_plugin:true test_ctxt)
                   (in_testdata_dir
                      test_ctxt
-                     ["TestOASISParse"; "test13.oasis"])
+                     ["TestOASISParse"; "test15.oasis"])
               in
                assert_string "test15.oasis should fail to parse"
           with Failure _ ->
