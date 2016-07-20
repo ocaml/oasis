@@ -74,7 +74,7 @@ let tests =
        assert_present fn;
        defer_close
          (hfs#open_out fn)
-         (fun wrtr -> 
+         (fun wrtr ->
             Buffer.clear buf;
             Buffer.add_string buf content;
             wrtr#output buf);
