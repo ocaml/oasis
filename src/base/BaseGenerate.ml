@@ -93,7 +93,6 @@ let generate
       ?oasis_fn
       ?oasis_exec
       ?oasis_setup_args
-      ~nocompat
       ~setup_update:(update = Weak)
       update pkg
   in
@@ -160,6 +159,31 @@ let generate
     end else begin
       plgn_ctxt
     end
+  in
+
+  let plgn_ctxt =
+    if nocompat then
+      plgn_ctxt
+    else
+      let files =
+        OASISFileTemplate.fold
+          (fun tmpl acc ->
+             if tmpl.fn = setup_fn then
+               let body =
+                 match tmpl.body with
+                 | Body lst | BodyWithDigest(_, lst) ->
+                   Body (lst @ BaseCompat.setup_ml_text pkg)
+                 | NoBody -> NoBody
+               in
+               OASISFileTemplate.add {tmpl with body = body} acc
+             else
+               OASISFileTemplate.add tmpl acc)
+          plgn_ctxt.files
+          (OASISFileTemplate.create
+             ~disable_oasis_section:pkg.OASISTypes.disable_oasis_section
+             ())
+      in
+      {plgn_ctxt with files = files}
   in
 
   let () =

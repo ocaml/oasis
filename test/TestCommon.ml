@@ -213,10 +213,10 @@ let file_content fn =
 
 let dbug_file_content _ _ = ()
 
-(* TODO: re-enable when OUnit will discard it for JUnit.xml.
 let dbug_file_content test_ctxt fn =
   logf test_ctxt `Info "Content of %S:" fn;
   logf test_ctxt `Info "%s" (file_content fn)
+(* TODO: re-enable when OUnit will discard it for JUnit.xml.
  *)
 
 (* Start a timer for [str]. *)

@@ -737,7 +737,7 @@ let check_tags test_ctxt t =
 
 
 (* Run oasis setup and fix generated files accordingly. *)
-let oasis_setup ?(dev=false) ?(dynamic=false) test_ctxt t =
+let oasis_setup ?(dev=false) ?(dynamic=false) ?(nocompat=false) test_ctxt t =
   let () =
     let pkg =
       OASISParse.from_file
@@ -761,12 +761,19 @@ let oasis_setup ?(dev=false) ?(dynamic=false) test_ctxt t =
     assert_oasis_cli
       ~ctxt:test_ctxt
       ~chdir:t.src_dir
-      ("setup" ::
-       (if dev then
-          ["-real-oasis"; "-setup-update";
-           if dynamic then "dynamic" else "weak"]
-        else
-          []));
+      (List.flatten
+         [
+           ["setup"];
+           (if dev then
+              ["-real-oasis"; "-setup-update";
+               if dynamic then "dynamic" else "weak"]
+            else
+              []);
+           (if nocompat then
+              ["-nocompat"]
+            else
+              []);
+         ]);
     timer_stop test_ctxt timer;
 
     register_generated_files t [setup_ml];

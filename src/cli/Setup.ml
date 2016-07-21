@@ -52,7 +52,7 @@ let fspecs () =
             failwithf (f_ "Unknown setup-update mode %S") str)),
       s_ " Define the way `setup.ml` should update when `_oasis` change.";
 
-      "-no-compat",
+      "-nocompat",
       Arg.Unit (fun () -> rnocompat := true),
       s_ " Don't generate compatibility layer in `setup.ml`.";
     ]

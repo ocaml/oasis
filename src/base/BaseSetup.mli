@@ -144,7 +144,6 @@ val of_package:
   ?oasis_fn:host_filename ->
   ?oasis_exec:host_filename ->
   ?oasis_setup_args:string list ->
-  ?nocompat:bool ->
   setup_update:bool ->
   OASISSetupUpdate.t ->
   package ->

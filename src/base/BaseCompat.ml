@@ -8,7 +8,7 @@
     The module opened by default will depend on the version of the _oasis. E.g.
     if we have "OASISFormat: 0.3", the module Compat_0_3 will be opened and
     the function Compat_0_3 will be called. If setup.ml is generated with the
-    -no-compat, no module will be opened.
+    -nocompat, no module will be opened.
 
     @author Sylvain Le Gall
   *)
@@ -129,3 +129,19 @@ module Compat_0_3 =
 struct
   include Compat_0_4
 end
+
+(* END EXPORT *)
+
+let setup_ml_text pkg =
+  let modul =
+    let buf = Buffer.create 15 in
+    Buffer.add_string buf "BaseCompat.Compat_";
+    String.iter
+      (fun c -> Buffer.add_char buf (if c = '.' then '_' else c))
+      (OASISVersion.string_of_version pkg.OASISTypes.oasis_version);
+    Buffer.contents buf
+  in
+  [
+    Printf.sprintf "let setup_t = %s.adapt_setup_t setup_t" modul;
+    Printf.sprintf "open %s" modul;
+  ]

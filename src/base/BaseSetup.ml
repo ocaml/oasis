@@ -609,7 +609,6 @@ let of_package
     ?oasis_fn
     ?oasis_exec
     ?(oasis_setup_args=[])
-    ?(nocompat=false)
     ~setup_update
     update
     pkg =
@@ -865,21 +864,6 @@ let of_package
     Format.flush_str_formatter ()
   in
 
-  (* Compatibility layer. *)
-  let compat =
-    let modul =
-      let buf = Buffer.create 15 in
-      Buffer.add_string buf "BaseCompat.Compat_";
-      String.iter
-        (fun c -> Buffer.add_char buf (if c = '.' then '_' else c))
-        (OASISVersion.string_of_version pkg.OASISTypes.oasis_version);
-      Buffer.contents buf
-    in
-    [
-      Printf.sprintf "let setup_t = %s.adapt_setup_t setup_t" modul;
-      Printf.sprintf "open %s" modul;
-    ]
-  in
 
   let setup_tmpl =
     OASISFileTemplate.template_of_mlfile
@@ -913,8 +897,6 @@ let of_package
           "let setup () = BaseSetup.setup setup_t;;";
           ""
         ]
-        @
-        (if nocompat then [] else compat)
       )
 
       (* Footer *)
