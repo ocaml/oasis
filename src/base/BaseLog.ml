@@ -45,38 +45,23 @@ let load ~ctxt () =
     defer_close
       (ctxt.srcfs#open_in default_filename)
       (fun rdr ->
-         let strm = stream_of_reader rdr in
-         let scbuf =
-           Scanf.Scanning.from_function
-             (fun () ->
-                try
-                  Stream.next strm
-                with Stream.Failure ->
-                  raise End_of_file)
-         in
+         let line = ref 1 in
+         let lxr = Genlex.make_lexer [] (stream_of_reader rdr) in
          let rec read_aux (st, lst) =
-           if Scanf.Scanning.end_of_input scbuf then begin
-             List.rev lst
-           end else begin
-             let acc =
-               try
-                 Scanf.bscanf scbuf "%S %S\n"
-                   (fun e d ->
-                      let t = e, d in
-                      if SetTupleString.mem t st then
-                        st, lst
-                      else
-                        SetTupleString.add t st, t :: lst)
-               with Scanf.Scan_failure _ ->
-                 failwith
-                   (Scanf.bscanf scbuf
-                      "%l"
-                      (Printf.sprintf
-                         (f_ "Malformed log file '%s' at line %d")
-                         (ctxt.srcfs#string_of_filename default_filename)))
-             in
-             read_aux acc
-           end
+           match Stream.npeek 2 lxr with
+           | [Genlex.String e; Genlex.String d] ->
+             let t = e, d in
+             Stream.junk lxr; Stream.junk lxr;
+             if SetTupleString.mem t st then
+               read_aux (st, lst)
+             else
+               read_aux (SetTupleString.add t st, t :: lst)
+           | [] -> List.rev lst
+           | _ ->
+             failwithf
+               (f_ "Malformed log file '%s' at line %d")
+               (ctxt.srcfs#string_of_filename default_filename)
+               !line
          in
          read_aux (SetTupleString.empty, []))
   end else begin

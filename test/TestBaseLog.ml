@@ -33,15 +33,10 @@ open OASISContext
 
 
 let tests =
-  let test_of_vector (nm, f) =
-    nm >::
-    (fun test_ctxt ->
-       let tmpdir = bracket_tmpdir test_ctxt in
-       let ctxt =
-         {(oasis_ctxt test_ctxt) with
-          srcfs = new OASISFileSystem.host_fs tmpdir}
-       in
-       f ctxt)
+  let tmp_ctxt test_ctxt =
+    let tmpdir = bracket_tmpdir test_ctxt in
+    {(oasis_ctxt test_ctxt) with
+     srcfs = new OASISFileSystem.host_fs tmpdir}
   in
   let assert_equal_log ~ctxt msg exp =
     assert_equal
@@ -54,29 +49,40 @@ let tests =
       exp
       (load ~ctxt ())
   in
+  let assert_load ~msg test_ctxt fn exp =
+    let ctxt =
+      {(oasis_ctxt test_ctxt) with
+       srcfs =
+         new OASISFileSystem.host_fs
+           (in_testdata_dir test_ctxt ["TestBaseLog"; fn])}
+    in
+    assert_equal_log ~ctxt msg exp
+  in
+  "BaseLog" >:::
+  [
+    "load" >::
+    (fun test_ctxt ->
+       let content = ["foo", "bar"; "bar", "baz"] in
+       assert_load ~msg:"from a Win32 file" test_ctxt "win32" content;
+       assert_load ~msg:"from an Unix file" test_ctxt "unix" content);
 
-    "BaseLog" >:::
-    (List.map test_of_vector
-       [
-         "normal",
-         (fun ctxt ->
-            register ~ctxt "toto" "mytoto";
-            assert_bool
-              "Event toto exists"
-              (exists ~ctxt "toto" "mytoto");
-            unregister ~ctxt "toto" "mytoto";
-            assert_bool
-              "Event toto doesn't exist"
-              (not (exists ~ctxt "toto" "mytoto")));
+    "normal" >::
+    (fun test_ctxt ->
+       let ctxt = tmp_ctxt test_ctxt in
+       register ~ctxt "toto" "mytoto";
+       assert_bool "Event toto exists" (exists ~ctxt "toto" "mytoto");
+       unregister ~ctxt "toto" "mytoto";
+       assert_bool
+         "Event toto doesn't exist"
+         (not (exists ~ctxt "toto" "mytoto")));
 
-         "double",
-         (fun ctxt ->
-            register ~ctxt "toto" "mytoto";
-            assert_equal_log ~ctxt
-              "Log contains 1 element"
-              ["toto", "mytoto"];
-            register ~ctxt "toto" "mytoto";
-            assert_equal_log ~ctxt
-              "Log still contains 1 element"
-              ["toto", "mytoto"])
-       ])
+    "double" >::
+    (fun test_ctxt ->
+       let ctxt = tmp_ctxt test_ctxt in
+       register ~ctxt "toto" "mytoto";
+       assert_equal_log ~ctxt "Log contains 1 element" ["toto", "mytoto"];
+       register ~ctxt "toto" "mytoto";
+       assert_equal_log ~ctxt
+         "Log still contains 1 element"
+         ["toto", "mytoto"]);
+  ]

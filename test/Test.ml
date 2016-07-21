@@ -100,13 +100,13 @@ let () =
          (* Keep sorted. *)
          TestBaseCompat.tests;
          TestBaseEnv.tests;
+         TestBaseLog.tests;
          TestBasic.tests;
          TestDevFiles.tests;
          TestExamples.tests;
          TestFileTemplate.tests;
          TestFull.tests;
          TestLicense.tests;
-         TestLog.tests;
          TestMETA.tests;
          TestOASISAst.tests;
          TestOASISFileSystem.tests;
