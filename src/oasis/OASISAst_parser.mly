@@ -99,14 +99,14 @@ sblock:
 ;
 
 expr:
-  | TRUE                      {EBool true}
-  | FALSE                     {EBool false}
-  | LPAREN expr RPAREN        {$2}
-  | NOT expr                  {ENot $2}
-  | expr AND expr             {EAnd($1, $3)}
-  | expr OR expr              {EOr($1, $3)}
-  | IDENT LPAREN IDENT RPAREN {ETest(test_of_string $1, $3)}
-  | FLAG LPAREN IDENT RPAREN  {EFlag($3)}
+  | TRUE                              {EBool true}
+  | FALSE                             {EBool false}
+  | LPAREN expr RPAREN                {$2}
+  | NOT expr                          {ENot $2}
+  | expr AND expr                     {EAnd($1, $3)}
+  | expr OR expr                      {EOr($1, $3)}
+  | IDENT LPAREN id_or_qstring RPAREN {ETest(test_of_string $1, $3)}
+  | FLAG LPAREN id_or_qstring RPAREN  {EFlag($3)}
 ;
 
 id_or_qstring:

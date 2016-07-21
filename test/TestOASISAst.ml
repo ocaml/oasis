@@ -235,6 +235,7 @@ let tests =
     "OASISAst" >::
     (fun test_ctxt ->
        let open OASISAst_types in
+       let open OASISExpr in
        List.iter
          (fun (str, exp) ->
             let lexbuf = Lexing.from_string str in
@@ -252,6 +253,14 @@ let tests =
          [
            "FieldName: Value",
            TSStmt(SField("FieldName", FSet("Value")));
+
+           "if ocaml_version(\"4.02\")\n\
+           \  FieldName: Value",
+           TSStmt(
+             SIfThenElse(
+               ETest(test_of_string "ocaml_version", "4.02"),
+               SField("FieldName", FSet("Value")),
+               SBlock []));
          ]);
   ]
 

@@ -22,6 +22,7 @@
 
 
 open OASISGettext
+open OASISUtils
 
 
 type test = string
@@ -109,9 +110,6 @@ let choose ?printer ?name var_get lst =
 
 
 (* END EXPORT *)
-
-
-open OASISUtils
 
 
 let tests =
@@ -223,10 +221,11 @@ let if_then_else t choices_if choices_else =
 
 
 let rec to_string =
+  let id_or_qstring s = if is_varname s then s else Printf.sprintf "%S" s in
   function
     | EBool b -> string_of_bool b
-    | EFlag nm -> "flag("^nm^")"
-    | ETest (nm, vl) -> nm^"("^vl^")"
+    | EFlag nm -> "flag("^(id_or_qstring nm)^")"
+    | ETest (nm, vl) -> nm^"("^(id_or_qstring vl)^")"
 
     | EOr (e1, e2) ->
         (to_string e1)^" || "^(to_string e2)
