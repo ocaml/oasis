@@ -38,7 +38,8 @@ function run {
 cd "$APPVEYOR_BUILD_FOLDER"
 
 run "OPAM initialization" opam init -y -a
-run "Install packages" opam install -y ocamlfind ocamlmod ocamlify
+run "Install packages" opam install -y ocamlfind ocamlmod ocamlify ounit pcre \
+  expect fileutils ounit
 eval $(opam config env)
 export OCAML_TOPLEVEL_PATH=$(opam config var toplevel)
 
