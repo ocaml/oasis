@@ -29,7 +29,7 @@ function run {
     CODE=$?
     if [ $CODE -ne 0 ]; then
         echo "... $NAME failed!"
-        exit $CODE
+        return $CODE
     else
         echo "... $NAME OK"
     fi
@@ -56,3 +56,6 @@ run "Setup" ./Main.native setup -setup-update dynamic
 run "Configure" ocaml setup.ml -info -configure
 # TODO: temporary fix, remove
 run "Build" ocaml setup.ml -build || true
+
+ls -alh
+cat setup.log
