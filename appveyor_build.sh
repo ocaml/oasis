@@ -21,10 +21,12 @@
 #  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               #
 ################################################################################
 
+set -e
+
 function run {
     NAME=$1
     shift
-    echo -n "$NAME ... "
+    echo "$NAME ... "
     $@
     CODE=$?
     if [ $CODE -ne 0 ]; then
@@ -37,25 +39,24 @@ function run {
 
 cd "$APPVEYOR_BUILD_FOLDER"
 
-export OCAMLRUNPARAM=b
-
-run "OPAM initialization" opam init -y -a
-run "Install packages" opam install -y ocamlfind ocamlmod ocamlify ounit \
-  fileutils ounit
+run "OPAM Initialization" opam init --use-internal-solver -y -a
+run "OPAM Install packages" opam install --use-internal-solver -y \
+  ocamlfind ocamlmod ocamlify fileutils ounit
 eval $(opam config env)
 export OCAML_TOPLEVEL_PATH=$(opam config var toplevel)
 
-run "OASIS Configure step" ocaml setup.ml -configure
-run "OASIS Build step" ocaml setup.ml -build
-
-run "Install" ocaml setup.ml -install
+run "OASIS Uninstall previously installed version" ocaml setup.ml -uninstall || true
+run "OASIS Distclean" ocaml setup.ml -distclean || true
+for i in oasis plugin-loader ; do
+  run "ocamlfind remove $i" ocamlfind remove "$i" || true
+done
+run "OASIS Configure" ocaml setup.ml -configure \
+  --override ocamlbuildflags -classic-display
+run "OASIS Build" ocaml setup.ml -build
+run "OASIS Install" ocaml setup.ml -install
 
 echo "------------------------------------------------------------"
 echo "Rebuild with dynamic mode"
 run "Setup" ./Main.native setup -setup-update dynamic
-run "Configure" ocaml setup.ml -info -configure
-# TODO: temporary fix, remove
-run "Build" ocaml setup.ml -build || true
-
-ls -alh
-cat setup.log
+run "Configure" ocaml setup.ml -configure
+run "Build" ocaml setup.ml -build
