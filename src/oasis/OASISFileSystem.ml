@@ -106,22 +106,23 @@ class ['a] host_fs rootdir : ['a] fs =
       end
 
     method open_in ?(mode=Mode.text_in) ?(perm=0o666) fn =
+      (* TODO: use Buffer.add_channel when minimal version of OCaml will
+       * be >= 4.03.0 (previous version was discarding last chars).
+       *)
       let chn = open_in_gen mode perm (self#host_filename fn) in
+      let strm = Stream.of_channel chn in
       object
         method close = close_in chn
         method input buf len =
-          (* TODO: Buffer.add_channel for OCaml >= 4.03.0 computes what needs
-             to be read, remove the remaining_len/real_len when minimal
-             version will be >= 4.03.0.
-           *)
-          let remaining_len =
-            Int64.sub
-              (LargeFile.in_channel_length chn) (LargeFile.pos_in chn)
-          in
-          let real_len =
-            max 1 (Int64.to_int (min (Int64.of_int len) remaining_len))
-          in
-          Buffer.add_channel buf chn real_len
+          let read = ref 0 in
+          try
+            for i = 0 to len do
+              Buffer.add_char buf (Stream.next strm);
+              incr read
+            done
+          with Stream.Failure ->
+            if !read = 0 then
+              raise End_of_file
       end
 
     method file_exists fn = Sys.file_exists (self#host_filename fn)
