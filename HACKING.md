@@ -2,9 +2,9 @@
 Guidelines for developing OASIS
 ===========================
 
-Updates in _oasis:
+Updates in `_oasis`:
 
-_oasis and setup.ml of the OASIS project need to be updated with the officially
+`_oasis` and setup.ml of the OASIS project need to be updated with the officially
 released version of OASIS.
 
 __You should never use the version of OASIS under development to update__
@@ -67,6 +67,8 @@ Cut a release
   * Check the result.
  * Add new version to trackers ([Bugs][bugs-version]/[Patches][patches-version]).
  * Close all bugs in the CHANGES.txt on trackers ([1][bugs], [2][patches]).
+ * Create an OPAM package using [oasis2opam][oasis2opam].
+  * Use the URL of the uploaded tarball.
  * Publish blog post with updated download links.
  * G+ announce as OASIS.
  * Reshare G+ post on OCaml community.
@@ -81,6 +83,7 @@ Cut a release
  [patches-version]: https://forge.ocamlcore.org/tracker/admin/index.php?add_opt=1&boxid=1007&group_id=54&atid=293
  [bugs]: https://forge.ocamlcore.org/tracker/?atid=291&group_id=54&func=browse
  [patches]: https://forge.ocamlcore.org/tracker/?atid=293&group_id=54&func=browse
+ [oasis2opam]: https://github.com/ocaml/oasis2opam
 
 
 Versions support policy
@@ -95,7 +98,7 @@ determine what version of a dependency we should require:
   * OCaml version must be at least the one in Debian stable.
  * For generated files (e.g. myocamlbuild.ml):
   * Version of the target in Debian stable or that matches the constraint
-    expressed in _oasis. E.g. if OCamlVersion: >= 4.01, we can generate
+    expressed in `_oasis`. E.g. if OCamlVersion: >= 4.01, we can generate
     myocamlbuild.ml for this specific version because the constraint will be
     checked at configure time.
  * For the OASIS sources:
