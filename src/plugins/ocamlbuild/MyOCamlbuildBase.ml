@@ -189,8 +189,9 @@ let dispatch t e =
                  flag ["link"; "library"; "ocaml"; "native"; tag_libstubs lib]
                    (S[A"-cclib"; A("-l"^(nm_libstubs lib))]);
 
-                 flag ["link"; "program"; "ocaml"; "byte"; tag_libstubs lib]
-                   (S[A"-dllib"; A("dll"^(nm_libstubs lib))]);
+                 if bool_of_string (BaseEnvLight.var_get "native_dynlink" env) then
+                   flag ["link"; "program"; "ocaml"; "byte"; tag_libstubs lib]
+                       (S[A"-dllib"; A("dll"^(nm_libstubs lib))]);
 
                  (* When ocaml link something that use the C library, then one
                     need that file to be up to date.

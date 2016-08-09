@@ -196,16 +196,16 @@ let generated_unix_files
 
   (* Add C library to be built *)
   let acc_nopath =
-    if bs.bs_c_sources <> [] then
-      begin
-        ["lib"^cs.cs_name^"_stubs"^ext_lib]
-        ::
-          ["dll"^cs.cs_name^"_stubs"^ext_dll]
-        ::
-          acc_nopath
-      end
-    else
+    if bs.bs_c_sources <> [] then begin
+      ["lib"^cs.cs_name^"_stubs"^ext_lib]
+      ::
+      if has_native_dynlink then
+        ["dll"^cs.cs_name^"_stubs"^ext_dll] :: acc_nopath
+      else
+        acc_nopath
+    end else begin
       acc_nopath
+    end
   in
 
   (* All the files generated *)
@@ -221,4 +221,3 @@ let generated_unix_files
 
 
 let schema = OASISLibrary_intern.schema
-
