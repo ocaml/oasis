@@ -890,29 +890,19 @@ let standard_test test_ctxt t =
      * TODO: find a solution for DESTDIR on Win32
      *)
     let destdir = bracket_tmpdir test_ctxt in
-    let () =
-      List.iter
-        (fun lst ->
-           mkdir ~parent:true (FilePath.make_filename (destdir :: lst)))
-        [
-          ["bin"];
-          ["lib"; "ocaml"];
-          ["share"; "doc"; "html"]
-        ]
-    in
-    let t =
-      {t with
-           (* This will change OCAMLPATH as well when running setup.ml. *)
-           ocaml_lib_dir = FilePath.make_filename [destdir; "lib"; "ocaml"]}
-    in
-      run_ocaml_setup_ml test_ctxt t
-        ~extra_env:["destdir", destdir] ["-install"];
+    (* This will change OCAMLPATH as well when running setup.ml. *)
+    let t = {t with ocaml_lib_dir = FilePath.concat destdir t.ocaml_lib_dir} in
+    mkdir ~parent:true t.ocaml_lib_dir;
+    run_ocaml_setup_ml test_ctxt t
+      ~extra_env:["destdir", destdir] ["-install"];
 
-      assert_equal
-        ~msg:"Same number of files installed with destdir and without."
-        ~printer:string_of_int
-        (SetFile.cardinal t.installed_files)
-        (SetFile.cardinal (all_files destdir))
+    SetFile.assert_equal
+      ~msg:"Same files installed with destdir and without."
+      ~root:destdir
+      (SetFile.fold
+         (fun fn -> SetFile.add (Filename.concat destdir fn))
+         t.installed_files SetFile.empty)
+      (all_files destdir)
   end;
 
   (* 3rd install *)
