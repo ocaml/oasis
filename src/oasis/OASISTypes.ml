@@ -327,8 +327,7 @@ let odn_of_package pkg =
     function
     | FindlibPackage ((v1, v0)) ->
         VRT ("OASISTypes.FindlibPackage",
-          [ of_string v1;
-            (fun x -> of_option OASISVersion.odn_of_comparator x) v0 ])
+          [ of_string v1; of_option OASISVersion.odn_of_comparator v0 ])
     | InternalLibrary v0 ->
         VRT ("OASISTypes.InternalLibrary", [ STR v0 ])
   in
@@ -351,19 +350,17 @@ let odn_of_package pkg =
         ("bs_path", (odn_of_unix_dirname v.bs_path));
         ("bs_compiled_object", (odn_of_compiled_object v.bs_compiled_object));
         ("bs_build_depends",
-         ((fun x -> of_list odn_of_dependency x) v.bs_build_depends));
+         (of_list odn_of_dependency v.bs_build_depends));
         ("bs_build_tools",
-         ((fun x -> of_list odn_of_tool x) v.bs_build_tools));
+         (of_list odn_of_tool v.bs_build_tools));
         ("bs_c_sources",
-         ((fun x -> of_list odn_of_unix_filename x) v.bs_c_sources));
+         (of_list odn_of_unix_filename v.bs_c_sources));
         ("bs_data_files",
-         ((fun x ->
-             of_list
-               (fun (v1, v0) ->
-                  TPL
-                    [ odn_of_unix_filename v1;
-                      (fun x -> of_option odn_of_unix_filename x) v0 ])
-               x)
+         (of_list
+            (fun (v1, v0) ->
+               TPL
+                 [ odn_of_unix_filename v1;
+                   of_option odn_of_unix_filename v0 ])
             v.bs_data_files));
         ("bs_ccopt", (odn_of_conditional odn_of_args v.bs_ccopt));
         ("bs_cclib", (odn_of_conditional odn_of_args v.bs_cclib));
@@ -374,24 +371,24 @@ let odn_of_package pkg =
   in
   let odn_of_library v =
     REC ("OASISTypes",
-      [ ("lib_modules", ((fun x -> of_list of_string x) v.lib_modules));
-        ("lib_pack", (of_bool v.lib_pack));
+      [ ("lib_modules", of_list of_string v.lib_modules);
+        ("lib_pack", of_bool v.lib_pack);
         ("lib_internal_modules",
-         ((fun x -> of_list of_string x) v.lib_internal_modules));
+         of_list of_string v.lib_internal_modules);
         ("lib_findlib_parent",
-         ((fun x -> of_option of_string x) v.lib_findlib_parent));
+         of_option of_string v.lib_findlib_parent);
         ("lib_findlib_name",
-         ((fun x -> of_option of_string x) v.lib_findlib_name));
+         of_option of_string v.lib_findlib_name);
         ("lib_findlib_containers",
-         ((fun x -> of_list of_string x) v.lib_findlib_containers)) ])
+         of_list of_string v.lib_findlib_containers);
+      ])
   in
   let odn_of_object_ v =
     REC ("OASISTypes",
-      [ ("obj_modules", ((fun x -> of_list of_string x) v.obj_modules));
+      [ ("obj_modules", of_list of_string v.obj_modules);
         ("obj_findlib_fullname",
-         ((fun x ->
-             of_option (fun x -> of_list of_string x) x)
-            v.obj_findlib_fullname)) ])
+         of_option (of_list of_string) v.obj_findlib_fullname);
+      ])
   in
   let odn_of_executable v =
     REC ("OASISTypes",
@@ -401,7 +398,7 @@ let odn_of_package pkg =
   let odn_of_flag v =
     REC ("OASISTypes",
       [ ("flag_description",
-         ((fun x -> of_option of_string x) v.flag_description));
+         (of_option of_string v.flag_description));
         ("flag_default", (odn_of_conditional of_bool v.flag_default)) ])
   in
   let odn_of_vcs =
@@ -421,15 +418,15 @@ let odn_of_package pkg =
       [ ("src_repo_type", (odn_of_vcs v.src_repo_type));
         ("src_repo_location", (STR v.src_repo_location));
         ("src_repo_browser",
-         ((fun x -> of_option of_string x) v.src_repo_browser));
+         (of_option of_string v.src_repo_browser));
         ("src_repo_module",
-         ((fun x -> of_option of_string x) v.src_repo_module));
+         (of_option of_string v.src_repo_module));
         ("src_repo_branch",
-         ((fun x -> of_option of_string x) v.src_repo_branch));
+         (of_option of_string v.src_repo_branch));
         ("src_repo_tag",
-         ((fun x -> of_option of_string x) v.src_repo_tag));
+         (of_option of_string v.src_repo_tag));
         ("src_repo_subdir",
-         ((fun x -> of_option odn_of_unix_filename x) v.src_repo_subdir)) ])
+         (of_option odn_of_unix_filename v.src_repo_subdir)) ])
   in
   let odn_of_test v =
     REC ("OASISTypes",
@@ -440,10 +437,9 @@ let odn_of_package pkg =
          (odn_of_conditional odn_of_command_line v.test_command));
         ("test_custom", (odn_of_custom v.test_custom));
         ("test_working_directory",
-         ((fun x -> of_option odn_of_unix_filename x)
-            v.test_working_directory));
+         (of_option odn_of_unix_filename v.test_working_directory));
         ("test_run", (odn_of_conditional of_bool v.test_run));
-        ("test_tools", ((fun x -> of_list odn_of_tool x) v.test_tools)) ])
+        ("test_tools", (of_list odn_of_tool v.test_tools)) ])
   in
   let odn_of_doc_format =
     function
@@ -464,21 +460,19 @@ let odn_of_package pkg =
         ("doc_install", (odn_of_conditional of_bool v.doc_install));
         ("doc_install_dir", (odn_of_unix_filename v.doc_install_dir));
         ("doc_title", (of_string v.doc_title));
-        ("doc_authors", ((fun x -> of_list of_string x) v.doc_authors));
+        ("doc_authors", (of_list of_string v.doc_authors));
         ("doc_abstract",
-         ((fun x -> of_option of_string x) v.doc_abstract));
+         (of_option of_string v.doc_abstract));
         ("doc_format", (odn_of_doc_format v.doc_format));
         ("doc_data_files",
-         ((fun x ->
-             of_list
-               (fun (v1, v0) ->
-                  TPL
-                    [ odn_of_unix_filename v1;
-                      (fun x -> of_option odn_of_unix_filename x) v0 ])
-               x)
+         (of_list
+            (fun (v1, v0) ->
+               TPL
+                 [ odn_of_unix_filename v1;
+                   of_option odn_of_unix_filename v0 ])
             v.doc_data_files));
         ("doc_build_tools",
-         ((fun x -> of_list odn_of_tool x) v.doc_build_tools)) ])
+         (of_list odn_of_tool v.doc_build_tools)) ])
   in
   let odn_of_section =
     function
