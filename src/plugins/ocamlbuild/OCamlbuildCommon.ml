@@ -53,6 +53,14 @@ let fix_args args extra_argv =
           "-classic-display";
           "-no-log";
           "-no-links";
+        ]
+      else
+        [];
+
+      if OASISVersion.comparator_apply
+          (OASISVersion.version_of_string (ocaml_version ()))
+          (OASISVersion.VLesser (OASISVersion.version_of_string "3.11.1")) then
+        [
           "-install-lib-dir";
           (Filename.concat (standard_library ()) "ocamlbuild")
         ]

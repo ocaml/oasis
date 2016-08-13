@@ -191,7 +191,7 @@ let configure ~ctxt:_ pkg argv =
   begin
     let ocaml_ge4 =
       OASISVersion.version_compare
-        (OASISVersion.version_of_string (BaseStandardVar.ocaml_version()))
+        (OASISVersion.version_of_string (BaseStandardVar.ocaml_version ()))
         (OASISVersion.version_of_string "4.0.0") >= 0 in
     if ocaml_ge4 then
       let findlib_lt132 =
