@@ -169,7 +169,7 @@ let all_tests =
          setup_test_directories test_ctxt
            ~is_native:(is_native test_ctxt)
            ~native_dynlink:(native_dynlink test_ctxt)
-           (in_testdata_dir test_ctxt ["TestOCamlbuild"; "gpr61-pass-thread-to-C-files"])
+           (in_testdata_dir test_ctxt ["TestPluginOCamlbuild"; "gpr61-pass-thread-to-C-files"])
        in
        oasis_setup test_ctxt t;
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-configure"];
@@ -181,7 +181,7 @@ let other_tests =
     "missing-source",
     (fun test_ctxt ->
        let dn =
-         in_testdata_dir test_ctxt ["TestOCamlbuild"; "missing-source"]
+         in_testdata_dir test_ctxt ["TestPluginOCamlbuild"; "missing-source"]
        in
        let fn = Filename.concat dn OASISParse.default_oasis_fn in
        let pkg = OASISParse.from_file ~ctxt:(oasis_ctxt test_ctxt) fn in
@@ -214,7 +214,7 @@ let gen_test (nm, f) =
        setup_test_directories test_ctxt
          ~is_native:(is_native test_ctxt)
          ~native_dynlink:(native_dynlink test_ctxt)
-         (in_testdata_dir test_ctxt ["TestOCamlbuild"; nm])
+         (in_testdata_dir test_ctxt ["TestPluginOCamlbuild"; nm])
      in
        f test_ctxt t)
 
@@ -226,10 +226,10 @@ let tests =
         "all_TestOCamlbuild" >::
         (fun test_ctxt ->
            all_subdirectories test_ctxt
-             (in_testdata_dir test_ctxt ["TestOCamlbuild"])
+             (in_testdata_dir test_ctxt ["TestPluginOCamlbuild"])
              ((List.map fst all_tests)
              @ (List.map fst other_tests))
-           (Printf.sprintf "test/data/TestOCamlbuild/%s is not tested."));
+           (Printf.sprintf "test/data/TestPluginOCamlbuild/%s is not tested."));
       ];
       List.map gen_test all_tests;
       List.map (fun (nm, f) -> nm >:: f) other_tests;

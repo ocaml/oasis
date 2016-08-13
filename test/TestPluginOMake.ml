@@ -115,7 +115,7 @@ let gen_test (nm, f) =
        setup_test_directories test_ctxt
          ~is_native:(is_native test_ctxt)
          ~native_dynlink:(native_dynlink test_ctxt)
-         (in_testdata_dir test_ctxt ["TestOMake"; nm])
+         (in_testdata_dir test_ctxt ["TestPluginOMake"; nm])
      in
        f test_ctxt t)
 
@@ -127,8 +127,8 @@ let tests =
         "generation" >::
         (fun test_ctxt ->
            let generate ?(want_error=false) bn =
-             let dn = in_testdata_dir test_ctxt ["TestOMake"] in
-             let fn = in_testdata_dir test_ctxt ("TestOMake" :: bn) in
+             let dn = in_testdata_dir test_ctxt ["TestPluginOMake"] in
+             let fn = in_testdata_dir test_ctxt ("TestPluginOMake" :: bn) in
              let pkg =
                logf test_ctxt `Info "Parsing file %S." fn;
                OASISParse.from_file
@@ -156,10 +156,10 @@ let tests =
            generate ["ocamlversion401.oasis"];
            generate ["ocamlversion402.oasis"]);
 
-        "all_TestOMake" >::
+        "all_TestPluginOMake" >::
         (fun test_ctxt ->
            all_subdirectories test_ctxt
-             (in_testdata_dir test_ctxt ["TestOMake"])
+             (in_testdata_dir test_ctxt ["TestPluginOMake"])
              (List.rev_append
                 ["noocamlversion.oasis"; "ocamlversion312.oasis";
                  "ocamlversion401.oasis"; "ocamlversion402.oasis"]

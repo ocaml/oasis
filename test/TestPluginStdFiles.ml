@@ -66,12 +66,12 @@ let file_match_expectation test_ctxt ctxt dn fn =
 
 
 let tests =
-  "TestStdFiles" >:::
+  "TestPluginStdFiles" >:::
   [
     "markdown" >::
     (fun test_ctxt ->
        (* Parse string to get OASIS package *)
-       let dn = in_testdata_dir test_ctxt ["TestStdFiles"; "oasis"] in
+       let dn = in_testdata_dir test_ctxt ["TestPluginStdFiles"; "oasis"] in
        let pkg =
          OASISParse.from_file ~ctxt:(oasis_ctxt test_ctxt)
            (Filename.concat dn OASISParse.default_oasis_fn)
@@ -92,7 +92,7 @@ let tests =
          setup_test_directories test_ctxt
            ~is_native:(is_native test_ctxt)
            ~native_dynlink:(native_dynlink test_ctxt)
-           (in_testdata_dir test_ctxt ["TestStdFiles"; "remove"])
+           (in_testdata_dir test_ctxt ["TestPluginStdFiles"; "remove"])
        in
        let pristine_files = all_files t.src_dir in
        let expected_files =

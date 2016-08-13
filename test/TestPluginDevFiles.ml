@@ -159,7 +159,7 @@ let gen_tests ~is_native =
     (fun test_ctxt ->
        let tmpdir = bracket_tmpdir test_ctxt in
        FileUtil.cp
-         [in_testdata_dir test_ctxt ["TestDevFiles"; "test-devfiles1.oasis"]]
+         [in_testdata_dir test_ctxt ["TestPluginDevFiles"; "test-devfiles1.oasis"]]
          (Filename.concat tmpdir "_oasis");
        assert_oasis_cli ~ctxt:test_ctxt ["-C"; tmpdir; "setup"];
        if Sys.os_type <> "Win32" then
@@ -173,7 +173,7 @@ let gen_tests ~is_native =
     (fun test_ctxt ->
        let t =
          setup_test_directories test_ctxt in_testdata_dir
-           ["TestDevFiles"; "compiled_setup_ml"]
+           ["TestPluginDevFiles"; "compiled_setup_ml"]
        in
        oasis_setup ~dynamic:true test_ctxt t;
        (* Setup expectation. *)
@@ -189,7 +189,7 @@ let gen_tests ~is_native =
   ]
 
 let tests =
-  "TestDevFiles" >:::
+  "Plguin DevFiles" >:::
   [
     "best=native" >:::
     (skip_test_on_non_native_arch
