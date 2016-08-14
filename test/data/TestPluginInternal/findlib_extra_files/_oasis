@@ -1,0 +1,15 @@
+OASISFormat: 0.4
+Name: findlib_extra_files
+Version: 0.0.1
+Authors: Foo Bar
+BuildTools: ocamlbuild
+License: LGPL with OCaml linking exception
+Synopsis: Test installation of extra files with findlib.
+BetaFeatures: findlib_extra_files
+Plugins: META(0.4)
+
+Library library
+  Path: .
+  Modules: L
+  FindlibName: foobar
+  FindlibExtraFiles: _oasis

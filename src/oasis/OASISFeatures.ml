@@ -391,3 +391,8 @@ let findlib_directory =
     (fun () ->
        s_ "Allow to install findlib libraries in sub-directories of the target \
           findlib directory.")
+
+let findlib_extra_files =
+  create "findlib_extra_files" beta
+    (fun () ->
+       s_ "Allow to install extra files for findlib libraries.")

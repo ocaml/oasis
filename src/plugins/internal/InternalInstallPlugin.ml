@@ -230,6 +230,68 @@ let install =
   (** Install all libraries *)
   let install_libs ~ctxt pkg =
 
+    let find_first_existing_files_in_path bs lst =
+      let path = OASISHostPath.of_unix bs.bs_path in
+      List.find
+        OASISFileUtil.file_exists_case
+        (List.map (Filename.concat path) lst)
+    in
+
+    let files_of_modules new_files typ cs bs modules =
+      List.fold_left
+        (fun acc modul ->
+           begin
+             try
+               (* Add uncompiled header from the source tree *)
+               [find_first_existing_files_in_path
+                  bs (make_fnames modul [".mli"; ".ml"])]
+             with Not_found ->
+               warning
+                 (f_ "Cannot find source header for module %s \
+                      in %s %s")
+                 typ modul cs.cs_name;
+               []
+           end
+           @
+           List.fold_left
+             (fun acc fn ->
+                try
+                  find_first_existing_files_in_path bs [fn] :: acc
+                with Not_found ->
+                  acc)
+             acc (make_fnames modul [".annot";".cmti";".cmt"]))
+        new_files
+        modules
+    in
+
+    let files_of_build_section (f_data, new_files) typ cs bs =
+      let extra_files =
+        List.map
+          (fun fn ->
+             try
+               find_first_existing_files_in_path bs [fn]
+             with Not_found ->
+               failwithf
+                 (f_ "Cannot find extra findlib file %S in %s %s ")
+                 fn
+                 typ
+                 cs.cs_name)
+          bs.bs_findlib_extra_files
+      in
+      let f_data () =
+        (* Install data associated with the library *)
+        install_data
+          ~ctxt
+          bs.bs_path
+          bs.bs_data_files
+          (Filename.concat
+             (datarootdir ())
+             pkg.name);
+        f_data ()
+      in
+      f_data, new_files @ extra_files
+    in
+
     let files_of_library (f_data, acc) data_lib =
       let cs, bs, lib, dn, lib_extra = !lib_hook data_lib in
       if var_choose bs.bs_install &&
@@ -237,35 +299,11 @@ let install =
         (* Start with lib_extra *)
         let new_files = lib_extra in
         let new_files =
-          (* Add uncompiled header from the source tree *)
-          let path = OASISHostPath.of_unix bs.bs_path in
-          List.fold_left
-            (fun acc modul ->
-               begin
-                 try
-                   [List.find
-                      OASISFileUtil.file_exists_case
-                      (List.map
-                         (Filename.concat path)
-                         (make_fnames modul [".mli"; ".ml"]))]
-                 with Not_found ->
-                   warning
-                     (f_ "Cannot find source header for module %s \
-                          in library %s")
-                     modul cs.cs_name;
-                   []
-               end
-               @
-               List.filter
-                 OASISFileUtil.file_exists_case
-                 (List.map
-                    (Filename.concat path)
-                    (make_fnames modul [".annot";".cmti";".cmt"]))
-               @ acc)
-            new_files
-            lib.lib_modules
+          files_of_modules new_files "library" cs bs lib.lib_modules
         in
-
+        let f_data, new_files =
+          files_of_build_section (f_data, new_files) "library" cs bs
+        in
         let new_files =
           (* Get generated files *)
           BaseBuilt.fold
@@ -300,35 +338,10 @@ let install =
         (* Start with obj_extra *)
         let new_files = obj_extra in
         let new_files =
-          (* Add uncompiled header from the source tree *)
-          let path =
-            OASISHostPath.of_unix bs.bs_path
-          in
-          List.fold_left
-            (fun acc modul ->
-               begin
-                 try
-                   [List.find
-                      OASISFileUtil.file_exists_case
-                      (List.map
-                         (Filename.concat path)
-                         (make_fnames modul [".mli"; ".ml"]))]
-                 with Not_found ->
-                   warning
-                     (f_ "Cannot find source header for module %s \
-                          in object %s")
-                     modul cs.cs_name;
-                   []
-               end
-               @
-               List.filter
-                 OASISFileUtil.file_exists_case
-                 (List.map
-                    (Filename.concat path)
-                    (make_fnames modul [".annot";".cmti";".cmt"]))
-               @ acc)
-            new_files
-            obj.obj_modules
+          files_of_modules new_files "object" cs bs obj.obj_modules
+        in
+        let f_data, new_files =
+          files_of_build_section (f_data, new_files) "object" cs bs
         in
 
         let new_files =

@@ -180,33 +180,35 @@ type common_section =
 *)
 type build_section =
   {
-    bs_build:           bool conditional;
+    bs_build:               bool conditional;
     (** Build this section. *)
-    bs_install:         bool conditional;
+    bs_install:             bool conditional;
     (** Install this section. *)
-    bs_path:            unix_dirname;
+    bs_path:                unix_dirname;
     (** Top level location of the sources. *)
-    bs_compiled_object: compiled_object;
+    bs_compiled_object:     compiled_object;
     (** What kind of compilation. *)
-    bs_build_depends:   dependency list;
+    bs_build_depends:       dependency list;
     (** List of dependencies. *)
-    bs_build_tools:     tool list;
+    bs_build_tools:         tool list;
     (** List of build tools. *)
-    bs_c_sources:       unix_filename list;
+    bs_c_sources:           unix_filename list;
     (** C sources, relative to [bs_path]. *)
-    bs_data_files:      (unix_filename * unix_filename option) list;
+    bs_data_files:          (unix_filename * unix_filename option) list;
     (** Data files and their install location, relative to [bs_path]. *)
-    bs_ccopt:           args conditional;
+    bs_findlib_extra_files: unix_filename list;
+    (** Extra files to install with findlib. *)
+    bs_ccopt:               args conditional;
     (** Options for -ccopt. *)
-    bs_cclib:           args conditional;
+    bs_cclib:               args conditional;
     (** Options for -cclib. *)
-    bs_dlllib:          args conditional;
+    bs_dlllib:              args conditional;
     (** Options for -dllib. *)
-    bs_dllpath:         args conditional;
+    bs_dllpath:             args conditional;
     (** Options for -dllpath. *)
-    bs_byteopt:         args conditional;
+    bs_byteopt:             args conditional;
     (** Option to pass to ocamlc. *)
-    bs_nativeopt:       args conditional;
+    bs_nativeopt:           args conditional;
     (** Option to pass to ocamlopt. *)
   }
 

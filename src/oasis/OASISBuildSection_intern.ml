@@ -138,7 +138,7 @@ let build_install_data_fields
   build, install, data_files
 
 
-let section_fields nm comp_dflt schm sync =
+let section_fields _ comp_dflt schm sync =
   let path =
     new_field schm "Path"
       directory
@@ -150,6 +150,16 @@ let section_fields nm comp_dflt schm sync =
       (fun pkg -> (sync pkg).bs_build)
       (fun pkg -> (sync pkg).bs_install)
       (fun pkg -> (sync pkg).bs_data_files)
+  in
+  let findlib_extra_files =
+    new_field schm "FindlibExtraFiles"
+      ~default:[]
+      ~feature:OASISFeatures.findlib_extra_files
+      (comma_separated string_not_empty)
+      (fun () ->
+         s_ "Comma separated list of extra files to be installed with \
+             ocamlfind.")
+      (fun pkg -> (sync pkg).bs_findlib_extra_files)
   in
   let build_depends =
     build_depends_field schm
@@ -220,19 +230,19 @@ let section_fields nm comp_dflt schm sync =
   in
   (fun nm data ->
      {
-       bs_build           = build data;
-       bs_install         = install data;
-       bs_path            = path data;
-       bs_compiled_object = compiled_object data;
-       bs_build_depends   = build_depends data;
-       bs_build_tools     = build_tools data;
-       bs_c_sources       = c_sources data;
-       bs_data_files      = data_files data;
-       bs_ccopt           = ccopt data;
-       bs_cclib           = cclib data;
-       bs_dlllib          = dlllib data;
-       bs_dllpath         = dllpath data;
-       bs_byteopt         = byteopt data;
-       bs_nativeopt       = nativeopt data;
+       bs_build               = build data;
+       bs_install             = install data;
+       bs_path                = path data;
+       bs_compiled_object     = compiled_object data;
+       bs_build_depends       = build_depends data;
+       bs_build_tools         = build_tools data;
+       bs_c_sources           = c_sources data;
+       bs_data_files          = data_files data;
+       bs_findlib_extra_files = findlib_extra_files data;
+       bs_ccopt               = ccopt data;
+       bs_cclib               = cclib data;
+       bs_dlllib              = dlllib data;
+       bs_dllpath             = dllpath data;
+       bs_byteopt             = byteopt data;
+       bs_nativeopt           = nativeopt data;
      })
-
