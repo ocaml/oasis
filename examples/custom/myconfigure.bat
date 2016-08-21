@@ -1,7 +1,7 @@
 rem==============================================================================#
 rem  OASIS: architecture for building OCaml libraries and applications           #
 rem                                                                              #
-rem  Copyright (C) 2011-2013, Sylvain Le Gall                                    #
+rem  Copyright (C) 2011-2016, Sylvain Le Gall                                    #
 rem  Copyright (C) 2008-2011, OCamlCore SARL                                     #
 rem                                                                              #
 rem  This library is free software; you can redistribute it and/or modify it     #
