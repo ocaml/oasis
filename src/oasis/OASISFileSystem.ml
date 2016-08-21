@@ -117,7 +117,7 @@ class ['a] host_fs rootdir : ['a] fs =
         method input buf len =
           let read = ref 0 in
           try
-            for _ = 0 to len do
+            for _i = 0 to len do
               Buffer.add_char buf (Stream.next strm);
               incr read
             done
