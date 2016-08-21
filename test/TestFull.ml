@@ -460,6 +460,23 @@ let all_tests =
             (hfs#string_of_filename setup_log)
             (hfs#string_of_filename setup_data))
          (hfs#file_exists setup_log && hfs#file_exists setup_data));
+
+    (* Allow to compile executable with conditional build depends
+       (feature: conditional_build_depends_executable.
+    *)
+    "bug1377",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t
+         (oasis_ocamlbuild_files @
+          ["lib1.mllib"; "lib1.mldylib"; "lib2.mllib"; "lib2.mldylib"]);
+       register_installed_files test_ctxt t
+         [InstalledBin ["bug1377"]];
+       (* Run standard test. *)
+       standard_test test_ctxt t;
+       (* Try the result. *)
+       try_installed_exec test_ctxt t "bug1377" []);
   ]
 
 
