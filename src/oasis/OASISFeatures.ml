@@ -397,3 +397,9 @@ let source_patterns =
   create "source_patterns" alpha
     (fun () ->
        s_ "Customize mapping between module name and source file.")
+
+let conditional_build_depends_executable =
+  create "conditional_build_depends_executable" alpha
+    (fun () ->
+       s_ "Allow to build executable with a conditional build depends.")
+

@@ -1,0 +1,25 @@
+OASISFormat: 0.4
+Name: conditional_build_depends_executable
+Version: 0
+Authors: Foo Bar
+License: LGPL with OCaml linking exception
+Synopsis: Test conditional_build_depends_executable
+#AlphaFeatures: conditional_build_depends_executable
+BetaFeatures: section_object
+BuildTools: ocamlbuild
+
+Library lib1
+  Path: .
+  Modules: L1
+
+Object obj2
+  Path: .
+  BuildDepends: lib1
+  Modules: O2
+
+Executable main
+  Path: .
+  #BuildDepends: lib1
+  BuildDepends: lib1, obj2
+  MainIs: main.ml
+  CompiledObject: byte
