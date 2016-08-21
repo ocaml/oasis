@@ -460,6 +460,20 @@ let all_tests =
             (hfs#string_of_filename setup_log)
             (hfs#string_of_filename setup_data))
          (hfs#file_exists setup_log && hfs#file_exists setup_data));
+
+    (* Test various aspect of section_object. *)
+    "section_object",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t
+         (oasis_ocamlbuild_files @ ["lib.mllib"; "lib.mldylib"]);
+       register_installed_files test_ctxt t
+         [InstalledBin ["section_object"]];
+       (* Run standard test. *)
+       standard_test test_ctxt t;
+       (* Try the result. *)
+       try_installed_exec test_ctxt t "section_object" []);
   ]
 
 
