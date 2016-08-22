@@ -1,6 +1,6 @@
 
 Guidelines for developing OASIS
-===========================
+===============================
 
 Updates in `_oasis`:
 
@@ -36,7 +36,7 @@ There are two kind of plugin:
    found in the `_oasis` file. For example `Plugins: AutoGenerate (0.1)` in the
    `_oasis` file will trigger the load of the plugin `autogenerate`.
 
-`Oasis`'s plugin system uses findlib to detect plugins, so you must install
+`oasis`'s plugin system uses findlib to detect plugins, so you must install
 plugins as a standard OCaml library with a META file. OASIS detects plugins when
 they have a field `plugin_system = "oasis"` or `plugin_system = "oasis-cli"` in
 their META file.
@@ -89,7 +89,7 @@ Cut a release
 Versions support policy
 =======================
 
-To help keep Oasis as widely usable as possible, we should be conservative about
+To help keep OASIS as widely usable as possible, we should be conservative about
 the minimum required version of our dependencies. Here are some policies, to
 determine what version of a dependency we should require:
 

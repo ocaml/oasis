@@ -1,3 +1,228 @@
+2016-08-21  Sylvain Le Gall <sylvain AT le-gall.net>
+
+  * Version 0.4.7
+
+  * Drop support for OASISFormat 0.2 and 0.1.
+
+    As per the version policy in HACKING.md, this change syncs with OASIS
+    version in Debian. Debian Jessie has OASIS v0.4.4, so it is possible to
+    drop support for older version.
+
+  * Provide stable API in setup.ml using BaseCompat.
+
+    This change introduces BaseCompat and opens by default the version
+    matching OASISFormat in setup.ml. This allows to make changes to OASIS
+    and still provides a stable API in setup.ml. The only side effect is that
+    it requires to update the setup.ml of DynRun at every major version updates.
+
+    Unfortunately, providing compatibility for ALL changes is an hard task.
+    Users are welcome to file bugs whenever their customized setup.ml breaks
+    because of an incompatible change.
+
+  * Plugin "omake":
+
+    This new plugin provides build, doc and install capabilities using
+    OMake. Some features are not supported, like Object sections.
+    It requires 'OCamlVersion: >= 4.01'.
+
+    Example:
+      OASISFormat:  0.4
+      OCamlVersion: >= 4.01
+      [...]
+      BuildTools:   omake
+      BuildType:    omake (0.4)
+
+      Library simplelib
+        [...]
+
+      Document simplelib
+        BuildTools+:     ocamldoc
+        [...]
+
+    Thanks to Gerd Stolpmann for this huge contribution.
+
+  * Create OASIFileSystem and use it in OASISContext.t.srcfs.
+
+    The new module OASISFileSystem is a filesystem abstraction layer that
+    allows to better represents (through types) where the files are (e.g.
+    source or build directory).
+
+    The very first use of it is to add in OASISContext.t as srcfs. The
+    filesystem object is itself limited to only use
+    OASISContext.source_filename, which allows to use types to enforce
+    location of files.
+
+    The various default_filename across the code are now typed according to
+    their location (e.g. "setup.log" and "setup.data" are
+    OASISContext.source_filename). The only way to actually open, read and
+    write the corresponding file is to apply methods provided in OASISFileSystem
+    object.
+
+    This change also delays enough the evaluation of the location of
+    "setup.log" and "setup.data", which solves the bug 1473.
+    (Closes: #1473)
+
+  * Improve automatic tests:
+    * Use OPAM to install dependencies.
+    * Use Travis to test and compile with all major OCaml version since 3.12.1
+      on Linux.
+    * Use AppVeyor to compile on Cygwin.
+    * Test for dynamic mode mode compilation on Cygwin with AppVeyor.
+    * Rename test files to reflect what files they are testing.
+    * Split test/data/TestFull/* tests to reflect what plugins/files they are
+      testing.
+    * Add some badges for build status on Travis and AppVeyor in README.md.
+    * Test the parsing of examples/oasis/*.oasis files.
+    * Check all examples are tested, add examples/ocamlbuild tests.
+    * Check that all examples use the latest version of OASIS.
+    * Disable test 'external source rebuild' which tends to be flaky.
+    * Refactor TestFull to remove boilerplates and make it more readable.
+    * Create a test function to check all subdirectories are listed and tested,
+      add tests for the missing ones.
+    * Reduce the number of skipped tests.
+    * Refine constraint to produce .cmt to >=4.01.
+
+  * Trim down the dependencies:
+    * Stop depending on ocaml-data-notation and type_conv.
+    * Create a trim down, internval version of ocaml-data-notation. The
+      conversion functions  need to be manually written -- not perfect
+      but a good way to drop the dependency and still be compatible with OCaml
+      3.12.1.
+    * Stop depending on ocaml-gettext, this was never really used.
+    * Get rid of camlp4:
+      * Replace most genlex parser, by standard yacc/lex parsers.
+      * Replace OASISRecDescParser by OASISAst_parser using ocamlyacc.
+        (Closes: #298)
+      * The "flag(...)" in expression is now case sensitive, to avoid conflict
+        with the "Flag ..." section.
+      * Some parts still use Genlex, but don't need camlp4 anymore.
+    * Trimming down the dependencies allows to make it easier to port OASIS on
+      other platforms (like Windows) where some former dependencies were tricky
+      to compile (like camlp4).
+
+  * Stop using -install-lib-dir on Windows.
+
+    This change prevents the use of -install-lib-dir on Windows, for OCaml
+    version greater than 3.11.1. The bug in ocamlbuild has been fixed in OCaml
+    3.11.1 [1]. This is a bit a shot in the dark, since testing on Windows is
+    not setup.
+
+    [1]: https://github.com/ocaml/ocamlbuild/commit/79cf4029b
+
+  * Minor changes:
+    * Consistently use choices type in OASISExpr module.
+    * Make OCamlbuild plugin not assume that dynamic linking is supported.
+      (Patch: #1536) (Closes: #1251)
+    * Improve setup.log parsing, by using Genlex.
+    * Enforce using a published version of OASIS to generate its own setup.ml,
+      provide explanations in HACKING.md.
+    * Fix problem reading files on Cygwin (esp. setup.log), reported size after
+      an append doesn't reflect the real size of the file in some cases.
+    * Always compile src/tools/* and move dist.ml there.
+    * Refactor string version comparison into its own sub-module.
+    * Fix missing rules for headache.
+    * Remove unused userconf library.
+    * Pass -thread to C files as well.
+    * Don't use $< in explicit DevFiles build rule (BSD make compatibility).
+    * Example to override cc when compiling C source files.
+    * Remove the need for Bytes altogether.
+    * Add fields "Tags" and "BugReports" to export them to OPAM.
+    * Big documentation cleanup (`\_oasis` synopsis, doc/*).
+    * Reformat source files using ocp-indent and start to use merlin.
+    * Allow to use a string when testing values in `\_oasis`, for example it is
+      now possible to use expression like 'ocaml_version("4.02.1")'
+    * Improve OASISVersion.comparator_reduce. Now, it transforms the given
+      comparator into its disjunctive form and order the version number.
+    * Rename all executables so that their names match OCaml policy for module.
+    * Move all executables into their own directories to prevent dependencies
+      leak.
+    * Transform tools into executables.
+    * Always compile executables to check they still work.
+
+
+  * Features:
+
+    * no_automatic_syntax (alpha): don't disable the -package injection logic.
+
+    * compiled_setup_ml (alpha):
+      * Fix the configure file when using the compiled_setup_ml feature and
+        improve the Makefile.
+      * Recompile when needed while executing the configure script.
+
+    * findlib_directory (beta, new):
+
+      Findlib allows to specify a "directory" in a META file. This can be used
+      to store some files of the library in sub-directories. This change
+      allows to set and use this "directory" field.
+
+      The InternalInstall plugin now handles installing files in
+      sub-directories.  However there is no flag to specify this when using
+      `ocamlfind install`, so we use a standard file installation, with a
+      best-guess computation of the target directory.
+
+      The META plugin can now set the "directory" field according to what has
+      been set in the `_oasis` file. Note that, for nested package the install
+      directory is relative to the install directory of the parent package.
+
+      Example:
+        BetaFeatures: findlib_directory
+        Plugins: META(0.4)
+
+        Library library
+          [...]
+          FindlibDirectory: lib
+
+      Thanks to Gabriel Radanne for this contribution. (Closes: #1305)
+
+    * findlib_extra_files (beta, new):
+
+      This change allows to use a new `_oasis` field 'FindlibExtraFiles' to
+      install extra files along the matching library/object in findlib.
+
+      Example:
+        BetaFeatures: findlib_extra_files
+
+        Library library
+          [...]
+          FindlibName: foobar
+          FindlibExtraFiles: myfile.txt
+
+      In this case `myfile.txt` will be installed in the same directory as the
+      'foobar' package.
+
+      Thanks to Evgenii Lepikhin for the contribution. (Closes: #802)
+
+    * source_patterns (alpha, new):
+
+      This change allows to override the built-in source files search. It uses
+      user-provided 'InterfacePatterns' and 'ImplementationPatterns' fields and
+      a small DSL to define how to find a file matching a given module. The
+      fields can be defined at the top level or in the Library section.
+
+      The DSL is based on Genlex and Buffer.add_substitute. It has two
+      functions `capitalize_file` and `uncapitalize_file` and one variable
+      `module`.
+
+      Example:
+        AlphaFeatures: source_patterns
+
+        Library library
+          [...]
+          Modules: FooBar
+          InterfacePatterns+: ${module}.eliomi
+          ImplementationPatterns+:  ${module}.eliom
+
+      It is particularly useful to get rid of the warnings like:
+      W: Cannot find source file matching module [...]
+
+      Thanks to Petter Urkedal for this contribution.
+
+Thanks to Spiros Eliopoulos, Paul Snively, Jeremie Dimino, Christopher
+Zimmermann, Christophe Troestler, Max Mouratov, Jacques-Pascal Deplaix, Geoff
+Shannon, Simon Cruanes, Vladimir Brankov, Gabriel Radanne, Evgenii Lepikhin,
+Petter Urkedal, Gerd Stolpmann and Anton Bachin for their contributions.
+
+
 2016-04-29  Sylvain Le Gall <sylvain AT le-gall.net>
 
   * Version 0.4.6
@@ -65,6 +290,7 @@
       bug makes `oasis setup` think that these files have changed even if they
       have just been regenerated. (Closes: #1382).
 
+
 2014-03-25  Sylvain Le Gall <sylvain AT le-gall.net>
 
   * Version 0.4.3
@@ -90,10 +316,10 @@
 
   * Features:
 
-    * stdfiles_markdown (alpha): set default extension of StdFiles (AUTHORS, INSTALL,
-      README) tp be '.md'. Use markdown syntax for standard files. Use comments
-      that hides OASIS section and digest. This feature should help direct
-      publishing on GitHub.
+    * stdfiles_markdown (alpha): set default extension of StdFiles (AUTHORS,
+      INSTALL, README) tp be '.md'. Use markdown syntax for standard files. Use
+      comments that hides OASIS section and digest. This feature should help
+      direct publishing on GitHub.
 
     * disable_oasis_section (alpha): it allows DisableOASISSection to be
       specified in the package with a list of expandable filenames given. Any
@@ -166,10 +392,11 @@
 
     * Raise error when "true" or "false" are not spelled correctly.
 
-    * Fix some warnings about "Field X is set but matcing plugin Z is not enabled."
+    * Fix some warnings about "Field X is set but matcing plugin Z is not
+      enabled."
 
-  Thanks to Andrew Ferguson, Florent Monnier and Jacques-Pascal Deplaix for their
-  pull requests and to help release this version.
+  Thanks to Andrew Ferguson, Florent Monnier and Jacques-Pascal Deplaix for
+  their pull requests and to help release this version.
 
 
 2013-12-19  Sylvain Le Gall <sylvain AT le-gall.net>
@@ -183,7 +410,8 @@
   * Minor changes:
 
     * Refactor plugins for command line interface.
-    * Get rid of message 'field is set but no matching plugin' (Closes: #795, #1043).
+    * Get rid of message 'field is set but no matching plugin'
+      (Closes: #795, #1043).
 
   * Features:
 
@@ -325,9 +553,9 @@
 
     * Allow to define interdependent flags
 
-       In order to allow interdependent flags, we transform back lazy values into
-       'unit -> string' functions. This allows to change a flag value on the
-       command line and to update all the dependent values.
+       In order to allow interdependent flags, we transform back lazy values
+       into 'unit -> string' functions. This allows to change a flag value on
+       the command line and to update all the dependent values.
        (Closes: #827, #938)
 
     * Deprecate the subcommand 'oasis setup-dev' in favor of
@@ -361,12 +589,12 @@
       The drawback is that you have to use $foo when you want to call
       "Executable foo", because $foo will be _build/.../main.byte.
 
-    * Change the way we parse command line like option (CCOpt, CCLib and the like). We have
-      implemented a real POSIX command line parser, except that variables are processed by
-      Buffer.add_substitute (except if correctly escaped, using
-      Buffer.add_substitute escaping).
+    * Change the way we parse command line like option (CCOpt, CCLib and the
+      like). We have implemented a real POSIX command line parser, except that
+      variables are processed by Buffer.add_substitute (except if correctly
+      escaped, using Buffer.add_substitute escaping).
 
-      For example:
+      Example:
         CCOpt: -DEXTERNAL_EXP10 -L/sw/lib "-framework vecLib"
 
       Will be parsed correctly and outputed according to target OS.
@@ -375,12 +603,14 @@
 
     * Minimize the dependencies of the project.
 
-      In order to ease building oasis, we have minimize the number of dependencies.
-      You only need to install ocamlmod, ocamlify and ocaml-data-notation for a
-      standard build without tests. Dependencies on pcre, extlib and ocamlgraph has
-      been dropped. The remaining dependencies are hidden behind a flag "tests".
+      In order to ease building oasis, we have minimize the number of
+      dependencies.  You only need to install ocamlmod, ocamlify and
+      ocaml-data-notation for a standard build without tests. Dependencies on
+      pcre, extlib and ocamlgraph has been dropped. The remaining dependencies
+      are hidden behind a flag "tests".
 
-    * Implement proposal for handling plugin in META, using "plugin" extra directives
+    * Implement proposal for handling plugin in META, using "plugin" extra
+      directives
 
       oasis now produces .cmxs file by default and add them to META.
 
@@ -393,19 +623,21 @@
       archive(native, plugin) = "oasis.cmxs"
       ...
 
-      This will ultimately help to generate automatically .cmxs for all oasis enabled
-      projects. We hope that this new feature will improve dynamic linking use
-      in OCaml (esp. for project like Ocsigen).
+      This will ultimately help to generate automatically .cmxs for all oasis
+      enabled projects. We hope that this new feature will improve dynamic
+      linking use in OCaml (esp. for project like Ocsigen).
 
   * Other changes:
 
     * Produce only subcommands specific helps when asked (Closes: #783)
     * Use pager for long textual output (Closes: #782)
     * Give the help summary directly when running just "oasis" (Closes: #781)
-    * Remove `pwd` filename prefix to avoid too long command line on Windows (Closes: #1007)
+    * Remove `pwd` filename prefix to avoid too long command line on Windows
+      (Closes: #1007)
     * Install required .cmx when installing libraries (Closes: #686, #885)
     * Retain blanks at the beginning of line in freeform (Closes: #811)
-    * Allow PreConfCommand to create setup.data with any variables inside (Closes: #823)
+    * Allow PreConfCommand to create setup.data with any variables inside
+      (Closes: #823)
     * Allow to use setup.data in shell script and Makefile (Closes: #982)
     * Fix execute permissions (Closes: #980)
     * Drop extra version in ocaml version (Closes: #964, #888)
@@ -424,9 +656,11 @@
     * Verify validity of input when parsing in quickstart (Closes: #797)
     * Fix stack overflow when there are twice the same library (Closes: #1130)
     * Parse license examples for DEP5 specification (Closes: #1102)
-    * Be ultra-liberal regarding version syntax (allow '_' and ' ' in the version).
+    * Be ultra-liberal regarding version syntax (allow '_' and ' ' in the
+      version).
     * Allow to add extra content to META files (XMETAExtraLines)
-    * Allow to use executable name that contains "-" as a variable (replacing "-" by "_").
+    * Allow to use executable name that contains "-" as a variable (replacing
+      "-" by "_").
 
 
     Thanks to Anil Madhavapeddy, Pierre Chambart, Christophe Troestler,
@@ -444,7 +678,8 @@
   * Split the project into 3 libraries and one executable:
     * oasis: the core library
     * oasis.base: the runtime library
-    * oasis.builtin-plugins: various plugins (ocamlbuild, internal, none, custom)
+    * oasis.builtin-plugins: various plugins (ocamlbuild, internal, none,
+      custom)
     * the executable 'oasis' in lowercase which was 'OASIS' before
       (Closes: #769)
 
@@ -461,26 +696,27 @@
       (Closes: #710, #557)
     * Allow https, ftp, mailto, svn, svn+ssh for URL (Closes: #753)
     * Replace Str by Pcre
-    * Don't modify package data structure through plugins, we just issue warnings
-      and error when something is missing. This is compensated by a better
-      'quickstart' that can automatically complete required fields (e.g. it adds
-      'ocamlbuild' as a BuildDependency for 'ocamlbuild' plugin).
+    * Don't modify package data structure through plugins, we just issue
+      warnings and error when something is missing. This is compensated by a
+      better 'quickstart' that can automatically complete required fields (e.g.
+      it adds 'ocamlbuild' as a BuildDependency for 'ocamlbuild' plugin).
       (Closes: #552, #566)
     * Set default for test type to 'custom' plugin (Closes: #562)
     * Use a more simple lexer for _oasis (Closes: #579)
     * Warn if the use of '\t' to indent lines is inconsistent in an _oasis file
       (e.g. mix of ' ' and '\t')
-    * Allow to use 'flag' as environment variables in _oasis (e.g. flag test can be used as
-      Command: echo $test) (Closes: #619)
+    * Allow to use 'flag' as environment variables in _oasis (e.g. flag test
+      can be used as Command: echo $test) (Closes: #619)
     * ADVANCED USERS: Create a new scheme to synchronize data between the
-      property list used to parse and print an _oasis file and the data structure
-      representing it. This is a first step to avoid carrying property lists
-      inside the data structure.  It should also allow to dump plugin data
-      directly inside the data structure rather than having to do it "by hand".
-      This allows to have a more complete quickstart support also (i.e. handling
-      plugins directly). It also allows to manipulate the datastructures in a
-      single place: with the scheme before you have to update the property list
-      and the rest of the datastructure. (Closes: #705, #733)
+      property list used to parse and print an _oasis file and the data
+      structure representing it. This is a first step to avoid carrying
+      property lists inside the data structure.  It should also allow to dump
+      plugin data directly inside the data structure rather than having to do
+      it "by hand". This allows to have a more complete quickstart support
+      also (i.e. handling plugins directly). It also allows to manipulate the
+      datastructures in a single place: with the scheme before you have to
+      update the property list and the rest of the datastructure. (Closes:
+      #705, #733)
 
   * oasis.base library:
     * Exit with an error code when tests fail
@@ -524,7 +760,8 @@
     * Don't pass -dlllib and -dllpath options to ocamlopt (Closes: #628)
 
   * Plugin "internal":
-    * Create parent directories when installing with InternalInstall (Closes: #555)
+    * Create parent directories when installing with InternalInstall
+      (Closes: #555)
     * Don't install data when section is not built (Closes: #554, #556)
 
   * Plugin "META":
