@@ -61,7 +61,8 @@ Cut a release
   * Details: Read the full blog post here: URL of the blog post.
  * `make deploy`
  * Update Change Log in the Files section of forge:
-  * Copy-paste last entry of CHANGES.txt.
+  * Copy-paste last entry of CHANGES.txt, not including the first line
+    (date...).
   * Don''t Merge lines of para.
   * Check 'Preserve my pre-formatted text.'
   * Check the result.
