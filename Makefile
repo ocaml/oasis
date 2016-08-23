@@ -145,10 +145,9 @@ deploy: headache doc-dist
 	# TODO: create a plugin to send announcement.
 	# oasis announce
 	$(MAKE) build
-	./Main.byte setup
-	admin-gallu-oasis-increment --setup_run
+	admin-gallu-oasis-increment
+	./Main.native setup
 	$(MAKE) distclean
-	./configure --enable-tests --enable-docs
 	$(MAKE) test
 	git commit -am "Update OASIS version."
 
