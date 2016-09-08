@@ -239,11 +239,12 @@ let ocamlbuild_common_generator pivot_data schm id =
 
 
 let extra_args_ocamlbuild_common ctxt pkg t =
+  let supports_plugins = ocamlbuild_supports_plugin_tags pkg in
   let extra_args, ctxt =
-    if t.plugin_tags <> None then begin
+    if t.plugin_tags <> None && (not supports_plugins) then begin
       t.extra_args,
       OASISPlugin.set_error
-        (not (ocamlbuild_supports_plugin_tags pkg))
+        (not supports_plugins)
         (s_ "'XOCamlbuildPluginTags' in only available for OCaml >= 4.01. \
              Please restrict your requirements with 'OCamlVersion: >= 4.01'")
         ctxt

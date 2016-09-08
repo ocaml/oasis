@@ -1,0 +1,16 @@
+OASISFormat:   0.4
+Name:          b1659-ocamlbuild-support-plugins
+Version:       0.1
+License:       LGPL-2.1 with OCaml linking exception
+BuildType:     ocamlbuild (0.4)
+Authors:       Sylvain Le Gall
+Synopsis:      Check that '-plugin package(x)' works.
+AlphaFeatures: ocamlbuild_more_args
+BuildTools:    ocamlbuild
+OCamlVersion:  >= 4.01
+
+XOCamlbuildPluginTags: package(oUnit)
+
+Library foo
+  Path: .
+  Modules: A

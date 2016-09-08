@@ -121,7 +121,12 @@ let all_tests =
        assert_bool "File 'B.native' has been created"
          (Sys.file_exists (in_src_dir t "B.native"));
 
-       assert_command ~ctxt:test_ctxt ~chdir:t.src_dir ~exit_code:(Unix.WEXITED 42) (in_src_dir t "B.native") [];
+       assert_command
+         ~ctxt:test_ctxt
+         ~chdir:t.src_dir
+         ~exit_code:(Unix.WEXITED 42)
+         (in_src_dir t "B.native")
+         [];
 
        (* change c-file, rebuild and assert result-code *)
        begin
@@ -134,7 +139,12 @@ let all_tests =
        (* run_ocaml_setup_ml ~check_output:true test_ctxt t ["-clean"]; *)
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"];
 
-       assert_command ~ctxt:test_ctxt ~chdir:t.src_dir ~exit_code:(Unix.WEXITED 23) (in_src_dir t "B.native") []
+       assert_command
+         ~ctxt:test_ctxt
+         ~chdir:t.src_dir
+         ~exit_code:(Unix.WEXITED 23)
+         (in_src_dir t "B.native")
+         []
     );
 
     "env-tags",
@@ -142,14 +152,16 @@ let all_tests =
        let tests_tag_detected_fn = in_src_dir t "tests-tag-detected" in
        oasis_setup test_ctxt t;
 
-       run_ocaml_setup_ml ~check_output:true test_ctxt t ["-configure"; "--enable-tests"];
+       run_ocaml_setup_ml
+         ~check_output:true test_ctxt t ["-configure"; "--enable-tests"];
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"];
        assert_bool
          "tests-tag-detected should be existed."
          (Sys.file_exists tests_tag_detected_fn);
 
        rm [tests_tag_detected_fn];
-       run_ocaml_setup_ml ~check_output:true test_ctxt t ["-configure"; "--disable-tests"];
+       run_ocaml_setup_ml
+         ~check_output:true test_ctxt t ["-configure"; "--disable-tests"];
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"];
        assert_bool
          "tests-tag-detected should not be existed."
@@ -169,7 +181,21 @@ let all_tests =
          setup_test_directories test_ctxt
            ~is_native:(is_native test_ctxt)
            ~native_dynlink:(native_dynlink test_ctxt)
-           (in_testdata_dir test_ctxt ["TestPluginOCamlbuild"; "pr61-pass-thread-to-C-files"])
+           (in_testdata_dir test_ctxt
+              ["TestPluginOCamlbuild"; "pr61-pass-thread-to-C-files"])
+       in
+       oasis_setup test_ctxt t;
+       run_ocaml_setup_ml ~check_output:true test_ctxt t ["-configure"];
+       run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"]);
+
+    "b1659-ocamlbuild-support-plugins",
+    (fun test_ctxt _ ->
+      let t =
+         setup_test_directories test_ctxt
+           ~is_native:(is_native test_ctxt)
+           ~native_dynlink:(native_dynlink test_ctxt)
+           (in_testdata_dir test_ctxt
+              ["TestPluginOCamlbuild"; "b1659-ocamlbuild-support-plugins"])
        in
        oasis_setup test_ctxt t;
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-configure"];
@@ -188,7 +214,8 @@ let other_tests =
        let ctxt, _ =
          with_bracket_chdir test_ctxt dn
            (fun _ ->
-              BaseSetup.of_package ~setup_update:false OASISSetupUpdate.NoUpdate pkg)
+              BaseSetup.of_package
+                ~setup_update:false OASISSetupUpdate.NoUpdate pkg)
        in
        let () =
          assert_bool "No error during generation." (not ctxt.error)
