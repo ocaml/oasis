@@ -447,8 +447,9 @@ private.lines(filenames) =
         private.data = $(cat $(filenames))
         return $(split $(OASIS_linefeed), $(data))
 
+# WORKAROUND: l1 cannot be private for omake-0.9.8.6
 private.rebased_lines(filenames) =
-        private.l1[] =
+        l1[] =
         foreach(n => ..., $(filenames))
             private.l2 = $(lines $(n))
             l1 += $(addprefix $(dirname $(n))/, $(l2))
