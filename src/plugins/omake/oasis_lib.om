@@ -251,6 +251,20 @@ OASIS_getvar(name) =
         export v
     value $(apply $(v))
 
+OASIS_getvar_for(NAME, name) =
+    declare private.v
+    if $(defined $(name)_$(NAME))
+        v = $(getvar $(name)_$(NAME))
+        export v
+    else
+        if $(defined $(name))
+            v = $(getvar $(name))
+            export v
+        else
+            v = $(OASIS_empty_array)
+            export v
+        export v
+    value $(apply $(v))
 
 OASIS_run(list) =
     run_it(f) =
