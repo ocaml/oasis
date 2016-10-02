@@ -38,7 +38,8 @@ type dir =
     dir_sub : string list;
     dir_build : om_entry list;
     dir_install : om_entry list;
-    dir_pack : bool;
+    dir_accu : om_entry list;
+    dir_pack : bool option;
   }
 
 module StrMap = Map.Make(String)
@@ -51,7 +52,7 @@ let fixup_path path =
     failwith "Absolute paths not supported here";
   let l = OASISString.nsplit path '/' in
   let l = List.filter (fun n -> n <> "") l in
-  String.concat "/" l
+  OASISUnixPath.reduce (String.concat "/" l)
 
 let new_dir path =
   { dir_path = fixup_path path;
@@ -59,7 +60,8 @@ let new_dir path =
     dir_sub = [];
     dir_build = [];
     dir_install = [];
-    dir_pack = false;
+    dir_accu = [];
+    dir_pack = None;
   }
 
 let new_dir_map() =
@@ -94,28 +96,28 @@ let establish_in map path module_includes =
 let rec om_cond_of_expr =
   function
     | OASISExpr.EBool b ->
-      OMBool b
+        OMBool b
     | OASISExpr.ENot c1 ->
-      OMNot(om_cond_of_expr c1)
+        OMNot(om_cond_of_expr c1)
     | OASISExpr.EAnd(c1,c2) ->
-      OMAnd(om_cond_of_expr c1, om_cond_of_expr c2)
+        OMAnd(om_cond_of_expr c1, om_cond_of_expr c2)
     | OASISExpr.EOr(c1,c2) ->
-      OMOr(om_cond_of_expr c1, om_cond_of_expr c2)
+        OMOr(om_cond_of_expr c1, om_cond_of_expr c2)
     | OASISExpr.EFlag name ->
-      OMIsTrue(Variable ("oasis_" ^ name))
+        OMIsTrue(Variable ("oasis_" ^ name))
     | OASISExpr.ETest(name, value) ->
-      OMEq(Variable ("oasis_" ^ OASISExpr.string_of_test name), Literal value)
+        OMEq(Variable ("oasis_" ^ OASISExpr.string_of_test name), Literal value)
 
 
 let om_cond_of_flag flag =
   let rec translate =
     function
       | (e, true) :: rest ->
-        OMOr(om_cond_of_expr e, translate rest)
+          OMOr(om_cond_of_expr e, translate rest)
       | (e, false) :: rest ->
-        OMAnd(OMNot(om_cond_of_expr e), translate rest)
+          OMAnd(OMNot(om_cond_of_expr e), translate rest)
       | [] ->
-        OMBool false in
+          OMBool false in
   match flag with
     | [ OASISExpr.EBool true, b ] -> OMBool b
     | [ OASISExpr.EBool false, _ ] -> OMBool false
@@ -125,10 +127,10 @@ let om_cond_of_flag flag =
 let set_array_cond append name args_choices =
   Cond(List.map
       (fun (e,args) ->
-         (om_cond_of_expr e,
-          [ Set_array(append, name, List.map (fun s -> Literal s) args);
-            Export [name]
-          ])
+        (om_cond_of_expr e,
+         [ Set_array(append, name, List.map (fun s -> Literal s) args);
+           Export [name]
+        ])
       )
       (List.rev args_choices),
     [])
@@ -136,6 +138,9 @@ let set_array_cond append name args_choices =
 
 let gen_getvar name =
   Expression (sprintf "$(OASIS_getvar %s)" name)
+
+let gen_getvar_for libname name =
+  Expression (sprintf "$(OASIS_getvar_for %s, %s)" libname name)
 
 
 exception Ident of string
@@ -158,7 +163,7 @@ let get_data_destination ?(default_dest = "$datadir/$pkg_name") dir_opt =
     if i < lim then (
       match dir.[i] with
         | '$' when prev = '\\' ->
-          subst ("$"::acc) ' ' (i+1)
+            subst ("$"::acc) ' ' (i+1)
         | '$' ->
           (* a gross hack... *)
           ( try
@@ -176,7 +181,7 @@ let get_data_destination ?(default_dest = "$datadir/$pkg_name") dir_opt =
                   String.length ident + 1 in
               get_lit acc @
                 [Variable ("oasis_" ^ ident)] @
-                subst [] ' ' (i+len)
+                  subst [] ' ' (i+len)
           )
         | cur when prev = '\\' ->
           let acc = ("\\" ^ String.make 1 cur) :: acc in
@@ -268,7 +273,7 @@ let get_lib_includes_1 pkg cur_path libs =
        libs
     )
 
-let get_lib_includes pkg bs =
+let get_lib_includes ?subdir pkg bs =
   let libs =
     List.flatten
       (List.map
@@ -278,7 +283,11 @@ let get_lib_includes pkg bs =
          )
          bs.bs_build_depends
       ) in
-  get_lib_includes_1 pkg bs.bs_path libs
+  let path =
+    match subdir with
+      | None -> bs.bs_path
+      | Some d -> OASISUnixPath.concat bs.bs_path d in
+  get_lib_includes_1 pkg path libs
 
 
 let get_lib_deps ?(transitive=false) ?(filter = fun _ -> true) pkg bs =
@@ -417,31 +426,89 @@ let set_byte_or_native bs =
     | Native ->
       Set_string(false, "BYTE_ENABLED", Literal "false")
 
+let add_sources map path module_includes ocamlpacks pkg cs bs pack_flag =
+  let cname =
+    OASISString.capitalize_ascii cs.cs_name in
+  let uniq_includes =
+    StrSet.fold
+      (fun include_dir acc ->
+         let p =
+           fixup_path(OASISUnixPath.concat path include_dir) in
+         StrSet.add p acc
+      )
+      module_includes
+      StrSet.empty in
+  StrSet.fold
+    (fun include_dir acc ->
+       let map = establish acc (new_dir include_dir) in
+       let dir = StrMap.find include_dir map in
+       let pack_complain =
+         match dir.dir_pack with
+           | Some true -> true
+           | Some false -> pack_flag
+           | None -> false in
+       if pack_complain then
+         failwith ("It is not supported to build a second library or \
+                    executable in a \
+                    directory where already a packed library is built: " ^
+                     include_dir);
+       let subdir = OASISUnixPath.make_relative path include_dir in
+       let lib_includes = get_lib_includes ~subdir pkg bs in
+       let accu =
+         [ set_array_cond true "CFLAGS" bs.bs_ccopt;
+           set_array_cond true "OCAMLCFLAGS" bs.bs_byteopt;
+           set_array_cond true "OCAMLOPTFLAGS" bs.bs_nativeopt;
+           Set_array(true, "OCAMLINCLUDES",
+                     ( List.map
+                         (fun n -> Literal n)
+                         (StrSet.elements lib_includes)
+                       @
+                         [gen_getvar_for cs.cs_name "EXTRA_OCAMLINCLUDES"] ));
+           Set_array(true, "OCAMLPACKS",
+                     ( List.map
+                         (fun n -> Literal n)
+                         ocamlpacks
+                       @
+                         [gen_getvar_for cs.cs_name "EXTRA_OCAMLPACKS"] ));
+           if have_syntax_camlp4o ocamlpacks then
+             Set_string(false, "ENABLE_SYNTAX_CAMLP4O", Literal "true")
+           else
+             Nop;
+         ] @
+           (if pack_flag then
+              [ Set_array(true, "OCAMLOPTFLAGS",
+                          [ Expression "-for-pack";
+                            Literal cname
+                          ])
+              ]
+            else
+              []
+           ) @ dir.dir_accu in
+       let dir' =
+         { dir with
+           dir_pack = Some pack_flag;
+           dir_accu = dir.dir_accu @ accu;
+         } in
+       StrMap.add include_dir dir' map
+    )
+    uniq_includes
+    map
 
 let add_library ctx pkg map cs bs lib =
   (* CHECK: what if bs.bs_path contains .. path elements? What if module names
      do so?
   *)
   let lib_dir = new_dir bs.bs_path in
-  if lib_dir.dir_pack then
-    failwith ("It is not supported to build a second library in a directory \
-               where already a packed library is built");
   let map = establish map lib_dir in
-  let lib_includes = get_lib_includes pkg bs in
   let lib_deps = get_lib_deps pkg bs in
   let module_includes =
     List.fold_left
       (fun acc m ->
          let d = OASISUnixPath.dirname m in
-         if OASISUnixPath.is_current_dir d then
-           acc
-         else
-           StrSet.add d acc
+         StrSet.add d acc
       )
       StrSet.empty
       (lib.lib_modules @ lib.lib_internal_modules) in
-  let ocaml_includes =
-    StrSet.union lib_includes module_includes in
   let ocamlpacks =
     get_ocamlpacks pkg bs in
   let module_impls =
@@ -498,11 +565,6 @@ let add_library ctx pkg map cs bs lib =
       set_array_cond false "cflags" bs.bs_ccopt;
       set_array_cond false "ocamlcflags" bs.bs_byteopt;
       set_array_cond false "ocamloptflags" bs.bs_nativeopt;
-      if lib.lib_pack then
-        Set_array(false, "ocamloptflags_late", [ Expression "-for-pack";
-                                                 Expression "$(CNAME)" ])
-      else
-        Set_array(false, "ocamloptflags_late", []);
       Lines
         [ "OCAMLCFLAGS += $(ocamlcflags)";
           "OCAMLOPTFLAGS += $(ocamloptflags)";
@@ -525,34 +587,8 @@ let add_library ctx pkg map cs bs lib =
            ],
         []);
       Set_array(true, "DEFINE_RULES", [Expression "$(DefineRules)"]);
-      Set_array(true, "ACCU_OCAMLINCLUDES",
-        ( List.map
-            (fun n -> Literal n)
-            (StrSet.elements ocaml_includes)
-          @
-            [gen_getvar "EXTRA_OCAMLINCLUDES"] ));
-      Set_array(true, "ACCU_OCAMLPACKS",
-        ( List.map
-            (fun n -> Literal n)
-            ocamlpacks
-          @
-            [gen_getvar "EXTRA_OCAMLPACKS"] ));
-      if have_syntax_camlp4o ocamlpacks then
-        Set_string(false, "ACCU_SYNTAX_CAMLP4O", Literal "true")
-      else
-        Nop;
-      Set_array(true, "ACCU_CFLAGS", [Variable "cflags"]);
-      Set_array(true, "ACCU_OCAMLCFLAGS", [Variable "ocamlcflags"]);
-      Set_array(true, "ACCU_OCAMLOPTFLAGS", [Variable "ocamloptflags"]);
-      Set_array(true, "ACCU_OCAMLOPTFLAGS", [Variable "ocamloptflags_late"]);
       Export [ "BUILD_TARGETS";
                "DEFINE_RULES";
-               "ACCU_OCAMLINCLUDES";
-               "ACCU_OCAMLPACKS";
-               "ACCU_OCAMLCFLAGS";
-               "ACCU_OCAMLOPTFLAGS";
-               "ACCU_CFLAGS";
-               "ACCU_SYNTAX_CAMLP4O";
                priv_modules;
                priv_c_sources;
              ];
@@ -562,10 +598,9 @@ let add_library ctx pkg map cs bs lib =
   let dir = StrMap.find lib_dir.dir_path map in
   let dir = { dir with
                 dir_build = Section section :: dir.dir_build;
-                dir_pack = lib.lib_pack;
             } in
   let map = StrMap.add lib_dir.dir_path dir map in
-  establish_in map bs.bs_path module_includes
+  add_sources map bs.bs_path module_includes ocamlpacks pkg cs bs lib.lib_pack
 
 
 let inst_data ?(typ="OCamlLibrary") ?default_dest data_files =
@@ -844,11 +879,7 @@ let add_executable ctx pkg map cs bs exec =
      do so?
   *)
   let exec_dir = new_dir bs.bs_path in
-  if exec_dir.dir_pack then
-    failwith ("It is not supported to build an executable in a directory \
-               where already a packed library is built");
   let map = establish map exec_dir in
-  let lib_includes = get_lib_includes pkg bs in
   let trans_lib_deps = get_lib_deps ~transitive:true pkg bs in
   let clib_deps =
     get_lib_deps
@@ -865,12 +896,7 @@ let add_executable ctx pkg map cs bs exec =
       (StrSet.elements clib_deps) in
   let module_includes =
     let d = OASISUnixPath.dirname exec.exec_main_is in
-    if OASISUnixPath.is_current_dir d then
-      StrSet.empty
-    else
       StrSet.singleton d in
-  let ocaml_includes =
-    StrSet.union lib_includes module_includes in
   let ocamlpacks = get_ocamlpacks ~transitive:false pkg bs in
   let trans_ocamlpacks = get_ocamlpacks ~transitive:true pkg bs in
   let main_module = OASISUnixPath.chop_extension exec.exec_main_is in
@@ -937,20 +963,6 @@ let add_executable ctx pkg map cs bs exec =
            ],
         []);
       Set_array(true, "DEFINE_RULES", [Expression "$(DefineRules)"]);
-      Set_array(true, "ACCU_OCAMLINCLUDES",
-        ( List.map
-            (fun n -> Literal n)
-            (StrSet.elements ocaml_includes)
-          @
-            [gen_getvar "EXTRA_OCAMLINCLUDES"] ));
-      Set_array(true, "ACCU_OCAMLPACKS", [Variable "OCAMLPACKS"]);
-      if have_syntax_camlp4o ocamlpacks then
-        Set_string(false, "ACCU_SYNTAX_CAMLP4O", Literal "true")
-      else
-        Nop;
-      Set_array(true, "ACCU_CFLAGS", [Variable "cflags"]);
-      Set_array(true, "ACCU_OCAMLCFLAGS", [Variable "ocamlcflags"]);
-      Set_array(true, "ACCU_OCAMLOPTFLAGS", [Variable "ocamloptflags"]);
       Set_array(true, "OASIS_clean_list",
         [ Expression "$(NAME)";
           Expression "$(NAME).run";
@@ -958,12 +970,6 @@ let add_executable ctx pkg map cs bs exec =
         ]);
       Export [ "BUILD_TARGETS";
                "DEFINE_RULES";
-               "ACCU_OCAMLINCLUDES";
-               "ACCU_OCAMLPACKS";
-               "ACCU_OCAMLCFLAGS";
-               "ACCU_OCAMLOPTFLAGS";
-               "ACCU_CFLAGS";
-               "ACCU_SYNTAX_CAMLP4O";
                "OASIS_clean_list";
              ];
     ] in
@@ -973,7 +979,7 @@ let add_executable ctx pkg map cs bs exec =
   let dir = StrMap.find exec_dir.dir_path map in
   let dir = { dir with dir_build = Section section :: dir.dir_build } in
   let map = StrMap.add exec_dir.dir_path dir map in
-  establish_in map bs.bs_path module_includes
+  add_sources map bs.bs_path module_includes ocamlpacks pkg cs bs false
 
 
 let inst_executable ctx pkg map cs bs exec =
@@ -1047,6 +1053,7 @@ let finish_definitions map =
          if dir.dir_build = [] then
            [ Set_array(false, "BUILD_TARGETS", []);
              Set_array(false, "BUILD_DOC_TARGETS", []);
+             Set_string(false, "ENABLE_SYNTAX_CAMLP4O", Literal "false");
              define_build_rules_empty;
              Lines [ "" ];
            ]
@@ -1054,37 +1061,26 @@ let finish_definitions map =
            let header =
              [ Set_array(false, "BUILD_TARGETS", []);
                Set_array(false, "BUILD_DOC_TARGETS", []);
+               Set_string(false, "ENABLE_SYNTAX_CAMLP4O", Literal "false");
                Set_array(false, "DEFINE_RULES", []);
-               (* "." is required for OCAMLDEP_MODULES_ENABLED! *)
-               Set_array(false, "ACCU_OCAMLINCLUDES", [ Literal "." ]);
-               Set_array(false, "ACCU_OCAMLPACKS", []);
-               Set_array(false, "ACCU_CFLAGS", []);
-               Set_array(false, "ACCU_OCAMLCFLAGS", []);
-               Set_array(false, "ACCU_OCAMLOPTFLAGS", []);
-               Set_string(false, "ACCU_SYNTAX_CAMLP4O", Literal "false");
                Lines [ "" ];
              ] in
            let footer =
              [ Lines [ "" ];
                define_build_rules;
-               Set_string(false, "OCAMLINCLUDES",
-                 Expression "$(set $(ACCU_OCAMLINCLUDES))");
-               Set_string(false, "OCAMLPACKS",
-                 Expression "$(set $(ACCU_OCAMLPACKS))");
-               Set_string(true, "CFLAGS",
-                 Expression "$(ACCU_CFLAGS)");
-               Set_string(true, "OCAMLCFLAGS",
-                 Expression "$(ACCU_OCAMLCFLAGS)");
-               Set_string(true, "OCAMLOPTFLAGS",
-                 Expression "$(ACCU_OCAMLOPTFLAGS)");
-               Lines
-                 [ "if $(ACCU_SYNTAX_CAMLP4O)";
-                   "    OCAMLFINDFLAGS += -syntax camlp4o";
-                   "    export OCAMLFINDFLAGS";
-                   ""
-                 ]
+               Set_string(false, "OCAMLINCLUDES", Expression ".");
+               (* "." is required for OCAMLDEP_MODULES_ENABLED! *)
              ] in
            header @ dir.dir_build @ footer in
+       let build_accu =
+         dir.dir_accu @
+           [ Lines
+               [ "if $(ENABLE_SYNTAX_CAMLP4O)";
+                 "    OCAMLFINDFLAGS += -syntax camlp4o";
+                 "    export OCAMLFINDFLAGS";
+                 ""
+               ]
+           ] in
        let install =
          if dir.dir_install = [] then
            [ Set_array(false, "INSTALL_TARGETS", []);
@@ -1107,7 +1103,7 @@ let finish_definitions map =
              ] in
            header @ dir.dir_install @ footer in
        { dir with
-           dir_build = build;
+           dir_build = build @ build_accu;
            dir_install = install;
        }
     )
