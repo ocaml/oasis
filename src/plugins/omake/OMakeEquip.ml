@@ -747,6 +747,7 @@ let add_document ctx pkg map cs doc =
       Set_array(false, "TEXTS", text_lits @
           [gen_getvar "EXTRA_TEXTS"] );
       Set_array(false, "INTRO", intro_lits);
+      Set_string(false, "TITLE", Literal doc.doc_title);
       Set_array(false, "OCAML_LIBS",
         ( List.map
             (fun n -> Literal n)
