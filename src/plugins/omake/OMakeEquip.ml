@@ -501,6 +501,11 @@ let add_library ctx pkg map cs bs lib =
   let lib_dir = new_dir bs.bs_path in
   let map = establish map lib_dir in
   let lib_deps = get_lib_deps pkg bs in
+  let self_include =
+    if lib.lib_pack then  (* for the case that there is a pack-level mli *)
+      [ OASISUnixPath.current_dir_name ]
+    else
+      [] in
   let module_includes =
     List.fold_left
       (fun acc m ->
@@ -508,7 +513,9 @@ let add_library ctx pkg map cs bs lib =
          StrSet.add d acc
       )
       StrSet.empty
-      (lib.lib_modules @ lib.lib_internal_modules) in
+      (lib.lib_modules @ lib.lib_internal_modules @ self_include) in
+  let lib_includes =
+    get_lib_includes pkg bs in
   let ocamlpacks =
     get_ocamlpacks pkg bs in
   let module_impls =
@@ -569,6 +576,21 @@ let add_library ctx pkg map cs bs lib =
         [ "OCAMLCFLAGS += $(ocamlcflags)";
           "OCAMLOPTFLAGS += $(ocamloptflags)";
         ];
+      (* OCAMLINCLUDES and OCAMPACKS may play a role for OCamlPack, namely
+         for the .cmi:.mli dependency.
+       *)
+      Set_array(true, "OCAMLINCLUDES",
+                ( List.map
+                    (fun n -> Literal n)
+                    (StrSet.elements lib_includes)
+                  @
+                    [gen_getvar_for cs.cs_name "EXTRA_OCAMLINCLUDES"] ));
+      Set_array(true, "OCAMLPACKS",
+                ( List.map
+                    (fun n -> Literal n)
+                    ocamlpacks
+                  @
+                    [gen_getvar_for cs.cs_name "EXTRA_OCAMLPACKS"] ));
       Lines
         [ "DefineRules() =" ];
       if lib.lib_pack then
