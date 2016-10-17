@@ -35,13 +35,8 @@ let mkbuf () = Buffer.create 64
 
 type t =
   | ASTToken of token
-  | Indent of (Lexing.position * Lexing.position * string) list * int
+  | Indent of int
   | Eof
-
-let mkline lexbuf lxm =
-  let open Lexing in
-  let pos = lexeme_start_p lexbuf in
-  pos, {pos with pos_cnum = pos.pos_cnum + (String.length lxm)}, lxm
 
 let token_map = MapString.of_list [
   "if", IF; "else", ELSE;
@@ -65,23 +60,19 @@ type lexer_state = {
   mutable indent: int;
   mutable use_tab: bool option;
   q: token Queue.t;
+  ctxt: OASISContext.t;
 }
 
-let rec warn_if_mixed_indentation lexst lst =
-  match lst, lexst.use_tab with
-  | (_, _, line) :: _, None ->
-      lexst.use_tab <- Some (String.contains line '\t');
-      warn_if_mixed_indentation lexst lst
-  | (pos1, pos2, line) :: tl, Some use_tab ->
+let rec warn_if_mixed_indentation lexst lexbuf line =
+  match lexst.use_tab with
+  | None ->
+      lexst.use_tab <- Some (String.contains line '\t')
+  | Some use_tab ->
       let has_tab, has_space =
         String.contains line '\t', String.contains line ' '
       in
       if (has_tab && not use_tab) || (has_space && use_tab) then
-        failwithpf ~pos1 ~pos2 (f_ "mixed use of '\\t' and ' ' to indent")
-      else
-        warn_if_mixed_indentation lexst tl
-  | [], _ ->
-      ()
+        failwithpf ~lexbuf (f_ "mixed use of '\\t' and ' ' to indent")
 }
 
 let eol = '\n' | "\r\n"
@@ -89,7 +80,7 @@ let blank = [' ' '\t']
 let id = ['A'-'Z''a'-'z''0'-'9''-''_']+
 let comment = '#' [^'\n']*
 
-rule token = parse
+rule token lexst = parse
   | '"'       {ASTToken (qstring (mkbuf ()) lexbuf)}
   | "+:"      {ASTToken (PLUS_COLON(value (mkbuf ()) lexbuf))}
   | ":"       {ASTToken (COLON(value (mkbuf ()) lexbuf))}
@@ -99,9 +90,9 @@ rule token = parse
   | "||"      {ASTToken OR}
   | '('       {ASTToken LPAREN}
   | ')'       {ASTToken RPAREN}
-  | comment   {token lexbuf}
+  | comment   {token lexst lexbuf}
   | eof       {Eof}
-  | blank     {token lexbuf}
+  | blank     {token lexst lexbuf}
   | id as lxm {
     try
       ASTToken (MapString.find lxm token_map)
@@ -110,20 +101,27 @@ rule token = parse
   }
   | eol {
     let () = Lexing.new_line lexbuf in
-    let lst, indent = indentation [] lexbuf in
-    Indent (lst, indent)
+    let indent = indentation lexst lexbuf in
+    Indent indent
   }
   | _ as c {failwithpf ~lexbuf "extraneous char %C" c}
 
-and indentation lst = parse
+and indentation lexst = parse
   | (blank* as lxm) (comment? as cmt) eol {
     if lxm <> "" && cmt = "" then begin
-      failwithpf ~lexbuf (f_ "extraneous blanks at the beginning of the line")
+      OASISMessage.warning
+      ~ctxt:lexst.ctxt 
+      (f_ "%s: extraneous blanks at the beginning of the line")
+      (OASISUtils.file_location ~lexbuf ())
     end;
+    warn_if_mixed_indentation lexst lexbuf lxm;
     Lexing.new_line lexbuf;
-    indentation (mkline lexbuf lxm :: lst) lexbuf
+    indentation lexst lexbuf
   }
-  | blank* as lxm {List.rev (mkline lexbuf lxm :: lst), String.length lxm}
+  | blank* as lxm {
+    warn_if_mixed_indentation lexst lexbuf lxm;
+    String.length lxm
+  }
 
 and qstring buf = parse
   | '"' {QSTRING (Buffer.contents buf)}
@@ -151,13 +149,8 @@ let token ~ctxt () =
       indent     = 0;
       use_tab    = None;
       q          = Queue.create ();
+      ctxt       = ctxt;
     }
-  in
-
-  let indentation lexbuf =
-    let lst, indent = indentation [] lexbuf in
-    warn_if_mixed_indentation lexst lst;
-    indent
   in
 
   (* Reflect level of indentation by using { }. *)
@@ -176,7 +169,7 @@ let token ~ctxt () =
   (* Try to extract multiple lines value, if possible. *)
   let multiline str lexbuf =
     let open Buffer in
-    let multiline_indent = indentation lexbuf in
+    let multiline_indent = indentation lexst lexbuf in
     let rec add_continuation first_line indent buf lexbuf =
       if indent >= multiline_indent then begin
         let line = value (mkbuf ()) lexbuf in
@@ -188,7 +181,7 @@ let token ~ctxt () =
           add_string buf (String.make (indent - multiline_indent) ' ');
           add_string buf line
         end;
-        add_continuation false (indentation lexbuf) buf lexbuf
+        add_continuation false (indentation lexst lexbuf) buf lexbuf
       end else begin
         update_indent indent;
         contents buf
@@ -211,20 +204,17 @@ let token ~ctxt () =
   let rec next lexbuf =
     if lexst.first_call then begin
       lexst.first_call <- false;
-      update_indent (indentation lexbuf);
+      update_indent (indentation lexst lexbuf);
       next lexbuf
     end else if not (Queue.is_empty lexst.q) then begin
       Queue.pop lexst.q
     end else begin
-      match token lexbuf with
+      match token lexst lexbuf with
       | ASTToken (COLON str) -> COLON (multiline str lexbuf)
       | ASTToken (PLUS_COLON str) -> PLUS_COLON (multiline str lexbuf)
       | ASTToken tok -> tok
       | Eof -> update_indent 0; Queue.push EOF lexst.q; next lexbuf
-      | Indent (lst, indent) ->
-          warn_if_mixed_indentation lexst lst;
-          update_indent indent;
-          next lexbuf
+      | Indent indent -> update_indent indent; next lexbuf
     end
   in
   next

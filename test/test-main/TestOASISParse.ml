@@ -386,6 +386,9 @@ let tests =
                   [ "Bar" ]
                   (template_body mllib)
            );
+
+           "test-extra-blanks.oasis",
+           ignore;
          ])
       @
       [
@@ -464,12 +467,20 @@ let tests =
               "file %S, line 17, characters 0-3: extraneous blanks at the \
                beginning of the line" fn
           in
-          assert_raises
-            (Failure txt)
-            (fun () ->
-              let _pkg =
-                from_file ~ctxt:(oasis_ctxt ~ignore_plugin:true test_ctxt) fn
-              in
-              ()));
+          let has_warnings_with_text = ref false in
+          let ctxt =
+            let super_ctxt = oasis_ctxt ~ignore_plugin:true test_ctxt in
+            {
+              super_ctxt with
+              printf = fun lvl str ->
+                if str = txt then
+                  has_warnings_with_text := true;
+                super_ctxt.printf lvl str
+            }
+          in
+          let _pkg = from_file ~ctxt fn in
+          assert_bool
+            (Printf.sprintf "Warning about extraneous blanks present")
+            !has_warnings_with_text);
       ]
     ]
