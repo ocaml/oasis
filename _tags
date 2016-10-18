@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 624d924378d8bbb14e6c662f6573589b)
+# DO NOT EDIT (digest: 0e3bb1c5cd41c3cb9662dff7ae6e7d28)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -88,30 +88,58 @@ true: annot, bin_annot
 <src/dynrun/*.ml{,i,y}>: use_base
 <src/dynrun/*.ml{,i,y}>: use_builtin-plugins
 <src/dynrun/*.ml{,i,y}>: use_oasis
+# Library test-common
+"test/test-common/test-common.cmxs": use_test-common
+<test/test-common/*.ml{,i,y}>: package(fileutils)
+<test/test-common/*.ml{,i,y}>: package(oUnit)
+<test/test-common/*.ml{,i,y}>: package(unix)
+<test/test-common/*.ml{,i,y}>: use_base
+<test/test-common/*.ml{,i,y}>: use_oasis
 # Executable fake-ocamlfind
 <test/fake-ocamlfind/FakeOCamlfind.{native,byte}>: package(unix)
 <test/fake-ocamlfind/*.ml{,i,y}>: package(unix)
-# Executable test
-<test/Test.{native,byte}>: package(expect.pcre)
-<test/Test.{native,byte}>: package(fileutils)
-<test/Test.{native,byte}>: package(findlib)
-<test/Test.{native,byte}>: package(oUnit)
-<test/Test.{native,byte}>: package(ocamlbuild)
-<test/Test.{native,byte}>: package(pcre)
-<test/Test.{native,byte}>: package(unix)
-<test/Test.{native,byte}>: use_base
-<test/Test.{native,byte}>: use_builtin-plugins
-<test/Test.{native,byte}>: use_oasis
-<test/*.ml{,i,y}>: package(expect.pcre)
-<test/*.ml{,i,y}>: package(fileutils)
-<test/*.ml{,i,y}>: package(findlib)
-<test/*.ml{,i,y}>: package(oUnit)
-<test/*.ml{,i,y}>: package(ocamlbuild)
-<test/*.ml{,i,y}>: package(pcre)
-<test/*.ml{,i,y}>: package(unix)
-<test/*.ml{,i,y}>: use_base
-<test/*.ml{,i,y}>: use_builtin-plugins
-<test/*.ml{,i,y}>: use_oasis
+# Executable test-main
+<test/test-main/Test.{native,byte}>: package(fileutils)
+<test/test-main/Test.{native,byte}>: package(findlib)
+<test/test-main/Test.{native,byte}>: package(oUnit)
+<test/test-main/Test.{native,byte}>: package(ocamlbuild)
+<test/test-main/Test.{native,byte}>: package(pcre)
+<test/test-main/Test.{native,byte}>: package(unix)
+<test/test-main/Test.{native,byte}>: use_base
+<test/test-main/Test.{native,byte}>: use_builtin-plugins
+<test/test-main/Test.{native,byte}>: use_oasis
+<test/test-main/Test.{native,byte}>: use_test-common
+<test/test-main/*.ml{,i,y}>: package(fileutils)
+<test/test-main/*.ml{,i,y}>: package(findlib)
+<test/test-main/*.ml{,i,y}>: package(oUnit)
+<test/test-main/*.ml{,i,y}>: package(ocamlbuild)
+<test/test-main/*.ml{,i,y}>: package(pcre)
+<test/test-main/*.ml{,i,y}>: package(unix)
+<test/test-main/*.ml{,i,y}>: use_base
+<test/test-main/*.ml{,i,y}>: use_builtin-plugins
+<test/test-main/*.ml{,i,y}>: use_oasis
+<test/test-main/*.ml{,i,y}>: use_test-common
+# Executable test-quickstart
+<test/test-quickstart/TestQuickstart.{native,byte}>: package(expect.pcre)
+<test/test-quickstart/TestQuickstart.{native,byte}>: package(fileutils)
+<test/test-quickstart/TestQuickstart.{native,byte}>: package(findlib)
+<test/test-quickstart/TestQuickstart.{native,byte}>: package(oUnit)
+<test/test-quickstart/TestQuickstart.{native,byte}>: package(ocamlbuild)
+<test/test-quickstart/TestQuickstart.{native,byte}>: package(unix)
+<test/test-quickstart/TestQuickstart.{native,byte}>: use_base
+<test/test-quickstart/TestQuickstart.{native,byte}>: use_builtin-plugins
+<test/test-quickstart/TestQuickstart.{native,byte}>: use_oasis
+<test/test-quickstart/TestQuickstart.{native,byte}>: use_test-common
+<test/test-quickstart/*.ml{,i,y}>: package(expect.pcre)
+<test/test-quickstart/*.ml{,i,y}>: package(fileutils)
+<test/test-quickstart/*.ml{,i,y}>: package(findlib)
+<test/test-quickstart/*.ml{,i,y}>: package(oUnit)
+<test/test-quickstart/*.ml{,i,y}>: package(ocamlbuild)
+<test/test-quickstart/*.ml{,i,y}>: package(unix)
+<test/test-quickstart/*.ml{,i,y}>: use_base
+<test/test-quickstart/*.ml{,i,y}>: use_builtin-plugins
+<test/test-quickstart/*.ml{,i,y}>: use_oasis
+<test/test-quickstart/*.ml{,i,y}>: use_test-common
 # Executable dist
 "src/tools/dist/Dist.byte": package(fileutils)
 "src/tools/dist/Dist.byte": package(unix)

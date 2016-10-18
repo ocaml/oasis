@@ -44,6 +44,10 @@ Flag devel
   Description: Build OASIS tools for development
   Default: false
 
+Flag quickstart_tests
+  Description: Build test-quickstart
+  Default: true
+
 Library oasis
   Path: src/oasis
   Modules: FormatExt,
@@ -232,6 +236,13 @@ SourceRepository head
 # Tests.
 #
 
+Library "test-common"
+  Path: test/test-common
+  Modules: TestCommon
+  CompiledObject: best
+  Install: false
+  BuildDepends: oUnit (>= 2.0.0), oasis.base, fileutils
+
 Executable "fake-ocamlfind"
   Path: test/fake-ocamlfind
   MainIs: FakeOCamlfind.ml
@@ -240,21 +251,41 @@ Executable "fake-ocamlfind"
   Build$: flag(tests)
   BuildDepends: unix
 
-Executable test
-  Path: test
+Executable "test-main"
+  Path: test/test-main
   MainIs: Test.ml
   Install: false
   CompiledObject: best
   Build$: flag(tests)
-  BuildDepends: oUnit (>= 2.0.0), findlib, fileutils (>= 0.4.2),
-                expect.pcre (>= 0.0.4), oasis, oasis.base,
-                oasis.builtin-plugins, pcre
+  BuildDepends: oUnit (>= 2.0.0), findlib, fileutils (>= 0.4.2), oasis,
+                oasis.base, oasis.builtin-plugins, pcre, test-common
 
 Test main
   Type: custom (0.3)
-  Command: $test -oasis $oasis -is-native $is_native -native-dynlink $native_dynlink -ocamlmod $ocamlmod -fake-ocamlfind $fake_ocamlfind
+  Command: $test_main -oasis $oasis -is-native $is_native \
+    -native-dynlink $native_dynlink -ocamlmod $ocamlmod \
+    -fake-ocamlfind $fake_ocamlfind
   WorkingDirectory: test
-  TestTools: oasis, test, ocamlmod, fake-ocamlfind, omake, ocamlbuild
+  TestTools: oasis, test-main, ocamlmod, fake-ocamlfind, omake, ocamlbuild
+
+Executable "test-quickstart"
+  Path: test/test-quickstart
+  MainIs: TestQuickstart.ml
+  Install: false
+  CompiledObject: best
+  Build$: flag(tests) && flag(quickstart_tests)
+  BuildDepends: oUnit (>= 2.0.0), findlib, fileutils (>= 0.4.2),
+                expect.pcre (>= 0.0.4), oasis, oasis.builtin-plugins,
+                test-common
+
+Test quickstart
+  Type: custom (0.3)
+  Command: $test_quickstart -oasis $oasis -is-native $is_native \
+    -native-dynlink $native_dynlink -ocamlmod $ocamlmod \
+    -fake-ocamlfind $fake_ocamlfind
+  WorkingDirectory: test
+  Run$: flag(quickstart_tests)
+  TestTools: oasis, test-quickstart, ocamlmod, fake-ocamlfind, omake, ocamlbuild
 
 #
 # Tools.

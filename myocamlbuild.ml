@@ -107,7 +107,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 06d487173f015b9b206716cd7267e817) *)
+(* DO NOT EDIT (digest: 7932b8fc3854f3f94c90ed0fc8652f95) *)
 module OASISGettext = struct
 # 22 "src/oasis/OASISGettext.ml"
 
@@ -893,6 +893,7 @@ let package_default =
             ],
             []);
           ("dynrun", ["src/dynrun"], []);
+          ("test-common", ["test/test-common"], []);
           ("plugin-loader", ["src/ext/plugin-loader/src"], []);
           ("cli", ["src/cli"], []);
           ("pluginloaderLib",
@@ -912,7 +913,21 @@ let package_default =
      flags = [];
      includes =
        [
-          ("test",
+          ("test/test-quickstart",
+            [
+               "src";
+               "src/oasis";
+               "src/plugins/custom";
+               "src/plugins/extra/META";
+               "src/plugins/extra/devfiles";
+               "src/plugins/extra/stdfiles";
+               "src/plugins/internal";
+               "src/plugins/none";
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake";
+               "test/test-common"
+            ]);
+          ("test/test-main",
             [
                "src";
                "src/base";
@@ -924,8 +939,10 @@ let package_default =
                "src/plugins/internal";
                "src/plugins/none";
                "src/plugins/ocamlbuild";
-               "src/plugins/omake"
+               "src/plugins/omake";
+               "test/test-common"
             ]);
+          ("test/test-common", ["src/base"]);
           ("src/tools/oasis-dist", ["src/base"; "src/oasis"]);
           ("src/tools/oasis-announce", ["src/base"; "src/oasis"]);
           ("src/tools/guess-cmx", ["src/oasis"]);
@@ -1113,7 +1130,7 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 1009 "myocamlbuild.ml"
+# 1026 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 open Ocamlbuild_plugin;;

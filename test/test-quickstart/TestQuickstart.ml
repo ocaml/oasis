@@ -200,7 +200,6 @@ let tests =
       "end",            "w";
     ]
   in
-    "Quickstart" >:::
     (List.map test_of_vector
        [
          "simple",
@@ -458,3 +457,6 @@ let tests =
            [Unix.WEXITED 2; Unix.WSIGNALED ~-8]);
     ]
 
+let () =
+  OASISBuiltinPlugins.init ();
+  run_test_tt_main ~exit ("Quickstart">::: tests)

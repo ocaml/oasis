@@ -1,0 +1,12 @@
+# OASIS_START
+# DO NOT EDIT (digest: 23f1185dc95a9bf9dc7fabdb98311ef9)
+version = "0.4.7"
+description = "Tooling for building OCaml libraries and applications"
+requires = "oUnit oasis.base fileutils"
+archive(byte) = "test-common.cma"
+archive(byte, plugin) = "test-common.cma"
+archive(native) = "test-common.cmxa"
+archive(native, plugin) = "test-common.cmxs"
+exists_if = "test-common.cma"
+# OASIS_STOP
+
