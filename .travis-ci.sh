@@ -21,7 +21,7 @@
 ################################################################################
 
 OPAM_PKGS="base-bytes base-unix ocamlfind pcre expect fileutils ounit ocamlify
- ocamlmod omake benchmark"
+ ocamlmod omake benchmark camlp4"
 
 export OPAMYES=1
 if [ -f "$HOME/.opam/config" ]; then

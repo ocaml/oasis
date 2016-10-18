@@ -266,7 +266,8 @@ Test main
     -native-dynlink $native_dynlink -ocamlmod $ocamlmod \
     -fake-ocamlfind $fake_ocamlfind
   WorkingDirectory: test
-  TestTools: oasis, test-main, ocamlmod, fake-ocamlfind, omake, ocamlbuild
+  TestTools: oasis, test-main, ocamlmod, fake-ocamlfind, omake, ocamlbuild,
+             camlp4
 
 Executable "test-quickstart"
   Path: test/test-quickstart
