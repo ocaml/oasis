@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: 23f1185dc95a9bf9dc7fabdb98311ef9)
-version = "0.4.7"
+# DO NOT EDIT (digest: abea312e2f558b931c49560767182a32)
+version = "0.4.8~HEAD"
 description = "Tooling for building OCaml libraries and applications"
 requires = "oUnit oasis.base fileutils"
 archive(byte) = "test-common.cma"
