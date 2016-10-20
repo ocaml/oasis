@@ -27,7 +27,6 @@
 
 
 open OASISFileTemplate
-open OASISPlugin
 open OASISTypes
 open OASISUtils
 open OASISValues
@@ -547,6 +546,7 @@ let main ctxt pkg =
            t.install;
 
          may (pp_print_paraf fmt "[Home page](%s)") pkg.homepage;
+         may (pp_print_paraf fmt "[Bug reports](%s)") pkg.bugreports;
 
          pp_print_title fmt 2 "Copyright and license";
 

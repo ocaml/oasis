@@ -11,7 +11,7 @@ Authors:      Sylvain Le Gall
 Maintainers:  Sylvain Le Gall <gildor@ocamlcore.org>
 Copyrights:   (C) 2008-2010 OCamlCore SARL
 Homepage:     http://oasis.forge.ocamlcore.org/
-BugReports:   https://forge.ocamlcore.org/tracker/?group_id=54
+BugReports:   https://forge.ocamlcore.org/bugs
 Tags:         build, development
 Plugins:      StdFiles (0.4)
 BuildTools:   ocamlbuild, make
