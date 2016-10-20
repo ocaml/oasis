@@ -470,6 +470,7 @@ let tests =
           let has_warnings_with_text = ref false in
           let ctxt =
             let super_ctxt = oasis_ctxt ~ignore_plugin:true test_ctxt in
+            let open OASISContext in
             {
               super_ctxt with
               printf = fun lvl str ->
