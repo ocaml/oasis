@@ -6,7 +6,7 @@ Authors: Jacques-Pascal Deplaix
 License: LGPL with OCaml linking exception
 Synopsis: Example for ocamlbuild fields
 BuildTools: ocamlbuild
-XOCamlbuildPluginTags: package(odn.with.syntax), syntax(camlp4o)
+XOCamlbuildPluginTags: package(unix)
 XOCamlbuildExtraArgs: -j 4 -verbose 0
 OCamlVersion: >= 4.01
 Plugins: META (0.4)
