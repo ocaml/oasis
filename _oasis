@@ -1,16 +1,16 @@
-OASISFormat:  0.3
+OASISFormat:  0.4
 OCamlVersion: >= 3.12.1
 FindlibVersion: >= 1.3.1
 Name:         oasis
 Version:      0.4.8~HEAD
 LicenseFile:  COPYING.txt
 License:      LGPL-2.1 with OCaml linking exception
-BuildType:    ocamlbuild (0.3)
+BuildType:    ocamlbuild (0.4)
 Authors:      Sylvain Le Gall
 Maintainers:  Sylvain Le Gall <gildor@ocamlcore.org>
 Copyrights:   (C) 2008-2010 OCamlCore SARL
 Homepage:     http://oasis.forge.ocamlcore.org/
-Plugins:      DevFiles (0.3), StdFiles (0.3), META (0.3)
+Plugins:      DevFiles (0.4), StdFiles (0.4), META (0.4)
 FilesAB:      src/oasis/OASISConf.ml.ab
 BuildTools:   ocamlbuild, make
 
@@ -213,7 +213,7 @@ Executable oasis
   CompiledObject: best
 
 Document manual
-  Type: custom (0.3)
+  Type: custom (0.4)
   Title: OASIS User Manual
   XCustom: $oasis -ignore-plugins manual -o doc/MANUAL.mkd
   XCustomClean: $rm doc/MANUAL.mkd
@@ -221,7 +221,7 @@ Document manual
 
 Document "api-oasis"
   Title:                API reference for OASIS
-  Type:                 OCamlbuild (0.3)
+  Type:                 OCamlbuild (0.4)
   InstallDir:           $htmldir/oasis
   BuildTools+:          ocamldoc
   XOCamlbuildPath:      src/
@@ -261,7 +261,7 @@ Executable "test-main"
                 oasis.base, oasis.builtin-plugins, pcre, test-common
 
 Test main
-  Type: custom (0.3)
+  Type: custom (0.4)
   Command: $test_main -oasis $oasis -is-native $is_native \
     -native-dynlink $native_dynlink -ocamlmod $ocamlmod \
     -fake-ocamlfind $fake_ocamlfind
@@ -280,7 +280,7 @@ Executable "test-quickstart"
                 test-common
 
 Test quickstart
-  Type: custom (0.3)
+  Type: custom (0.4)
   Command: $test_quickstart -oasis $oasis -is-native $is_native \
     -native-dynlink $native_dynlink -ocamlmod $ocamlmod \
     -fake-ocamlfind $fake_ocamlfind
@@ -397,6 +397,6 @@ Executable "test_loader"
   Install:      false
 
 Test main_loader
-  Type:      custom (0.3)
+  Type:      custom (0.4)
   Command:   $test_loader -pluginloader $pluginloader
   TestTools: test_loader, pluginloader
