@@ -163,13 +163,13 @@ let all_tests =
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-configure"];
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"]);
 
-    "gpr61-pass-thread-to-C-files",
+    "pr61-pass-thread-to-C-files",
     (fun test_ctxt _ ->
       let t =
          setup_test_directories test_ctxt
            ~is_native:(is_native test_ctxt)
            ~native_dynlink:(native_dynlink test_ctxt)
-           (in_testdata_dir test_ctxt ["TestPluginOCamlbuild"; "gpr61-pass-thread-to-C-files"])
+           (in_testdata_dir test_ctxt ["TestPluginOCamlbuild"; "pr61-pass-thread-to-C-files"])
        in
        oasis_setup test_ctxt t;
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-configure"];
