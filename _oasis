@@ -10,10 +10,11 @@ Authors:      Sylvain Le Gall
 Maintainers:  Sylvain Le Gall <gildor@ocamlcore.org>
 Copyrights:   (C) 2008-2010 OCamlCore SARL
 Homepage:     http://oasis.forge.ocamlcore.org/
+BugReports:   https://forge.ocamlcore.org/tracker/?func=add&group_id=54&atid=291
 Plugins:      DevFiles (0.4), StdFiles (0.4), META (0.4)
 FilesAB:      src/oasis/OASISConf.ml.ab
 BuildTools:   ocamlbuild, make
-AlphaFeatures: source_patterns
+AlphaFeatures: source_patterns, stdfiles_markdown
 ImplementationPatterns+:
   ${module}.mlify
 

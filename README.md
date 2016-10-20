@@ -2,18 +2,20 @@
 [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/42gumiqt5le643t2?svg=true)](https://ci.appveyor.com/project/gildor478/oasis)
 [![Join the chat at https://gitter.im/ocaml/oasis](https://badges.gitter.im/ocaml/oasis.svg)](https://gitter.im/ocaml/oasis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+<!--- OASIS_START --->
+<!--- DO NOT EDIT (digest: b9ebaa7ff6b51de7ae0b9c0bcd28a864) --->
 
-oasis - Architecture for building OCaml libraries and applications
-==================================================================
-
+oasis - Tooling for building OCaml libraries and applications
+=============================================================
 
 OASIS generates a full configure, build and install system for your
 application. It starts with a simple `_oasis` file at the toplevel of your
 project and creates everything required.
 
-It uses external tools like OCamlbuild and it can be considered as the glue
-between various subsystems that do the job. It should support the following
-tools:
+OASIS leverages existing OCaml tooling to perform most of it's work. In fact,
+it might be more appropriate to think of it as simply the glue that binds
+these other subsystems together and coordinates the work that they do. It
+should support the following tools:
 
  * OCamlbuild
  * OMake
@@ -27,7 +29,7 @@ tested on GNU Linux and Windows.
 It also allows to have standard entry points and description. It helps to
 integrates your libraries and software with third parties tools like GODI.
 
-See the file [INSTALL.txt](INSTALL.txt) for building and installation
+See the file [INSTALL.md](INSTALL.md) for building and installation
 instructions.
 
 [Home page](http://oasis.forge.ocamlcore.org/)
@@ -41,3 +43,5 @@ oasis is distributed under the terms of the GNU Lesser General Public License
 version 2.1 with OCaml linking exception.
 
 See [COPYING.txt](COPYING.txt) for more information.
+
+<!--- OASIS_STOP --->

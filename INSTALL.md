@@ -1,5 +1,5 @@
-(* OASIS_START *)
-(* DO NOT EDIT (digest: 2088e4d677634aa80f6e8d1a97ca7686) *)
+<!--- OASIS_START --->
+<!--- DO NOT EDIT (digest: 2088e4d677634aa80f6e8d1a97ca7686) --->
 
 This is the INSTALL file for the oasis distribution.
 
@@ -51,4 +51,4 @@ OASIS is a program that generates a setup.ml file using a simple '_oasis'
 configuration file. The generated setup only depends on the standard OCaml
 installation: no additional library is required.
 
-(* OASIS_STOP *)
+<!--- OASIS_STOP --->

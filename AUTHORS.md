@@ -1,5 +1,5 @@
-(* OASIS_START *)
-(* DO NOT EDIT (digest: 42d3c82e95c25b7f485d1a22832dc8cd) *)
+<!--- OASIS_START --->
+<!--- DO NOT EDIT (digest: 42d3c82e95c25b7f485d1a22832dc8cd) --->
 
 Authors of oasis:
 
@@ -9,4 +9,4 @@ Current maintainers of oasis:
 
 * Sylvain Le Gall <gildor@ocamlcore.org>
 
-(* OASIS_STOP *)
+<!--- OASIS_STOP --->
