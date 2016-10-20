@@ -13,6 +13,9 @@ Homepage:     http://oasis.forge.ocamlcore.org/
 Plugins:      DevFiles (0.4), StdFiles (0.4), META (0.4)
 FilesAB:      src/oasis/OASISConf.ml.ab
 BuildTools:   ocamlbuild, make
+AlphaFeatures: source_patterns
+ImplementationPatterns+:
+  ${module}.mlify
 
 Synopsis: Tooling for building OCaml libraries and applications
 Description:
