@@ -45,3 +45,8 @@ version 2.1 with OCaml linking exception.
 See [COPYING.txt](COPYING.txt) for more information.
 
 <!--- OASIS_STOP --->
+
+Related documentation
+---------------------
+
+[OMake README](src/plugins/omake/README.md)
