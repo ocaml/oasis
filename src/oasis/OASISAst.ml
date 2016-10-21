@@ -279,6 +279,7 @@ let to_package ~ctxt ast =
      respected
   *)
   let pkg = {pkg with sections = OASISBuildSection.build_order pkg} in
+  OASISMessage.debug ~ctxt:ctxt.ctxt "";
   OASISCheck.check_package ~ctxt:ctxt.ctxt pkg;
   pkg
 

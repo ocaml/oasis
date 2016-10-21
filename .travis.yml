@@ -16,6 +16,7 @@ env:
   - OPAM_SWITCH=4.01.0
   - OPAM_SWITCH=4.02.2
   - OPAM_SWITCH=4.03.0
+  - OPAM_SWITCH=4.03.0+flambda
   - OPAM_SWITCH=4.04.0+beta2 CONFIGURE_ARGS="--disable-quickstart-tests"
 cache:
   directories:
