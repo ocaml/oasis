@@ -95,7 +95,7 @@ let all_tests =
               ["META"; "packedlib.a"; "packedlib.cma"; "packedlib.cmi";
                "packedlib.cmt"; "packedlib.cmx"; "packedlib.cmxa";
                "packedlib.cmxs"; "q.annot"; "q.cmt"; "q.ml"]);
-           InstalledAPIRef("interdepend", ["C1"]);
+           InstalledAPIRef("interdepend", ["A1"; "A2"; "B1"; "C1"]);
          ];
        (* Run standard test. *)
        standard_test test_ctxt t;
