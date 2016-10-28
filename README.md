@@ -3,7 +3,7 @@
 [![Join the chat at https://gitter.im/ocaml/oasis](https://badges.gitter.im/ocaml/oasis.svg)](https://gitter.im/ocaml/oasis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 <!--- OASIS_START --->
-<!--- DO NOT EDIT (digest: b9ebaa7ff6b51de7ae0b9c0bcd28a864) --->
+<!--- DO NOT EDIT (digest: fb2776ec3ec716cd5a672655178412ac) --->
 
 oasis - Tooling for building OCaml libraries and applications
 =============================================================
@@ -37,6 +37,7 @@ instructions.
 Copyright and license
 ---------------------
 
+(C) 2011-2016 Sylvain Le Gall
 (C) 2008-2010 OCamlCore SARL
 
 oasis is distributed under the terms of the GNU Lesser General Public License

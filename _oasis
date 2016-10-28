@@ -1,20 +1,22 @@
-OASISFormat:  0.4
-OCamlVersion: >= 3.12.1
+OASISFormat:    0.4
+Name:           oasis
+Version:        0.4.8~HEAD
+OCamlVersion:   >= 3.12.1
 FindlibVersion: >= 1.3.1
-Name:         oasis
-Version:      0.4.8~HEAD
-LicenseFile:  COPYING.txt
-License:      LGPL-2.1 with OCaml linking exception
-BuildType:    ocamlbuild (0.4)
-Authors:      Sylvain Le Gall
-Maintainers:  Sylvain Le Gall <gildor@ocamlcore.org>
-Copyrights:   (C) 2008-2010 OCamlCore SARL
-Homepage:     http://oasis.forge.ocamlcore.org/
-BugReports:   https://forge.ocamlcore.org/tracker/?func=add&group_id=54&atid=291
-Plugins:      DevFiles (0.4), StdFiles (0.4), META (0.4)
-FilesAB:      src/oasis/OASISConf.ml.ab
-BuildTools:   ocamlbuild, make
-AlphaFeatures: source_patterns, stdfiles_markdown
+LicenseFile:    COPYING.txt
+License:        LGPL-2.1 with OCaml linking exception
+BuildType:      ocamlbuild (0.4)
+Authors:        Sylvain Le Gall
+Maintainers:    Sylvain Le Gall <sylvain@le-gall.net>
+Copyrights:     (C) 2011-2016 Sylvain Le Gall
+                (C) 2008-2010 OCamlCore SARL
+Homepage:       http://oasis.forge.ocamlcore.org/
+Plugins:        DevFiles (0.4), StdFiles (0.4), META (0.4)
+FilesAB:        src/oasis/OASISConf.ml.ab
+BuildTools:     ocamlbuild, make
+AlphaFeatures:  source_patterns, stdfiles_markdown
+BugReports:
+  https://forge.ocamlcore.org/tracker/?func=add&group_id=54&atid=291
 ImplementationPatterns+:
   ${module}.mlify
 
