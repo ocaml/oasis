@@ -24,7 +24,9 @@ OPAM_PKGS="base-bytes base-unix ocamlfind pcre expect fileutils ounit ocamlify
  ocamlmod omake benchmark camlp4"
 
 export OPAMYES=1
-if [ -f "$HOME/.opam/config" ]; then
+${OPAMROOT="$(pwd)/.opam"}
+export OPAMROOT
+if [ -f "$OPAMROOT/config" ]; then
     opam update
     opam upgrade
 else
