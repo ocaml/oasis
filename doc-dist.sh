@@ -23,7 +23,7 @@
 
 set -e
 
-OASIS_VERSION=$(oasis query version)
+OASIS_VERSION=$(./Main.native query version)
 CURDIR=$(pwd)
 
 TMPDIR=$(mktemp -d)
