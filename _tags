@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 0e3bb1c5cd41c3cb9662dff7ae6e7d28)
+# DO NOT EDIT (digest: d703f68328b3ef1bda32ef1e4aa8a0cf)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -142,10 +142,16 @@ true: annot, bin_annot
 <test/test-quickstart/*.ml{,i,y}>: use_test-common
 # Executable dist
 "src/tools/dist/Dist.byte": package(fileutils)
+"src/tools/dist/Dist.byte": package(ocamlbuild)
 "src/tools/dist/Dist.byte": package(unix)
+"src/tools/dist/Dist.byte": use_base
+"src/tools/dist/Dist.byte": use_builtin-plugins
 "src/tools/dist/Dist.byte": use_oasis
 <src/tools/dist/*.ml{,i,y}>: package(fileutils)
+<src/tools/dist/*.ml{,i,y}>: package(ocamlbuild)
 <src/tools/dist/*.ml{,i,y}>: package(unix)
+<src/tools/dist/*.ml{,i,y}>: use_base
+<src/tools/dist/*.ml{,i,y}>: use_builtin-plugins
 <src/tools/dist/*.ml{,i,y}>: use_oasis
 # Executable guess-cmx
 "src/tools/guess-cmx/GuessCMX.byte": package(pcre)

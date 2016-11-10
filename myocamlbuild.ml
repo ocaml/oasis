@@ -107,7 +107,7 @@ rule "ocamlify: %.mlify & %.mlify.depends -> %.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 1b07f15143782a4410d8fb9d938fbbb3) *)
+(* DO NOT EDIT (digest: b6756419c28eaa11efaebdc74f82b5d6) *)
 module OASISGettext = struct
 # 22 "src/oasis/OASISGettext.ml"
 
@@ -1061,7 +1061,19 @@ let package_default =
           ("src/tools/oasis-dist", ["src/base"; "src/oasis"]);
           ("src/tools/oasis-announce", ["src/base"; "src/oasis"]);
           ("src/tools/guess-cmx", ["src/oasis"]);
-          ("src/tools/dist", ["src/oasis"]);
+          ("src/tools/dist",
+            [
+               "src";
+               "src/oasis";
+               "src/plugins/custom";
+               "src/plugins/extra/META";
+               "src/plugins/extra/devfiles";
+               "src/plugins/extra/stdfiles";
+               "src/plugins/internal";
+               "src/plugins/none";
+               "src/plugins/ocamlbuild";
+               "src/plugins/omake"
+            ]);
           ("src/tools/bench",
             [
                "src";
@@ -1245,7 +1257,7 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 1141 "myocamlbuild.ml"
+# 1153 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 open Ocamlbuild_plugin;;

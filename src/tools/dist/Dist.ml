@@ -24,6 +24,7 @@ open OASISUtils
 open OASISTypes
 
 let () =
+  let () = OASISBuiltinPlugins.init () in
   let debug_self = true in
   let exec nm =
     try

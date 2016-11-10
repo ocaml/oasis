@@ -304,7 +304,7 @@ Executable dist
   Install: false
   CompiledObject: byte
   Build$: flag(devel)
-  BuildDepends: unix, fileutils, oasis
+  BuildDepends: unix, fileutils, oasis, oasis.builtin-plugins
 
 Executable "guess-cmx"
   Path: src/tools/guess-cmx
