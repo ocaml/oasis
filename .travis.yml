@@ -9,7 +9,7 @@ addons:
     - ocaml-native-compilers
     - opam
 
-script: bash -ex ./src/tools/travis-ci.sh
+script: bash -ex ./src/tools/travis-ci.bash
 env:
   - OPAM_SWITCH=system
   - OPAM_SWITCH=3.12.1
