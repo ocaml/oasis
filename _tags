@@ -261,4 +261,6 @@ true: safe_string
 
 "build": -traverse
 "build": not_hygienic
+".opam": -traverse
+".opam": not_hygienic
 true: explain
