@@ -235,8 +235,8 @@ Document "api-oasis"
 
 SourceRepository head
   Type: git
-  Location: git://github.com/gildor478/oasis.git
-  Browser: https://github.com/gildor478/oasis
+  Location: git://github.com/ocaml/oasis.git
+  Browser: https://github.com/ocaml/oasis
 
 #
 # Tests.

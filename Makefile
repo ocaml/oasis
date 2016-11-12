@@ -154,7 +154,11 @@ deploy: headache doc-dist
 .PHONY: deploy
 
 
-# Create a tarball for rebuilding the current version
+# Create dev tarball.
+#  Create a tarball for rebuilding the current version
+
 dist-dev: build
 	./Dist.byte -dev
+
+.PHONY: dist-dev
 
