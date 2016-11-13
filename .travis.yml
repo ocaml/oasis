@@ -3,13 +3,16 @@ sudo: false
 addons:
   apt:
     sources:
-    - avsm
+      - avsm
     packages:
-    - ocaml
-    - ocaml-native-compilers
-    - opam
-
-script: bash -ex ./src/tools/travis-ci.bash
+      - ocaml
+      - ocaml-native-compilers
+      - opam
+branches:
+   except:
+     - opam/unstable
+     - opam/testing
+script: bash -ex ./src/tools/ci/travis.bash
 env:
   - OPAM_SWITCH=system
   - OPAM_SWITCH=3.12.1

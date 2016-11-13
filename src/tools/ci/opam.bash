@@ -20,9 +20,6 @@
 #  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               #
 ################################################################################
 
-OPAM_PKGS="base-bytes base-unix ocamlfind pcre expect fileutils ounit ocamlify
- ocamlmod omake benchmark camlp4"
-
 export OPAMYES=1
 OPAMROOT="${OPAMROOT:="$(pwd)/.opam"}"
 export OPAMROOT
@@ -37,11 +34,3 @@ if [ -n "${OPAM_SWITCH}" ]; then
 fi
 eval `opam config env`
 
-opam install $OPAM_PKGS
-
-export OCAMLRUNPARAM=b
-
-ocaml setup.ml -distclean
-ocaml setup.ml -configure --enable-tests --enable-devel ${CONFIGURE_ARGS}
-ocaml setup.ml -build
-ocaml setup.ml -test
