@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: d703f68328b3ef1bda32ef1e4aa8a0cf)
+# DO NOT EDIT (digest: 3bfa7299a6f0c46ebec8384021c62c27)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -171,12 +171,16 @@ true: annot, bin_annot
 <src/tools/oasis-announce/*.ml{,i,y}>: use_oasis
 # Executable oasis-dist
 "src/tools/oasis-dist/OASISDist.byte": package(fileutils)
+"src/tools/oasis-dist/OASISDist.byte": package(ocamlbuild)
 "src/tools/oasis-dist/OASISDist.byte": package(unix)
 "src/tools/oasis-dist/OASISDist.byte": use_base
+"src/tools/oasis-dist/OASISDist.byte": use_builtin-plugins
 "src/tools/oasis-dist/OASISDist.byte": use_oasis
 <src/tools/oasis-dist/*.ml{,i,y}>: package(fileutils)
+<src/tools/oasis-dist/*.ml{,i,y}>: package(ocamlbuild)
 <src/tools/oasis-dist/*.ml{,i,y}>: package(unix)
 <src/tools/oasis-dist/*.ml{,i,y}>: use_base
+<src/tools/oasis-dist/*.ml{,i,y}>: use_builtin-plugins
 <src/tools/oasis-dist/*.ml{,i,y}>: use_oasis
 # Executable bench
 <src/tools/bench/Bench.{native,byte}>: package(benchmark)

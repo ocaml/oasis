@@ -196,6 +196,7 @@ class no_vcs ~ctxt =
 
 
 let () =
+  let () = OASISBuiltinPlugins.init () in
   let build = ref true in
   let tag = ref true in
   let sign = ref true in

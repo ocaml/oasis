@@ -328,7 +328,7 @@ Executable "oasis-dist"
   Install: false
   CompiledObject: byte
   Build$: flag(devel)
-  BuildDepends: oasis, oasis.base, fileutils
+  BuildDepends: oasis, oasis.base, fileutils, oasis.builtin-plugins
 
 Executable bench
   Path: src/tools/bench
