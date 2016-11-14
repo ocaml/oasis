@@ -9,9 +9,9 @@ addons:
       - ocaml-native-compilers
       - opam
 branches:
-   except:
-     - opam/unstable
-     - opam/testing
+  except:
+    - opam/unstable
+    - opam/testing
 script: bash -ex ./src/tools/ci/travis.bash
 env:
   - OPAM_SWITCH=system
