@@ -11,11 +11,11 @@ opam pin add opam-build-revdeps \
 opam-build-revdeps compare --package oasis \
   --only zipperposition \
   --only zmq \
-  --only zstd \
   --exclude qfs \
   --exclude maxminddb \
   --exclude brotli \
   --exclude zstd \
+  --ocaml_version 4.03.0
   --version1 latest \
   --version2 latest --pin2 "oasis:$(pwd)/sut" \
   --html_output "dist/index.html"
