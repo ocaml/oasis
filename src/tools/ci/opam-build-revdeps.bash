@@ -7,6 +7,7 @@ opam pin add opam-build-revdeps \
 # TODO: un-exclude when upgrading to Debian Stretch
 # - maxminddb
 # - brotli
+# - zstd
 opam-build-revdeps compare --package oasis \
   --only zipperposition \
   --only zmq \
@@ -14,6 +15,7 @@ opam-build-revdeps compare --package oasis \
   --exclude qfs \
   --exclude maxminddb \
   --exclude brotli \
+  --exclude zstd \
   --version1 latest \
   --version2 latest --pin2 "oasis:$(pwd)/sut" \
   --html_output "dist/index.html"
