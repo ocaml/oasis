@@ -1,5 +1,6 @@
 . "$(dirname $0)/packages.bash" || exit 1
 . "$(dirname $0)/opam.bash" || exit 1
+mkdir dist || true
 opam install $OPAM_PKGS
 export OCAMLRUNPARAM=b
 ocaml setup.ml -distclean
