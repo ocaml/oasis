@@ -15,7 +15,7 @@ opam-build-revdeps compare --package oasis \
   --exclude maxminddb \
   --exclude brotli \
   --exclude zstd \
-  --ocaml_version 4.03.0
+  --ocaml_version 4.03.0 \
   --version1 latest \
   --version2 latest --pin2 "oasis:$(pwd)/sut" \
   --html_output "dist/index.html"
