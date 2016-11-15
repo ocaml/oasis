@@ -2,9 +2,6 @@ mkdir dist || true
 mkdir tmp || true
 . "$(dirname $0)/opam.bash" || exit 1
 
-env
-
-OPAM_BUILD_REVDEPS_UNSTABLE="yes"
 if [ "x${OPAM_BUILD_REVDEPS_UNSTABLE}" == "xyes" ] ; then
   opam pin add opam-build-revdeps \
     'git://github.com/gildor478/opam-build-revdeps.git#opam/unstable'
@@ -16,9 +13,7 @@ fi
 # - maxminddb
 # - brotli
 # - zstd
-opam-build-revdeps compare --package oasis \
-  --only zipperposition \
-  --only zmq \
+opam-build-revdeps compare --package oasis ${OPAM_BUILD_REVDEPS_ARGS} \
   --exclude qfs \
   --exclude maxminddb \
   --exclude brotli \
