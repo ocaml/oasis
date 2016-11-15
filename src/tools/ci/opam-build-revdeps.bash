@@ -4,12 +4,12 @@ mkdir tmp || true
 
 env
 
-OPAM_BUILD_REVDEPS_UNSTABLE="no"
+OPAM_BUILD_REVDEPS_UNSTABLE="yes"
 if [ "x${OPAM_BUILD_REVDEPS_UNSTABLE}" == "xyes" ] ; then
   opam pin add opam-build-revdeps \
     'git://github.com/gildor478/opam-build-revdeps.git#opam/unstable'
 else
-  opan install opam-build-revdeps
+  opam install opam-build-revdeps
 fi
 
 # TODO: un-exclude when upgrading to Debian Stretch

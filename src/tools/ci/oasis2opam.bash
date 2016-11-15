@@ -7,7 +7,7 @@ restore_oasis () {
 
 # Merge with current master branch.
 restore_oasis
-VERSION="$(oasis -ignore-plugins query version)-$(date +'%Y-%m-%dT%H:%M:%S%:z')"
+VERSION="$(oasis -ignore-plugins query version)-$(date +'%Y-%m-%d')-${BUILD_NUMBER:-0}"
 NAME="$(oasis -ignore-plugins query name)"
 
 # Generate opam files.
