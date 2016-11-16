@@ -17,6 +17,8 @@ sed -i "s/AlphaFeatures:/XAlphaFeatures:/" _oasis
 sed -i "s/ImplementationPatterns+:/XImplementationPatterns+:/" _oasis
 sed -i "s/^Version:.*/Version: ${VERSION}/" _oasis
 oasis2opam --local -y
+# TODO: allow to define a branch for dev-repo directly in oasis2opam.
+sed -i 's,^\(dev-repo:.*oasis.git\),\1#opam/testing,' opam/opam
 
 # Commit changes.
 restore_oasis
