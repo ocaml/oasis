@@ -57,6 +57,6 @@ run "OASIS Install" ocaml setup.ml -install
 
 echo "------------------------------------------------------------"
 echo "Rebuild with dynamic mode"
-run "Setup" ./Main.native setup -setup-update dynamic
+run "Setup" _build/src/cli/Main.native setup -setup-update dynamic
 run "Configure" ocaml setup.ml -configure
 run "Build" ocaml setup.ml -build

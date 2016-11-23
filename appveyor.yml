@@ -7,14 +7,14 @@ branches:
     - gh-pages
 
 environment:
-  global:
-    CYG_ROOT: C:/cygwin
+  matrix:
+    - {SYSTEM: cygwin, ARCH: x86, COMPILER: 4.02}
+    - {SYSTEM: mingw, ARCH: x86_64, COMPILER: 4.03}
 
 install:
-#  - appveyor DownloadFile "http://cygwin.com/setup-%CYG_ARCH%.exe" -FileName "%CYG_ROOT%\setup-x86.exe"
-  - ps: '(new-object net.webclient).DownloadString("https://aantron.github.io/binaries/cygwin/x86/ocaml/4.02/install.ps1") | PowerShell -Command -'
-  - ps: '(new-object net.webclient).DownloadString("https://aantron.github.io/binaries/cygwin/x86/camlp4/4.02/install.ps1") | PowerShell -Command -'
-  - ps: '(new-object net.webclient).DownloadString("https://aantron.github.io/binaries/cygwin/x86/opam/1.2/install.ps1") | PowerShell -Command -'
+  - 'IF "%ARCH%"=="x86" (SET CYG_ROOT=C:\Cygwin) ELSE (SET CYG_ROOT=C:\Cygwin64)'
+  - ps: '(new-object net.webclient).DownloadString("https://aantron.github.io/binaries/$env:SYSTEM/$env:ARCH/ocaml/$env:COMPILER/install.ps1") | PowerShell -Command -'
+  - ps: '(new-object net.webclient).DownloadString("https://aantron.github.io/binaries/$env:SYSTEM/$env:ARCH/opam/1.2/install.ps1") | PowerShell -Command -'
   - '%CYG_ROOT%\bin\bash -lc "cygcheck -dc cygwin"'
   - '%CYG_ROOT%\bin\bash -lc "echo \"OCaml version `ocamlc -version`\""'
 
