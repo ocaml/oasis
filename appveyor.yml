@@ -20,7 +20,7 @@ install:
 
 build_script:
   - 'echo Build in "%APPVEYOR_BUILD_FOLDER%"'
-  - '%CYG_ROOT%/bin/bash -l "%APPVEYOR_BUILD_FOLDER%/appveyor_build.sh"'
+  - '%CYG_ROOT%/bin/bash -l "%APPVEYOR_BUILD_FOLDER%/src/tools/ci/appveyor.bash"'
 
 notifications:
   - provider: Webhook
