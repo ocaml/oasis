@@ -68,3 +68,10 @@ To pin this repository with unstable OPAM (__not recommended__):
 ```
 $> opam pin add oasis git://github.com/ocaml/oasis.git#opam/unstable
 ```
+
+To generate an opam/ directory and pin your own local version:
+```
+$> cd inside_the_top_source_dir
+$> make opam
+$> opam pin add oasis .
+```

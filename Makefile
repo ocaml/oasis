@@ -162,3 +162,16 @@ dist-dev: build
 
 .PHONY: dist-dev
 
+# Create opam/ directory.
+#  Create files for OPAM.
+
+opam/opam opam/desc: _oasis
+	env LOCAL=true bash -e ./src/tools/ci/oasis2opam.bash
+
+opam: opam/opam opam/desc
+
+opam-clean:
+	$(RM) _oasis_remove_.ml oasis.install
+	$(RM) -r opam
+
+.PHONY: opam opam-clean
