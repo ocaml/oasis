@@ -245,8 +245,9 @@ SourceRepository head
 Library "test-common"
   Path: test/test-common
   Modules: TestCommon
-  CompiledObject: best
   Install: false
+  CompiledObject: best
+  Build$: flag(tests)
   BuildDepends: oUnit (>= 2.0.0), oasis.base, fileutils
 
 Executable "fake-ocamlfind"
@@ -343,20 +344,20 @@ Executable bench
 #
 
 Library "plugin-loader"
-  Path:         src/ext/plugin-loader/src
-  Modules:      PluginLoader
+  Path: src/ext/plugin-loader/src
+  Modules: PluginLoader
   BuildDepends: dynlink, findlib
   XMETADescription: OCaml plugin management using findlib
 
 Library "pluginloaderLib"
-  Path:    src/ext/plugin-loader/test/data/findlib/pluginloaderLib
+  Path: src/ext/plugin-loader/test/data/findlib/pluginloaderLib
   Modules: PluginloaderLib
   Build$: flag(tests)
   Install: false
   XMETADescription: test library loader
 
 Library "plugin1"
-  Path:    src/ext/plugin-loader/test/data/findlib/plugin1
+  Path: src/ext/plugin-loader/test/data/findlib/plugin1
   Modules: Plugin1
   Install: false
   Build$: flag(tests)
@@ -367,7 +368,7 @@ Library "plugin1"
                    plugin_synopsis = "first plugin"
 
 Library "plugin2"
-  Path:    src/ext/plugin-loader/test/data/findlib/plugin2
+  Path: src/ext/plugin-loader/test/data/findlib/plugin2
   Modules: Plugin2
   Install: false
   Build$: flag(tests)
@@ -378,7 +379,7 @@ Library "plugin2"
                    plugin_synopsis = "second plugin"
 
 Library "plugin3"
-  Path:    src/ext/plugin-loader/test/data/findlib/plugin3
+  Path: src/ext/plugin-loader/test/data/findlib/plugin3
   Modules: Plugin3
   Install: false
   Build$: flag(tests)
@@ -396,13 +397,13 @@ Executable "pluginloader"
   BuildDepends: pluginloaderLib, plugin-loader
 
 Executable "test_loader"
-  Path:         src/ext/plugin-loader/test
-  MainIs:       TestLoader.ml
+  Path: src/ext/plugin-loader/test
+  MainIs: TestLoader.ml
   BuildDepends: plugin-loader, fileutils, oUnit
   Build$: flag(tests)
-  Install:      false
+  Install: false
 
 Test main_loader
-  Type:      custom (0.4)
-  Command:   $test_loader -pluginloader $pluginloader
+  Type: custom (0.4)
+  Command: $test_loader -pluginloader $pluginloader
   TestTools: test_loader, pluginloader
