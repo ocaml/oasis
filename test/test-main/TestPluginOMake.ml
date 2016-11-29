@@ -109,15 +109,17 @@ let all_tests =
   ]
 
 let gen_test (nm, f) =
-  nm >::
-  (fun test_ctxt ->
-     let t =
-       setup_test_directories test_ctxt
-         ~is_native:(is_native test_ctxt)
-         ~native_dynlink:(native_dynlink test_ctxt)
-         (in_testdata_dir test_ctxt ["TestPluginOMake"; nm])
-     in
-       f test_ctxt t)
+  nm >:
+  (test_case
+     ~length:OUnitTest.Long
+     (fun test_ctxt ->
+        let t =
+          setup_test_directories test_ctxt
+            ~is_native:(is_native test_ctxt)
+            ~native_dynlink:(native_dynlink test_ctxt)
+            (in_testdata_dir test_ctxt ["TestPluginOMake"; nm])
+        in
+        f test_ctxt t))
 
 let tests =
   "Plugin OMake" >:::
