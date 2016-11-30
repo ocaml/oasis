@@ -8,6 +8,7 @@ addons:
       - ocaml
       - ocaml-native-compilers
       - opam
+      - texlive-latex-recommended
 branches:
   except:
     - opam/unstable
