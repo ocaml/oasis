@@ -21,9 +21,6 @@
 (******************************************************************************)
 
 
-open OASISTypes
-
-
 type 'a t = 'a OASISSchema_intern.t
 
 
@@ -52,9 +49,7 @@ let sync_proxy schema t nm (_, get) sync ds =
 
 
 let new_field schema t nm ?default ?feature parse hlp pivot_data sync =
-  let plugin =
-    OASISPlugin.to_plugin t
-  in
+  let plugin = OASISPlugin.to_plugin t in
   OASISSchema_intern.new_field
     schema
     (make_field_name plugin nm)
@@ -77,9 +72,7 @@ let new_field_conditional
     hlp
     pivot_data
     sync =
-  let plugin =
-    OASISPlugin.to_plugin t
-  in
+  let plugin = OASISPlugin.to_plugin t in
   OASISSchema_intern.new_field_conditional
     schema
     (make_field_name plugin nm)

@@ -93,8 +93,7 @@ type context_act =
   }
 
 
-(** Generator for sections (document, test).
-*)
+(** Generator for sections (document, test).  *)
 type ('a, 'b) section_act =
   context_act ->
   package ->
@@ -117,8 +116,7 @@ type ('a, 'b) section_act =
        unit)) setup_changes
 
 
-(** Generator with a package argument only (build, install).
-*)
+(** Generator with a package argument only (build, install).  *)
 type package_act =
   context_act ->
   package ->
@@ -132,13 +130,11 @@ type package_act =
     (ctxt:OASISContext.t -> package -> string array -> unit)) setup_changes
 
 
-(** Base types to build plugin: register fields, action, generators...
-*)
+(** Base types to build plugin: register fields, action, generators...  *)
 type 'a t
 
 
-(** Base types for all plugins
-*)
+(** Base types for all plugins *)
 type all_t = plugin_kind t
 
 
@@ -171,13 +167,11 @@ val generator_section:
   PropList.Data.t -> unit
 
 
-(** List available plugins. *)
+(** List registered plugins of given kind. *)
 val ls: plugin_kind -> name list
 
-
-(* All registered plugin. *)
+(** All registered plugin. *)
 val all_plugins: unit -> plugin_kind plugin list
-
 
 type help =
   {

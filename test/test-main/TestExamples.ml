@@ -21,20 +21,19 @@
 (******************************************************************************)
 
 
-(** End to end tests for examples/ sub-directories. 
-  
+(** End to end tests for examples/ sub-directories.
+
   Tests in this file run end to end compilation with OASIS for sub-directories
   found in examples/.
-  
+
   @author Sylvain Le Gall
  *)
 
-open FileUtil
 open OUnit2
 open TestCommon
 open TestFullUtils
 
-let all_tests = 
+let all_tests =
   [
     "flags",
     (fun test_ctxt t ->
@@ -132,7 +131,10 @@ let all_tests =
                "foo.annot"; "foo.cmt"; "foo.cmti"])
          ];
        if OASISVersion.StringVersion.compare t.ocaml_version "4.02" >= 0 then begin
-         register_installed_files test_ctxt t [InstalledOCamlLibrary("packedlib", ["packedlib.cmt"])]
+         register_installed_files
+           test_ctxt
+           t
+           [InstalledOCamlLibrary("packedlib", ["packedlib.cmt"])]
        end;
        (* Run standard test. *)
        standard_test test_ctxt t;
@@ -422,24 +424,126 @@ let all_tests =
        oasis_setup test_ctxt t;
        (* Setup expectation. *)
        register_generated_files t
-         (oasis_ocamlbuild_files @ ["src/test.mldylib"; "src/test.mllib"; "src/META"]);
+         (oasis_ocamlbuild_files @ [
+             "src/test.mldylib"; "src/test.mllib"; "src/META"]);
        register_installed_files test_ctxt t
          [
            InstalledOCamlLibrary
              ("test",
-              ["test.ml"; "test.a"; "test.annot"; "test.cma"; "test.cmi"; "test.cmt";
-               "test.cmx"; "test.cmxa"; "test.cmxs"; "META"]);
+              ["test.ml"; "test.a"; "test.annot"; "test.cma"; "test.cmi";
+               "test.cmt"; "test.cmx"; "test.cmxa"; "test.cmxs"; "META"]);
          ];
        (* Run standard test. *)
        standard_test test_ctxt t);
   ]
 
 
-let gen_tests ~is_native () =
+let tests_match_native =
+  [
+    "plugins/oasis-plugin-print-hello",
+    (fun test_ctxt t ->
+       let assert_oasis_cli_output_contains args lst =
+         let _, extra_env = TestFullUtils.ocaml_env test_ctxt t in
+         assert_oasis_cli ~extra_env ~ctxt:test_ctxt ~output_contains:lst args
+       in
+       let t = install_oasis_library test_ctxt t in
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t
+         (oasis_ocamlbuild_files @ 
+          [
+            "src/lib/oasis-plugin-print-hello/oasis-plugin-print-hello.mldylib";
+            "src/lib/oasis-plugin-print-hello/oasis-plugin-print-hello.mllib";
+            "src/lib/oasis-plugin-print-hello/META"
+          ]);
+       register_installed_files test_ctxt t
+         [
+           InstalledOCamlLibrary
+             ("oasis-plugin-print-hello",
+              ["OASISPluginPrintHello.ml";
+               "OASISPluginPrintHello.annot";
+               "OASISPluginPrintHello.cmi";
+               "OASISPluginPrintHello.cmt";
+               "OASISPluginPrintHello.cmx";
+               "oasis-plugin-print-hello.a";
+               "oasis-plugin-print-hello.cma";
+               "oasis-plugin-print-hello.cmxa";
+               "oasis-plugin-print-hello.cmxs";
+               "META"]);
+         ];
+       (* Run standard test. *)
+       standard_test test_ctxt t;
+       assert_oasis_cli_output_contains ["--help"] ["print-hello"];
+       assert_oasis_cli_output_contains ["print-hello"] ["Hello"]);
+
+    "plugins/oasis-plugin-versionfile",
+    (fun test_ctxt t ->
+       let t = install_oasis_library test_ctxt t in
+       let with_versionfile_plugin_dir =
+         Filename.concat t.src_dir "with-versionfile-plugin"
+       in
+       oasis_setup test_ctxt t;
+       (* Setup expectation. *)
+       register_generated_files t
+         (oasis_ocamlbuild_files @ 
+          [
+            "src/lib/oasis-plugin-versionfile/oasis-plugin-versionfile.mldylib";
+            "src/lib/oasis-plugin-versionfile/oasis-plugin-versionfile.mllib";
+            "src/lib/oasis-plugin-versionfile/META"
+          ]);
+       register_installed_files test_ctxt t
+         [
+           InstalledOCamlLibrary
+             ("oasis-plugin-versionfile",
+              ["OASISPluginVersionFile.ml";
+               "OASISPluginVersionFile.annot";
+               "OASISPluginVersionFile.cmi";
+               "OASISPluginVersionFile.cmt";
+               "OASISPluginVersionFile.cmx";
+               "OASISPluginVersionFileConf.cmx";
+               "OASISPluginVersionFileData.cmx";
+               "OASISPluginVersionFileGettext.cmx";
+               "oasis-plugin-versionfile.a";
+               "oasis-plugin-versionfile.cma";
+               "oasis-plugin-versionfile.cmxa";
+               "oasis-plugin-versionfile.cmxs";
+               "META"]);
+         ];
+       (* Run standard test. *)
+       standard_test test_ctxt t;
+
+       (* Copy the other package into the temporary source, to test it. *)
+       FileUtil.cp
+         ~recurse:true
+         [in_example_dir test_ctxt ["plugins"; "with-plugin-versionfile"]]
+         with_versionfile_plugin_dir;
+
+       (* Try to setup the package. *)
+       assert_oasis_cli
+         ~chdir:with_versionfile_plugin_dir
+         ~extra_env:(snd (TestFullUtils.ocaml_env test_ctxt t))
+         ~ctxt:test_ctxt
+         ["setup"];
+       begin
+         let tgt = Filename.concat with_versionfile_plugin_dir "myversion.ml" in
+         assert_bool
+           (Printf.sprintf "File %S hasn't been created" tgt)
+           (Sys.file_exists tgt)
+       end;
+    )
+  ]
+
+
+let gen_tests ?is_native tests =
   let runner (nm, f) =
     ("examples/"^nm) >::
     (fun test_ctxt ->
       let () = skip_long_test test_ctxt in
+      let is_native =
+        match is_native with
+        | Some b -> b
+        | None -> TestCommon.is_native test_ctxt
+      in
       let t =
         setup_test_directories test_ctxt ~is_native
           ~native_dynlink:is_native
@@ -456,7 +560,7 @@ let gen_tests ~is_native () =
           OASISConf.version_short pkg.OASISTypes.oasis_version;
         f test_ctxt t)
   in
-    List.map runner all_tests
+    List.map runner tests
 
 
 let tests =
@@ -464,16 +568,19 @@ let tests =
   [
     "best=native">:::
     (skip_test_on_non_native_arch
-       (gen_tests ~is_native:true ()));
+       (gen_tests ~is_native:true all_tests));
 
     "best=byte">:::
-    (gen_tests ~is_native:false ());
+    (gen_tests ~is_native:false all_tests);
+
+    "best=matching" >:::
+    (gen_tests tests_match_native);
 
     "all_examples">::
     (fun test_ctxt ->
        all_subdirectories test_ctxt
          (in_example_dir test_ctxt [])
-         ("oasis" :: List.map fst all_tests)
+         ("plugins" :: "oasis" :: List.map fst all_tests)
          (Printf.sprintf "examples/%s is not tested."));
 
     "examples/oasis">::

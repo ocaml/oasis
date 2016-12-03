@@ -59,6 +59,9 @@ type t =
 
     srcfs: source OASISFileSystem.fs;
     (** The file system containing the sources *)
+
+    load_oasis_plugin: string -> bool;
+    (** Load the named OASIS plugin and return if it was able to find it. *)
   }
 
 

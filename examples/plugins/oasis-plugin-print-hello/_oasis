@@ -1,0 +1,19 @@
+OASISFormat: 0.4
+Name:        oasis-plugin-print-hello
+Version:     0.1.0
+License:     LGPL-2.1 with OCaml linking exception
+BuildType:   ocamlbuild (0.4)
+Authors:     Sylvain Le Gall
+Plugins:     META (0.4)
+BuildTools:  ocamlbuild
+
+Synopsis: Example for command line plugin, that prints "Hello world!"
+
+Library "oasis-plugin-print-hello"
+  Path:             src/lib/oasis-plugin-print-hello
+  Modules:          OASISPluginPrintHello
+  CompiledObject:   Best
+  BuildDepends:     oasis.cli
+  XMETAExtraLines:  plugin_system = "oasis-cli"
+                    plugin_name = "print-hello"
+                    plugin_synopsis = "Print Hello with OASIS."

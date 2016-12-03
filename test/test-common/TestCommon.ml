@@ -87,6 +87,20 @@ let example_dir =
 let in_example_dir test_ctxt lst =
   FilePath.make_filename ((example_dir test_ctxt) :: lst)
 
+(* TODO: set in _oasis. *)
+let source_dir =
+  let value =
+    Conf.make_string
+      "source_dir"
+      "../"
+      "Top level source directory."
+  in
+    fun ctxt ->
+      let fn = value ctxt in
+        if FilePath.is_relative fn then
+          FilePath.make_absolute (FileUtil.pwd ()) fn
+        else
+          fn
 
 module Output =
 struct
@@ -106,6 +120,7 @@ let assert_command ~ctxt
       ?chdir
       ?exit_code
       ?output
+      ?(output_contains=[])
       ?extra_env
       ?(unorder=false)
       (* TODO: this should be true, but too many errors: fix this. *)
@@ -121,6 +136,17 @@ let assert_command ~ctxt
           Buffer.contents buff
       in
       let lines = OASISString.nsplit output '\n' in
+      (* Check for output_contains strings. *)
+      List.iter
+        (fun str ->
+           try
+             let _i : int = OASISString.find ~what:str output in ()
+           with Not_found ->
+             assert_failure
+               (Printf.sprintf
+                  "Unable to find %S in output of command %S."
+                  str (Printf.sprintf "%s %s" cmd (String.concat " " args))))
+        output_contains;
       (* Check for warnings/errors. *)
       if check_output then
         List.iter
@@ -197,10 +223,26 @@ let assert_command ~ctxt
       cmd args
 
 
-let assert_oasis_cli ~ctxt ?chdir ?exit_code ?output ?extra_env ?unorder args  =
+let assert_oasis_cli
+    ~ctxt
+    ?chdir
+    ?exit_code
+    ?output
+    ?output_contains
+    ?extra_env
+    ?unorder
+    args =
   (* TODO: transfert chdir to -C chdir. *)
-  assert_command ~ctxt ?chdir ?exit_code ?output ?extra_env ?unorder
-    (oasis_exec ctxt) ((oasis_args ctxt) @ args)
+  assert_command
+    ~ctxt
+    ?chdir
+    ?exit_code
+    ?output
+    ?extra_env
+    ?unorder
+    ?output_contains
+    (oasis_exec ctxt)
+    ((oasis_args ctxt) @ args)
 
 
 let file_content fn =
@@ -294,7 +336,7 @@ class ['a] spy_fs test_ctxt fs : ['a] OASISFileSystem.fs =
       self#log "open_in" fn;
       fs#open_in ?mode ?perm fn
 
-    method file_exists fn = 
+    method file_exists fn =
       self#log "file_exists" fn;
       fs#file_exists fn
 

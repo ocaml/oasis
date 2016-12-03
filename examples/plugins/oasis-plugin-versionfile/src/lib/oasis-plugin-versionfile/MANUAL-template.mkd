@@ -1,0 +1,6 @@
+This plugin helps to generate a file `version.ml` which contains the version of
+the package, as defined in `_oasis` > `Version` field.
+
+Package fields:
+
+$ListVersionFileExtraPackageFields

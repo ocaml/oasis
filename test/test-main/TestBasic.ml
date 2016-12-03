@@ -35,7 +35,8 @@ let tests =
     (fun test_ctxt -> assert_oasis_cli ~ctxt:test_ctxt ["help"]);
 
     "Manual" >::
-    (fun test_ctxt -> assert_oasis_cli ~ctxt:test_ctxt ["manual"]);
+    (fun test_ctxt ->
+       assert_oasis_cli ~ctxt:test_ctxt ["-ignore-plugins"; "manual"]);
 
     "Env dump/load" >::
     (fun test_ctxt ->

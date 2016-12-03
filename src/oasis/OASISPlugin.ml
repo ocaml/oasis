@@ -265,24 +265,42 @@ let register_help (_, nm, vo) hlp =
   HashPluginAll.replace help_all (`All, nm, vo) hlp
 
 
-let help plg =
-  HashPluginAll.find help_all plg
+let help plg = HashPluginAll.find help_all plg
 
 
-let version_all =
-  HashPlugin.create 5
+let version_all = HashPlugin.create 5
 
 
-let all =
-  version_all
+let all = version_all
 
 
 let all_plugins () =
+  HashPlugin.fold (fun k _ acc -> k :: acc) all []
+
+let ls knd =
   HashPlugin.fold
-    (fun k _ acc -> k :: acc)
+    (fun ((knd', _, _) as id) _ lst ->
+       if knd = knd' then
+         (string_of_plugin id) :: lst
+       else
+         lst)
     all
     []
 
+let load_if_absent ~ctxt ((_, nm, _) as plg) =
+  if not (HashPlugin.mem all plg) then begin
+    let plg_str = string_of_plugin plg in
+    OASISMessage.info ~ctxt "Try to load plugin %s." plg_str;
+    if ctxt.OASISContext.load_oasis_plugin nm then
+      if not (HashPlugin.mem all plg) then
+        failwithf
+          (f_ "No matching registered plugin after loading plugin %s.")
+          plg_str
+      else
+        OASISMessage.info ~ctxt "Plugin %s loaded." plg_str
+    else
+      OASISMessage.info ~ctxt "Plugin %s not found." plg_str
+  end
 
 (*
  * Quickstart completion
@@ -309,8 +327,7 @@ let quickstart_completion plg =
  *)
 
 
-let gen_all =
-  HashPlugin.create 5
+let gen_all = HashPlugin.create 5
 
 
 let register_generator_package t (prop_set, _) generator =
@@ -353,17 +370,6 @@ let generator_section knd plg rplugin_data data =
   with Not_found ->
     ()
 
-
-(** List all plugins *)
-let ls knd =
-  HashPlugin.fold
-    (fun ((knd', _, _) as id) _ lst ->
-       if knd = knd' then
-         (string_of_plugin id) :: lst
-       else
-         lst)
-    all
-    []
 
 
 let to_plugin t =
@@ -483,41 +489,39 @@ struct
     in
 
     let parse ~ctxt s =
-      let (knd, nm, ver_opt) as plg =
-        plugin_of_string kind_default s
-      in
-      if not ctxt.OASISContext.ignore_plugins then
-        begin
-          try
-            let ver_plg =
-              try
-                find_fuzzy version_all (plg :> plugin_kind plugin)
-              with Not_found ->
-                failwithf
-                  (not_found_of_kind kind_default)
-                  (string_of_plugin plg)
-                  (String.concat ", " (ls kind_default))
-            in
-            match ver_opt with
-              | Some ver ->
-                if OASISVersion.version_compare ver ver_plg <> 0 then
-                  OASISMessage.info ~ctxt
-                    (f_ "Plugin %s doesn't match the latest version of \
-                         this plugin. Please check plugin's changelog \
-                         and upgrade to the latest version %s.")
-                    (string_of_plugin plg)
-                    (OASISVersion.string_of_version ver_plg)
+      let (knd, nm, ver_opt) as plg = plugin_of_string kind_default s in
+      if not ctxt.OASISContext.ignore_plugins then begin
+        load_if_absent ~ctxt plg;
+        try
+          let ver_plg =
+            try
+              find_fuzzy version_all (plg :> plugin_kind plugin)
+            with Not_found ->
+              failwithf
+                (not_found_of_kind kind_default)
+                (string_of_plugin plg)
+                (String.concat ", " (ls kind_default))
+          in
+          match ver_opt with
+          | Some ver ->
+            if OASISVersion.version_compare ver ver_plg <> 0 then
+              OASISMessage.info ~ctxt
+                (f_ "Plugin %s doesn't match the latest version of \
+                     this plugin. Please check plugin's changelog \
+                     and upgrade to the latest version %s.")
+                (string_of_plugin plg)
+                (OASISVersion.string_of_version ver_plg)
 
-              | None ->
-                OASISMessage.warning ~ctxt
-                  (f_ "Plugin %s is defined without version, use \
-                       current version at least: %s.")
-                  nm
-                  (string_of_plugin  (knd, nm, Some ver_plg))
+          | None ->
+            OASISMessage.warning ~ctxt
+              (f_ "Plugin %s is defined without version, use \
+                   current version at least: %s.")
+              nm
+              (string_of_plugin  (knd, nm, Some ver_plg))
 
-          with Not_found ->
-            failwithf "Plugin %s doesn't exist." (string_of_plugin plg)
-        end;
+        with Not_found ->
+          failwithf "Plugin %s doesn't exist." (string_of_plugin plg)
+      end;
       (F.kind_default, nm, ver_opt)
     in
     {

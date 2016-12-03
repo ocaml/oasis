@@ -21,19 +21,8 @@
 (******************************************************************************)
 
 
-open OASISTypes
 open OASISUtils
 open OASISGettext
-
-(** Plugin for the command line. *)
-let plugin_cli_t () =
-  {
-    PluginLoader.
-    system = "oasis-cli";
-    msg =
-      (fun lvl str ->
-         OASISMessage.generic_message ~ctxt:!BaseContext.default lvl "%s" str)
-  }
 
 type cli_parsing_t = (Arg.key * Arg.spec * Arg.doc) list * Arg.anon_fun
 type 'a cli_parsing_post_t = unit -> 'a
@@ -77,11 +66,10 @@ let loading_plugin = ref None
 
 
 let () =
-  PluginLoader.init CLIPluginsLoaded.exec_oasis_build_depends_rec;
   List.iter
     (fun e ->
        Hashtbl.add all e.PluginLoader.name (Plugin(e, None)))
-    (PluginLoader.list (plugin_cli_t ()))
+    (PluginLoader.list (CLIPluginLoader.plugin_cli_t ()))
 
 
 let register ?(usage=default_usage) ?(deprecated=false) nm synopsis help run =
@@ -126,8 +114,8 @@ let register ?(usage=default_usage) ?(deprecated=false) nm synopsis help run =
       Hashtbl.add all t.scmd_name (Builtin t)
     | Some findlib_name ->
       failwithf
-        (f_ "Trying to register unknown plugin subcommand %s within loading
-                 of %s.")
+        (f_ "Trying to register unknown plugin subcommand %s within loading \
+             of %s.")
         nm findlib_name
 
 
@@ -140,7 +128,7 @@ let find nm =
           nm nm'
       | None ->
         loading_plugin := Some nm;
-        PluginLoader.load (plugin_cli_t ()) nm;
+        PluginLoader.load (CLIPluginLoader.plugin_cli_t ()) nm;
         loading_plugin := None
   in
   let rec find' retry =
@@ -185,7 +173,7 @@ let list_builtin ?(deprecated=true) () =
                t :: acc
              else
                acc
-           | Plugin(e, _) -> acc)
+           | Plugin(_, _) -> acc)
       all []
   in
   lst

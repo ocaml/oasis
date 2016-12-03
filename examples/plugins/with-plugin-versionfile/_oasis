@@ -1,0 +1,9 @@
+OASISFormat:          0.4
+Name:                 with-versionfile-plugin
+Version:              0.1.0
+License:              LGPL-2.1 with OCaml linking exception
+Authors:              Sylvain Le Gall
+Plugins:              VersionFile (0.1)
+XVersionFileFilename: myversion.ml
+
+Synopsis: Example of using an _oasis plugin (oasis-versionfile).

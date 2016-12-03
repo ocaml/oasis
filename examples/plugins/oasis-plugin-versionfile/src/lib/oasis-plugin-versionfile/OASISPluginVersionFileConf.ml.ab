@@ -1,0 +1,1 @@
+let version = OASISVersion.version_of_string "$(pkg_version)"

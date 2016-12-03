@@ -159,7 +159,7 @@ let pp_print_help ~ctxt hext hsty fmt () =
     let sz =
       (* Compute max size of the name. *)
       List.fold_left
-        (fun sz (nm, c) ->
+        (fun sz (nm, _) ->
            max sz (String.length nm))
         0 all_scmds
     in
@@ -320,6 +320,10 @@ let parse_and_run () =
 
   (* Common args. *)
   let ctxt_specs, ctxt_gen = fspecs () in
+  let ctxt_gen () =
+    {(ctxt_gen ()) with
+     OASISContext.load_oasis_plugin = CLIPluginLoader.load_oasis_plugin}
+  in
   (* Choose a command. *)
   let scmd = ref None in
   let scmd_args = ref [||] in

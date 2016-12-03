@@ -48,6 +48,7 @@ type t =
     ignore_unknown_fields: bool;
     printf:                level -> string -> unit;
     srcfs:                 source OASISFileSystem.fs;
+    load_oasis_plugin:     string -> bool;
   }
 
 
@@ -72,6 +73,7 @@ let default =
       ignore_unknown_fields = false;
       printf                = printf;
       srcfs                 = new OASISFileSystem.host_fs(Sys.getcwd ());
+      load_oasis_plugin     = (fun _ -> false);
     }
 
 

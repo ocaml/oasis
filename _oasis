@@ -198,7 +198,7 @@ Library cli
                     CLIArgExt,
                     CLICommon,
                     CLIPager
-  InternalModules:  CLIData, CLIPluginsLoaded
+  InternalModules:  CLIData, CLIPluginsLoaded, CLIPluginLoader
   CompiledObject:   byte
   BuildDepends:     oasis, oasis.base, plugin-loader
   FindlibParent:    oasis

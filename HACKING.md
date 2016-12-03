@@ -23,26 +23,29 @@ darcs).
 Creating plugins
 ================
 
-TODO: complete
-
 There are two kind of plugin:
 
- * command line plugins: they create subcommand for the command line interface
-   of `oasis`. For example, the subcommand `oasis install pkg_name` is provided
-   by the plugin `install`.
- * plugin that are used in `_oasis`: these plugins help to process the content
-   of an `_oasis` file. They generate additional content in `setup.ml` and so on.
-   You don''t have to load them, they will be automatically loaded when they are
-   found in the `_oasis` file. For example `Plugins: AutoGenerate (0.1)` in the
-   `_oasis` file will trigger the load of the plugin `autogenerate`.
+ * oasis command line plugins (oasis-cli): they create subcommand for the
+   command line interface of `oasis`. For example, the subcommand `oasis
+   print-hello` is provided by the plugin `print-hello`.
+   [Example](examples/plugins/oasis-plugin-print-hello)
+ * oasis plugins (oasis): they are used in `_oasis`: these plugins help to
+   process the content of an `_oasis` file and generates additional content in
+   the target package.
+   [Example](examples/plugins/oasis-plugin-versionfile),
+   [Example usage](examples/plugins/with-plugin-versionfile)
+
 
 `oasis`'s plugin system uses findlib to detect plugins, so you must install
 plugins as a standard OCaml library with a META file. OASIS detects plugins when
 they have a field `plugin_system = "oasis"` or `plugin_system = "oasis-cli"` in
 their META file.
 
-Plugins are loaded as needed. You can ignore plugins with the command line options
-`-ignore-plugins`.
+Plugins are loaded as needed. You can ignore plugins with the command line
+options `-ignore-plugins`. 'oasis' plugins are loaded if they appears in a
+plugin field of an `_oasis` file. 'oasis-cli' plugins iare loaded when you
+invoke their name on the command line.
+
 
 Cut a release
 =============

@@ -1,0 +1,23 @@
+OASISFormat: 0.4
+Name:        oasis-versionfile
+Version:     0.1.0
+License:     LGPL-2.1 with OCaml linking exception
+BuildType:   ocamlbuild (0.4)
+Authors:     Sylvain Le Gall
+Plugins:     META (0.4)
+BuildTools:  ocamlbuild
+FilesAB:     src/lib/oasis-plugin-versionfile/OASISPluginVersionFileConf.ml.ab
+
+Synopsis: Example for _oasis plugin, that creates a file with version
+
+Library "oasis-plugin-versionfile"
+  Path:             src/lib/oasis-plugin-versionfile
+  Modules:          OASISPluginVersionFile
+  InternalModules:  OASISPluginVersionFileGettext,
+                    OASISPluginVersionFileConf,
+                    OASISPluginVersionFileData
+  CompiledObject:   Best
+  BuildDepends:     oasis
+  XMETAExtraLines:  plugin_system = "oasis"
+                    plugin_name = "VersionFile"
+                    plugin_synopsis = "Create a file containing the version."
