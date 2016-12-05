@@ -66,8 +66,8 @@ let oasis_ctxt ?(ignore_plugin=false) test_ctxt =
           | `Debug -> (* TODO: output when OUnit will support debug. *) ())})
 
 
-let long = Conf.make_bool "long" true "Don't run long tests." 
-let skip_long_test ctxt = skip_if (not (long ctxt)) "Long test." 
+let long = Conf.make_bool "long" true "Don't run long tests."
+let skip_long_test ctxt = skip_if (not (long ctxt)) "Long test."
 
 let example_dir =
   let value =
@@ -255,10 +255,10 @@ let file_content fn =
 
 let dbug_file_content _ _ = ()
 
+(* TODO: re-enable when OUnit will discard it for JUnit.xml.
 let dbug_file_content test_ctxt fn =
   logf test_ctxt `Info "Content of %S:" fn;
   logf test_ctxt `Info "%s" (file_content fn)
-(* TODO: re-enable when OUnit will discard it for JUnit.xml.
  *)
 
 (* Start a timer for [str]. *)

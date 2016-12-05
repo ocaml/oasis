@@ -928,47 +928,61 @@ let standard_test test_ctxt t =
 let install_oasis_library test_ctxt t =
   let source_dir = source_dir test_ctxt in
   let in_source_dir = Filename.concat source_dir in
-  let oasis_files_to_install =
-    List.filter
-      Sys.file_exists
-      (List.flatten
-         (List.map
-            (fun (dn, lst) ->
-               List.map (fun fn -> in_source_dir (Filename.concat dn fn)) lst)
-            [
-              "_build/src/cli",
-              [
-                "CLISubCommand.cmi";
-                "cli.cma";
-              ];
-              "_build/src/oasis",
-              [
-                "OASISFeatures.cmi";
-                "OASISFileTemplate.cmi";
-                "OASISPackage.cmi";
-                "OASISPlugin.cmi";
-                "OASISSchema.cmi";
-                "OASISTypes.cmi";
-                "OASISUnixPath.cmi";
-                "OASISValues.cmi";
-                "OASISVersion.cmi";
-                "oasis.cma";
-              ];
-              "_build/src/base",
-              [
-                "base.cma"
-              ];
-            ]))
-  in
-  let file_set_before = all_files t.build_dir in
-  let file_set_after =
+  let ocamlfind_install nm meta files =
+    let files_to_install =
+      List.filter
+        Sys.file_exists
+        (List.flatten
+           (List.map
+              (fun (dn, lst) ->
+                 List.map (fun fn -> in_source_dir (Filename.concat dn fn)) lst)
+              files))
+    in
     assert_command_with_ocaml_env
       test_ctxt
       t
       "ocamlfind"
-      (["install"; "oasis"; in_source_dir "src/oasis/META";
-        "-destdir"; t.ocaml_lib_dir] @
-       oasis_files_to_install);
+      (["install"; nm; in_source_dir meta; "-destdir"; t.ocaml_lib_dir] @
+       files_to_install)
+  in
+  let file_set_before = all_files t.build_dir in
+  let file_set_after =
+    ocamlfind_install
+      "oasis"
+      "src/oasis/META"
+      [
+        "_build/src/cli",
+        [
+          "CLISubCommand.cmi";
+          "cli.cma";
+        ];
+        "_build/src/oasis",
+        [
+          "OASISFeatures.cmi";
+          "OASISFileTemplate.cmi";
+          "OASISPackage.cmi";
+          "OASISPlugin.cmi";
+          "OASISSchema.cmi";
+          "OASISTypes.cmi";
+          "OASISUnixPath.cmi";
+          "OASISValues.cmi";
+          "OASISVersion.cmi";
+          "oasis.cma";
+        ];
+        "_build/src/base",
+        [
+          "base.cma"
+        ];
+      ];
+    ocamlfind_install
+      "plugin-loader"
+      "src/ext/plugin-loader/src/META"
+      [
+        "_build/src/ext/plugin-loader/src",
+        [
+          "plugin-loader.cma"
+        ];
+      ];
     all_files t.build_dir
   in
   {t with
