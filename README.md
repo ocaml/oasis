@@ -3,7 +3,7 @@
 [![Join the chat at https://gitter.im/ocaml/oasis](https://badges.gitter.im/ocaml/oasis.svg)](https://gitter.im/ocaml/oasis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 <!--- OASIS_START --->
-<!--- DO NOT EDIT (digest: fb2776ec3ec716cd5a672655178412ac) --->
+<!--- DO NOT EDIT (digest: de21e1632d272229fc2f267253c6dfb6) --->
 
 oasis - Tooling for building OCaml libraries and applications
 =============================================================
@@ -27,7 +27,7 @@ configure/install scheme. Libraries are managed through findlib. It has been
 tested on GNU Linux and Windows.
 
 It also allows to have standard entry points and description. It helps to
-integrates your libraries and software with third parties tools like GODI.
+integrates your libraries and software with third parties tools like OPAM.
 
 See the file [INSTALL.md](INSTALL.md) for building and installation
 instructions.

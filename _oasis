@@ -41,7 +41,7 @@ Description:
   tested on GNU Linux and Windows.
   .
   It also allows to have standard entry points and description. It helps to
-  integrates your libraries and software with third parties tools like GODI.
+  integrates your libraries and software with third parties tools like OPAM.
 
 Flag libraries
   Description: Install OASIS and base libraries, for plugins development
