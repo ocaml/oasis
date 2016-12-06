@@ -144,7 +144,6 @@ deploy: headache doc-dist
 	  --forge_extra_file "dist/oasis-doc-$(shell oasis query version).tar.gz"
 	# TODO: create a plugin to send announcement.
 	# oasis announce
-	$(MAKE) build
 	admin-gallu-oasis-increment
 	./Main.native setup
 	$(MAKE) distclean
