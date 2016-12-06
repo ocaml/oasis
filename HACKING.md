@@ -57,12 +57,14 @@ Cut a release
   * git log 0.4.2..HEAD >> CHANGES.txt
   * Date, first entry must be "Version X.Y.Z".
   * Major/Minor changes.
+  * Features section.
   * Thanks section.
  * Create a [blog post][blog-post].
   * See the [blog post example][blog-post-example] for content
  * Create a [news on the forge][forge-post].
   * Subject: OASIS v0.4.2 release
   * Details: Read the full blog post here: URL of the blog post.
+ * Change version in `\_oasis`, drop the ~HEAD, rerun `oasis setup` and commit.
  * `make deploy`
  * Update Change Log in the Files section of forge:
   * Copy-paste last entry of CHANGES.txt, not including the first line

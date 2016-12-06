@@ -2,9 +2,56 @@
 
   * Version 0.4.8
 
-  * Minor changes:
+  * Major changes:
 
-  * Features:
+    * Fix various problems of parsing present in OASIS 0.4.7:
+      * Only issue a warning when extraneous blanks are present. (Closes: #1665)
+      * Fixes ocamlbuild plugin argument handling bug. (Closes: #1659)
+      * Re-add MyOCamlbuildBase.env_filename.
+      * Script to test reverse build depends (Closes: #1672).
+
+    * Enable creation of OASIS plugin and OASIS command line plugin:
+      * Add examples/plugins to demonstrate how to build plugins.
+      * Update HACKING.md.
+      * Ensure they work, using a test.
+
+    * Plugin "omake":
+      * Workaround for a problem in omake-0.9.8.6: variables accumulated
+        via foreach cannot be private.
+      * Passing the title string down to ocamldoc
+      * Fix compilation of pack-level mli's.
+      * Move definition of some variables in subdirectories to use them
+        correctly (OCAMLINCLUDES, OCAMLPACKS and a few others)
+
+    Thanks to Gerd Stolpmann for these contributions.
+
+    * Improve CI/tests:
+      * Split quickstart tests out of the main tests, because it fails too
+        often and often need to be disabled.
+      * Reorganize test/ directories.
+      * Use OCaml 4.04 for Travis-CI.
+      * Reorganize my CI scripts in src/tools/ci.
+      * Get rid of ardivink and switch to OPAM for travis and jenkins builders.
+
+    * Create 2 branches (opam/unstable and opam/testing) to provide pinning
+      capabilities to OPAM:
+      * It allows OPAM to track the development version of OASIS
+      * Update information in README.md
+      * Add a makefile target to allow to create opam/ in a local copy for
+        testing a locally hacked version of OASIS.
+      * Setup auto-generation of opam/unstable branch and auto-promotion of
+        opam/unstable to opam/testing when integration tests have succeeded.
+
+  * Minor changes:
+    * Quick hack to solve #1674 and allow to use flambda, upstream notified of
+      the problem. (Closes: #1674)
+    * Use OASISFormat 0.4 for OASIS itself:
+      * Use source_patterns feature to precisely locate .mlify files.
+      * Use markdown to generate standard files.
+      * Add BugReports to generated README in StdFiles.
+
+Thanks to Edwin Török, Yuri D. Lensky and Gerd Stolpmann for their
+contributions.
 
 2016-08-21  Sylvain Le Gall <sylvain AT le-gall.net>
 
@@ -779,4 +826,3 @@ Petter Urkedal, Gerd Stolpmann and Anton Bachin for their contributions.
 2010-04-08  Sylvain Le Gall <sylvain.le-gall AT ocamlcore.com>
 
  * Initial version 0.1.0
-
