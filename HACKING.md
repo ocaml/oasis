@@ -50,7 +50,8 @@ invoke their name on the command line.
 Cut a release
 =============
 
- * Check status on [Jenkins][jenkins].
+ * Check status on [Jenkins][jenkins], [Travis][travis] and
+   [AppVeyor][appveyor].
  * Run headache.
  * Update CHANGES.txt:
   * git log 0.4.2..HEAD >> CHANGES.txt
@@ -79,6 +80,8 @@ Cut a release
  * Send mail to caml-list, oasis-devel.
 
  [jenkins]: http://deci.ovh.le-gall.net:8080/job/ocaml-oasis/
+ [travis]: https://travis-ci.org/ocaml/oasis
+ [appveyor]: https://ci.appveyor.com/project/gildor478/oasis
  [blog-post]: https://le-gall.net/sylvain+violaine/blog/admin/posts.php
  [blog-post-example]: http://le-gall.net/sylvain+violaine/blog/index.php?post/2014/10/23/Release-of-OASIS-0.4.5
  [forge-post]: https://forge.ocamlcore.org/news/submit.php?group_id=54
