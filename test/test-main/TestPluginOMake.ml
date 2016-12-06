@@ -61,6 +61,7 @@ let all_tests =
 
     "complex",
     (fun test_ctxt t ->
+       skip_if true "Problem with omake 0.10.1";
        oasis_setup test_ctxt t;
        register_generated_files t
          (oasis_omake_files
