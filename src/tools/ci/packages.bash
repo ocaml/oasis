@@ -1,2 +1,12 @@
-OPAM_PKGS="base-bytes base-unix ocamlfind pcre expect fileutils ounit ocamlify
- ocamlmod omake benchmark camlp4"
+OPAM_PKGS="base-bytes
+ base-unix
+ 'ocamlfind>=1.3.1'
+ pcre
+ 'expect>=0.0.4'
+ 'fileutils>=0.4.2'
+ 'ounit>=2.0.0'
+ ocamlify
+ ocamlmod
+ 'omake.0.9.8.6-0.rc1'
+ 'benchmark>=1.2'
+ camlp4"
