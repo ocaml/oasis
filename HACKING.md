@@ -74,9 +74,9 @@ Cut a release
   * Check 'Preserve my pre-formatted text.'
   * Check the result.
  * Add new version to trackers ([Bugs][bugs-version]/[Patches][patches-version]).
- * Close all bugs in the CHANGES.txt on trackers ([1][bugs], [2][patches]).
  * Create an OPAM package using [oasis2opam][oasis2opam].
   * Use the URL of the uploaded tarball.
+ * Close all bugs in the CHANGES.txt on trackers ([1][bugs], [2][patches]).
  * Publish blog post with updated download links.
  * G+ announce as OASIS.
  * Reshare G+ post on OCaml community.
