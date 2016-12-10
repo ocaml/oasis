@@ -72,7 +72,7 @@ let () =
     (PluginLoader.list (CLIPluginLoader.plugin_cli_t ()))
 
 
-let register ?(usage=default_usage) ?(deprecated=false) nm synopsis help run =
+let register ?(usage=default_usage) ?(deprecated=false) nm ~synopsis ~help run =
   let merge_option opt txt =
     match opt with
       | Some txt -> txt

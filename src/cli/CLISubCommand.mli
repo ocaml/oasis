@@ -93,8 +93,8 @@ val register:
   ?usage:string ->
   ?deprecated:bool ->
   name ->
-  string ->
-  string ->
+  synopsis:string ->
+  help:string ->
   unit run_t ->
   unit
 

@@ -36,8 +36,8 @@ let main ~ctxt () =
 let () =
   CLISubCommand.register "version"
     ~usage:""
-    (s_ "Display the version of the OASIS program running")
-    CLIData.version_mkd
+    ~synopsis:(s_ "Display the version of the OASIS program running")
+    ~help:CLIData.version_mkd
     (CLISubCommand.make_run
        CLISubCommand.default_fspecs
        main)
