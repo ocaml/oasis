@@ -238,6 +238,11 @@ SourceRepository head
   Location: git://github.com/ocaml/oasis.git
   Browser: https://github.com/ocaml/oasis
 
+SourceRepository "opam-pin"
+  Type: git
+  Location: git://github.com/ocaml/oasis.git
+  Bracnh: opam/testing
+
 #
 # Tests.
 #
