@@ -50,8 +50,8 @@ let main ~ctxt scmd_name =
 
 let () =
   CLISubCommand.register "help"
-    (ns_ "Display help for a subcommand")
-    CLIData.help_mkd
+    ~synopsis:(ns_ "Display help for a subcommand")
+    ~help:CLIData.help_mkd
     ~usage:(ns_ "[subcommand|all]")
     (CLISubCommand.make_run
        (fun () ->

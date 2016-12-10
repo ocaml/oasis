@@ -149,8 +149,8 @@ let main ~ctxt:_ (queries, separator) _ pkg =
 let () =
   CLISubCommand.register "query"
     ~usage:(ns_ "[options*] query*")
-    (ns_ "Query an _oasis file")
-    CLIData.query_mkd
+    ~synopsis:(ns_ "Query an _oasis file")
+    ~help:CLIData.query_mkd
     (CLICommon.parse_oasis_fn
        (CLISubCommand.make_run
           (fun () ->

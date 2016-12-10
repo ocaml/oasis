@@ -26,14 +26,13 @@
 *)
 
 
-open CLISubCommand
 open OASISGettext
 
 let () =
   CLISubCommand.register "setup-dev"
     ~deprecated:true
-    (ns_ "Deprecated.")
-    CLIData.setup_dev_mkd
+    ~synopsis:(ns_ "Deprecated.")
+    ~help:CLIData.setup_dev_mkd
     (CLICommon.define_oasis_fn
        (CLISubCommand.make_run
           (fun () ->
