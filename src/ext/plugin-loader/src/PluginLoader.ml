@@ -159,6 +159,16 @@ let findfiles t package =
       (sprintf
          (f_ "Dependencies of %s: %s")
          package (String.concat ", " deps));
+    let fix_suffix =
+      List.rev_map
+        (fun fn ->
+           (* Replacing .cmx/.cmxa by .cmxs *)
+           if Filename.check_suffix fn "cmx" ||
+              Filename.check_suffix fn "cmxa" then
+             (Filename.chop_extension fn) ^ ".cmxs"
+           else
+             fn)
+    in
     let rec aux =
       function
         | [] -> []
@@ -168,21 +178,12 @@ let findfiles t package =
               let raw =
                 Findlib.package_property ("plugin" :: preds) a "archive"
               in
-              List.rev (rev_split_blank raw)
+              List.rev (fix_suffix (rev_split_blank raw))
             with Not_found ->
               begin
                 try
                   let raw = Findlib.package_property preds a "archive" in
-                  List.rev_map
-                    (fun fn ->
-                       (* Replacing .cmx/.cmxa by .cmxs *)
-                       if Dynlink.is_native &&
-                          (Filename.check_suffix fn "cmx" ||
-                           Filename.check_suffix fn "cmxa") then
-                         (Filename.chop_extension fn) ^ ".cmxs"
-                       else
-                         fn)
-                    (rev_split_blank raw)
+                  List.rev (fix_suffix (rev_split_blank raw))
                 with Not_found ->
                   begin
                     t.msg `Error
