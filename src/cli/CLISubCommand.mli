@@ -73,6 +73,8 @@ type t =
 
 val default_anon: Arg.anon_fun
 val default_fspecs: (unit -> cli_parsing_t * unit cli_parsing_post_t)
+(** Produces an empty list of specs.  See also {!OASISContext.fspecs} *)
+
 
 (** [make_run fspecs main] Create a [run_t] by combining argument parsing with
     the main function. The goal is to make [main] not use global variable and
