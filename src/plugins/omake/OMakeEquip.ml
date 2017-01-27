@@ -675,12 +675,15 @@ let inst_library ctx pkg map cs bs lib =
       | Some _ ->
         assert false in
   let modules =
-    List.map
-      (fun m0 ->
-         let m = fixup_module_case bs.bs_path m0 in
-         Literal m
-      )
-      lib.lib_modules in
+    if lib.lib_pack then
+      [ Expression "$(NAME)" ]
+    else
+      List.map
+        (fun m0 ->
+          let m = fixup_module_case bs.bs_path m0 in
+          Literal m
+        )
+        lib.lib_modules in
   let maybe_meta =
     if lib.lib_findlib_parent = None then [Literal "META"] else [] in
   let section =
