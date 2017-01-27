@@ -1,0 +1,28 @@
+OASISFormat: 0.4
+Name:        expomake
+Version:     0.0
+Synopsis:    Experimental omake reimplementation
+Authors:     Gerd Stolpmann
+License:     GPL
+BuildTools+: omake
+BuildType:   OMake (0.4)
+OCamlVersion: >= 4.01
+
+Library liba
+  Modules:                   Mod1
+  Path:                      liba
+  BuildDepends:              libb
+
+Library libb
+  Modules:                   Mod2
+  Path:                      libb
+
+Executable t
+  Path:                      .
+  MainIs:                    main.ml
+  BuildDepends:              liba
+
+# Crucial here with regard to the bug: t needs liba which needs libb.
+# Buggy versions of the omake plugin computed the deps of t as
+# "liba libb" (in alphabetical order), but the correct deps are "libb liba".
+# With the wrong deps, t cannot be linked.

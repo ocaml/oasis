@@ -107,6 +107,34 @@ let all_tests =
        try_installed_library test_ctxt t "libwithc" ["P"];
        try_installed_library test_ctxt t "packedlib" ["Packedlib"];
     );
+
+    "bug1736",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       register_generated_files t
+         (oasis_omake_files
+            ["liba"; "libb"]);
+       register_installed_files test_ctxt t
+         [
+           InstalledBin ["t"];
+           InstalledOCamlLibrary
+             ("liba",
+              ["META"; "mod1.cmx"; "mod1.cmi"; "mod1.cmt"; "mod1.ml";
+               "mod1.annot";
+               "liba.a"; "liba.cma"; "liba.cmxa"; "liba.cmxs"]);
+           InstalledOCamlLibrary
+             ("libb",
+              ["META"; "mod2.cmi"; "mod2.cmx"; "mod2.cmt"; "mod2.ml";
+               "mod2.annot";
+               "libb.a"; "libb.cma"; "libb.cmxa"; "libb.cmxs"]);
+         ];
+       (* Run standard test. *)
+       standard_test test_ctxt t;
+       (* Try the result. *)
+       try_installed_library test_ctxt t "liba" ["Mod1"];
+       try_installed_library test_ctxt t "libb" ["Mod2"];
+       try_installed_exec test_ctxt t "t" [];
+    );
   ]
 
 let gen_test (nm, f) =
@@ -154,6 +182,7 @@ let tests =
                assert_failure "Expecting no error during generation, got one."
            in
            generate ["simplelib"; "_oasis"];
+           generate ["bug1736"; "_oasis"];
            generate ~want_error:true ["noocamlversion.oasis"];
            generate ~want_error:true ["ocamlversion312.oasis"];
            generate ["ocamlversion401.oasis"];
