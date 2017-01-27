@@ -1,0 +1,15 @@
+OASISFormat: 0.4
+Name:        expomake
+Version:     0.0
+Synopsis:    Experimental omake reimplementation
+Authors:     Gerd Stolpmann
+License:     GPL
+BuildTools+: omake
+BuildType:   OMake (0.4)
+InstallType: OMake (0.4)
+OCamlVersion: >= 4.01
+
+Library liba
+  Pack:                      true
+  Modules:                   modules/Mod1
+  Path:                      liba

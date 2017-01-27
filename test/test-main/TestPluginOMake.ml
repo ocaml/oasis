@@ -107,6 +107,25 @@ let all_tests =
        try_installed_library test_ctxt t "libwithc" ["P"];
        try_installed_library test_ctxt t "packedlib" ["Packedlib"];
     );
+
+    "bug1737",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       register_generated_files t
+         (oasis_omake_files
+            ["liba"; "liba/modules" ]);
+       register_installed_files test_ctxt t
+         [
+           InstalledOCamlLibrary
+             ("liba",
+              ["META"; "liba.cmi"; "liba.cmx"; "liba.cmt";
+               "liba.a"; "liba.cma"; "liba.cmxa"; "liba.cmxs" ]);
+         ];
+       (* Run standard test. *)
+       standard_test test_ctxt t;
+       (* Try the result. *)
+       try_installed_library test_ctxt t "liba" ["Liba"];
+    );
   ]
 
 let gen_test (nm, f) =
