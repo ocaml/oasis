@@ -331,6 +331,20 @@ let get_lib_deps ?(transitive=false) ?(filter = fun _ -> true) pkg bs =
        bs.bs_build_depends
     )
 
+let get_sorted_trans_lib_deps pkg bs =
+  let sections =
+    OASISBuildSection.build_order pkg in
+  List.flatten
+    (List.map
+       (function
+        | Library(cs,_,_) ->
+            [rebase_lib pkg bs.bs_path cs.cs_name]
+        | _ ->
+            []
+       )
+       sections
+    )
+
 
 let lib_has_c_sources pkg sect_name =
   let sect =
@@ -903,7 +917,7 @@ let add_executable ctx pkg map cs bs exec =
   *)
   let exec_dir = new_dir bs.bs_path in
   let map = establish map exec_dir in
-  let trans_lib_deps = get_lib_deps ~transitive:true pkg bs in
+  let trans_lib_deps = get_sorted_trans_lib_deps pkg bs in
   let clib_deps =
     get_lib_deps
       ~transitive:true
@@ -938,7 +952,7 @@ let add_executable ctx pkg map cs bs exec =
       Set_array(false, "OCAML_LIBS",
         ( List.map
             (fun n -> Literal n)
-            (StrSet.elements trans_lib_deps)
+            trans_lib_deps
           @
             [gen_getvar "EXTRA_OCAML_LIBS"] ));
       Set_array(false, "C_SOURCES",
