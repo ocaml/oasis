@@ -117,13 +117,11 @@ if $(not $(defined OCAML_LIB_LIBRARY_SUFFIXES_BYTE))
     export
 
 if $(not $(defined OCAML_LIB_LIBRARY_SUFFIXES_NATIVE))
+    private.cmxs = $`(if $(CMXS_ENABLED), $(array .cmxs), $(array))
     OCAML_LIB_LIBRARY_SUFFIXES_NATIVE[] =
         .cmxa
         $(EXT_LIB)
-    if $(CMXS_ENABLED)
-        OCAML_LIB_LIBRARY_SUFFIXES_NATIVE[] +=
-            .cmxs
-        export
+        $(cmxs)
     export
 
 if $(not $(defined OCAML_LINK_CCLIB))
@@ -230,6 +228,15 @@ OASIS_destdir(path) =
         return $(absname $(dir $(oasis_destdir)/$(path)))
     else
         return $(absname $(dir $(path)))
+
+# OASIS also interprets the environment variable "destdir" when data files
+# are installed. IMHO this is really strange, but we simply duplicate the
+# behavior here.
+
+OASIS_data_destdir(path) =
+    if $(defined-env destdir)
+        return $(absname $(dir $(getenv destdir)/$(path)))
+    value $(OASIS_destdir $(path))
 
 # OASIS_getvar(v) gets the contents of the (array) variable named v, or
 # the empty array if it is not defined. If the variable NAME is defined
@@ -710,7 +717,7 @@ OASIS_install_OCamlLibrary(name, flname, add_to, files, opt_files) =
         install_OCamlLibrary($(flname), $(basename $(add_to)), $(files), $(opt_files))
 
 private.install_data(tag, src, dest) =
-    private.d = $(OASIS_destdir $(dest))
+    private.d = $(OASIS_data_destdir $(dest))
     Shell.mkdir(-p $(d))
     private.files = $(glob iF, $(src))
     foreach (file => ..., $(files))
@@ -772,7 +779,7 @@ OASIS_expand_file_Executable(name) =
         return $(name)
 
 private.install_Executable(name,src) =
-    private.d = $(OASIS_destdir $(oasis_bindir))
+    private.d = $(OASIS_data_destdir $(oasis_bindir))
     private.f = $(d)/$(basename $(name))
     Shell.mkdir(-p $(d))
     if $(test -d $(f))
@@ -784,7 +791,7 @@ private.install_Executable(name,src) =
     println($"Installed $(f)")
 
 private.uninstall_Executable(name) =
-    private.d = $(OASIS_destdir $(oasis_bindir))
+    private.d = $(OASIS_data_destdir $(oasis_bindir))
     if $(file-exists $(d)/$(basename $(name)))
         Shell.rm(-f $(d)/$(basename $(name)))
         println($"Removed $(d)/$(basename $(name))")

@@ -1,0 +1,4 @@
+archive(byte) = "liba.cma"
+archive(native) = "liba.cmxa"
+archive(native,plugin) = "liba.cmxs"
+

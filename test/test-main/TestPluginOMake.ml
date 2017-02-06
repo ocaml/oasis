@@ -61,6 +61,7 @@ let all_tests =
 
     "complex",
     (fun test_ctxt t ->
+       skip_if true "Still need some to work on details.";
        oasis_setup test_ctxt t;
        register_generated_files t
          (oasis_omake_files
@@ -133,6 +134,25 @@ let all_tests =
        try_installed_library test_ctxt t "liba" ["Mod1"];
        try_installed_library test_ctxt t "libb" ["Mod2"];
        try_installed_exec test_ctxt t "t" [];
+    );
+
+    "bug1737",
+    (fun test_ctxt t ->
+       oasis_setup test_ctxt t;
+       register_generated_files t
+         (oasis_omake_files
+            ["liba"; "liba/modules" ]);
+       register_installed_files test_ctxt t
+         [
+           InstalledOCamlLibrary
+             ("liba",
+              ["META"; "liba.cmi"; "liba.cmx"; "liba.cmt";
+               "liba.a"; "liba.cma"; "liba.cmxa"; "liba.cmxs" ]);
+         ];
+       (* Run standard test. *)
+       standard_test test_ctxt t;
+       (* Try the result. *)
+       try_installed_library test_ctxt t "liba" ["Liba"];
     );
   ]
 
