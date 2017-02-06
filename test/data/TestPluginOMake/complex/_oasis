@@ -7,6 +7,7 @@ Authors:      Gerd Stolpmann
 License:      LGPL with OCaml linking exception
 BuildTools:   omake
 BuildType:    OMake (0.4)
+InstallType:  OMake (0.4)
 Plugins:      META (0.4)
 
 Library liba

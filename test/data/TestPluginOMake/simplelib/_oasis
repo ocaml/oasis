@@ -10,6 +10,7 @@ License:      LGPL with OCaml linking exception
 BuildTools:   omake
 BuildType:    omake (0.4)
 BuildDepends: unix
+InstallType:  omake (0.4)
 
 Synopsis: Minimal ADT just to illustrate how libs work.
 Description:
