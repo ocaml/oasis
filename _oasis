@@ -15,8 +15,7 @@ Plugins:        DevFiles (0.4), StdFiles (0.4), META (0.4)
 FilesAB:        src/oasis/OASISConf.ml.ab
 BuildTools:     ocamlbuild, make
 AlphaFeatures:  source_patterns, stdfiles_markdown
-BugReports:
-  https://forge.ocamlcore.org/tracker/?func=add&group_id=54&atid=291
+BugReports:	https://github.com/ocaml/oasis/issues
 ImplementationPatterns+:
   ${module}.mlify
 
