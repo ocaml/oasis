@@ -201,7 +201,7 @@ let main ctxt pkg =
           Printf.bprintf buff
             "setup.exe: setup.ml%s\n\
              \tocamlfind ocamlopt -o $@%s setup.ml || ocamlfind ocamlc -o $@%s setup.ml || true\n\
-             \t$(RM) setup.cmi setup.cmo setup.cmx setup.o\n\n"
+             \t$(RM) setup.cmi setup.cmo setup.cmx setup.o setup.cmt\n\n"
             makefile_setup_deps packages packages;
         end;
         Buffer.add_string buff (".PHONY: "^(String.concat " " targets)^"\n");
@@ -226,7 +226,7 @@ let main ctxt pkg =
             Printf.sprintf
               "if [ ! -e setup.exe ] || [ _oasis -nt setup.exe ] || [ setup.ml -nt setup.exe ] || [ configure -nt setup.exe ]; then\n  \
                ocamlfind ocamlopt -o setup.exe%s setup.ml || ocamlfind ocamlc -o setup.exe%s setup.ml || exit 1\n  \
-               rm -f setup.cmi setup.cmo setup.cmx setup.o\n\
+               rm -f setup.cmi setup.cmo setup.cmx setup.o setup.cmt\n\
                fi\n\
                ./setup.exe -configure \"$@\""
               packages packages
