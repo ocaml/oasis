@@ -27,6 +27,7 @@ scratchpad. =
 
 ROOT = $(dir .)
 OASIS_empty_array[] =
+OASIS_empty_seq =
 
 if $(equal $(OSTYPE), Win32)
     OASIS_linefeed = $(unhexify 0d0a)
