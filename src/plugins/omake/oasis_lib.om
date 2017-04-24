@@ -536,6 +536,29 @@ OASIS_build_OCamlDoc(name,modules,texts) =
         .SUBDIRS: $(name).doc/latex
             LaTeXDocument($(name), $(name))
 
+# Inverse of basename/dirname: e.g.
+# $(OASIS_concat x y z, 1 2 3) yields x/1 y/2 z/3
+OASIS_concat2(seq1, seq2) =
+    if $(eq $(seq1.length), 0)
+        return $(OASIS_empty_seq)
+    else
+        private.h1 = $(seq1.nth 0)
+        private.h2 = $(seq2.nth 0)
+        private.r = $(h1)$(DIRSEP)$(h2)
+        return $(r) $(OASIS_concat2 $(seq1.nth-tl 1), $(seq2.nth-tl 1))
+
+# A version of set-diff that ignores the case of the first letter
+# of the basename
+OASIS_set_diff(set1, set2) =
+    private.dir2 = $(dirname $(set2))
+    private.base2 = $(basename $(set2))
+    private.base2_lc = $(uncapitalize $(base2))
+    private.base2_uc = $(capitalize $(base2))
+    private.set2_lc = $(OASIS_concat2 $(dir2), $(base2_lc))
+    private.set2_uc = $(OASIS_concat2 $(dir2), $(base2_uc))
+    private.set2_all = $(set2) $(set2_lc) $(set2_uc)
+    return $(set-diff $(set1), $(set2_all))
+
 
 OASIS_target_OCamlExecutable(name) =
     value $(name)
@@ -553,7 +576,7 @@ OASIS_build_OCamlExecutable(name,mainmodule,c_objects) =
         private.cmo_cmodeps = $(replacesuffixes .cmi, .cmo, $(cmi_cmodeps))
         private.all_cmadeps = $(dependencies-all $(cmafiles))
         private.cmo_cmadeps = $(filter %.cmo, $(all_cmadeps))
-        value $(set $(set-diff $(cmo_cmodeps), $(cmo_cmadeps)))
+        value $(set $(OASIS_set_diff $(cmo_cmodeps), $(cmo_cmadeps)))
 
     private.get_native_deps(cmxfile, cmxafiles) =
         private.all_cmxdeps = $(dependencies-all $(cmxfile))
@@ -561,7 +584,7 @@ OASIS_build_OCamlExecutable(name,mainmodule,c_objects) =
         private.cmx_cmxdeps = $(replacesuffixes .cmi, .cmx, $(cmi_cmxdeps))
         private.all_cmxadeps = $(dependencies-all $(cmxafiles))
         private.cmx_cmxadeps = $(filter %.cmx, $(all_cmxadeps))
-        value $(set $(set-diff $(cmx_cmxdeps), $(cmx_cmxadeps)))
+        value $(set $(OASIS_set_diff $(cmx_cmxdeps), $(cmx_cmxadeps)))
 
     private.CMOFILE   = $(addsuffix .cmo, $(mainmodule))
     private.CMXFILE   = $(addsuffix .cmx, $(mainmodule))
