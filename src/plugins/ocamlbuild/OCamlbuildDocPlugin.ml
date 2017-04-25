@@ -58,11 +58,10 @@ let doc_build ~ctxt run _ (cs, _) argv =
   run_ocamlbuild ~ctxt (index_html :: run.extra_args) argv;
   List.iter
     (fun glb ->
-       BaseBuilt.register
-         ~ctxt
-         BaseBuilt.BDoc
-         cs.cs_name
-         [OASISFileUtil.glob ~ctxt (Filename.concat tgt_dir glb)])
+       match OASISFileUtil.glob ~ctxt (Filename.concat tgt_dir glb) with
+         | [] -> ()
+         | filenames ->
+           BaseBuilt.register ~ctxt BaseBuilt.BDoc cs.cs_name [filenames])
     ["*.html"; "*.css"]
 
 
