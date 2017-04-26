@@ -59,9 +59,9 @@ let doc_build ~ctxt run _ (cs, _) argv =
   List.iter
     (fun glb ->
        match OASISFileUtil.glob ~ctxt (Filename.concat tgt_dir glb) with
-         | [] -> ()
-         | filenames ->
-           BaseBuilt.register ~ctxt BaseBuilt.BDoc cs.cs_name [filenames])
+       | (_ :: _) as filenames ->
+           BaseBuilt.register ~ctxt BaseBuilt.BDoc cs.cs_name [filenames]
+       | [] -> ())         
     ["*.html"; "*.css"]
 
 
