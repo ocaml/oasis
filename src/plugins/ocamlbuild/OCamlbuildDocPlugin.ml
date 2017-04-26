@@ -61,7 +61,7 @@ let doc_build ~ctxt run _ (cs, _) argv =
        match OASISFileUtil.glob ~ctxt (Filename.concat tgt_dir glb) with
        | (_ :: _) as filenames ->
            BaseBuilt.register ~ctxt BaseBuilt.BDoc cs.cs_name [filenames]
-       | [] -> ())         
+       | [] -> ())
     ["*.html"; "*.css"]
 
 
