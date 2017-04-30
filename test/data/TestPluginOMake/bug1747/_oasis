@@ -1,0 +1,28 @@
+OASISFormat: 0.4
+Name:        bug1747
+Version:     0.0
+Synopsis:    Only link libraries we depend on
+Authors:     Gerd Stolpmann
+License:     GPL
+BuildTools+: omake
+BuildType:   OMake (0.4)
+OCamlVersion: >= 4.01
+
+Library liba
+  Modules:                   Mod1
+  Path:                      liba
+  Build:                     true
+  CompiledObject:            byte
+  CCLib:                     -linvalid
+
+Executable t
+  Path:                      .
+  MainIs:                    main.ml
+  Build:                     true
+  CompiledObject:            byte
+
+# The point is here that "t" doesn't have any dependencies.
+# We also have a library liba which is broken, and cannot
+# be used (because of -linvalid), although the build is
+# expected to succeed.
+# The wrong behavior is that it is tried to link liba into t.
