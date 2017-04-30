@@ -14,12 +14,14 @@ Library liba
   Build:                     true
   CompiledObject:            byte
   CCLib:                     -linvalid
+  Install:                   false
 
 Executable t
   Path:                      .
   MainIs:                    main.ml
   Build:                     true
   CompiledObject:            byte
+  Install:                   true
 
 # The point is here that "t" doesn't have any dependencies.
 # We also have a library liba which is broken, and cannot
