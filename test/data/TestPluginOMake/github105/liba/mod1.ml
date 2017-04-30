@@ -1,0 +1,2 @@
+let number = 42
+

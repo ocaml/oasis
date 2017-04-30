@@ -1,0 +1,30 @@
+OASISFormat: 0.4
+Name:        github105
+Version:     0.0
+Synopsis:    Problem with case-insensitive filesystem
+Authors:     Gerd Stolpmann
+License:     GPL
+BuildTools+: omake
+BuildType:   OMake (0.4)
+OCamlVersion: >= 4.01
+
+Library liba
+  Modules:                   Mod1
+  Path:                      liba
+  Pack:                      true
+  Build:                     true
+  Install:                   false
+
+Library libb
+  Modules:                   Mod2
+  Path:                      libb
+  BuildDepends:              liba
+  Build:                     true
+  Install:                   false
+
+Executable t
+  Path:                      .
+  MainIs:                    main.ml
+  BuildDepends:              libb
+  Build:                     true
+  Install:                   true
