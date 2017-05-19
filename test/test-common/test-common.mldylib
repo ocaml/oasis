@@ -21,6 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 06915cfe2b8f9d1fc76e3feb7721fdf9)
+# DO NOT EDIT (digest: 85a207d4e9316f4a64b7d4c67c1167e5)
 TestCommon
+TestFullUtils
 # OASIS_STOP

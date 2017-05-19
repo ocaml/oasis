@@ -20,10 +20,11 @@
 #  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               #
 ################################################################################
 
-
+OMAKEFLAGS:=$(shell (command -v omake > /dev/null) && echo --enable-omake-tests)
 CONFIGUREFLAGS += --override ocamlbuildflags -classic-display \
                   --enable-tests \
-                  --enable-devel
+                  --enable-devel \
+									$(OMAKEFLAGS)
 
 default: test
 
