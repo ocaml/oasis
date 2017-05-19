@@ -331,14 +331,20 @@ let get_lib_deps ?(transitive=false) ?(filter = fun _ -> true) pkg bs =
        bs.bs_build_depends
     )
 
-let get_sorted_trans_lib_deps pkg bs =
+let get_sorted_trans_lib_deps pkg section bs =
+  let m =
+    OASISBuildSection.transitive_build_depends pkg in
+  let deps = OASISSection.MapSection.find section m in
   let sections =
     OASISBuildSection.build_order pkg in
   List.flatten
     (List.map
        (function
         | Library(cs,_,_) ->
-            [rebase_lib pkg bs.bs_path cs.cs_name]
+            if List.mem (InternalLibrary cs.cs_name) deps then
+              [rebase_lib pkg bs.bs_path cs.cs_name]
+            else
+              []
         | _ ->
             []
        )
@@ -920,7 +926,8 @@ let add_executable ctx pkg map cs bs exec =
   *)
   let exec_dir = new_dir bs.bs_path in
   let map = establish map exec_dir in
-  let trans_lib_deps = get_sorted_trans_lib_deps pkg bs in
+  let sect = Executable(cs,bs,exec) in
+  let trans_lib_deps = get_sorted_trans_lib_deps pkg sect bs in
   let clib_deps =
     get_lib_deps
       ~transitive:true
