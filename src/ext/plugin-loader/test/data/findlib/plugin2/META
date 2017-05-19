@@ -21,8 +21,8 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: b8c5ff1ed461f05d88a79f9005a5ca36)
-version = "0.4.9~HEAD"
+# DO NOT EDIT (digest: 004137f595dea335eef29da8f08ce470)
+version = "0.4.9"
 description = "test library number 2"
 requires = "pluginloaderLib plugin1"
 archive(byte) = "plugin2.cma"

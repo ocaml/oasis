@@ -1,3 +1,35 @@
+2017-05-20  Sylvain Le Gall <sylvain AT le-gall.net>
+
+  * Version 0.4.9
+
+  * Major changes:
+    * Plugin "omake":
+      * Use correctly sorted internal library deps for OCAML_LIBS
+        (Closes: #1736)
+      * Delay the interpretation of $(CMXS_ENABLED) for the install suffixes.
+        Also, take the environment variable "destdir" into account when
+        installing data files.
+      * Do not install the component modules of a packed library, but the
+        packed module. (Close: #1737)
+      * Solve ocamlmklib instability, re-enable test "OMake/Complex".
+        (Closes: #1739)
+      * Only link those libraries into executables that are really needed.
+        (Closes: #1747).
+      * Fix problems with the automatic addition of deps when building
+        executables on platforms with case-insensitive file system.
+      * Make OMake tests optional since it is complex to install OMake 0.10.2
+        with OPAM.
+
+  * Minor changes:
+    * Make sure --destdir is really used when installing (Closes: #107).
+    * Try to register only when a glob pattern matches at least one file (#102)
+    * Clean up setup.cmt after compiling setup.exe
+    * By default, use Github for bug reporting (Closes: #97)
+    * Simplify conditional expressions (Close: #95)
+    * Document CLISubCommand.register, CLISubCommand.default_fspecs
+
+Thanks to Gerd Stolpmann, Christophe Troestler and Deokhwan Kim.
+
 2016-12-06  Sylvain Le Gall <sylvain AT le-gall.net>
 
   * Version 0.4.8
