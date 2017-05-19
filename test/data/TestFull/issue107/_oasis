@@ -1,0 +1,13 @@
+OASISFormat: 0.4
+Name:        issue107
+Version:     0.0.1
+Authors:     Sylvain Le Gall
+LicenseFile: LICENSE
+License:     LGPL with OCaml linking exception
+Synopsis:    Minimal project in a single directory.
+Plugins:     META
+BuildTools:  ocamlbuild
+
+Executable "main"
+  Path: .
+  MainIs: main.ml

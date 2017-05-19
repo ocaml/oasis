@@ -118,17 +118,14 @@ let split_install_command ocamlfind findlib_name meta files =
 
 let install =
 
-  let in_destdir =
+  let in_destdir fn =
     try
-      let destdir =
-        destdir ()
-      in
-        (* Practically speaking destdir is prepended
-         * at the beginning of the target filename
-         *)
-        fun fn -> destdir^fn
+      (* Practically speaking destdir is prepended at the beginning of the
+         target filename
+      *)
+      (destdir ())^fn
     with PropList.Not_set _ ->
-      fun fn -> fn
+      fn
   in
 
   let install_file ~ctxt ?(prepend_destdir=true) ?tgt_fn src_file envdir =

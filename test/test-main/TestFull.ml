@@ -460,6 +460,15 @@ let all_tests =
             (hfs#string_of_filename setup_log)
             (hfs#string_of_filename setup_data))
          (hfs#file_exists setup_log && hfs#file_exists setup_data));
+
+    (* Use --destdir to install. *)
+    "issue107",
+    (fun test_ctxt t ->
+       let destdir = bracket_tmpdir test_ctxt in
+       oasis_setup test_ctxt t;
+       run_ocaml_setup_ml test_ctxt t ["-configure"; "--destdir"; destdir];
+       run_ocaml_setup_ml test_ctxt t ["-build"];
+       run_ocaml_setup_ml test_ctxt t ["-install"]);
   ]
 
 
