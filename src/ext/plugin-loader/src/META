@@ -21,8 +21,8 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 03f5dffb181512ff7f17cd2041a31509)
-version = "0.4.9"
+# DO NOT EDIT (digest: 719b76698fa68930c4ed962abe6a4efe)
+version = "0.4.10"
 description = "OCaml plugin management using findlib"
 requires = "dynlink findlib"
 archive(byte) = "plugin-loader.cma"
