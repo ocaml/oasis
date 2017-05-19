@@ -3,7 +3,7 @@
 [![Join the chat at https://gitter.im/ocaml/oasis](https://badges.gitter.im/ocaml/oasis.svg)](https://gitter.im/ocaml/oasis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 <!--- OASIS_START --->
-<!--- DO NOT EDIT (digest: 8be2567d6aecd3920aba27b9e6af320e) --->
+<!--- DO NOT EDIT (digest: fa5b2e44255b14951d927b0e054fa38f) --->
 
 oasis - Tooling for building OCaml libraries and applications
 =============================================================
@@ -34,8 +34,7 @@ instructions.
 
 [Home page](http://oasis.forge.ocamlcore.org/)
 
-[Bug
-reports](https://forge.ocamlcore.org/tracker/?func=add&group_id=54&atid=291)
+[Bug reports](https://github.com/ocaml/oasis/issues)
 
 Copyright and license
 ---------------------
