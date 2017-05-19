@@ -21,10 +21,10 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: a589a35df171b97bb983322a574e222b)
+# DO NOT EDIT (digest: 18eae78e9b2f3cdd6a422d47d6781f8d)
 version = "0.4.9~HEAD"
 description = "Tooling for building OCaml libraries and applications"
-requires = "oUnit oasis.base fileutils"
+requires = "oUnit oasis.base fileutils pcre"
 archive(byte) = "test-common.cma"
 archive(byte, plugin) = "test-common.cma"
 archive(native) = "test-common.cmxa"

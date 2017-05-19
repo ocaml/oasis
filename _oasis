@@ -252,11 +252,11 @@ SourceRepository "opam-pin"
 
 Library "test-common"
   Path: test/test-common
-  Modules: TestCommon
+  Modules: TestCommon, TestFullUtils
   Install: false
   CompiledObject: best
   Build$: flag(tests)
-  BuildDepends: oUnit (>= 2.0.0), oasis.base, fileutils
+  BuildDepends: oUnit (>= 2.0.0), oasis.base, fileutils, pcre
 
 Executable "fake-ocamlfind"
   Path: test/fake-ocamlfind
@@ -273,7 +273,7 @@ Executable "test-main"
   CompiledObject: best
   Build$: flag(tests)
   BuildDepends: oUnit (>= 2.0.0), findlib, fileutils (>= 0.4.2), oasis,
-                oasis.base, oasis.builtin-plugins, pcre, test-common
+                oasis.base, oasis.builtin-plugins, test-common
 
 Test main
   Type: custom (0.4)
@@ -290,7 +290,7 @@ Executable "test-omake"
   CompiledObject: best
   Build$: flag(tests) && flag(omake_tests)
   BuildDepends: oUnit (>= 2.0.0), findlib, fileutils (>= 0.4.2), oasis,
-                oasis.base, oasis.builtin-plugins, pcre, test-common
+                oasis.base, oasis.builtin-plugins, test-common
 
 Test omake
   Type: custom (0.4)

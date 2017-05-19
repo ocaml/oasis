@@ -1,5 +1,5 @@
 <!--- OASIS_START --->
-<!--- DO NOT EDIT (digest: 3bab5d217436ddf31eb571790aae621a) --->
+<!--- DO NOT EDIT (digest: 8af393b76f3083745948e886d6884fe0) --->
 
 This is the INSTALL file for the oasis distribution.
 
@@ -24,8 +24,8 @@ In order to compile this package, you will need:
 * fileutils (>= 0.4.2) for library test-common, executable dist,
   executable oasis-dist, executable test-main, executable test-omake,
   executable test-quickstart, executable test_loader
-* pcre for executable guess-cmx, executable oasis-announce,
-  executable test-main, executable test-omake
+* pcre for library test-common, executable guess-cmx,
+  executable oasis-announce
 * expect (>= 0.0.4) for executable test-quickstart
 * benchmark (>= 1.2) for executable bench
 * omake for test omake

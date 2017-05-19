@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: a96955166e3b92bbb85295cdfe09ebe3)
+# DO NOT EDIT (digest: 7e64f0d530b31d1a1acf7cd3df5abd78)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -92,6 +92,7 @@ true: annot, bin_annot
 "test/test-common/test-common.cmxs": use_test-common
 <test/test-common/*.ml{,i,y}>: package(fileutils)
 <test/test-common/*.ml{,i,y}>: package(oUnit)
+<test/test-common/*.ml{,i,y}>: package(pcre)
 <test/test-common/*.ml{,i,y}>: package(unix)
 <test/test-common/*.ml{,i,y}>: use_base
 <test/test-common/*.ml{,i,y}>: use_oasis
@@ -146,6 +147,7 @@ true: annot, bin_annot
 <test/test-quickstart/TestQuickstart.{native,byte}>: package(findlib)
 <test/test-quickstart/TestQuickstart.{native,byte}>: package(oUnit)
 <test/test-quickstart/TestQuickstart.{native,byte}>: package(ocamlbuild)
+<test/test-quickstart/TestQuickstart.{native,byte}>: package(pcre)
 <test/test-quickstart/TestQuickstart.{native,byte}>: package(unix)
 <test/test-quickstart/TestQuickstart.{native,byte}>: use_base
 <test/test-quickstart/TestQuickstart.{native,byte}>: use_builtin-plugins
@@ -156,6 +158,7 @@ true: annot, bin_annot
 <test/test-quickstart/*.ml{,i,y}>: package(findlib)
 <test/test-quickstart/*.ml{,i,y}>: package(oUnit)
 <test/test-quickstart/*.ml{,i,y}>: package(ocamlbuild)
+<test/test-quickstart/*.ml{,i,y}>: package(pcre)
 <test/test-quickstart/*.ml{,i,y}>: package(unix)
 <test/test-quickstart/*.ml{,i,y}>: use_base
 <test/test-quickstart/*.ml{,i,y}>: use_builtin-plugins

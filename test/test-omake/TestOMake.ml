@@ -40,4 +40,3 @@ let () =
          (* Keep sorted. *)
          TestPluginOMake.tests;
        ]);
-      extract_timings ()

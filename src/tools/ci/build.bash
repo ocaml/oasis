@@ -29,7 +29,7 @@ ocaml setup.ml -distclean
 ocaml setup.ml -configure \
   --enable-tests \
   --enable-devel \
-  --enable-tests-omake \
+  --enable-omake-tests \
   ${CONFIGURE_ARGS}
 ocaml setup.ml -build
 ocaml setup.ml -test ${TEST_ARGS}
