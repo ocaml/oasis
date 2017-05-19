@@ -73,10 +73,10 @@ Cut a release
   * Don''t Merge lines of para.
   * Check 'Preserve my pre-formatted text.'
   * Check the result.
- * Add new version to trackers ([Bugs][bugs-version]/[Patches][patches-version]).
+ * Add new version to trackers ([Bugs][bugs-version]/[Pull request][pull-version]).
  * Create an OPAM package using [oasis2opam][oasis2opam].
   * Use the URL of the uploaded tarball.
- * Close all bugs in the CHANGES.txt on trackers ([1][bugs], [2][patches]).
+ * Close all bugs in the CHANGES.txt on trackers ([1][bugs]).
  * Publish blog post with updated download links.
  * G+ announce as OASIS.
  * Reshare G+ post on OCaml community.
@@ -88,10 +88,9 @@ Cut a release
  [blog-post]: https://le-gall.net/sylvain+violaine/blog/admin/posts.php
  [blog-post-example]: http://le-gall.net/sylvain+violaine/blog/index.php?post/2014/10/23/Release-of-OASIS-0.4.5
  [forge-post]: https://forge.ocamlcore.org/news/submit.php?group_id=54
- [bugs-version]: https://forge.ocamlcore.org/tracker/admin/index.php?add_opt=1&boxid=995&group_id=54&atid=291
- [patches-version]: https://forge.ocamlcore.org/tracker/admin/index.php?add_opt=1&boxid=1007&group_id=54&atid=293
- [bugs]: https://forge.ocamlcore.org/tracker/?atid=291&group_id=54&func=browse
- [patches]: https://forge.ocamlcore.org/tracker/?atid=293&group_id=54&func=browse
+ [bugs-version]: https://github.com/ocaml/oasis/issues/new
+ [pull-version]: https://github.com/ocaml/oasis/pulls
+ [bugs]: https://github.com/ocaml/oasis/issues
  [oasis2opam]: https://github.com/ocaml/oasis2opam
 
 

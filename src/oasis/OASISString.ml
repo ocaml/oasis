@@ -103,10 +103,7 @@ let starts_with ~what ?(offset=0) str =
       ok := false;
     incr str_idx
   done;
-  if !what_idx = String.length what then
-    true
-  else
-    false
+  !what_idx = String.length what
 
 
 let strip_starts_with ~what str =
@@ -129,10 +126,7 @@ let ends_with ~what ?(offset=0) str =
       ok := false;
     decr str_idx
   done;
-  if !what_idx = -1 then
-    true
-  else
-    false
+  !what_idx = -1
 
 
 let strip_ends_with ~what str =
