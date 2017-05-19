@@ -54,28 +54,28 @@ Cut a release
    [AppVeyor][appveyor].
  * Run headache.
  * Update CHANGES.txt:
-  * git log 0.4.2..HEAD >> CHANGES.txt
-  * Date, first entry must be "Version X.Y.Z".
-  * Major/Minor changes.
-  * Features section.
-  * Thanks section.
+   * git log 0.4.2..HEAD >> CHANGES.txt
+   * Date, first entry must be "Version X.Y.Z".
+   * Major/Minor changes.
+   * Features section.
+   * Thanks section.
  * Create a [blog post][blog-post].
-  * See the [blog post example][blog-post-example] for content
+   * See the [blog post example][blog-post-example] for content
  * Create a [news on the forge][forge-post].
-  * Subject: OASIS v0.4.2 release
-  * Details: Read the full blog post here: URL of the blog post.
+   * Subject: OASIS v0.4.2 release
+   * Details: Read the full blog post here: URL of the blog post.
  * Change version in `\_oasis`, drop the ~HEAD, rerun `oasis setup` and commit.
  * `make deploy`
  * Make sure the new version is X.Y.Z~HEAD and maybe rerun update.
  * Update Change Log in the Files section of forge:
-  * Copy-paste last entry of CHANGES.txt, not including the first line
-    (date...).
-  * Don''t Merge lines of para.
-  * Check 'Preserve my pre-formatted text.'
-  * Check the result.
+   * Copy-paste last entry of CHANGES.txt, not including the first line
+     (date...).
+   * Don''t Merge lines of para.
+   * Check 'Preserve my pre-formatted text.'
+   * Check the result.
  * Add new version to trackers ([Bugs][bugs-version]/[Pull request][pull-version]).
  * Create an OPAM package using [oasis2opam][oasis2opam].
-  * Use the URL of the uploaded tarball.
+   * Use the URL of the uploaded tarball.
  * Close all bugs in the CHANGES.txt on trackers ([1][bugs]).
  * Publish blog post with updated download links.
  * G+ announce as OASIS.
@@ -102,19 +102,19 @@ the minimum required version of our dependencies. Here are some policies, to
 determine what version of a dependency we should require:
 
  * For generated setup.ml:
-  * No deps (standalone) except OCaml
-  * OCaml version must be at least the one in Debian stable.
+   * No deps (standalone) except OCaml
+   * OCaml version must be at least the one in Debian stable.
  * For generated files (e.g. myocamlbuild.ml):
-  * Version of the target in Debian stable or that matches the constraint
-    expressed in `_oasis`. E.g. if OCamlVersion: >= 4.01, we can generate
-    myocamlbuild.ml for this specific version because the constraint will be
-    checked at configure time.
+   * Version of the target in Debian stable or that matches the constraint
+     expressed in `_oasis`. E.g. if OCamlVersion: >= 4.01, we can generate
+     myocamlbuild.ml for this specific version because the constraint will be
+     checked at configure time.
  * For the OASIS sources:
-  * OCaml version in Debian stable.
-  * All deps must be in Debian stable.
-  * Exception for related projects: ocamlmod, ocamlify, ocaml-data-notation
+   * OCaml version in Debian stable.
+   * All deps must be in Debian stable.
+   * Exception for related projects: ocamlmod, ocamlify, ocaml-data-notation
  * For the OASIS tests:
-  * Version published, no strong requirement since tests can be disabled.
+   * Version published, no strong requirement since tests can be disabled.
 
 
 Backwards compatibility
