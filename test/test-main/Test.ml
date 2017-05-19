@@ -118,7 +118,6 @@ let () =
          TestPluginInternal.tests;
          TestPluginMETA.tests;
          TestPluginOCamlbuild.tests;
-         TestPluginOMake.tests;
          TestPluginStdFiles.tests;
          TestPropList.tests;
          TestQuery.tests;

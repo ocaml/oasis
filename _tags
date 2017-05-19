@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 3bfa7299a6f0c46ebec8384021c62c27)
+# DO NOT EDIT (digest: a96955166e3b92bbb85295cdfe09ebe3)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -119,6 +119,27 @@ true: annot, bin_annot
 <test/test-main/*.ml{,i,y}>: use_builtin-plugins
 <test/test-main/*.ml{,i,y}>: use_oasis
 <test/test-main/*.ml{,i,y}>: use_test-common
+# Executable test-omake
+<test/test-omake/TestOMake.{native,byte}>: package(fileutils)
+<test/test-omake/TestOMake.{native,byte}>: package(findlib)
+<test/test-omake/TestOMake.{native,byte}>: package(oUnit)
+<test/test-omake/TestOMake.{native,byte}>: package(ocamlbuild)
+<test/test-omake/TestOMake.{native,byte}>: package(pcre)
+<test/test-omake/TestOMake.{native,byte}>: package(unix)
+<test/test-omake/TestOMake.{native,byte}>: use_base
+<test/test-omake/TestOMake.{native,byte}>: use_builtin-plugins
+<test/test-omake/TestOMake.{native,byte}>: use_oasis
+<test/test-omake/TestOMake.{native,byte}>: use_test-common
+<test/test-omake/*.ml{,i,y}>: package(fileutils)
+<test/test-omake/*.ml{,i,y}>: package(findlib)
+<test/test-omake/*.ml{,i,y}>: package(oUnit)
+<test/test-omake/*.ml{,i,y}>: package(ocamlbuild)
+<test/test-omake/*.ml{,i,y}>: package(pcre)
+<test/test-omake/*.ml{,i,y}>: package(unix)
+<test/test-omake/*.ml{,i,y}>: use_base
+<test/test-omake/*.ml{,i,y}>: use_builtin-plugins
+<test/test-omake/*.ml{,i,y}>: use_oasis
+<test/test-omake/*.ml{,i,y}>: use_test-common
 # Executable test-quickstart
 <test/test-quickstart/TestQuickstart.{native,byte}>: package(expect.pcre)
 <test/test-quickstart/TestQuickstart.{native,byte}>: package(fileutils)

@@ -1,5 +1,5 @@
 <!--- OASIS_START --->
-<!--- DO NOT EDIT (digest: 2088e4d677634aa80f6e8d1a97ca7686) --->
+<!--- DO NOT EDIT (digest: 3bab5d217436ddf31eb571790aae621a) --->
 
 This is the INSTALL file for the oasis distribution.
 
@@ -11,24 +11,24 @@ Dependencies
 
 In order to compile this package, you will need:
 
-* ocaml (>= 3.12.1) for all, test main, test main_loader, test quickstart,
-  doc api-oasis, doc manual
+* ocaml (>= 3.12.1) for all, test main, test main_loader, test omake,
+  test quickstart, doc api-oasis, doc manual
 * findlib (>= 1.3.1)
-* make for all, test main, test main_loader, test quickstart, doc api-oasis,
-  doc manual
-* ocamlmod for library base, library oasis, test main, test quickstart
+* make for all, test main, test main_loader, test omake, test quickstart,
+  doc api-oasis, doc manual
+* ocamlmod for library base, library oasis, test main, test omake
 * ocamlify for library base, library oasis
 * ocamlbuild for library builtin-plugins
 * oUnit (>= 2.0.0) for library test-common, executable test-main,
-  executable test-quickstart, executable test_loader
+  executable test-omake, executable test-quickstart, executable test_loader
 * fileutils (>= 0.4.2) for library test-common, executable dist,
-  executable oasis-dist, executable test-main, executable test-quickstart,
-  executable test_loader
+  executable oasis-dist, executable test-main, executable test-omake,
+  executable test-quickstart, executable test_loader
 * pcre for executable guess-cmx, executable oasis-announce,
-  executable test-main
+  executable test-main, executable test-omake
 * expect (>= 0.0.4) for executable test-quickstart
 * benchmark (>= 1.2) for executable bench
-* omake for test main, test quickstart
+* omake for test omake
 
 Installing
 ==========

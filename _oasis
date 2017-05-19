@@ -54,6 +54,10 @@ Flag quickstart_tests
   Description: Build test-quickstart
   Default: true
 
+Flag omake_tests
+  Description: Build test-omake
+  Default: false
+
 Library oasis
   Path: src/oasis
   Modules: FormatExt,
@@ -278,8 +282,25 @@ Test main
     -native-dynlink $native_dynlink -ocamlmod $ocamlmod \
     -fake-ocamlfind $fake_ocamlfind
   WorkingDirectory: test
-  TestTools: oasis, test-main, ocamlmod, fake-ocamlfind, omake, ocamlbuild,
-             camlp4
+  TestTools: oasis, test-main, ocamlmod, fake-ocamlfind, ocamlbuild, camlp4
+
+Executable "test-omake"
+  Path: test/test-omake
+  MainIs: TestOMake.ml
+  Install: false
+  CompiledObject: best
+  Build$: flag(tests) && flag(omake_tests)
+  BuildDepends: oUnit (>= 2.0.0), findlib, fileutils (>= 0.4.2), oasis,
+                oasis.base, oasis.builtin-plugins, pcre, test-common
+
+Test omake
+  Type: custom (0.4)
+  Command: $test_omake -oasis $oasis -is-native $is_native \
+    -native-dynlink $native_dynlink -ocamlmod $ocamlmod \
+    -fake-ocamlfind $fake_ocamlfind
+  WorkingDirectory: test
+  Run$: flag(omake_tests)
+  TestTools: oasis, test-omake, ocamlmod, fake-ocamlfind, omake, camlp4
 
 Executable "test-quickstart"
   Path: test/test-quickstart
@@ -298,7 +319,7 @@ Test quickstart
     -fake-ocamlfind $fake_ocamlfind
   WorkingDirectory: test
   Run$: flag(quickstart_tests)
-  TestTools: oasis, test-quickstart, ocamlmod, fake-ocamlfind, omake, ocamlbuild
+  TestTools: oasis, test-quickstart
 
 #
 # Tools.
