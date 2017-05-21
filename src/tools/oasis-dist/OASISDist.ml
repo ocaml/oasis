@@ -26,8 +26,8 @@ open OASISTypes
 open OASISUtils
 
 
-let run ?f_exit_code prg args =
-  OASISExec.run ~ctxt:!BaseContext.default ?f_exit_code prg args
+let run ~ctxt ?f_exit_code prg args =
+  OASISExec.run ~ctxt ?f_exit_code prg args
 
 
 let with_tmpdir f =
@@ -47,19 +47,41 @@ let with_tmpdir f =
     raise e
 
 
-let update_oasis_in_tarball fn topdir =
+let run_oasis_setup_in_tarball ~ctxt fn topdir =
   with_tmpdir
     (fun dn ->
-       run "tar" ["-C"; dn; "-xzf"; fn];
-       run "oasis" ["-C"; Filename.concat dn topdir; "setup"];
-       run "tar" ["-C"; dn; "-czf"; fn; topdir])
+       let () = run ~ctxt "tar" ["-C"; dn; "-xzf"; fn] in
+       let dn_topdir = Filename.concat dn topdir in
+       let pkg =
+         OASISParse.from_file ~ctxt
+           (Filename.concat dn_topdir OASISParse.default_oasis_fn)
+       in
+       let cur_pwd = Sys.getcwd () in
+       let () =
+         try
+           let _chngs: OASISFileTemplate.file_generate_change list =
+             Sys.chdir dn_topdir;
+             BaseGenerate.generate
+               ~ctxt
+               ~setup_fn:BaseSetup.default_filename
+               ~backup:false
+               ~restore:false
+               OASISSetupUpdate.NoUpdate
+               pkg
+           in
+           Sys.chdir cur_pwd
+         with e ->
+           Sys.chdir cur_pwd;
+           raise e
+       in
+       run ~ctxt "tar" ["-C"; dn; "-czf"; fn; topdir])
 
 
 class virtual vcs =
   object
-    method check_uncommited_changes = true
+    method virtual check_uncommited_changes: bool
 
-    method list_tags: string list = []
+    method virtual list_tags: string list
 
     method virtual dist: string -> host_filename -> unit
 
@@ -67,17 +89,16 @@ class virtual vcs =
   end
 
 
-class svn ~ctxt =
+class svn ctxt =
   object
     inherit vcs
 
+    val ctxt = ctxt
+
     method check_uncommited_changes =
-      match OASISExec.run_read_output ~ctxt:!BaseContext.default
-              "svn" ["status"] with
-        | [] ->
-          true
-        | lst ->
-          false
+      match OASISExec.run_read_output ~ctxt "svn" ["status"] with
+      | [] -> true
+      | _ -> false
 
     method dist topdir tarball =
       with_tmpdir
@@ -86,27 +107,26 @@ class svn ~ctxt =
              Filename.concat dir topdir
            in
            let cur_pwd = Sys.getcwd () in
-           run "svn" ["export"; cur_pwd; tgt];
-           run "tar" ["-C"; dir; "-czf"; tarball; topdir])
+           run ~ctxt "svn" ["export"; cur_pwd; tgt];
+           run ~ctxt "tar" ["-C"; dir; "-czf"; tarball; topdir])
 
-    method tag ver =
-      warning ~ctxt "No tag method"
+    method tag _ = warning ~ctxt "No tag method"
+    method list_tags = []
   end
 
 
 (* TODO: check file permissions +x for darcs *)
-class darcs ~ctxt =
+class darcs ctxt =
   object
     inherit vcs
 
     val ctxt = ctxt
 
     method check_uncommited_changes =
-      let ok =
-        ref false
-      in
+      let ok = ref false in
       (* Check that everything is commited *)
       run
+        ~ctxt
         ~f_exit_code:
           (function
             | 1 ->
@@ -121,50 +141,49 @@ class darcs ~ctxt =
       !ok
 
     method list_tags =
-      OASISExec.run_read_output ~ctxt:!BaseContext.default
+      OASISExec.run_read_output ~ctxt
         "darcs" ["show"; "tags"]
 
     method dist topdir tarball =
       (* Create the tarball *)
-      run "darcs" ["dist"; "--dist-name"; topdir];
+      run ~ctxt "darcs" ["dist"; "--dist-name"; topdir];
       Sys.rename (topdir^".tar.gz") tarball
 
     method tag ver =
-      run "darcs" ["tag"; ver]
+      run ~ctxt "darcs" ["tag"; ver]
   end
 
 
-class git ~ctxt =
+class git ctxt =
   object
     inherit vcs
 
+    val ctxt = ctxt
+
     method check_uncommited_changes =
-      match OASISExec.run_read_output ~ctxt:!BaseContext.default
+      match OASISExec.run_read_output ~ctxt
               "git" ["status"; "--porcelain"] with
-        | [] ->
-          true
-        | _ ->
-          false
+        | [] -> true
+        | _  -> false
 
     method list_tags =
-      OASISExec.run_read_output ~ctxt:!BaseContext.default "git" ["tag"]
+      OASISExec.run_read_output ~ctxt "git" ["tag"]
 
     method dist topdir tarball =
       let tarfn =
         Filename.chop_extension tarball
       in
-      run
+      run ~ctxt
         "git"
         ["archive"; "--prefix";  (Filename.concat topdir "");
          "--format"; "tar"; "HEAD"; "-o"; tarfn];
-      run "gzip" [tarfn]
+      run ~ctxt "gzip" [tarfn]
 
-    method tag ver =
-      run "git" ["tag"; ver]
+    method tag ver = run ~ctxt "git" ["tag"; ver]
   end
 
 
-class no_vcs ~ctxt =
+class no_vcs ctxt =
   object
     inherit vcs
 
@@ -181,17 +200,18 @@ class no_vcs ~ctxt =
            begin
              try
                Sys.chdir tgt;
-               run "ocaml" ["setup.ml"; "-distclean"];
+               run ~ctxt "ocaml" ["setup.ml"; "-distclean"];
                Sys.chdir dir;
-               run "tar" ["czf"; tarball; topdir];
+               run ~ctxt "tar" ["czf"; tarball; topdir];
                Sys.chdir cur_pwd;
              with e ->
                Sys.chdir cur_pwd;
                raise e
            end)
 
-    method tag ver =
-      warning ~ctxt "No tag method"
+    method tag _ = warning ~ctxt "No tag method"
+    method check_uncommited_changes = false
+    method list_tags = []
   end
 
 
@@ -248,7 +268,7 @@ let () =
     try
       snd
         (List.find
-           (fun (f, res) -> f ())
+           (fun (f, _) -> f ())
            [
              test_dir "_darcs", new darcs ctxt;
              test_dir ".git",   new git ctxt;
@@ -268,14 +288,14 @@ let () =
   vcs#dist topdir tarball;
 
   (* Run "oasis setup" *)
-  update_oasis_in_tarball tarball topdir;
+  run_oasis_setup_in_tarball ~ctxt tarball topdir;
 
   (* Check that the tarball can build *)
   with_tmpdir
     (fun dir ->
        let pwd = Sys.getcwd () in
        (* Uncompress tarball in tmpdir *)
-       run "tar" ["xz"; "-C"; dir; "-f"; tarball];
+       run ~ctxt "tar" ["xz"; "-C"; dir; "-f"; tarball];
 
        Sys.chdir dir;
        Sys.chdir topdir;
@@ -295,7 +315,7 @@ let () =
          let () =
            if !build then
              (* Check that build, test, doc run smoothly *)
-             run "ocaml" ["setup.ml"; "-all"]
+             run ~ctxt "ocaml" ["setup.ml"; "-all"]
          in
 
          let () =
@@ -358,6 +378,7 @@ let () =
 
   if !sign then
     run
+      ~ctxt
       ~f_exit_code:
         (fun i ->
            if i <> 0 then

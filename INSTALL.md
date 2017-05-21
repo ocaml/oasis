@@ -1,5 +1,5 @@
 <!--- OASIS_START --->
-<!--- DO NOT EDIT (digest: 8af393b76f3083745948e886d6884fe0) --->
+<!--- DO NOT EDIT (digest: c57b2b17938908b5fb508b9f87e4ed5b) --->
 
 This is the INSTALL file for the oasis distribution.
 
@@ -11,16 +11,17 @@ Dependencies
 
 In order to compile this package, you will need:
 
-* ocaml (>= 3.12.1) for all, test main, test main_loader, test omake,
-  test quickstart, doc api-oasis, doc manual
+* ocaml (>= 3.12.1) for all, test devel, test main, test main_loader,
+  test omake, test quickstart, doc api-oasis, doc manual
 * findlib (>= 1.3.1)
-* make for all, test main, test main_loader, test omake, test quickstart,
-  doc api-oasis, doc manual
+* make for all, test devel, test main, test main_loader, test omake,
+  test quickstart, doc api-oasis, doc manual
 * ocamlmod for library base, library oasis, test main, test omake
 * ocamlify for library base, library oasis
 * ocamlbuild for library builtin-plugins
-* oUnit (>= 2.0.0) for library test-common, executable test-main,
-  executable test-omake, executable test-quickstart, executable test_loader
+* oUnit (>= 2.0.0) for library test-common, executable test-devel,
+  executable test-main, executable test-omake, executable test-quickstart,
+  executable test_loader
 * fileutils (>= 0.4.2) for library test-common, executable dist,
   executable oasis-dist, executable test-main, executable test-omake,
   executable test-quickstart, executable test_loader

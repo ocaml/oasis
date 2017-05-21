@@ -24,6 +24,7 @@ OMAKEFLAGS:=$(shell (command -v omake > /dev/null) && echo --enable-omake-tests)
 CONFIGUREFLAGS += --override ocamlbuildflags -classic-display \
                   --enable-tests \
                   --enable-devel \
+									--enable-devel-tests \
 									$(OMAKEFLAGS)
 
 default: test
@@ -140,9 +141,10 @@ deploy: headache doc-dist
 	# TODO: create a plugin to create documentation.
 	# oasis doc-dist
 	mkdir dist || true
-	admin-gallu-deploy --verbose \
-	  --forge_upload --forge_group oasis \
-	  --forge_extra_file "dist/oasis-doc-$(shell oasis query version).tar.gz"
+	exec_oasis_dist_ml=$$(readlink -m ./OASISDist.byte) \
+	  admin-gallu-deploy --verbose \
+	    --forge_upload --forge_group oasis \
+	    --forge_extra_file "dist/oasis-doc-$(shell oasis query version).tar.gz"
 	# TODO: create a plugin to send announcement.
 	# oasis announce
 	admin-gallu-oasis-increment

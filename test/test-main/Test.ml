@@ -121,7 +121,6 @@ let () =
          TestPluginStdFiles.tests;
          TestPropList.tests;
          TestQuery.tests;
-         TestSelfCompile.tests;
          TestValues.tests;
          TestVersion.tests;
        ]);

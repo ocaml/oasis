@@ -21,7 +21,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 7e64f0d530b31d1a1acf7cd3df5abd78)
+# DO NOT EDIT (digest: 50d5b282df951d7b7894c2cef0ba5076)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -164,6 +164,21 @@ true: annot, bin_annot
 <test/test-quickstart/*.ml{,i,y}>: use_builtin-plugins
 <test/test-quickstart/*.ml{,i,y}>: use_oasis
 <test/test-quickstart/*.ml{,i,y}>: use_test-common
+# Executable test-devel
+<test/test-devel/TestDevel.{native,byte}>: package(fileutils)
+<test/test-devel/TestDevel.{native,byte}>: package(oUnit)
+<test/test-devel/TestDevel.{native,byte}>: package(pcre)
+<test/test-devel/TestDevel.{native,byte}>: package(unix)
+<test/test-devel/TestDevel.{native,byte}>: use_base
+<test/test-devel/TestDevel.{native,byte}>: use_oasis
+<test/test-devel/TestDevel.{native,byte}>: use_test-common
+<test/test-devel/*.ml{,i,y}>: package(fileutils)
+<test/test-devel/*.ml{,i,y}>: package(oUnit)
+<test/test-devel/*.ml{,i,y}>: package(pcre)
+<test/test-devel/*.ml{,i,y}>: package(unix)
+<test/test-devel/*.ml{,i,y}>: use_base
+<test/test-devel/*.ml{,i,y}>: use_oasis
+<test/test-devel/*.ml{,i,y}>: use_test-common
 # Executable dist
 "src/tools/dist/Dist.byte": package(fileutils)
 "src/tools/dist/Dist.byte": package(ocamlbuild)

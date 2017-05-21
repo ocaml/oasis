@@ -57,6 +57,10 @@ Flag omake_tests
   Description: Build test-omake
   Default: false
 
+Flag devel_tests
+  Description: Build test-devel
+  Default: false
+
 Library oasis
   Path: src/oasis
   Modules: FormatExt,
@@ -319,6 +323,22 @@ Test quickstart
   WorkingDirectory: test
   Run$: flag(quickstart_tests)
   TestTools: oasis, test-quickstart
+
+
+Executable "test-devel"
+  Path: test/test-devel
+  MainIs: TestDevel.ml
+  Install: false
+  CompiledObject: best
+  Build$: flag(tests) && flag(devel_tests)
+  BuildDepends: oUnit (>= 2.0.0), oasis, test-common
+
+Test devel
+  Type: custom (0.4)
+  Command: $test_devel
+  WorkingDirectory: test
+  Run$: flag(devel_tests)
+  TestTools: oasis, test-devel
 
 #
 # Tools.

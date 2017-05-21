@@ -24,7 +24,6 @@
 open OUnit2
 open TestCommon
 
-
 let tests =
   "Basic" >:::
   [
@@ -93,29 +92,4 @@ let tests =
          ~printer:(fun s -> s)
          OASISParse.default_oasis_fn
          BaseSetup.default_oasis_fn);
-
-    "setup.ml has been generated with a previous version of oasis" >::
-    (fun test_ctxt ->
-       let oasis_version_for_setup_ml =
-         let buf = Buffer.create 13 in
-         OUnit2.assert_command
-           ~chdir:".."
-           ~ctxt:test_ctxt
-           ~foutput:(Stream.iter (Buffer.add_char buf))
-           "ocaml" ["setup.ml"; "-version"];
-         OASISString.trim (Buffer.contents buf)
-       in
-       let oasis_version_current =
-         OASISVersion.string_of_version OASISConf.version_full
-       in
-       assert_bool
-         (Printf.sprintf
-            "The OASIS version for the generated setup.ml should be '< %s', \
-             but this is currently %S."
-            oasis_version_current
-            oasis_version_for_setup_ml)
-         (0 <
-          (OASISVersion.StringVersion.compare
-             oasis_version_current
-             oasis_version_for_setup_ml)));
   ]
