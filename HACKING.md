@@ -64,7 +64,7 @@ Cut a release
  * Create a [news on the forge][forge-post].
    * Subject: OASIS v0.4.2 release
    * Details: Read the full blog post here: URL of the blog post.
- * Change version in `\_oasis`, drop the ~HEAD, rerun `oasis setup` and commit.
+ * Change version in `_oasis`, drop the ~HEAD, rerun `oasis setup` and commit.
  * `make deploy`
  * Make sure the new version is X.Y.Z~HEAD and maybe rerun update.
  * Update Change Log in the Files section of forge:
@@ -82,7 +82,8 @@ Cut a release
  * Reshare G+ post on OCaml community.
  * Send mail to caml-list, oasis-devel.
 
- [jenkins]: http://deci.ovh.le-gall.net:8080/job/ocaml-oasis/
+ [jenkins1]: https://deci.ovh.le-gall.net/job/oasis/
+ [jenkins2]: https://deci.ovh.le-gall.net/job/oasis-opam-build-revdeps/
  [travis]: https://travis-ci.org/ocaml/oasis
  [appveyor]: https://ci.appveyor.com/project/gildor478/oasis
  [blog-post]: https://le-gall.net/sylvain+violaine/blog/admin/posts.php
