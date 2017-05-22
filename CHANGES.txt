@@ -1,3 +1,14 @@
+2017-05-22  Sylvain Le Gall <sylvain AT le-gall.net>
+
+  * Version 0.4.10
+
+  * Quick followup release to use OASIS 0.4.10 to generate the setup.ml because 
+    the setup.ml of OASIS 0.4.9 was generated with 0.4.8 that contains a bug.
+
+  * New releases will be generated using the version released to catch earlier
+    the kind of bug with destdir that has appeared in 0.4.8.
+    (See [issue 1007](https://github.com/ocaml/oasis/issues/107))
+
 2017-05-20  Sylvain Le Gall <sylvain AT le-gall.net>
 
   * Version 0.4.9
