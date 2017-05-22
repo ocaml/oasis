@@ -2,22 +2,20 @@
 Guidelines for developing OASIS
 ===============================
 
-Updates in `_oasis`:
+## Updates in the file `_oasis` for the project OASIS itself
 
-`_oasis` and setup.ml of the OASIS project need to be updated with the officially
-released version of OASIS.
+`_oasis` and `setup.ml` of the OASIS project need to be updated with the
+previously __released version__ of OASIS or the very same version being
+released.
 
-__You should never use the version of OASIS under development to update__
+__You should never use the version of OASIS under development to update the setup.ml of the project__
 
-Go to http://oasis.forge.ocamlcore.org/ and install the latest available
-version.
-
-The reason for that decision is that if you generate a new version of setup.ml
-using your current version, each commit will include a change in setup.ml and
-it will be mostly a repetition of something you wrote elsewhere in your commit.
-Moreover, it can lead to conflict and it is never good to have to worry about
-conflicts (it has generated irreconcilable changes when the project was using
-darcs).
+The reason for that decision is that if you generate a new version of `setup.ml`
+using the version under development, each commit will include a change in 
+`setup.ml` and it will be mostly a repetition of something you wrote elsewhere
+in your commit. Moreover, it can lead to conflict and it is never good to have
+to worry about conflicts (it has generated irreconcilable changes when the
+project was using darcs).
 
 
 Creating plugins
