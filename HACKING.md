@@ -2,22 +2,20 @@
 Guidelines for developing OASIS
 ===============================
 
-Updates in `_oasis`:
+## Updates in the file `_oasis` for the project OASIS itself
 
-`_oasis` and setup.ml of the OASIS project need to be updated with the officially
-released version of OASIS.
+`_oasis` and `setup.ml` of the OASIS project need to be updated with the
+previously __released version__ of OASIS or the very same version being
+released.
 
-__You should never use the version of OASIS under development to update__
+__You should never use the version of OASIS under development to update the setup.ml of the project__
 
-Go to http://oasis.forge.ocamlcore.org/ and install the latest available
-version.
-
-The reason for that decision is that if you generate a new version of setup.ml
-using your current version, each commit will include a change in setup.ml and
-it will be mostly a repetition of something you wrote elsewhere in your commit.
-Moreover, it can lead to conflict and it is never good to have to worry about
-conflicts (it has generated irreconcilable changes when the project was using
-darcs).
+The reason for that decision is that if you generate a new version of `setup.ml`
+using the version under development, each commit will include a change in 
+`setup.ml` and it will be mostly a repetition of something you wrote elsewhere
+in your commit. Moreover, it can lead to conflict and it is never good to have
+to worry about conflicts (it has generated irreconcilable changes when the
+project was using darcs).
 
 
 Creating plugins
@@ -50,7 +48,7 @@ invoke their name on the command line.
 Cut a release
 =============
 
- * Check status on [Jenkins][jenkins], [Travis][travis] and
+ * Check status on Jenkins([1][jenkins1], [2][jenkins2]), [Travis][travis] and
    [AppVeyor][appveyor].
  * Run headache.
  * Update CHANGES.txt:
@@ -64,7 +62,7 @@ Cut a release
  * Create a [news on the forge][forge-post].
    * Subject: OASIS v0.4.2 release
    * Details: Read the full blog post here: URL of the blog post.
- * Change version in `\_oasis`, drop the ~HEAD, rerun `oasis setup` and commit.
+ * Change version in `_oasis`, drop the ~HEAD, rerun `oasis setup` and commit.
  * `make deploy`
  * Make sure the new version is X.Y.Z~HEAD and maybe rerun update.
  * Update Change Log in the Files section of forge:
@@ -82,7 +80,8 @@ Cut a release
  * Reshare G+ post on OCaml community.
  * Send mail to caml-list, oasis-devel.
 
- [jenkins]: http://deci.ovh.le-gall.net:8080/job/ocaml-oasis/
+ [jenkins1]: https://deci.ovh.le-gall.net/job/oasis/
+ [jenkins2]: https://deci.ovh.le-gall.net/job/oasis-opam-build-revdeps/
  [travis]: https://travis-ci.org/ocaml/oasis
  [appveyor]: https://ci.appveyor.com/project/gildor478/oasis
  [blog-post]: https://le-gall.net/sylvain+violaine/blog/admin/posts.php
