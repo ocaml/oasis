@@ -48,7 +48,7 @@ invoke their name on the command line.
 Cut a release
 =============
 
- * Check status on [Jenkins][jenkins], [Travis][travis] and
+ * Check status on Jenkins([1][jenkins1], [2][jenkins2]), [Travis][travis] and
    [AppVeyor][appveyor].
  * Run headache.
  * Update CHANGES.txt:
