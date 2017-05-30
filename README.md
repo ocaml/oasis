@@ -32,7 +32,8 @@ integrates your libraries and software with third parties tools like OPAM.
 See the file [INSTALL.md](INSTALL.md) for building and installation
 instructions.
 
-[Home page](http://oasis.forge.ocamlcore.org/)
+* [Home page](http://oasis.forge.ocamlcore.org/)
+* [Issue Tracker](https://forge.ocamlcore.org/tracker/?group_id=54)
 
 [Bug reports](https://github.com/ocaml/oasis/issues)
 
