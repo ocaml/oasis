@@ -37,7 +37,7 @@ type 'a t = 'a OASISSchema_intern.t
     by [plugin_id] in the schema [schm]. The field basename is [name], for which
     we will add the name of the plugin and ["X"] before -- to know that this
     field is related to this plugin. [value] defines how to parse/print the
-    value. [help] is an helper text for this field. [pivot_data] and [sync]
+    value. [help] is a helper text for this field. [pivot_data] and [sync]
     defines how to match back the datastructure where the result will be stored
     with the field in _oasis.
 

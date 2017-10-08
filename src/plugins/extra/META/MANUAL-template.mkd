@@ -1,4 +1,4 @@
-This plugin is an helper to generate a `META` files that can be distributed and
+This plugin is a helper to generate a `META` files that can be distributed and
 install with a library. It uses library name, version, synopsis and dependencies
 to generate matching fields in `META`.
 

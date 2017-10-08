@@ -267,7 +267,7 @@ $ListOASISObjectFields
 ### Executable
 
 Define an OCaml executable. If the executable is a bytecode that use internal
-library, an helper script can be generated to set library path.
+library, a helper script can be generated to set library path.
 
 Fields:
 
