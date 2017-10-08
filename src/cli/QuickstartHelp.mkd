@@ -1,4 +1,4 @@
-This subcommand is an helper to write `_oasis` file. It asks a serie of
+This subcommand is a helper to write `_oasis` file. It asks a serie of
 questions to create an initial `_oasis` file. The questions depend on the
 level of the user, you can set this level with the `-level` command line
 option.

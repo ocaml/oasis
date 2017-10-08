@@ -68,7 +68,7 @@ let fspecs () =
 
 let () =
   CLISubCommand.register "quickstart"
-    (ns_ "Launch an helper to write `_oasis` file")
+    (ns_ "Launch a helper to write `_oasis` file")
     CLIData.quickstart_mkd
     (CLICommon.define_oasis_fn
        (CLISubCommand.make_run fspecs main))
