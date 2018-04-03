@@ -365,6 +365,8 @@ let findlib_full =
     parse =
       (fun ~ctxt s ->
          let cpnts = OASISString.nsplit s '.' in
+         if cpnts = [] then
+           failwith (s_ "Empty string is not a valid findlib package");
          List.iter (fun cpnt ->
                     let _s: string = findlib_name.parse ~ctxt cpnt in
                     ())

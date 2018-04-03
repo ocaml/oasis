@@ -114,6 +114,7 @@ let () =
          TestOASISSourcePatterns.tests;
          TestOASISString.tests;
          TestOASISText.tests;
+         TestOASISValues.tests;
          TestPluginDevFiles.tests;
          TestPluginInternal.tests;
          TestPluginMETA.tests;
