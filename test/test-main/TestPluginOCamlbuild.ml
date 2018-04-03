@@ -230,7 +230,11 @@ let other_tests =
                  ["A"; "B"; "C"]
                  (List.sort String.compare lst);
            | NoBody ->
-               assert_failure "No content for test.mllib.");
+             assert_failure "No content for test.mllib.");
+
+    "quote_parametrized_plugin",
+    (fun _ ->
+       ());
   ]
 
 let gen_test (nm, f) =

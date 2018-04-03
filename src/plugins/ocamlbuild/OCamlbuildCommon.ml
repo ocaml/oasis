@@ -31,7 +31,11 @@ open BaseStandardVar
 open OASISTypes
 
 
-type extra_args = string list
+type args =
+  {
+    plugin_tags: string option;
+    extra: string list;
+  }
 
 
 let ocamlbuild_clean_ev = "ocamlbuild-clean"
@@ -73,7 +77,14 @@ let fix_args args extra_argv =
         ]
       else
         [];
-      args;
+
+      args.extra;
+
+      begin
+        match args.plugin_tags with
+        | Some t -> ["-plugin-tag"; Filename.quote t]
+        | None -> []
+      end;
 
       if bool_of_string (debug ()) then
         ["-tag"; "debug"]
@@ -104,7 +115,9 @@ let run_clean ~ctxt extra_argv =
   (* Run if never called with these args *)
   if not (BaseLog.exists ~ctxt ocamlbuild_clean_ev extra_cli) then
     begin
-      OASISExec.run ~ctxt (ocamlbuild ()) (fix_args ["-clean"] extra_argv);
+      OASISExec.run
+        ~ctxt (ocamlbuild ())
+        (fix_args {extra = ["-clean"]; plugin_tags = None} extra_argv);
       BaseLog.register ~ctxt ocamlbuild_clean_ev extra_cli;
       at_exit
         (fun () ->
@@ -136,7 +149,7 @@ let build_dir extra_argv =
       | [] ->
         dir
   in
-  search_args "_build" (fix_args [] extra_argv)
+  search_args "_build" (fix_args {extra = []; plugin_tags = None} extra_argv)
 
 
 (* END EXPORT *)
@@ -203,13 +216,6 @@ let ocamlbuild_supports_ocamlfind = check_ocaml_version "3.12.1"
 let ocamlbuild_supports_plugin_tags = check_ocaml_version "4.01"
 
 
-type ocamlbuild_common =
-  {
-    plugin_tags: string option;
-    extra_args: string list;
-  }
-
-
 let ocamlbuild_common_generator pivot_data schm id =
   let new_field nm = OASISSchema.new_field schm id nm in
   let plugin_tags =
@@ -220,7 +226,7 @@ let ocamlbuild_common_generator pivot_data schm id =
       (opt string_not_empty)
       (fun () -> s_ "Gives the plugin tags to ocambuild through \
                      '-plugin-tags' (OCaml >= 4.01 only)")
-      pivot_data (fun _ t -> t.plugin_tags)
+      pivot_data (fun _ args -> args.plugin_tags)
   in
   let extra_args =
     new_field
@@ -229,38 +235,46 @@ let ocamlbuild_common_generator pivot_data schm id =
       ~feature:ocamlbuild_more_args
       command_line_options
       (fun () -> s_ "Gives extra arguments to ocamlbuild")
-      pivot_data (fun _ t -> t.extra_args)
+      pivot_data (fun _ args -> args.extra)
   in
   fun data ->
     {
-      extra_args = extra_args data;
+      extra = extra_args data;
       plugin_tags = plugin_tags data;
     }
 
 
-let extra_args_ocamlbuild_common ctxt pkg t =
+let args_ocamlbuild_common ctxt pkg args =
   let supports_plugins = ocamlbuild_supports_plugin_tags pkg in
-  let extra_args, ctxt =
-    if t.plugin_tags <> None && (not supports_plugins) then begin
-      t.extra_args,
+  let plugin_tags, ctxt =
+    if args.plugin_tags <> None &&
+       (not supports_plugins) then begin
+      None,
       OASISPlugin.set_error
         (not supports_plugins)
         (s_ "'XOCamlbuildPluginTags' in only available for OCaml >= 4.01. \
              Please restrict your requirements with 'OCamlVersion: >= 4.01'")
         ctxt
     end else begin
-      let extra_args =
-        match t.plugin_tags with
-        | Some tags -> "-plugin-tags" :: ("'" ^ tags ^ "'") :: t.extra_args
-        | None -> t.extra_args
-      in
-      extra_args, ctxt
+      args.plugin_tags, ctxt
     end
   in
-  let extra_args =
+  let extra =
     if ocamlbuild_supports_ocamlfind pkg then
-      "-use-ocamlfind" :: extra_args
+      "-use-ocamlfind" :: args.extra
     else
-      extra_args
+      args.extra
   in
-  extra_args, ctxt
+  {plugin_tags; extra}, ctxt
+
+
+let odn_of_args (args:args) =
+  OASISDataNotation.REC
+    ("OCamlbuildCommon",
+     [
+       "plugin_tags",
+       (OASISDataNotation.of_option OASISDataNotation.of_string)
+         (args:args).plugin_tags;
+       "extra",
+       (OASISDataNotation.of_list OASISDataNotation.of_string) args.extra
+     ])

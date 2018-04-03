@@ -38,7 +38,7 @@ open BaseStandardVar
 let cond_targets_hook = ref (fun lst -> lst)
 
 
-let build ~ctxt extra_args pkg argv =
+let build ~ctxt args pkg argv =
   (* Return the filename in build directory *)
   let in_build_dir fn =
     Filename.concat
@@ -186,14 +186,14 @@ let build ~ctxt extra_args pkg argv =
   (* Run a list of target... *)
   run_ocamlbuild
     ~ctxt
-    (List.flatten (List.map snd cond_targets) @ extra_args)
+    {args with extra = List.flatten (List.map snd cond_targets) @ args.extra}
     argv;
   (* ... and register events *)
   List.iter check_and_register (List.flatten (List.map fst cond_targets))
 
 
-let clean ~ctxt pkg extra_args  =
-  run_clean ~ctxt extra_args;
+let clean ~ctxt pkg args  =
+  run_clean ~ctxt args;
   List.iter
     (function
        | Library (cs, _, _) ->
@@ -1137,8 +1137,8 @@ let generator =
   ocamlbuild_common_generator pivot_data OASISPackage.schema all_id
 
 let doit ctxt pkg =
-  let extra_args, ctxt =
-    extra_args_ocamlbuild_common ctxt pkg
+  let args, ctxt =
+    args_ocamlbuild_common ctxt pkg
       (generator pkg.schema_data)
   in
   let ctxt = add_ocamlbuild_files ctxt pkg in
@@ -1147,7 +1147,7 @@ let doit ctxt pkg =
       chng_moduls       = [OCamlbuildData.ocamlbuildsys_ml];
       chng_main         = OASISDataNotation.func_with_arg_ctxt build
                             "OCamlbuildPlugin.build"
-                            extra_args (OASISDataNotation.of_list OASISDataNotation.of_string);
+                            args (OCamlbuildCommon.odn_of_args);
       chng_clean        = Some (OASISDataNotation.func clean "OCamlbuildPlugin.clean");
       chng_distclean    = None;
     }

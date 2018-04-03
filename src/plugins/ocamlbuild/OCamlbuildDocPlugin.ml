@@ -33,7 +33,7 @@ open OCamlbuildCommon
 
 type run_t =
   {
-    extra_args: string list;
+    args: args;
     run_path: unix_filename;
   }
 
@@ -55,7 +55,8 @@ let doc_build ~ctxt run _ (cs, _) argv =
         cs.cs_name^".docdir";
       ]
   in
-  run_ocamlbuild ~ctxt (index_html :: run.extra_args) argv;
+  run_ocamlbuild ~ctxt
+    {run.args with extra = index_html :: run.args.extra} argv;
   List.iter
     (fun glb ->
        match OASISFileUtil.glob ~ctxt (Filename.concat tgt_dir glb) with
@@ -87,12 +88,12 @@ let plugin =
 
 type t =
   {
-    path:      unix_dirname;
-    modules:   string list;
-    libraries: findlib_full list;
-    intro:     unix_filename option;
-    flags:     string list;
-    common:    ocamlbuild_common;
+    path:                   unix_dirname;
+    modules:                string list;
+    libraries:              findlib_full list;
+    intro:                  unix_filename option;
+    flags:                  string list;
+    ocamlbuild_common_args: args;
   }
 
 
@@ -234,7 +235,7 @@ let generator =
       libraries = libraries data;
       intro = None;
       flags = [];
-      common = generator_common data;
+      ocamlbuild_common_args = generator_common data;
     }
 
 
@@ -282,14 +283,11 @@ let doit ctxt pkg (cs, doc) =
       ]
   in
 
-  let extra_args, ctxt =
-    extra_args_ocamlbuild_common ctxt pkg t.common
-  in
-
-  let run = {run_path = t.path; extra_args = extra_args} in
+  let args, ctxt = args_ocamlbuild_common ctxt pkg t.ocamlbuild_common_args in
+  let run = {run_path = t.path; args = args} in
   let odn_of_run_t (v: run_t) =
     OASISDataNotation.REC ("OCamlbuildDocPlugin",
-      [ ("extra_args", ((fun x -> OASISDataNotation.of_list OASISDataNotation.of_string x) v.extra_args));
+      [ ("args", OCamlbuildCommon.odn_of_args v.args);
         ("run_path", (odn_of_unix_filename v.run_path)) ])
   in
   ctxt,
