@@ -89,14 +89,15 @@ wc-setup:
 #  Fix license header of file.
 
 headache:
-	find ./ \
-	  -name _darcs -prune -false \
-	  -o -name .git -prune -false \
-	  -o -name .svn -prune -false \
-	  -o -name _build -prune -false \
-	  -o -name dist -prune -false \
-	  -o -name '*[^~]' -type f \
-	  | xargs /usr/bin/headache -h _header -c _headache.config
+	# TODO: reactivate when headache in opam will be ready.
+	#find ./ \
+	#  -name _darcs -prune -false \
+	#  -o -name .git -prune -false \
+	#  -o -name .svn -prune -false \
+	#  -o -name _build -prune -false \
+	#  -o -name dist -prune -false \
+	#  -o -name '*[^~]' -type f \
+	#  | xargs /usr/bin/headache -h _header -c _headache.config
 
 .PHONY: headache
 

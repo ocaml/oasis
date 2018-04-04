@@ -1,3 +1,12 @@
+2018-04-04  Sylvain Le Gall <sylvain AT le-gall.net>
+
+  * Version 0.4.11
+
+  * Minor changes:
+    * Fix quoting of parametrized plugin tags for ocamlbuild on Windows.
+     (Closes: #122)
+    * Reporting an error full-findlib name is empty. (Closes: #123)
+
 2017-05-22  Sylvain Le Gall <sylvain AT le-gall.net>
 
   * Version 0.4.10
