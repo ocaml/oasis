@@ -171,6 +171,7 @@ let all_tests =
        disable the pkg_* flag injection that is necessary for OCaml < 3.12.1 *)
     "pr63-no-automatic-syntax",
     (fun test_ctxt t ->
+       skip_if true "This test depends on camlp4, which is deprecated.";
        oasis_setup test_ctxt t;
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-configure"];
        run_ocaml_setup_ml ~check_output:true test_ctxt t ["-build"]);

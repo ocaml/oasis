@@ -125,6 +125,7 @@ let all_tests =
 
     "bug588",
     (fun test_ctxt t ->
+       skip_if true "This test depends on camlp4, which is deprecated.";
        (* Copy initial version of the _oasis. *)
        cp [in_src_dir t "_tags_manual"] (in_src_dir t "_tags");
        oasis_setup test_ctxt t;

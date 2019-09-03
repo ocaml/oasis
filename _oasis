@@ -285,7 +285,7 @@ Test main
     -native-dynlink $native_dynlink -ocamlmod $ocamlmod \
     -fake-ocamlfind $fake_ocamlfind
   WorkingDirectory: test
-  TestTools: oasis, test-main, ocamlmod, fake-ocamlfind, ocamlbuild, camlp4
+  TestTools: oasis, test-main, ocamlmod, fake-ocamlfind, ocamlbuild
 
 Executable "test-omake"
   Path: test/test-omake
@@ -303,7 +303,7 @@ Test omake
     -fake-ocamlfind $fake_ocamlfind
   WorkingDirectory: test
   Run$: flag(omake_tests)
-  TestTools: oasis, test-omake, ocamlmod, fake-ocamlfind, omake, camlp4
+  TestTools: oasis, test-omake, ocamlmod, fake-ocamlfind, omake
 
 Executable "test-quickstart"
   Path: test/test-quickstart

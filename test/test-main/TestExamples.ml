@@ -360,6 +360,7 @@ let all_tests =
     "syntax-camlp4",
     (fun test_ctxt t ->
        let () =
+         skip_if true "Camlp4 is deprecated.";
          oasis_setup test_ctxt t;
          (* Setup expectation. *)
          register_generated_files t
