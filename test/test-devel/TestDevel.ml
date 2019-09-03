@@ -46,7 +46,7 @@ let () =
               ~chdir:".."
               ~ctxt:test_ctxt
               ~foutput:(Stream.iter (Buffer.add_char buf))
-              "ocaml" ["setup.ml"; "-version"];
+              "ocaml" ["-w"; "-3"; "setup.ml"; "-version"];
             OASISString.trim (Buffer.contents buf)
           in
           let oasis_version_current =

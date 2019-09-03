@@ -206,8 +206,7 @@ let var_define
              errors, res)
         ([], None)
         (List.sort
-           (fun (o1, _) (o2, _) ->
-              Pervasives.compare o2 o1)
+           (fun (o1, _) (o2, _) -> compare o2 o1)
            lst)
     in
     match res, errors with

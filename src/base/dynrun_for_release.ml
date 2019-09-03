@@ -37,11 +37,14 @@ let () =
       Topdirs.dir_use Format.str_formatter "topfin\000";
       Format.flush_str_formatter ()
     in
+    let b = Buffer.create (String.length str) in
     for i = 0 to (String.length str) - 1 do
       if str.[i] = '\000' then
-        str.[i] <- 'd'
+        Buffer.add_char b 'd'
+      else
+        Buffer.add_char b str.[i]
     done;
-    str
+    Buffer.contents b
   in
   let status =
     Topdirs.dir_use Format.str_formatter "topfind";

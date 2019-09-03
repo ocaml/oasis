@@ -29,7 +29,7 @@ module MapPlugin =
   Map.Make
     (struct
       type t = plugin_kind * name
-      let compare = Pervasives.compare
+      let compare = compare
     end)
 
 module Data =
