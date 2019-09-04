@@ -6,21 +6,19 @@ branches:
   except:
     - gh-pages
 
+platform:
+  - x86
+
 environment:
-  global:
-    CYG_ROOT: C:/cygwin
+  FORK_USER: ocaml
+  FORK_BRANCH: master
+  CYG_ROOT: C:\cygwin64
 
 install:
-#  - appveyor DownloadFile "http://cygwin.com/setup-%CYG_ARCH%.exe" -FileName "%CYG_ROOT%\setup-x86.exe"
-  - ps: '(new-object net.webclient).DownloadString("https://aantron.github.io/binaries/cygwin/x86/ocaml/4.02/install.ps1") | PowerShell -Command -'
-  - ps: '(new-object net.webclient).DownloadString("https://aantron.github.io/binaries/cygwin/x86/camlp4/4.02/install.ps1") | PowerShell -Command -'
-  - ps: '(new-object net.webclient).DownloadString("https://aantron.github.io/binaries/cygwin/x86/opam/1.2/install.ps1") | PowerShell -Command -'
-  - '%CYG_ROOT%\bin\bash -lc "cygcheck -dc cygwin"'
-  - '%CYG_ROOT%\bin\bash -lc "echo \"OCaml version `ocamlc -version`\""'
+  - ps: iex ((new-object net.webclient).DownloadString("https://raw.githubusercontent.com/$env:FORK_USER/ocaml-ci-scripts/$env:FORK_BRANCH/appveyor-install.ps1"))
 
 build_script:
-  - 'echo Build in "%APPVEYOR_BUILD_FOLDER%"'
-  - '%CYG_ROOT%/bin/bash -l "%APPVEYOR_BUILD_FOLDER%/appveyor_build.sh"'
+  - call %CYG_ROOT%\bin\bash.exe -l %APPVEYOR_BUILD_FOLDER%\appveyor-opam.sh
 
 notifications:
   - provider: Webhook
@@ -32,3 +30,4 @@ notifications:
 artifacts:
   - path: setup.log
     name: setup.log
+
