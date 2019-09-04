@@ -23,6 +23,8 @@ depends: [
   "ocamlify" {build}
   "ocamlmod" {build}
   "ounit" {with-test & >= "2.0.0"}
+  "fileutils" {with-test & >= "0.4.2"}
+  "expect" {with-test & >= "0.0.4"}
 ]
 depopts: [
   "benchmark"
