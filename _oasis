@@ -276,8 +276,8 @@ Executable "test-main"
 
 Test main
   Type: custom (0.4)
-  Command: $test_main -oasis '$oasis' -is-native '$is_native' \
-    -native-dynlink '$native_dynlink' -ocamlmod '$ocamlmod' \
+  Command: $test_main -oasis '$oasis' -is-native $is_native \
+    -native-dynlink $native_dynlink -ocamlmod '$ocamlmod' \
     -fake-ocamlfind '$fake_ocamlfind'
   WorkingDirectory: test
   TestTools: oasis, test-main, ocamlmod, fake-ocamlfind, ocamlbuild
@@ -294,7 +294,7 @@ Executable "test-omake"
 Test omake
   Type: custom (0.4)
   Command: $test_omake -oasis '$oasis' -is-native $is_native \
-    -native-dynlink '$native_dynlink' -ocamlmod '$ocamlmod' \
+    -native-dynlink $native_dynlink -ocamlmod '$ocamlmod' \
     -fake-ocamlfind '$fake_ocamlfind'
   WorkingDirectory: test
   Run$: flag(omake_tests)
@@ -313,7 +313,7 @@ Executable "test-quickstart"
 Test quickstart
   Type: custom (0.4)
   Command: $test_quickstart -oasis '$oasis' -is-native $is_native \
-    -native-dynlink '$native_dynlink' -ocamlmod '$ocamlmod' \
+    -native-dynlink $native_dynlink -ocamlmod '$ocamlmod' \
     -fake-ocamlfind '$fake_ocamlfind'
   WorkingDirectory: test
   Run$: flag(quickstart_tests)
