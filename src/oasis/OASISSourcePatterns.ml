@@ -177,20 +177,20 @@ let parse = Templater.parse (env ~modul:"Foo" ())
 let interface =
   List.map parse
     [
-      "${capitalize_file module}.mli";
       "${uncapitalize_file module}.mli";
+      "${capitalize_file module}.mli";
     ]
 
 
 let implementation =
   List.map parse
     [
-      "${capitalize_file module}.ml";
       "${uncapitalize_file module}.ml";
-      "${capitalize_file module}.mll";
+      "${capitalize_file module}.ml";
       "${uncapitalize_file module}.mll";
-      "${capitalize_file module}.mly";
+      "${capitalize_file module}.mll";
       "${uncapitalize_file module}.mly";
+      "${capitalize_file module}.mly";
     ]
 
 

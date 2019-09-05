@@ -45,11 +45,11 @@ val to_string: t -> string
 
 (** List all possible files using the list of templates.
 
-    @params modul The module name as defined in the field "Modules" and
+    @params modul The module name as defined in the field "Modules" or
     "InternalModules"
     @params path The base path of the module as defined in "Path"
     @raise Not_found if no templates match the given module
-    @return The filename of the first matching template.
+    @return The filenames of the templates.
   *)
 val all_possible_files:
   t list -> path:unix_dirname -> modul:string -> unix_filename list

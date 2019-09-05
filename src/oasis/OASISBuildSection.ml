@@ -24,13 +24,19 @@ open OASISTypes
 
 (* Look for a module file, considering capitalization or not. *)
 let find_module source_file_exists bs modul =
-  let possible_lst =
-    OASISSourcePatterns.all_possible_files
-      (bs.bs_interface_patterns @ bs.bs_implementation_patterns)
-      ~path:bs.bs_path
-      ~modul
+  let find_file patterns existing_files possible_files =
+    let lst = OASISSourcePatterns.all_possible_files patterns ~path:bs.bs_path ~modul in
+    match List.filter source_file_exists lst with
+    | fn :: _ -> fn :: existing_files, possible_files
+    | [] ->
+        existing_files, lst @ possible_files
   in
-  match List.filter source_file_exists possible_lst with
+
+  let existing_intf, possible_intf = find_file bs.bs_interface_patterns [] [] in
+  let existing_intf_and_impl, possible_intf_and_impl =
+    find_file bs.bs_implementation_patterns existing_intf possible_intf
+  in
+  match existing_intf_and_impl with
   | (fn :: _) as fn_lst -> `Sources (OASISUnixPath.chop_extension fn, fn_lst)
   | [] ->
     let open OASISUtils in
@@ -42,7 +48,7 @@ let find_module source_file_exists bs modul =
              set, acc
            else
              SetString.add base_fn set, base_fn :: acc)
-        (SetString.empty, []) possible_lst
+        (SetString.empty, []) possible_intf_and_impl
     in
     `No_sources (List.rev rev_lst)
 

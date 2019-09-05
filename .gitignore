@@ -1,6 +1,7 @@
 *.byte
 *.native
 *.mo
+*.swp
 /_build/
 /api-oasis.docdir
 /doc/MANUAL.mkd
