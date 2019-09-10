@@ -25,7 +25,6 @@
     @author Sylvain Le Gall
   *)
 
-
 open FileUtil
 open OUnit2
 open TestCommon
@@ -33,6 +32,11 @@ open TestCommon
 
 type filename = FilePath.filename
 
+let ext_lib = Conf.make_string "ext_lib" ".a" "Default extension for static library."
+
+let ext_dll =
+  let dflt = if Sys.os_type = "Win32" then ".dll" else ".so" in
+  Conf.make_string "ext_dll" dflt "Default extension for dynamic library."
 
 let exec fn =
   if Sys.os_type = "Win32" then
@@ -198,8 +202,10 @@ let setup_test_directories test_ctxt ~is_native ~native_dynlink dn =
 
   (* Copy sources in this temporary directory. *)
   let src_dir =
-    OASISFileUtil.cp ~ctxt:(oasis_ctxt test_ctxt) ~recurse:true dn tmpdir;
-    Filename.concat tmpdir (Filename.basename dn)
+    let tgtdir = Filename.concat tmpdir (Filename.basename dn) in
+    logf test_ctxt `Info "Copying data from %S to %S" dn tmpdir;
+    FileUtil.cp ~recurse:true [dn] tgtdir;
+    tgtdir
   in
 
   (* Directory where we store precompiled setup.ml. *)
@@ -256,7 +262,7 @@ let in_src_dir t fn = Filename.concat t.src_dir fn
 (* Precompile setup.ml to speedup the tests, if possible. *)
 let rec precompile_setup_ml test_ctxt t =
   let setup_exe =
-    Filename.concat t.precompile_dir (Filename.chop_extension setup_ml)
+    exec (Filename.concat t.precompile_dir (Filename.chop_extension setup_ml))
   in
   let full_setup_ml = in_src_dir t setup_ml in
 
@@ -308,7 +314,7 @@ let rec precompile_setup_ml test_ctxt t =
 
       | `Done_for digest ->
           if (Digest.file full_setup_ml) = digest then begin
-            Some (exec setup_exe)
+            Some setup_exe
           end else begin
             t.setup_ml_precompiled <- compile ();
             precompile_setup_ml test_ctxt t
@@ -418,7 +424,12 @@ let run_ocaml_setup_ml
   in
   let cmd, args =
     match precompile_setup_ml test_ctxt t with
-      | Some setup_exe -> setup_exe, ("-info" :: "-debug" :: args)
+      | Some setup_exe ->
+          logf test_ctxt `Info "Files in %S:" (FilePath.dirname setup_exe);
+          List.iter
+            (fun fn -> logf test_ctxt `Info "%S" fn)
+            (FileUtil.ls (FilePath.dirname setup_exe));
+          setup_exe, ("-info" :: "-debug" :: args)
       | None ->
           "ocaml", ((in_src_dir t setup_ml) :: "-info" :: "-debug" :: args)
   in
@@ -587,6 +598,12 @@ let register_installed_files test_ctxt t installed_files_lst =
     *)
   let adapt_files_to_platform _ lst =
     let is_win32 = Sys.os_type = "Win32" in
+    let trim_extension s =
+      if OASISString.starts_with ~what:"." s then
+        String.sub s 1 (String.length s - 1)
+      else
+        s
+    in
     List.fold_left
       (fun acc fn ->
          let ext =
@@ -605,7 +622,10 @@ let register_installed_files test_ctxt t installed_files_lst =
                acc
            | "a" ->
                let fn =
-                 if is_win32 then FilePath.replace_extension fn "lib" else fn
+                 if is_win32 then
+                   FilePath.replace_extension fn (trim_extension (ext_lib test_ctxt))
+                 else
+                   fn
                in
                  if (* library matching the .cmxa *)
                    t.is_native ||
@@ -617,7 +637,7 @@ let register_installed_files test_ctxt t installed_files_lst =
                    (* no .a matching bytecode only library. *)
                    acc
            | "so" when is_win32 ->
-               (FilePath.replace_extension fn ".dll") :: acc
+               (FilePath.replace_extension fn (trim_extension (ext_dll test_ctxt))) :: acc
            | "html" when
                FilePath.basename fn = "index_extensions.html" 
                && OASISVersion.StringVersion.compare t.ocaml_version "4.02" < 0 ->

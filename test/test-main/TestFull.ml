@@ -368,6 +368,7 @@ let all_tests =
 
     "cppcc",
     (fun test_ctxt t ->
+       skip_if (Sys.os_type = "Win32") "UNIX test";
        oasis_setup test_ctxt t;
        (* Setup expectation. *)
        register_generated_files t 
