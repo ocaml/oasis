@@ -35,7 +35,9 @@ let all_tests =
        let () =
          skip_if
            (OASISVersion.StringVersion.compare t.ocaml_version "3.12.1" < 0)
-           "OCaml >= 3.12.1 needed."
+           "OCaml >= 3.12.1 needed.";
+         skip_if (Sys.os_type = "Win32")
+           "UNIX test only, no _build/_log produced on Windows."
        in
        let real_ocamlfind = FileUtil.which "ocamlfind" in
        let fake_ocamlfind =
