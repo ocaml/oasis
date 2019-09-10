@@ -26,9 +26,9 @@ open TestCommon
 
 
 let tests =
-  "Plugin Internal" >:::
+  "PluginInternal" >:::
   [
-    "feature findlib_directory" >::
+    "feature-findlib_directory" >::
     (fun test_ctxt ->
        let t =
          setup_test_directories test_ctxt
@@ -54,7 +54,7 @@ let tests =
        try_installed_library test_ctxt t "foobar" ["L"];
        try_installed_library test_ctxt t "foobar.object" ["O"]);
 
-    "feature findlib_iextra_files" >::
+    "feature-findlib_iextra_files" >::
     (fun test_ctxt ->
        let t =
          setup_test_directories test_ctxt
