@@ -37,19 +37,24 @@ let make =
 
 
 let of_unix ufn =
+  let translate_current_and_parent =
+    List.map
+      (fun p ->
+        if p = Unix.current_dir_name then
+          current_dir_name
+        else if p = Unix.parent_dir_name then
+          parent_dir_name
+        else
+          p)
+  in
   match Sys.os_type with
   | "Unix" | "Cygwin" -> ufn
-  | "Win32" ->
-    make
-      (List.map
-         (fun p ->
-            if p = Unix.current_dir_name then
-              current_dir_name
-            else if p = Unix.parent_dir_name then
-              parent_dir_name
-            else
-              p)
-         (OASISString.nsplit ufn '/'))
+  | "Win32" -> begin
+    match OASISString.nsplit ufn '/' with
+    | "cygdrive" :: drive :: lst ->
+        drive ^ ":\\" ^ (make (translate_current_and_parent lst))
+    | lst -> make (translate_current_and_parent lst)
+  end
   | os_type ->
     OASISUtils.failwithf
       (f_ "Don't know the path format of os_type %S when translating unix \
@@ -93,11 +98,12 @@ let to_unix hfn =
   | "Win32" ->
     let rec to_unix_aux =
       function
-      | `Root str :: _
+      | `Root str :: tl ->
+          "cygdrive" :: str :: (to_unix_aux tl)
       | `RootRelative str :: _ ->
         OASISUtils.failwithf
-          (f_ "Cannot translate %S to unix filename, it contains a root \
-               reference (%S).")
+          (f_ "Cannot translate %S to unix filename, it contains a relative \
+               root reference (%S).")
           hfn
           str
       | `Component str :: tl ->
