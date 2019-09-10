@@ -169,6 +169,13 @@ let capitalize_ascii s =
   else
     s
 
+
+let split str c =
+  let idx = String.index str c in
+  String.sub str 0 idx,
+  String.sub str (idx + 1) (String.length str - idx - 1)
+
+
 (* END EXPORT *)
 
 (*  TODO: replace lowercase_ascii, capitalize_ascii and uncapitalize_ascii
@@ -234,12 +241,6 @@ let tokenize_genlex ?(tokens=[]) str =
   let lst = ref [] in
   Stream.iter (fun tok -> lst := tok :: !lst) strm;
   List.rev !lst
-
-
-let split str c =
-  let idx = String.index str c in
-  String.sub str 0 idx,
-  String.sub str (idx + 1) (String.length str - idx - 1)
 
 
 let trim str =

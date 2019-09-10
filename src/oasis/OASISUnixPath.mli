@@ -75,19 +75,16 @@ val chop_extension: unix_filename -> unix_filename
 
 
 (** [check_extension fn ext] Check that the filen [fn] has the extension [ext].
-    {b Not exported}
 *)
 val check_extension: unix_filename -> string -> bool
 
 
 (** [add_extension fn ext] Add the extension [ext] to the filename [fn].
-    {b Not exported}
 *)
 val add_extension: unix_filename -> string -> unix_filename
 
 
 (** [replace_extension fn ext] Add the extension [ext] to the filename [fn].
-    {b Not exported}
 *)
 val replace_extension: unix_filename -> string -> unix_filename
 

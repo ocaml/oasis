@@ -74,7 +74,7 @@ let split_install_command ocamlfind findlib_name meta files =
     let rec split args files =
       match files with
         | [] ->
-            []
+            [args]
         | _ ->
             (* Length of "ocamlfind install <lib> [META|-add]" *)
             let len =
@@ -107,8 +107,10 @@ let split_install_command ocamlfind findlib_name meta files =
                                %s to 1.3.2")
                           findlib_name (BaseStandardVar.findlib_version ())
                   in
-                  let cmds = split other_args others in
-                  cmd :: cmds
+                  if others <> [] then
+                    let cmds = split other_args others in cmd :: cmds
+                  else
+                    [cmd]
     in
     (* The first command does not use -add: *)
     split first_args files
@@ -123,7 +125,24 @@ let install =
       (* Practically speaking destdir is prepended at the beginning of the
          target filename
       *)
-      (destdir ())^fn
+      let default = (destdir ())^fn in
+      if Sys.os_type = "Win32" then begin
+        let components = OASISString.nsplitf fn (fun c -> c = '\\' || c = '/') in
+        match components with
+        | str :: tl ->
+            begin
+              try
+                (* Remove the drive letter. *)
+                let _drive_letter, rmng = OASISString.split str ':' in
+                (destdir ())^(OASISHostPath.make (rmng :: tl))
+              with Not_found ->
+                (* No drive letter, just prepend. *)
+                default
+            end
+        | [] -> default
+      end else begin
+        default
+      end
     with PropList.Not_set _ ->
       fn
   in
@@ -163,6 +182,13 @@ let install =
         let findlib_destdir =
           OASISExec.run_read_one_line ~ctxt (ocamlfind ())
             ["printconf" ; "destdir"]
+        in
+        let findlib_destdir =
+          if Sys.os_type = "Win32" then
+            (* Fix / and \\ that are used in ocamlfind. *)
+            OASISString.replace_chars (function '/' -> '\\' | c -> c) findlib_destdir
+          else
+            findlib_destdir
         in
         Filename.concat findlib_destdir findlib_name
       in

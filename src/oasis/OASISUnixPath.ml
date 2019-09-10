@@ -112,9 +112,6 @@ let uncapitalize_file f =
   concat dir (OASISString.uncapitalize_ascii base)
 
 
-(* END EXPORT *)
-
-
 let check_extension fn ext =
   OASISString.ends_with ~what:("."^ext) fn
 
@@ -125,6 +122,9 @@ let add_extension fn ext =
 
 let replace_extension fn ext =
   add_extension (Filename.chop_extension fn) ext
+
+
+(* END EXPORT *)
 
 
 open OASISPath_intern
