@@ -126,16 +126,18 @@ let cp ~ctxt ?(recurse=false) src tgt =
     match Sys.os_type with
       | "Win32" ->
         OASISExec.run ~ctxt
-          "xcopy" [q src; q tgt; "/E"]
+          "xcopy" [q src; q tgt; "/E"; "> NUL"]
       | _ ->
         OASISExec.run ~ctxt
           "cp" ["-r"; q src; q tgt]
   else
-    OASISExec.run ~ctxt
-      (match Sys.os_type with
-        | "Win32" -> "copy"
-        | _ -> "cp")
-      [q src; q tgt]
+    match Sys.os_type with
+      | "Win32" ->
+          OASISExec.run ~ctxt
+            "copy" [q src; q tgt; "> NUL"]
+      | _ ->
+          OASISExec.run ~ctxt
+            "cp" [q src; q tgt]
 
 
 let mkdir ~ctxt tgt =
