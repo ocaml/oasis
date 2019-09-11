@@ -199,10 +199,6 @@ type t =
 let setup_test_directories test_ctxt ~is_native ~native_dynlink dn =
   (* Create a temporary directory. *)
   let tmpdir = bracket_tmpdir test_ctxt in
-  let () =
-    if Sys.os_type = "Win32" then
-      ignore (Sys.command ("icacls "^tmpdir))
-  in
 
   (* Copy sources in this temporary directory. *)
   let src_dir =

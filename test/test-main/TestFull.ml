@@ -518,7 +518,7 @@ let different_directory_tests =
            "Library .cma created."
            (Sys.file_exists (in_src_dir t "_build/mylib.cma")));
 
-    "setup with dev mode (light)", "dev",
+    "setup-with-dev-mode-light", "dev",
     (fun test_ctxt t ->
        (* Copy initial version of the _oasis. *)
        cp [in_src_dir t "_oasis.v2"] (in_src_dir t "_oasis");
@@ -528,16 +528,14 @@ let different_directory_tests =
        (* Check everything ok. *)
        standard_checks test_ctxt t;
        (* Run test. *)
-       assert_bool
-         "setup.ml is smaller than 3kB"
-         (let chn = open_in (in_src_dir t setup_ml) in
-            try
-              let size = in_channel_length chn in
-                close_in chn;
-                size < 3072 (* 3kB *)
-            with e ->
-              close_in chn;
-              raise e);
+       begin
+         let sz, _ = FileUtil.du [in_src_dir t setup_ml] in
+         assert_bool
+           (Printf.sprintf
+             "setup.ml is smaller than 4kB (actual size: %s)"
+             (FileUtil.string_of_size sz))
+           (FileUtil.(size_compare (KB 4L) sz) > 0)
+       end;
        run_ocaml_setup_ml test_ctxt t ["-all"];
        assert_bool
          "Library .cma created."
