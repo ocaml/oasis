@@ -139,20 +139,14 @@ test: precommit
 #  Deploy/release the software.
 
 deploy: headache doc-dist
-	# TODO: create a plugin to create documentation.
-	# oasis doc-dist
-	mkdir dist || true
-	exec_oasis_dist_ml=$$(readlink -m ./OASISDist.byte) \
-	  admin-gallu-deploy --verbose \
-	    --forge_upload --forge_group oasis \
-	    --forge_extra_file "dist/oasis-doc-$(shell oasis query version).tar.gz"
-	# TODO: create a plugin to send announcement.
-	# oasis announce
+	dispakan $(DEPLOY_FLAGS)
 	admin-gallu-oasis-increment
+	$(MAKE) build
 	./Main.native setup
 	$(MAKE) distclean
 	$(MAKE) test
 	git commit -am "Update OASIS version."
+
 
 .PHONY: deploy
 

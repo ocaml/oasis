@@ -333,38 +333,6 @@ Test devel
 # Tools.
 #
 
-Executable dist
-  Path: src/tools/dist
-  MainIs: Dist.ml
-  Install: false
-  CompiledObject: byte
-  Build$: flag(devel)
-  BuildDepends: unix, fileutils, oasis, oasis.builtin-plugins
-
-Executable "guess-cmx"
-  Path: src/tools/guess-cmx
-  MainIs: GuessCMX.ml
-  Install: false
-  CompiledObject: byte
-  Build$: flag(devel)
-  BuildDepends: pcre, unix, oasis
-
-Executable "oasis-announce"
-  Path: src/tools/oasis-announce
-  MainIs: OASISAnnounce.ml
-  Install: false
-  CompiledObject: byte
-  Build$: flag(devel)
-  BuildDepends: oasis, oasis.base, pcre
-
-Executable "oasis-dist"
-  Path: src/tools/oasis-dist
-  MainIs: OASISDist.ml
-  Install: false
-  CompiledObject: byte
-  Build$: flag(devel)
-  BuildDepends: oasis, oasis.base, fileutils, oasis.builtin-plugins
-
 Executable bench
   Path: src/tools/bench
   MainIs: Bench.ml
