@@ -49,12 +49,7 @@ val which: ctxt:OASISContext.t -> host_filename -> host_filename
 
 (** Copy a file.
 *)
-val cp:
-  ctxt:OASISContext.t ->
-  ?recurse:bool ->
-  host_filename ->
-  host_filename ->
-  unit
+val cp: ctxt:OASISContext.t -> host_filename -> host_filename -> unit
 
 
 (** Create a directory.

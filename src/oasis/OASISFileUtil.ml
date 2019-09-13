@@ -121,23 +121,10 @@ let q = Filename.quote
 (**/**)
 
 
-let cp ~ctxt ?(recurse=false) src tgt =
-  if recurse then
-    match Sys.os_type with
-      | "Win32" ->
-        OASISExec.run ~ctxt
-          "xcopy" [q src; q tgt; "/E"; "> NUL"]
-      | _ ->
-        OASISExec.run ~ctxt
-          "cp" ["-r"; q src; q tgt]
-  else
-    match Sys.os_type with
-      | "Win32" ->
-          OASISExec.run ~ctxt
-            "copy" [q src; q tgt; "> NUL"]
-      | _ ->
-          OASISExec.run ~ctxt
-            "cp" [q src; q tgt]
+let cp ~ctxt src tgt =
+  match Sys.os_type with
+  | "Win32" -> OASISExec.run ~ctxt "copy" [q src; q tgt; "> NUL"]
+  | _ -> OASISExec.run ~ctxt "cp" [q src; q tgt]
 
 
 let mkdir ~ctxt tgt =
