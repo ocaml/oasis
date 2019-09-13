@@ -486,7 +486,7 @@ let tests_match_native =
        oasis_setup test_ctxt t;
        (* Setup expectation. *)
        register_generated_files t
-         (oasis_ocamlbuild_files @ 
+         (oasis_ocamlbuild_files @
           [
             "src/lib/oasis-plugin-versionfile/oasis-plugin-versionfile.mldylib";
             "src/lib/oasis-plugin-versionfile/oasis-plugin-versionfile.mllib";
