@@ -24,9 +24,7 @@ depends: [
   "ocamlify" {build}
   "ocamlmod" {build}
   "ounit" {with-test & >= "2.0.0"}
-  # Avoid dependency cycle with oasis on version 0.6.0.
-  # "fileutils" {with-test & >= "0.4.2" & != "0.6.0"}
-  "fileutils" {with-test & >= "0.4.2"}
+  "fileutils" {with-test & >= "0.6.1"}
   "expect" {with-test & >= "0.0.4"}
 ]
 depopts: [
