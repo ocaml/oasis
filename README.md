@@ -86,18 +86,17 @@ exhaustive. Consider reading the [dune] doc to learn more.
 * Remove from .gitignore:
   * setup.data
   * setup.log
-  * _build, *.byte and other ocamlbuild specific files
+  * *.byte, *.native and other ocamlbuild specific files (except \_build because it is also used by dune)
 * Remove oasis, ocamlbuild and ocamlfind from any *.opam files and add the
   following:
 
 ```
 build: [
-  ["dune" "build" "-p" name "-j" jobs]
-  ["dune" "build" "@doc" "-p" name "-j" jobs] {with-doc}
-  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ["dune" "build" "-p" name "-j" jobs
+   "@install"
+   "@doc" {with-doc}
+   "@runtest" {with-test} ]
 ]
-build-doc: 
-build-test: 
 depends: [
   "dune" {>= "1.11.0"}
 ]
