@@ -39,7 +39,7 @@ val pp_print_string_spaced: Format.formatter -> string -> unit
 *)
 val pp_print_list:
   (Format.formatter -> 'a -> unit) ->
-  ('b, Format.formatter, unit) format -> Format.formatter -> 'a list -> unit
+  (unit, Format.formatter, unit) format -> Format.formatter -> 'a list -> unit
 
 
 (** [pp_print_para fmt str] Print a paragraph. '\n\n' mark the end of a

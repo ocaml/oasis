@@ -265,6 +265,7 @@ true: annot, bin_annot
 
 <**/*.ml>: annot
 true: safe_string
+true: strict_sequence
 
 "build": -traverse
 "build": not_hygienic
