@@ -61,7 +61,7 @@ val mkdir: ctxt:OASISContext.t -> host_filename -> unit
     directory name created, in order.
 *)
 val mkdir_parent:
-  ctxt:OASISContext.t -> (host_filename -> 'a) -> host_filename -> unit
+  ctxt:OASISContext.t -> (host_filename -> unit) -> host_filename -> unit
 
 
 (** Remove a directory.
