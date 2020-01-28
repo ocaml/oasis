@@ -402,6 +402,7 @@ OASIS_build_OCamlLibrary(name,modules,c_objects) =
         else
             $(BYTELIB) $(LIBSTUBS): $(CMOFILES) $(C_OBJECTS) $(BYTEDEPS)
                 $(OCAMLMKLIB) \
+                     $(OCAMLMKLIBFLAGS) \
                      $(OCAML_LIB_CCLIB) $(flags) $(byteflags) \
                      -ocamlc "$(OCAMLC)" \
                      -o $(LIBNAME) -oc $(STUBS) \
@@ -409,6 +410,7 @@ OASIS_build_OCamlLibrary(name,modules,c_objects) =
 
             $(NATIVELIB) $(CLIB) $(LIBSTUBS): $(CMXFILES) $(OFILES) $(C_OBJECTS) $(NATIVEDEPS) $(CLIBDEPS)
                 $(OCAMLMKLIB) \
+                     $(OCAMLMKLIBFLAGS) \
                      $(OCAML_LIB_CCLIB) $(flags) $(natflags) \
                      -ocamlopt "$(OCAMLOPT)" \
                      -o $(LIBNAME) -oc $(STUBS) \
