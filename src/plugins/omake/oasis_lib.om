@@ -551,8 +551,8 @@ OASIS_concat2(seq1, seq2) =
 # A version of set-diff that ignores the case of the first letter
 # of the basename
 OASIS_set_diff(set1, set2) =
-    private.dir2 = $(dirname $(set2))
-    private.base2 = $(basename $(set2))
+    private.dir2[] = $(dirname $(set2))
+    private.base2[] = $(basename $(set2))
     private.base2_lc = $(uncapitalize $(base2))
     private.base2_uc = $(capitalize $(base2))
     private.set2_lc = $(OASIS_concat2 $(dir2), $(base2_lc))
