@@ -439,7 +439,7 @@ OASIS_build_OCamlLibrary(name,modules,c_objects) =
                  $(OCamlLinkSort $(CMXFILES))
 
     $(CMXSFILE): $(NATIVELIB) $(CLIB)
-        $(OCAMLOPTLINK) -shared -cclib -L. -o $(CMXSFILE) $(NATIVELIB)
+        $(OCAMLOPTLINK) -shared -linkall -cclib -L. -o $(CMXSFILE) $(NATIVELIB)
 
     $(LIBODOCFILE): $(ODOCFILES)
          section
