@@ -8,7 +8,7 @@
 oasis - Tooling for building OCaml libraries and applications
 =============================================================
 
-<img src="./blob/master/doc/images/logo.svg" width="64" height="64"/></img>
+<img src="https://raw.githubusercontent.com/ocaml/oasis/master/doc/images/logo.svg" width="64" height="64"/></img>
 
 OASIS generates a full configure, build and install system for your
 application. It starts with a simple `_oasis` file at the toplevel of your
