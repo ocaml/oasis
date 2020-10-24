@@ -2,9 +2,6 @@
 [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/42gumiqt5le643t2?svg=true)](https://ci.appveyor.com/project/gildor478/oasis)
 [![Join the chat at https://gitter.im/ocaml/oasis](https://badges.gitter.im/ocaml/oasis.svg)](https://gitter.im/ocaml/oasis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-<!--- OASIS_START --->
-<!--- DO NOT EDIT (digest: fa5b2e44255b14951d927b0e054fa38f) --->
-
 oasis - Tooling for building OCaml libraries and applications
 =============================================================
 
@@ -31,23 +28,21 @@ tested on GNU Linux and Windows.
 It also allows to have standard entry points and description. It helps to
 integrate your libraries and software with third parties tools like OPAM.
 
-See the file [INSTALL.md](INSTALL.md) for building and installation
-instructions.
-
 [Bug reports](https://github.com/ocaml/oasis/issues)
 
-Copyright and license
----------------------
 
-(C) 2011-2016 Sylvain Le Gall
-(C) 2008-2010 OCamlCore SARL
+Install OASIS
+-------------
 
-oasis is distributed under the terms of the GNU Lesser General Public License
-version 2.1 with OCaml linking exception.
+The recommended way to install oasis is via the [opam package manager][opam]:
 
-See [COPYING.txt](COPYING.txt) for more information.
+[opam]: https://opam.ocaml.org
 
-<!--- OASIS_STOP --->
+```sh
+$ opam install oasis
+```
+
+As an alternative, [INSTALL.md](INSTALL.md) explains how  to build OASIS from the sources.
 
 Documentation
 -------------
@@ -87,3 +82,14 @@ Related documentation
 ---------------------
 
 [OMake README](src/plugins/omake/README.md)
+
+Copyright and license
+---------------------
+
+(C) 2011-2016 Sylvain Le Gall
+(C) 2008-2010 OCamlCore SARL
+
+oasis is distributed under the terms of the GNU Lesser General Public License
+version 2.1 with OCaml linking exception.
+
+See [COPYING.txt](COPYING.txt) for more information.
