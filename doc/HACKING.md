@@ -26,12 +26,12 @@ There are two kind of plugin:
  * oasis command line plugins (oasis-cli): they create subcommand for the
    command line interface of `oasis`. For example, the subcommand `oasis
    print-hello` is provided by the plugin `print-hello`.
-   [Example](examples/plugins/oasis-plugin-print-hello)
+   [Example](../examples/plugins/oasis-plugin-print-hello)
  * oasis plugins (oasis): they are used in `_oasis`: these plugins help to
    process the content of an `_oasis` file and generates additional content in
    the target package.
-   [Example](examples/plugins/oasis-plugin-versionfile),
-   [Example usage](examples/plugins/with-plugin-versionfile)
+   [Example](../examples/plugins/oasis-plugin-versionfile),
+   [Example usage](../examples/plugins/with-plugin-versionfile)
 
 
 `oasis`'s plugin system uses findlib to detect plugins, so you must install

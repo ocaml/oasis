@@ -1,6 +1,3 @@
-% OASIS User Manual
-% author Sylvain Le Gall and others
-
 Introduction
 ============
 

@@ -56,6 +56,8 @@ Documentation
   OASIS for a single executable and library.
 * Have a look at our [frequently asked questions](doc/FAQ.md)
 * [OASIS User manual](doc/MANUAL.mkd)
+* [Contributing](doc/CONTRIBUTE.md)
+* [Release process](doc/HACKING.md)
 
 Examples
 --------
