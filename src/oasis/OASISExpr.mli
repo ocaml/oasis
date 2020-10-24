@@ -27,7 +27,7 @@
     for the precise syntax of the boolean expression
 
     @author Sylvain Le Gall
-    @see <http://oasis.forge.ocamlcore.org/MANUAL.html#conditional-value> OASIS Manual
+    @see <https://github.com/ocaml/oasis/doc/MANUAL.mkd#conditional-value> OASIS Manual
 *)
 
 

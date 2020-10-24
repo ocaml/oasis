@@ -10,7 +10,7 @@ Authors:        Sylvain Le Gall
 Maintainers:    Sylvain Le Gall <sylvain@le-gall.net>
 Copyrights:     (C) 2011-2016 Sylvain Le Gall
                 (C) 2008-2010 OCamlCore SARL
-Homepage:       http://oasis.forge.ocamlcore.org/
+Homepage:       https://github.com/ocaml/oasis
 Plugins:        DevFiles (0.4), StdFiles (0.4), META (0.4)
 FilesAB:        src/oasis/OASISConf.ml.ab
 BuildTools:     ocamlbuild, make

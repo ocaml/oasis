@@ -8,6 +8,8 @@
 oasis - Tooling for building OCaml libraries and applications
 =============================================================
 
+<img src="./blob/master/doc/images/logo.svg" width="64" height="64"/></img>
+
 OASIS generates a full configure, build and install system for your
 application. It starts with a simple `_oasis` file at the toplevel of your
 project and creates everything required.
@@ -27,12 +29,10 @@ configure/install scheme. Libraries are managed through findlib. It has been
 tested on GNU Linux and Windows.
 
 It also allows to have standard entry points and description. It helps to
-integrates your libraries and software with third parties tools like OPAM.
+integrate your libraries and software with third parties tools like OPAM.
 
 See the file [INSTALL.md](INSTALL.md) for building and installation
 instructions.
-
-[Home page](http://oasis.forge.ocamlcore.org/)
 
 [Bug reports](https://github.com/ocaml/oasis/issues)
 
@@ -48,6 +48,38 @@ version 2.1 with OCaml linking exception.
 See [COPYING.txt](COPYING.txt) for more information.
 
 <!--- OASIS_STOP --->
+
+Documentation
+-------------
+
+* [OASIS Quickstart](doc/QUICKSTART.md) which show you how to set up
+  OASIS for a single executable and library.
+* Have a look at our [frequently asked questions](doc/FAQ.md)
+* [OASIS User manual](doc/MANUAL.mkd)
+
+Examples
+--------
+
+* [custom](https://github.com/ocaml/oasis/blob/master/examples/custom/_oasis)
+ a project that uses the custom plugin and make to build
+* [flags](https://github.com/ocaml/oasis/blob/master/examples/flags/_oasis)
+ a project that uses flags and .ab files where these flags are substituted
+* [interdepend-libraries](https://github.com/ocaml/oasis/blob/master/examples/interdepend-libraries/_oasis)
+ a project that uses several libraries linked together
+* [with-c](https://github.com/ocaml/oasis/blob/master/examples/with-c/_oasis)
+ a project that uses C files in libraries and executables
+* [with-data](https://github.com/ocaml/oasis/blob/master/examples/with-data/_oasis)
+ a project that installs data files
+* [with-subpackages](https://github.com/ocaml/oasis/blob/master/examples/with-subpackage/_oasis)
+ a project that uses a syntax extension and a library
+* [browse the examples](https://github.com/ocaml/oasis/tree/master/examples)
+ directory of OASIS for other examples
+
+Featured projects that use \_oasis:
+
+* [ocamlify](https://github.com/gildor478/ocamlify):
+  the [\_oasis](https://github.com/gildor478/ocamlify/blob/master/_oasis) file includes 2 syntax extensions,
+  a library and tests
 
 Related documentation
 ---------------------

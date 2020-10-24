@@ -492,7 +492,6 @@ type 'a quickstart_question =
     These functions allow to generate setup.ml standalone code, by serializing
     OCaml data using OCaml notation. They are {b not exported}.
 
-    See {{:http://forge.ocamlcore.org/projects/odn} the OCaml data notation project}
 *)
 
 val odn_of_unix_dirname:  unix_dirname -> OASISDataNotation.t

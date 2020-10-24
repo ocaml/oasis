@@ -2,7 +2,7 @@ opam-version: "2.0"
 maintainer: "Sylvain Le Gall <sylvain@le-gall.net>"
 authors: [ "Sylvain Le Gall" ]
 license: "LGPL-2.1 with OCaml linking exception"
-homepage: "http://oasis.forge.ocamlcore.org/"
+homepage: "http://github.com/ocaml/oasis"
 dev-repo: "git://github.com/ocaml/oasis.git"
 bug-reports: "https://github.com/ocaml/oasis/issues"
 build: [

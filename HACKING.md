@@ -59,9 +59,6 @@ Cut a release
    * Thanks section.
  * Create a [blog post][blog-post].
    * See the [blog post example][blog-post-example] for content
- * Create a [news on the forge][forge-post].
-   * Subject: OASIS v0.4.2 release
-   * Details: Read the full blog post here: URL of the blog post.
  * Change version in `_oasis`, drop the ~HEAD, rerun `oasis setup` and commit.
  * `make deploy`
  * Make sure the new version is X.Y.Z~HEAD and maybe rerun update.
@@ -85,7 +82,6 @@ Cut a release
  [appveyor]: https://ci.appveyor.com/project/gildor478/oasis
  [blog-post]: https://le-gall.net/sylvain+violaine/blog/admin/posts.php
  [blog-post-example]: http://le-gall.net/sylvain+violaine/blog/index.php?post/2014/10/23/Release-of-OASIS-0.4.5
- [forge-post]: https://forge.ocamlcore.org/news/submit.php?group_id=54
  [bugs-version]: https://github.com/ocaml/oasis/issues/new
  [pull-version]: https://github.com/ocaml/oasis/pulls
  [bugs]: https://github.com/ocaml/oasis/issues

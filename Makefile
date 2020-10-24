@@ -24,8 +24,8 @@ OMAKEFLAGS:=$(shell (command -v omake > /dev/null) && echo --enable-omake-tests)
 CONFIGUREFLAGS += --override ocamlbuildflags -classic-display \
                   --enable-tests \
                   --enable-devel \
-									--enable-devel-tests \
-									$(OMAKEFLAGS)
+                  --enable-devel-tests \
+                  $(OMAKEFLAGS)
 
 default: test
 
@@ -101,14 +101,6 @@ headache:
 
 .PHONY: headache
 
-# Doc targets
-#  Build documentation and pack them in a tarball.
-
-doc-dist: doc
-	./doc-dist.sh
-
-.PHONY: doc-dist
-
 # Precommit target
 #  Check style of code.
 
@@ -138,7 +130,8 @@ test: precommit
 # Deploy target
 #  Deploy/release the software.
 
-deploy: headache doc-dist
+deploy: headache
+	$(MAKE) doc
 	dispakan $(DEPLOY_FLAGS)
 	admin-gallu-oasis-increment
 	$(MAKE) build
@@ -149,7 +142,6 @@ deploy: headache doc-dist
 
 
 .PHONY: deploy
-
 
 # Create dev tarball.
 #  Create a tarball for rebuilding the current version

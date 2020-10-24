@@ -39,12 +39,7 @@ Features:
    [2](#plugin-meta), [3](#plugin-stdfiles))
  * Generic support for all step ([see here](#plugin-custom))
  * Internal configure/install ([see here](#plugin-internal))
-
-Planned features:
-
- * [OCaml autoconf](http://ocaml-autoconf.forge.ocamlcore.org)
- * [OCamlMakefile](http://www.ocaml.info/software.html#build_tools)
- * [OMake](http://omake.metaprl.org/index.html)
+ * Support for [OMake](http://omake.metaprl.org/index.html)
 
 Writing `_oasis` file
 =====================

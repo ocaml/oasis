@@ -29,7 +29,7 @@
     functions (TODO as of 2016-06-04).
 
     @author Sylvain Le Gall
-    @see <http://forge.ocamlcore.org/projects/ocaml-gettext> OCaml Gettext project
+    @see <https://github.com/gildor478/ocaml-gettext> OCaml Gettext project
 *)
 
 

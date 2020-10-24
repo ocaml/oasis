@@ -1,0 +1,1164 @@
+% OASIS User Manual
+% author Sylvain Le Gall and others
+
+Introduction
+============
+
+OASIS is a tool to help OCaml developers to integrate configure, build and
+install systems in their projects. It should help to create standard entry
+points in the source code build system, allowing external tools to analyse
+projects easily.
+
+This tool is freely inspired by [Cabal][] which is the same kind of tool for
+[Haskell][].
+
+  [Cabal]: http://www.haskell.org/cabal
+  [Haskell]: http://www.haskell.org
+
+Everything starts with a single text file, named `_oasis`, at the root of the
+project source directory. It contains semi-colon separated fields and sections
+that describe what is contained in the project and what to do with it.
+
+This file is used to generate a skeleton for build, configure and install
+systems. Generation can be customized through extra fields or directly inside
+generated files.
+
+The main entry point is an OCaml script `setup.ml`. It is self contained. Once
+generated there is no additional dependencies (just like an autoconf
+`configure` script).
+
+OASIS has been created with [OCamlbuild][] in mind. So there is probably some
+features/bugs that are oriented toward this build system.
+
+  [OCamlbuild]: https://ocaml.org/learn/tutorials/ocamlbuild/
+
+Features:
+
+ * OCamlbuild support ([see here](#plugin-ocamlbuild))
+ * Standard files auto-generation (see here [1](#plugin-devfiles),
+   [2](#plugin-meta), [3](#plugin-stdfiles))
+ * Generic support for all step ([see here](#plugin-custom))
+ * Internal configure/install ([see here](#plugin-internal))
+
+Planned features:
+
+ * [OCaml autoconf](http://ocaml-autoconf.forge.ocamlcore.org)
+ * [OCamlMakefile](http://www.ocaml.info/software.html#build_tools)
+ * [OMake](http://omake.metaprl.org/index.html)
+
+Writing `_oasis` file
+=====================
+
+Syntax
+------
+
+The `_oasis` must be a valid UTF-8 text file. This file identify the toplevel
+directory of the project.
+
+Identifiers are just like variable names in OCaml, it cannot contains "-" or
+numbers at the beginning. Strings follow OCaml convention. For extra
+information on the parser/lexer see [Genlex][].
+
+ [Genlex]: http://caml.inria.fr/pub/docs/manual-ocaml/libref/Genlex.html
+
+A line beginning by `#` is a comment and is ignored. Blank line are ignored.
+
+The file contains semi-colon fields and sections.
+
+### Fields
+
+Fields are defined as `field_name: field_value`:
+
+ * Field name is an identifier, it contains only alphanumeric chars.
+ * Field name is case insensitive.
+ * Field value follow OCaml string convention, expect you don't need '"'
+   around it.
+ * Leading and trailing blanks of field value are removed.
+ * A field value can continue on several lines, in this case the content of
+   the value must be indented one level more then the field name. In the body of
+   the value a blank line is represented by `.`.
+ * If two fields have the same `field_name`, only the latter sets the value.
+
+The separator ':' can be replaced by '+:' which appends the `field_value` to
+the previous value of the value (rather than erasing it). Beware that appending
+is value dependent, some fields can concatenate, some cannot.
+
+The ':' can also be replaced by '$:', see
+[Conditional value](#conditional-value).
+
+### Sections
+
+Sections can be an identifier or a string:
+
+    Library foo
+
+or
+
+    Library "foo".
+
+Section name can be : `Library`, `Executable`, `Document`, `Test` and
+`SourceRepository`. Content of a section is indented relative to the section
+begin.
+
+Example:
+    # Toplevel fields
+    OASISFormat:  1.0
+    
+    Library "foo"
+      # Library fields
+      Path: src/
+    
+    # Back to toplevel fields
+    Synopsis: bar
+
+### Conditional value
+
+It is possible to define some fields conditionally. Not all fields can be
+specified this way, only fields that have no good default values and that must
+be evaluated at runtime is defined.
+
+For example:
+
+ * Toplevel fields `Name` and `Version` cannot be conditional.
+ * Library fields `Build` and `Install` can be conditional.
+
+A condition is defined using a `if ... else ...` construct.
+
+Example:
+
+    Library bar
+      if os_type(Win32)
+        Build: true
+      else
+        Build: false
+
+Available tests are :
+
+* `os_type(X)`
+* `system(X)`
+* `architecture(X)`
+* `ccomp_type(X)`
+* `ocaml_version(X)`
+
+The values from these tests are extracted from theoutput of `ocamlc -config`.
+
+
+An additional `flag` test is available which check that the a Flag is defined. See
+the chapter on the [Flag section](#flag).
+
+Tests and flags can be combined using standard boolean operation:
+
+* `(expr)`
+* `! expr`: negation of `expr`.
+* `expr1 && expr2`: boolean and.
+* `expr1 || expr2`: boolean or.
+* `true` and `false`.
+
+
+For boolean fields, you can replace the `if ... else ...` construct by `$:`.
+
+For example:
+
+    Library bar
+      if os_type(Win32)
+        Build: true
+      else
+        Build: false
+
+is equivalent to:
+
+
+        Build$: os_type(Win32)
+
+### Features
+
+OASIS allows to experiment with non-official, experimental features. These
+features are included in the code but are not activated by default. In order to
+activate them. You need to list them in `AlphaFeatures` or `BetaFeatures` of
+your `_oasis`.
+
+Alpha features are under development and may only be used for testing. They are
+not yet well defined, they are evolving quickly and may be removed in future
+release of OASIS.
+
+Beta features are features almost ready to be shipped, they mostly need to be
+polished before release. You may use them as they will probably be ready for
+the next version of OASIS.
+
+Once you have activated a features, you get access to more fields and some
+parts of the code maybe be activated as well.
+
+Features allow the OASIS development team to release experiment early and
+should avoid long delay between release.
+
+Available features:
+
+ * `ocamlbuild_more_args`: Allow to pass arguments to ocamlbuild. (alpha)
+ * `compiled_setup_ml`: Compile the setup.ml and speed-up actions done with
+   it. (alpha)
+ * `disable_oasis_section`: Allow the OASIS section comments and digests to be
+   omitted in generated files. (alpha)
+ * `stdfiles_markdown`: Use markdown comment and replace .txt extensions of
+   standard files by            .md. (alpha)
+ * `section_object`: Implement an object section. (beta)
+ * `source_patterns`: Customize mapping between module name and source
+   file. (alpha)
+ * `no_automatic_syntax`: Disable the automatic inclusion of -syntax camlp4o
+   for packages that matches the internal heuristic (if a dependency ends with
+   a .syntax or is a well known syntax). (alpha)
+ * `findlib_extra_files`: Allow to install extra files for findlib
+   libraries. (beta)
+ * `findlib_directory`: Allow to install findlib libraries in sub-directories
+   of the target findlib directory. (beta)
+ * `dynrun_for_release`: Make '-setup-update dynamic' suitable for releasing
+   project. (alpha)
+ * `pure_interface`: Allow to have module with only .mli file. (alpha)
+
+Package
+-------
+
+Package fields are defined outside sections. They apply to the whole project.
+
+Fields:
+
+ * `OASISFormat`: OASIS format version used to write file
+   `\_oasis`. (__mandatory__)
+ * `AlphaFeatures`: Experimental features in alpha stage (frequent change, may
+   never been shipped). (__since OASISFormat: 0.4__)
+ * `BetaFeatures`: Experimental features in beta stage (will ship, under
+   review). (__since OASISFormat: 0.4__)
+ * `Name`: Name of the package. (__mandatory__)
+ * `Version`: Version of the package. (__mandatory__)
+ * `Synopsis`: Short description of the purpose of this
+   package. (__mandatory__)
+ * `Description`: Long description of the package purpose.
+ * `Authors`: Real people that had contributed to the package. (__mandatory__)
+ * `Copyrights`: Copyright owners.
+ * `Maintainers`: Current maintainers of the package.
+ * `LicenseFile`: File containing the license.
+ * `License`: DEP-5 license of the package (See
+   [DEP-5](http://dep.debian.net/deps/dep5/#index6h3)). (__mandatory__)
+ * `OCamlVersion`: Version constraint on OCaml.
+ * `FindlibVersion`: Version constraint on Finblib.
+ * `ConfType`: Configuration system.
+ * `PreConfCommand`: Command to run before configuration.
+ * `PostConfCommand`: Command to run after configuration.
+ * `BuildType`: Build system.
+ * `PreBuildCommand`: Command to run before build.
+ * `PostBuildCommand`: Command to run after build.
+ * `InstallType`: Install/uninstall system.
+ * `PreInstallCommand`: Command to run before install.
+ * `PostInstallCommand`: Command to run after install.
+ * `PreUninstallCommand`: Command to run before uninstall.
+ * `PostUninstallCommand`: Command to run after uninstall.
+ * `PreCleanCommand`: Command to run before clean.
+ * `PostCleanCommand`: Command to run after clean.
+ * `PreDistcleanCommand`: Command to run before distclean.
+ * `PostDistcleanCommand`: Command to run after distclean.
+ * `Homepage`: URL of the package homepage.
+ * `BugReports`: URL of the page to report bugs about the package.
+ * `Tags`: List of semantic tags to classify the package.
+ * `Categories`: URL(s) describing categories of the package.
+ * `FilesAB`: Files to generate using environment variable substitution.
+ * `Plugins`: Extra plugins to use.
+ * `DisableOASISSection`: Files to generate without OASIS section comments or
+   digest. (__require AlphaFeatures: disable\_oasis\_section__)
+ * `BuildDepends`: Dependencies on findlib packages, including internal findlib
+   packages.
+ * `BuildTools`: Tools required to compile, including internal executables.
+ * `InterfacePatterns`: Patterns to use for locating source
+   files. (__require AlphaFeatures: source\_patterns__)
+ * `ImplementationPatterns`: Patterns to use for locating source
+   files. (__require AlphaFeatures: source\_patterns__)
+
+`BuildDepends` and `BuildTools` are appended to all sections and not used
+directly in the package.
+
+Sections
+--------
+
+There are 6 possible sections:
+
+ * `Flag`: a command line flag.
+ * `Library`: an OCaml library.
+ * `Object`: a .cmo/.cmx object (__require BetaFeatures: section\_object__).
+ * `Executable`: an OCaml executable.
+ * `Document`: a document.
+ * `Test`: a test.
+ * `SourceRepository`: version control system information.
+
+None of these sections are mandatory. `Library`, `Executable`, `Document` and
+`Test` can be dependent on each other. This not a problem as long as there is no
+cycle inside the dependency graph. Dependencies can be expressed through
+`BuildDepends` and `BuildTools` fields.
+
+### Flag
+
+A flag section defines a configure command line option. It will be translated to
+to `--enable-XXX` and `--disable-XXX` for the command line. It can be used
+inside conditional fields.
+
+Fields:
+
+ * `Description`: Help for the flag
+ * `Default`: Default value for the flag
+
+### Common fields
+
+These fields are used inside `Library` and `Executable`.
+
+Fields:
+
+ * `Path`: Directory containing the section (__mandatory__)
+ * `Build`: Set if the section should be built.
+ * `Install`: Set if the section should be distributed.
+ * `DataFiles`: Comma separated list of files to be installed for run-time.
+   ([see here](#data-files))
+ * `FindlibExtraFiles`: Comma separated list of extra files to be installed
+   with ocamlfind. (__require BetaFeatures: findlib\_extra\_files__)
+ * `BuildDepends`: Dependencies on findlib packages, including internal findlib
+   packages.
+ * `BuildTools`: Tools required to compile, including internal executables.
+ * `CompiledObject`: Define the compilation type of the section: byte, native
+   or best
+ * `InterfacePatterns`: Patterns to use for locating source
+   files. (__require AlphaFeatures: source\_patterns__)
+ * `ImplementationPatterns`: Patterns to use for locating source
+   files. (__require AlphaFeatures: source\_patterns__)
+ * `CSources`: C source files.
+ * `CCOpt`: -ccopt arguments to use when building.
+ * `CCLib`: -cclib arguments to use when building.
+ * `DllLib`: -dlllib arguments to use when building.
+ * `DllPath`: -dllpath arguments to use when building.
+ * `ByteOpt`: ocamlc arguments to use when building.
+ * `NativeOpt`: ocamlopt arguments to use when building.
+
+All files defined in the section are relative to `Path`.
+
+### Library
+
+Define an OCaml library. OCaml API is generated using `ocamldoc` applied to
+`Modules` with `BuildDepends` required flags.
+
+Fields:
+
+ * `Modules`: List of modules to compile.
+ * `InternalModules`: List of modules to compile which are not exported.
+ * `Pack`: Set if we should build a packed
+   library. (__since OASISFormat: 0.3__)
+ * `FindlibParent`: Library which includes the current library. The current
+   library will be built as its parents and installed along it.
+ * `FindlibName`: Name used by findlib.
+ * `FindlibDirectory`: Directory used by
+   findlib. (__require BetaFeatures: findlib\_directory__)
+ * `FindlibContainers`: Virtual containers for sub-package, dot-separated
+ * Include all common fields.
+
+### Object
+
+__require BetaFeatures: section\_object__
+
+Define an OCaml object file. It is very close to a library except that an
+object when linked will evaluate all its toplevel statement. This may be ideal
+if you want to call for example an initialisation function.
+
+Fields:
+
+ * `Modules`: List of modules to compile.
+ * `FindlibFullName`: Name used by findlib.
+ * `FindlibDirectory`: Directory used by
+   findlib. (__require BetaFeatures: findlib\_directory__)
+ * Include all common fields.
+
+### Executable
+
+Define an OCaml executable. If the executable is a bytecode that use internal
+library, a helper script can be generated to set library path.
+
+Fields:
+
+ * `MainIs`: OCaml file (.ml) containing main procedure for the
+   executable. (__mandatory__)
+ * `Custom`: Create custom bytecode executable.
+ * Include all common fields.
+
+### Document
+
+Define a generated document.
+
+Fields:
+
+ * `BuildTools`: Tools required to compile, including internal executables.
+ * `Type`: Plugin to use to build documentation.
+ * `PreCommand`: Command to run before building the doc.
+ * `PostCommand`: Command to run after building the doc.
+ * `Title`: Title of the document. (__mandatory__)
+ * `Authors`: Authors of the document.
+ * `Abstract`: Short paragraph giving an overview of the document.
+ * `Format`: Format for the document.
+ * `Index`: Index or top-level file for the document, only apply to HTML and
+   Info.
+ * `InstallDir`: Default target directory to install data and documentation.
+ * `Build`: Set if the section should be built.
+ * `Install`: Set if the section should be distributed.
+ * `DataFiles`: Comma separated list of files to be installed for run-time.
+   ([see here](#data-files))
+
+### Test
+
+Define a test to run.
+
+Fields:
+
+ * `Type`: Plugin to use to run test.
+ * `TestTools`: Tools required to run the test, including internal executables.
+ * `Command`: Command to run for the test. (__mandatory__)
+ * `WorkingDirectory`: Directory to run the test.
+ * `PreCommand`: Command to run before the test
+ * `PostCommand`: Command to run after the test
+ * `Run`: Enable this test.
+
+### SourceRepository
+
+Define VCS information. There are two special identified repositories:
+
+ * head: identify the main development repository.
+ * this: identify the repository at the state of the current version.
+
+Fields:
+
+ * `Type`: VCS type. (__mandatory__)
+ * `Location`: URL of the repository. The exact form of this field depends on
+   the repository type. (__mandatory__)
+ * `Browser`: URL where the repository can be navigated using a web browser.
+ * `Module`: CVS requires a named module, as each CVS server can host multiple
+   named repositories. (\_\_mandatory\_\_ for CVS)
+ * `Branch`: Define a meaningful branch for this repository.
+ * `Tag`: Identify a state corresponding to this particular package version.
+ * `Subdir`: Define the relative path from the root of the repository to the
+   top directory for the package, i.e. the directory containing the package's
+   `\_oasis` file.
+
+Supported VCS types are: darcs, git, svn, cvs, hg, bzr, arch, monotone.
+
+License
+-------
+
+We have adopted a [DEP-5][] license style description.
+
+ [DEP-5]: http://dep.debian.net/deps/dep5/#license-specification
+
+The reason of this format is to have machine-readable license description.
+Using this former work, we hope to be compatible with future standards of
+Debian.
+
+We have limited the number of license to:
+
+ * `AGPL`: GNU Affero General Public License (versions 3.0, 3)
+ * `Apache`: Apache license (versions 1.0, 1, 1.1, 2.0, 2)
+ * `Artistic`: Artistic license (versions 1.0, 1, 2.0, 2)
+ * `BSD-2-clause`: Berkeley software distribution license (2 clauses)
+ * `BSD-3-clause`: Berkeley software distribution license (3 clauses)
+ * `BSD-4-clause`: Berkeley software distribution license (4 clauses)
+ * `CC-BY`: Creative Commons Attribution license
+ * `CC-BY-NC`: Creative Commons Attribution Non-Commercial
+ * `CC-BY-NC-ND`: Creative Commons Attribution Non-Commercial No Derivatives
+ * `CC-BY-NC-SA`: Creative Commons Attribution Non-Commercial Share Alike
+ * `CC-BY-ND`: Creative Commons Attribution No Derivatives
+ * `CC-BY-SA`: Creative Commons Attribution Share Alike license
+ * `CC0`: Creative Commons Universal waiver
+ * `CDDL`: Common Development and Distribution License
+ * `CeCILL`: CEA-CNRS-INRIA Logiciel Libre. GPL like. (versions 1, 2)
+ * `CeCILL-B`: CEA-CNRS-INRIA Logiciel Libre, BSD-like
+ * `CeCILL-C`: CEA-CNRS-INRIA Logiciel Libre, LGPL-like
+ * `CPL`: IBM Common Public License (versions 1.0, 1)
+ * `Eiffel`: The Eiffel Forum License (version 2)
+ * `Expat`: The Expat license
+ * `FreeBSD`: FreeBSD Project license
+ * `GFDL`: GNU Free Documentation License (versions 1.1, 1.2, 1.3)
+ * `GFDL-NIV`: GNU Free Documentation License, with no invariant
+   sections (versions 1.1, 1.2, 1.3)
+ * `GPL`: GNU General Public License (versions 1.0, 1, 2.0, 2, 3.0, 3)
+ * `ISC`: Internet Software Consortium's license. Sometimes also known as the
+   OpenBSD License.
+ * `LGPL`: GNU Lesser General Public License. GNU Library General Public
+   License for versions lower than 2.1 (versions 2.0, 2, 2.1, 3.0, 3)
+ * `LPPL`: LaTeX Project Public License (version 1.3c)
+ * `MIT`: MIT License
+ * `MPL`: Mozilla Public License (versions 1.0, 1, 1.1)
+ * `PD`: Public domain. This is not a true license.
+ * `Perl`: Perl license. Equates to GPL-1+ or Artistic-1.
+ * `PROP`: Proprietary license, all rights reserved
+ * `PSF`: Python Software Foundation license (version 2)
+ * `QPL`: Q Public License (versions 1.0, 1)
+ * `W3C-Software`: W3C Software License (version 20021231)
+ * `WTFPL`: Do What The F\*ck You Want To Public License
+ * `ZLIB`: zlib/libpng license (version 1.2.2)
+ * `Zope`: Zope Public License (versions 1.0, 1, 2.0, 2, 2.1)
+ * or an URL describing the license
+
+And license exception to:
+
+ * `OCaml linking` compatible with LGPL: Add an exception to allow static
+   compilation without license propagation. Without this clause, compiling
+   against an OCaml library force license propagation. The LGPL is equal to GPL
+   without this exception.
+ * or an URL describing the license exception
+
+You can specify a license version using a dash and only digits or dashes at the
+end of the license short name.
+
+Examples :
+
+ * `LGPL-2.1 with OCaml linking exception`: LGPL v2.1 with OCaml linking exception
+ * `GPL-2+`: GPL v2 or later
+
+Data files
+----------
+
+`DataFiles` fields help to install extra data inside `$datadir/$pkg_name`. This
+field is a comma separated list of file, with optional value inside parenthesis.
+You can override target directory using `fn ($datadir/other_location)`.
+
+You can use wildcard `*` but only for a filename and followed by a single dot
+extension: `dir/*.html` is valid but `dir/*` and `dir/*.tar.gz` are not valid.
+
+Substitution inside text
+------------------------
+
+Substitution is performed using [Buffer.add\_substitute][].
+
+ [Buffer.add\_substitute]: http://caml.inria.fr/pub/docs/manual-ocaml/libref/Buffer.html#VALadd_substitute
+
+Variable are evaluated using environment. This is a mix of various data coming
+from `_oasis` file, `ocamlc -config` output and configure tests. So environment
+variables depends of each project. You can have a precise idea of what variables
+is available looking at the file `setup.data`.
+
+Here is a list of standard variables:
+
+ * `ocamlfind`
+ * `ocamlc`
+ * `ocamlopt`
+ * `ocamlbuild`
+ * `pkg_name`: Package name
+ * `pkg_version`: Package version
+ * `os_type`
+ * `system`
+ * `architecture`
+ * `ccomp_type`
+ * `ocaml_version`
+ * `standard_library_default`
+ * `standard_library`
+ * `standard_runtime`
+ * `bytecomp_c_compiler`
+ * `native_c_compiler`
+ * `model`
+ * `ext_obj`
+ * `ext_asm`
+ * `ext_lib`
+ * `ext_dll`
+ * `default_executable_name`
+ * `systhread_supported`
+ * `flexlink`
+ * `flexdll_version`: FlexDLL version (Win32)
+ * `prefix`: Install architecture-independent files dir
+ * `exec_prefix`: Install architecture-dependent files in dir
+ * `bindir`: User executables
+ * `sbindir`: System admin executables
+ * `libexecdir`: Program executables
+ * `sysconfdir`: Read-only single-machine data
+ * `sharedstatedir`: Modifiable architecture-independent data
+ * `localstatedir`: Modifiable single-machine data
+ * `libdir`: Object code libraries
+ * `datarootdir`: Read-only arch-independent data root
+ * `datadir`: Read-only architecture-independent data
+ * `infodir`: Info documentation
+ * `localedir`: Locale-dependent data
+ * `mandir`: Man documentation
+ * `docdir`: Documentation root
+ * `htmldir`: HTML documentation
+ * `dvidir`: DVI documentation
+ * `pdfdir`: PDF documentation
+ * `psdir`: PS documentation
+ * `destdir`: Prepend a path when installing package
+ * `findlib_version`
+ * `is_native`
+ * `suffix_program`
+ * `rm`: Remove a file.
+ * `rmdir`: Remove a directory.
+ * `debug`: Turn ocaml debug flag on
+ * `profile`: Turn ocaml profile flag on
+ * `native_dynlink`: Compiler support generation of .cmxs.
+ * `ocamlbuildflags`: OCamlbuild additional flags
+
+Other variables are defined depending on your `_oasis` file:
+
+ * Variables from BuildDepends:  `pkg_`  and the name of the findlib package.
+   It points to the directory containing the package.
+   If there is a version constraint, it is also translated to a variable. It
+   contains a boolean value to know if the version is ok or not.
+   Internal findlib packages don't create variables.
+   Example: `BuildDepends: oUnit (>= 1.0.3)` becomes two variables
+   `pkg_oUnit = /usr/lib/ocaml/ounit` and `pkg_oUnit_ge_1_0_3 = true`.
+ * Variables from external BuildTools: the variable is the name given
+   in the field and its value the filename of the executable.
+   Example: `BuildTools: make` becomes `make = /usr/bin/make`.
+ * Dynamic variables from internal BuildTools: the variable is the name
+   of the Executable section and its value the filename of the executable.
+   Example: `Executable ocamlmod` becomes `ocamlmod =
+   _build/src/tools/ocamlmod`. These variables are set through `setup.log`
+   rather than `setup.data`. They are set only when the corresponding files
+   is built.
+
+
+It is also possible to apply transformation through functions. This is useful
+when you need to use properties that need to be determined at runtime:
+
+ * `utoh`: convert an Unix filename into a host filename (e.g. UNIX -> Win32
+    conversion).
+ * `ocaml_escaped`: call to `String.escaped`.
+
+For example `$(utoh src/test.ml)` will be replaced by `src\test.ml` on Windows.
+
+Customization of generated files
+--------------------------------
+
+When OASIS generates file, it always replace only lines between
+`OASIS_START` and `OASIS_STOP`. These keywords are commented and
+followed by data to check that content is unchanged.
+
+If the file doesn't exist, OASIS will create the whole file using default
+header and footer.
+
+If OASIS detects a change inside the section being replaced, it will create a
+backup of the file and issue a warning.
+
+Customization of setup.ml
+-------------------------
+
+`setup.ml` as any generated files can be customized in its header and footer.
+Moreover it can be customized through hook in the code directly.
+
+TODO: explains hook.
+
+Using OASIS during software development
+---------------------------------------
+
+Since `_oasis` becomes a central place of information about the building
+process, it can be quite cumbersome to run again and again `oasis`. You can
+avoid it using the `-dev` flags when calling `oasis` for the first time. This
+way it will rebuilt very dependents build files each time you call `ocaml
+setup.ml`. A `setup.ml` built this way, should not be distributed. This intended
+for development purpose only.
+
+Plugins
+-------
+
+OASIS is basically built around plugins. They are used to define
+specific behavior for generating files and including their own code in `setup.ml`.
+
+There are 6 categories of plugin:
+
+ * __Conf__: apply to configure step, used in the field `ConfType`
+ * __Build__: apply to build stepi, used in the field `BuildType`
+ * __Test__: apply to test sections, used in the field `Type` of a test
+ * __Doc__: apply to documentation sections, used in the field `Type` of a document
+ * __Install__: apply to install and uninstall steps, used in the field `DocType`
+ * __Extra__: everything else, used in the field `Plugins`
+
+### Plugin Custom (build, doc, conf, install, test)
+
+__Version__: 0.4<br/>
+
+This plugin allow to define a set of three commands to perform each steps,
+associated with the following fields:
+
+ * `XCustomXXX`: main action to run.
+ * `XCustomXXXClean`: action to run when clean is invoked.
+ * `XCustomXXXDistclean`: action to run when distclean is invoked.
+
+`XXX` stands for `Conf`, `Build`, `Doc`, `Test`, `Install` or `Uninstall`.
+
+Action to run is a simple shell command. It can contain substitution variables as
+defined in [this section][#substitution].
+
+Package fields:
+
+ * `XCustomConf`: Run command to configure. (__mandatory__)
+ * `XCustomConfClean`: Run command to clean configure step.
+ * `XCustomConfDistclean`: Run command to distclean configure step.
+ * `XCustomBuild`: Run command to build. (__mandatory__)
+ * `XCustomBuildClean`: Run command to clean build step.
+ * `XCustomBuildDistclean`: Run command to distclean build step.
+ * `XCustomInstall`: Run command to install. (__mandatory__)
+ * `XCustomInstallClean`: Run command to clean install step.
+ * `XCustomInstallDistclean`: Run command to distclean install step.
+ * `XCustomUninstall`: Run command to uninstall. (__mandatory__)
+ * `XCustomUninstallClean`: Run command to clean uninstall step.
+ * `XCustomUninstallDistclean`: Run command to distclean uninstall step.
+
+Document fields:
+
+ * `XCustom`: Run command to build documentation. (__mandatory__)
+ * `XCustomClean`: Run command to clean build documentation step.
+ * `XCustomDistclean`: Run command to distclean build documentation step.
+
+Test fields:
+
+ * `XCustomClean`: Run command to clean test step.
+ * `XCustomDistclean`: Run command to distclean test step.
+
+The file `setup.data` remains __mandatory__, even when using the custom plugin.
+You must create it. A simple `touch setup.data; ./configure` should be enough,
+though.
+
+### Plugin OMake (build, install, doc)
+
+__Version__: 0.4<br/>
+
+This plugin uses OMake to generate a build system. You need to specify `OMake`
+for the `BuildType`.
+
+It is also possible to use this plugin for `Document.Type` and as a
+`InstallType`.
+
+Package fields:
+
+ * `XOMakeExtraArgs`: Gives extra arguments to omake
+
+Document fields:
+
+ * `XOMakePath`: Top level directory for building ocamldoc documentation
+ * `XOMakeModules`: List of OCaml modules used to generate ocamldoc
+   documentation
+ * `XOMakeTexts`: List of text modules used to generate ocamldoc documentation
+ * `XOMakeLibraries`: Findlib names of internal libraries used to generate the
+   ocamldoc documentation
+ * `XOMakeIntro`: OCamldoc formatted file used to generate index.html of the
+   ocamldoc documentation
+ * `XOMakeFlags`: OCamldoc flags
+ * `XOMakeExtraArgs`: Gives extra arguments to omake
+
+### Plugin None (build, doc, test, install, conf)
+
+__Version__: 0.4<br/>
+
+This plugin basically does nothing. It helps to replace mandatory step by nothing.
+
+### Plugin OCamlbuild (doc, build)
+
+__Version__: 0.4<br/>
+
+This plugin uses OCamlbuild to generate a build system. It is the default value
+for `BuildType`.
+
+
+It is also possible to use this plugin for `Document.Type` which is the
+default. In this case, OCamlbuild will also be involved in the generation of a
+particular document.
+
+Package fields:
+
+ * `XOCamlbuildPluginTags`: Gives the plugin tags to ocambuild through
+   '-plugin-tags' (OCaml >= 4.01
+   only) (__require AlphaFeatures: ocamlbuild\_more\_args__)
+ * `XOCamlbuildExtraArgs`: Gives extra arguments to
+   ocamlbuild (__require AlphaFeatures: ocamlbuild\_more\_args__)
+
+Document fields:
+
+ * `XOCamlbuildPath`: Top level directory for building ocamldoc
+   documentation (__mandatory__)
+ * `XOCamlbuildModules`: List of OCaml modules used to generate ocamldoc
+   documentation
+ * `XOCamlbuildLibraries`: Findlib names of internal libraries used to generate
+   the ocamldoc documentation
+ * `XOCamlbuildPluginTags`: Gives the plugin tags to ocambuild through
+   '-plugin-tags' (OCaml >= 4.01
+   only) (__require AlphaFeatures: ocamlbuild\_more\_args__)
+ * `XOCamlbuildExtraArgs`: Gives extra arguments to
+   ocamlbuild (__require AlphaFeatures: ocamlbuild\_more\_args__)
+
+### Plugin Internal (conf, install)
+
+__Version__: 0.4<br/>
+
+This plugin is the default value for the `ConfType` and `InstallType`. It
+represents a default behavior for configuring and installing OCaml project.
+
+The configure part take care of checking:
+
+ * Tools availability (ocamlfind, ocamlc et al)
+ * OCaml version
+ * Findlib packages
+
+The install part take care of installing executables, libraries and data files
+using standard environment variable (`$bindir`, `$datadir` et al).
+
+
+
+### Plugin META (extra)
+
+__Version__: 0.4<br/>
+
+This plugin is a helper to generate a `META` files that can be distributed and
+install with a library. It uses library name, version, synopsis and dependencies
+to generate matching fields in `META`.
+
+Library fields:
+
+ * `XMETAEnable`: Enable META generation
+ * `XMETADescription`: META package description
+ * `XMETAType`: Type of META package, set default predicates for archive
+ * `XMETAExtraLines`: Extra lines to add to the
+   META (__since OASISFormat: 0.3__)
+ * `XMETARequires`: Requires field for META package
+
+### Plugin StdFiles (extra)
+
+__Version__: 0.4<br/>
+
+This plugin generates standard files like `README.txt`, `INSTALL.txt` and
+`AUTHORS.txt`. These files will summarize data contains in `_oasis`.
+
+The `.txt` extension has been added to allow easy editing/viewing under Windows
+and other system that look for extension to determine file type.
+
+Package fields:
+
+ * `XStdFilesREADME`: Enable README file generation.
+ * `XStdFilesREADMEFilename`: Real filename to use for file README.
+ * `XStdFilesINSTALL`: Enable INSTALL file generation.
+ * `XStdFilesINSTALLFilename`: Real filename to use for file INSTALL.
+ * `XStdFilesAUTHORS`: Enable AUTHORS file generation.
+ * `XStdFilesAUTHORSFilename`: Real filename to use for file AUTHORS.
+
+### Plugin DevFiles (extra)
+
+__Version__: 0.4<br/>
+
+It helps to generate a toplevel `Makefile` and `configure` files which only
+invoke `setup.ml`. It aims to provide good old entry points.
+
+Package fields:
+
+ * `XDevFilesMakefileNoTargets`: Targets to disable when generating Makefile
+ * `XDevFilesEnableMakefile`: Generate Makefile
+ * `XDevFilesEnableConfigure`: Generate configure script
+
+
+Building and installing
+=======================
+
+The file `setup.ml` is the base system to run every targets. It contains a
+self contained OCaml script, that only depends on OCaml standard installation
+that doesn't require using stublibs (no Str or Unix). This constraint is
+required to be fully portable even on system that doesn't support dynamic
+loading.
+
+The file `setup.data` is the result of the configure step and contains data that
+can be used for other step. It is removed only in `distclean` target. The format
+of this file is on variable and values per line: `var="value"`. The value is an
+OCaml string. The file in this form can be read by `make` and `sh`. Once
+generated this file should not be modified.
+
+The file `setup.log` contains a list of action done and is used and updated by
+action done and cancel (e.g. action `install` log files installed which action
+`uninstall` remove).
+
+ocaml setup.ml -configure
+-------------------------
+
+This is the first step to perform. It is mandatory. It runs various test of the
+build environment to check that everything required is installed.
+
+
+ocaml setup.ml -build
+---------------------
+
+This step is mandatory. Build libraries and executables.
+
+ocaml setup.ml -test
+--------------------
+
+This step is optional. Run defined test. Need the build step before.
+
+ocaml setup.ml -doc
+-------------------
+
+This step is optional. It builds API documentation for library and extra
+documentation as defined in `Document`.
+
+ocaml setup.ml -install
+-----------------------
+
+This step is mandatory. Install what has been built in build and doc step. Also
+install data files as defined in `DataFiles` fields.
+
+ocaml setup.ml -uninstall
+-------------------------
+
+This step is optional. Remove files and libraries installed.
+
+ocaml setup.ml -reinstall
+-------------------------
+
+This step is optional. Perform an uninstall and then an install step.
+
+ocaml setup.ml -clean
+---------------------
+
+This step is optional. Clean generated files during build and doc steps.
+
+ocaml setup.ml -distclean
+-------------------------
+
+This step is optional. Try to go back to pristine source state.
+
+ocaml setup.ml -all
+-------------------
+
+This step is optional. Run configure, build, test and doc step in one run.
+
+OASIS usage
+===================
+
+Command line
+------------
+
+OASIS v0.4.12 (C) 2009-2014 OCamlCore SARL, Sylvain Le Gall
+
+oasis [global-options*] subcommand [subcommand-options*]
+
+Environment variables:
+
+OASIS_PAGER: pager to use to display long textual output.
+
+Global command line options:
+
+This program allows to manipulate OASIS enabled package, i.e. package that
+contains an `_oasis` file. It is made of several subcommands that provide
+features around this file. Some subcommands require the installation of
+third party plugins.
+
+You need to specify a subcommand as defined in the following above.
+
+`-quiet`
+:   Run quietly
+
+`-info`
+:   Display information message
+
+`-debug`
+:   Output debug message
+
+`-ignore-plugins`
+:   Ignore plugin's field.
+
+`-C dir`
+:   Change directory before running (affects setup.{data,log}).
+
+`-help|--help`
+:   Display this list of options
+
+Available subcommands:
+
+`check`
+:   Check an _oasis file
+
+`help`
+:   Display help for a subcommand
+
+`manual`
+:   Display user manual
+
+`query`
+:   Query an _oasis file
+
+`quickstart`
+:   Launch a helper to write `_oasis` file
+
+`setup`
+:   Translate _oasis into a build system
+
+`setup-clean`
+:   Clean all template files from their content
+
+`version`
+:   Display the version of the OASIS program running
+
+Subcommand check
+----------------
+
+This subcommand load an `_oasis` file and apply standard checks.
+
+Usage: oasis [global-options*] check [options*]
+
+Options: 
+
+`-oasis fn`
+:   _oasis file to use.
+
+Subcommand help
+---------------
+
+This subcommand display help of other subcommands or of all subcommands.
+
+Usage: oasis [global-options*] help [subcommand|all]
+
+Subcommand manual
+-----------------
+
+This subcommand print the manual of OASIS. It uses the [markdown][] syntax to
+print it and more precisely the [pandoc][] extension of this syntax.
+
+  [markdown]: http://daringfireball.net/projects/markdown/
+  [pandoc]: http://johnmacfarlane.net/pandoc/
+
+This manual describes the command line tool `oasis`, the `_oasis` file format
+and the generated `setup.ml` file.
+
+Usage: oasis [global-options*] manual [options*]
+
+Options: 
+
+`-o fn`
+:   Output manual to filename.
+
+Subcommand query
+----------------
+
+This subcommand load an `_oasis` file and search its content for information.
+
+The query string follow this convention:
+
+* `ListSections`: return all the section found
+* `ListFields`: return all the fields, it recurses through sections
+* field: search for this field in the toplevel
+* section.field: search for this field in the section
+
+Query examples:
+
+* version: return the version
+* executable("test").install: return the field "install" of the executable
+  "test".
+
+You can use multiple queries, they will be executed in order.
+
+Usage: oasis [global-options*] query [options*] query*
+
+Options: 
+
+`-oasis fn`
+:   _oasis file to use.
+
+`-separator str`
+:   String to add between answers.
+
+Subcommand quickstart
+---------------------
+
+This subcommand is a helper to write `_oasis` file. It asks a serie of
+questions to create an initial `_oasis` file. The questions depend on the
+level of the user, you can set this level with the `-level` command line
+option.
+
+At the end of the process, you have the possibility to edit, to display or
+to write the generated file.
+
+Usage: oasis [global-options*] quickstart [options*]
+
+Options: 
+
+`-oasis fn`
+:   _oasis file to use.
+
+`-level {beginner|intermediate|expert}`
+:   Quickstart level, skip questions according to this level.
+
+`-machine`
+:   Computer readable questions for automatic completion.
+
+`-real-oasis`
+:   Use the real 'oasis' executable filename when generating setup.ml.
+
+`-setup-update {none|weak|dynamic}`
+:   Define the way `setup.ml` should update when `_oasis` change.
+
+`-nocompat`
+:   Don't generate compatibility layer in `setup.ml`.
+
+Subcommand setup
+----------------
+
+This is the main subcommand of `oasis`, it compiles the `_oasis` file into a
+self contained `setup.ml`. The generated file handle the various step to
+configure, build and install your project.
+
+This command can generate 3 differents kind of `setup.ml`, depending on the
+`-setup-update` command line argument:
+
+ * none: the default mode, it generates a standalone `setup.ml`.
+ * dynamic: a strong dependency on the library oasis but it generates a very
+   small `setup.ml` and almost no extra files that can be autogenerated.
+ * weak: only triggered to regenerate setup.ml and all files when something
+   change in `_oasis`. It has a weak dependency on the executable
+   oasis, because it only needs it when `_oasis` is changed. The update
+   behavior of `setup.ml` can be disabled if it is called with
+   `ocaml setup.ml -no-update-setup-ml [...]`.
+
+
+If you want contributor to checkout your VCS and be able to work without oasis
+installed, prefer the 'weak' mode. If you want to avoid VCS history  pollution,
+use the 'dynamic' mode. Always distribute tarball with mode 'none'
+
+Usage: oasis [global-options*] setup [options*]
+
+Options: 
+
+`-oasis fn`
+:   _oasis file to use.
+
+`-real-oasis`
+:   Use the real 'oasis' executable filename when generating setup.ml.
+
+`-setup-update {none|weak|dynamic}`
+:   Define the way `setup.ml` should update when `_oasis` change.
+
+`-nocompat`
+:   Don't generate compatibility layer in `setup.ml`.
+
+Subcommand setup-clean
+----------------------
+
+This subcommand go through every generated files and remove the replaceable
+part in it. It also tries to clean backup files made by a failed SetupDev
+subcommand invocation.
+
+The replaceable part of a generated file is everything between `OASIS_START`
+and `OASIS_STOP`.
+
+Usage: oasis [global-options*] setup-clean [options*]
+
+Options: 
+
+`-oasis fn`
+:   _oasis file to use.
+
+`-replace-sections Empty`
+:   replace section in generated files (i.e. remove content between OASIS_START
+    and OASIS_STOP).
+
+`-remove Empty`
+:   remove files which have unaltered header and footer.
+
+Subcommand version
+------------------
+
+Display version of the oasis executable.
+
+Usage: oasis [global-options*] version 
+
+
+
